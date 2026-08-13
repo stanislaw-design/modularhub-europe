@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">Modular Hub Europe logo direction v2</title>
+  <desc id="desc">A presentation board showing the new architectural MH monogram and four lockups inspired by the supplied reference.</desc>
+  <defs>
+    <g id="mh-symbol">
+      <path fill="#10263D" d="M8 30h13l14 15 14-15h13v52H49V49L35 63 21 49v33H8V30Z"/>
+      <path fill="#175CD3" d="M62 30h13v19h16V30h13v52H91V62H75v20H62V30Z"/>
+      <path fill="#10263D" d="M14 8h43v12H26v13H14V8Z"/>
+      <path fill="#175CD3" d="M57 8h17l30 16v14L71 20H57V8Z"/>
+    </g>
+    <g id="mh-symbol-white" fill="#FFFFFF">
+      <path d="M8 30h13l14 15 14-15h13v52H49V49L35 63 21 49v33H8V30Z"/>
+      <path d="M62 30h13v19h16V30h13v52H91V62H75v20H62V30Z"/>
+      <path d="M14 8h43v12H26v13H14V8Z"/>
+      <path d="M57 8h17l30 16v14L71 20H57V8Z"/>
+    </g>
+  </defs>
+  <rect width="1600" height="1000" fill="#10263D"/>
+  <text x="48" y="52" fill="#F4F1EA" font-family="IBM Plex Mono, Consolas, monospace" font-size="14" letter-spacing="2">LOGO DIRECTION V2 / ARCHITECTURAL MONOGRAM</text>
+
+  <g transform="translate(40 78)">
+    <rect width="1020" height="300" fill="#F4F1EA"/>
+    <text x="24" y="34" fill="#566473" font-family="IBM Plex Mono, Consolas, monospace" font-size="12" letter-spacing="1.5">01 / PRIMARY HORIZONTAL</text>
+    <use href="#mh-symbol" transform="translate(58 98) scale(1.25)"/>
+    <text x="225" y="176" font-family="Montserrat, Avenir Next, Arial, sans-serif" font-size="70" font-weight="700" letter-spacing="-2"><tspan fill="#10263D">Modular</tspan><tspan fill="#175CD3">Hub</tspan></text>
+    <line x1="228" y1="224" x2="330" y2="224" stroke="#10263D" stroke-width="3"/>
+    <text x="355" y="236" fill="#175CD3" font-family="Montserrat, Avenir Next, Arial, sans-serif" font-size="28" font-weight="600" letter-spacing="13">EUROPE</text>
+    <line x1="590" y1="224" x2="790" y2="224" stroke="#10263D" stroke-width="3"/>
+  </g>
+
+  <g transform="translate(1080 78)">
+    <rect width="480" height="430" fill="#E9E5DC"/>
+    <text x="24" y="34" fill="#566473" font-family="IBM Plex Mono, Consolas, monospace" font-size="12" letter-spacing="1.5">02 / SYMBOL</text>
+    <use href="#mh-symbol" transform="translate(155 92) scale(1.55)"/>
+    <line x1="72" y1="312" x2="408" y2="312" stroke="#C8C4BB"/>
+    <text x="240" y="350" text-anchor="middle" fill="#10263D" font-family="IBM Plex Mono, Consolas, monospace" font-size="13" letter-spacing="1.5">M + H / MODULAR FRAME</text>
+    <text x="240" y="381" text-anchor="middle" fill="#566473" font-family="IBM Plex Mono, Consolas, monospace" font-size="12">FLAT / TWO-COLOUR / MONO SAFE</text>
+  </g>
+
+  <g transform="translate(40 398)">
+    <rect width="500" height="520" fill="#F4F1EA"/>
+    <text x="24" y="34" fill="#566473" font-family="IBM Plex Mono, Consolas, monospace" font-size="12" letter-spacing="1.5">03 / STACKED</text>
+    <use href="#mh-symbol" transform="translate(170 75) scale(1.42)"/>
+    <text x="250" y="300" text-anchor="middle" font-family="Montserrat, Avenir Next, Arial, sans-serif" font-size="59" font-weight="700" letter-spacing="-1.8"><tspan fill="#10263D">Modular</tspan><tspan fill="#175CD3">Hub</tspan></text>
+    <line x1="50" y1="363" x2="135" y2="363" stroke="#10263D" stroke-width="2.5"/>
+    <text x="250" y="374" text-anchor="middle" fill="#175CD3" font-family="Montserrat, Avenir Next, Arial, sans-serif" font-size="24" font-weight="600" letter-spacing="11">EUROPE</text>
+    <line x1="365" y1="363" x2="450" y2="363" stroke="#10263D" stroke-width="2.5"/>
+  </g>
+
+  <g transform="translate(560 528)">
+    <rect width="500" height="390" fill="#E9E5DC"/>
+    <text x="24" y="34" fill="#566473" font-family="IBM Plex Mono, Consolas, monospace" font-size="12" letter-spacing="1.5">04 / COMPACT HORIZONTAL</text>
+    <use href="#mh-symbol" transform="translate(42 112) scale(1.02)"/>
+    <text x="176" y="183" font-family="Montserrat, Avenir Next, Arial, sans-serif" font-size="49" font-weight="700" letter-spacing="-1.4"><tspan fill="#10263D">Modular</tspan><tspan fill="#175CD3">Hub</tspan></text>
+    <text x="178" y="227" fill="#566473" font-family="Montserrat, Avenir Next, Arial, sans-serif" font-size="18" font-weight="600" letter-spacing="7">EUROPE</text>
+    <line x1="42" y1="304" x2="458" y2="304" stroke="#C8C4BB"/>
+    <text x="42" y="337" fill="#566473" font-family="IBM Plex Mono, Consolas, monospace" font-size="12">HEADER / PDF FOOTER / TRAILER</text>
+  </g>
+
+  <g transform="translate(1080 528)">
+    <rect width="480" height="390" fill="#175CD3"/>
+    <text x="24" y="34" fill="#FFFFFF" opacity=".8" font-family="IBM Plex Mono, Consolas, monospace" font-size="12" letter-spacing="1.5">05 / REVERSED MONO</text>
+    <use href="#mh-symbol-white" transform="translate(158 72) scale(1.48)"/>
+    <text x="240" y="286" text-anchor="middle" fill="#FFFFFF" font-family="Montserrat, Avenir Next, Arial, sans-serif" font-size="54" font-weight="700" letter-spacing="-1.6">ModularHub</text>
+    <text x="240" y="334" text-anchor="middle" fill="#FFFFFF" opacity=".82" font-family="Montserrat, Avenir Next, Arial, sans-serif" font-size="20" font-weight="600" letter-spacing="9">EUROPE</text>
+  </g>
+
+  <text x="40" y="968" fill="#F4F1EA" opacity=".7" font-family="IBM Plex Mono, Consolas, monospace" font-size="13">STYLE REFERENCE TRANSLATED, NOT COPIED — WORKING TITLE / TRADEMARK REVIEW REQUIRED</text>
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title desc">
+  <title id="title">Clearance Gate symbol</title>
+  <desc id="desc">Two modular frames aligned across a controlled vertical boundary.</desc>
+  <g fill="#10263D">
+    <path d="M8 26h36v12H22v20h22v12H8V26Z"/>
+    <path d="M52 26h36v44H52V58h22V38H52V26Z"/>
+    <path d="M46 8h4v24h-4zM46 38h4v8h-4zM46 50h4v8h-4zM46 64h4v24h-4z"/>
+  </g>
+</svg>

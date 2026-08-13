@@ -1,0 +1,41 @@
+:root {
+  /* Brand v3 — Engineered confidence */
+  --brand-foundation-navy: #10263d;
+  --brand-deep-structure: #081a2d;
+  --brand-passage-blue: #175cd3;
+  --brand-electric-plane: #0f5fe7;
+  --brand-warm-white: #f4f1ea;
+  --brand-steel: #d9e0e7;
+  --brand-technical-graphite: #344657;
+  --brand-interior-light: #f2b766;
+
+  /* Reserved product statuses — never brand accents */
+  --status-approved: #14804a;
+  --status-conditional: #b76e00;
+  --status-blocked: #c43d3d;
+
+  --font-brand-display: "Montserrat", "Avenir Next", Arial, sans-serif;
+  --font-brand-body: "Inter", "Helvetica Neue", Arial, sans-serif;
+  --font-brand-data: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+
+  --brand-radius-data: 4px;
+  --brand-radius-card: 6px;
+  --brand-radius-marketing: 8px;
+
+  --brand-space-1: 8px;
+  --brand-space-2: 16px;
+  --brand-space-3: 24px;
+  --brand-space-4: 32px;
+  --brand-space-5: 48px;
+  --brand-space-6: 64px;
+  --brand-space-7: 96px;
+
+  --brand-border: 1px solid var(--brand-steel);
+  --brand-focus-ring: 0 0 0 3px rgba(23, 92, 211, 0.28);
+}
+
+.brand-data {
+  font-family: var(--font-brand-data);
+  font-variant-numeric: tabular-nums;
+}
+

@@ -1,0 +1,44 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "brand": {
+    "color": {
+      "foundationNavy": { "$value": "#10263D", "$type": "color" },
+      "deepStructure": { "$value": "#081A2D", "$type": "color" },
+      "passageBlue": { "$value": "#175CD3", "$type": "color" },
+      "electricPlane": { "$value": "#0F5FE7", "$type": "color" },
+      "warmWhite": { "$value": "#F4F1EA", "$type": "color" },
+      "steel": { "$value": "#D9E0E7", "$type": "color" },
+      "technicalGraphite": { "$value": "#344657", "$type": "color" },
+      "interiorLight": {
+        "$value": "#F2B766",
+        "$type": "color",
+        "$description": "Material light only; never a CTA or warning accent."
+      }
+    },
+    "status": {
+      "$description": "Reserved for product compliance states; never marketing accents.",
+      "approved": { "$value": "#14804A", "$type": "color" },
+      "conditional": { "$value": "#B76E00", "$type": "color" },
+      "blocked": { "$value": "#C43D3D", "$type": "color" }
+    },
+    "typography": {
+      "displayFamily": { "$value": "Montserrat", "$type": "fontFamily" },
+      "bodyFamily": { "$value": "Inter", "$type": "fontFamily" },
+      "dataFamily": { "$value": "IBM Plex Mono", "$type": "fontFamily" }
+    },
+    "radius": {
+      "data": { "$value": "4px", "$type": "dimension" },
+      "card": { "$value": "6px", "$type": "dimension" },
+      "marketing": { "$value": "8px", "$type": "dimension" }
+    },
+    "spacing": {
+      "1": { "$value": "8px", "$type": "dimension" },
+      "2": { "$value": "16px", "$type": "dimension" },
+      "3": { "$value": "24px", "$type": "dimension" },
+      "4": { "$value": "32px", "$type": "dimension" },
+      "5": { "$value": "48px", "$type": "dimension" },
+      "6": { "$value": "64px", "$type": "dimension" },
+      "7": { "$value": "96px", "$type": "dimension" }
+    }
+  }
+}

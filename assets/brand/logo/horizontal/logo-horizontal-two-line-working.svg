@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 470 132" role="img" aria-labelledby="title desc">
+  <title id="title">Modular Hub Europe — horizontal two-line working logo</title>
+  <desc id="desc">Clearance Gate symbol followed by a two-line working name.</desc>
+  <g fill="#10263D" transform="translate(14 18)">
+    <path d="M8 26h36v12H22v20h22v12H8V26Z"/>
+    <path d="M52 26h36v44H52V58h22V38H52V26Z"/>
+    <path d="M46 8h4v24h-4zM46 38h4v8h-4zM46 50h4v8h-4zM46 64h4v24h-4z"/>
+  </g>
+  <rect x="127" y="27" width="4" height="78" fill="#175CD3"/>
+  <text x="154" y="62" fill="#10263D" font-family="IBM Plex Sans Condensed, Arial Narrow, Arial, sans-serif" font-size="35" font-weight="600" letter-spacing="0.5">MODULAR HUB</text>
+  <text x="155" y="94" fill="#566473" font-family="IBM Plex Sans Condensed, Arial Narrow, Arial, sans-serif" font-size="22" font-weight="500" letter-spacing="7">EUROPE</text>
+</svg>

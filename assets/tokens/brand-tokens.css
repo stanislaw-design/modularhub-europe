@@ -1,0 +1,44 @@
+:root {
+  /* Brand */
+  --brand-passage-blue: #175cd3;
+  --brand-deep-navy: #10263d;
+  --brand-technical-graphite: #263746;
+
+  /* Neutrals */
+  --neutral-warm-paper: #f4f1ea;
+  --neutral-drawing-sheet: #e9e5dc;
+  --neutral-datum-line: #c8c4bb;
+  --neutral-slate-note: #566473;
+  --neutral-working-white: #ffffff;
+
+  /* Product status only — never use as brand or marketing accents */
+  --status-confirmed: #14804a;
+  --status-conditional: #b76e00;
+  --status-not-admissible: #c43d3d;
+
+  /* Typography */
+  --font-heading: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
+  --font-body: "Inter", "Helvetica Neue", Arial, sans-serif;
+  --font-data: "IBM Plex Mono", "Roboto Mono", monospace;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+
+  /* Shape */
+  --radius-document: 2px;
+  --radius-control: 6px;
+  --rule-standard: 1px;
+}
+
+.brand-data {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums lining-nums slashed-zero;
+}

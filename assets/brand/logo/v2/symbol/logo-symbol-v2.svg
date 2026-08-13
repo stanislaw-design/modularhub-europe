@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 112 96" role="img" aria-labelledby="title desc">
+  <title id="title">Modular Hub architectural MH symbol</title>
+  <desc id="desc">A flat two-colour monogram built from modular structural profiles.</desc>
+  <path fill="#10263D" d="M8 30h13l14 15 14-15h13v52H49V49L35 63 21 49v33H8V30Z"/>
+  <path fill="#175CD3" d="M62 30h13v19h16V30h13v52H91V62H75v20H62V30Z"/>
+  <path fill="#10263D" d="M14 8h43v12H26v13H14V8Z"/>
+  <path fill="#175CD3" d="M57 8h17l30 16v14L71 20H57V8Z"/>
+</svg>
