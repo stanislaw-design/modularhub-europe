@@ -25,6 +25,7 @@ export const projects: Project[] = [
     heatSource: "Pompa ciepła powietrze-woda",
     fireResistance: "REI 30",
     windResistance: "Strefa wiatrowa 1-3 (do 30 m/s)",
+    featured: true,
   },
   {
     id: "prj-modulor-compact-56",
@@ -48,6 +49,7 @@ export const projects: Project[] = [
     heatSource: "Pompa ciepła powietrze-woda",
     fireResistance: "REI 30",
     windResistance: "Strefa wiatrowa 1-2 (do 26 m/s)",
+    featured: false,
   },
   {
     id: "prj-baltyk-loft-120",
@@ -71,6 +73,7 @@ export const projects: Project[] = [
     heatSource: "Pompa ciepła gruntowa",
     fireResistance: "REI 60",
     windResistance: "Strefa wiatrowa 1-3 (do 30 m/s)",
+    featured: true,
   },
   {
     id: "prj-baltyk-studio-38",
@@ -94,6 +97,7 @@ export const projects: Project[] = [
     heatSource: "Ogrzewanie elektryczne podłogowe",
     fireResistance: "REI 30",
     windResistance: "Strefa wiatrowa 1-2 (do 26 m/s)",
+    featured: true,
   },
   {
     id: "prj-karpaty-alpine-104",
@@ -117,6 +121,7 @@ export const projects: Project[] = [
     heatSource: "Kocioł na biomasę z buforem ciepła",
     fireResistance: "REI 60",
     windResistance: "Strefa wiatrowa 2-4 (do 36 m/s), obciążenie śniegiem do strefy 4",
+    featured: true,
   },
   {
     id: "prj-karpaty-ridge-72",
@@ -140,5 +145,6 @@ export const projects: Project[] = [
     heatSource: "Pompa ciepła powietrze-woda",
     fireResistance: "REI 45",
     windResistance: "Strefa wiatrowa 2-4 (do 36 m/s), obciążenie śniegiem do strefy 3",
+    featured: false,
   },
 ];

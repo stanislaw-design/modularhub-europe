@@ -37,12 +37,14 @@ npm run build
 npm run lint
 
 # Test
-<no test runner configured yet>
+npm run test         # vitest (unit/component)
+npm run test:watch   # vitest, watch mode
+npm run test:e2e     # playwright (E2E)
 ```
 
 ## Specs
 
-Stored in `docs/specs/`. Format: `docs/specs/NNNN-title.md`.
+Stored in `docs/specs/`. Each is a directory `docs/specs/NNNN-title/` with `index.md` (the spec itself) plus `rationale.md` and, once built, `verify.md`.
 
 ## Rules
 
@@ -53,6 +55,7 @@ Stored in `docs/specs/`. Format: `docs/specs/NNNN-title.md`.
 - UI state that must survive a route change (e.g. country and budget from the wizard, visible on the results screen) goes through URL search params, not shared component state.
 - No database, no login, no real payments in this stage; every "paid step" and file upload is a mock (see `docs/scope/scope.md`, Deferred section).
 - Lint/format/pre commit tooling is not finalized yet; only Next.js's default ESLint config exists so far (tracked as scope feature 2).
+- `next.config.ts` allowlists `next/image` remote patterns explicitly (`images.remotePatterns`); mock project cover images come from `picsum.photos` today, add any other external image host there before using it.
 
 ## Agent skills
 
@@ -60,9 +63,17 @@ Stored in `docs/specs/`. Format: `docs/specs/NNNN-title.md`.
 - [typescript-advanced-types](.agents/skills/typescript-advanced-types/): `wshobson/agents`, advanced TypeScript type patterns for the typed mock data model
 - [tailwindcss-advanced-layouts](.agents/skills/tailwindcss-advanced-layouts/): `josiahsiegel/claude-plugin-marketplace`, Tailwind v4 layout patterns (grid/flex)
 - [vercel-react-best-practices](.agents/skills/vercel-react-best-practices/): `vercel-labs/agent-skills`, React/Next.js performance best practices
+- [headlessui](.agents/skills/headlessui/): `bobmatnyc/claude-mpm-skills`, Headless UI (`@headlessui/react`) unstyled accessible component conventions
+- [lucide-icons](.agents/skills/lucide-icons/): `aksuharun/skills`, Lucide icon usage conventions (used across the design system and StageTimeline stage/document icons)
+- [vitest](.agents/skills/vitest/): `antfu/skills`, Vitest unit/component test conventions (mocking, fixtures, coverage)
+- [playwright-cli](.agents/skills/playwright-cli/): `microsoft/playwright-cli`, Playwright E2E browser automation and test conventions
+
+MCP servers: playwright (connected)
 
 ## Context files
 
 <!-- Nested AGENTS.md files are listed here as they are created -->
+
+- [components/klient/AGENTS.md](components/klient/AGENTS.md): feature specific components for the customer buying journey (results, shortlist, plot analysis, offer, realizacja)
 
 _Drafted by /audit from the repo, worth a quick human pass. Edit freely: once a line stops matching this draft, later runs treat it as curated and will flag rather than overwrite it._

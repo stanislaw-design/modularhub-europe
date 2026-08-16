@@ -26,6 +26,7 @@ export interface Project {
   heatSource: string;
   fireResistance: string;
   windResistance: string;
+  featured: boolean;
 }
 
 export type EligibilityStatus = "approved" | "conditional" | "blocked";
@@ -35,4 +36,29 @@ export interface EligibilityByCountry {
   countryCode: CountryCode;
   status: EligibilityStatus;
   reason: string;
+}
+
+export interface PlotAnalysisResult {
+  projectId: string;
+  status: EligibilityStatus;
+  reason: string;
+}
+
+export type FulfillmentStageName = "produkcja" | "transport" | "montaz" | "odbior" | "gwarancja";
+
+export interface FulfillmentDocument {
+  name: string;
+  type: "pdf" | "image";
+}
+
+export interface FulfillmentStage {
+  name: FulfillmentStageName;
+  reachedAt: string | null;
+  documents: FulfillmentDocument[];
+}
+
+export interface FulfillmentOrder {
+  projectId: string;
+  currentStage: FulfillmentStageName;
+  stages: FulfillmentStage[];
 }

@@ -42,3 +42,7 @@ next-env.d.ts
 
 # playwright mcp debug output
 .playwright-mcp/
+
+# playwright test artifacts
+/test-results/
+/playwright-report/

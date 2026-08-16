@@ -11,6 +11,8 @@ export { Radio } from "./Radio";
 export { Select } from "./Select";
 export type { SelectOption } from "./Select";
 export { Stack } from "./Stack";
+export { StageTimeline } from "./StageTimeline";
+export type { StageTimelineDocument, StageTimelineItem, StageStatus } from "./StageTimeline";
 export { StatusPill } from "./StatusPill";
 export { Text } from "./Text";
 export { Textarea } from "./Textarea";

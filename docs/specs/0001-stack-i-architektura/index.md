@@ -1,7 +1,7 @@
 # 0001. Stack i architektura
 
 **Date**: 2026-08-13
-**Status**: In Progress
+**Status**: Accepted
 
 ## Summary
 

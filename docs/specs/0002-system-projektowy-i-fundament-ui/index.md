@@ -1,7 +1,7 @@
 # 0002. System projektowy i fundament UI
 
 **Date**: 2026-08-13
-**Status**: In Progress
+**Status**: Accepted
 
 ## Summary
 
