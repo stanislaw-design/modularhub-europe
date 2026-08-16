@@ -3,6 +3,7 @@ export { Card } from "./Card";
 export { Checkbox } from "./Checkbox";
 export { Container } from "./Container";
 export { DataText } from "./DataText";
+export { FileUpload } from "./FileUpload";
 export { Grid } from "./Grid";
 export { Heading } from "./Heading";
 export { Input } from "./Input";

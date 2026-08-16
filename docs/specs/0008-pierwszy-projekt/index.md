@@ -1,7 +1,7 @@
 # 0008. Pierwszy projekt (producent): kreator wieloetapowy z zapisem stanu
 
 **Date**: 2026-08-14
-**Status**: Proposed
+**Status**: In Progress
 
 ## Summary
 

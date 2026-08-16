@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { fulfillmentOrders } from "./fixtures/fulfillment";
-import { getFulfillmentOrder } from "./fulfillment";
+import { getFulfillmentOrder, getFulfillmentOrders } from "./fulfillment";
 
 const STAGE_ORDER = ["produkcja", "transport", "montaz", "odbior", "gwarancja"] as const;
 
@@ -17,6 +17,23 @@ describe("getFulfillmentOrder", () => {
 
   it("returns null for an unknown project id, not an error", async () => {
     expect(await getFulfillmentOrder("does-not-exist")).toBeNull();
+  });
+});
+
+describe("getFulfillmentOrders (feature 16, producer-facing list)", () => {
+  it("returns every order in the fixture, not scoped to a single producer", async () => {
+    const orders = await getFulfillmentOrders();
+
+    expect(orders).toEqual(fulfillmentOrders);
+    expect(orders).toHaveLength(fulfillmentOrders.length);
+  });
+
+  it("includes orders at different stages, both in progress and delivered", async () => {
+    const orders = await getFulfillmentOrders();
+
+    expect(orders.some((order) => order.currentStage === "produkcja")).toBe(true);
+    expect(orders.some((order) => order.currentStage === "montaz")).toBe(true);
+    expect(orders.some((order) => order.currentStage === "gwarancja")).toBe(true);
   });
 });
 

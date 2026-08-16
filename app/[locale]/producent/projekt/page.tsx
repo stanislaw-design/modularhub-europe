@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
-import { RegistrationConfirmation } from "@/components/producent/RegistrationConfirmation";
+import { ProducerRegistrationBar } from "@/components/producent/ProducerRegistrationBar";
+import { ProjectWizard } from "@/components/producent/ProjectWizard";
+import { Stack } from "@/components/ui";
 import { getCountries } from "@/lib/data/countries";
 import { parseRegistrationDetails } from "@/lib/producer-registration";
 
@@ -19,5 +21,10 @@ export default async function PierwszyProjektPage({
     redirect(`/${locale}/producent`);
   }
 
-  return <RegistrationConfirmation locale={locale} details={details} countries={countries} />;
+  return (
+    <Stack gap={4}>
+      <ProducerRegistrationBar details={details} countries={countries} />
+      <ProjectWizard locale={locale} nip={details.nip} countries={countries} />
+    </Stack>
+  );
 }

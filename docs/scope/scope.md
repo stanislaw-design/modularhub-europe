@@ -22,11 +22,11 @@ Ten pierwszy etap jest świadomie prototypem demonstracyjnym: żaden ekran nic t
 | 9 | Oferta wiążąca (klient) | Prototyp | done |
 | 10 | Realizacja — oś statusów (klient) | Prototyp | done |
 | 11 | Rejestracja (producent) | Prototyp | in-progress |
-| 12 | Pierwszy projekt (producent) | Prototyp | in-progress |
-| 13 | Gotowość eksportowa (producent) | Prototyp | planned |
-| 14 | Domykanie luk (producent) | Prototyp | planned |
-| 15 | Zapytania i oferty (producent) | Prototyp | planned |
-| 16 | Realizacja i wypłata (producent) | Prototyp | planned |
+| 12 | Pierwszy projekt (producent) | Prototyp | done |
+| 13 | Gotowość eksportowa (producent) | Prototyp | done |
+| 14 | Domykanie luk (producent) | Prototyp | done |
+| 15 | Zapytania i oferty (producent) | Prototyp | done |
+| 16 | Realizacja i wypłata (producent) | Prototyp | in-progress |
 
 ## Foundations
 
@@ -139,38 +139,55 @@ Krótki formularz: NIP, kraje dostawy, technologia. Bez logowania — od razu pr
 **Done when:** wypełnienie trzech pól formularza prowadzi do ekranu pierwszego projektu.
 - [x] Zbuduj: `/develop rejestracja producenta` — kod w `app/[locale]/producent/page.tsx`, `app/[locale]/producent/projekt/page.tsx`, `app/[locale]/producent/layout.tsx`, `components/producent/`, `lib/producer-registration.ts`, `lib/producer-technologies.ts`. Ekran pod `/producent/projekt` to na razie potwierdzenie rejestracji (dane z formularza), pełny formularz dodawania projektu buduje feature 12.
 
-### 12. Pierwszy projekt (producent) · in-progress
+### 12. Pierwszy projekt (producent) · done
 Kreator wieloetapowy (6 kroków): dane podstawowe projektu, pola techniczne (układ ścian, izolacja, współczynniki przenikania ciepła, klasa okien, wentylacja, źródło ciepła, odporność ogniowa i wiatrowa), makieta wgrywania rzutów i zdjęć (bez realnego zapisu plików) i podsumowanie. Postęp zapisywany w `localStorage` przeglądarki (możliwość dokończenia później). Ustala wzorzec makiety uploadu i wzorzec kreatora wieloetapowego.
 **Done when:** wszystkie pola techniczne z listy są w formularzu, pole wgrywania pliku pokazuje wybrany plik bez trwałego zapisu, a zapisanie prowadzi do ekranu gotowości eksportowej.
 - [x] Zaprojektuj (spec): [0008](../specs/0008-pierwszy-projekt/index.md)
-- [ ] Zbuduj: `/develop pierwszy projekt`
-  - [ ] Dane i logika kreatora: `ProjectDraft`/`MockUploadedFile` w `lib/data/types.ts`, stan kroków, podpowiedzi i zapis/odczyt `localStorage` (kluczowany NIP producenta) w `lib/producer-project-draft.ts` (satisfies AC-4, AC-5, AC-6, AC-8)
-  - [ ] Komponent wgrywania plików: `components/ui/FileUpload.tsx`, reużywalna makieta uploadu (satisfies AC-6)
-  - [ ] Kreator i jego kroki: `components/producent/ProjectWizard.tsx`, sześć kroków, wskaźnik postępu, nawigacja i walidacja per krok, podsumowanie (satisfies AC-2, AC-3, AC-4, AC-5, AC-6, AC-7, AC-8)
-  - [ ] Wpięcie do routingu: przepisanie `app/[locale]/producent/projekt/page.tsx` (usuwa `RegistrationConfirmation`), nowa zaślepka `app/[locale]/producent/gotowosc-eksportowa/page.tsx` (satisfies AC-1, AC-9, AC-10)
-  - [ ] Dostępność: WCAG 2.2 AA, `aria-current="step"` na wskaźniku postępu (satisfies AC-11)
-- [ ] Zweryfikuj: `/check verify pierwszy projekt`
-- [ ] Testuj: `/test pierwszy projekt`
+- [x] Zbuduj: `/develop pierwszy projekt` (kod w `lib/data/types.ts`, `lib/producer-project-draft.ts`, `components/ui/FileUpload.tsx`, `components/producent/ProjectWizard.tsx` i jego sześć kroków, `components/producent/ProducerRegistrationBar.tsx`, `app/[locale]/producent/projekt/page.tsx`, `app/[locale]/producent/gotowosc-eksportowa/page.tsx`)
+  - [x] Dane i logika kreatora: `ProjectDraft`/`MockUploadedFile` w `lib/data/types.ts`, stan kroków, podpowiedzi i zapis/odczyt `localStorage` (kluczowany NIP producenta) w `lib/producer-project-draft.ts` (satisfies AC-4, AC-5, AC-6, AC-8)
+  - [x] Komponent wgrywania plików: `components/ui/FileUpload.tsx`, reużywalna makieta uploadu (satisfies AC-6)
+  - [x] Kreator i jego kroki: `components/producent/ProjectWizard.tsx`, sześć kroków, wskaźnik postępu, nawigacja i walidacja per krok, podsumowanie (satisfies AC-2, AC-3, AC-4, AC-5, AC-6, AC-7, AC-8)
+  - [x] Wpięcie do routingu: przepisanie `app/[locale]/producent/projekt/page.tsx` (usuwa `RegistrationConfirmation`), nowa zaślepka `app/[locale]/producent/gotowosc-eksportowa/page.tsx` (satisfies AC-1, AC-9, AC-10)
+  - [x] Dostępność: WCAG 2.2 AA, `aria-current="step"` na wskaźniku postępu (satisfies AC-11)
+- [x] Zweryfikuj: `/check verify pierwszy projekt`
+- [x] Testuj: `/test pierwszy projekt`
 
-### 13. Gotowość eksportowa (producent)
+### 13. Gotowość eksportowa (producent) · done
 Mapa/lista krajów ze statusem (gotowe / brakuje kilku rzeczy / niedopuszczalne) i konkretną listą braków przy statusie pośrednim, na danych mockowych. Zawiera widoczne zastrzeżenie, że to nie jest opinia prawna.
 **Done when:** każdy kraj z mocka pokazuje jeden z trzech statusów, status pośredni rozwija listę konkretnych braków, a zastrzeżenie prawne jest widoczne na ekranie.
-- [ ] Zaprojektuj (spec): `/architect gotowość eksportowa`
+- [x] Zaprojektuj (spec): [0009](../specs/0009-gotowosc-eksportowa/index.md)
+- [x] Zbuduj: `/develop gotowość eksportowa` (kod w `lib/data/types.ts`, `lib/data/fixtures/export-readiness.ts`, `lib/data/export-readiness.ts`, `components/producent/ExportReadinessMap.tsx`, `components/producent/ExportReadinessCountryRow.tsx`, `app/[locale]/producent/gotowosc-eksportowa/page.tsx`)
+  - [x] Dane mockowe: `ExportReadinessCountryStatus` w `lib/data/types.ts`, fixture `lib/data/fixtures/export-readiness.ts` (trzy statyczne wiersze, jeden na status) i `lib/data/export-readiness.ts` (`getExportReadiness()`) (satisfies AC-2, AC-3)
+  - [x] Komponenty mapy: `components/producent/ExportReadinessMap.tsx` (nagłówek, zastrzeżenie, lista) i `components/producent/ExportReadinessCountryRow.tsx` (`StatusPill`, akordeon na wierszu warunkowym) (satisfies AC-1, AC-4, AC-5, AC-6, AC-7)
+  - [x] Wpięcie do routingu: przepisanie `app/[locale]/producent/gotowosc-eksportowa/page.tsx`, usunięcie zaślepki (satisfies AC-1)
+  - [x] Dostępność: WCAG 2.2 AA, aria na akordeonie (satisfies AC-8)
+- [x] Zweryfikuj: `/check verify gotowość eksportowa`
+- [x] Testuj: `/test gotowość eksportowa`
 
-### 14. Domykanie luk (producent)
+### 14. Domykanie luk (producent) · done
 Dla kraju ze statusem pośrednim: wybór między samodzielnym wgraniem dokumentów a zakupem pakietu (makieta płatności, ten sam wzorzec co analiza działki klienta).
 **Done when:** z listy braków można przejść do ekranu wyboru, a wybór „kup pakiet” prowadzi do tej samej makiety płatności co u klienta.
-- [ ] Zbuduj: `/develop domykanie luk`
+- [x] Zaprojektuj (spec): [0010](../specs/0010-domykanie-luk/index.md)
+- [x] Zbuduj: `/develop domykanie luk` (kod w `lib/gap-closure.ts`, `components/producent/ExportReadinessCountryRow.tsx`, `components/producent/ExportReadinessMap.tsx`, `app/[locale]/producent/gotowosc-eksportowa/page.tsx`, `app/[locale]/producent/domykanie-luk/page.tsx`, `components/producent/GapClosureView.tsx`, `components/producent/GapClosureUploadSection.tsx`, `components/producent/GapClosurePackageSection.tsx`)
+  - [x] Dane i zapis stanu: `lib/gap-closure.ts` (localStorage, fail soft) (satisfies AC-7, AC-8, AC-10)
+  - [x] Wpięcie akcji na mapie: przycisk „Domknij luki” i odczyt zapisanego stanu w `ExportReadinessCountryRow` (satisfies AC-1, AC-8)
+  - [x] Nowy ekran i routing: `app/[locale]/producent/domykanie-luk/page.tsx`, `GapClosureView` (nagłówek, łagodny redirect, już rozwiązany kraj) (satisfies AC-2, AC-3, AC-9)
+  - [x] Dwie ścieżki: `GapClosureUploadSection`, `GapClosurePackageSection` (satisfies AC-4, AC-5, AC-6, AC-7)
+  - [x] Dostępność: WCAG 2.2 AA (satisfies AC-11)
+- [x] Zweryfikuj: `/check verify domykanie luk`
+- [x] Testuj: `/test domykanie luk`
 
-### 15. Zapytania i oferty (producent)
+### 15. Zapytania i oferty (producent) · done
 Lista przychodzących zapytań (na danych mockowych) z możliwością złożenia oferty w narzuconym szablonie; pozycja transportu jest wypełniona automatycznie i niemożliwa do edycji.
 **Done when:** producent widzi listę zapytań, może otworzyć formularz oferty w tym samym szablonie co u wszystkich producentów, a pole transportu jest tylko do odczytu.
-- [ ] Zbuduj: `/develop zapytania i oferty`
+- [x] Zbuduj: `/develop zapytania i oferty` (kod w `lib/data/producer-inquiries.ts`, `lib/data/fixtures/producer-inquiries.ts`, `lib/pricing.ts`, `lib/producer-offers.ts`, `components/producent/ProducerInquiryList.tsx`, `components/producent/ProducerInquiryRow.tsx`, `components/producent/ProducerOfferForm.tsx`, `app/[locale]/producent/zapytania/page.tsx`, `app/[locale]/producent/zapytania/oferta/page.tsx`, `app/[locale]/producent/page.tsx`). Zapytania to samodzielne dane mockowe (nie połączone z `lib/inquiry.ts` po stronie klienta, ten Facade nic trwale nie zapisuje między ekranami); transport wyliczany ze stałej stawki per kraj dostawy w `lib/pricing.ts`, jawnie oznaczonej jako makieta.
+- [x] Zweryfikuj: `/check verify zapytania i oferty`
+- [x] Testuj: `/test zapytania i oferty`
 
 ### 16. Realizacja i wypłata (producent)
 Ten sam wzorzec osi statusu co w kroku klienta (produkcja, transport, montaż, odbiór), plus ekran makiety weryfikacji firmy przed „pierwszą wypłatą”.
 **Done when:** oś statusu wygląda spójnie z widokiem klienta dla tego samego zamówienia, a ekran weryfikacji firmy pokazuje listę wymaganych dokumentów bez realnej weryfikacji.
-- [ ] Zbuduj: `/develop realizacja i wypłata`
+- [x] Zbuduj: `/develop realizacja i wypłata` (kod w `lib/data/fulfillment.ts`, `lib/producer-verification.ts`, `components/producent/ProducerFulfillmentList.tsx`, `components/producent/CompanyVerificationView.tsx`, `app/[locale]/producent/realizacje/page.tsx`, `app/[locale]/producent/realizacja/page.tsx`, `app/[locale]/producent/weryfikacja-firmy/page.tsx`, `app/[locale]/producent/page.tsx`). Brak feature 15 (zapytania i oferty), więc lista realizacji na `/producent/realizacje` jest globalna (bez sesji producenta, ten sam precedens co `lib/gap-closure.ts`) i stanowi punkt wejścia zamiast listy przyjętych ofert.
 
 ## Deferred
 Poza zakresem tego pierwszego etapu, świadomie odłożone do podłączenia prawdziwego zaplecza po ekranie.
@@ -184,6 +201,7 @@ Poza zakresem tego pierwszego etapu, świadomie odłożone do podłączenia praw
 - **Panel administracyjny**: zarządzanie producentami, projektami i zapytaniami · needs a decision
 - **Wersje językowe (EN/DE)**: rozszerzenie z samego polskiego · needs a decision
 - **Stopka strony** (kontakt, informacje prawne, przełącznik języka): świadomie pominięta w specyfikacji [0003](../specs/0003-strona-startowa/index.md), bo nie ma dziś realnej treści do pokazania · needs a decision
+- **Zawężenie mapy gotowości eksportowej do krajów rejestracji**: dziś mapa (funkcja 13, spec [0009](../specs/0009-gotowosc-eksportowa/index.md)) zawsze pokazuje wszystkie trzy kraje z mocka; zawężenie do krajów dostawy wybranych przy rejestracji (funkcja 11) wymaga rozszerzenia kontraktu URL, który dziś przenosi tylko nazwę projektu · needs a decision
 
 ## Legend
 

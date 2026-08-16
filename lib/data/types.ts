@@ -44,6 +44,36 @@ export interface PlotAnalysisResult {
   reason: string;
 }
 
+export interface ExportReadinessCountryStatus {
+  countryCode: CountryCode;
+  status: EligibilityStatus;
+  reason: string;
+  gaps: string[];
+}
+
+export interface MockUploadedFile {
+  name: string;
+  sizeBytes: number;
+}
+
+export interface ProjectDraft {
+  name: string;
+  floorAreaM2: number | null;
+  bedrooms: number | null;
+  countryOfProduction: CountryCode | null;
+  description: string;
+  wallBuildUp: string;
+  insulation: string;
+  heatTransferCoefficients: string;
+  windowClass: string;
+  ventilation: string;
+  heatSource: string;
+  fireResistance: string;
+  windResistance: string;
+  floorPlanFiles: MockUploadedFile[];
+  photoFiles: MockUploadedFile[];
+}
+
 export type FulfillmentStageName = "produkcja" | "transport" | "montaz" | "odbior" | "gwarancja";
 
 export interface FulfillmentDocument {
@@ -61,4 +91,14 @@ export interface FulfillmentOrder {
   projectId: string;
   currentStage: FulfillmentStageName;
   stages: FulfillmentStage[];
+}
+
+export interface ProducerInquiry {
+  id: string;
+  projectId: string;
+  clientName: string;
+  clientEmail: string;
+  clientPhone: string;
+  deliveryCountry: CountryCode;
+  receivedAt: string;
 }

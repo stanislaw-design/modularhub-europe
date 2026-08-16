@@ -1,0 +1,248 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { ProjectDraft } from "./data/types";
+import {
+  BEDROOMS_MAX,
+  BEDROOMS_MIN,
+  FLOOR_AREA_MAX_M2,
+  FLOOR_AREA_MIN_M2,
+  WIZARD_STEPS,
+  clearDraft,
+  createEmptyDraft,
+  isStepComplete,
+  loadDraft,
+  saveDraft,
+} from "./producer-project-draft";
+
+function completeDraft(): ProjectDraft {
+  return {
+    name: "Modulor 28",
+    floorAreaM2: 80,
+    bedrooms: 2,
+    countryOfProduction: "PL",
+    description: "Opis projektu",
+    wallBuildUp: "Szkielet",
+    insulation: "U = 0.15",
+    heatTransferCoefficients: "U = 0.9",
+    windowClass: "Uw = 0.8",
+    ventilation: "Mechaniczna",
+    heatSource: "Pompa ciepła",
+    fireResistance: "REI 30",
+    windResistance: "Strefa 2",
+    floorPlanFiles: [{ name: "rzut.pdf", sizeBytes: 100 }],
+    photoFiles: [{ name: "zdjecie.png", sizeBytes: 200 }],
+  };
+}
+
+beforeEach(() => {
+  window.localStorage.clear();
+});
+
+describe("WIZARD_STEPS", () => {
+  it("has six steps in the fixed spec order", () => {
+    expect(WIZARD_STEPS.map((step) => step.id)).toEqual([
+      "podstawowe",
+      "konstrukcja",
+      "instalacje",
+      "odpornosc",
+      "pliki",
+      "podsumowanie",
+    ]);
+  });
+});
+
+describe("createEmptyDraft", () => {
+  it("returns a draft with every field empty, null, or an empty file list", () => {
+    const draft = createEmptyDraft();
+
+    expect(draft.name).toBe("");
+    expect(draft.floorAreaM2).toBeNull();
+    expect(draft.bedrooms).toBeNull();
+    expect(draft.countryOfProduction).toBeNull();
+    expect(draft.floorPlanFiles).toEqual([]);
+    expect(draft.photoFiles).toEqual([]);
+  });
+});
+
+describe("isStepComplete: podstawowe", () => {
+  it("is complete when all five fields are valid", () => {
+    expect(isStepComplete("podstawowe", completeDraft())).toBe(true);
+  });
+
+  it("is incomplete when the name is blank or only whitespace", () => {
+    expect(isStepComplete("podstawowe", { ...completeDraft(), name: "" })).toBe(false);
+    expect(isStepComplete("podstawowe", { ...completeDraft(), name: "   " })).toBe(false);
+  });
+
+  it("accepts the floor area at the inclusive boundaries", () => {
+    expect(isStepComplete("podstawowe", { ...completeDraft(), floorAreaM2: FLOOR_AREA_MIN_M2 })).toBe(true);
+    expect(isStepComplete("podstawowe", { ...completeDraft(), floorAreaM2: FLOOR_AREA_MAX_M2 })).toBe(true);
+  });
+
+  it("rejects a floor area just outside the boundaries, or null", () => {
+    expect(isStepComplete("podstawowe", { ...completeDraft(), floorAreaM2: FLOOR_AREA_MIN_M2 - 1 })).toBe(false);
+    expect(isStepComplete("podstawowe", { ...completeDraft(), floorAreaM2: FLOOR_AREA_MAX_M2 + 1 })).toBe(false);
+    expect(isStepComplete("podstawowe", { ...completeDraft(), floorAreaM2: null })).toBe(false);
+  });
+
+  it("accepts bedrooms at the inclusive boundaries", () => {
+    expect(isStepComplete("podstawowe", { ...completeDraft(), bedrooms: BEDROOMS_MIN })).toBe(true);
+    expect(isStepComplete("podstawowe", { ...completeDraft(), bedrooms: BEDROOMS_MAX })).toBe(true);
+  });
+
+  it("rejects bedrooms outside the boundaries, non-integer, or null", () => {
+    expect(isStepComplete("podstawowe", { ...completeDraft(), bedrooms: BEDROOMS_MIN - 1 })).toBe(false);
+    expect(isStepComplete("podstawowe", { ...completeDraft(), bedrooms: BEDROOMS_MAX + 1 })).toBe(false);
+    expect(isStepComplete("podstawowe", { ...completeDraft(), bedrooms: 2.5 })).toBe(false);
+    expect(isStepComplete("podstawowe", { ...completeDraft(), bedrooms: null })).toBe(false);
+  });
+
+  it("is incomplete when the country or description is missing", () => {
+    expect(isStepComplete("podstawowe", { ...completeDraft(), countryOfProduction: null })).toBe(false);
+    expect(isStepComplete("podstawowe", { ...completeDraft(), description: "" })).toBe(false);
+  });
+});
+
+describe("isStepComplete: technical steps", () => {
+  it("konstrukcja requires all three fields non-blank", () => {
+    expect(isStepComplete("konstrukcja", completeDraft())).toBe(true);
+    expect(isStepComplete("konstrukcja", { ...completeDraft(), wallBuildUp: "" })).toBe(false);
+    expect(isStepComplete("konstrukcja", { ...completeDraft(), insulation: "  " })).toBe(false);
+    expect(isStepComplete("konstrukcja", { ...completeDraft(), heatTransferCoefficients: "" })).toBe(false);
+  });
+
+  it("instalacje requires all three fields non-blank", () => {
+    expect(isStepComplete("instalacje", completeDraft())).toBe(true);
+    expect(isStepComplete("instalacje", { ...completeDraft(), windowClass: "" })).toBe(false);
+    expect(isStepComplete("instalacje", { ...completeDraft(), ventilation: "" })).toBe(false);
+    expect(isStepComplete("instalacje", { ...completeDraft(), heatSource: "" })).toBe(false);
+  });
+
+  it("odpornosc requires both fields non-blank", () => {
+    expect(isStepComplete("odpornosc", completeDraft())).toBe(true);
+    expect(isStepComplete("odpornosc", { ...completeDraft(), fireResistance: "" })).toBe(false);
+    expect(isStepComplete("odpornosc", { ...completeDraft(), windResistance: "" })).toBe(false);
+  });
+});
+
+describe("isStepComplete: pliki", () => {
+  it("requires at least one file in each of the two areas", () => {
+    expect(isStepComplete("pliki", completeDraft())).toBe(true);
+    expect(isStepComplete("pliki", { ...completeDraft(), floorPlanFiles: [] })).toBe(false);
+    expect(isStepComplete("pliki", { ...completeDraft(), photoFiles: [] })).toBe(false);
+  });
+});
+
+describe("isStepComplete: podsumowanie", () => {
+  it("is complete only when every prior step is complete", () => {
+    expect(isStepComplete("podsumowanie", completeDraft())).toBe(true);
+  });
+
+  it("is incomplete when any single earlier step is incomplete", () => {
+    expect(isStepComplete("podsumowanie", { ...completeDraft(), name: "" })).toBe(false);
+    expect(isStepComplete("podsumowanie", { ...completeDraft(), fireResistance: "" })).toBe(false);
+    expect(isStepComplete("podsumowanie", { ...completeDraft(), photoFiles: [] })).toBe(false);
+  });
+});
+
+describe("saveDraft / loadDraft round trip", () => {
+  it("loads back exactly what was saved, keyed by NIP", () => {
+    const draft = completeDraft();
+    saveDraft("1234567890", draft, 3);
+
+    const loaded = loadDraft("1234567890");
+
+    expect(loaded).toEqual({ draft, step: 3 });
+  });
+
+  it("returns null when nothing is stored for that NIP", () => {
+    expect(loadDraft("0000000000")).toBeNull();
+  });
+
+  it("keeps two producers' drafts fully isolated under different NIPs", () => {
+    saveDraft("1111111111", { ...completeDraft(), name: "Dom A" }, 1);
+    saveDraft("2222222222", { ...completeDraft(), name: "Dom B" }, 4);
+
+    expect(loadDraft("1111111111")?.draft.name).toBe("Dom A");
+    expect(loadDraft("2222222222")?.draft.name).toBe("Dom B");
+  });
+
+  it("clamps an out-of-range stored step into the valid range", () => {
+    window.localStorage.setItem(
+      "producent:1234567890:projekt-szkic",
+      JSON.stringify({ draft: completeDraft(), step: 99 })
+    );
+
+    expect(loadDraft("1234567890")?.step).toBe(WIZARD_STEPS.length - 1);
+  });
+});
+
+describe("loadDraft: fail-soft on a corrupted or incompatible saved state", () => {
+  it("returns null for syntactically invalid JSON, never throws", () => {
+    window.localStorage.setItem("producent:1234567890:projekt-szkic", "{not-json");
+
+    expect(() => loadDraft("1234567890")).not.toThrow();
+    expect(loadDraft("1234567890")).toBeNull();
+  });
+
+  it("returns null when the stored value is valid JSON but not the expected shape", () => {
+    window.localStorage.setItem("producent:1234567890:projekt-szkic", JSON.stringify({ foo: "bar" }));
+    expect(loadDraft("1234567890")).toBeNull();
+  });
+
+  it("returns null when draft is present but step is missing", () => {
+    window.localStorage.setItem(
+      "producent:1234567890:projekt-szkic",
+      JSON.stringify({ draft: completeDraft() })
+    );
+    expect(loadDraft("1234567890")).toBeNull();
+  });
+
+  it("merges a partial draft object with defaults instead of rejecting it outright", () => {
+    window.localStorage.setItem(
+      "producent:1234567890:projekt-szkic",
+      JSON.stringify({ draft: { name: "Częściowy" }, step: 0 })
+    );
+
+    const loaded = loadDraft("1234567890");
+
+    expect(loaded?.draft.name).toBe("Częściowy");
+    expect(loaded?.draft.floorAreaM2).toBeNull();
+    expect(loaded?.draft.floorPlanFiles).toEqual([]);
+  });
+});
+
+describe("saveDraft: fails soft when the underlying write throws", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("does not throw when localStorage.setItem throws (e.g. quota exceeded, private mode)", () => {
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("QuotaExceededError");
+    });
+
+    expect(() => saveDraft("1234567890", completeDraft(), 0)).not.toThrow();
+  });
+});
+
+describe("clearDraft", () => {
+  it("removes only the given NIP's saved state", () => {
+    saveDraft("1111111111", completeDraft(), 2);
+    saveDraft("2222222222", completeDraft(), 2);
+
+    clearDraft("1111111111");
+
+    expect(loadDraft("1111111111")).toBeNull();
+    expect(loadDraft("2222222222")).not.toBeNull();
+  });
+
+  it("does not throw when localStorage.removeItem throws", () => {
+    const spy = vi.spyOn(Storage.prototype, "removeItem").mockImplementation(() => {
+      throw new Error("blocked");
+    });
+
+    expect(() => clearDraft("1234567890")).not.toThrow();
+
+    spy.mockRestore();
+  });
+});

@@ -1,6 +1,6 @@
 import { ShieldCheck, Truck, Workflow } from "lucide-react";
 import { RegistrationForm } from "@/components/producent/RegistrationForm";
-import { Card, Grid, Heading, Stack, Text } from "@/components/ui";
+import { Button, Card, Grid, Heading, Stack, Text } from "@/components/ui";
 import { getCountries } from "@/lib/data/countries";
 
 const benefits = [
@@ -55,6 +55,12 @@ export default async function ProducentPage({
               </Stack>
             </Card>
           ))}
+          <Button as="a" href={`/${locale}/producent/zapytania`} variant="ghost" className="w-fit">
+            Masz już konto? Sprawdź przychodzące zapytania
+          </Button>
+          <Button as="a" href={`/${locale}/producent/realizacje`} variant="ghost" className="w-fit">
+            Masz już zamówienie w realizacji? Sprawdź status i wypłatę
+          </Button>
         </Stack>
         <Card padding="lg" className="col-span-12 lg:col-span-7">
           <Stack gap={4}>

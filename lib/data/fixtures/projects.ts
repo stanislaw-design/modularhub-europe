@@ -1,7 +1,5 @@
 import type { Project } from "../types";
 
-// coverImageUrl values are placeholder photography (picsum.photos, seeded for
-// stable output); replace with real producer photography once available.
 export const projects: Project[] = [
   {
     id: "prj-modulor-family-90",
@@ -14,7 +12,7 @@ export const projects: Project[] = [
     priceMin: 118000,
     priceMax: 142000,
     currency: "EUR",
-    coverImageUrl: "https://picsum.photos/seed/modulor-family-90/960/640",
+    coverImageUrl: "/images/houses/golden-hour/modulor-family-90.webp",
     description:
       "Dom rodzinny w układzie parterowym, trzy sypialnie, otwarta strefa dzienna z kuchnią. Konstrukcja szkieletowa drewniana, prefabrykowana w hali w Katowicach.",
     wallBuildUp: "Szkielet drewniany, płyta OSB, wełna mineralna, elewacja włókno-cementowa",
@@ -38,7 +36,7 @@ export const projects: Project[] = [
     priceMin: 79000,
     priceMax: 94000,
     currency: "EUR",
-    coverImageUrl: "https://picsum.photos/seed/modulor-compact-56/960/640",
+    coverImageUrl: "/images/houses/golden-hour/modulor-compact-56.webp",
     description:
       "Kompaktowy dom dla pary lub małej rodziny. Jeden moduł transportowy, montaż w jeden dzień.",
     wallBuildUp: "Szkielet drewniany, płyta OSB, wełna mineralna, elewacja drewniana",
@@ -62,7 +60,7 @@ export const projects: Project[] = [
     priceMin: 168000,
     priceMax: 199000,
     currency: "EUR",
-    coverImageUrl: "https://picsum.photos/seed/baltyk-loft-120/960/640",
+    coverImageUrl: "/images/houses/golden-hour/baltyk-loft-120.webp",
     description:
       "Dwukondygnacyjny dom w stylu loft z antresolą, cztery sypialnie, duże przeszklenia od strony ogrodu.",
     wallBuildUp: "Konstrukcja stalowa lekka, płyta cementowo-włóknowa, wełna mineralna",
@@ -86,7 +84,7 @@ export const projects: Project[] = [
     priceMin: 54000,
     priceMax: 63000,
     currency: "EUR",
-    coverImageUrl: "https://picsum.photos/seed/baltyk-studio-38/960/640",
+    coverImageUrl: "/images/houses/golden-hour/baltyk-studio-38.webp",
     description:
       "Moduł studyjny: jedna przestrzeń dzienna z sypialnią, kuchnia aneksowa. Domek dla jednej osoby lub jako budynek gościnny.",
     wallBuildUp: "Konstrukcja stalowa lekka, płyta cementowo-włóknowa, wełna mineralna",
@@ -110,7 +108,7 @@ export const projects: Project[] = [
     priceMin: 139000,
     priceMax: 165000,
     currency: "EUR",
-    coverImageUrl: "https://picsum.photos/seed/karpaty-alpine-104/960/640",
+    coverImageUrl: "/images/houses/golden-hour/karpaty-alpine-104.webp",
     description:
       "Dom w konstrukcji CLT o podwyższonej odporności na obciążenie śniegiem, przeznaczony na tereny górskie i klimat chłodny.",
     wallBuildUp: "Panele CLT (drewno klejone krzyżowo), izolacja zewnętrzna, elewacja drewniano-metalowa",
@@ -134,7 +132,7 @@ export const projects: Project[] = [
     priceMin: 98000,
     priceMax: 116000,
     currency: "EUR",
-    coverImageUrl: "https://picsum.photos/seed/karpaty-ridge-72/960/640",
+    coverImageUrl: "/images/houses/golden-hour/karpaty-ridge-72.webp",
     description:
       "Mniejszy wariant konstrukcji CLT, dwie sypialnie, taras zadaszony. Dobry wybór jako dom całoroczny na działce rekreacyjnej.",
     wallBuildUp: "Panele CLT (drewno klejone krzyżowo), izolacja zewnętrzna, elewacja drewniana",

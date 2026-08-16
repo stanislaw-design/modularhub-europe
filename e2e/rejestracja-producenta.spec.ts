@@ -24,7 +24,7 @@ test.describe("/pl/producent registration", () => {
     await expect(page).toHaveURL(
       "/pl/producent/projekt?nip=1234567890&countries=PL%2CDE&technology=szkielet-drewniany"
     );
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Pierwszy projekt");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Dodaj pierwszy projekt");
     await expect(page.getByText("1234567890")).toBeVisible();
     await expect(page.getByText("Polska, Niemcy")).toBeVisible();
     await expect(page.getByText("Szkielet drewniany")).toBeVisible();
@@ -55,19 +55,8 @@ test.describe("/pl/producent registration", () => {
     await page.goto(
       "/pl/producent/projekt?nip=1234567890&countries=PL,PL,XX&technology=szkielet-drewniany"
     );
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Pierwszy projekt");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Dodaj pierwszy projekt");
     await expect(page.getByText("Polska")).toBeVisible();
-  });
-
-  test("the 'Wróć do rejestracji' link returns to the empty registration form", async ({ page }) => {
-    await page.goto(
-      "/pl/producent/projekt?nip=1234567890&countries=PL&technology=szkielet-drewniany"
-    );
-
-    await page.getByRole("link", { name: "Wróć do rejestracji" }).click();
-
-    await expect(page).toHaveURL("/pl/producent");
-    await expect(page.getByLabel(/nip/i)).toHaveValue("");
   });
 
   test("keyboard pass: one H1 and visible focus rings across the NIP field, a country checkbox, and submit", async ({
