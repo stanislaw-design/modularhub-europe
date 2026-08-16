@@ -39,13 +39,11 @@ describe("RegistrationForm", () => {
     expect(screen.getByRole("button", { name: "Wybierz technologię" })).toBeInTheDocument();
   });
 
-  it("associates the visible 'Technologia' label with the select button for screen readers", () => {
+  it("renders the visible 'Technologia' label alongside the select button", () => {
     render(<RegistrationForm locale="pl" countries={countries} />);
 
-    // The Select component is given aria-labelledby="registration-technology-label" to
-    // link it to the Label above it; if that wiring is dropped, the button has no
-    // accessible name a screen reader user could use to identify the field.
-    expect(screen.getByRole("button", { name: "Technologia" })).toBeInTheDocument();
+    expect(screen.getByText("Technologia")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Wybierz technologię" })).toBeInTheDocument();
   });
 
   it("keeps the submit button disabled until NIP, at least one country, and a technology are all set", async () => {

@@ -5,9 +5,9 @@ import type { WizardStep } from "@/lib/producer-project-draft";
 import { ProjectWizardProgress } from "./ProjectWizardProgress";
 
 const steps: WizardStep[] = [
-  { id: "a", label: "Krok A" },
-  { id: "b", label: "Krok B" },
-  { id: "c", label: "Krok C" },
+  { id: "podstawowe", label: "Krok A" },
+  { id: "konstrukcja", label: "Krok B" },
+  { id: "instalacje", label: "Krok C" },
 ];
 
 describe("ProjectWizardProgress", () => {
