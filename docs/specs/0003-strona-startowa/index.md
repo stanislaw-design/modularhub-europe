@@ -1,7 +1,7 @@
 # 0003. Strona startowa: hero z selektorem wyszukiwania
 
 **Date**: 2026-08-13
-**Status**: Accepted
+**Status**: Superseded by [0014](../0014-przebudowa-strony-startowej/index.md)
 
 ## Summary
 

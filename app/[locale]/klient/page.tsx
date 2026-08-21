@@ -1,10 +1,13 @@
-import { CategoryFilterBar } from "@/components/klient/CategoryFilterBar";
-import { FeaturedHomes } from "@/components/klient/FeaturedHomes";
+import { CategoryShowcase } from "@/components/klient/CategoryShowcase";
+import { ClosingCta } from "@/components/klient/ClosingCta";
 import { Hero } from "@/components/klient/Hero";
-import { HowItWorks } from "@/components/klient/HowItWorks";
-import { Stack } from "@/components/ui";
+import { SearchCard } from "@/components/klient/SearchCard";
+import { StatsBar } from "@/components/klient/StatsBar";
+import { TrustedProducers } from "@/components/klient/TrustedProducers";
+import { TrustFooterRow } from "@/components/klient/TrustFooterRow";
+import { WhyUs } from "@/components/klient/WhyUs";
 import { getCountries } from "@/lib/data/countries";
-import { getFeaturedProjects } from "@/lib/data/projects";
+import { getProjects } from "@/lib/data/projects";
 
 export default async function KlientHomePage({
   params,
@@ -12,17 +15,19 @@ export default async function KlientHomePage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const [countries, featuredProjects] = await Promise.all([
-    getCountries(),
-    getFeaturedProjects(),
-  ]);
+  const [countries, projects] = await Promise.all([getCountries(), getProjects()]);
+  const producerNames = [...new Set(projects.map((project) => project.producerName))];
 
   return (
-    <Stack gap={5}>
-      <Hero locale={locale} countries={countries} />
-      <CategoryFilterBar />
-      <FeaturedHomes locale={locale} projects={featuredProjects} countries={countries} />
-      <HowItWorks />
-    </Stack>
+    <div className="flex flex-col">
+      <Hero />
+      <SearchCard locale={locale} countries={countries} />
+      <StatsBar />
+      <CategoryShowcase locale={locale} />
+      <WhyUs />
+      <TrustedProducers producerNames={producerNames} />
+      <ClosingCta />
+      <TrustFooterRow />
+    </div>
   );
 }

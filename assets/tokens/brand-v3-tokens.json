@@ -2,13 +2,13 @@
   "$schema": "https://design-tokens.github.io/community-group/format/",
   "brand": {
     "color": {
-      "foundationNavy": { "$value": "#10263D", "$type": "color" },
-      "deepStructure": { "$value": "#081A2D", "$type": "color" },
-      "passageBlue": { "$value": "#175CD3", "$type": "color" },
-      "electricPlane": { "$value": "#0F5FE7", "$type": "color" },
+      "foundationNavy": { "$value": "#1A1512", "$type": "color" },
+      "deepStructure": { "$value": "#0D0A08", "$type": "color" },
+      "passageBlue": { "$value": "#B8860B", "$type": "color" },
+      "electricPlane": { "$value": "#D4AF37", "$type": "color" },
       "warmWhite": { "$value": "#F4F1EA", "$type": "color" },
-      "steel": { "$value": "#D9E0E7", "$type": "color" },
-      "technicalGraphite": { "$value": "#344657", "$type": "color" },
+      "steel": { "$value": "#DED5C2", "$type": "color" },
+      "technicalGraphite": { "$value": "#4A4038", "$type": "color" },
       "interiorLight": {
         "$value": "#F2B766",
         "$type": "color",

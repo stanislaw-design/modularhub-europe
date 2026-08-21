@@ -16,3 +16,22 @@ export function roundedSizeRangeFor(floorAreaM2: number): SizeRange {
   const sizeMin = [...SIZE_THRESHOLDS].reverse().find((threshold) => threshold <= floorAreaM2);
   return { sizeMin, sizeMax };
 }
+
+export interface SizeRangeOption extends SizeRange {
+  value: string;
+  label: string;
+}
+
+// The six ranges the home page's single "Powierzchnia" field offers (spec
+// 0014, Feature design), built from SIZE_THRESHOLDS only — no new values.
+// Replaces the old two-field "od"/"do" pair from spec 0003; a value in the
+// middle (e.g. exactly 100 m²) still matches two adjacent ranges, the same
+// closed-interval consequence the two-field version already had.
+export const SIZE_RANGE_OPTIONS: SizeRangeOption[] = [
+  { value: "any", label: "Dowolna" },
+  { value: "upTo50", label: "do 50 m²", sizeMax: 50 },
+  { value: "50to100", label: "50–100 m²", sizeMin: 50, sizeMax: 100 },
+  { value: "100to150", label: "100–150 m²", sizeMin: 100, sizeMax: 150 },
+  { value: "150to200", label: "150–200 m²", sizeMin: 150, sizeMax: 200 },
+  { value: "over200", label: "powyżej 200 m²", sizeMin: 200 },
+];

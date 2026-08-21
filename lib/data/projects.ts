@@ -34,10 +34,6 @@ export async function getProjectById(id: string): Promise<Project | null> {
   return projects.find((project) => project.id === id) ?? null;
 }
 
-export async function getFeaturedProjects(): Promise<Project[]> {
-  return projects.filter((project) => project.featured);
-}
-
 export async function getEligibilityByCountry(
   countryCode: CountryCode
 ): Promise<EligibilityByCountry[]> {

@@ -14,7 +14,7 @@ Ten pierwszy etap jest świadomie prototypem demonstracyjnym: żaden ekran nic t
 | 1 | Stack i architektura | Foundation | done |
 | 2 | Standardy kodu i narzędzia | Foundation | planned |
 | 3 | System projektowy i fundament UI | Foundation | done |
-| 4 | Strona startowa (hero marki) | Prototyp | done |
+| 4 | Strona startowa (hero marki) | Prototyp | in-progress |
 | 5 | Kreator ceny (klient) | Prototyp | dropped |
 | 6 | Wyniki z filtrem prawnym (klient) | Prototyp | done |
 | 7 | Zapytanie / shortlista (klient) | Prototyp | done |
@@ -27,6 +27,7 @@ Ten pierwszy etap jest świadomie prototypem demonstracyjnym: żaden ekran nic t
 | 14 | Domykanie luk (producent) | Prototyp | done |
 | 15 | Zapytania i oferty (producent) | Prototyp | done |
 | 16 | Realizacja i wypłata (producent) | Prototyp | in-progress |
+| 17 | Tokeny marki v4 (fundament wizualny) | Foundation | in-progress |
 
 ## Foundations
 
@@ -52,21 +53,20 @@ Warstwa wizualna, siatka, typografia, komponenty bazowe i dane przykładowe (moc
 
 ## Prototyp: flow klienta
 
-### 4. Strona startowa (hero marki) · done
-Pierwszy ekran całego demo: hero na logo v3 display, główny claim „One project. Different rules. One clear path.” i jedno CTA prowadzące do kreatora. Pierwsze realne zastosowanie marki v3 w produkcie.
-**Done when:** strona renderuje się z logo v3, claimem i jednym CTA zgodnie z zasadami tła i pola ochronnego z wytycznych marki; brak drugorzędnych komunikatów odciągających od CTA.
+### 4. Strona startowa (hero marki) · in-progress
+Pełny układ marketingowy strony startowej (hero ze zdjęciem, pasek statystyk, kategorie domów, „dlaczego my”, zaufani producenci, zamykający pasek CTA), na nowym zestawie tokenów marki v4. Zastępuje wcześniejszy minimalny wariant (sam pasek wyszukiwania) ze spec 0003.
 
-> ⚠️ Opis funkcji i „Done when” powyżej pochodzą z pierwotnego planu i są nieaktualne: spec [0003](../specs/0003-strona-startowa/index.md) zastępuje jedno CTA selektorem (kraj plus widełki metrażu) prowadzącym wprost do wyników, dodaje sekcje „Polecane domy” i „Jak to działa”, i usuwa zależność od kreatora ceny. Zaktualizuj ten opis i „Done when” przy najbliższym `/scope`.
+> ⚠️ Opis funkcji powyżej odzwierciedla spec [0014](../specs/0014-przebudowa-strony-startowej/index.md), która zastępuje (supersedes) spec [0003](../specs/0003-strona-startowa/index.md) — druga odwrócona decyzja co do kształtu hero w historii tej strony, patrz spec 0014 Follow-up. Kolory pochodzą z nowej, produktowej decyzji o tokenach v4, spec [0013](../specs/0013-tokeny-marki-v4.md) (`Accepted`, standalone, reszta produktu zostaje na v3 do osobnej decyzji migracyjnej per ekran).
 
-- [x] Zaprojektuj (spec): [0003](../specs/0003-strona-startowa/index.md)
-- [x] Zbuduj: `/develop strona startowa` (kod w `lib/data/types.ts`, `lib/data/fixtures/projects.ts`, `lib/data/projects.ts`, `lib/size-thresholds.ts`, `next.config.ts`, `components/klient/`, `app/[locale]/klient/layout.tsx`, `app/[locale]/klient/page.tsx`, `app/[locale]/page.tsx`)
-  - [x] Dane i konfiguracja: pole `featured` na `Project`, `getFeaturedProjects()`, `images.remotePatterns` w `next.config.ts` (satisfies AC-5)
-  - [x] Nagłówek i routing: komponent nagłówka (logo v2, link „Zostań producentem”) w `klient/layout.tsx`, strona pod `klient/page.tsx`, przekierowanie korzenia po `locale` (satisfies AC-1)
-  - [x] Hero z selektorem: logo v3 display, nagłówek zorientowany na wyszukiwanie, pola Kraj/od/do, walidacja i nawigacja do wyników (satisfies AC-2, AC-3, AC-4, AC-9)
-  - [x] Polecane domy i Jak to działa: siatka kart z linkiem do wyników, sekcja 4 kroków (satisfies AC-5, AC-6, AC-7)
-  - [x] Dostępność: jeden H1, kolejność fokusa, WCAG 2.2 AA (satisfies AC-8)
-- [x] Zweryfikuj: `/check verify strona startowa`
-- [x] Testuj: `/test strona startowa`
+- [x] Zaprojektuj (spec): [0014](../specs/0014-przebudowa-strony-startowej/index.md) (kolory: [0013](../specs/0013-tokeny-marki-v4.md))
+- [x] Zbuduj: `/develop strona startowa` (kod w `assets/tokens/brand-v4-tokens.{css,json}`, `app/globals.css`, `components/klient/SiteHeader.tsx`, `components/klient/Hero.tsx`, `components/klient/SearchCard.tsx`, `components/klient/StatsBar.tsx`, `components/klient/CategoryShowcase.tsx`, `components/klient/WhyUs.tsx`, `components/klient/TrustedProducers.tsx`, `components/klient/ClosingCta.tsx`, `components/klient/TrustFooterRow.tsx`, `app/[locale]/klient/page.tsx`, `lib/size-thresholds.ts`, `lib/data/projects.ts`, `e2e/wyniki.spec.ts`)
+  - [x] Tokeny v4, nagłówek i hero: nowy plik tokenów, pełna nawigacja, hero ze zdjęciem i prawdziwym h1 (satisfies AC-1, AC-2)
+  - [x] Karta wyszukiwania: 5 pól (Gdzie/Powierzchnia funkcjonalne, reszta placeholder), nawigacja do wyników (satisfies AC-3, AC-4)
+  - [x] Sekcje treściowe: statystyki, kategorie, „dlaczego my”, zaufani producenci, zamykający CTA, rząd zaufania (satisfies AC-5, AC-6, AC-7, AC-8, AC-9, AC-10)
+  - [x] Sprzątanie: usunięcie `FeaturedHomes`/`HowItWorks`/`getFeaturedProjects()` (bez pola `featured`, zostaje dla `/wyniki`), przepisanie zależnego testu e2e (satisfies AC-13)
+  - [x] Dostępność i responsywność: jeden H1, skip link pierwszy w Tab, kontrast tokenów v4, układ na wąskich ekranach (satisfies AC-11, AC-12)
+- [ ] Zweryfikuj: `/check verify strona startowa`
+- [ ] Testuj: `/test strona startowa`
 
 ### 5. Kreator ceny (klient) · dropped
 Osobny ekran formularza (kraj, działka, metry, sypialnie, budżet, termin → szacunkowa cena) wypadł z zakresu. Zastąpiony krótkim selektorem w hero strony startowej (kraj plus widełki metrażu), prowadzącym wprost do dedykowanej strony przeglądania ofert (funkcja 6), wzorem serwisów rezerwacyjnych (Airbnb, wakacje.pl, otomoto.pl/osobowe).
@@ -188,6 +188,12 @@ Lista przychodzących zapytań (na danych mockowych) z możliwością złożenia
 Ten sam wzorzec osi statusu co w kroku klienta (produkcja, transport, montaż, odbiór), plus ekran makiety weryfikacji firmy przed „pierwszą wypłatą”.
 **Done when:** oś statusu wygląda spójnie z widokiem klienta dla tego samego zamówienia, a ekran weryfikacji firmy pokazuje listę wymaganych dokumentów bez realnej weryfikacji.
 - [x] Zbuduj: `/develop realizacja i wypłata` (kod w `lib/data/fulfillment.ts`, `lib/producer-verification.ts`, `components/producent/ProducerFulfillmentList.tsx`, `components/producent/CompanyVerificationView.tsx`, `app/[locale]/producent/realizacje/page.tsx`, `app/[locale]/producent/realizacja/page.tsx`, `app/[locale]/producent/weryfikacja-firmy/page.tsx`, `app/[locale]/producent/page.tsx`). Brak feature 15 (zapytania i oferty), więc lista realizacji na `/producent/realizacje` jest globalna (bez sesji producenta, ten sam precedens co `lib/gap-closure.ts`) i stanowi punkt wejścia zamiast listy przyjętych ofert.
+
+### 17. Tokeny marki v4 (fundament wizualny) · in-progress
+Nowy, produktowy zestaw kolorów (ciemne sekcje, bursztynowy akcent CTA jako dozwolony kolor działania, inaczej niż w v3) mający stopniowo zastąpić dzisiejszy brand-v3 w kolejnych ekranach, zaczynając od strony startowej (funkcja 4). Fundamentalna decyzja odkryta w trakcie projektowania funkcji 4, nie od początku planu — stąd numer poza kolejnością fazy Foundation.
+**Done when:** plik tokenów v4 istnieje i jest udokumentowany w spec 0013; przynajmniej jeden ekran go faktycznie konsumuje (dziś: funkcja 4). Migracja pozostałych ekranów do v4 to osobna, przyszła praca per ekran, nieobjęta tym „Done when".
+- [x] Zaprojektuj (spec): [0013](../specs/0013-tokeny-marki-v4.md)
+- [x] Wdroż na pierwszym ekranie: patrz funkcja 4 (`/develop strona startowa`), Build plan spec 0014 krok 1 tworzy sam plik tokenów; osobna weryfikacja/testy dla tej pozycji nie są potrzebne, pokrywa je weryfikacja/testy funkcji 4
 
 ## Deferred
 Poza zakresem tego pierwszego etapu, świadomie odłożone do podłączenia prawdziwego zaplecza po ekranie.

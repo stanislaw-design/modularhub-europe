@@ -1,12 +1,12 @@
 :root {
-  /* Brand v3 — Engineered confidence */
-  --brand-foundation-navy: #10263d;
-  --brand-deep-structure: #081a2d;
-  --brand-passage-blue: #175cd3;
-  --brand-electric-plane: #0f5fe7;
+  /* Brand v3 — Engineered confidence (black + gold) */
+  --brand-foundation-navy: #1a1512;
+  --brand-deep-structure: #0d0a08;
+  --brand-passage-blue: #b8860b;
+  --brand-electric-plane: #d4af37;
   --brand-warm-white: #f4f1ea;
-  --brand-steel: #d9e0e7;
-  --brand-technical-graphite: #344657;
+  --brand-steel: #ded5c2;
+  --brand-technical-graphite: #4a4038;
   --brand-interior-light: #f2b766;
 
   /* Reserved product statuses — never brand accents */
@@ -31,7 +31,7 @@
   --brand-space-7: 96px;
 
   --brand-border: 1px solid var(--brand-steel);
-  --brand-focus-ring: 0 0 0 3px rgba(23, 92, 211, 0.28);
+  --brand-focus-ring: 0 0 0 3px rgba(184, 134, 11, 0.32);
 }
 
 .brand-data {

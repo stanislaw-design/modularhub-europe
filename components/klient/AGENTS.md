@@ -5,7 +5,7 @@ Feature specific, presentational and interactive components for the customer (kl
 ## Conventions
 
 - One component per screen/concern, named after what it renders (`Hero`, `ResultsFilterBar`, `PlotDossierPanel`, `BindingOfferView`, …), not after the route.
-- Server component by default; add `"use client"` only when the component holds interactive state (forms, accordions, the offer accept button, filter controls). Purely presentational components (`ResultCard`, `ResultsHeader`, `EmptyResults`, `SiteHeader`, …) stay server components.
+- Server component by default; add `"use client"` only when the component holds interactive state (forms, accordions, the offer accept button, filter controls, `SiteHeader`'s slide-out menu). Purely presentational components (`ResultCard`, `ResultsHeader`, `EmptyResults`, …) stay server components.
 - Data flows in as typed props (`Project`, `FulfillmentOrder`, …) from the owning `app/[locale]/klient/**/page.tsx` server component, which does the `lib/data` fetch. A component calls a `lib/data`/`lib/*` getter directly only for an interaction triggered fetch after mount (e.g. `PlotAnalysisRow` calling `getPlotAnalysisResult` on the "pay" click), never for its initial render data.
 - Tests are co-located: `Component.test.tsx` beside `Component.tsx`, Vitest + Testing Library (`@testing-library/react`, `@testing-library/user-event`); E2E flows for the pages these components make up live in `e2e/`, Playwright.
 - WCAG 2.2 AA per screen: one real `<h1>`, logical focus order, status conveyed by icon plus text (never color alone), visible `.focus-ring` on every interactive element.

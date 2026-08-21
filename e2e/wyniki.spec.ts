@@ -86,16 +86,37 @@ test.describe("/pl/klient/wyniki", () => {
     await expect(searchButton).toHaveClass(/focus-ring/);
   });
 
-  test("a featured home card on the home page links to results with the matching size range (regression, Hero -> SearchSegment extraction)", async ({
+  test("the home page's search card sends country and the selected size range to results (regression, spec 0014 AC-3/AC-4, replaces the old FeaturedHomes-card assertion)", async ({
     page,
   }) => {
     await page.goto("/pl/klient");
-    const firstFeaturedLink = page.locator('a[href^="/pl/klient/wyniki?"]').first();
-    await expect(firstFeaturedLink).toBeVisible();
-    const href = await firstFeaturedLink.getAttribute("href");
-    expect(href).toMatch(/sizeMin=\d+/);
 
-    await firstFeaturedLink.click();
+    await page.getByRole("button", { name: "Kraj docelowy" }).click();
+    await page.getByRole("option", { name: "Niemcy" }).click();
+    await page.getByRole("button", { name: "Powierzchnia" }).click();
+    await page.getByRole("option", { name: "50–100 m²" }).click();
+    await page.getByRole("button", { name: "Szukaj domów" }).click();
+
     await expect(page).toHaveURL(/\/pl\/klient\/wyniki\?/);
+    const url = new URL(page.url());
+    expect(url.searchParams.get("country")).toBe("DE");
+    expect(url.searchParams.get("sizeMin")).toBe("50");
+    expect(url.searchParams.get("sizeMax")).toBe("100");
+  });
+
+  test("the home page's search card leaves sizeMin/sizeMax off the URL when Powierzchnia stays on Dowolna (regression, spec 0014 AC-4 edge case)", async ({
+    page,
+  }) => {
+    await page.goto("/pl/klient");
+
+    await page.getByRole("button", { name: "Kraj docelowy" }).click();
+    await page.getByRole("option", { name: "Polska" }).click();
+    await page.getByRole("button", { name: "Szukaj domów" }).click();
+
+    await expect(page).toHaveURL(/\/pl\/klient\/wyniki\?/);
+    const url = new URL(page.url());
+    expect(url.searchParams.get("country")).toBe("PL");
+    expect(url.searchParams.has("sizeMin")).toBe(false);
+    expect(url.searchParams.has("sizeMax")).toBe(false);
   });
 });

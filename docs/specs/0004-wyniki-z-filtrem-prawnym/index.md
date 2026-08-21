@@ -27,9 +27,9 @@ Ta specyfikacja projektuje stronę `/pl/klient/wyniki`, gdzie klient ląduje po 
 - **AC-8**: Karta wyniku nie jest linkiem ani innym elementem nawigacyjnym w tej wersji ekranu.
 - **AC-9**: Nagłówek wyników pokazuje liczbę dopasowanych projektów w poprawnej polskiej odmianie (1 dom / 2 do 4 domy / 5 i więcej domów); gdy `country` jest obecny, nagłówek nazywa kraj wprost (np. "12 domów dopuszczonych w Niemczech"); gdy `country` jest nieobecny, nagłówek nie wspomina kraju, ale zawiera dyskretną wskazówkę, że wybranie kraju pokaże dopuszczalność prawną.
 - **AC-10**: Gdy żaden projekt nie pasuje do filtra, zamiast pustej siatki pokazuje się komunikat pustego stanu wraz z akcją ułatwiającą zmianę filtra.
-- **AC-11**: Pasek filtra na górze strony pozwala zmienić kraj, metraż od i metraż do (te same pola co w hero), wypełniony aktualnymi wartościami z URL; zatwierdzenie aktualizuje URL i wyniki.
+- **AC-11**: Pasek filtra na górze strony pozwala zmienić kraj, metraż od i metraż do, wypełniony aktualnymi wartościami z URL; zatwierdzenie aktualizuje URL i wyniki. (Te pola pierwotnie odzwierciedlały ówczesne pola hero jeden do jednego; hero zmienił swój zestaw pól w spec [0014](../0014-przebudowa-strony-startowej/index.md), ten pasek filtra świadomie zachował własny, niezależny zestaw pól od/do, patrz spec 0014 Feature design.)
 - **AC-12**: Wyniki są posortowane: najpierw projekty z `featured === true`, potem rosnąco po `priceMin`, w obrębie każdej z tych dwóch grup.
-- **AC-13**: Pod paskiem filtra i nad siatką wyników renderuje się `CategoryFilterBar`, ten sam zdezaktywowany placeholder co na stronie głównej.
+- **AC-13**: Pod paskiem filtra i nad siatką wyników renderuje się `CategoryFilterBar`, zdezaktywowany placeholder kategorii/udogodnień. (Pierwotnie współdzielony ze stroną startową, spec 0003; od spec [0014](../0014-przebudowa-strony-startowej/index.md) strona startowa go już nie renderuje, `CategoryFilterBar` zostaje tylko tutaj, bez zmiany w samym komponencie.)
 - **AC-14**: Strona spełnia WCAG 2.2 AA: dokładnie jeden prawdziwy H1, wszystkie pola paska filtra są w pełni obsługiwane z klawiatury, elementy interaktywne mają widoczny fokus (`.focus-ring`).
 
 ## Decision

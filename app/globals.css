@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "../assets/tokens/brand-v3-tokens.css";
+@import "../assets/tokens/brand-v4-tokens.css";
 
 :root {
   --background: var(--brand-warm-white);
@@ -28,6 +29,25 @@
   --color-status-approved: var(--status-approved);
   --color-status-conditional: var(--status-conditional);
   --color-status-blocked: var(--status-blocked);
+
+  /* Brand v4 — marketing surfaces (spec 0013), first consumed by the home
+     page (spec 0014). Parallel to the v3 mappings above, not a replacement. */
+  --color-brand-v4-night: var(--brand-v4-night);
+  --color-brand-v4-night-deep: var(--brand-v4-night-deep);
+  --color-brand-v4-paper: var(--brand-v4-paper);
+  --color-brand-v4-surface: var(--brand-v4-surface);
+  --color-brand-v4-amber: var(--brand-v4-amber);
+  --color-brand-v4-amber-strong: var(--brand-v4-amber-strong);
+  --color-brand-v4-amber-foreground: var(--brand-v4-amber-foreground);
+  --color-brand-v4-ink: var(--brand-v4-ink);
+  --color-brand-v4-muted: var(--brand-v4-muted);
+  --color-brand-v4-mist: var(--brand-v4-mist);
+  --color-brand-v4-line: var(--brand-v4-line);
+  --color-brand-v4-line-dark: var(--brand-v4-line-dark);
+
+  --radius-v4-pill: var(--brand-v4-radius-pill);
+  --radius-v4-panel: var(--brand-v4-radius-panel);
+  --radius-v4-card: var(--brand-v4-radius-card);
 
   --font-sans: var(--font-brand-body);
   --font-display: var(--font-brand-display);
@@ -68,6 +88,18 @@
   --container-brand-max: 1440px;
 }
 
+/* .full-bleed sections below use 100vw, which can be a few pixels wider than
+   the real viewport when a classic (non-overlay) scrollbar is present; this
+   is the standard safety net so that inflation never produces a horizontal
+   scrollbar of its own. Needed on both html and body: the viewport's
+   scrolling box takes its overflow behavior from body by default (per the
+   HTML overflow-propagation rules), so html alone doesn't reliably block it
+   in every browser. */
+html,
+body {
+  overflow-x: hidden;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
@@ -80,4 +112,18 @@ body {
 }
 .focus-ring:focus-visible {
   box-shadow: var(--brand-focus-ring);
+}
+
+/* Breaks a section out of an ancestor's max-width/padding to span the full
+   viewport width, regardless of how that ancestor computed its own padding
+   (percentage-based margins can't cancel it exactly). Used by the home
+   page's v4 marketing bands (RouteShell/Container keep every other klient/
+   producent screen contained; this is additive, opt-in per section). */
+.full-bleed {
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
 }
