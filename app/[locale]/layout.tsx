@@ -10,6 +10,10 @@ export function generateStaticParams() {
 export const metadata: Metadata = {
   title: "ModularHub Europe",
   description: "One project. Different rules. One clear path.",
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    shortcut: "/icon.svg",
+  },
 };
 
 export default async function LocaleLayout({
