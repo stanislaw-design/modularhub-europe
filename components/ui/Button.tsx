@@ -5,7 +5,8 @@ const button = tv({
   base: "focus-ring inline-flex items-center justify-center gap-brand-1 rounded-marketing font-sans font-medium transition-opacity disabled:pointer-events-none disabled:opacity-50",
   variants: {
     variant: {
-      primary: "bg-brand-passage-blue text-brand-warm-white hover:opacity-90 active:opacity-80",
+      primary:
+        "bg-brand-passage-blue text-brand-action-foreground hover:bg-brand-electric-plane active:opacity-90",
       secondary:
         "border border-brand-steel bg-brand-warm-white text-brand-foundation-navy hover:bg-brand-steel/30",
       ghost: "text-brand-passage-blue hover:bg-brand-passage-blue/10",

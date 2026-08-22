@@ -2,27 +2,27 @@
   "$schema": "https://design-tokens.github.io/community-group/format/",
   "brandV4": {
     "color": {
-      "$description": "Marketing-surface palette (spec 0013); registered alongside brand-v3-tokens.json, adopted screen by screen starting with the home page (spec 0014).",
-      "night": { "$value": "#0B0A08", "$type": "color" },
-      "nightDeep": { "$value": "#050403", "$type": "color" },
-      "paper": { "$value": "#FAF8F3", "$type": "color" },
+      "$description": "Marketing aliases for the current global black, navy, orange, alabaster and white identity.",
+      "night": { "$value": "#000000", "$type": "color" },
+      "nightDeep": { "$value": "#14213D", "$type": "color" },
+      "paper": { "$value": "#E5E5E5", "$type": "color" },
       "surface": { "$value": "#FFFFFF", "$type": "color" },
       "amber": {
-        "$value": "#D4AF37",
+        "$value": "#FCA311",
         "$type": "color",
         "$description": "Allowed action color in v4 (CTAs, rating stars), unlike v3's Interior Light."
       },
-      "amberStrong": { "$value": "#B8860B", "$type": "color" },
+      "amberStrong": { "$value": "#E89200", "$type": "color" },
       "amberForeground": {
-        "$value": "#1A1512",
+        "$value": "#000000",
         "$type": "color",
-        "$description": "Only allowed text/icon color on an amber fill (~8.6:1); white on amber fails AA (~2.24:1)."
+        "$description": "Only allowed text/icon color on an orange fill; white on orange does not meet AA for normal text."
       },
-      "ink": { "$value": "#1A1512", "$type": "color" },
-      "muted": { "$value": "#6B6255", "$type": "color" },
-      "mist": { "$value": "#B3A996", "$type": "color" },
-      "line": { "$value": "#E7E3DA", "$type": "color" },
-      "lineDark": { "$value": "rgba(255, 255, 255, 0.14)", "$type": "color" }
+      "ink": { "$value": "#000000", "$type": "color" },
+      "muted": { "$value": "#4D5562", "$type": "color" },
+      "mist": { "$value": "#E5E5E5", "$type": "color" },
+      "line": { "$value": "#E5E5E5", "$type": "color" },
+      "lineDark": { "$value": "rgba(255, 255, 255, 0.20)", "$type": "color" }
     },
     "radius": {
       "pill": { "$value": "999px", "$type": "dimension" },

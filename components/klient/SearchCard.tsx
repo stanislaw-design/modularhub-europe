@@ -41,9 +41,9 @@ function PlaceholderField({ label, placeholder }: PlaceholderFieldProps) {
   );
 }
 
-// The white card that overlaps Hero's bottom edge (spec 0014 AC-3). Gdzie
-// and Powierzchnia are real SearchSegment instances (unmodified public API);
-// Typ domu/Budżet/Dostawa are decorative. Navigation contract to /wyniki
+// The white card that overlaps Hero's bottom edge. Gdzie and Powierzchnia
+// are real SearchSegment instances (unmodified public API); Budżet remains
+// a decorative placeholder. Navigation contract to /wyniki
 // (country, sizeMin, sizeMax) is unchanged from spec 0003/0004.
 export function SearchCard({ locale, countries }: SearchCardProps) {
   const router = useRouter();
@@ -64,7 +64,7 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
   return (
     <div
       id="search-card"
-      className="relative z-10 -mt-brand-6 flex flex-col gap-brand-3 rounded-v4-panel border-2 border-brand-v4-amber bg-brand-v4-surface p-brand-3 shadow-xl scroll-mt-brand-4"
+      className="relative z-10 flex flex-col gap-brand-3 rounded-v4-panel border-2 border-brand-v4-amber bg-brand-v4-surface p-brand-3 shadow-xl scroll-mt-brand-4 lg:-mt-brand-6"
     >
       <div className="flex flex-wrap items-baseline justify-between gap-brand-1">
         <h2 className="text-h3 font-display font-semibold text-brand-foundation-navy">
@@ -83,7 +83,6 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
           placeholder="Kraj, region lub miasto"
           ariaLabel="Kraj docelowy"
         />
-        <PlaceholderField label="Typ domu" placeholder="Wszystkie typy" />
         <PlaceholderField label="Budżet" placeholder="Dowolny budżet" />
         <SearchSegment
           label="Powierzchnia"
@@ -93,7 +92,6 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
           placeholder="Dowolna"
           ariaLabel="Powierzchnia"
         />
-        <PlaceholderField label="Dostawa" placeholder="Dowolne terminy" />
         <div className="flex items-center justify-center p-brand-2">
           <button
             type="button"

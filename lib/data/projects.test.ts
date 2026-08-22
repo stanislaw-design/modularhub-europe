@@ -39,6 +39,24 @@ describe("getProjects", () => {
     const maxOnly = await getProjects({ sizeMax: 56 });
     expect(maxOnly.every((p) => p.floorAreaM2 <= 56)).toBe(true);
   });
+
+  it("keeps every catalog price comparable and explicit about its scope", async () => {
+    const projects = await getProjects();
+
+    for (const project of projects) {
+      expect(project.priceMin).toBeGreaterThan(project.commercial.housePriceMinEur);
+      expect(project.priceMax).toBeGreaterThan(project.commercial.housePriceMaxEur);
+      expect(project.priceMin).toBeLessThan(project.priceMax);
+      expect(project.commercial.priceIncludes.length).toBeGreaterThan(0);
+      expect(project.commercial.priceExcludes.length).toBeGreaterThan(0);
+      expect(project.commercial.productionLeadTimeWeeksMin).toBeLessThanOrEqual(
+        project.commercial.productionLeadTimeWeeksMax
+      );
+      expect(project.commercial.onSiteAssemblyDaysMin).toBeLessThanOrEqual(
+        project.commercial.onSiteAssemblyDaysMax
+      );
+    }
+  });
 });
 
 describe("getEligibilityByCountry", () => {

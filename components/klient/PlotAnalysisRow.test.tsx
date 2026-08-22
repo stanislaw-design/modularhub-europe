@@ -3,33 +3,12 @@ import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { describe, expect, it } from "vitest";
 import type { Project } from "@/lib/data/types";
+import { createMockProject } from "@/test/fixtures/project";
 import { PlotAnalysisRow } from "./PlotAnalysisRow";
 import type { PlotAnalysisRequest } from "./PlotDossierPanel";
 
 function makeProject(id: string, name: string, producerName: string, floorAreaM2: number): Project {
-  return {
-    id,
-    producerId: "prod-1",
-    producerName,
-    name,
-    countryOfProduction: "PL",
-    floorAreaM2,
-    bedrooms: 3,
-    priceMin: 100000,
-    priceMax: 120000,
-    currency: "EUR",
-    coverImageUrl: "https://picsum.photos/seed/x/960/640",
-    description: "",
-    wallBuildUp: "",
-    insulation: "",
-    heatTransferCoefficients: "",
-    windowClass: "",
-    ventilation: "",
-    heatSource: "",
-    fireResistance: "",
-    windResistance: "",
-    featured: false,
-  };
+  return createMockProject({ id, producerId: "prod-1", producerName, name, floorAreaM2, priceMin: 100000, priceMax: 120000 });
 }
 
 // Known fixture rows (lib/data/fixtures/plot-analysis.ts): pick one of each status.

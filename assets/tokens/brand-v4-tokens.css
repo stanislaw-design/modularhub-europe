@@ -1,22 +1,19 @@
 :root {
-  /* Brand v4 — marketing surfaces (dark hero/CTA, amber action color).
-     Registered alongside brand-v3-tokens.css (spec 0013); v3 stays the
-     default everywhere v4 hasn't been adopted yet (spec 0014, home page,
-     is the first and so-far only consumer). */
-  --brand-v4-night: #0b0a08;
-  --brand-v4-night-deep: #050403;
-  --brand-v4-paper: #faf8f3;
+  /* Marketing surface aliases for the current global identity. Black leads,
+     navy supports depth, and orange is reserved for action and emphasis. */
+  --brand-v4-night: #000000;
+  --brand-v4-night-deep: #14213d;
+  --brand-v4-paper: #e5e5e5;
   --brand-v4-surface: #ffffff;
-  --brand-v4-amber: #d4af37;
-  --brand-v4-amber-strong: #b8860b;
-  /* Only allowed text/icon color on a --brand-v4-amber fill: white on amber is
-     ~2.24:1 (fails WCAG AA); this dark ink is ~8.6:1. */
-  --brand-v4-amber-foreground: #1a1512;
-  --brand-v4-ink: #1a1512;
-  --brand-v4-muted: #6b6255;
-  --brand-v4-mist: #b3a996;
-  --brand-v4-line: #e7e3da;
-  --brand-v4-line-dark: rgba(255, 255, 255, 0.14);
+  --brand-v4-amber: #fca311;
+  --brand-v4-amber-strong: #e89200;
+  /* Only allowed text/icon color on an orange fill. */
+  --brand-v4-amber-foreground: #000000;
+  --brand-v4-ink: #000000;
+  --brand-v4-muted: #4d5562;
+  --brand-v4-mist: #e5e5e5;
+  --brand-v4-line: #e5e5e5;
+  --brand-v4-line-dark: rgba(255, 255, 255, 0.2);
 
   --brand-v4-radius-pill: 999px;
   --brand-v4-radius-panel: 28px;

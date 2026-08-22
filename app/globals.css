@@ -7,8 +7,8 @@
   --foreground: var(--brand-foundation-navy);
 
   /* Runtime font stacks: next/font/google variables (set on <html> in app/[locale]/layout.tsx)
-     override the static fallback chains from brand-v3-tokens.css. */
-  --font-brand-display: var(--font-montserrat), "Avenir Next", Arial, sans-serif;
+     override the static fallback chains from the brand token files. */
+  --font-brand-display: var(--font-manrope), "Avenir Next", Arial, sans-serif;
   --font-brand-body: var(--font-inter), "Helvetica Neue", Arial, sans-serif;
   --font-brand-data: var(--font-plex-mono), "SFMono-Regular", Consolas, monospace;
 }
@@ -25,13 +25,20 @@
   --color-brand-steel: var(--brand-steel);
   --color-brand-technical-graphite: var(--brand-technical-graphite);
   --color-brand-interior-light: var(--brand-interior-light);
+  --color-brand-black: var(--brand-black);
+  --color-brand-navy: var(--brand-navy);
+  --color-brand-orange: var(--brand-orange);
+  --color-brand-orange-strong: var(--brand-orange-strong);
+  --color-brand-alabaster: var(--brand-alabaster);
+  --color-brand-white: var(--brand-white);
+  --color-brand-action-foreground: var(--brand-action-foreground);
 
   --color-status-approved: var(--status-approved);
   --color-status-conditional: var(--status-conditional);
   --color-status-blocked: var(--status-blocked);
 
-  /* Brand v4 — marketing surfaces (spec 0013), first consumed by the home
-     page (spec 0014). Parallel to the v3 mappings above, not a replacement. */
+  /* Marketing surface aliases. They now resolve to the same global identity
+     as the product tokens so every route uses one coherent palette. */
   --color-brand-v4-night: var(--brand-v4-night);
   --color-brand-v4-night-deep: var(--brand-v4-night-deep);
   --color-brand-v4-paper: var(--brand-v4-paper);
@@ -126,4 +133,22 @@ body {
   right: 50%;
   margin-left: -50vw;
   margin-right: -50vw;
+}
+
+@keyframes producer-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.producer-marquee {
+  animation: producer-marquee 24s linear infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .producer-marquee {
+    animation: none;
+    transform: none;
+  }
 }

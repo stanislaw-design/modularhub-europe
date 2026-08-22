@@ -19,7 +19,7 @@ const marker = tv({
   variants: {
     status: {
       completed: "border-brand-foundation-navy bg-brand-foundation-navy text-brand-warm-white",
-      current: "border-brand-passage-blue bg-brand-passage-blue text-brand-warm-white",
+      current: "border-brand-passage-blue bg-brand-passage-blue text-brand-action-foreground",
       upcoming: "border-brand-steel bg-brand-warm-white text-brand-technical-graphite",
     },
   },

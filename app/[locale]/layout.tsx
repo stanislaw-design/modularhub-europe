@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "../globals.css";
 import { locales } from "../i18n";
-import { montserrat, inter, ibmPlexMono } from "../fonts";
+import { manrope, inter, ibmPlexMono } from "../fonts";
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -24,7 +24,7 @@ export default async function LocaleLayout({
   return (
     <html
       lang={locale}
-      className={`h-full antialiased ${montserrat.variable} ${inter.variable} ${ibmPlexMono.variable}`}
+      className={`h-full antialiased ${manrope.variable} ${inter.variable} ${ibmPlexMono.variable}`}
     >
       <body className="min-h-full flex flex-col font-sans">{children}</body>
     </html>

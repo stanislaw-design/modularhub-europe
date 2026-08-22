@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 import type { Project, ProducerInquiry } from "@/lib/data/types";
+import { createMockProject } from "@/test/fixtures/project";
 import { saveOffer } from "@/lib/producer-offers";
 import { ProducerInquiryRow } from "./ProducerInquiryRow";
 
@@ -14,29 +15,7 @@ const inquiry: ProducerInquiry = {
   receivedAt: "2026-07-28",
 };
 
-const project: Project = {
-  id: "prj-modulor-family-90",
-  producerId: "prod-modulor",
-  producerName: "Modulor Systems Sp. z o.o.",
-  name: "Modulor Family 90",
-  countryOfProduction: "PL",
-  floorAreaM2: 90,
-  bedrooms: 3,
-  priceMin: 118000,
-  priceMax: 142000,
-  currency: "EUR",
-  coverImageUrl: "/images/houses/golden-hour/modulor-family-90.webp",
-  description: "",
-  wallBuildUp: "",
-  insulation: "",
-  heatTransferCoefficients: "",
-  windowClass: "",
-  ventilation: "",
-  heatSource: "",
-  fireResistance: "",
-  windResistance: "",
-  featured: false,
-};
+const project: Project = createMockProject({ coverImageUrl: "/images/houses/golden-hour/modulor-family-90.webp" });
 
 beforeEach(() => {
   window.localStorage.clear();

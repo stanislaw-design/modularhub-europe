@@ -13,15 +13,15 @@ const stats = [
 
 export function StatsBar() {
   return (
-    <section className="full-bleed bg-brand-v4-paper py-brand-4">
+    <section className="full-bleed bg-brand-v4-night py-brand-4">
       <Container className="grid grid-cols-2 gap-brand-4 sm:grid-cols-3 lg:grid-cols-5">
         {stats.map(({ icon: Icon, value, label }) => (
           <div key={label} className="flex flex-col items-start gap-brand-1">
             <Icon className="size-5 text-brand-v4-amber" aria-hidden="true" />
-            <span className="font-mono text-h3 font-semibold tabular-nums text-brand-v4-ink">
+            <span className="font-mono text-h3 font-semibold tabular-nums text-brand-v4-surface">
               {value}
             </span>
-            <span className="text-body text-brand-v4-muted">{label}</span>
+            <span className="text-body text-brand-v4-mist">{label}</span>
           </div>
         ))}
         <div className="flex flex-col items-start gap-brand-1">
@@ -30,10 +30,10 @@ export function StatsBar() {
               <Star key={index} className="size-4 fill-brand-v4-amber text-brand-v4-amber" />
             ))}
           </div>
-          <span className="font-mono text-h3 font-semibold tabular-nums text-brand-v4-ink">
+          <span className="font-mono text-h3 font-semibold tabular-nums text-brand-v4-surface">
             4,8/5
           </span>
-          <span className="text-body text-brand-v4-muted">Na podstawie 1 200+ opinii</span>
+          <span className="text-body text-brand-v4-mist">Na podstawie 1 200+ opinii</span>
         </div>
       </Container>
     </section>

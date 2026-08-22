@@ -5,6 +5,22 @@ export interface Country {
   name: string;
 }
 
+export type ProjectCategory = "caloroczny" | "rekreacyjny-caloroczny" | "mobilny";
+export type CompletionStandard = "surowy-zamkniety" | "deweloperski" | "pod-klucz";
+
+export interface ProjectCommercialProfile {
+  /** Cena samego budynku w standardzie bazowym, bez logistyki i montażu. */
+  housePriceMinEur: number;
+  housePriceMaxEur: number;
+  completionStandard: CompletionStandard;
+  productionLeadTimeWeeksMin: number;
+  productionLeadTimeWeeksMax: number;
+  onSiteAssemblyDaysMin: number;
+  onSiteAssemblyDaysMax: number;
+  priceIncludes: string[];
+  priceExcludes: string[];
+}
+
 export interface Project {
   id: string;
   producerId: string;
@@ -12,7 +28,18 @@ export interface Project {
   name: string;
   countryOfProduction: CountryCode;
   floorAreaM2: number;
+  builtUpAreaM2: number;
+  rooms: number;
   bedrooms: number;
+  bathrooms: number;
+  storeys: number;
+  externalDimensions: string;
+  roofType: string;
+  category: ProjectCategory;
+  constructionSystem: string;
+  foundationOptions: string;
+  customizationScope: string;
+  structuralWarrantyYears: number;
   priceMin: number;
   priceMax: number;
   currency: "EUR";
@@ -26,6 +53,7 @@ export interface Project {
   heatSource: string;
   fireResistance: string;
   windResistance: string;
+  commercial: ProjectCommercialProfile;
   featured: boolean;
 }
 

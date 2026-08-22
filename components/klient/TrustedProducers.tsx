@@ -14,16 +14,29 @@ export function TrustedProducers({ producerNames }: TrustedProducersProps) {
         <p className="shrink-0 text-body font-semibold text-brand-v4-mist">
           Zaufaj nam wiodący producenci
         </p>
-        <ul className="flex min-w-0 flex-1 items-center gap-brand-4 divide-x divide-brand-v4-line-dark overflow-x-auto">
-          {producerNames.map((name) => (
-            <li
-              key={name}
-              className="shrink-0 whitespace-nowrap pl-brand-4 font-display text-body-l font-bold uppercase tracking-[0.05em] text-brand-v4-surface first:pl-0"
-            >
-              {name}
-            </li>
-          ))}
-        </ul>
+        <div
+          className="group min-w-0 flex-1 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]"
+          aria-label="Producenci dostępni na platformie"
+        >
+          <div className="producer-marquee flex w-max items-center group-hover:[animation-play-state:paused]">
+            {[false, true].map((duplicate) => (
+              <ul
+                key={String(duplicate)}
+                aria-hidden={duplicate || undefined}
+                className="flex shrink-0 items-center gap-brand-5 pr-brand-5"
+              >
+                {producerNames.map((name) => (
+                  <li
+                    key={`${duplicate ? "duplicate" : "original"}-${name}`}
+                    className="shrink-0 whitespace-nowrap font-display text-body-l font-bold uppercase tracking-[0.05em] text-brand-v4-surface"
+                  >
+                    {name}
+                  </li>
+                ))}
+              </ul>
+            ))}
+          </div>
+        </div>
         <button
           type="button"
           disabled

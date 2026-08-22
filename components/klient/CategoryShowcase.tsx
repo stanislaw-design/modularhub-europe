@@ -37,15 +37,15 @@ export function CategoryShowcase({ locale }: CategoryShowcaseProps) {
   const allResultsHref = `/${locale}/klient/wyniki`;
 
   return (
-    <section className="full-bleed bg-brand-v4-paper py-brand-5">
+    <section className="full-bleed bg-brand-v4-night py-brand-5">
       <Container className="flex flex-col gap-brand-4">
         <div className="flex flex-wrap items-baseline justify-between gap-brand-2">
-          <h2 className="text-h2 font-display font-semibold text-brand-v4-ink">
+          <h2 className="text-h2 font-display font-semibold text-brand-v4-surface">
             Odkryj popularne kategorie domów
           </h2>
           <Link
             href={allResultsHref}
-            className="focus-ring flex items-center gap-1 rounded-data text-body font-semibold text-brand-v4-ink hover:text-brand-v4-muted"
+            className="focus-ring flex items-center gap-1 rounded-data text-body font-semibold text-brand-v4-surface hover:text-brand-v4-amber"
           >
             Zobacz wszystkie kategorie
             <ArrowRight className="size-4" aria-hidden="true" />
@@ -69,13 +69,13 @@ export function CategoryShowcase({ locale }: CategoryShowcaseProps) {
               </div>
               <div className="flex items-center justify-between gap-brand-1">
                 <div className="flex flex-col">
-                  <span className="text-body-l font-semibold text-brand-v4-ink">
+                  <span className="text-body-l font-semibold text-brand-v4-surface">
                     {category.name}
                   </span>
-                  <span className="text-body text-brand-v4-muted">{category.count}</span>
+                  <span className="text-body text-brand-v4-mist">{category.count}</span>
                 </div>
                 <ArrowRight
-                  className="size-5 shrink-0 text-brand-v4-ink transition-transform group-hover:translate-x-1"
+                  className="size-5 shrink-0 text-brand-v4-surface transition-transform group-hover:translate-x-1 group-hover:text-brand-v4-amber"
                   aria-hidden="true"
                 />
               </div>

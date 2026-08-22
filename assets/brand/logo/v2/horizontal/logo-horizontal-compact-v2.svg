@@ -2,11 +2,11 @@
   <title id="title">Modular Hub Europe — horizontal compact v2</title>
   <desc id="desc">Compact architectural MH symbol and single-line wordmark.</desc>
   <g transform="translate(10 10) scale(.92)">
-    <path fill="#1A1512" d="M8 30h13l14 15 14-15h13v52H49V49L35 63 21 49v33H8V30Z"/>
-    <path fill="#B8860B" d="M62 30h13v19h16V30h13v52H91V62H75v20H62V30Z"/>
-    <path fill="#1A1512" d="M14 8h43v12H26v13H14V8Z"/>
-    <path fill="#B8860B" d="M57 8h17l30 16v14L71 20H57V8Z"/>
+    <path fill="#000000" d="M8 30h13l14 15 14-15h13v52H49V49L35 63 21 49v33H8V30Z"/>
+    <path fill="#FCA311" d="M62 30h13v19h16V30h13v52H91V62H75v20H62V30Z"/>
+    <path fill="#000000" d="M14 8h43v12H26v13H14V8Z"/>
+    <path fill="#FCA311" d="M57 8h17l30 16v14L71 20H57V8Z"/>
   </g>
-  <text x="133" y="71" font-family="Montserrat, Avenir Next, Arial, sans-serif" font-size="49" font-weight="700" letter-spacing="-1.5"><tspan fill="#1A1512">Modular</tspan><tspan fill="#B8860B">Hub</tspan></text>
-  <text x="526" y="70" fill="#6B6255" font-family="Montserrat, Avenir Next, Arial, sans-serif" font-size="16" font-weight="600" letter-spacing="5">EUROPE</text>
+  <text x="133" y="71" font-family="Manrope, Avenir Next, Arial, sans-serif" font-size="49" font-weight="700" letter-spacing="-1.5"><tspan fill="#000000">Modular</tspan><tspan fill="#FCA311">Hub</tspan></text>
+  <text x="526" y="70" fill="#14213D" font-family="Manrope, Avenir Next, Arial, sans-serif" font-size="16" font-weight="600" letter-spacing="5">EUROPE</text>
 </svg>

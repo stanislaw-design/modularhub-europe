@@ -1,20 +1,29 @@
 :root {
-  /* Brand v3 — Engineered confidence (black + gold) */
-  --brand-foundation-navy: #1a1512;
-  --brand-deep-structure: #0d0a08;
-  --brand-passage-blue: #b8860b;
-  --brand-electric-plane: #d4af37;
-  --brand-warm-white: #f4f1ea;
-  --brand-steel: #ded5c2;
-  --brand-technical-graphite: #4a4038;
-  --brand-interior-light: #f2b766;
+  /* Current global identity. Canonical palette names come first; the legacy
+     v3 aliases remain so already-built product screens migrate atomically. */
+  --brand-black: #000000;
+  --brand-navy: #14213d;
+  --brand-orange: #fca311;
+  --brand-orange-strong: #e89200;
+  --brand-alabaster: #e5e5e5;
+  --brand-white: #ffffff;
+
+  --brand-foundation-navy: var(--brand-black);
+  --brand-deep-structure: var(--brand-navy);
+  --brand-passage-blue: var(--brand-orange);
+  --brand-electric-plane: var(--brand-orange-strong);
+  --brand-warm-white: var(--brand-white);
+  --brand-steel: var(--brand-alabaster);
+  --brand-technical-graphite: #4d5562;
+  --brand-interior-light: var(--brand-orange);
+  --brand-action-foreground: var(--brand-black);
 
   /* Reserved product statuses — never brand accents */
   --status-approved: #14804a;
   --status-conditional: #b76e00;
   --status-blocked: #c43d3d;
 
-  --font-brand-display: "Montserrat", "Avenir Next", Arial, sans-serif;
+  --font-brand-display: "Manrope", "Avenir Next", Arial, sans-serif;
   --font-brand-body: "Inter", "Helvetica Neue", Arial, sans-serif;
   --font-brand-data: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
 
@@ -31,11 +40,10 @@
   --brand-space-7: 96px;
 
   --brand-border: 1px solid var(--brand-steel);
-  --brand-focus-ring: 0 0 0 3px rgba(184, 134, 11, 0.32);
+  --brand-focus-ring: 0 0 0 3px rgba(252, 163, 17, 0.45);
 }
 
 .brand-data {
   font-family: var(--font-brand-data);
   font-variant-numeric: tabular-nums;
 }
-

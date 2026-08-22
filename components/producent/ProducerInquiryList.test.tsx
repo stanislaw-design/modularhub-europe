@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { Country, Project, ProducerInquiry } from "@/lib/data/types";
+import { createMockProject } from "@/test/fixtures/project";
 import { ProducerInquiryList } from "./ProducerInquiryList";
 
 const countries: Country[] = [
@@ -8,29 +9,7 @@ const countries: Country[] = [
   { code: "DE", name: "Niemcy" },
 ];
 
-const project: Project = {
-  id: "prj-modulor-family-90",
-  producerId: "prod-modulor",
-  producerName: "Modulor Systems Sp. z o.o.",
-  name: "Modulor Family 90",
-  countryOfProduction: "PL",
-  floorAreaM2: 90,
-  bedrooms: 3,
-  priceMin: 118000,
-  priceMax: 142000,
-  currency: "EUR",
-  coverImageUrl: "/images/houses/golden-hour/modulor-family-90.webp",
-  description: "",
-  wallBuildUp: "",
-  insulation: "",
-  heatTransferCoefficients: "",
-  windowClass: "",
-  ventilation: "",
-  heatSource: "",
-  fireResistance: "",
-  windResistance: "",
-  featured: false,
-};
+const project: Project = createMockProject({ coverImageUrl: "/images/houses/golden-hour/modulor-family-90.webp" });
 
 function makeInquiry(overrides: Partial<ProducerInquiry> = {}): ProducerInquiry {
   return {

@@ -20,8 +20,9 @@ export default async function KlientHomePage({
 
   return (
     <div className="flex flex-col">
-      <Hero />
-      <SearchCard locale={locale} countries={countries} />
+      <Hero>
+        <SearchCard locale={locale} countries={countries} />
+      </Hero>
       <StatsBar />
       <CategoryShowcase locale={locale} />
       <WhyUs />

@@ -2,18 +2,25 @@
   "$schema": "https://design-tokens.github.io/community-group/format/",
   "brand": {
     "color": {
-      "foundationNavy": { "$value": "#1A1512", "$type": "color" },
-      "deepStructure": { "$value": "#0D0A08", "$type": "color" },
-      "passageBlue": { "$value": "#B8860B", "$type": "color" },
-      "electricPlane": { "$value": "#D4AF37", "$type": "color" },
-      "warmWhite": { "$value": "#F4F1EA", "$type": "color" },
-      "steel": { "$value": "#DED5C2", "$type": "color" },
-      "technicalGraphite": { "$value": "#4A4038", "$type": "color" },
+      "black": { "$value": "#000000", "$type": "color" },
+      "navy": { "$value": "#14213D", "$type": "color" },
+      "orange": { "$value": "#FCA311", "$type": "color" },
+      "orangeStrong": { "$value": "#E89200", "$type": "color" },
+      "alabaster": { "$value": "#E5E5E5", "$type": "color" },
+      "white": { "$value": "#FFFFFF", "$type": "color" },
+      "foundationNavy": { "$value": "#000000", "$type": "color" },
+      "deepStructure": { "$value": "#14213D", "$type": "color" },
+      "passageBlue": { "$value": "#FCA311", "$type": "color" },
+      "electricPlane": { "$value": "#E89200", "$type": "color" },
+      "warmWhite": { "$value": "#FFFFFF", "$type": "color" },
+      "steel": { "$value": "#E5E5E5", "$type": "color" },
+      "technicalGraphite": { "$value": "#4D5562", "$type": "color" },
       "interiorLight": {
-        "$value": "#F2B766",
+        "$value": "#FCA311",
         "$type": "color",
-        "$description": "Material light only; never a CTA or warning accent."
-      }
+        "$description": "Warm supporting accent; product actions use the same orange through the legacy passageBlue alias."
+      },
+      "actionForeground": { "$value": "#000000", "$type": "color" }
     },
     "status": {
       "$description": "Reserved for product compliance states; never marketing accents.",
@@ -22,7 +29,7 @@
       "blocked": { "$value": "#C43D3D", "$type": "color" }
     },
     "typography": {
-      "displayFamily": { "$value": "Montserrat", "$type": "fontFamily" },
+      "displayFamily": { "$value": "Manrope", "$type": "fontFamily" },
       "bodyFamily": { "$value": "Inter", "$type": "fontFamily" },
       "dataFamily": { "$value": "IBM Plex Mono", "$type": "fontFamily" }
     },

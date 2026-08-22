@@ -29,22 +29,22 @@ const benefits = [
 // link both point there (spec 0014 AC-1, AC-7, AC-9).
 export function WhyUs() {
   return (
-    <section className="full-bleed bg-brand-v4-surface py-brand-5">
+    <section className="full-bleed bg-brand-v4-night-deep py-brand-5">
       <Container className="grid grid-cols-1 gap-brand-5 lg:grid-cols-12">
         <div className="flex flex-col items-start gap-brand-3 lg:col-span-4">
           <span className="text-label font-semibold tracking-[0.1em] text-brand-v4-amber">
             Dlaczego ModularHub Europe?
           </span>
-          <h2 className="text-h2 font-display font-semibold text-brand-v4-ink">
+          <h2 className="text-h2 font-display font-semibold text-brand-v4-surface">
             Wszystko, czego potrzebujesz w jednej platformie
           </h2>
-          <p className="text-body-l text-brand-v4-muted">
+          <p className="text-body-l text-brand-v4-mist">
             Upraszczamy proces wyszukiwania, porównywania i zakupu domów modułowych i
             prefabrykowanych w całej Europie.
           </p>
           <a
             href="#jak-to-dziala"
-            className="focus-ring inline-flex items-center rounded-v4-pill bg-brand-v4-ink px-brand-4 py-brand-2 text-body font-semibold text-brand-v4-surface hover:opacity-90"
+            className="focus-ring inline-flex items-center rounded-v4-pill bg-brand-v4-amber px-brand-4 py-brand-2 text-body font-semibold text-brand-v4-amber-foreground hover:bg-brand-v4-amber-strong"
           >
             Dowiedz się, jak to działa
           </a>
@@ -53,13 +53,13 @@ export function WhyUs() {
           {benefits.map(({ icon: Icon, title, description }) => (
             <div
               key={title}
-              className="flex flex-col items-start gap-brand-2 rounded-v4-card border border-brand-v4-line p-brand-3"
+              className="flex flex-col items-start gap-brand-2 rounded-v4-card border border-brand-v4-line-dark bg-brand-v4-night/20 p-brand-3"
             >
-              <span className="flex size-11 items-center justify-center rounded-full bg-brand-v4-paper">
-                <Icon className="size-5 text-brand-v4-ink" aria-hidden="true" />
+              <span className="flex size-11 items-center justify-center rounded-full bg-brand-v4-amber">
+                <Icon className="size-5 text-brand-v4-amber-foreground" aria-hidden="true" />
               </span>
-              <h3 className="text-body-l font-semibold text-brand-v4-ink">{title}</h3>
-              <p className="text-body text-brand-v4-muted">{description}</p>
+              <h3 className="text-body-l font-semibold text-brand-v4-surface">{title}</h3>
+              <p className="text-body text-brand-v4-mist">{description}</p>
             </div>
           ))}
         </div>

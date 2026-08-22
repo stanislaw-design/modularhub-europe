@@ -2,39 +2,21 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { Project } from "@/lib/data/types";
+import { createMockProject } from "@/test/fixtures/project";
 import { ResultCard } from "./ResultCard";
 
-const project: Project = {
-  id: "prj-modulor-family-90",
-  producerId: "prod-modulor",
-  producerName: "Modulor Systems Sp. z o.o.",
-  name: "Modulor Family 90",
-  countryOfProduction: "PL",
-  floorAreaM2: 90,
-  bedrooms: 3,
-  priceMin: 118000,
-  priceMax: 142000,
-  currency: "EUR",
-  coverImageUrl: "https://picsum.photos/seed/modulor-family-90/960/640",
-  description: "",
-  wallBuildUp: "",
-  insulation: "",
-  heatTransferCoefficients: "",
-  windowClass: "",
-  ventilation: "",
-  heatSource: "",
-  fireResistance: "",
-  windResistance: "",
-  featured: true,
-};
+const project: Project = createMockProject({ featured: true });
 
 describe("ResultCard", () => {
-  it("shows name, total price range, producer, country, floor area and bedrooms (AC-7)", () => {
+  it("shows the comparable project, scope, technology and delivery facts (AC-7)", () => {
     render(<ResultCard project={project} countryName="Polska" />);
     expect(screen.getByText("Modulor Family 90")).toBeInTheDocument();
     expect(screen.getByText(/118\s?000.*142\s?000.*€/)).toBeInTheDocument();
     expect(screen.getByText(/Modulor Systems Sp\. z o\.o\..*Polska/)).toBeInTheDocument();
-    expect(screen.getByText(/90 m².*3 sypialnie/)).toBeInTheDocument();
+    expect(screen.getByText(/90 m² użytkowe.*4 pokoje.*1 kond/)).toBeInTheDocument();
+    expect(screen.getByText(/Prefabrykowany szkielet drewniany.*Standard deweloperski/)).toBeInTheDocument();
+    expect(screen.getByText("Dom + standardowy transport + montaż")).toBeInTheDocument();
+    expect(screen.getByText(/12.*16 tyg. produkcji.*3.*5 dni montażu/)).toBeInTheDocument();
   });
 
   it("is not rendered as a link or other navigation element (AC-8)", () => {

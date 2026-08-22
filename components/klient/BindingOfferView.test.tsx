@@ -2,33 +2,11 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { Project } from "@/lib/data/types";
+import { createMockProject } from "@/test/fixtures/project";
 import { BindingOfferView } from "./BindingOfferView";
 
 function makeProject(overrides: Partial<Project> = {}): Project {
-  return {
-    id: "prj-modulor-family-90",
-    producerId: "prod-modulor",
-    producerName: "Modulor Systems Sp. z o.o.",
-    name: "Modulor Family 90",
-    countryOfProduction: "PL",
-    floorAreaM2: 90,
-    bedrooms: 3,
-    priceMin: 118000,
-    priceMax: 142000,
-    currency: "EUR",
-    coverImageUrl: "https://picsum.photos/seed/modulor-family-90/960/640",
-    description: "",
-    wallBuildUp: "",
-    insulation: "",
-    heatTransferCoefficients: "",
-    windowClass: "",
-    ventilation: "",
-    heatSource: "",
-    fireResistance: "",
-    windResistance: "",
-    featured: false,
-    ...overrides,
-  };
+  return createMockProject(overrides);
 }
 
 describe("BindingOfferView", () => {

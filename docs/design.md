@@ -1,9 +1,9 @@
 ---
 name: modularhub-europe-design-system
-source: brand-guidelines-v3 (docs/brand-guidelines-v3.md; tokens extended, not invented, from assets/tokens/brand-v3-tokens.css)
-character: "Engineered confidence: a technical, documentary system for a cross-border industrial platform. Flat, cornered, precise — closer to a spec sheet or a customs manifest than a consumer marketing site. Navy carries trust and hierarchy, Passage Blue is the only color that means 'act here', and the three status colors are a reserved, separate language that never leaks into decoration."
-tokens: "real values live in app/globals.css (@theme inline) and assets/tokens/brand-v3-tokens.css; read them there, never duplicated here"
-contrast: "Foundation Navy on Warm White ~13.6:1; Passage Blue on Warm White ~5.3:1; white text on Passage Blue ~6.0:1 (all verified in brand-guidelines-v3.md section 14). Focus ring contrast (rgba(23,92,211,0.28) box-shadow) is flagged as likely below the 3:1 non-text minimum in WCAG 2.2 AA; owned by spec 0002's Follow-up, needs brand-owner sign-off (governance, section 15) before the token itself changes."
+source: current visual identity (docs/brand-guidelines-current.md)
+character: "Black-led engineered confidence: precise, modern and calm. Black carries hierarchy, Prussian Navy adds technical depth, Orange means act here, while White and Alabaster keep product surfaces readable."
+tokens: "real values live in app/globals.css (@theme inline), assets/tokens/brand-v3-tokens.css and assets/tokens/brand-v4-tokens.css; read them there, never duplicate them in components"
+contrast: "Black on White 21:1; Black on Orange ~10.39:1; Prussian Navy on White ~15.97:1; Graphite on White ~7.52:1. White on Orange is forbidden for normal text (~2.02:1)."
 ---
 
 ## Build mandate
@@ -13,10 +13,10 @@ You are a senior product designer building a demonstration prototype (Facade app
 ## Character & direction
 
 - **Flat, not spatial.** The 3D brand language (section 9 of the guidelines) belongs to marketing renders and the v3 logo lockups, never to product UI. Interface elements are flat rectangles with small, deliberate radii.
-- **Navy for trust, Blue for action.** Foundation Navy carries headings, body text, and hierarchy. Passage Blue is reserved for CTAs, links, and active steps — it is not a decorative accent. Electric Plane is reserved for large display graphics and edge-light effects only; it never appears as UI chrome or text below 18px on a light background.
+- **Black for hierarchy, Orange for action.** Black carries headings, body text and the main dark surfaces. Orange is reserved for CTAs, links, focus and active steps. Prussian Navy supports depth and technical hierarchy without competing with black.
 - **Status is its own language.** `approved` / `conditional` / `blocked` (green / amber / red) are reserved product colors, never brand accents, and never the only signal — every status ships with text and an icon (`StatusPill`).
 - **One message per view, generous breathing room.** The 8px spacing module and the 12-column digital grid (5–7% container margin) exist so screens don't get crowded; prefer more whitespace over a second competing call to action.
-- **No dark mode.** The brand system is light-only (Warm White base); nothing in the guidelines or this build calls for a `.dark` variant.
+- **Controlled dark surfaces.** The product remains a single fixed theme, but black navigation, hero and selected marketing bands are first-class parts of that theme. White and Alabaster remain the default reading surfaces.
 
 ## Composition patterns
 
@@ -31,19 +31,19 @@ All components live in `components/ui/` (barrel export `components/ui/index.ts`)
 
 | Component | Variants / props | Notes |
 |---|---|---|
-| `Button` | `variant`: primary / secondary / ghost · `size`: sm / md / lg · `as`: `"button"` \| `"a"` | Primary = filled Passage Blue, for the one main action per view. Secondary = outlined, Steel border. Ghost = text-only Passage Blue, for tertiary actions. `as="a"` renders a real anchor (e.g. the screen 4 hero CTA) with identical styling. |
+| `Button` | `variant`: primary / secondary / ghost · `size`: sm / md / lg · `as`: `"button"` \| `"a"` | Primary = Orange with black text, for the one main action per view. Secondary = outlined, Alabaster border. Ghost = text-only Orange, for tertiary actions. `as="a"` renders a real anchor with identical styling. |
 | `Input`, `Textarea` | `invalid` boolean | Native HTML, full keyboard support for free. `radius-data` (4px) — functional data-entry fields, not marketing modules. |
 | `Select` | `value`, `onChange`, `options`, `invalid`, `disabled` | The one form field that needs Headless UI (`Listbox`) — native `<select>` can't give it real custom styling with full keyboard support. Client component (`"use client"`); any screen using it must draw its own server/client boundary. |
 | `Checkbox`, `Radio` | native props | Native inputs, `accent-brand-passage-blue`. |
 | `Label` | `required` boolean | Always uppercase, `text-label` token, tracking `0.1em` (mid-point of the guideline's 0.08–0.14em range) — per section 8, tracking and uppercase are utility classes, not separate tokens. |
 | `StatusPill` | `status`: approved / conditional / blocked | Always icon + text, never color alone (section 7). Uses `radius-data`, not a stadium pill, to stay inside the brand's flat/cornered language despite the component's name. |
 | `Card` | `padding`: none / sm / md / lg | Generic shell only — 1px Steel border, `radius-card` (6px), no built-in content structure. |
-| `Heading` | `level`: displayXl / h1 / h2 / h3 | `font-display` (Montserrat), maps to a real heading tag (`displayXl` renders as `<h1>` too — a page has one true H1; pick the level for the visual size you need, not to skip hierarchy). |
+| `Heading` | `level`: displayXl / h1 / h2 / h3 | `font-display` (Manrope), maps to a real heading tag (`displayXl` renders as `<h1>` too — a page has one true H1; pick the level for the visual size you need, not to skip hierarchy). |
 | `Text` | `variant`: bodyL / body / label · `tone`: default / muted · `measure` boolean | `tone="muted"` = Technical Graphite, for secondary copy and captions. `measure` caps line length at 68 characters (section 8) for long-form body copy. |
 | `DataText` | `tone`: default / muted | `font-mono` (IBM Plex Mono), `tabular-nums` — for prices, dimensions, dates, document/module codes. |
 | `Container`, `Grid`, `Stack` | see above | Layout primitives; every screen composes from these rather than raw flex/grid utility soup. |
 
-**Don't**: introduce a fourth status color; use Electric Plane as a UI background or small text color; use Tailwind's native `ring-*` utilities for focus (the brand focus ring is a ready-made `box-shadow`, wired as the shared `.focus-ring` class in `app/globals.css`); build a new interactive primitive (dialog, tabs, table, timeline, file upload) here — those are owned by the screen spec that first needs them (screens 8/14, 10/16, 12), built on top of `Button` / `Card` / tokens, not from scratch.
+**Don't**: introduce a fourth status color; use white text on Orange; use Orange as large-area decoration; use Tailwind's native `ring-*` utilities for focus (the brand focus ring is a ready-made `box-shadow`, wired as the shared `.focus-ring` class in `app/globals.css`); build a new interactive primitive (dialog, tabs, table, timeline, file upload) here — those are owned by the screen spec that first needs them, built on top of `Button` / `Card` / tokens, not from scratch.
 
 **Deferred on purpose** (see spec 0002's Consequences): loading/skeleton states (mock data reads instantly, so this waits for the real-API stage); a `Producer` entity beyond `Project.producerId`/`producerName`; an order/status entity for the fulfilment timeline (screens 10, 16); per-country pricing (today `priceMin`/`priceMax` sit on `Project`, not per target country, even though transport cost realistically varies by destination).
 

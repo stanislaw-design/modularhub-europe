@@ -26,7 +26,7 @@ const MESSAGE_TEXT =
 export function ProducerOfferForm({ inquiry, project, countryName, listHref }: ProducerOfferFormProps) {
   const transportPriceEur = getMockTransportPriceEur(inquiry.deliveryCountry);
 
-  const [housePriceEur, setHousePriceEur] = useState(project.priceMin);
+  const [housePriceEur, setHousePriceEur] = useState(project.commercial.housePriceMinEur);
   const [installationPriceEur, setInstallationPriceEur] = useState(MOCK_INSTALLATION_PRICE_EUR);
   // Odczyt localStorage po zamontowaniu — patrz precedens lib/gap-closure.ts
   // (możliwe krótkie mignięcie formularza przy pierwszym renderze).

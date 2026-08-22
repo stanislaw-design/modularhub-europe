@@ -1,5 +1,7 @@
 # ModularHub Europe — Brand Guidelines v3
 
+> **Dokument historyczny.** Aktualne kolory i typografia dla całego serwisu są opisane w `docs/brand-guidelines-current.md`. W razie konfliktu obowiązuje dokument aktualny; strategia, głos marki i język statusów z tego pliku pozostają ważne.
+
 **Status:** kierunek roboczy / system oparty na logo v3  
 **Wersja:** 3.0 — 11.08.2026  
 **Zastępuje:** wizualny kierunek „Controlled Passage” z dokumentu `brand-guidelines.md`  
@@ -474,4 +476,3 @@ no stock people, no invented text or altered logo geometry.
 - Plansza systemowa: `assets/brand/boards/brand-guidelines-v3-board.png`
 - Tokeny CSS: `assets/tokens/brand-v3-tokens.css`
 - Tokeny JSON: `assets/tokens/brand-v3-tokens.json`
-

@@ -37,7 +37,7 @@ export function ResultsSelection({ items, locale, countryCode, sizeMin, sizeMax 
 
   return (
     <div className={selectedIds.length > 0 ? "pb-24" : undefined}>
-      <div className="grid grid-cols-2 gap-brand-4 sm:grid-cols-3 lg:grid-cols-4">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,20rem),1fr))] gap-brand-4">
         {items.map(({ project, countryName, eligibilityStatus }) => (
           <ResultCard
             key={project.id}

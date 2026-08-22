@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Project } from "@/lib/data/types";
+import { createMockProject } from "@/test/fixtures/project";
 import { type ResultItem, ResultsSelection } from "./ResultsSelection";
 
 const push = vi.fn();
@@ -15,29 +16,7 @@ afterEach(() => {
 });
 
 function makeProject(id: string, name: string): Project {
-  return {
-    id,
-    producerId: "prod-1",
-    producerName: "Producent",
-    name,
-    countryOfProduction: "PL",
-    floorAreaM2: 80,
-    bedrooms: 3,
-    priceMin: 100000,
-    priceMax: 120000,
-    currency: "EUR",
-    coverImageUrl: "https://picsum.photos/seed/x/960/640",
-    description: "",
-    wallBuildUp: "",
-    insulation: "",
-    heatTransferCoefficients: "",
-    windowClass: "",
-    ventilation: "",
-    heatSource: "",
-    fireResistance: "",
-    windResistance: "",
-    featured: false,
-  };
+  return createMockProject({ id, producerId: "prod-1", producerName: "Producent", name, floorAreaM2: 80, priceMin: 100000, priceMax: 120000 });
 }
 
 const items: ResultItem[] = [

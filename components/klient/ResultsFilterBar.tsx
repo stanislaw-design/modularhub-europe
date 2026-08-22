@@ -75,7 +75,7 @@ export function ResultsFilterBar({ locale, countries, countryCode, sizeMin, size
           type="button"
           onClick={handleSearch}
           aria-label="Szukaj"
-          className="focus-ring flex size-12 shrink-0 items-center justify-center rounded-full bg-brand-passage-blue text-brand-warm-white transition-opacity hover:opacity-90"
+          className="focus-ring flex size-12 shrink-0 items-center justify-center rounded-full bg-brand-passage-blue text-brand-action-foreground transition-colors hover:bg-brand-electric-plane"
         >
           <Search className="size-5" aria-hidden="true" />
         </button>
