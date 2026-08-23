@@ -57,6 +57,20 @@ export interface Project {
   featured: boolean;
 }
 
+export interface Producer {
+  id: string;
+  name: string;
+  countryCode: CountryCode;
+  rating: number;
+  reviewCount: number;
+  modelsCount: number;
+  sizeRangeM2Min: number;
+  sizeRangeM2Max: number;
+  deliveryCountries: CountryCode[];
+  featuredPhotoUrl: string;
+  verified: boolean;
+}
+
 export type EligibilityStatus = "approved" | "conditional" | "blocked";
 
 export interface EligibilityByCountry {

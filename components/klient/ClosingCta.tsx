@@ -28,7 +28,7 @@ export function ClosingCta() {
   return (
     <section
       id="jak-to-dziala"
-      className="full-bleed relative overflow-hidden bg-brand-v4-night py-brand-6 text-brand-v4-surface scroll-mt-brand-4"
+      className="full-bleed relative overflow-hidden bg-brand-v4-night py-brand-6 text-brand-v4-surface scroll-mt-brand-6"
     >
       <Image
         src="/images/houses/golden-hour/karpaty-ridge-72.webp"

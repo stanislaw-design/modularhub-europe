@@ -1,34 +1,6 @@
 import { FileCheck2, ShieldCheck, Wallet } from "lucide-react";
-import Image from "next/image";
 import type { ReactNode } from "react";
 import { Container } from "@/components/ui";
-
-const heroImages = [
-  {
-    src: "/images/houses/golden-hour/baltyk-loft-120.webp",
-    className: "lg:col-span-7 lg:row-span-7",
-  },
-  {
-    src: "/images/houses/golden-hour/karpaty-alpine-104.webp",
-    className: "lg:col-span-5 lg:row-span-4",
-  },
-  {
-    src: "/images/houses/golden-hour/modulor-family-90.webp",
-    className: "lg:col-span-5 lg:row-span-5",
-  },
-  {
-    src: "/images/houses/golden-hour/karpaty-ridge-72.webp",
-    className: "lg:col-span-4 lg:row-span-5",
-  },
-  {
-    src: "/images/houses/golden-hour/modulor-compact-56.webp",
-    className: "lg:col-span-4 lg:row-span-5",
-  },
-  {
-    src: "/images/houses/golden-hour/baltyk-studio-38.webp",
-    className: "lg:col-span-4 lg:row-span-3",
-  },
-];
 
 const trustBadges = [
   { icon: ShieldCheck, label: "Zweryfikowani producenci" },
@@ -36,110 +8,52 @@ const trustBadges = [
   { icon: FileCheck2, label: "Compliance Engine™" },
 ];
 
-// Server component: the only interaction here is an anchor scroll to the
-// search card (id="search-card", rendered by app/[locale]/klient/page.tsx
-// right after this section) — no client state needed. The search itself
-// lives in SearchCard.tsx, which owns the SearchSegment instances and the
-// /wyniki navigation (spec 0014 AC-3, AC-4).
-export function Hero({ children }: { children?: ReactNode }) {
+interface HeroProps {
+  children?: ReactNode;
+}
+
+// Server component: no interactions live here — the search bar (children)
+// carries all client state. Single centered column, no photo (spec 0015
+// redesign v2): headline, then the search bar directly beneath it, so the
+// primary action sits above the fold with nothing competing for attention.
+// The subcopy + trust badges sit below the search bar, not above it, so they
+// read as supporting reassurance rather than something to get through first.
+export function Hero({ children }: HeroProps) {
   return (
-    <section className="full-bleed -mt-brand-4 relative overflow-hidden bg-brand-v4-night text-brand-v4-surface">
-      <Container className="relative flex flex-col gap-brand-5 pt-brand-6 pb-brand-6 lg:min-h-[600px] lg:justify-center lg:py-brand-7 lg:pl-[0%]">
-        <div className="relative z-10 flex flex-col items-start gap-brand-4 lg:max-w-[780px]">
-          <span className="hidden text-label font-semibold tracking-[0.1em] text-brand-v4-amber lg:inline">
-            Najlepsza platforma w Europie
+    <section className="full-bleed -mt-brand-4 relative bg-brand-v5-paper pt-brand-7 pb-brand-5 lg:pt-brand-8">
+      <Container className="flex flex-col items-center gap-brand-5 text-center">
+        {/* Amber stays a fill/decoration, never body text color, on this
+            light surface — direct amber text on white fails WCAG AA
+            contrast (checklist.md), so the accent words get an amber
+            underline instead of amber fill color. */}
+        <h1 className="whitespace-nowrap font-display text-[clamp(1.75rem,4.6vw,5.25rem)] leading-[0.97] font-bold tracking-[-0.04em] text-brand-v5-ink">
+          Twój{" "}
+          <span className="underline decoration-brand-v5-amber decoration-[0.09em] underline-offset-[0.08em]">
+            dom.
+          </span>{" "}
+          Mądrze{" "}
+          <span className="underline decoration-brand-v5-amber decoration-[0.09em] underline-offset-[0.08em]">
+            wybrany.
           </span>
-          <h1 className="max-w-[14ch] font-display text-[clamp(3.5rem,5.5vw,5.75rem)] leading-[0.95] font-bold tracking-[-0.045em]">
-            Twój <span className="text-brand-v4-amber">dom.</span>
-            <br />
-            <span className="lg:whitespace-nowrap">
-              <span className="text-brand-v4-amber">Mądrze</span> wybrany.
-            </span>
-          </h1>
-          <p className="hidden max-w-[46ch] text-body-l text-brand-v4-mist lg:block">
+        </h1>
+        {children ? <div className="w-full max-w-3xl">{children}</div> : null}
+        <div className="flex flex-col items-center gap-brand-2">
+          <p className="max-w-[46ch] text-body-l text-brand-v5-muted">
             Porównaj sprawdzone domy modułowe z całej Europy.
           </p>
-          <ul className="hidden flex-wrap gap-brand-4 lg:flex lg:flex-nowrap lg:gap-brand-3">
+          <ul className="flex flex-col items-center gap-brand-2 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-brand-4">
             {trustBadges.map(({ icon: Icon, label }) => (
               <li
                 key={label}
-                className="flex items-center gap-brand-1 text-body whitespace-nowrap text-brand-v4-surface"
+                className="flex items-center gap-brand-1 text-data font-medium text-brand-v5-ink"
               >
-                <Icon className="size-5 shrink-0 text-brand-v4-amber" aria-hidden="true" />
+                <Icon className="size-4 shrink-0 text-brand-v5-ink" aria-hidden="true" />
                 {label}
               </li>
             ))}
           </ul>
         </div>
       </Container>
-      <div className="absolute inset-y-0 right-0 w-full lg:w-[58%]">
-        <div
-          className="relative grid h-full w-full grid-cols-1 auto-rows-max gap-1 overflow-hidden rounded-v4-panel bg-brand-v4-night lg:grid-cols-12 lg:grid-rows-12 lg:rounded-none"
-          role="img"
-          aria-label="Mozaika różnych domów modułowych dostępnych na platformie"
-        >
-          {heroImages.map((image, index) => (
-            <div
-              key={image.src}
-              className={`relative aspect-video min-h-0 min-w-0 overflow-hidden rounded-v4-card lg:aspect-auto ${image.className}`}
-            >
-              <Image
-                src={image.src}
-                alt=""
-                fill
-                priority={index < 3}
-                sizes="(min-width: 1024px) 34vw, 50vw"
-                className="object-cover saturate-[0.82] contrast-[1.06]"
-              />
-              <div aria-hidden="true" className="absolute inset-0 bg-brand-v4-night-deep/10" />
-            </div>
-          ))}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.07)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.07)_1px,transparent_1px)] bg-[size:72px_72px]"
-          />
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-brand-v4-night/50 lg:hidden"
-          />
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-gradient-to-r from-brand-v4-night/95 via-brand-v4-night/65 to-transparent lg:hidden"
-          />
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-brand-v4-night via-brand-v4-night/70 to-transparent"
-          />
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 backdrop-blur-[12px] [mask-image:linear-gradient(to_top,black,transparent)]"
-          />
-        </div>
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 left-0 hidden w-2/5 bg-gradient-to-r from-brand-v4-night via-brand-v4-night/80 to-transparent lg:block"
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 left-0 hidden w-1/3 backdrop-blur-[10px] [mask-image:linear-gradient(to_right,black,transparent)] lg:block"
-        />
-      </div>
-      {children ? (
-        <Container className="relative z-20 pb-brand-6">
-          {children}
-          <ul className="mt-brand-4 flex flex-col gap-brand-3 lg:hidden">
-            {trustBadges.map(({ icon: Icon, label }) => (
-              <li
-                key={label}
-                className="flex items-center gap-brand-1 text-body whitespace-nowrap text-brand-v4-surface"
-              >
-                <Icon className="size-5 shrink-0 text-brand-v4-amber" aria-hidden="true" />
-                {label}
-              </li>
-            ))}
-          </ul>
-        </Container>
-      ) : null}
     </section>
   );
 }

@@ -21,6 +21,19 @@ export function getMockTransportPriceEur(countryCode: CountryCode): number {
   return MOCK_TRANSPORT_PRICE_EUR_BY_COUNTRY[countryCode];
 }
 
+// Flat mock assembly figure per delivery country, same placeholder spirit as
+// the transport figure above. Feeds the broken-down price on /wyniki when a
+// target country is known (spec 0015 AC-14).
+const MOCK_ASSEMBLY_PRICE_EUR_BY_COUNTRY: Record<CountryCode, number> = {
+  PL: 1800,
+  DE: 2600,
+  NL: 2900,
+};
+
+export function getMockAssemblyPriceEur(countryCode: CountryCode): number {
+  return MOCK_ASSEMBLY_PRICE_EUR_BY_COUNTRY[countryCode];
+}
+
 // Oferta wiążąca (feature 9) shows one committed price for dom + transport +
 // montaż instead of the range shown earlier on /wyniki and /zapytanie
 // (Project.priceMin/priceMax already covers all three, per feature 6's scope

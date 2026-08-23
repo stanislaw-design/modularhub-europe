@@ -1,7 +1,8 @@
 import { Clock3, MapPin } from "lucide-react";
 import Image from "next/image";
 import { Card, Checkbox, DataText, Heading, StatusPill, Text } from "@/components/ui";
-import type { EligibilityStatus, Project } from "@/lib/data/types";
+import { getMockAssemblyPriceEur, getMockTransportPriceEur } from "@/lib/pricing";
+import type { CountryCode, EligibilityStatus, Project } from "@/lib/data/types";
 
 interface ResultCardProps {
   project: Project;
@@ -10,9 +11,23 @@ interface ResultCardProps {
   selected?: boolean;
   selectionDisabled?: boolean;
   onToggleSelect?: () => void;
+  /** Target delivery country from /wyniki's `country` URL param. When
+   * present, the price breaks down into dom/transport/montaż instead of the
+   * flat priceMin–priceMax range (spec 0015 AC-14). */
+  countryCode?: CountryCode;
 }
 
 const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0 });
+
+// Display name for the *target delivery* country (the countryCode prop),
+// deliberately separate from the countryName prop (the project's country of
+// production) — the two are different countries whenever a client searches
+// a country other than where the house is built.
+const targetCountryName: Record<CountryCode, string> = {
+  PL: "Polski",
+  DE: "Niemiec",
+  NL: "Holandii",
+};
 
 const standardLabel = {
   "surowy-zamkniety": "Stan surowy zamknięty",
@@ -31,7 +46,15 @@ export function ResultCard({
   selected,
   selectionDisabled,
   onToggleSelect,
+  countryCode,
 }: ResultCardProps) {
+  const transportPrice = countryCode ? getMockTransportPriceEur(countryCode) : null;
+  const assemblyPrice = countryCode ? getMockAssemblyPriceEur(countryCode) : null;
+  const totalPrice =
+    transportPrice !== null && assemblyPrice !== null
+      ? project.commercial.housePriceMinEur + transportPrice + assemblyPrice
+      : null;
+
   return (
     <Card as="article" padding="none" className="flex h-full flex-col overflow-hidden">
       <div className="relative aspect-[3/2] overflow-hidden">
@@ -74,11 +97,38 @@ export function ResultCard({
           {project.constructionSystem} · {standardLabel[project.commercial.completionStandard]}
         </Text>
         <div className="mt-auto border-t border-brand-steel pt-brand-2">
-          <Text variant="label" tone="muted">Szacowany pakiet</Text>
-          <DataText as="p" className="mt-1 text-body-l font-semibold">
-            {priceFormatter.format(project.priceMin)}–{priceFormatter.format(project.priceMax)} €
-          </DataText>
-          <Text tone="muted" className="mt-1 text-data">Dom + standardowy transport + montaż</Text>
+          {totalPrice !== null && transportPrice !== null && assemblyPrice !== null ? (
+            <div className="flex flex-col gap-0.5">
+              <div className="flex items-center justify-between gap-brand-1">
+                <Text tone="muted" className="text-data">Dom</Text>
+                <DataText>od {priceFormatter.format(project.commercial.housePriceMinEur)} €</DataText>
+              </div>
+              <div className="flex items-center justify-between gap-brand-1">
+                <Text tone="muted" className="text-data">
+                  Transport do {countryCode ? targetCountryName[countryCode] : countryName}
+                </Text>
+                <DataText>~{priceFormatter.format(transportPrice)} €</DataText>
+              </div>
+              <div className="flex items-center justify-between gap-brand-1">
+                <Text tone="muted" className="text-data">Montaż</Text>
+                <DataText>~{priceFormatter.format(assemblyPrice)} €</DataText>
+              </div>
+              <div className="mt-1 flex items-center justify-between gap-brand-1 border-t border-brand-steel pt-1">
+                <Text variant="label" tone="muted">Razem</Text>
+                <DataText className="text-body-l font-semibold">
+                  od {priceFormatter.format(totalPrice)} €
+                </DataText>
+              </div>
+            </div>
+          ) : (
+            <>
+              <Text variant="label" tone="muted">Szacowany pakiet</Text>
+              <DataText as="p" className="mt-1 text-body-l font-semibold">
+                {priceFormatter.format(project.priceMin)}–{priceFormatter.format(project.priceMax)} €
+              </DataText>
+              <Text tone="muted" className="mt-1 text-data">Dom + standardowy transport + montaż</Text>
+            </>
+          )}
         </div>
         <Text tone="muted" className="flex items-center gap-1 text-data">
           <Clock3 className="size-3.5 shrink-0" aria-hidden="true" />

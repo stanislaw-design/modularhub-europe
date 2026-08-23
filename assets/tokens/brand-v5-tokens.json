@@ -1,0 +1,34 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "brandV5": {
+    "color": {
+      "$description": "Premium homepage surface aliases (spec 0015). Same global black/navy/amber identity as v3/v4, but the default surface is light white rather than black.",
+      "paper": { "$value": "#FFFFFF", "$type": "color" },
+      "surface": { "$value": "#FFFFFF", "$type": "color" },
+      "ink": { "$value": "#000000", "$type": "color" },
+      "muted": { "$value": "#4D5562", "$type": "color" },
+      "night": {
+        "$value": "#000000",
+        "$type": "color",
+        "$description": "Reserved exclusively for the closing CTA band, which keeps rendering via v4 tokens unchanged."
+      },
+      "amber": { "$value": "#FCA311", "$type": "color" },
+      "amberStrong": { "$value": "#E89200", "$type": "color" },
+      "amberForeground": {
+        "$value": "#000000",
+        "$type": "color",
+        "$description": "Only allowed text/icon color on an amber fill; white on amber does not meet AA for normal text."
+      },
+      "line": { "$value": "#E5E5E5", "$type": "color" }
+    },
+    "radius": {
+      "card": {
+        "$value": "16px",
+        "$type": "dimension",
+        "$description": "Deliberately smaller than v4's 20px — delicately rounded, not bubbly."
+      },
+      "panel": { "$value": "24px", "$type": "dimension" },
+      "pill": { "$value": "999px", "$type": "dimension" }
+    }
+  }
+}

@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "../assets/tokens/brand-v3-tokens.css";
 @import "../assets/tokens/brand-v4-tokens.css";
+@import "../assets/tokens/brand-v5-tokens.css";
 
 :root {
   --background: var(--brand-warm-white);
@@ -55,6 +56,21 @@
   --radius-v4-pill: var(--brand-v4-radius-pill);
   --radius-v4-panel: var(--brand-v4-radius-panel);
   --radius-v4-card: var(--brand-v4-radius-card);
+
+  /* Premium homepage surface aliases (spec 0015). */
+  --color-brand-v5-paper: var(--brand-v5-paper);
+  --color-brand-v5-surface: var(--brand-v5-surface);
+  --color-brand-v5-ink: var(--brand-v5-ink);
+  --color-brand-v5-muted: var(--brand-v5-muted);
+  --color-brand-v5-night: var(--brand-v5-night);
+  --color-brand-v5-amber: var(--brand-v5-amber);
+  --color-brand-v5-amber-strong: var(--brand-v5-amber-strong);
+  --color-brand-v5-amber-foreground: var(--brand-v5-amber-foreground);
+  --color-brand-v5-line: var(--brand-v5-line);
+
+  --radius-v5-card: var(--brand-v5-radius-card);
+  --radius-v5-panel: var(--brand-v5-radius-panel);
+  --radius-v5-pill: var(--brand-v5-radius-pill);
 
   --font-sans: var(--font-brand-body);
   --font-display: var(--font-brand-display);

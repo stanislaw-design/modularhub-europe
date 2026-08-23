@@ -47,6 +47,7 @@ export function ResultsSelection({ items, locale, countryCode, sizeMin, sizeMax 
             selected={selectedIds.includes(project.id)}
             selectionDisabled={limitReached && !selectedIds.includes(project.id)}
             onToggleSelect={() => toggle(project.id)}
+            countryCode={countryCode}
           />
         ))}
       </div>

@@ -1,3 +1,5 @@
+export { Accordion } from "./Accordion";
+export type { AccordionItem } from "./Accordion";
 export { Button } from "./Button";
 export { Card } from "./Card";
 export { Checkbox } from "./Checkbox";
@@ -12,6 +14,7 @@ export { Radio } from "./Radio";
 export { Select } from "./Select";
 export type { SelectOption } from "./Select";
 export { Stack } from "./Stack";
+export { StarRating } from "./StarRating";
 export { StageTimeline } from "./StageTimeline";
 export type { StageTimelineDocument, StageTimelineItem, StageStatus } from "./StageTimeline";
 export { StatusPill } from "./StatusPill";

@@ -40,12 +40,9 @@ export function SiteHeader({ locale }: SiteHeaderProps) {
   const navItems = mainNavItems(locale);
 
   return (
-    <header className="border-b border-brand-v4-line-dark bg-brand-v4-night">
+    <header className="sticky top-0 z-40 border-b border-brand-v5-line bg-brand-v5-surface">
       <Container className="flex items-center justify-between gap-brand-4 py-brand-2">
-        <Link
-          href={`/${locale}/klient`}
-          className="focus-ring shrink-0 rounded-data bg-brand-v4-surface px-brand-2 py-1"
-        >
+        <Link href={`/${locale}/klient`} className="focus-ring shrink-0 rounded-data">
           <Image
             src={logoHorizontalCompactV2}
             alt="ModularHub Europe"
@@ -58,7 +55,7 @@ export function SiteHeader({ locale }: SiteHeaderProps) {
             type="button"
             disabled
             aria-label="Zmień język"
-            className="hidden items-center gap-1 text-body font-medium text-brand-v4-surface disabled:cursor-default disabled:opacity-50 sm:flex"
+            className="hidden items-center gap-1 text-body font-medium text-brand-v5-ink disabled:cursor-default disabled:opacity-50 sm:flex"
           >
             PL
             <ChevronDown className="size-4" aria-hidden="true" />
@@ -66,7 +63,7 @@ export function SiteHeader({ locale }: SiteHeaderProps) {
           <button
             type="button"
             disabled
-            className="hidden items-center gap-1 text-body font-medium text-brand-v4-surface disabled:cursor-default disabled:opacity-50 sm:flex"
+            className="hidden items-center gap-1 text-body font-medium text-brand-v5-ink disabled:cursor-default disabled:opacity-50 sm:flex"
           >
             <Heart className="size-4" aria-hidden="true" />
             Ulubione
@@ -74,14 +71,14 @@ export function SiteHeader({ locale }: SiteHeaderProps) {
           <button
             type="button"
             disabled
-            className="hidden items-center gap-1 text-body font-medium text-brand-v4-surface disabled:cursor-default disabled:opacity-50 md:flex"
+            className="hidden items-center gap-1 text-body font-medium text-brand-v5-ink disabled:cursor-default disabled:opacity-50 md:flex"
           >
             <User className="size-4" aria-hidden="true" />
             Zaloguj się
           </button>
           <Link
             href={`/${locale}/producent`}
-            className="focus-ring rounded-v4-pill bg-brand-v4-amber px-brand-3 py-brand-1 text-body font-semibold text-brand-v4-amber-foreground hover:bg-brand-v4-amber-strong"
+            className="focus-ring rounded-v5-pill bg-brand-v5-amber px-brand-3 py-brand-1 text-body font-semibold text-brand-v5-amber-foreground hover:bg-brand-v5-amber-strong"
           >
             Zacznij
           </Link>
@@ -91,7 +88,7 @@ export function SiteHeader({ locale }: SiteHeaderProps) {
             aria-label="Otwórz menu"
             aria-haspopup="dialog"
             aria-expanded={isMenuOpen}
-            className="focus-ring flex items-center justify-center rounded-data p-1 text-brand-v4-surface hover:opacity-80"
+            className="focus-ring flex items-center justify-center rounded-data p-1 text-brand-v5-ink hover:opacity-70"
           >
             <Menu className="size-6" aria-hidden="true" />
           </button>
@@ -101,20 +98,20 @@ export function SiteHeader({ locale }: SiteHeaderProps) {
       <Dialog open={isMenuOpen} onClose={setIsMenuOpen} className="relative z-50">
         <DialogBackdrop
           transition
-          className="fixed inset-0 bg-brand-v4-night-deep/60 transition duration-200 ease-out data-[closed]:opacity-0"
+          className="fixed inset-0 bg-brand-v5-ink/40 transition duration-200 ease-out data-[closed]:opacity-0"
         />
         <div className="fixed inset-0 flex justify-end">
           <DialogPanel
             transition
-            className="flex h-full w-full max-w-xs flex-col gap-brand-4 overflow-y-auto bg-brand-v4-night p-brand-4 shadow-xl transition duration-200 ease-out data-[closed]:translate-x-full"
+            className="flex h-full w-full max-w-xs flex-col gap-brand-4 overflow-y-auto bg-brand-v5-surface p-brand-4 shadow-xl transition duration-200 ease-out data-[closed]:translate-x-full"
           >
             <div className="flex items-center justify-between">
-              <span className="text-body font-medium text-brand-v4-surface">Menu</span>
+              <span className="text-body font-medium text-brand-v5-ink">Menu</span>
               <button
                 type="button"
                 onClick={() => setIsMenuOpen(false)}
                 aria-label="Zamknij menu"
-                className="focus-ring flex items-center justify-center rounded-data p-1 text-brand-v4-surface hover:opacity-80"
+                className="focus-ring flex items-center justify-center rounded-data p-1 text-brand-v5-ink hover:opacity-70"
               >
                 <X className="size-6" aria-hidden="true" />
               </button>
@@ -127,7 +124,7 @@ export function SiteHeader({ locale }: SiteHeaderProps) {
                       <Link
                         href={item.href}
                         onClick={() => setIsMenuOpen(false)}
-                        className="focus-ring block rounded-data text-body font-medium text-brand-v4-surface hover:text-brand-v4-amber"
+                        className="focus-ring block rounded-data text-body font-medium text-brand-v5-ink hover:text-brand-v5-amber-strong"
                       >
                         {item.label}
                       </Link>
@@ -137,7 +134,7 @@ export function SiteHeader({ locale }: SiteHeaderProps) {
                       <button
                         type="button"
                         disabled
-                        className="text-body font-medium text-brand-v4-mist disabled:cursor-default disabled:opacity-50"
+                        className="text-body font-medium text-brand-v5-muted disabled:cursor-default disabled:opacity-50"
                       >
                         {item.label}
                       </button>

@@ -91,6 +91,7 @@ test.describe("/pl/klient/wyniki", () => {
   }) => {
     await page.goto("/pl/klient");
 
+    await page.getByRole("button", { name: "W czym mogę pomóc?" }).click();
     await page.getByRole("button", { name: "Kraj docelowy" }).click();
     await page.getByRole("option", { name: "Niemcy" }).click();
     await page.getByRole("button", { name: "Powierzchnia" }).click();
@@ -109,6 +110,7 @@ test.describe("/pl/klient/wyniki", () => {
   }) => {
     await page.goto("/pl/klient");
 
+    await page.getByRole("button", { name: "W czym mogę pomóc?" }).click();
     await page.getByRole("button", { name: "Kraj docelowy" }).click();
     await page.getByRole("option", { name: "Polska" }).click();
     await page.getByRole("button", { name: "Szukaj domów" }).click();

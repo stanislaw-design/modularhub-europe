@@ -37,15 +37,15 @@ export function CategoryShowcase({ locale }: CategoryShowcaseProps) {
   const allResultsHref = `/${locale}/klient/wyniki`;
 
   return (
-    <section className="full-bleed bg-brand-v4-night py-brand-5">
+    <section className="full-bleed bg-brand-v5-paper py-brand-5">
       <Container className="flex flex-col gap-brand-4">
         <div className="flex flex-wrap items-baseline justify-between gap-brand-2">
-          <h2 className="text-h2 font-display font-semibold text-brand-v4-surface">
+          <h2 className="text-h2 font-display font-semibold text-brand-v5-ink">
             Odkryj popularne kategorie domów
           </h2>
           <Link
             href={allResultsHref}
-            className="focus-ring flex items-center gap-1 rounded-data text-body font-semibold text-brand-v4-surface hover:text-brand-v4-amber"
+            className="focus-ring flex items-center gap-1 rounded-data text-body font-semibold text-brand-v5-ink hover:underline"
           >
             Zobacz wszystkie kategorie
             <ArrowRight className="size-4" aria-hidden="true" />
@@ -56,9 +56,9 @@ export function CategoryShowcase({ locale }: CategoryShowcaseProps) {
             <Link
               key={category.name}
               href={allResultsHref}
-              className="focus-ring group flex flex-col gap-brand-2 rounded-v4-card"
+              className="focus-ring group flex flex-col gap-brand-2 rounded-v5-card"
             >
-              <div className="relative aspect-[4/3] overflow-hidden rounded-v4-card">
+              <div className="relative aspect-[4/3] overflow-hidden rounded-v5-card">
                 <Image
                   src={category.image}
                   alt={`Przykładowy dom z kategorii ${category.name}`}
@@ -69,13 +69,13 @@ export function CategoryShowcase({ locale }: CategoryShowcaseProps) {
               </div>
               <div className="flex items-center justify-between gap-brand-1">
                 <div className="flex flex-col">
-                  <span className="text-body-l font-semibold text-brand-v4-surface">
+                  <span className="text-body-l font-semibold text-brand-v5-ink">
                     {category.name}
                   </span>
-                  <span className="text-body text-brand-v4-mist">{category.count}</span>
+                  <span className="text-body text-brand-v5-muted">{category.count}</span>
                 </div>
                 <ArrowRight
-                  className="size-5 shrink-0 text-brand-v4-surface transition-transform group-hover:translate-x-1 group-hover:text-brand-v4-amber"
+                  className="size-5 shrink-0 text-brand-v5-ink transition-transform group-hover:translate-x-1"
                   aria-hidden="true"
                 />
               </div>

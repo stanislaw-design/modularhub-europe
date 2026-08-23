@@ -1,0 +1,19 @@
+:root {
+  /* Premium homepage surface aliases (spec 0015): same global identity as
+     v3/v4, but the default surface is light — dark is reserved for the
+     closing CTA band only, which keeps using v4 tokens unchanged. */
+  --brand-v5-paper: #ffffff;
+  --brand-v5-surface: #ffffff;
+  --brand-v5-ink: #000000;
+  --brand-v5-muted: #4d5562;
+  --brand-v5-night: #000000;
+  --brand-v5-amber: #fca311;
+  --brand-v5-amber-strong: #e89200;
+  /* Only allowed text/icon color on an amber fill. */
+  --brand-v5-amber-foreground: #000000;
+  --brand-v5-line: #e5e5e5;
+
+  --brand-v5-radius-card: 16px;
+  --brand-v5-radius-panel: 24px;
+  --brand-v5-radius-pill: 999px;
+}
