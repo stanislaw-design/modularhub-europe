@@ -22,7 +22,7 @@ const entries: ExportReadinessCountryStatus[] = [
 
 describe("ExportReadinessMap", () => {
   it("shows the project name in the heading when one is given (AC-1)", () => {
-    render(<ExportReadinessMap locale="pl" projectName="Modulor 28" countries={countries} entries={entries} />);
+    render(<ExportReadinessMap locale="pl" projectName="Modulor 28" countries={countries} entries={entries} catalogHref={null} />);
 
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
       "Gotowość eksportowa: „Modulor 28”"
@@ -30,19 +30,19 @@ describe("ExportReadinessMap", () => {
   });
 
   it("falls back to a generic heading, without erroring, when no project name is given (AC-1)", () => {
-    render(<ExportReadinessMap locale="pl" projectName={null} countries={countries} entries={entries} />);
+    render(<ExportReadinessMap locale="pl" projectName={null} countries={countries} entries={entries} catalogHref={null} />);
 
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Gotowość eksportowa");
   });
 
   it("renders exactly one h1 (AC-8)", () => {
-    render(<ExportReadinessMap locale="pl" projectName="Modulor 28" countries={countries} entries={entries} />);
+    render(<ExportReadinessMap locale="pl" projectName="Modulor 28" countries={countries} entries={entries} catalogHref={null} />);
 
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
   });
 
   it("renders exactly three country rows, one per entry, with resolved country names and status pills (AC-2)", () => {
-    render(<ExportReadinessMap locale="pl" projectName={null} countries={countries} entries={entries} />);
+    render(<ExportReadinessMap locale="pl" projectName={null} countries={countries} entries={entries} catalogHref={null} />);
 
     expect(screen.getByText("Polska")).toBeInTheDocument();
     expect(screen.getByText("Niemcy")).toBeInTheDocument();
@@ -53,7 +53,7 @@ describe("ExportReadinessMap", () => {
   });
 
   it("shows the legal disclaimer exactly once, near the top (AC-6)", () => {
-    render(<ExportReadinessMap locale="pl" projectName={null} countries={countries} entries={entries} />);
+    render(<ExportReadinessMap locale="pl" projectName={null} countries={countries} entries={entries} catalogHref={null} />);
 
     expect(
       screen.getAllByText(
@@ -63,16 +63,37 @@ describe("ExportReadinessMap", () => {
   });
 
   it("contains no links in the default collapsed view (AC-7; spec 0010 adds a 'Domknij luki' link once a conditional row is expanded)", () => {
-    render(<ExportReadinessMap locale="pl" projectName={null} countries={countries} entries={entries} />);
+    render(<ExportReadinessMap locale="pl" projectName={null} countries={countries} entries={entries} catalogHref={null} />);
 
     expect(screen.queryAllByRole("link")).toHaveLength(0);
   });
 
   it("falls back to the raw country code when a country is missing from the countries list", () => {
-    render(<ExportReadinessMap locale="pl" projectName={null} countries={[]} entries={entries} />);
+    render(<ExportReadinessMap locale="pl" projectName={null} countries={[]} entries={entries} catalogHref={null} />);
 
     expect(screen.getByText("PL")).toBeInTheDocument();
     expect(screen.getByText("DE")).toBeInTheDocument();
     expect(screen.getByText("NL")).toBeInTheDocument();
+  });
+
+  it("shows a link to the product catalog only when catalogHref is given (spec 0016, AC-6)", () => {
+    const { rerender } = render(
+      <ExportReadinessMap locale="pl" projectName="Modulor 28" countries={countries} entries={entries} catalogHref={null} />
+    );
+    expect(screen.queryByRole("link", { name: "Zobacz swoje produkty" })).not.toBeInTheDocument();
+
+    rerender(
+      <ExportReadinessMap
+        locale="pl"
+        projectName="Modulor 28"
+        countries={countries}
+        entries={entries}
+        catalogHref="/pl/producent/produkty?nip=1234567890"
+      />
+    );
+    expect(screen.getByRole("link", { name: "Zobacz swoje produkty" })).toHaveAttribute(
+      "href",
+      "/pl/producent/produkty?nip=1234567890"
+    );
   });
 });

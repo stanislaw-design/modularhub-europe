@@ -1,4 +1,4 @@
-import type { ProjectDraft } from "./data/types";
+import type { CompletionStandard, ProjectCategory, ProjectDraft } from "./data/types";
 
 export type WizardStepId =
   | "podstawowe"
@@ -6,6 +6,7 @@ export type WizardStepId =
   | "instalacje"
   | "odpornosc"
   | "pliki"
+  | "cena"
   | "podsumowanie";
 
 export interface WizardStep {
@@ -19,6 +20,7 @@ export const WIZARD_STEPS: WizardStep[] = [
   { id: "instalacje", label: "Instalacje i okna" },
   { id: "odpornosc", label: "Odporność" },
   { id: "pliki", label: "Pliki" },
+  { id: "cena", label: "Cena i sprzedaż" },
   { id: "podsumowanie", label: "Podsumowanie" },
 ];
 
@@ -26,6 +28,18 @@ export const FLOOR_AREA_MIN_M2 = 20;
 export const FLOOR_AREA_MAX_M2 = 500;
 export const BEDROOMS_MIN = 0;
 export const BEDROOMS_MAX = 10;
+
+export const COMPLETION_STANDARD_OPTIONS: { value: CompletionStandard; label: string }[] = [
+  { value: "surowy-zamkniety", label: "Stan surowy zamknięty" },
+  { value: "deweloperski", label: "Standard deweloperski" },
+  { value: "pod-klucz", label: "Pod klucz" },
+];
+
+export const PROJECT_CATEGORY_OPTIONS: { value: ProjectCategory; label: string }[] = [
+  { value: "caloroczny", label: "Całoroczny" },
+  { value: "rekreacyjny-caloroczny", label: "Rekreacyjny całoroczny" },
+  { value: "mobilny", label: "Mobilny" },
+];
 
 // Podpowiedzi treściowe pod ośmioma polami technicznymi (spec 0008, Feature design).
 export const TECHNICAL_FIELD_HINTS = {
@@ -56,6 +70,15 @@ export function createEmptyDraft(): ProjectDraft {
     windResistance: "",
     floorPlanFiles: [],
     photoFiles: [],
+    housePriceMinEur: null,
+    housePriceMaxEur: null,
+    completionStandard: null,
+    productionLeadTimeWeeksMin: null,
+    productionLeadTimeWeeksMax: null,
+    onSiteAssemblyDaysMin: null,
+    onSiteAssemblyDaysMax: null,
+    structuralWarrantyYears: null,
+    category: null,
   };
 }
 
@@ -90,6 +113,23 @@ export function isStepComplete(stepId: WizardStepId, draft: ProjectDraft): boole
       return isNonEmpty(draft.fireResistance) && isNonEmpty(draft.windResistance);
     case "pliki":
       return draft.floorPlanFiles.length > 0 && draft.photoFiles.length > 0;
+    case "cena":
+      return (
+        draft.housePriceMinEur !== null &&
+        draft.housePriceMaxEur !== null &&
+        draft.housePriceMinEur <= draft.housePriceMaxEur &&
+        draft.completionStandard !== null &&
+        draft.productionLeadTimeWeeksMin !== null &&
+        draft.productionLeadTimeWeeksMax !== null &&
+        draft.productionLeadTimeWeeksMin <= draft.productionLeadTimeWeeksMax &&
+        draft.onSiteAssemblyDaysMin !== null &&
+        draft.onSiteAssemblyDaysMax !== null &&
+        draft.onSiteAssemblyDaysMin <= draft.onSiteAssemblyDaysMax &&
+        draft.structuralWarrantyYears !== null &&
+        Number.isInteger(draft.structuralWarrantyYears) &&
+        draft.structuralWarrantyYears >= 0 &&
+        draft.category !== null
+      );
     case "podsumowanie":
       return WIZARD_STEPS.slice(0, -1).every((step) => isStepComplete(step.id, draft));
   }

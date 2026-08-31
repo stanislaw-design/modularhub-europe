@@ -34,4 +34,29 @@ export const plotAnalysisResults: PlotAnalysisResult[] = [
     status: "conditional",
     reason: "Wymagane potwierdzenie spadku terenu działki; przy nachyleniu powyżej 10% konieczny jest projekt posadowienia na fundamencie punktowym.",
   },
+  {
+    projectId: "prj-cocomodule-ch24-coco",
+    status: "conditional",
+    reason: "Wersja pływająca wymaga dostępu do zbiornika wodnego i zgody wodnoprawnej; wersja lądowa nie ma tego wymogu.",
+  },
+  {
+    projectId: "prj-cocomodule-ch36-coco",
+    status: "approved",
+    reason: "Wydłużony, wąski obrys modułu mieści się na działce z zapasem na wymagane odsunięcia od granic.",
+  },
+  {
+    projectId: "prj-cocomodule-ch72-2",
+    status: "approved",
+    reason: "Metraż i kształt działki mieszczą się w wymaganym obrysie budynku dwumodułowego wraz ze strefami odsunięcia od granic.",
+  },
+  {
+    projectId: "prj-cocomodule-ch90",
+    status: "approved",
+    reason: "Kwadratowy obrys trzymodułowego budynku mieści się na działce z zapasem na wymagane odsunięcia od granic.",
+  },
+  {
+    projectId: "prj-cocomodule-ch140",
+    status: "conditional",
+    reason: "Wymagany dodatkowy operat geotechniczny potwierdzający nośność gruntu pod skrzyżowane stalowe podpory drugiej kondygnacji.",
+  },
 ];

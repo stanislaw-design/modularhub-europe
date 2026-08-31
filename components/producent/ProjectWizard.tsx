@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Heading, Stack } from "@/components/ui";
+import { Button, Heading, Stack, Text } from "@/components/ui";
 import type { Country, ProjectDraft } from "@/lib/data/types";
+import { createProduct } from "@/lib/producer-products";
+import type { RegistrationDetails } from "@/lib/producer-registration";
+import { saveRegistrationDetails } from "@/lib/producer-registration-storage";
 import {
   WIZARD_STEPS,
   clearDraft,
@@ -15,6 +18,7 @@ import {
 import { ProjectWizardBasicInfoStep } from "./ProjectWizardBasicInfoStep";
 import { ProjectWizardConstructionStep } from "./ProjectWizardConstructionStep";
 import { ProjectWizardFilesStep } from "./ProjectWizardFilesStep";
+import { ProjectWizardPricingStep } from "./ProjectWizardPricingStep";
 import { ProjectWizardProgress } from "./ProjectWizardProgress";
 import { ProjectWizardResistanceStep } from "./ProjectWizardResistanceStep";
 import { ProjectWizardSummaryStep } from "./ProjectWizardSummaryStep";
@@ -22,23 +26,27 @@ import { ProjectWizardSystemsStep } from "./ProjectWizardSystemsStep";
 
 interface ProjectWizardProps {
   locale: string;
-  nip: string;
   countries: Country[];
+  registration: RegistrationDetails;
 }
 
-export function ProjectWizard({ locale, nip, countries }: ProjectWizardProps) {
+export function ProjectWizard({ locale, countries, registration }: ProjectWizardProps) {
+  const nip = registration.nip;
   const router = useRouter();
   const [draft, setDraft] = useState<ProjectDraft>(() => createEmptyDraft());
   const [stepIndex, setStepIndex] = useState(0);
   const [maxReachedIndex, setMaxReachedIndex] = useState(0);
   const [showValidation, setShowValidation] = useState(false);
+  const [saveError, setSaveError] = useState(false);
 
   // Wczytanie zapisanego stanu tylko raz, przy montowaniu (spec 0008, AC-8): drugi NIP
   // w tej samej przeglądarce nigdy nie wznawia szkicu poprzedniego producenta, bo klucz
   // localStorage jest kluczowany NIP-em. Musi być efektem, nie leniwym stanem początkowym:
   // ta strona jest renderowana na serwerze (bez dostępu do localStorage), więc odczyt przed
-  // hydracją dałby niezgodność z tym, co wyrenderował serwer.
+  // hydracją dałby niezgodność z tym, co wyrenderował serwer. Dane rejestracji zapisujemy
+  // tu też, żeby /producent/produkty i edycja mogły później działać samym ?nip= (spec 0016).
   useEffect(() => {
+    saveRegistrationDetails(registration);
     const stored = loadDraft(nip);
     if (stored) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- synchronizacja z localStorage po hydracji, patrz komentarz wyżej
@@ -46,6 +54,7 @@ export function ProjectWizard({ locale, nip, countries }: ProjectWizardProps) {
       setStepIndex(stored.step);
       setMaxReachedIndex(stored.step);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- rejestracja jest stała dla całego montowania kreatora, nip wystarczy jako klucz efektu
   }, [nip]);
 
   function updateDraft(patch: Partial<ProjectDraft>) {
@@ -84,8 +93,18 @@ export function ProjectWizard({ locale, nip, countries }: ProjectWizardProps) {
   }
 
   function handleSave() {
+    const product = createProduct(nip, draft);
+    if (product === null) {
+      setSaveError(true);
+      return;
+    }
     clearDraft(nip);
-    const params = new URLSearchParams({ nazwa: draft.name });
+    const params = new URLSearchParams({
+      nazwa: draft.name,
+      nip,
+      countries: registration.countries.join(","),
+      technology: registration.technology,
+    });
     router.push(`/${locale}/producent/gotowosc-eksportowa?${params.toString()}`);
   }
 
@@ -122,8 +141,17 @@ export function ProjectWizard({ locale, nip, countries }: ProjectWizardProps) {
         {currentStep.id === "pliki" && (
           <ProjectWizardFilesStep draft={draft} showValidation={showValidation} onChange={updateDraft} />
         )}
+        {currentStep.id === "cena" && (
+          <ProjectWizardPricingStep draft={draft} showValidation={showValidation} onChange={updateDraft} />
+        )}
         {isSummaryStep && <ProjectWizardSummaryStep draft={draft} countries={countries} />}
       </Stack>
+      {saveError && (
+        <Text className="text-status-blocked">
+          Nie udało się zapisać projektu (limit pamięci przeglądarki). Spróbuj usunąć nieużywane dane albo
+          zwolnić miejsce i spróbuj ponownie.
+        </Text>
+      )}
       <Stack direction="row" gap={2}>
         {stepIndex > 0 && (
           <Button type="button" variant="secondary" onClick={handleBack} className="w-fit">

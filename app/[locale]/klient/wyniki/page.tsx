@@ -1,13 +1,11 @@
 import { CategoryFilterBar } from "@/components/klient/CategoryFilterBar";
-import { EmptyResults } from "@/components/klient/EmptyResults";
 import { ResultsFilterBar } from "@/components/klient/ResultsFilterBar";
-import { ResultsHeader } from "@/components/klient/ResultsHeader";
 import { ResultsSelection } from "@/components/klient/ResultsSelection";
 import { Stack } from "@/components/ui";
 import { getCountries } from "@/lib/data/countries";
 import { getEligibilityByCountry, getProjects } from "@/lib/data/projects";
-import type { EligibilityByCountry, Project } from "@/lib/data/types";
-import { parseResultsSearchParams } from "@/lib/results-filters";
+import type { EligibilityByCountry } from "@/lib/data/types";
+import { parseResultsSearchParams, sortResults } from "@/lib/results-filters";
 
 export default async function WynikiPage({
   params,
@@ -41,29 +39,18 @@ export default async function WynikiPage({
         sizeMax={filter.sizeMax}
       />
       <CategoryFilterBar />
-      <ResultsHeader count={sortedProjects.length} countryCode={filter.countryCode} />
-      {sortedProjects.length === 0 ? (
-        <EmptyResults locale={locale} />
-      ) : (
-        <ResultsSelection
-          locale={locale}
-          countryCode={filter.countryCode}
-          sizeMin={filter.sizeMin}
-          sizeMax={filter.sizeMax}
-          items={sortedProjects.map((project) => ({
-            project,
-            countryName: countryNameByCode.get(project.countryOfProduction) ?? project.countryOfProduction,
-            eligibilityStatus: eligibilityByProjectId.get(project.id),
-          }))}
-        />
-      )}
+      <ResultsSelection
+        locale={locale}
+        countryCode={filter.countryCode}
+        sizeMin={filter.sizeMin}
+        sizeMax={filter.sizeMax}
+        countries={countries}
+        serverItems={sortedProjects.map((project) => ({
+          project,
+          countryName: countryNameByCode.get(project.countryOfProduction) ?? project.countryOfProduction,
+          eligibilityStatus: eligibilityByProjectId.get(project.id),
+        }))}
+      />
     </Stack>
   );
-}
-
-function sortResults(projects: Project[]): Project[] {
-  return [...projects].sort((a, b) => {
-    if (a.featured !== b.featured) return a.featured ? -1 : 1;
-    return a.priceMin - b.priceMin;
-  });
 }

@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import "../globals.css";
 import { locales } from "../i18n";
-import { manrope, inter, ibmPlexMono } from "../fonts";
+import { manrope } from "../fonts";
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   title: "ModularHub Europe",
   description: "One project. Different rules. One clear path.",
   icons: {
@@ -28,7 +29,7 @@ export default async function LocaleLayout({
   return (
     <html
       lang={locale}
-      className={`h-full antialiased ${manrope.variable} ${inter.variable} ${ibmPlexMono.variable}`}
+      className={`h-full antialiased ${manrope.variable}`}
     >
       <body className="min-h-full flex flex-col font-sans">{children}</body>
     </html>

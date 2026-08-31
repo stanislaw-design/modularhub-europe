@@ -1,11 +1,35 @@
 {
   "version": 1,
   "skills": {
+    "authjs-skills": {
+      "source": "gocallum/nextjs16-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/authjs-skills/SKILL.md",
+      "computedHash": "a9e50317bfff481c46c9b7199bbb952c9cd776dc02767e1c0f22232452bb0341"
+    },
     "dev": {
       "source": "microsoft/playwright-cli",
       "sourceType": "github",
       "skillPath": ".claude/skills/dev/SKILL.md",
       "computedHash": "b239a1933ab87dc11b8a7faab8acfe061bd2ed9e395ce3d1da899b01bc35700f"
+    },
+    "drizzle": {
+      "source": "bobmatnyc/claude-mpm-skills",
+      "sourceType": "github",
+      "skillPath": "toolchains/typescript/data/drizzle/SKILL.md",
+      "computedHash": "daefe2ce00404d56ac89ff312abc57457d3779ff5f8a38a1c6b4867c67a86ea4"
+    },
+    "github-actions": {
+      "source": "bobmatnyc/claude-mpm-skills",
+      "sourceType": "github",
+      "skillPath": "toolchains/universal/infrastructure/github-actions/SKILL.md",
+      "computedHash": "f0e55c5a43583424491a1e44ec8f6b69202cac21346d5878c0a335a354221f72"
+    },
+    "github-actions-templates": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/cicd-automation/skills/github-actions-templates/SKILL.md",
+      "computedHash": "d57f2a45525180e30d9130aeab1613930c274917c5002899d8c37185594de411"
     },
     "headlessui": {
       "source": "bobmatnyc/claude-mpm-skills",
@@ -18,6 +42,12 @@
       "sourceType": "github",
       "skillPath": "lucide-icons/SKILL.md",
       "computedHash": "73228ea1c3b27bde65735896ea53c7de8c1ed1f25838429bbca64415c0b6c257"
+    },
+    "neon-postgres": {
+      "source": "neondatabase/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/neon-postgres/SKILL.md",
+      "computedHash": "af5d7593c2c45b33c8860b37fd470dcc40027972420ebd06311c1263296fd0a5"
     },
     "nextjs-app-router-patterns": {
       "source": "wshobson/agents",
@@ -42,6 +72,12 @@
       "sourceType": "github",
       "skillPath": "plugins/javascript-typescript/skills/typescript-advanced-types/SKILL.md",
       "computedHash": "bc33bc9653d649a461e49abe45634b6b11a7aeeae552b05ec4d54d4589d16739"
+    },
+    "vercel-deployments-builds": {
+      "source": "bobmatnyc/claude-mpm-skills",
+      "sourceType": "github",
+      "skillPath": "toolchains/platforms/deployment/vercel-deployments-builds/SKILL.md",
+      "computedHash": "37fd1e1073574da264341f419cdff7c4b6ccae680137232ce7dbc2745b3a3f14"
     },
     "vercel-react-best-practices": {
       "source": "vercel-labs/agent-skills",

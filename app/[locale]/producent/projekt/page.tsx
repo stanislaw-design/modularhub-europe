@@ -24,7 +24,7 @@ export default async function PierwszyProjektPage({
   return (
     <Stack gap={4}>
       <ProducerRegistrationBar details={details} countries={countries} />
-      <ProjectWizard locale={locale} nip={details.nip} countries={countries} />
+      <ProjectWizard locale={locale} registration={details} countries={countries} />
     </Stack>
   );
 }

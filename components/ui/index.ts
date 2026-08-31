@@ -11,6 +11,7 @@ export { Heading } from "./Heading";
 export { Input } from "./Input";
 export { Label } from "./Label";
 export { Radio } from "./Radio";
+export { ScrollReveal } from "./ScrollReveal";
 export { Select } from "./Select";
 export type { SelectOption } from "./Select";
 export { Stack } from "./Stack";

@@ -1,4 +1,5 @@
 import { Heading, Text } from "@/components/ui";
+import { isLocalProjectId } from "@/lib/local-client-projects";
 import type { Country, Project } from "@/lib/data/types";
 import { PopularHomeCard } from "./PopularHomeCard";
 
@@ -13,9 +14,11 @@ interface PopularHomesProps {
 // itself before any marketing copy (spec 0015 AC-4). Illustrative in the
 // sense that "popular" isn't computed from real view counts.
 export function PopularHomes({ locale, projects, countries }: PopularHomesProps) {
-  const featured = projects.filter((project) => project.featured);
+  // featured projects są dziś zawsze z katalogu przykładowego (getProjects()
+  // nigdy nie zwraca id z prefiksem local-), ale filtr zostaje jako ta sama
+  // asercja co ResultCard — projekt local- nigdy nie jest linkowany (spec 0020 AC-8).
+  const featured = projects.filter((project) => project.featured && !isLocalProjectId(project.id));
   const countryNameByCode = new Map(countries.map((country) => [country.code, country.name]));
-  const resultsHref = `/${locale}/klient/wyniki`;
 
   return (
     <section className="py-brand-5">
@@ -32,7 +35,7 @@ export function PopularHomes({ locale, projects, countries }: PopularHomesProps)
               key={project.id}
               project={project}
               countryName={countryNameByCode.get(project.countryOfProduction) ?? project.countryOfProduction}
-              href={resultsHref}
+              href={`/${locale}/klient/projekt/${project.id}`}
             />
           ))}
         </div>

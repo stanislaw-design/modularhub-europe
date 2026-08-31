@@ -4,7 +4,7 @@ import { getEligibilityByCountry, getProjectById, getProjects } from "./projects
 describe("getProjects", () => {
   it("returns every project when no filter is given (AC-3)", async () => {
     const projects = await getProjects();
-    expect(projects).toHaveLength(6);
+    expect(projects).toHaveLength(11);
   });
 
   it("hides blocked projects for a country and keeps approved/conditional ones (AC-2)", async () => {
@@ -20,7 +20,13 @@ describe("getProjects", () => {
     const projects = await getProjects({ countryCode: "DE", sizeMin: 50, sizeMax: 100 });
     const ids = projects.map((p) => p.id).sort();
     expect(ids).toEqual(
-      ["prj-modulor-compact-56", "prj-modulor-family-90", "prj-karpaty-ridge-72"].sort()
+      [
+        "prj-modulor-compact-56",
+        "prj-modulor-family-90",
+        "prj-karpaty-ridge-72",
+        "prj-cocomodule-ch72-2",
+        "prj-cocomodule-ch90",
+      ].sort()
     );
   });
 

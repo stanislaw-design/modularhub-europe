@@ -2,6 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Country } from "@/lib/data/types";
+import type { RegistrationDetails } from "@/lib/producer-registration";
 import { ProjectWizard } from "./ProjectWizard";
 
 const push = vi.fn();
@@ -15,6 +16,10 @@ const countries: Country[] = [
   { code: "DE", name: "Niemcy" },
   { code: "NL", name: "Holandia" },
 ];
+
+function makeRegistration(nip = "1234567890"): RegistrationDetails {
+  return { nip, countries: ["PL"], technology: "szkielet-drewniany" };
+}
 
 function draftKey(nip: string) {
   return `producent:${nip}:projekt-szkic`;
@@ -53,6 +58,22 @@ async function fillStep5(user: ReturnType<typeof userEvent.setup>) {
   await user.upload(photoInput, new File(["x"], "zdjecie.png"));
 }
 
+async function fillStep6(user: ReturnType<typeof userEvent.setup>) {
+  await user.type(screen.getByLabelText("Cena domu, od (EUR)"), "100000");
+  await user.type(screen.getByLabelText("Cena domu, do (EUR)"), "120000");
+  // Dwa selecty z tym samym placeholderem widoczne naraz (Standard, Kategoria):
+  // pierwszy klik musi wybrać spośród obu, drugi zostaje już jednoznaczny.
+  await user.click(screen.getAllByRole("button", { name: "Wybierz…" })[0]);
+  await user.click(screen.getByRole("option", { name: "Standard deweloperski" }));
+  await user.type(screen.getByLabelText("Termin produkcji, od (tygodnie)"), "10");
+  await user.type(screen.getByLabelText("Termin produkcji, do (tygodnie)"), "14");
+  await user.type(screen.getByLabelText("Czas montażu, od (dni)"), "3");
+  await user.type(screen.getByLabelText("Czas montażu, do (dni)"), "5");
+  await user.type(screen.getByLabelText(/Gwarancja konstrukcyjna/), "25");
+  await user.click(screen.getByRole("button", { name: "Wybierz…" }));
+  await user.click(screen.getByRole("option", { name: "Całoroczny" }));
+}
+
 async function goToSummary(user: ReturnType<typeof userEvent.setup>) {
   await fillStep1(user);
   await user.click(screen.getByRole("button", { name: "Dalej" }));
@@ -63,6 +84,8 @@ async function goToSummary(user: ReturnType<typeof userEvent.setup>) {
   await fillStep4(user);
   await user.click(screen.getByRole("button", { name: "Dalej" }));
   await fillStep5(user);
+  await user.click(screen.getByRole("button", { name: "Dalej" }));
+  await fillStep6(user);
   await user.click(screen.getByRole("button", { name: "Dalej" }));
 }
 
@@ -75,8 +98,8 @@ afterEach(() => {
 });
 
 describe("ProjectWizard", () => {
-  it("renders exactly one H1 and all six steps in the progress indicator (AC-2, AC-11)", () => {
-    render(<ProjectWizard locale="pl" nip="1234567890" countries={countries} />);
+  it("renders exactly one H1 and all seven steps in the progress indicator (AC-2, AC-11)", () => {
+    render(<ProjectWizard locale="pl" registration={makeRegistration()} countries={countries} />);
 
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
     const progress = screen.getByRole("list", { name: "Postęp kreatora" });
@@ -86,6 +109,7 @@ describe("ProjectWizard", () => {
       "Instalacje i okna",
       "Odporność",
       "Pliki",
+      "Cena i sprzedaż",
       "Podsumowanie",
     ]) {
       expect(within(progress).getByText(label)).toBeInTheDocument();
@@ -94,7 +118,7 @@ describe("ProjectWizard", () => {
 
   it("blocks Dalej and shows inline validation when step 1 is submitted empty (AC-3, AC-4)", async () => {
     const user = userEvent.setup();
-    render(<ProjectWizard locale="pl" nip="1234567890" countries={countries} />);
+    render(<ProjectWizard locale="pl" registration={makeRegistration()} countries={countries} />);
 
     await user.click(screen.getByRole("button", { name: "Dalej" }));
 
@@ -104,7 +128,7 @@ describe("ProjectWizard", () => {
 
   it("never makes an unreached step clickable on the progress indicator (AC-3)", async () => {
     const user = userEvent.setup();
-    render(<ProjectWizard locale="pl" nip="1234567890" countries={countries} />);
+    render(<ProjectWizard locale="pl" registration={makeRegistration()} countries={countries} />);
 
     const stepTwo = screen.getByRole("button", { name: /Konstrukcja i izolacja/ });
     expect(stepTwo).toBeDisabled();
@@ -115,7 +139,7 @@ describe("ProjectWizard", () => {
 
   it("advances once step 1 is valid, and Wstecz returns with the data retained (AC-3, AC-8)", async () => {
     const user = userEvent.setup();
-    render(<ProjectWizard locale="pl" nip="1234567890" countries={countries} />);
+    render(<ProjectWizard locale="pl" registration={makeRegistration()} countries={countries} />);
 
     await fillStep1(user);
     await user.click(screen.getByRole("button", { name: "Dalej" }));
@@ -129,7 +153,7 @@ describe("ProjectWizard", () => {
 
   it("lets a click on an already reached step jump straight to it (AC-3)", async () => {
     const user = userEvent.setup();
-    render(<ProjectWizard locale="pl" nip="1234567890" countries={countries} />);
+    render(<ProjectWizard locale="pl" registration={makeRegistration()} countries={countries} />);
 
     await fillStep1(user);
     await user.click(screen.getByRole("button", { name: "Dalej" }));
@@ -144,7 +168,7 @@ describe("ProjectWizard", () => {
 
   it("blocks the Pliki step until both upload areas have at least one file (AC-6)", async () => {
     const user = userEvent.setup();
-    render(<ProjectWizard locale="pl" nip="1234567890" countries={countries} />);
+    render(<ProjectWizard locale="pl" registration={makeRegistration()} countries={countries} />);
 
     await fillStep1(user);
     await user.click(screen.getByRole("button", { name: "Dalej" }));
@@ -160,9 +184,30 @@ describe("ProjectWizard", () => {
     expect(screen.getByText("Dodaj co najmniej jedno zdjęcie.")).toBeInTheDocument();
   });
 
-  it("reaches a read-only Podsumowanie with every entered value after all six steps (AC-7)", async () => {
+  it("blocks the Cena i sprzedaż step until price, standard, terms, warranty, and category are filled (AC-4)", async () => {
     const user = userEvent.setup();
-    render(<ProjectWizard locale="pl" nip="1234567890" countries={countries} />);
+    render(<ProjectWizard locale="pl" registration={makeRegistration()} countries={countries} />);
+
+    await fillStep1(user);
+    await user.click(screen.getByRole("button", { name: "Dalej" }));
+    await fillStep2(user);
+    await user.click(screen.getByRole("button", { name: "Dalej" }));
+    await fillStep3(user);
+    await user.click(screen.getByRole("button", { name: "Dalej" }));
+    await fillStep4(user);
+    await user.click(screen.getByRole("button", { name: "Dalej" }));
+    await fillStep5(user);
+    await user.click(screen.getByRole("button", { name: "Dalej" }));
+
+    await user.click(screen.getByRole("button", { name: "Dalej" }));
+    expect(screen.getByText("Podaj cenę od i do, tak by cena od nie przekraczała ceny do.")).toBeInTheDocument();
+    expect(screen.getByText("Wybierz standard wykończenia.")).toBeInTheDocument();
+    expect(screen.getByText("Wybierz kategorię produktu.")).toBeInTheDocument();
+  });
+
+  it("reaches a read-only Podsumowanie with every entered value after all seven steps (AC-7)", async () => {
+    const user = userEvent.setup();
+    render(<ProjectWizard locale="pl" registration={makeRegistration()} countries={countries} />);
 
     await goToSummary(user);
 
@@ -170,6 +215,7 @@ describe("ProjectWizard", () => {
     expect(screen.getByText("Modulor 28")).toBeInTheDocument();
     expect(screen.getByText("rzut.pdf")).toBeInTheDocument();
     expect(screen.getByText("zdjecie.png")).toBeInTheDocument();
+    expect(screen.getByText("100000–120000 EUR")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Zapisz projekt" })).toBeInTheDocument();
   });
 
@@ -193,12 +239,21 @@ describe("ProjectWizard", () => {
           windResistance: "",
           floorPlanFiles: [],
           photoFiles: [],
+          housePriceMinEur: null,
+          housePriceMaxEur: null,
+          completionStandard: null,
+          productionLeadTimeWeeksMin: null,
+          productionLeadTimeWeeksMax: null,
+          onSiteAssemblyDaysMin: null,
+          onSiteAssemblyDaysMax: null,
+          structuralWarrantyYears: null,
+          category: null,
         },
         step: 1,
       })
     );
 
-    render(<ProjectWizard locale="pl" nip="1234567890" countries={countries} />);
+    render(<ProjectWizard locale="pl" registration={makeRegistration()} countries={countries} />);
 
     expect(screen.getByRole("heading", { level: 2, name: "Konstrukcja i izolacja" })).toBeInTheDocument();
   });
@@ -207,7 +262,7 @@ describe("ProjectWizard", () => {
     window.localStorage.setItem(draftKey("1234567890"), "{not-json");
 
     expect(() =>
-      render(<ProjectWizard locale="pl" nip="1234567890" countries={countries} />)
+      render(<ProjectWizard locale="pl" registration={makeRegistration()} countries={countries} />)
     ).not.toThrow();
     expect(screen.getByRole("heading", { level: 2, name: "Informacje podstawowe" })).toBeInTheDocument();
     expect(screen.getByLabelText(/nazwa projektu/i)).toHaveValue("");
@@ -215,28 +270,36 @@ describe("ProjectWizard", () => {
 
   it("keeps two producers' drafts isolated by NIP (AC-8)", async () => {
     const user = userEvent.setup();
-    const { unmount } = render(<ProjectWizard locale="pl" nip="1111111111" countries={countries} />);
+    const { unmount } = render(
+      <ProjectWizard locale="pl" registration={makeRegistration("1111111111")} countries={countries} />
+    );
     await fillStep1(user, "Dom Producenta A");
     unmount();
 
-    render(<ProjectWizard locale="pl" nip="2222222222" countries={countries} />);
+    render(<ProjectWizard locale="pl" registration={makeRegistration("2222222222")} countries={countries} />);
 
     expect(screen.getByLabelText(/nazwa projektu/i)).toHaveValue("");
   });
 
-  it("clears the saved state and navigates to the export-readiness stub with the project name on save (AC-9)", async () => {
+  it("saves the product, clears the draft, and navigates to the export-readiness stub on save (AC-9)", async () => {
     const user = userEvent.setup();
-    render(<ProjectWizard locale="pl" nip="1234567890" countries={countries} />);
+    render(<ProjectWizard locale="pl" registration={makeRegistration()} countries={countries} />);
 
     await goToSummary(user);
     await user.click(screen.getByRole("button", { name: "Zapisz projekt" }));
 
-    expect(push).toHaveBeenCalledWith("/pl/producent/gotowosc-eksportowa?nazwa=Modulor+28");
+    expect(push).toHaveBeenCalledWith(
+      "/pl/producent/gotowosc-eksportowa?nazwa=Modulor+28&nip=1234567890&countries=PL&technology=szkielet-drewniany"
+    );
     expect(window.localStorage.getItem(draftKey("1234567890"))).toBeNull();
+
+    const stored = JSON.parse(window.localStorage.getItem("producent:1234567890:produkty") ?? "[]");
+    expect(stored).toHaveLength(1);
+    expect(stored[0].name).toBe("Modulor 28");
   });
 
   it("gives the current step's progress marker aria-current='step' (AC-11)", () => {
-    render(<ProjectWizard locale="pl" nip="1234567890" countries={countries} />);
+    render(<ProjectWizard locale="pl" registration={makeRegistration()} countries={countries} />);
 
     const progress = screen.getByRole("list", { name: "Postęp kreatora" });
     const current = within(progress).getByText("Informacje podstawowe").closest("li");

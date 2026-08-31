@@ -1,4 +1,4 @@
-import type { CountryCode } from "./data/types";
+import type { CountryCode, EligibilityStatus, Project } from "./data/types";
 import { SIZE_THRESHOLDS, type SizeThreshold } from "./size-thresholds";
 
 const VALID_COUNTRY_CODES: readonly CountryCode[] = ["PL", "DE", "NL"];
@@ -35,4 +35,27 @@ export function parseResultsSearchParams(
   }
 
   return { countryCode, sizeMin, sizeMax };
+}
+
+// Ta sama reguła filtra co w getProjects() (lib/data/projects.ts), wyodrębniona żeby
+// lokalne produkty producenta doklejone po stronie przeglądarki (spec 0016, AC-11)
+// przechodziły dokładnie ten sam test co lista serwerowa, bez duplikowania logiki.
+export function matchesResultsFilter(
+  floorAreaM2: number,
+  eligibilityStatus: EligibilityStatus | undefined,
+  filter: ResultsFilter
+): boolean {
+  if (filter.countryCode && (eligibilityStatus === undefined || eligibilityStatus === "blocked")) return false;
+  if (filter.sizeMin !== undefined && floorAreaM2 < filter.sizeMin) return false;
+  if (filter.sizeMax !== undefined && floorAreaM2 > filter.sizeMax) return false;
+  return true;
+}
+
+// Ten sam porządek co dziś: wyróżnione projekty najpierw, potem rosnąco po cenie od.
+// Reużywany przez stronę serwerową i przez doklejenie lokalne (spec 0016, AC-11).
+export function sortResults(projects: Project[]): Project[] {
+  return [...projects].sort((a, b) => {
+    if (a.featured !== b.featured) return a.featured ? -1 : 1;
+    return a.priceMin - b.priceMin;
+  });
 }

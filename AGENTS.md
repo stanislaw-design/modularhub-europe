@@ -53,7 +53,7 @@ Stored in `docs/specs/`. Each is a directory `docs/specs/NNNN-title/` with `inde
 - The locale segment `app/[locale]/` is already in place with only `pl` active; `proxy.ts` redirects unprefixed paths to `/pl` (Next.js 16 renamed `middleware.ts` to `proxy.ts`, use the new convention).
 - Data access functions (even ones just reading a local mock file) are asynchronous from the start, so the second stage can swap in a real API call without changing call signatures.
 - UI state that must survive a route change (e.g. country and budget from the wizard, visible on the results screen) goes through URL search params, not shared component state.
-- No database, no login, no real payments in this stage; every "paid step" and file upload is a mock (see `docs/scope/scope.md`, Deferred section).
+- No database, no login, no real payments in this stage; every "paid step" and file upload is a mock (see `docs/scope/prototyp.md`, Deferred section).
 - Lint/format/pre commit tooling is not finalized yet; only Next.js's default ESLint config exists so far (tracked as scope feature 2).
 - `next.config.ts` allowlists `next/image` remote patterns explicitly (`images.remotePatterns`); mock project cover images come from `picsum.photos` today, add any other external image host there before using it.
 
@@ -67,13 +67,17 @@ Stored in `docs/specs/`. Each is a directory `docs/specs/NNNN-title/` with `inde
 - [lucide-icons](.agents/skills/lucide-icons/): `aksuharun/skills`, Lucide icon usage conventions (used across the design system and StageTimeline stage/document icons)
 - [vitest](.agents/skills/vitest/): `antfu/skills`, Vitest unit/component test conventions (mocking, fixtures, coverage)
 - [playwright-cli](.agents/skills/playwright-cli/): `microsoft/playwright-cli`, Playwright E2E browser automation and test conventions
+- [neon-postgres](.agents/skills/neon-postgres/): `neondatabase/agent-skills`, Neon Postgres setup, connection methods, branching, and migrations
+- [drizzle](.agents/skills/drizzle/): `bobmatnyc/claude-mpm-skills`, Drizzle ORM schema, query, and migration conventions
+- [authjs-skills](.agents/skills/authjs-skills/): `gocallum/nextjs16-agent-skills`, Auth.js v5 setup (not yet wired into the app, see spec 0017 Follow-up)
 
-MCP servers: playwright (connected)
+MCP servers: playwright (connected), Neon (connected)
 
 ## Context files
 
 <!-- Nested AGENTS.md files are listed here as they are created -->
 
 - [components/klient/AGENTS.md](components/klient/AGENTS.md): feature specific components for the customer buying journey (results, shortlist, plot analysis, offer, realizacja)
+- [lib/db/AGENTS.md](lib/db/AGENTS.md): the real (production) database client, Neon Postgres and Drizzle ORM
 
 _Drafted by /audit from the repo, worth a quick human pass. Edit freely: once a line stops matching this draft, later runs treat it as curated and will flag rather than overwrite it._

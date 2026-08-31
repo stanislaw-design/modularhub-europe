@@ -1,0 +1,39 @@
+name: Deploy staging
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: staging
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm install --global vercel@latest
+
+      - name: Migruj bazę stagingu
+        env:
+          DATABASE_URL_UNPOOLED: ${{ secrets.STAGING_DATABASE_URL_UNPOOLED }}
+        run: npm run db:migrate
+
+      - name: Pobierz konfigurację środowiska staging
+        run: vercel pull --yes --environment=staging --token=$VERCEL_TOKEN
+
+      - name: Zbuduj dla środowiska staging
+        run: vercel build --target=staging --token=$VERCEL_TOKEN
+
+      - name: Wdróż na staging
+        run: vercel deploy --prebuilt --target=staging --token=$VERCEL_TOKEN

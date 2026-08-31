@@ -63,7 +63,9 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
   // form, not the collapsed teaser — land already expanded when arriving via
   // that anchor.
   useEffect(() => {
-    if (window.location.hash === "#search-card") setIsExpanded(true);
+    if (window.location.hash !== "#search-card") return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- synchronizacja z window.location po hydracji, hash nie jest dostępny podczas SSR
+    setIsExpanded(true);
   }, []);
 
   const countryOptions: SegmentOption[] = countries.map((c) => ({ value: c.code, label: c.name }));

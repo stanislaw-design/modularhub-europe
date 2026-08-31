@@ -7,11 +7,13 @@
   --background: var(--brand-warm-white);
   --foreground: var(--brand-foundation-navy);
 
-  /* Runtime font stacks: next/font/google variables (set on <html> in app/[locale]/layout.tsx)
-     override the static fallback chains from the brand token files. */
+  /* Runtime font stack: next/font/google variable (set on <html> in app/[locale]/layout.tsx)
+     overrides the static fallback chain from the brand token files.
+     Temporary: single family (Manrope, variable weight) for display/body/data until
+     the brand type system is finalized. */
   --font-brand-display: var(--font-manrope), "Avenir Next", Arial, sans-serif;
-  --font-brand-body: var(--font-inter), "Helvetica Neue", Arial, sans-serif;
-  --font-brand-data: var(--font-plex-mono), "SFMono-Regular", Consolas, monospace;
+  --font-brand-body: var(--font-manrope), "Helvetica Neue", Arial, sans-serif;
+  --font-brand-data: var(--font-manrope), "SFMono-Regular", Consolas, monospace;
 }
 
 @theme inline {
@@ -166,5 +168,28 @@ body {
   .producer-marquee {
     animation: none;
     transform: none;
+  }
+}
+
+/* Scroll-triggered reveal (ScrollReveal component toggles .is-revealed via
+   IntersectionObserver). */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 700ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.scroll-reveal.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
 }

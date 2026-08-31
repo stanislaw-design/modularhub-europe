@@ -55,6 +55,17 @@ export interface Project {
   windResistance: string;
   commercial: ProjectCommercialProfile;
   featured: boolean;
+  /** Gdy true, priceMin/priceMax nie są pokazywane nigdzie na stronie projektu ani na
+   * kartach — w ich miejscu widoczne jest tylko CTA zapytania (spec 0020 AC-5). */
+  priceOnRequest?: boolean;
+  /** Puste lub brak → sekcja "Certyfikaty" nie renderuje się (spec 0020 AC-4). */
+  certifications?: string[];
+  /** Jawnie wpisywane przez dane przykładowe, nie liczone automatycznie z metrażu —
+   * realny silnik zgodności to osobna, przyszła funkcja (spec 0020 Feature design). */
+  simplifiedPermitEligible?: boolean;
+  /** coverImageUrl zostaje pierwszym/głównym zdjęciem; puste lub brak → brak dodatkowej
+   * galerii, hero pokazuje samo coverImageUrl (spec 0020 Feature design). */
+  galleryImageUrls?: string[];
 }
 
 export interface Producer {
@@ -114,6 +125,49 @@ export interface ProjectDraft {
   windResistance: string;
   floorPlanFiles: MockUploadedFile[];
   photoFiles: MockUploadedFile[];
+  housePriceMinEur: number | null;
+  housePriceMaxEur: number | null;
+  completionStandard: CompletionStandard | null;
+  productionLeadTimeWeeksMin: number | null;
+  productionLeadTimeWeeksMax: number | null;
+  onSiteAssemblyDaysMin: number | null;
+  onSiteAssemblyDaysMax: number | null;
+  structuralWarrantyYears: number | null;
+  category: ProjectCategory | null;
+}
+
+// Kompletny, zapisany produkt katalogu producenta (spec 0016): te same pola co
+// ProjectDraft, ale z właściwymi, nienullowalnymi typami (draft dopuszcza null w
+// trakcie wypełniania formularza, zapisany produkt jest już kompletny). Nigdy
+// `ProjectDraft & {...}` wprost, patrz spec 0016 Feature design.
+export interface SavedProduct {
+  id: string;
+  name: string;
+  floorAreaM2: number;
+  bedrooms: number;
+  countryOfProduction: CountryCode;
+  description: string;
+  wallBuildUp: string;
+  insulation: string;
+  heatTransferCoefficients: string;
+  windowClass: string;
+  ventilation: string;
+  heatSource: string;
+  fireResistance: string;
+  windResistance: string;
+  floorPlanFiles: MockUploadedFile[];
+  photoFiles: MockUploadedFile[];
+  housePriceMinEur: number;
+  housePriceMaxEur: number;
+  completionStandard: CompletionStandard;
+  productionLeadTimeWeeksMin: number;
+  productionLeadTimeWeeksMax: number;
+  onSiteAssemblyDaysMin: number;
+  onSiteAssemblyDaysMax: number;
+  structuralWarrantyYears: number;
+  category: ProjectCategory;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export type FulfillmentStageName = "produkcja" | "transport" | "montaz" | "odbior" | "gwarancja";

@@ -1,6 +1,8 @@
-# Scope: ModularHub Europe
+# Epika: Prototyp (Facade)
 
 Platforma prowadząca transgraniczny zakup domu modułowego w Europie: łączy klienta kupującego dom i producenta, który go wytwarza, w jedną kontrolowaną ścieżkę od wyceny do odbioru.
+
+Ta epika to pierwszy etap budowy, w całości na danych przykładowych. Drugi etap, prawdziwe zaplecze i utwardzenie produkcyjne, ma własną epikę: [Produkcja](produkcja.md). Przegląd obu epik: [index](index.md).
 
 **Build approach:** Facade (najpierw pełny, klikalny interfejs na danych przykładowych; prawdziwe zaplecze podłączane ekran po ekranie w kolejnym etapie).
 **Weight profile:** ekrany prototypu głównie lean/medium; podłączenie prawdziwych danych, płatności i silnika zgodności w kolejnym etapie jest full.
@@ -28,6 +30,8 @@ Ten pierwszy etap jest świadomie prototypem demonstracyjnym: żaden ekran nic t
 | 15 | Zapytania i oferty (producent) | Prototyp | done |
 | 16 | Realizacja i wypłata (producent) | Prototyp | in-progress |
 | 17 | Tokeny marki v4 (fundament wizualny) | Foundation | in-progress |
+| 18 | Katalog produktów (producent) | Prototyp | in-progress |
+| 19 | Strona szczegółów projektu (klient) | Prototyp | done |
 
 ## Foundations
 
@@ -195,19 +199,49 @@ Nowy, produktowy zestaw kolorów (ciemne sekcje, bursztynowy akcent CTA jako doz
 - [x] Zaprojektuj (spec): [0013](../specs/0013-tokeny-marki-v4.md)
 - [x] Wdroż na pierwszym ekranie: patrz funkcja 4 (`/develop strona startowa`), Build plan spec 0014 krok 1 tworzy sam plik tokenów; osobna weryfikacja/testy dla tej pozycji nie są potrzebne, pokrywa je weryfikacja/testy funkcji 4
 
+### 18. Katalog produktów (producent) · in-progress
+Dziś kreator „Pierwszy projekt” (funkcja 12) zapisuje jeden szkic w `localStorage`, kluczowany NIP producenta, i nadpisuje go przy kolejnym uruchomieniu. Ta funkcja dodaje ekran listy produktów producenta plus siódmy krok kreatora (cena i dane sprzedażowe), osobny ekran edycji, i usuwanie z potwierdzeniem. Dodane produkty pokazują się też jako podgląd (bez możliwości zaznaczenia) na `/klient/wyniki`, ale tylko w tej samej przeglądarce, bo bez backendu serwer nie widzi `localStorage` producenta. Płatności pozostają makietą (patrz Deferred), nic tu ich nie dotyczy.
+**Done when:** producent widzi listę wszystkich swoich produktów, może dodać nowy przez kreator (siedem kroków), otworzyć istniejący do edycji na osobnym ekranie, usunąć go z potwierdzeniem, a zmiany są od razu widoczne na liście; dodane produkty widoczne jako podgląd na `/klient/wyniki` w tej samej przeglądarce (dane mockowe/`localStorage`, bez prawdziwego backendu).
+- [x] Zaprojektuj (spec): [0016](../specs/0016-katalog-produktow-producenta/index.md)
+- [x] Zbuduj: `/develop katalog produktów producenta` (kod w `lib/data/types.ts`, `lib/producer-project-draft.ts`, `lib/producer-products.ts`, `lib/producer-registration-storage.ts`, `lib/local-client-projects.ts`, `lib/results-filters.ts`, `components/producent/ProjectWizardPricingStep.tsx`, `components/producent/ProductCatalogList.tsx`, `components/producent/ProductEditWizard.tsx`, `components/producent/DeleteProductDialog.tsx`, `components/producent/ProjectWizard.tsx`, `components/producent/ExportReadinessMap.tsx`, `components/klient/ResultCard.tsx`, `components/klient/ResultsSelection.tsx`, `app/[locale]/producent/produkty/`, `app/[locale]/producent/gotowosc-eksportowa/page.tsx`, `app/[locale]/klient/wyniki/page.tsx`)
+  - [x] Model danych i pamięć: pola cenowe w `ProjectDraft`, `SavedProduct`, `lib/producer-products.ts`, `lib/producer-registration-storage.ts` (reużywa istniejący `RegistrationDetails` zamiast nowego typu) (satisfies AC-1, AC-4, AC-5, AC-8, AC-9, AC-10, AC-13)
+  - [x] Siódmy krok kreatora i zapis produktu: `ProjectWizardPricingStep`, zapis do listy z obsługą błędu (satisfies AC-4, AC-5)
+  - [x] Lista i edycja producenta: `/producent/produkty`, `/producent/produkty/[id]/edytuj`, link z gotowości eksportowej (satisfies AC-1, AC-2, AC-3, AC-6, AC-7, AC-8, AC-9, AC-10)
+  - [x] Podgląd u klienta: doklejenie lokalnych produktów na `/klient/wyniki`, bez checkboxa (satisfies AC-11, AC-12)
+  - [x] Dostępność: WCAG 2.2 AA, `aria-live` na doklejonych kartach (satisfies AC-14)
+- [ ] Zweryfikuj: `/check verify katalog produktów producenta`
+- [x] Testuj: `/test katalog produktów producenta` (`ProjectWizard.test.tsx`, `lib/producer-project-draft.test.ts`, `ExportReadinessMap.test.tsx`, `ResultsSelection.test.tsx` — full suite 367/367 green, confirmed by /sync from repo evidence)
+
+> ⚠️ Zakres urósł ponad pierwotne oszacowanie wagi `medium` przy `/scope` (siódmy krok kreatora, dwie nowe trasy, ingerencja w już gotowy `/klient/wyniki`, spec 0004). Rozważ `full` przy najbliższym `/scope` i ewentualny świeży `/check review`.
+
+### 19. Strona szczegółów projektu (klient) · done
+Dziś karty projektów w wynikach i na stronie startowej nie prowadzą nigdzie — trasa pojedynczego projektu nie istnieje (świadomie zostawione otwarte w specach 0004, 0014, 0015). Ta funkcja dodaje `/klient/projekt/[id]`: pełny widok jednego projektu (galeria, kluczowe dane, opis, technologia/konstrukcja, warunki komercyjne, zgodność prawna gdy znany kraj, producent) z jednym jasnym CTA do zapytania. Zaprojektowana na podstawie realnych danych od dwóch pierwszych dostawców (Budman House, Cocomodule), które ujawniły bardzo nierówną kompletność danych producentów — stąd rozszerzenie `Project` o pola opcjonalne (`priceOnRequest`, `certifications`, `simplifiedPermitEligible`, `galleryImageUrls`), gdzie brak danych chowa całą sekcję zamiast pokazywać pustkę.
+**Done when:** strona renderuje sekcje w potwierdzonej kolejności, karty wyników i popularnych domów do niej linkują (poza podglądem lokalnym producenta, `local-` id, który zostaje nieklikalny), nieistniejący projekt zwraca 404, a każdy projekt ma własne metadata/OG/JSON-LD.
+- [x] Zaprojektuj (spec): [0020](../specs/0020-strona-szczegolow-projektu/index.md)
+- [x] Zbuduj: `/develop strona szczegółów projektu` (kod w `lib/data/types.ts`, `lib/data/fixtures/projects.ts`, `lib/data/producers.ts`, `components/klient/ProjectGallery.tsx`, `components/klient/ProjectTechnicalSpecs.tsx`, `components/klient/ProjectCertifications.tsx`, `app/[locale]/klient/projekt/[id]/page.tsx`, `components/klient/ResultCard.tsx`, `components/klient/PopularHomeCard.tsx`, `components/klient/PopularHomes.tsx`, `app/[locale]/layout.tsx`)
+  - [x] Model danych i dane przykładowe: cztery nowe opcjonalne pola na `Project`, zaktualizowane fixture (satisfies AC-4, AC-5)
+  - [x] Nowe komponenty prezentacyjne: galeria zdjęć, tabela specyfikacji technicznej, lista certyfikatów (satisfies AC-1, AC-4)
+  - [x] Strona i akcje: `app/[locale]/klient/projekt/[id]/page.tsx`, kolejność sekcji, trzy akcje (zapytanie/shortlista/działka), 404, panel zgodności prawnej (satisfies AC-1, AC-3, AC-6, AC-7)
+  - [x] Wpięcie wejść: `ResultCard` i `PopularHomeCard` linkują do strony, `local-` zostaje nieklikalne (satisfies AC-2, AC-8)
+  - [x] SEO: `generateMetadata` per projekt, JSON-LD Product/Offer, obraz OG, canonical (satisfies AC-9)
+- [x] Zweryfikuj: `/check verify strona szczegółów projektu`
+- [x] Testuj: `/test strona szczegółów projektu` (`lib/data/producers.test.ts`, `components/klient/ProjectGallery.test.tsx`, `ProjectTechnicalSpecs.test.tsx`, `ProjectCertifications.test.tsx`, `PopularHomeCard.test.tsx`, `PopularHomes.test.tsx`, rozszerzone `ResultCard.test.tsx`, e2e `projekt-szczegoly.spec.ts` — 403/403 vitest, 6/6 e2e)
+
 ## Deferred
-Poza zakresem tego pierwszego etapu, świadomie odłożone do podłączenia prawdziwego zaplecza po ekranie.
-- **Prawdziwe logowanie i role**: konta klienta i producenta zamiast dwóch osobnych widoków demo · needs a decision
-- **Prawdziwy model danych i baza**: trwałe zapisywanie projektów, zapytań, ofert i statusów · needs a decision · full weight
-- **Prawdziwe płatności**: realna integracja płatnicza za analizę działki i domykanie luk · needs a decision · full weight
-- **Prawdziwe wgrywanie i przechowywanie plików**: rzuty, zdjęcia, dokumenty producenta · needs a decision
-- **Prawdziwy silnik zgodności**: rzeczywiste, aktualizowane wymagania prawne per kraj zamiast danych mockowych · needs a decision · full weight
-- **Prawdziwa wycena transportu**: integracja z siecią przewoźników zamiast stałych widełek · needs a decision · full weight
-- **Powiadomienia**: e-mail/push przy zmianie statusu · needs a decision
-- **Panel administracyjny**: zarządzanie producentami, projektami i zapytaniami · needs a decision
-- **Wersje językowe (EN/DE)**: rozszerzenie z samego polskiego · needs a decision
-- **Stopka strony** (kontakt, informacje prawne, przełącznik języka): świadomie pominięta w specyfikacji [0003](../specs/0003-strona-startowa/index.md), bo nie ma dziś realnej treści do pokazania · needs a decision
-- **Zawężenie mapy gotowości eksportowej do krajów rejestracji**: dziś mapa (funkcja 13, spec [0009](../specs/0009-gotowosc-eksportowa/index.md)) zawsze pokazuje wszystkie trzy kraje z mocka; zawężenie do krajów dostawy wybranych przy rejestracji (funkcja 11) wymaga rozszerzenia kontraktu URL, który dziś przenosi tylko nazwę projektu · needs a decision
+Poza zakresem tego pierwszego etapu, świadomie odłożone do podłączenia prawdziwego zaplecza po ekranie. Większość poniższych pozycji jest teraz aktywnie zaplanowana w epice [Produkcja](produkcja.md), link przy każdej pozycji wskazuje na jej nowy numer.
+- **Prawdziwe logowanie i role**: konta klienta i producenta zamiast dwóch osobnych widoków demo · zaplanowane jako [Produkcja #6](produkcja.md)
+- **Prawdziwy model danych i baza**: trwałe zapisywanie projektów, zapytań, ofert i statusów · zaplanowane jako [Produkcja #2](produkcja.md)
+- **Prawdziwe płatności**: realna integracja płatnicza za analizę działki i domykanie luk · zaplanowane jako [Produkcja #8](produkcja.md)
+- **Prawdziwe wgrywanie i przechowywanie plików**: rzuty, zdjęcia, dokumenty producenta · zaplanowane jako [Produkcja #9](produkcja.md)
+- **Prawdziwy silnik zgodności**: rzeczywiste, aktualizowane wymagania prawne per kraj zamiast danych mockowych · zaplanowane jako [Produkcja #10](produkcja.md) (pilot: Polska, pozostałe kraje zostają odłożone dalej)
+- **Prawdziwa wycena transportu**: integracja z siecią przewoźników zamiast stałych widełek · zaplanowane jako [Produkcja #11](produkcja.md)
+- **Powiadomienia**: e-mail przy zmianie statusu · zaplanowane jako [Produkcja #13](produkcja.md)
+- **Panel administracyjny**: zarządzanie producentami, projektami i zapytaniami · zaplanowane jako [Produkcja #14](produkcja.md)
+- **Wersje językowe (EN/DE)**: rozszerzenie z samego polskiego · pozostaje odłożone, patrz Deferred w [Produkcja](produkcja.md)
+- **Stopka strony** (kontakt, informacje prawne, przełącznik języka): świadomie pominięta w specyfikacji [0003](../specs/0003-strona-startowa/index.md), bo nie ma dziś realnej treści do pokazania · treść prawna częściowo pokryta przez [Produkcja #5](produkcja.md) (RODO), pełna stopka pozostaje odłożona
+- **Zawężenie mapy gotowości eksportowej do krajów rejestracji**: dziś mapa (funkcja 13, spec [0009](../specs/0009-gotowosc-eksportowa/index.md)) zawsze pokazuje wszystkie trzy kraje z mocka; zawężenie do krajów dostawy wybranych przy rejestracji (funkcja 11) wymaga rozszerzenia kontraktu URL, który dziś przenosi tylko nazwę projektu · pozostaje odłożone, patrz Deferred w [Produkcja](produkcja.md)
+- **Kreator katalogu producenta nie zbiera certyfikatów, galerii ani progu zgłoszenia uproszczonego**: te trzy pola dodane w funkcji 19 (spec [0020](../specs/0020-strona-szczegolow-projektu/index.md)) na podstawie realnych danych od Budman/Cocomodule; projekty dodane przez producenta przez kreator (funkcja 12/18) nie pokażą tych sekcji na własnej stronie szczegółów, dopóki formularz nie zostanie osobno rozszerzony · needs a decision
+- **Waluta natywna producenta (PLN) obok EUR**: model `Project` zostaje EUR-only (funkcja 19, spec [0020](../specs/0020-strona-szczegolow-projektu/index.md)); realni producenci (Budman, Cocomodule) podają ceny w PLN · needs a decision
 
 ## Legend
 

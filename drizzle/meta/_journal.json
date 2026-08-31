@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1787909805043,
+      "tag": "0000_jittery_maverick",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1787909819097,
+      "tag": "0001_seed_countries",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787909837304,
+      "tag": "0002_audit_log_trigger",
+      "breakpoints": true
+    }
+  ]
+}

@@ -44,4 +44,17 @@ export const producers: Producer[] = [
     featuredPhotoUrl: "/images/houses/golden-hour/karpaty-alpine-104.webp",
     verified: true,
   },
+  {
+    id: "prod-cocomodule",
+    name: "Cocomodule",
+    countryCode: "DE",
+    rating: 4.6,
+    reviewCount: 87,
+    modelsCount: 11,
+    sizeRangeM2Min: 19.4,
+    sizeRangeM2Max: 128.8,
+    deliveryCountries: ["PL", "DE", "NL"],
+    featuredPhotoUrl: "/images/houses/cocomodule/cover-premium.png",
+    verified: true,
+  },
 ];

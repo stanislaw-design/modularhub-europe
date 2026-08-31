@@ -1,0 +1,59 @@
+name: Deploy production
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - run: npm ci
+
+      - run: npx playwright install --with-deps chromium
+
+      - name: Sprawdź e2e na aktualnym stagingu
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ vars.STAGING_URL }}
+        run: npm run test:e2e
+
+  deploy:
+    needs: e2e
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm install --global vercel@latest
+
+      - name: Migruj bazę produkcyjną
+        env:
+          DATABASE_URL_UNPOOLED: ${{ secrets.PRODUCTION_DATABASE_URL_UNPOOLED }}
+        run: npm run db:migrate
+
+      - name: Pobierz konfigurację środowiska produkcyjnego
+        run: vercel pull --yes --environment=production --token=$VERCEL_TOKEN
+
+      - name: Zbuduj dla produkcji
+        run: vercel build --prod --token=$VERCEL_TOKEN
+
+      - name: Wdróż na produkcję
+        run: vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN

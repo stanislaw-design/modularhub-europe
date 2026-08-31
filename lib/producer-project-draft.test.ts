@@ -30,6 +30,15 @@ function completeDraft(): ProjectDraft {
     windResistance: "Strefa 2",
     floorPlanFiles: [{ name: "rzut.pdf", sizeBytes: 100 }],
     photoFiles: [{ name: "zdjecie.png", sizeBytes: 200 }],
+    housePriceMinEur: 100000,
+    housePriceMaxEur: 120000,
+    completionStandard: "deweloperski",
+    productionLeadTimeWeeksMin: 10,
+    productionLeadTimeWeeksMax: 14,
+    onSiteAssemblyDaysMin: 3,
+    onSiteAssemblyDaysMax: 5,
+    structuralWarrantyYears: 25,
+    category: "caloroczny",
   };
 }
 
@@ -38,13 +47,14 @@ beforeEach(() => {
 });
 
 describe("WIZARD_STEPS", () => {
-  it("has six steps in the fixed spec order", () => {
+  it("has seven steps in the fixed spec order", () => {
     expect(WIZARD_STEPS.map((step) => step.id)).toEqual([
       "podstawowe",
       "konstrukcja",
       "instalacje",
       "odpornosc",
       "pliki",
+      "cena",
       "podsumowanie",
     ]);
   });
@@ -129,6 +139,31 @@ describe("isStepComplete: pliki", () => {
     expect(isStepComplete("pliki", completeDraft())).toBe(true);
     expect(isStepComplete("pliki", { ...completeDraft(), floorPlanFiles: [] })).toBe(false);
     expect(isStepComplete("pliki", { ...completeDraft(), photoFiles: [] })).toBe(false);
+  });
+});
+
+describe("isStepComplete: cena", () => {
+  it("is complete when price, standard, lead times, warranty, and category are all valid", () => {
+    expect(isStepComplete("cena", completeDraft())).toBe(true);
+  });
+
+  it("rejects a reversed price, lead time, or assembly time range", () => {
+    expect(isStepComplete("cena", { ...completeDraft(), housePriceMinEur: 130000 })).toBe(false);
+    expect(
+      isStepComplete("cena", { ...completeDraft(), productionLeadTimeWeeksMin: 20 })
+    ).toBe(false);
+    expect(isStepComplete("cena", { ...completeDraft(), onSiteAssemblyDaysMin: 10 })).toBe(false);
+  });
+
+  it("is incomplete when the standard, category, or warranty is missing", () => {
+    expect(isStepComplete("cena", { ...completeDraft(), completionStandard: null })).toBe(false);
+    expect(isStepComplete("cena", { ...completeDraft(), category: null })).toBe(false);
+    expect(isStepComplete("cena", { ...completeDraft(), structuralWarrantyYears: null })).toBe(false);
+  });
+
+  it("rejects a negative or non-integer warranty", () => {
+    expect(isStepComplete("cena", { ...completeDraft(), structuralWarrantyYears: -1 })).toBe(false);
+    expect(isStepComplete("cena", { ...completeDraft(), structuralWarrantyYears: 2.5 })).toBe(false);
   });
 });
 

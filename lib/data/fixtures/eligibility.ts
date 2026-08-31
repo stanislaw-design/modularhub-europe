@@ -120,4 +120,104 @@ export const eligibility: EligibilityByCountry[] = [
     status: "approved",
     reason: "Spełnia holenderskie wymagania konstrukcyjne i energetyczne (BENG).",
   },
+
+  // Cocomodule CH-24 Coco
+  {
+    projectId: "prj-cocomodule-ch24-coco",
+    countryCode: "PL",
+    status: "conditional",
+    reason: "Wersja pływająca wymaga odrębnej zgody wodnoprawnej; wersja lądowa na podporach nie podlega temu ograniczeniu.",
+  },
+  {
+    projectId: "prj-cocomodule-ch24-coco",
+    countryCode: "DE",
+    status: "approved",
+    reason: "Kompaktowy moduł mieści się w wymaganiach dla obiektów tymczasowych/rekreacyjnych.",
+  },
+  {
+    projectId: "prj-cocomodule-ch24-coco",
+    countryCode: "NL",
+    status: "approved",
+    reason: "Format zgodny z powszechną w Holandii praktyką zabudowy pływającej nad wodą.",
+  },
+
+  // Cocomodule CH-36 Coco
+  {
+    projectId: "prj-cocomodule-ch36-coco",
+    countryCode: "PL",
+    status: "approved",
+    reason: "Metraż poniżej progu zgłoszeniowego, zgodny z warunkami technicznymi dla zabudowy rekreacyjnej.",
+  },
+  {
+    projectId: "prj-cocomodule-ch36-coco",
+    countryCode: "DE",
+    status: "approved",
+    reason: "Zgodne z wymaganiami dla małych budynków modułowych w większości krajów związkowych.",
+  },
+  {
+    projectId: "prj-cocomodule-ch36-coco",
+    countryCode: "NL",
+    status: "conditional",
+    reason: "Katalog producenta nie podaje współczynników przenikania ciepła okien wymaganych do weryfikacji BENG.",
+  },
+
+  // Cocomodule CH-72
+  {
+    projectId: "prj-cocomodule-ch72-2",
+    countryCode: "PL",
+    status: "approved",
+    reason: "Zgodne z warunkami technicznymi dla budynków całorocznych w Polsce.",
+  },
+  {
+    projectId: "prj-cocomodule-ch72-2",
+    countryCode: "DE",
+    status: "approved",
+    reason: "Dwumodułowa konstrukcja CLT spełnia standardowe wymagania krajów związkowych.",
+  },
+  {
+    projectId: "prj-cocomodule-ch72-2",
+    countryCode: "NL",
+    status: "approved",
+    reason: "Spełnia holenderskie wymagania konstrukcyjne dla budynków modułowych tej wielkości.",
+  },
+
+  // Cocomodule CH-90
+  {
+    projectId: "prj-cocomodule-ch90",
+    countryCode: "PL",
+    status: "approved",
+    reason: "Zgodne z warunkami technicznymi dla budynków całorocznych w Polsce.",
+  },
+  {
+    projectId: "prj-cocomodule-ch90",
+    countryCode: "DE",
+    status: "conditional",
+    reason: "Katalog producenta nie podaje odporności ogniowej wymaganej do pełnej weryfikacji w tej jurysdykcji.",
+  },
+  {
+    projectId: "prj-cocomodule-ch90",
+    countryCode: "NL",
+    status: "approved",
+    reason: "Trzymodułowy układ spełnia holenderskie wymagania konstrukcyjne dla tej klasy budynków.",
+  },
+
+  // Cocomodule CH-140 Premium
+  {
+    projectId: "prj-cocomodule-ch140",
+    countryCode: "PL",
+    status: "approved",
+    reason: "Zgodne z warunkami technicznymi dla budynków dwukondygnacyjnych w Polsce.",
+  },
+  {
+    projectId: "prj-cocomodule-ch140",
+    countryCode: "DE",
+    status: "approved",
+    reason: "Stalowa konstrukcja wsporcza spełnia standardowe wymagania krajów związkowych dla konstrukcji wspornikowych.",
+  },
+  {
+    projectId: "prj-cocomodule-ch140",
+    countryCode: "NL",
+    status: "blocked",
+    reason: "Katalog producenta nie zawiera obliczeń dla stalowej konstrukcji wspornikowej wymaganych przy holenderskich warunkach gruntowych i wietrznych.",
+  },
 ];

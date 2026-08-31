@@ -36,7 +36,7 @@ export function PopularHomeCard({ project, countryName, href }: PopularHomeCardP
           {countryName}
         </Text>
         <DataText as="p" className="mt-1 text-body-l font-semibold">
-          od {priceFormatter.format(project.priceMin)} €
+          {project.priceOnRequest ? "Wycena indywidualna" : `od ${priceFormatter.format(project.priceMin)} €`}
         </DataText>
       </div>
     </Link>

@@ -13,5 +13,9 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./vitest.setup.ts"],
     exclude: ["node_modules/**", "e2e/**"],
+    // Kreator producenta ma teraz siedem kroków (spec 0016); pełne przejście przez
+    // wszystkie w jednym teście bywa wolniejsze niż domyślne 5s pod obciążeniem
+    // równoległego uruchomienia całego zestawu.
+    testTimeout: 10000,
   },
 });

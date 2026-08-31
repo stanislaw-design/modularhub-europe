@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Card, DataText, Heading, Stack, Text } from "@/components/ui";
 import type { Country, ProjectDraft } from "@/lib/data/types";
+import { COMPLETION_STANDARD_OPTIONS, PROJECT_CATEGORY_OPTIONS } from "@/lib/producer-project-draft";
 
 interface ProjectWizardSummaryStepProps {
   draft: ProjectDraft;
@@ -61,6 +62,48 @@ export function ProjectWizardSummaryStep({ draft, countries }: ProjectWizardSumm
       <SummaryGroup title="Odporność">
         <SummaryRow label="Odporność ogniowa" value={draft.fireResistance} />
         <SummaryRow label="Odporność wiatrowa" value={draft.windResistance} />
+      </SummaryGroup>
+
+      <SummaryGroup title="Cena i sprzedaż">
+        <SummaryRow
+          label="Cena domu"
+          value={
+            draft.housePriceMinEur !== null && draft.housePriceMaxEur !== null
+              ? `${draft.housePriceMinEur}–${draft.housePriceMaxEur} EUR`
+              : "—"
+          }
+        />
+        <SummaryRow
+          label="Standard wykończenia"
+          value={
+            COMPLETION_STANDARD_OPTIONS.find((option) => option.value === draft.completionStandard)?.label ??
+            "—"
+          }
+        />
+        <SummaryRow
+          label="Termin produkcji"
+          value={
+            draft.productionLeadTimeWeeksMin !== null && draft.productionLeadTimeWeeksMax !== null
+              ? `${draft.productionLeadTimeWeeksMin}–${draft.productionLeadTimeWeeksMax} tyg.`
+              : "—"
+          }
+        />
+        <SummaryRow
+          label="Czas montażu"
+          value={
+            draft.onSiteAssemblyDaysMin !== null && draft.onSiteAssemblyDaysMax !== null
+              ? `${draft.onSiteAssemblyDaysMin}–${draft.onSiteAssemblyDaysMax} dni`
+              : "—"
+          }
+        />
+        <SummaryRow
+          label="Gwarancja konstrukcyjna"
+          value={draft.structuralWarrantyYears !== null ? `${draft.structuralWarrantyYears} lat` : "—"}
+        />
+        <SummaryRow
+          label="Kategoria"
+          value={PROJECT_CATEGORY_OPTIONS.find((option) => option.value === draft.category)?.label ?? "—"}
+        />
       </SummaryGroup>
 
       <Stack gap={2}>

@@ -1,9 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import type { CountryCode, EligibilityStatus, Project } from "@/lib/data/types";
+import { useEffect, useState } from "react";
+import type { Country, CountryCode, EligibilityStatus, Project } from "@/lib/data/types";
+import { getAllLocalProducerProjects } from "@/lib/local-client-projects";
+import { matchesResultsFilter, sortResults } from "@/lib/results-filters";
 import type { SizeThreshold } from "@/lib/size-thresholds";
+import { Stack } from "@/components/ui";
+import { EmptyResults } from "./EmptyResults";
 import { ResultCard } from "./ResultCard";
+import { ResultsHeader } from "./ResultsHeader";
 import { ShortlistActionBar } from "./ShortlistActionBar";
 
 const MAX_SELECTED = 3;
@@ -12,18 +17,70 @@ export interface ResultItem {
   project: Project;
   countryName: string;
   eligibilityStatus?: EligibilityStatus;
+  /** Doklejone lokalnie z localStorage producenta w tej przeglądarce (spec 0016,
+   * AC-11), nigdy zaznaczalne, nie liczy się do zapytania. */
+  localPreview?: boolean;
 }
 
 interface ResultsSelectionProps {
-  items: ResultItem[];
+  serverItems: ResultItem[];
   locale: string;
+  countries: Country[];
   countryCode?: CountryCode;
   sizeMin?: SizeThreshold;
   sizeMax?: SizeThreshold;
 }
 
-export function ResultsSelection({ items, locale, countryCode, sizeMin, sizeMax }: ResultsSelectionProps) {
+// Nagłówek i pusty stan (dawniej po stronie serwera w page.tsx) żyją teraz tutaj,
+// bo ich prawdziwa liczba pozycji jest znana dopiero po doklejeniu lokalnych
+// produktów producenta po zamontowaniu (spec 0016, AC-11, AC-12, AC-14). Brak
+// lokalnych produktów (typowy przypadek) renderuje dokładnie to, co wcześniej
+// renderował page.tsx, sprzed spec 0016.
+export function ResultsSelection({
+  serverItems,
+  locale,
+  countries,
+  countryCode,
+  sizeMin,
+  sizeMax,
+}: ResultsSelectionProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [items, setItems] = useState<ResultItem[]>(serverItems);
+  const [localAddedCount, setLocalAddedCount] = useState(0);
+
+  useEffect(() => {
+    const { projects: localProjects, eligibility: localEligibility } = getAllLocalProducerProjects();
+    if (localProjects.length === 0) return;
+
+    const eligibilityByProjectId = new Map(localEligibility.map((row) => [row.projectId, row.status]));
+    const countryNameByCode = new Map(countries.map((country) => [country.code, country.name]));
+
+    const matching = localProjects.filter((project) =>
+      matchesResultsFilter(project.floorAreaM2, eligibilityByProjectId.get(project.id), {
+        countryCode,
+        sizeMin,
+        sizeMax,
+      })
+    );
+    if (matching.length === 0) return;
+
+    const localItems: ResultItem[] = matching.map((project) => ({
+      project,
+      countryName: countryNameByCode.get(project.countryOfProduction) ?? project.countryOfProduction,
+      eligibilityStatus: eligibilityByProjectId.get(project.id),
+      localPreview: true,
+    }));
+
+    // Zawsze liczony od serverItems (stały prop), nigdy od poprzedniego stanu: w trybie
+    // deweloperskim React celowo odpala efekty dwa razy, a scalanie od stanu zamiast od
+    // propsów dokładałoby lokalne pozycje po raz drugi (obserwowany duplikat klucza).
+    const merged = [...serverItems, ...localItems];
+    const byId = new Map(merged.map((item) => [item.project.id, item]));
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- synchronizacja z localStorage po hydracji, ten sam wzorzec co ProjectWizard
+    setItems(sortResults(merged.map((item) => item.project)).map((project) => byId.get(project.id)!));
+    setLocalAddedCount(localItems.length);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- filtr i countries są stałe dla tego montowania strony
+  }, []);
 
   function toggle(id: string) {
     setSelectedIds((prev) => {
@@ -35,33 +92,47 @@ export function ResultsSelection({ items, locale, countryCode, sizeMin, sizeMax 
 
   const limitReached = selectedIds.length >= MAX_SELECTED;
 
+  if (items.length === 0) {
+    return <EmptyResults locale={locale} />;
+  }
+
   return (
-    <div className={selectedIds.length > 0 ? "pb-24" : undefined}>
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,20rem),1fr))] gap-brand-4">
-        {items.map(({ project, countryName, eligibilityStatus }) => (
-          <ResultCard
-            key={project.id}
-            project={project}
-            countryName={countryName}
-            eligibilityStatus={eligibilityStatus}
-            selected={selectedIds.includes(project.id)}
-            selectionDisabled={limitReached && !selectedIds.includes(project.id)}
-            onToggleSelect={() => toggle(project.id)}
-            countryCode={countryCode}
-          />
-        ))}
-      </div>
-      {selectedIds.length > 0 && (
-        <ShortlistActionBar
-          locale={locale}
-          selectedCount={selectedIds.length}
-          maxSelected={MAX_SELECTED}
-          projectIds={selectedIds}
-          countryCode={countryCode}
-          sizeMin={sizeMin}
-          sizeMax={sizeMax}
-        />
+    <Stack gap={5}>
+      <ResultsHeader count={items.length} countryCode={countryCode} />
+      {localAddedCount > 0 && (
+        <span role="status" aria-live="polite" className="sr-only">
+          Dodano {localAddedCount} Twoich produktów do listy.
+        </span>
       )}
-    </div>
+      <div className={selectedIds.length > 0 ? "pb-24" : undefined}>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,20rem),1fr))] gap-brand-4">
+          {items.map(({ project, countryName, eligibilityStatus, localPreview }) => (
+            <ResultCard
+              key={project.id}
+              project={project}
+              countryName={countryName}
+              locale={locale}
+              eligibilityStatus={eligibilityStatus}
+              selected={selectedIds.includes(project.id)}
+              selectionDisabled={limitReached && !selectedIds.includes(project.id)}
+              onToggleSelect={localPreview ? undefined : () => toggle(project.id)}
+              countryCode={countryCode}
+              localPreview={localPreview}
+            />
+          ))}
+        </div>
+        {selectedIds.length > 0 && (
+          <ShortlistActionBar
+            locale={locale}
+            selectedCount={selectedIds.length}
+            maxSelected={MAX_SELECTED}
+            projectIds={selectedIds}
+            countryCode={countryCode}
+            sizeMin={sizeMin}
+            sizeMax={sizeMax}
+          />
+        )}
+      </div>
+    </Stack>
   );
 }
