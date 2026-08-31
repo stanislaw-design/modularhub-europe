@@ -21,8 +21,8 @@ export function ScrollReveal({ children, className, style }: ScrollRevealProps) 
     if (!node) return;
 
     if (typeof IntersectionObserver === "undefined") {
-      setRevealed(true);
-      return;
+      const id = window.setTimeout(() => setRevealed(true), 0);
+      return () => window.clearTimeout(id);
     }
 
     const observer = new IntersectionObserver(
