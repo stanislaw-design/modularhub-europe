@@ -6,8 +6,8 @@ import { ProjectWizardProgress } from "./ProjectWizardProgress";
 
 const steps: WizardStep[] = [
   { id: "podstawowe", label: "Krok A" },
-  { id: "konstrukcja", label: "Krok B" },
-  { id: "instalacje", label: "Krok C" },
+  { id: "techniczne", label: "Krok B" },
+  { id: "pliki", label: "Krok C" },
 ];
 
 describe("ProjectWizardProgress", () => {

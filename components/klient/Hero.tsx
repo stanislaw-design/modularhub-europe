@@ -26,16 +26,17 @@ export function Hero({ children }: HeroProps) {
             light surface — direct amber text on white fails WCAG AA
             contrast (checklist.md), so the accent words get an amber
             underline instead of amber fill color. */}
-        <h1 className="whitespace-nowrap font-display text-[clamp(1.75rem,4.6vw,5.25rem)] leading-[0.97] font-bold tracking-[-0.04em] text-brand-v5-ink">
-          Twój{" "}
-          <span className="underline decoration-brand-v5-amber decoration-[0.09em] underline-offset-[0.08em]">
-            dom.
-          </span>{" "}
-          Mądrze{" "}
-          <span className="underline decoration-brand-v5-amber decoration-[0.09em] underline-offset-[0.08em]">
-            wybrany.
-          </span>
-        </h1>
+        {/* hero-heading-mask (globals.css) clips only for the entrance's
+            duration, then reverts to visible — so descenders/diacritics/the
+            underline are never clipped once the heading settles. */}
+        <div className="hero-heading-mask">
+          <h1 className="hero-heading-in whitespace-nowrap font-display text-[clamp(1.75rem,4.6vw,5.25rem)] leading-[0.97] font-bold tracking-[-0.04em] text-brand-v5-ink">
+            Twój{" "}
+            <span className="hero-underline">dom.</span>{" "}
+            Mądrze{" "}
+            <span className="hero-underline">wybrany.</span>
+          </h1>
+        </div>
         {children ? <div className="w-full max-w-3xl">{children}</div> : null}
         <div className="flex flex-col items-center gap-brand-2">
           <p className="max-w-[46ch] text-body-l text-brand-v5-muted">

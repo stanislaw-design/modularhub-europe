@@ -1,7 +1,14 @@
 import type { ReactNode } from "react";
 import { Card, DataText, Heading, Stack, Text } from "@/components/ui";
 import type { Country, ProjectDraft } from "@/lib/data/types";
-import { COMPLETION_STANDARD_OPTIONS, PROJECT_CATEGORY_OPTIONS } from "@/lib/producer-project-draft";
+import {
+  COMPLETION_STANDARD_OPTIONS,
+  PERGOLA_SUBCATEGORY_OPTIONS,
+  PRODUCT_FAMILY_OPTIONS,
+  PROJECT_CATEGORY_OPTIONS,
+  SPA_SUBCATEGORY_OPTIONS,
+  TECHNICAL_FIELDS_BY_FAMILY,
+} from "@/lib/producer-project-draft";
 
 interface ProjectWizardSummaryStepProps {
   draft: ProjectDraft;
@@ -30,9 +37,25 @@ function SummaryGroup({ title, children }: { title: string; children: ReactNode 
   );
 }
 
+function subcategoryLabel(draft: ProjectDraft): string {
+  switch (draft.family) {
+    case "dom":
+      return PROJECT_CATEGORY_OPTIONS.find((option) => option.value === draft.category)?.label ?? "—";
+    case "spa-modulowe":
+      return SPA_SUBCATEGORY_OPTIONS.find((option) => option.value === draft.spaSubcategory)?.label ?? "—";
+    case "pergola":
+      return (
+        PERGOLA_SUBCATEGORY_OPTIONS.find((option) => option.value === draft.pergolaSubcategory)?.label ?? "—"
+      );
+    case null:
+      return "—";
+  }
+}
+
 export function ProjectWizardSummaryStep({ draft, countries }: ProjectWizardSummaryStepProps) {
   const countryName =
     countries.find((country) => country.code === draft.countryOfProduction)?.name ?? "—";
+  const familyLabel = PRODUCT_FAMILY_OPTIONS.find((option) => option.value === draft.family)?.label ?? "—";
 
   return (
     <Stack gap={4}>
@@ -45,24 +68,24 @@ export function ProjectWizardSummaryStep({ draft, countries }: ProjectWizardSumm
         <SummaryRow label="Liczba sypialni" value={draft.bedrooms !== null ? String(draft.bedrooms) : "—"} />
         <SummaryRow label="Kraj produkcji" value={countryName} />
         <SummaryRow label="Opis" value={draft.description} />
+        <SummaryRow label="Rodzina produktu" value={familyLabel} />
+        <SummaryRow label="Podkategoria" value={subcategoryLabel(draft)} />
       </SummaryGroup>
 
-      <SummaryGroup title="Konstrukcja i izolacja">
-        <SummaryRow label="Układ ścian" value={draft.wallBuildUp} />
-        <SummaryRow label="Izolacja" value={draft.insulation} />
-        <SummaryRow label="Współczynniki przenikania ciepła" value={draft.heatTransferCoefficients} />
-      </SummaryGroup>
-
-      <SummaryGroup title="Instalacje i okna">
-        <SummaryRow label="Klasa okien" value={draft.windowClass} />
-        <SummaryRow label="Wentylacja" value={draft.ventilation} />
-        <SummaryRow label="Źródło ciepła" value={draft.heatSource} />
-      </SummaryGroup>
-
-      <SummaryGroup title="Odporność">
-        <SummaryRow label="Odporność ogniowa" value={draft.fireResistance} />
-        <SummaryRow label="Odporność wiatrowa" value={draft.windResistance} />
-      </SummaryGroup>
+      {draft.family !== null && (
+        <SummaryGroup title="Dane techniczne">
+          {TECHNICAL_FIELDS_BY_FAMILY[draft.family].map((field) => {
+            const value = draft.technicalSpecs[field.key];
+            const displayValue =
+              field.type === "select"
+                ? field.options?.find((option) => option.value === value)?.label ?? "—"
+                : value !== undefined && value !== "" && value !== null
+                  ? String(value)
+                  : "—";
+            return <SummaryRow key={field.key} label={field.label} value={displayValue} />;
+          })}
+        </SummaryGroup>
+      )}
 
       <SummaryGroup title="Cena i sprzedaż">
         <SummaryRow
@@ -99,10 +122,6 @@ export function ProjectWizardSummaryStep({ draft, countries }: ProjectWizardSumm
         <SummaryRow
           label="Gwarancja konstrukcyjna"
           value={draft.structuralWarrantyYears !== null ? `${draft.structuralWarrantyYears} lat` : "—"}
-        />
-        <SummaryRow
-          label="Kategoria"
-          value={PROJECT_CATEGORY_OPTIONS.find((option) => option.value === draft.category)?.label ?? "—"}
         />
       </SummaryGroup>
 

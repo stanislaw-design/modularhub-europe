@@ -193,3 +193,114 @@ body {
     transition: none;
   }
 }
+
+/* Hero headline entrance: plays once on load (no scroll trigger, the hero
+   sits above the fold). The wrapper's overflow-hidden masks the slide so
+   the text rises into place instead of just fading. */
+@keyframes hero-heading-in {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.hero-heading-in {
+  /* backwards (not both/forwards): once the animation ends, the element
+     drops the transform/opacity it was animated with and reverts to its
+     plain cascaded styles, taking it off its own compositing layer — with
+     "both" it stayed composited forever, which flattens font-weight
+     rendering (grayscale AA instead of the page's normal antialiasing) and
+     made the bold heading look thinner even after settling. */
+  animation: hero-heading-in 650ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-heading-in {
+    animation: none;
+  }
+}
+
+/* Wrapper-side counterpart: clips only while the heading is sliding in
+   (same 650ms duration as .hero-heading-in, kept in sync), then reverts to
+   visible the instant the entrance ends because fill-mode is "backwards"
+   (not forwards) — so
+   descenders and Polish ogoneks are never at risk of being clipped once the
+   text is at rest, no matter how far they overshoot the heading's
+   deliberately tight leading-[0.97] line box. Replaces hand-tuned
+   padding/negative-margin buffers sized against (unpredictable) font
+   metrics — but .hero-underline::after now grows *during* this masked
+   window too (see below), and its geometry is ours, not the font's, so a
+   small precise padding/negative-margin pair below covers exactly that,
+   with a little headroom. */
+@keyframes hero-heading-mask {
+  from {
+    overflow: hidden;
+  }
+}
+
+.hero-heading-mask {
+  padding-bottom: 0.28em;
+  margin-bottom: -0.28em;
+  animation: hero-heading-mask 650ms backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-heading-mask {
+    animation: none;
+    overflow: visible;
+  }
+}
+
+/* Amber underline on the two accent words, drawn as a ::after bar rather
+   than text-decoration so its reveal can be scaled left-to-right (a
+   text-decoration-thickness can't be animated that way). Positioned to
+   match the thickness/offset the previous native underline used (0.13em
+   thick, 0.08em below the baseline — 0.21em total below the span, hence
+   .hero-heading-mask's 0.28em buffer above). Timed to finish exactly when
+   hero-heading-in/hero-heading-mask do (650ms), so it runs 200ms→650ms:
+   starting mid-slide and landing on the same beat as the heading settling,
+   rather than as a separate second beat after it.
+   isolation: isolate scopes the ::after's stacking to this span alone, so
+   z-index: -1 below only sinks the bar behind this span's own glyphs (e.g.
+   the "y" tail in "wybrany." paints over it, not the other way round)
+   without the bar escaping behind unrelated page content. */
+.hero-underline {
+  position: relative;
+  display: inline-block;
+  isolation: isolate;
+}
+
+.hero-underline::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  right: 0;
+  bottom: -0.08em;
+  left: 0;
+  height: 0.13em;
+  background-color: var(--color-brand-v5-amber);
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: hero-underline-in 450ms cubic-bezier(0.16, 1, 0.3, 1) 200ms both;
+}
+
+@keyframes hero-underline-in {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-underline::after {
+    animation: none;
+    transform: scaleX(1);
+  }
+}
+

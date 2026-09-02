@@ -5,6 +5,7 @@
 import { sql } from "drizzle-orm";
 import {
   boolean,
+  check,
   integer,
   jsonb,
   pgEnum,
@@ -50,6 +51,20 @@ export const productCategoryEnum = pgEnum("product_category", [
   "caloroczny",
   "rekreacyjny-caloroczny",
   "mobilny",
+]);
+
+// Rodzina produktu, niezależna od category (spec 0022). Bez wartości
+// domyślnej celowo: każdy insert, w tym ręczny przez Neon MCP (funkcja 7),
+// musi jawnie podać family (spec 0022 AC-1).
+export const productFamilyEnum = pgEnum("product_family", ["dom", "spa-modulowe", "pergola"]);
+
+export const spaSubcategoryEnum = pgEnum("spa_subcategory", ["sauna", "jacuzzi", "wellness-combo"]);
+
+export const pergolaSubcategoryEnum = pgEnum("pergola_subcategory", [
+  "bioklimatyczna",
+  "aluminiowa-stala",
+  "drewniana",
+  "wolnostojaca-przyscienna",
 ]);
 
 // Współdzielony przez product_country_eligibility, plot_analysis_result i
@@ -226,59 +241,77 @@ export const client = pgTable("client", {
 // Katalog: product (łączy dzisiejsze Project i SavedProduct, patrz spec 0018
 // Feature design). Pola poniżej są nullable dopóki status = 'draft', wymagane
 // od status = 'published'; walidacja tego jest po stronie aplikacji, nie CHECK
-// constraint (zbyt wiele pól, patrz spec Key invariants).
+// constraint (zbyt wiele pól, patrz spec Key invariants). Wyjątek: zgodność
+// family/category/spaSubcategory/pergolaSubcategory JEST ograniczeniem CHECK
+// (spec 0022, patrz product_family_subcategory_match niżej) — wąski, celowy
+// wyjątek od tej konwencji, bo funkcja 7 wstawia wiersze ręcznie przez Neon
+// MCP, mijając walidację aplikacji.
 // ---------------------------------------------------------------------------
 
-export const product = pgTable("product", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  producerId: uuid("producer_id")
-    .notNull()
-    .references(() => producer.id),
-  status: productStatusEnum("status").notNull().default("draft"),
-  name: text("name"),
-  countryOfProduction: text("country_of_production").references(() => country.code),
-  floorAreaM2: real("floor_area_m2"),
-  builtUpAreaM2: real("built_up_area_m2"),
-  description: text("description"),
-  wallBuildUp: text("wall_build_up"),
-  insulation: text("insulation"),
-  heatTransferCoefficients: text("heat_transfer_coefficients"),
-  windowClass: text("window_class"),
-  ventilation: text("ventilation"),
-  heatSource: text("heat_source"),
-  fireResistance: text("fire_resistance"),
-  windResistance: text("wind_resistance"),
-  completionStandard: completionStandardEnum("completion_standard"),
-  productionLeadTimeWeeksMin: integer("production_lead_time_weeks_min"),
-  productionLeadTimeWeeksMax: integer("production_lead_time_weeks_max"),
-  onSiteAssemblyDaysMin: integer("on_site_assembly_days_min"),
-  onSiteAssemblyDaysMax: integer("on_site_assembly_days_max"),
-  housePriceMinCents: integer("house_price_min_cents"),
-  housePriceMaxCents: integer("house_price_max_cents"),
-  structuralWarrantyYears: integer("structural_warranty_years"),
-  category: productCategoryEnum("category"),
-  // Pola obecne tylko w dzisiejszym fixture Project, których kreator
-  // producenta (spec 0016) jeszcze nie zbiera: nullable, wypełniane później
-  // (patrz spec 0018 Follow-up).
-  rooms: integer("rooms"),
-  bedrooms: integer("bedrooms"),
-  bathrooms: integer("bathrooms"),
-  storeys: integer("storeys"),
-  externalDimensions: text("external_dimensions"),
-  roofType: text("roof_type"),
-  constructionSystem: text("construction_system"),
-  foundationOptions: text("foundation_options"),
-  customizationScope: text("customization_scope"),
-  priceMinCents: integer("price_min_cents"),
-  priceMaxCents: integer("price_max_cents"),
-  currency: text("currency").notNull().default("EUR"),
-  priceIncludes: jsonb("price_includes").$type<string[]>(),
-  priceExcludes: jsonb("price_excludes").$type<string[]>(),
-  featured: boolean("featured").notNull().default(false),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-  deletedAt: timestamp("deleted_at", { withTimezone: true }),
-});
+export const product = pgTable(
+  "product",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    producerId: uuid("producer_id")
+      .notNull()
+      .references(() => producer.id),
+    status: productStatusEnum("status").notNull().default("draft"),
+    // Rodzina produktu, niezmienna po utworzeniu (spec 0022 AC-1, AC-7).
+    family: productFamilyEnum("family").notNull(),
+    name: text("name"),
+    countryOfProduction: text("country_of_production").references(() => country.code),
+    floorAreaM2: real("floor_area_m2"),
+    builtUpAreaM2: real("built_up_area_m2"),
+    description: text("description"),
+    completionStandard: completionStandardEnum("completion_standard"),
+    productionLeadTimeWeeksMin: integer("production_lead_time_weeks_min"),
+    productionLeadTimeWeeksMax: integer("production_lead_time_weeks_max"),
+    onSiteAssemblyDaysMin: integer("on_site_assembly_days_min"),
+    onSiteAssemblyDaysMax: integer("on_site_assembly_days_max"),
+    housePriceMinCents: integer("house_price_min_cents"),
+    housePriceMaxCents: integer("house_price_max_cents"),
+    structuralWarrantyYears: integer("structural_warranty_years"),
+    // Podkategoria, znacząca tylko dla family dopasowanej do jej nazwy;
+    // egzekwowane niżej przez product_family_subcategory_match (spec 0022 AC-2, AC-3).
+    category: productCategoryEnum("category"),
+    spaSubcategory: spaSubcategoryEnum("spa_subcategory"),
+    pergolaSubcategory: pergolaSubcategoryEnum("pergola_subcategory"),
+    // Dane techniczne, kształt zależny od family, walidowane schematem Zod
+    // po stronie formularza kreatora i zapisu (spec 0022 AC-4). Zastępuje
+    // dawnych 8 płaskich kolumn technicznych domu (spec 0022 AC-5).
+    technicalSpecs: jsonb("technical_specs"),
+    // Pola obecne tylko w dzisiejszym fixture Project, których kreator
+    // producenta (spec 0016) jeszcze nie zbiera: nullable, wypełniane później
+    // (patrz spec 0018 Follow-up).
+    rooms: integer("rooms"),
+    bedrooms: integer("bedrooms"),
+    bathrooms: integer("bathrooms"),
+    storeys: integer("storeys"),
+    externalDimensions: text("external_dimensions"),
+    roofType: text("roof_type"),
+    constructionSystem: text("construction_system"),
+    foundationOptions: text("foundation_options"),
+    customizationScope: text("customization_scope"),
+    priceMinCents: integer("price_min_cents"),
+    priceMaxCents: integer("price_max_cents"),
+    currency: text("currency").notNull().default("EUR"),
+    priceIncludes: jsonb("price_includes").$type<string[]>(),
+    priceExcludes: jsonb("price_excludes").$type<string[]>(),
+    featured: boolean("featured").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  },
+  (table) => [
+    // Żadne pole podkategorii nie może być wypełnione dla rodziny, do której
+    // nie pasuje. Nie wymusza, że dokładnie jedno jest wypełnione (to zostaje
+    // po stronie aplikacji, patrz komentarz nad tabelą) — spec 0022 AC-2.
+    check(
+      "product_family_subcategory_match",
+      sql`(${table.category} IS NULL OR ${table.family} = 'dom') AND (${table.spaSubcategory} IS NULL OR ${table.family} = 'spa-modulowe') AND (${table.pergolaSubcategory} IS NULL OR ${table.family} = 'pergola')`,
+    ),
+  ],
+);
 
 // ---------------------------------------------------------------------------
 // Zgodność: trzy osobne tabele, ten sam kształt {status, reason}, różne klucze

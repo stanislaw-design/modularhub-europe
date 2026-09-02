@@ -103,7 +103,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: audit trail on create
 
   it("does not log a row for a table outside the audited list (product)", async () => {
     const productId = crypto.randomUUID();
-    await db.insert(product).values({ id: productId, producerId, name: "Unaudited Product" });
+    await db.insert(product).values({ id: productId, producerId, family: "dom", name: "Unaudited Product" });
 
     const rows = await db.select().from(auditLog).where(eq(auditLog.recordId, productId));
     expect(rows).toHaveLength(0);
@@ -165,7 +165,7 @@ describe.skipIf(!process.env.DATABASE_URL)(
         countryCode: "PL",
         technology: "beton-modulowy",
       });
-      await db.insert(product).values({ id: productId, producerId, name: "FK Test Product" });
+      await db.insert(product).values({ id: productId, producerId, family: "dom", name: "FK Test Product" });
     });
 
     afterAll(async () => {

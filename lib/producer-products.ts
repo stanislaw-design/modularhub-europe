@@ -24,7 +24,16 @@ function generateId(): string {
 // Kompletny ProjectDraft (wszystkie kroki isStepComplete) -> SavedProduct, pole po
 // polu, jawne mapowanie z typów nullowalnych na właściwe (spec 0016, Feature design).
 // Zakłada, że draft jest już kompletny; wywołujący sprawdza to przez isStepComplete.
-function draftToSavedProduct(draft: ProjectDraft, existing?: Pick<SavedProduct, "id" | "createdAt">): SavedProduct {
+//
+// family jest niezmienna po utworzeniu produktu (spec 0022 AC-7): przy edycji
+// istniejącego produktu (`existing` podane) wartość existing.family wygrywa i
+// pole family z draftu jest ignorowane — dziś nie ma osobnej akcji serwerowej
+// (cały katalog producenta jest localStorage, spec 0016), więc ta funkcja jest
+// tu odpowiednikiem "akcji serwerowej ignorującej family w payloadzie" z AC-7.
+function draftToSavedProduct(
+  draft: ProjectDraft,
+  existing?: Pick<SavedProduct, "id" | "createdAt" | "family">
+): SavedProduct {
   const now = new Date().toISOString();
   return {
     id: existing?.id ?? generateId(),
@@ -33,14 +42,11 @@ function draftToSavedProduct(draft: ProjectDraft, existing?: Pick<SavedProduct, 
     bedrooms: draft.bedrooms as number,
     countryOfProduction: draft.countryOfProduction as NonNullable<typeof draft.countryOfProduction>,
     description: draft.description,
-    wallBuildUp: draft.wallBuildUp,
-    insulation: draft.insulation,
-    heatTransferCoefficients: draft.heatTransferCoefficients,
-    windowClass: draft.windowClass,
-    ventilation: draft.ventilation,
-    heatSource: draft.heatSource,
-    fireResistance: draft.fireResistance,
-    windResistance: draft.windResistance,
+    family: existing?.family ?? (draft.family as NonNullable<typeof draft.family>),
+    category: draft.category,
+    spaSubcategory: draft.spaSubcategory,
+    pergolaSubcategory: draft.pergolaSubcategory,
+    technicalSpecs: draft.technicalSpecs,
     floorPlanFiles: draft.floorPlanFiles,
     photoFiles: draft.photoFiles,
     housePriceMinEur: draft.housePriceMinEur as number,
@@ -51,7 +57,6 @@ function draftToSavedProduct(draft: ProjectDraft, existing?: Pick<SavedProduct, 
     onSiteAssemblyDaysMin: draft.onSiteAssemblyDaysMin as number,
     onSiteAssemblyDaysMax: draft.onSiteAssemblyDaysMax as number,
     structuralWarrantyYears: draft.structuralWarrantyYears as number,
-    category: draft.category as NonNullable<typeof draft.category>,
     createdAt: existing?.createdAt ?? now,
     updatedAt: now,
   };
@@ -168,14 +173,11 @@ export function savedProductToDraft(product: SavedProduct): ProjectDraft {
     bedrooms: product.bedrooms,
     countryOfProduction: product.countryOfProduction,
     description: product.description,
-    wallBuildUp: product.wallBuildUp,
-    insulation: product.insulation,
-    heatTransferCoefficients: product.heatTransferCoefficients,
-    windowClass: product.windowClass,
-    ventilation: product.ventilation,
-    heatSource: product.heatSource,
-    fireResistance: product.fireResistance,
-    windResistance: product.windResistance,
+    family: product.family,
+    category: product.category,
+    spaSubcategory: product.spaSubcategory,
+    pergolaSubcategory: product.pergolaSubcategory,
+    technicalSpecs: product.technicalSpecs,
     floorPlanFiles: product.floorPlanFiles,
     photoFiles: product.photoFiles,
     housePriceMinEur: product.housePriceMinEur,
@@ -186,6 +188,5 @@ export function savedProductToDraft(product: SavedProduct): ProjectDraft {
     onSiteAssemblyDaysMin: product.onSiteAssemblyDaysMin,
     onSiteAssemblyDaysMax: product.onSiteAssemblyDaysMax,
     structuralWarrantyYears: product.structuralWarrantyYears,
-    category: product.category,
   };
 }

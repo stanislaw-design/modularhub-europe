@@ -25,12 +25,25 @@ function draftKey(nip: string) {
   return `producent:${nip}:projekt-szkic`;
 }
 
+// Wybiera opcję z pierwszego jeszcze niewybranego selecta o placeholderze
+// "Wybierz…" — kilka selectów z tym samym placeholderem bywa widocznych naraz
+// (spec 0022 doda Rodzinę + Kategorię na kroku 1), więc zawsze klika pierwszy.
+async function chooseOption(user: ReturnType<typeof userEvent.setup>, optionName: string) {
+  await user.click(screen.getAllByRole("button", { name: "Wybierz…" })[0]);
+  await user.click(screen.getByRole("option", { name: optionName }));
+}
+
+// Kolejność w DOM (ProjectWizardBasicInfoStep): Rodzina, potem (po jej wyborze)
+// Kategoria, potem Nazwa/Metraż/Sypialnie, potem Kraj, potem Opis — chooseOption
+// zawsze klika pierwszy jeszcze niewybrany select, więc kolejność wywołań tutaj
+// musi odzwierciedlać tę kolejność w drzewie.
 async function fillStep1(user: ReturnType<typeof userEvent.setup>, name = "Modulor 28") {
+  await chooseOption(user, "Dom");
+  await chooseOption(user, "Całoroczny");
   await user.type(screen.getByLabelText(/nazwa projektu/i), name);
   await user.type(screen.getByLabelText(/metraż/i), "120");
   await user.type(screen.getByLabelText(/liczba sypialni/i), "3");
-  await user.click(screen.getByRole("button", { name: "Wybierz…" }));
-  await user.click(screen.getByRole("option", { name: "Polska" }));
+  await chooseOption(user, "Polska");
   await user.type(screen.getByLabelText(/opis/i), "Opis projektu");
 }
 
@@ -38,40 +51,29 @@ async function fillStep2(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText(/Układ ścian/), "Szkielet");
   await user.type(screen.getByLabelText(/Izolacja/), "U = 0.15");
   await user.type(screen.getByLabelText(/Współczynniki przenikania ciepła/), "U = 0.9");
-}
-
-async function fillStep3(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText(/Klasa okien/), "Uw = 0.8");
   await user.type(screen.getByLabelText(/Wentylacja/), "Mechaniczna");
   await user.type(screen.getByLabelText(/Źródło ciepła/), "Pompa ciepła");
-}
-
-async function fillStep4(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText(/Odporność ogniowa/), "REI 30");
   await user.type(screen.getByLabelText(/Odporność wiatrowa/), "Strefa 2");
 }
 
-async function fillStep5(user: ReturnType<typeof userEvent.setup>) {
+async function fillStep3(user: ReturnType<typeof userEvent.setup>) {
   const floorPlanInput = document.getElementById("wizard-floor-plan-files") as HTMLInputElement;
   await user.upload(floorPlanInput, new File(["x"], "rzut.pdf"));
   const photoInput = document.getElementById("wizard-photo-files") as HTMLInputElement;
   await user.upload(photoInput, new File(["x"], "zdjecie.png"));
 }
 
-async function fillStep6(user: ReturnType<typeof userEvent.setup>) {
+async function fillStep4(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText("Cena domu, od (EUR)"), "100000");
   await user.type(screen.getByLabelText("Cena domu, do (EUR)"), "120000");
-  // Dwa selecty z tym samym placeholderem widoczne naraz (Standard, Kategoria):
-  // pierwszy klik musi wybrać spośród obu, drugi zostaje już jednoznaczny.
-  await user.click(screen.getAllByRole("button", { name: "Wybierz…" })[0]);
-  await user.click(screen.getByRole("option", { name: "Standard deweloperski" }));
+  await chooseOption(user, "Standard deweloperski");
   await user.type(screen.getByLabelText("Termin produkcji, od (tygodnie)"), "10");
   await user.type(screen.getByLabelText("Termin produkcji, do (tygodnie)"), "14");
   await user.type(screen.getByLabelText("Czas montażu, od (dni)"), "3");
   await user.type(screen.getByLabelText("Czas montażu, do (dni)"), "5");
   await user.type(screen.getByLabelText(/Gwarancja konstrukcyjna/), "25");
-  await user.click(screen.getByRole("button", { name: "Wybierz…" }));
-  await user.click(screen.getByRole("option", { name: "Całoroczny" }));
 }
 
 async function goToSummary(user: ReturnType<typeof userEvent.setup>) {
@@ -82,10 +84,6 @@ async function goToSummary(user: ReturnType<typeof userEvent.setup>) {
   await fillStep3(user);
   await user.click(screen.getByRole("button", { name: "Dalej" }));
   await fillStep4(user);
-  await user.click(screen.getByRole("button", { name: "Dalej" }));
-  await fillStep5(user);
-  await user.click(screen.getByRole("button", { name: "Dalej" }));
-  await fillStep6(user);
   await user.click(screen.getByRole("button", { name: "Dalej" }));
 }
 
@@ -98,20 +96,12 @@ afterEach(() => {
 });
 
 describe("ProjectWizard", () => {
-  it("renders exactly one H1 and all seven steps in the progress indicator (AC-2, AC-11)", () => {
+  it("renders exactly one H1 and all five steps in the progress indicator (AC-2, AC-11)", () => {
     render(<ProjectWizard locale="pl" registration={makeRegistration()} countries={countries} />);
 
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
     const progress = screen.getByRole("list", { name: "Postęp kreatora" });
-    for (const label of [
-      "Informacje podstawowe",
-      "Konstrukcja i izolacja",
-      "Instalacje i okna",
-      "Odporność",
-      "Pliki",
-      "Cena i sprzedaż",
-      "Podsumowanie",
-    ]) {
+    for (const label of ["Informacje podstawowe", "Dane techniczne", "Pliki", "Cena i sprzedaż", "Podsumowanie"]) {
       expect(within(progress).getByText(label)).toBeInTheDocument();
     }
   });
@@ -130,11 +120,22 @@ describe("ProjectWizard", () => {
     const user = userEvent.setup();
     render(<ProjectWizard locale="pl" registration={makeRegistration()} countries={countries} />);
 
-    const stepTwo = screen.getByRole("button", { name: /Konstrukcja i izolacja/ });
+    const stepTwo = screen.getByRole("button", { name: /Dane techniczne/ });
     expect(stepTwo).toBeDisabled();
 
     await user.click(stepTwo);
     expect(screen.getByRole("heading", { level: 2, name: "Informacje podstawowe" })).toBeInTheDocument();
+  });
+
+  it("shows the category selector for family dom, and the spa subcategory selector for family spa-modulowe (spec 0022 AC-6)", async () => {
+    const user = userEvent.setup();
+    render(<ProjectWizard locale="pl" registration={makeRegistration()} countries={countries} />);
+
+    expect(screen.queryByText("Kategoria")).not.toBeInTheDocument();
+
+    await chooseOption(user, "Spa modułowe");
+    expect(screen.getByText("Podkategoria")).toBeInTheDocument();
+    expect(screen.queryByText("Kategoria")).not.toBeInTheDocument();
   });
 
   it("advances once step 1 is valid, and Wstecz returns with the data retained (AC-3, AC-8)", async () => {
@@ -143,7 +144,7 @@ describe("ProjectWizard", () => {
 
     await fillStep1(user);
     await user.click(screen.getByRole("button", { name: "Dalej" }));
-    expect(screen.getByRole("heading", { level: 2, name: "Konstrukcja i izolacja" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "Dane techniczne" })).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Wstecz" }));
 
@@ -174,17 +175,13 @@ describe("ProjectWizard", () => {
     await user.click(screen.getByRole("button", { name: "Dalej" }));
     await fillStep2(user);
     await user.click(screen.getByRole("button", { name: "Dalej" }));
-    await fillStep3(user);
-    await user.click(screen.getByRole("button", { name: "Dalej" }));
-    await fillStep4(user);
-    await user.click(screen.getByRole("button", { name: "Dalej" }));
 
     await user.click(screen.getByRole("button", { name: "Dalej" }));
     expect(screen.getByText("Dodaj co najmniej jeden rzut.")).toBeInTheDocument();
     expect(screen.getByText("Dodaj co najmniej jedno zdjęcie.")).toBeInTheDocument();
   });
 
-  it("blocks the Cena i sprzedaż step until price, standard, terms, warranty, and category are filled (AC-4)", async () => {
+  it("blocks the Cena i sprzedaż step until price, standard, and terms are filled (AC-4)", async () => {
     const user = userEvent.setup();
     render(<ProjectWizard locale="pl" registration={makeRegistration()} countries={countries} />);
 
@@ -194,18 +191,13 @@ describe("ProjectWizard", () => {
     await user.click(screen.getByRole("button", { name: "Dalej" }));
     await fillStep3(user);
     await user.click(screen.getByRole("button", { name: "Dalej" }));
-    await fillStep4(user);
-    await user.click(screen.getByRole("button", { name: "Dalej" }));
-    await fillStep5(user);
-    await user.click(screen.getByRole("button", { name: "Dalej" }));
 
     await user.click(screen.getByRole("button", { name: "Dalej" }));
     expect(screen.getByText("Podaj cenę od i do, tak by cena od nie przekraczała ceny do.")).toBeInTheDocument();
     expect(screen.getByText("Wybierz standard wykończenia.")).toBeInTheDocument();
-    expect(screen.getByText("Wybierz kategorię produktu.")).toBeInTheDocument();
   });
 
-  it("reaches a read-only Podsumowanie with every entered value after all seven steps (AC-7)", async () => {
+  it("reaches a read-only Podsumowanie with every entered value after all steps (AC-7)", async () => {
     const user = userEvent.setup();
     render(<ProjectWizard locale="pl" registration={makeRegistration()} countries={countries} />);
 
@@ -229,14 +221,11 @@ describe("ProjectWizard", () => {
           bedrooms: 2,
           countryOfProduction: "PL",
           description: "Opis",
-          wallBuildUp: "",
-          insulation: "",
-          heatTransferCoefficients: "",
-          windowClass: "",
-          ventilation: "",
-          heatSource: "",
-          fireResistance: "",
-          windResistance: "",
+          family: "dom",
+          category: "caloroczny",
+          spaSubcategory: null,
+          pergolaSubcategory: null,
+          technicalSpecs: {},
           floorPlanFiles: [],
           photoFiles: [],
           housePriceMinEur: null,
@@ -247,7 +236,6 @@ describe("ProjectWizard", () => {
           onSiteAssemblyDaysMin: null,
           onSiteAssemblyDaysMax: null,
           structuralWarrantyYears: null,
-          category: null,
         },
         step: 1,
       })
@@ -255,7 +243,7 @@ describe("ProjectWizard", () => {
 
     render(<ProjectWizard locale="pl" registration={makeRegistration()} countries={countries} />);
 
-    expect(screen.getByRole("heading", { level: 2, name: "Konstrukcja i izolacja" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "Dane techniczne" })).toBeInTheDocument();
   });
 
   it("starts fresh at step 1 without throwing when the saved state is corrupted (AC-8)", () => {
@@ -273,7 +261,7 @@ describe("ProjectWizard", () => {
     const { unmount } = render(
       <ProjectWizard locale="pl" registration={makeRegistration("1111111111")} countries={countries} />
     );
-    await fillStep1(user, "Dom Producenta A");
+    await user.type(screen.getByLabelText(/nazwa projektu/i), "Dom Producenta A");
     unmount();
 
     render(<ProjectWizard locale="pl" registration={makeRegistration("2222222222")} countries={countries} />);
@@ -296,6 +284,7 @@ describe("ProjectWizard", () => {
     const stored = JSON.parse(window.localStorage.getItem("producent:1234567890:produkty") ?? "[]");
     expect(stored).toHaveLength(1);
     expect(stored[0].name).toBe("Modulor 28");
+    expect(stored[0].family).toBe("dom");
   });
 
   it("gives the current step's progress marker aria-current='step' (AC-11)", () => {

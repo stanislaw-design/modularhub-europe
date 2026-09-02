@@ -4,16 +4,18 @@ interface ProjectWizardTechnicalFieldProps {
   id: string;
   label: string;
   hint: string;
-  value: string;
+  type?: "text" | "number";
+  value: string | number | null;
   invalid: boolean;
   errorMessage: string;
-  onChange: (value: string) => void;
+  onChange: (value: string | number) => void;
 }
 
 export function ProjectWizardTechnicalField({
   id,
   label,
   hint,
+  type = "text",
   value,
   invalid,
   errorMessage,
@@ -29,11 +31,14 @@ export function ProjectWizardTechnicalField({
       </Label>
       <Input
         id={id}
+        type={type}
         required
         invalid={invalid}
         aria-describedby={invalid ? `${hintId} ${errorId}` : hintId}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
+        value={value ?? ""}
+        onChange={(event) =>
+          onChange(type === "number" ? Number(event.target.value) : event.target.value)
+        }
       />
       <p id={hintId} className="font-sans text-label uppercase tracking-[0.1em] font-medium text-brand-technical-graphite">
         {hint}

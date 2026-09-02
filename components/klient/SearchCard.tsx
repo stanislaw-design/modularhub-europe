@@ -1,11 +1,17 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { Droplets, Home, LayoutGrid, Search } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { WordRotate } from "@/components/ui";
 import type { Country, CountryCode } from "@/lib/data/types";
+import type { ProductFamily } from "@/lib/product-technical-specs";
 import { SIZE_RANGE_OPTIONS } from "@/lib/size-thresholds";
 import { SearchSegment, type SegmentOption } from "./SearchSegment";
+
+// Same three families/order as categoryTabs below and CategoryShowcase.
+const teaserWords = ["Dom?", "Pergole?", "SPA?"];
 
 interface SearchCardProps {
   locale: string;
@@ -17,40 +23,40 @@ const sizeRangeOptions: SegmentOption[] = SIZE_RANGE_OPTIONS.map((option) => ({
   label: option.label,
 }));
 
-interface PlaceholderFieldProps {
-  label: string;
-  placeholder: string;
-}
+// Mock ranges only — no budget field on Project yet, so unlike country/size
+// this selection never reaches handleSearch's params (spec 0014/0015 AC-3
+// deferred the underlying data model). Interactive so the toolbar reads as
+// one consistent control, same visual/keyboard behavior as Gdzie/Powierzchnia.
+const budgetRangeOptions: SegmentOption[] = [
+  { value: "any", label: "Dowolny budżet" },
+  { value: "upTo50k", label: "do 50K €" },
+  { value: "50to100k", label: "50K–100K €" },
+  { value: "100to200k", label: "100K–200K €" },
+  { value: "over200k", label: "powyżej 200K €" },
+];
 
-// Visually matches SearchSegment's stacked label/value look (same classes),
-// but is a plain disabled button: no state, no options, no filter behind it
-// (spec 0014 AC-3, carried into spec 0015 AC-3 — Typ domu / Budżet / Dostawa
-// have no data model yet, same decorative-placeholder pattern as
-// CategoryFilterBar's chips on /wyniki).
-function PlaceholderField({ label, placeholder }: PlaceholderFieldProps) {
-  return (
-    <div className="flex-1">
-      <button
-        type="button"
-        disabled
-        className="flex w-full flex-col items-start gap-0.5 px-brand-3 py-brand-2 text-left disabled:cursor-default"
-      >
-        <span className="text-label font-semibold text-brand-foundation-navy">{label}</span>
-        <span className="text-body text-brand-technical-graphite/60">{placeholder}</span>
-      </button>
-    </div>
-  );
-}
+// Same three families as CategoryShowcase's FAMILY_DISPLAY. Selection is
+// visual only for now (mirrors CategoryFilterBar's decorative-placeholder
+// pattern below) — /wyniki has no family filter yet (spec 0022 defers real
+// filtering to a later feature).
+const categoryTabs: { family: ProductFamily; icon: typeof Home; label: string }[] = [
+  { family: "dom", icon: Home, label: "Domy" },
+  { family: "pergola", icon: LayoutGrid, label: "Pergole" },
+  { family: "spa-modulowe", icon: Droplets, label: "SPA" },
+];
 
 // The white toolbar-like card sitting inside Hero (spec 0015 AC-3 dropped the
 // old "Znajdź idealny dom dla siebie" heading + subcopy so it reads as one
-// tool, not a second section with its own intro). Gdzie and Powierzchnia are
-// real SearchSegment instances (unmodified public API); Budżet remains a
-// decorative placeholder. Navigation contract to /wyniki (country, sizeMin,
-// sizeMax) is unchanged from spec 0003/0004.
+// tool, not a second section with its own intro). Gdzie, Budżet and
+// Powierzchnia are all real SearchSegment instances; Budżet's selection is
+// visual only (see budgetRangeOptions above). Navigation contract to /wyniki
+// (country, sizeMin, sizeMax) is unchanged from spec 0003/0004.
 export function SearchCard({ locale, countries }: SearchCardProps) {
   const router = useRouter();
+  const prefersReducedMotion = useReducedMotion();
+  const [activeCategory, setActiveCategory] = useState<ProductFamily>("dom");
   const [country, setCountry] = useState<CountryCode | null>(null);
+  const [budgetRangeValue, setBudgetRangeValue] = useState<string | null>(null);
   const [sizeRangeValue, setSizeRangeValue] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   // Stays false until the expand transition finishes, so the two
@@ -101,7 +107,21 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
         }`}
       >
         <Search className="size-5 shrink-0 text-brand-v5-muted" aria-hidden="true" />
-        <span className="text-body-l text-brand-v5-muted">W czym mogę pomóc?</span>
+        <span className="text-body-l text-brand-v5-muted">
+          W czym mogę pomóc?{" "}
+          <WordRotate
+            words={teaserWords}
+            duration={3000}
+            className="text-brand-v5-muted"
+            wrapperClassName="pb-[0.25em] -mb-[0.25em]"
+            motionProps={{
+              initial: { opacity: 0, y: "-0.4em" },
+              animate: { opacity: 1, y: 0 },
+              exit: { opacity: 0, y: "0.4em" },
+              transition: { duration: 0.25, ease: "easeOut" },
+            }}
+          />
+        </span>
       </button>
 
       {/* Real form: height-animated via the grid-template-rows trick (no JS
@@ -118,37 +138,78 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
       >
         <div className={hasOpened ? "" : "overflow-hidden"}>
           <div
-            className={`flex flex-col divide-y divide-brand-v5-line rounded-v5-card p-brand-2 transition-opacity duration-300 ${
+            className={`flex flex-col gap-brand-2 p-brand-2 transition-opacity duration-300 ${
               isExpanded ? "opacity-100 delay-200" : "opacity-0"
-            } sm:flex-row sm:items-stretch sm:divide-x sm:divide-y-0`}
+            }`}
           >
-            <SearchSegment
-              label="Gdzie?"
-              value={country}
-              onChange={(value) => setCountry(value as CountryCode)}
-              options={countryOptions}
-              placeholder="Kraj, region lub miasto"
-              ariaLabel="Kraj docelowy"
-            />
-            <PlaceholderField label="Budżet" placeholder="Dowolny budżet" />
-            <SearchSegment
-              label="Powierzchnia"
-              value={sizeRangeValue}
-              onChange={setSizeRangeValue}
-              options={sizeRangeOptions}
-              placeholder="Dowolna"
-              ariaLabel="Powierzchnia"
-            />
-            <div className="flex items-center justify-center p-brand-2">
-              <button
-                type="button"
-                onClick={handleSearch}
-                disabled={!country}
-                className="focus-ring flex w-full items-center justify-center gap-brand-1 rounded-v5-pill bg-brand-v5-amber px-brand-4 py-brand-2 text-body font-semibold text-brand-v5-amber-foreground transition-opacity hover:bg-brand-v5-amber-strong disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
-              >
-                <Search className="size-4" aria-hidden="true" />
-                Szukaj domów
-              </button>
+            <div role="tablist" aria-label="Kategoria produktu" className="flex items-center gap-brand-2 px-brand-1">
+              {categoryTabs.map(({ family, icon: Icon, label }) => {
+                const isActive = activeCategory === family;
+                return (
+                  <button
+                    key={family}
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    onClick={() => setActiveCategory(family)}
+                    className={`focus-ring relative flex items-center gap-1.5 rounded-v5-pill px-brand-3 py-brand-1 text-body font-semibold transition-colors ${
+                      isActive ? "text-brand-v5-paper" : "text-brand-v5-muted hover:bg-brand-v5-line/60"
+                    }`}
+                  >
+                    {isActive ? (
+                      // layoutId shares this pill across renders, so switching
+                      // the active tab slides the existing indicator to its
+                      // new position/size instead of it popping in fresh.
+                      <motion.span
+                        layoutId="category-tab-indicator"
+                        className="absolute inset-0 rounded-v5-pill bg-brand-v5-ink"
+                        transition={
+                          prefersReducedMotion ? { duration: 0 } : { type: "spring", bounce: 0.15, duration: 0.4 }
+                        }
+                      />
+                    ) : null}
+                    <Icon className="relative size-4" aria-hidden="true" />
+                    <span className="relative">{label}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="flex flex-col divide-y divide-brand-v5-line rounded-v5-card sm:flex-row sm:items-stretch sm:divide-x sm:divide-y-0">
+              <SearchSegment
+                label="Gdzie?"
+                value={country}
+                onChange={(value) => setCountry(value as CountryCode)}
+                options={countryOptions}
+                placeholder="Kraj, region lub miasto"
+                ariaLabel="Kraj docelowy"
+              />
+              <SearchSegment
+                label="Budżet"
+                value={budgetRangeValue}
+                onChange={setBudgetRangeValue}
+                options={budgetRangeOptions}
+                placeholder="Dowolny budżet"
+                ariaLabel="Budżet"
+              />
+              <SearchSegment
+                label="Powierzchnia"
+                value={sizeRangeValue}
+                onChange={setSizeRangeValue}
+                options={sizeRangeOptions}
+                placeholder="Dowolna"
+                ariaLabel="Powierzchnia"
+              />
+              <div className="flex items-center justify-center p-brand-2">
+                <button
+                  type="button"
+                  onClick={handleSearch}
+                  disabled={!country}
+                  className="focus-ring flex w-full items-center justify-center gap-brand-1 rounded-v5-pill bg-brand-v5-amber px-brand-4 py-brand-2 text-body font-semibold text-brand-v5-amber-foreground transition-opacity hover:bg-brand-v5-amber-strong disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
+                >
+                  <Search className="size-4" aria-hidden="true" />
+                  Szukaj domów
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -229,19 +229,20 @@ Dziś karty projektów w wynikach i na stronie startowej nie prowadzą nigdzie �
 
 ## Deferred
 Poza zakresem tego pierwszego etapu, świadomie odłożone do podłączenia prawdziwego zaplecza po ekranie. Większość poniższych pozycji jest teraz aktywnie zaplanowana w epice [Produkcja](produkcja.md), link przy każdej pozycji wskazuje na jej nowy numer.
-- **Prawdziwe logowanie i role**: konta klienta i producenta zamiast dwóch osobnych widoków demo · zaplanowane jako [Produkcja #6](produkcja.md)
+- **Prawdziwe logowanie i role**: konta klienta i producenta zamiast dwóch osobnych widoków demo · zaplanowane jako [Produkcja #7](produkcja.md)
 - **Prawdziwy model danych i baza**: trwałe zapisywanie projektów, zapytań, ofert i statusów · zaplanowane jako [Produkcja #2](produkcja.md)
-- **Prawdziwe płatności**: realna integracja płatnicza za analizę działki i domykanie luk · zaplanowane jako [Produkcja #8](produkcja.md)
-- **Prawdziwe wgrywanie i przechowywanie plików**: rzuty, zdjęcia, dokumenty producenta · zaplanowane jako [Produkcja #9](produkcja.md)
-- **Prawdziwy silnik zgodności**: rzeczywiste, aktualizowane wymagania prawne per kraj zamiast danych mockowych · zaplanowane jako [Produkcja #10](produkcja.md) (pilot: Polska, pozostałe kraje zostają odłożone dalej)
-- **Prawdziwa wycena transportu**: integracja z siecią przewoźników zamiast stałych widełek · zaplanowane jako [Produkcja #11](produkcja.md)
-- **Powiadomienia**: e-mail przy zmianie statusu · zaplanowane jako [Produkcja #13](produkcja.md)
-- **Panel administracyjny**: zarządzanie producentami, projektami i zapytaniami · zaplanowane jako [Produkcja #14](produkcja.md)
+- **Prawdziwe rodziny produktów i kategorie** (dziś `CategoryShowcase`/`CategoryFilterBar` na stronie startowej są świadomie dekoracyjne, bez modelu danych za sobą, spec 0014): rozszerzenie o spa modułowe i pergole obok domów, każda z własnymi podkategoriami · zaplanowane jako [Produkcja #6](produkcja.md)
+- **Prawdziwe płatności**: realna integracja płatnicza za analizę działki i domykanie luk · zaplanowane jako [Produkcja #12](produkcja.md)
+- **Prawdziwe wgrywanie i przechowywanie plików**: rzuty, zdjęcia, dokumenty producenta · zaplanowane jako [Produkcja #13](produkcja.md)
+- **Prawdziwy silnik zgodności**: rzeczywiste, aktualizowane wymagania prawne per kraj zamiast danych mockowych · zaplanowane jako [Produkcja #14](produkcja.md) (pilot: Polska, pozostałe kraje zostają odłożone dalej)
+- **Prawdziwa wycena transportu**: integracja z siecią przewoźników zamiast stałych widełek · zaplanowane jako [Produkcja #15](produkcja.md)
+- **Powiadomienia**: e-mail przy zmianie statusu · zaplanowane jako [Produkcja #17](produkcja.md)
+- **Panel administracyjny**: zarządzanie producentami, projektami i zapytaniami · zaplanowane jako [Produkcja #18](produkcja.md)
 - **Wersje językowe (EN/DE)**: rozszerzenie z samego polskiego · pozostaje odłożone, patrz Deferred w [Produkcja](produkcja.md)
-- **Stopka strony** (kontakt, informacje prawne, przełącznik języka): świadomie pominięta w specyfikacji [0003](../specs/0003-strona-startowa/index.md), bo nie ma dziś realnej treści do pokazania · treść prawna częściowo pokryta przez [Produkcja #5](produkcja.md) (RODO), pełna stopka pozostaje odłożona
+- **Stopka strony** (kontakt, informacje prawne, przełącznik języka): świadomie pominięta w specyfikacji [0003](../specs/0003-strona-startowa/index.md), bo nie ma dziś realnej treści do pokazania · treść prawna częściowo pokryta przez [Produkcja #5](produkcja.md) (RODO), kontakt i informacje prawne w stopce zaplanowane jako [Produkcja #10](produkcja.md), przełącznik języka pozostaje odłożony
 - **Zawężenie mapy gotowości eksportowej do krajów rejestracji**: dziś mapa (funkcja 13, spec [0009](../specs/0009-gotowosc-eksportowa/index.md)) zawsze pokazuje wszystkie trzy kraje z mocka; zawężenie do krajów dostawy wybranych przy rejestracji (funkcja 11) wymaga rozszerzenia kontraktu URL, który dziś przenosi tylko nazwę projektu · pozostaje odłożone, patrz Deferred w [Produkcja](produkcja.md)
-- **Kreator katalogu producenta nie zbiera certyfikatów, galerii ani progu zgłoszenia uproszczonego**: te trzy pola dodane w funkcji 19 (spec [0020](../specs/0020-strona-szczegolow-projektu/index.md)) na podstawie realnych danych od Budman/Cocomodule; projekty dodane przez producenta przez kreator (funkcja 12/18) nie pokażą tych sekcji na własnej stronie szczegółów, dopóki formularz nie zostanie osobno rozszerzony · needs a decision
-- **Waluta natywna producenta (PLN) obok EUR**: model `Project` zostaje EUR-only (funkcja 19, spec [0020](../specs/0020-strona-szczegolow-projektu/index.md)); realni producenci (Budman, Cocomodule) podają ceny w PLN · needs a decision
+- **Kreator katalogu producenta nie zbiera certyfikatów, galerii ani progu zgłoszenia uproszczonego**: te trzy pola dodane w funkcji 19 (spec [0020](../specs/0020-strona-szczegolow-projektu/index.md)) na podstawie realnych danych od Budman/Cocomodule; projekty dodane przez producenta przez kreator (funkcja 12/18) nie pokażą tych sekcji na własnej stronie szczegółów, dopóki formularz nie zostanie osobno rozszerzony · zaplanowane jako [Produkcja #10](produkcja.md) (dane na start i tak zasiane ręcznie, patrz Produkcja #7)
+- **Waluta natywna producenta (PLN) obok EUR**: model `Project` zostaje EUR-only (funkcja 19, spec [0020](../specs/0020-strona-szczegolow-projektu/index.md)); realni producenci (Budman, Cocomodule) podają ceny w PLN · zaplanowane jako [Produkcja #10](produkcja.md)
 
 ## Legend
 

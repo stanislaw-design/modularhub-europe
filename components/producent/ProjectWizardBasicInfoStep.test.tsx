@@ -26,7 +26,8 @@ describe("ProjectWizardBasicInfoStep", () => {
     expect(screen.getByLabelText(/metraż/i)).toBeRequired();
     expect(screen.getByLabelText(/liczba sypialni/i)).toBeRequired();
     expect(screen.getByLabelText(/opis/i)).toBeRequired();
-    expect(screen.getByRole("button", { name: "Wybierz…" })).toBeInTheDocument();
+    // Rodzina i Kraj produkcji są oba selecty z placeholderem "Wybierz…" (spec 0022 AC-6).
+    expect(screen.getAllByRole("button", { name: "Wybierz…" })).toHaveLength(2);
   });
 
   it("shows no inline errors on an empty draft while showValidation is false", () => {
@@ -133,7 +134,9 @@ describe("ProjectWizardBasicInfoStep", () => {
       />
     );
 
-    await user.click(screen.getByRole("button", { name: "Wybierz…" }));
+    // Rodzina (pierwszy select w DOM) i Kraj produkcji (drugi) mają oba placeholder
+    // "Wybierz…" na pustym draft (spec 0022 AC-6) — Kraj jest drugi w kolejności.
+    await user.click(screen.getAllByRole("button", { name: "Wybierz…" })[1]);
     expect(screen.getByRole("option", { name: "Polska" })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Niemcy" })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Holandia" })).toBeInTheDocument();

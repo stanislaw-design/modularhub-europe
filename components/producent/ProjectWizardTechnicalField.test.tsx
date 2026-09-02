@@ -80,4 +80,44 @@ describe("ProjectWizardTechnicalField", () => {
 
     expect(onChange).toHaveBeenCalledWith("S");
   });
+
+  it("renders a numeric input and calls onChange with a number, not a string, when type is number", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      <ProjectWizardTechnicalField
+        id="wizard-seating-capacity"
+        label="Liczba miejsc"
+        hint="Podpowiedź"
+        type="number"
+        value={null}
+        invalid={false}
+        errorMessage="Podaj liczbę miejsc."
+        onChange={onChange}
+      />
+    );
+
+    const input = screen.getByLabelText(/Liczba miejsc/);
+    expect(input).toHaveAttribute("type", "number");
+    await user.type(input, "4");
+
+    expect(onChange).toHaveBeenLastCalledWith(4);
+  });
+
+  it("renders an empty input when value is null, instead of the literal text 'null'", () => {
+    render(
+      <ProjectWizardTechnicalField
+        id="wizard-seating-capacity"
+        label="Liczba miejsc"
+        hint="Podpowiedź"
+        type="number"
+        value={null}
+        invalid={false}
+        errorMessage="Podaj liczbę miejsc."
+        onChange={vi.fn()}
+      />
+    );
+
+    expect(screen.getByLabelText(/Liczba miejsc/)).toHaveValue(null);
+  });
 });

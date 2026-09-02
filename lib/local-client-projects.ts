@@ -33,6 +33,13 @@ export function mapSavedProductToProject(
     getMockTransportPriceEur(primaryDeliveryCountry) +
     getMockAssemblyPriceEur(primaryDeliveryCountry);
 
+  // Project (klient) reprezentuje dziś wyłącznie domy i zachowuje 8 płaskich pól
+  // technicznych bez zmian (spec 0022, Build plan zadanie 6 dotyka tylko
+  // ProjectDraft/SavedProduct). Dla family = "dom" te pola pochodzą z
+  // technicalSpecs; dla spa/pergola nie mają odpowiednika na Project, więc
+  // zostają puste — ProjectTechnicalSpecs pomija wiersze z pustą wartością.
+  const domSpecs = product.family === "dom" ? product.technicalSpecs : {};
+
   const project: Project = {
     id,
     producerId: `local-producer-${nip}`,
@@ -47,7 +54,8 @@ export function mapSavedProductToProject(
     storeys: 1,
     externalDimensions: "Do potwierdzenia z producentem",
     roofType: "Do potwierdzenia z producentem",
-    category: product.category,
+    family: product.family,
+    category: product.category ?? "caloroczny",
     constructionSystem,
     foundationOptions: "Do ustalenia z producentem",
     customizationScope: "Zakres do ustalenia z producentem",
@@ -57,14 +65,14 @@ export function mapSavedProductToProject(
     currency: "EUR",
     coverImageUrl: `https://picsum.photos/seed/${product.id}/800/600`,
     description: product.description,
-    wallBuildUp: product.wallBuildUp,
-    insulation: product.insulation,
-    heatTransferCoefficients: product.heatTransferCoefficients,
-    windowClass: product.windowClass,
-    ventilation: product.ventilation,
-    heatSource: product.heatSource,
-    fireResistance: product.fireResistance,
-    windResistance: product.windResistance,
+    wallBuildUp: domSpecs.wallBuildUp ?? "",
+    insulation: domSpecs.insulation ?? "",
+    heatTransferCoefficients: domSpecs.heatTransferCoefficients ?? "",
+    windowClass: domSpecs.windowClass ?? "",
+    ventilation: domSpecs.ventilation ?? "",
+    heatSource: domSpecs.heatSource ?? "",
+    fireResistance: domSpecs.fireResistance ?? "",
+    windResistance: domSpecs.windResistance ?? "",
     commercial: {
       housePriceMinEur: product.housePriceMinEur,
       housePriceMaxEur: product.housePriceMaxEur,

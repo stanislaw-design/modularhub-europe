@@ -15,6 +15,7 @@ export function createMockProject(overrides: Partial<Project> = {}): Project {
     storeys: 1,
     externalDimensions: "13,5 × 8,0 m",
     roofType: "Dwuspadowy, 30°",
+    family: "dom",
     category: "caloroczny",
     constructionSystem: "Prefabrykowany szkielet drewniany C24/KVH",
     foundationOptions: "Płyta fundamentowa",

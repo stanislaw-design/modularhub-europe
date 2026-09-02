@@ -1,6 +1,6 @@
 import { Heading, Input, Label, Select, Stack } from "@/components/ui";
 import type { ProjectDraft } from "@/lib/data/types";
-import { COMPLETION_STANDARD_OPTIONS, PROJECT_CATEGORY_OPTIONS } from "@/lib/producer-project-draft";
+import { COMPLETION_STANDARD_OPTIONS } from "@/lib/producer-project-draft";
 
 interface ProjectWizardPricingStepProps {
   draft: ProjectDraft;
@@ -30,7 +30,6 @@ export function ProjectWizardPricingStep({ draft, showValidation, onChange }: Pr
     (draft.structuralWarrantyYears === null ||
       !Number.isInteger(draft.structuralWarrantyYears) ||
       draft.structuralWarrantyYears < 0);
-  const categoryInvalid = showValidation && draft.category === null;
 
   return (
     <Stack gap={3}>
@@ -199,21 +198,6 @@ export function ProjectWizardPricingStep({ draft, showValidation, onChange }: Pr
             <p id="wizard-warranty-error" className="font-sans text-body text-status-blocked">
               Podaj gwarancję konstrukcyjną w latach.
             </p>
-          )}
-        </Stack>
-        <Stack gap={1} className="min-w-40 flex-1">
-          <Label id="wizard-category-label" required>
-            Kategoria produktu
-          </Label>
-          <Select
-            value={draft.category}
-            onChange={(value) => onChange({ category: value })}
-            options={PROJECT_CATEGORY_OPTIONS}
-            invalid={categoryInvalid}
-            aria-labelledby="wizard-category-label"
-          />
-          {categoryInvalid && (
-            <p className="font-sans text-body text-status-blocked">Wybierz kategorię produktu.</p>
           )}
         </Stack>
       </Stack>

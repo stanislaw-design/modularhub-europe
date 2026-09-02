@@ -40,6 +40,11 @@ npm run lint
 npm run test         # vitest (unit/component)
 npm run test:watch   # vitest, watch mode
 npm run test:e2e     # playwright (E2E)
+
+# Database (production layer, lib/db/)
+npm run db:generate  # drizzle-kit generate
+npm run db:migrate   # drizzle-kit migrate (also run in CI deploy workflows)
+npm run db:studio    # drizzle-kit studio
 ```
 
 ## Specs
@@ -54,7 +59,7 @@ Stored in `docs/specs/`. Each is a directory `docs/specs/NNNN-title/` with `inde
 - Data access functions (even ones just reading a local mock file) are asynchronous from the start, so the second stage can swap in a real API call without changing call signatures.
 - UI state that must survive a route change (e.g. country and budget from the wizard, visible on the results screen) goes through URL search params, not shared component state.
 - No database, no login, no real payments in this stage; every "paid step" and file upload is a mock (see `docs/scope/prototyp.md`, Deferred section).
-- Lint/format/pre commit tooling is not finalized yet; only Next.js's default ESLint config exists so far (tracked as scope feature 2).
+- Lint/format/pre commit tooling is not otherwise finalized yet (tracked as scope feature 2), but `eslint.config.mjs` already carries one load bearing custom rule: `no-restricted-imports` blocks any file outside `lib/observability/` from importing `@sentry/nextjs`, `posthog-js`, or `posthog-node` directly (spec 0021).
 - `next.config.ts` allowlists `next/image` remote patterns explicitly (`images.remotePatterns`); mock project cover images come from `picsum.photos` today, add any other external image host there before using it.
 
 ## Agent skills
@@ -69,15 +74,23 @@ Stored in `docs/specs/`. Each is a directory `docs/specs/NNNN-title/` with `inde
 - [playwright-cli](.agents/skills/playwright-cli/): `microsoft/playwright-cli`, Playwright E2E browser automation and test conventions
 - [neon-postgres](.agents/skills/neon-postgres/): `neondatabase/agent-skills`, Neon Postgres setup, connection methods, branching, and migrations
 - [drizzle](.agents/skills/drizzle/): `bobmatnyc/claude-mpm-skills`, Drizzle ORM schema, query, and migration conventions
+- [zod](.agents/skills/zod/): `pproenca/dot-skills`, Zod schema validation conventions (used for the per family `technicalSpecs` jsonb columns, spec 0022)
+- [adversarial-zod](.agents/skills/adversarial-zod/): `pproenca/dot-skills`, pass/fail currency gate for Zod 4 schema code
 - [authjs-skills](.agents/skills/authjs-skills/): `gocallum/nextjs16-agent-skills`, Auth.js v5 setup (not yet wired into the app, see spec 0017 Follow-up)
+- [sentry-nextjs-sdk](.agents/skills/sentry-nextjs-sdk/): `getsentry/sentry-for-ai`, Sentry Next.js SDK setup and conventions (error tracking, see `lib/observability/AGENTS.md`)
+- [posthog-instrumentation](.agents/skills/posthog-instrumentation/): `posthog/posthog-for-claude`, PostHog event tracking conventions (business analytics, see `lib/observability/AGENTS.md`)
 
-MCP servers: playwright (connected), Neon (connected)
+MCP servers: playwright (connected), Neon (connected), Sentry (connected)
 
 ## Context files
 
 <!-- Nested AGENTS.md files are listed here as they are created -->
 
 - [components/klient/AGENTS.md](components/klient/AGENTS.md): feature specific components for the customer buying journey (results, shortlist, plot analysis, offer, realizacja)
+- [components/producent/AGENTS.md](components/producent/AGENTS.md): feature specific components for the producer side (registration, project wizard, export readiness, gap closure, inquiries/offers, fulfillment, product catalog)
+- [components/ui/AGENTS.md](components/ui/AGENTS.md): generic design system primitives (Button, Card, StageTimeline, …) both journeys compose
+- [lib/data/AGENTS.md](lib/data/AGENTS.md): the mock/fixture data access layer for the Facade epic
 - [lib/db/AGENTS.md](lib/db/AGENTS.md): the real (production) database client, Neon Postgres and Drizzle ORM
+- [lib/observability/AGENTS.md](lib/observability/AGENTS.md): the one sanctioned path to error tracking (Sentry) and business event analytics (PostHog)
 
 _Drafted by /audit from the repo, worth a quick human pass. Edit freely: once a line stops matching this draft, later runs treat it as curated and will flag rather than overwrite it._

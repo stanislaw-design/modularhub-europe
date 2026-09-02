@@ -16,13 +16,11 @@ import {
   saveDraft,
 } from "@/lib/producer-project-draft";
 import { ProjectWizardBasicInfoStep } from "./ProjectWizardBasicInfoStep";
-import { ProjectWizardConstructionStep } from "./ProjectWizardConstructionStep";
 import { ProjectWizardFilesStep } from "./ProjectWizardFilesStep";
 import { ProjectWizardPricingStep } from "./ProjectWizardPricingStep";
 import { ProjectWizardProgress } from "./ProjectWizardProgress";
-import { ProjectWizardResistanceStep } from "./ProjectWizardResistanceStep";
 import { ProjectWizardSummaryStep } from "./ProjectWizardSummaryStep";
-import { ProjectWizardSystemsStep } from "./ProjectWizardSystemsStep";
+import { ProjectWizardTechnicalStep } from "./ProjectWizardTechnicalStep";
 
 interface ProjectWizardProps {
   locale: string;
@@ -129,14 +127,8 @@ export function ProjectWizard({ locale, countries, registration }: ProjectWizard
             onChange={updateDraft}
           />
         )}
-        {currentStep.id === "konstrukcja" && (
-          <ProjectWizardConstructionStep draft={draft} showValidation={showValidation} onChange={updateDraft} />
-        )}
-        {currentStep.id === "instalacje" && (
-          <ProjectWizardSystemsStep draft={draft} showValidation={showValidation} onChange={updateDraft} />
-        )}
-        {currentStep.id === "odpornosc" && (
-          <ProjectWizardResistanceStep draft={draft} showValidation={showValidation} onChange={updateDraft} />
+        {currentStep.id === "techniczne" && (
+          <ProjectWizardTechnicalStep draft={draft} showValidation={showValidation} onChange={updateDraft} />
         )}
         {currentStep.id === "pliki" && (
           <ProjectWizardFilesStep draft={draft} showValidation={showValidation} onChange={updateDraft} />

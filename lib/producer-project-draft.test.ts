@@ -20,14 +20,20 @@ function completeDraft(): ProjectDraft {
     bedrooms: 2,
     countryOfProduction: "PL",
     description: "Opis projektu",
-    wallBuildUp: "Szkielet",
-    insulation: "U = 0.15",
-    heatTransferCoefficients: "U = 0.9",
-    windowClass: "Uw = 0.8",
-    ventilation: "Mechaniczna",
-    heatSource: "Pompa ciepła",
-    fireResistance: "REI 30",
-    windResistance: "Strefa 2",
+    family: "dom",
+    category: "caloroczny",
+    spaSubcategory: null,
+    pergolaSubcategory: null,
+    technicalSpecs: {
+      wallBuildUp: "Szkielet",
+      insulation: "U = 0.15",
+      heatTransferCoefficients: "U = 0.9",
+      windowClass: "Uw = 0.8",
+      ventilation: "Mechaniczna",
+      heatSource: "Pompa ciepła",
+      fireResistance: "REI 30",
+      windResistance: "Strefa 2",
+    },
     floorPlanFiles: [{ name: "rzut.pdf", sizeBytes: 100 }],
     photoFiles: [{ name: "zdjecie.png", sizeBytes: 200 }],
     housePriceMinEur: 100000,
@@ -38,7 +44,6 @@ function completeDraft(): ProjectDraft {
     onSiteAssemblyDaysMin: 3,
     onSiteAssemblyDaysMax: 5,
     structuralWarrantyYears: 25,
-    category: "caloroczny",
   };
 }
 
@@ -47,12 +52,10 @@ beforeEach(() => {
 });
 
 describe("WIZARD_STEPS", () => {
-  it("has seven steps in the fixed spec order", () => {
+  it("has five steps in the fixed spec order (spec 0022)", () => {
     expect(WIZARD_STEPS.map((step) => step.id)).toEqual([
       "podstawowe",
-      "konstrukcja",
-      "instalacje",
-      "odpornosc",
+      "techniczne",
       "pliki",
       "cena",
       "podsumowanie",
@@ -68,13 +71,16 @@ describe("createEmptyDraft", () => {
     expect(draft.floorAreaM2).toBeNull();
     expect(draft.bedrooms).toBeNull();
     expect(draft.countryOfProduction).toBeNull();
+    expect(draft.family).toBeNull();
+    expect(draft.category).toBeNull();
+    expect(draft.technicalSpecs).toEqual({});
     expect(draft.floorPlanFiles).toEqual([]);
     expect(draft.photoFiles).toEqual([]);
   });
 });
 
 describe("isStepComplete: podstawowe", () => {
-  it("is complete when all five fields are valid", () => {
+  it("is complete when all fields, including family and its subcategory, are valid", () => {
     expect(isStepComplete("podstawowe", completeDraft())).toBe(true);
   });
 
@@ -110,27 +116,71 @@ describe("isStepComplete: podstawowe", () => {
     expect(isStepComplete("podstawowe", { ...completeDraft(), countryOfProduction: null })).toBe(false);
     expect(isStepComplete("podstawowe", { ...completeDraft(), description: "" })).toBe(false);
   });
+
+  it("is incomplete when family is missing, or when its matching subcategory is missing (spec 0022 AC-6)", () => {
+    expect(isStepComplete("podstawowe", { ...completeDraft(), family: null })).toBe(false);
+    expect(isStepComplete("podstawowe", { ...completeDraft(), category: null })).toBe(false);
+  });
+
+  it("checks spaSubcategory for family spa-modulowe, and pergolaSubcategory for pergola", () => {
+    const spaDraft: ProjectDraft = {
+      ...completeDraft(),
+      family: "spa-modulowe",
+      category: null,
+      spaSubcategory: "sauna",
+    };
+    expect(isStepComplete("podstawowe", spaDraft)).toBe(true);
+    expect(isStepComplete("podstawowe", { ...spaDraft, spaSubcategory: null })).toBe(false);
+
+    const pergolaDraft: ProjectDraft = {
+      ...completeDraft(),
+      family: "pergola",
+      category: null,
+      pergolaSubcategory: "drewniana",
+    };
+    expect(isStepComplete("podstawowe", pergolaDraft)).toBe(true);
+    expect(isStepComplete("podstawowe", { ...pergolaDraft, pergolaSubcategory: null })).toBe(false);
+  });
 });
 
-describe("isStepComplete: technical steps", () => {
-  it("konstrukcja requires all three fields non-blank", () => {
-    expect(isStepComplete("konstrukcja", completeDraft())).toBe(true);
-    expect(isStepComplete("konstrukcja", { ...completeDraft(), wallBuildUp: "" })).toBe(false);
-    expect(isStepComplete("konstrukcja", { ...completeDraft(), insulation: "  " })).toBe(false);
-    expect(isStepComplete("konstrukcja", { ...completeDraft(), heatTransferCoefficients: "" })).toBe(false);
+describe("isStepComplete: techniczne", () => {
+  it("requires every technical field for the draft's family to be filled", () => {
+    expect(isStepComplete("techniczne", completeDraft())).toBe(true);
+    expect(
+      isStepComplete("techniczne", {
+        ...completeDraft(),
+        technicalSpecs: { ...completeDraft().technicalSpecs, wallBuildUp: "" },
+      })
+    ).toBe(false);
   });
 
-  it("instalacje requires all three fields non-blank", () => {
-    expect(isStepComplete("instalacje", completeDraft())).toBe(true);
-    expect(isStepComplete("instalacje", { ...completeDraft(), windowClass: "" })).toBe(false);
-    expect(isStepComplete("instalacje", { ...completeDraft(), ventilation: "" })).toBe(false);
-    expect(isStepComplete("instalacje", { ...completeDraft(), heatSource: "" })).toBe(false);
+  it("is incomplete when family is not yet chosen", () => {
+    expect(isStepComplete("techniczne", { ...completeDraft(), family: null })).toBe(false);
   });
 
-  it("odpornosc requires both fields non-blank", () => {
-    expect(isStepComplete("odpornosc", completeDraft())).toBe(true);
-    expect(isStepComplete("odpornosc", { ...completeDraft(), fireResistance: "" })).toBe(false);
-    expect(isStepComplete("odpornosc", { ...completeDraft(), windResistance: "" })).toBe(false);
+  it("requires numeric fields for family spa-modulowe, not just non-blank strings", () => {
+    const spaDraft: ProjectDraft = {
+      ...completeDraft(),
+      family: "spa-modulowe",
+      category: null,
+      spaSubcategory: "sauna",
+      technicalSpecs: {
+        seatingCapacity: 4,
+        waterVolumeLiters: 800,
+        heatingType: "electric",
+        filtrationSystem: "Piaskowa",
+        shellMaterial: "Akryl",
+        electricalRequirement: "400V",
+        foundationType: "Płyta betonowa",
+      },
+    };
+    expect(isStepComplete("techniczne", spaDraft)).toBe(true);
+    expect(
+      isStepComplete("techniczne", {
+        ...spaDraft,
+        technicalSpecs: { ...spaDraft.technicalSpecs, seatingCapacity: undefined },
+      })
+    ).toBe(false);
   });
 });
 
@@ -143,7 +193,7 @@ describe("isStepComplete: pliki", () => {
 });
 
 describe("isStepComplete: cena", () => {
-  it("is complete when price, standard, lead times, warranty, and category are all valid", () => {
+  it("is complete when price, standard, lead times, and warranty are all valid", () => {
     expect(isStepComplete("cena", completeDraft())).toBe(true);
   });
 
@@ -155,9 +205,8 @@ describe("isStepComplete: cena", () => {
     expect(isStepComplete("cena", { ...completeDraft(), onSiteAssemblyDaysMin: 10 })).toBe(false);
   });
 
-  it("is incomplete when the standard, category, or warranty is missing", () => {
+  it("is incomplete when the standard or warranty is missing", () => {
     expect(isStepComplete("cena", { ...completeDraft(), completionStandard: null })).toBe(false);
-    expect(isStepComplete("cena", { ...completeDraft(), category: null })).toBe(false);
     expect(isStepComplete("cena", { ...completeDraft(), structuralWarrantyYears: null })).toBe(false);
   });
 
@@ -174,7 +223,12 @@ describe("isStepComplete: podsumowanie", () => {
 
   it("is incomplete when any single earlier step is incomplete", () => {
     expect(isStepComplete("podsumowanie", { ...completeDraft(), name: "" })).toBe(false);
-    expect(isStepComplete("podsumowanie", { ...completeDraft(), fireResistance: "" })).toBe(false);
+    expect(
+      isStepComplete("podsumowanie", {
+        ...completeDraft(),
+        technicalSpecs: { ...completeDraft().technicalSpecs, fireResistance: "" },
+      })
+    ).toBe(false);
     expect(isStepComplete("podsumowanie", { ...completeDraft(), photoFiles: [] })).toBe(false);
   });
 });
