@@ -62,6 +62,8 @@ Pełny układ marketingowy strony startowej (hero ze zdjęciem, pasek statystyk,
 
 > ⚠️ Opis funkcji powyżej odzwierciedla spec [0014](../specs/0014-przebudowa-strony-startowej/index.md), która zastępuje (supersedes) spec [0003](../specs/0003-strona-startowa/index.md) — druga odwrócona decyzja co do kształtu hero w historii tej strony, patrz spec 0014 Follow-up. Kolory pochodzą z nowej, produktowej decyzji o tokenach v4, spec [0013](../specs/0013-tokeny-marki-v4.md) (`Accepted`, standalone, reszta produktu zostaje na v3 do osobnej decyzji migracyjnej per ekran).
 
+> ⚠️ Ten opis jest nieaktualny w jeszcze jeden poziom głębiej i wymaga świeżego `/scope`/`/architect` przy najbliższej okazji. Spec [0015](../specs/0015-premium-redesign-strony-startowej/index.md) po drodze odwróciła kierunek na jasny, wyśrodkowany hero bez zdjęcia (tokeny v5, AC-2/AC-13) i nigdy nie została tu odnotowana. Od 2026-09-04 kod poszedł w trzecim kierunku: `Hero.tsx` znów ma pełnoekranowe zdjęcie w tle (`public/images/hero/klient-hero-bg.png`), treść przesuniętą do lewego dolnego rogu, a `SiteHeader.tsx` na trasie głównej jest przezroczysty i zmienia się w pełny biały pasek dopiero po przewinięciu. To był świadomie szybki facade na życzenie zamawiającego, bez nowej specyfikacji — w kodzie jest komentarz `TEMP` w obu plikach. Zanim to policzy się jako zrobione, potrzebny jest `/architect strona startowa` (albo świeży spec), który rozstrzygnie tę trzecią decyzję na stałe i zaktualizuje AC.
+
 - [x] Zaprojektuj (spec): [0014](../specs/0014-przebudowa-strony-startowej/index.md) (kolory: [0013](../specs/0013-tokeny-marki-v4.md))
 - [x] Zbuduj: `/develop strona startowa` (kod w `assets/tokens/brand-v4-tokens.{css,json}`, `app/globals.css`, `components/klient/SiteHeader.tsx`, `components/klient/Hero.tsx`, `components/klient/SearchCard.tsx`, `components/klient/StatsBar.tsx`, `components/klient/CategoryShowcase.tsx`, `components/klient/WhyUs.tsx`, `components/klient/TrustedProducers.tsx`, `components/klient/ClosingCta.tsx`, `components/klient/TrustFooterRow.tsx`, `app/[locale]/klient/page.tsx`, `lib/size-thresholds.ts`, `lib/data/projects.ts`, `e2e/wyniki.spec.ts`)
   - [x] Tokeny v4, nagłówek i hero: nowy plik tokenów, pełna nawigacja, hero ze zdjęciem i prawdziwym h1 (satisfies AC-1, AC-2)
@@ -69,6 +71,8 @@ Pełny układ marketingowy strony startowej (hero ze zdjęciem, pasek statystyk,
   - [x] Sekcje treściowe: statystyki, kategorie, „dlaczego my”, zaufani producenci, zamykający CTA, rząd zaufania (satisfies AC-5, AC-6, AC-7, AC-8, AC-9, AC-10)
   - [x] Sprzątanie: usunięcie `FeaturedHomes`/`HowItWorks`/`getFeaturedProjects()` (bez pola `featured`, zostaje dla `/wyniki`), przepisanie zależnego testu e2e (satisfies AC-13)
   - [x] Dostępność i responsywność: jeden H1, skip link pierwszy w Tab, kontrast tokenów v4, układ na wąskich ekranach (satisfies AC-11, AC-12)
+- [x] Zaprojektuj ponownie (spec): [0015](../specs/0015-premium-redesign-strony-startowej/index.md) — jasny, wyśrodkowany hero bez zdjęcia (nieodnotowane tu wcześniej)
+- [ ] Zaprojektuj trzeci raz (spec): `/architect strona startowa` — pogodzić dzisiejszy ad hoc facade (zdjęcie w tle, treść w lewym dolnym rogu, przezroczysty nagłówek na scrollu) ze spec 0015 AC-2/AC-13, albo świadomie ją zastąpić nową specyfikacją
 - [ ] Zweryfikuj: `/check verify strona startowa`
 - [ ] Testuj: `/test strona startowa`
 
