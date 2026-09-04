@@ -59,7 +59,9 @@ export function FavoriteCompareTable({ favorites }: FavoriteCompareTableProps) {
             </Text>
             {favorites.map(({ project }) => (
               <DataText as="td" key={project.id} className="p-brand-2">
-                {project.commercial.productionLeadTimeWeeksMin}–{project.commercial.productionLeadTimeWeeksMax} tyg.
+                {project.commercial.productionLeadTimeWeeksMax > 0
+                  ? `${project.commercial.productionLeadTimeWeeksMin}–${project.commercial.productionLeadTimeWeeksMax} tyg.`
+                  : "—"}
               </DataText>
             ))}
           </tr>

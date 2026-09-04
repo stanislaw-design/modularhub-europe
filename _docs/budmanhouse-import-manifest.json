@@ -1,0 +1,205 @@
+{
+  "batch_id": "budmanhouse-2026-09-04",
+  "imported_at": "2026-09-04",
+  "source_files": [
+    "_docs/BudmanHouse_projekty_ModularHub.xlsx",
+    "budmanhouse-2026-09-04.json (pasted in chat, truncated at 50k chars; superseded by the xlsx)"
+  ],
+  "neon_project_id": "spring-rain-58383710",
+  "database": "modularhub",
+  "placeholder_fields_needing_real_values": {
+    "users.id": "287f1146-3215-45ba-8430-13d3f0f4ca23",
+    "users.email": "import-budmanhouse@example.modularhub.local — replace once Budman House registers with a real account",
+    "producer.id": "11891027-da87-4e70-ad02-af90df3db675",
+    "producer.nip": "DEMO00000005 — placeholder, follows the same DEMO0000000N convention as the other 4 demo producers; replace with the real NIP",
+    "producer.technology": "szkielet-drewniany — GUESSED, not stated anywhere in the source data. Confirm with the supplier before publishing any product.",
+    "producer.rating": "null — no reviews yet"
+  },
+  "rights": {
+    "content_owner": "Budman House",
+    "reuse_permission_status": "requires_confirmation",
+    "publish_media": false,
+    "publish_source_description_verbatim": false,
+    "note_pl": "Przed publikacją grafik i materiałów producenta (i przed przełączeniem jakiegokolwiek produktu na status=published) należy potwierdzić zgodę/licencję na ich wykorzystanie w ModularHub."
+  },
+  "fields_to_confirm_per_product": [
+    "producer.technology (placeholder, see above)",
+    "product.construction_system (null in source)",
+    "product.bedrooms (null in source, only total 'rooms' given)",
+    "pricing VAT-inclusion and price scope (source gives PLN 'price from' only, VAT status unknown)",
+    "rights.reuse_permission_status before publishing any cover/gallery image"
+  ],
+  "products": [
+    {
+      "external_id": "budmanhouse-awokado",
+      "product_id": "c8bc0655-d543-484c-bce4-8856ed64e5be",
+      "name": "Awokado",
+      "source_url": "https://budman.house/projekty/awokado-11165m%C2%B2-cennik-od-273-540-zl/",
+      "cover_image_url_in_db": "https://budman.house/wp-content/uploads/2022/08/Elewacja-tylna-1-1200x700.jpg",
+      "media": [
+        { "role": "cover", "label_pl": "elewacja tylna", "source_url": "https://budman.house/wp-content/uploads/2022/08/Elewacja-tylna-1-1200x700.jpg" },
+        { "role": "realization", "label_pl": "realizacja / elewacja", "source_url": "https://budman.house/wp-content/uploads/2022/07/2308D3B0-5E3B-4A7A-89F6-41B925E7712A-scaled-460x270.jpg" },
+        { "role": "realization", "label_pl": "realizacja / elewacja", "source_url": "https://budman.house/wp-content/uploads/2022/07/wyr%C3%B3%C5%BCniaj%C4%85cy-scaled-e1658694375416-460x270.jpg" }
+      ]
+    },
+    {
+      "external_id": "budmanhouse-monica-i",
+      "product_id": "f03a7c75-c520-4212-8bd4-f7c92f0d1e48",
+      "name": "Monica I",
+      "source_url": "https://budman.house/projekty/dom-parterowy-monica-i-142m%C2%B2/",
+      "cover_image_url_in_db": "https://budman.house/wp-content/uploads/2020/04/3.-WERSJA-1-1200x700.jpg",
+      "media": [
+        { "role": "cover", "label_pl": "wizualizacja 1", "source_url": "https://budman.house/wp-content/uploads/2020/04/3.-WERSJA-1-1200x700.jpg" },
+        { "role": "gallery", "label_pl": "wizualizacja 2", "source_url": "https://budman.house/wp-content/uploads/2020/04/89518736_289725902003677_5460874969233752064_n%402x-460x270.png" },
+        { "role": "gallery", "label_pl": "wizualizacja 3", "source_url": "https://budman.house/wp-content/uploads/2020/04/89425385_489640301707110_2078661920977584128_n-460x270.png" },
+        { "role": "floorplan", "label_pl": "rzut 3D", "source_url": "https://budman.house/wp-content/uploads/2020/04/7.-RZUT-460x270.jpg" }
+      ]
+    },
+    {
+      "external_id": "budmanhouse-dom-pani-darii",
+      "product_id": "9c3d8bc0-479c-415e-9c16-2351884a30ec",
+      "name": "Dom Pani Darii",
+      "source_url": "https://budman.house/projekty/dom-pani-darii-85m2/",
+      "cover_image_url_in_db": "https://budman.house/wp-content/uploads/2022/12/Elewacja-frontowa-1200x700.jpg",
+      "media": [
+        { "role": "cover", "label_pl": "elewacja frontowa", "source_url": "https://budman.house/wp-content/uploads/2022/12/Elewacja-frontowa-1200x700.jpg" },
+        { "role": "gallery", "label_pl": "elewacja tylna", "source_url": "https://budman.house/wp-content/uploads/2022/12/Elewacja-tylna-460x270.jpg" },
+        { "role": "floorplan", "label_pl": "rzut", "source_url": "https://budman.house/wp-content/uploads/2022/12/Rzut-460x270.jpg" }
+      ]
+    },
+    {
+      "external_id": "budmanhouse-anka-dr-st",
+      "product_id": "e0812c46-f67e-42ef-b4cd-1f4876d56f82",
+      "name": "Anka DR-ST",
+      "source_url": "https://budman.house/projekty/dom-pietrowy-anka-dr-st-116m%C2%B2/",
+      "cover_image_url_in_db": "https://budman.house/wp-content/uploads/2024/11/tyl-1-1200x700.jpg",
+      "media": [
+        { "role": "cover", "label_pl": "wizualizacja tylna", "source_url": "https://budman.house/wp-content/uploads/2024/11/tyl-1-1200x700.jpg" },
+        { "role": "gallery", "label_pl": "wizualizacja front 1", "source_url": "https://budman.house/wp-content/uploads/2024/11/front-2-460x270.jpg" },
+        { "role": "gallery", "label_pl": "wizualizacja front 2", "source_url": "https://budman.house/wp-content/uploads/2024/11/front-3-460x270.jpg" }
+      ]
+    },
+    {
+      "external_id": "budmanhouse-malutki-dr-s",
+      "product_id": "99f289f7-9c00-4b8a-b214-3a6cc14fb079",
+      "name": "Malutki DR-S",
+      "source_url": "https://budman.house/projekty/dom-pietrowy-malutki-dr-s-79m%C2%B2/",
+      "cover_image_url_in_db": "https://budman.house/wp-content/uploads/2024/11/front-1200x700.jpg",
+      "media": [
+        { "role": "cover", "label_pl": "wizualizacja frontowa", "source_url": "https://budman.house/wp-content/uploads/2024/11/front-1200x700.jpg" },
+        { "role": "gallery", "label_pl": "wizualizacja tylna", "source_url": "https://budman.house/wp-content/uploads/2024/11/tyl-460x270.jpg" },
+        { "role": "floorplan", "label_pl": "rzut 3D parteru", "source_url": "https://budman.house/wp-content/uploads/2024/11/parter-wiz-460x270.jpg" }
+      ]
+    },
+    {
+      "external_id": "budmanhouse-kenza",
+      "product_id": "2a316d6e-939e-426b-af8e-f539b3e87df3",
+      "name": "Kenza",
+      "source_url": "https://budman.house/projekty/nowoczesny-dom-mobilny-kenza/",
+      "cover_image_url_in_db": "https://budman.house/wp-content/uploads/2023/09/r1-1-1024x644.jpg",
+      "media": [
+        { "role": "cover", "label_pl": "wizualizacja 1", "source_url": "https://budman.house/wp-content/uploads/2023/09/r1-1-1024x644.jpg" },
+        { "role": "gallery", "label_pl": "wizualizacja 2", "source_url": "https://budman.house/wp-content/uploads/2023/09/r2-1-1024x573.jpg" },
+        { "role": "floorplan", "label_pl": "rzut", "source_url": "https://budman.house/wp-content/uploads/2023/09/mobilny_rzut-1024x562.jpg" }
+      ]
+    },
+    {
+      "external_id": "budmanhouse-kazik",
+      "product_id": "918f0a10-34ec-47ab-9009-6c07f4ee8c86",
+      "name": "Kazik",
+      "source_url": "https://budman.house/projekty/nowoczesny-houseboat-kazik/",
+      "cover_image_url_in_db": "https://budman.house/wp-content/uploads/2023/04/Dom-na-wod%C4%99-wizualizacja-1-1024x573.jpg",
+      "category_note": "category set to rekreacyjny-caloroczny — genuinely ambiguous (houseboat, could also read as mobilny). Reconsider before publishing.",
+      "media": [
+        { "role": "cover", "label_pl": "wizualizacja 1", "source_url": "https://budman.house/wp-content/uploads/2023/04/Dom-na-wod%C4%99-wizualizacja-1-1024x573.jpg" },
+        { "role": "gallery", "label_pl": "wizualizacja 2", "source_url": "https://budman.house/wp-content/uploads/2023/04/Dom-na-wod%C4%99-wizualizacja-2-1-1024x573.jpg" },
+        { "role": "floorplan", "label_pl": "rzut", "source_url": "https://budman.house/wp-content/uploads/2023/04/Dom-na-wod%C4%99-rzut.jpg" }
+      ]
+    },
+    {
+      "external_id": "budmanhouse-ka220-sz",
+      "product_id": "e9c6f518-6f82-4db0-8c81-6849574e995a",
+      "name": "KA220 SZ",
+      "source_url": "https://budman.house/projekty/ka220-sz-dom-parterowy-87m2/",
+      "cover_image_url_in_db": "https://budman.house/wp-content/uploads/2022/08/Elewacja-frontowa-1200x700.jpg",
+      "media": [
+        { "role": "cover", "label_pl": "elewacja frontowa", "source_url": "https://budman.house/wp-content/uploads/2022/08/Elewacja-frontowa-1200x700.jpg" },
+        { "role": "gallery", "label_pl": "elewacja tylna", "source_url": "https://budman.house/wp-content/uploads/2022/08/Elewacja-tylna-460x270.jpg" },
+        { "role": "floorplan", "label_pl": "rzut", "source_url": "https://budman.house/wp-content/uploads/2022/08/Rzut-budynku-460x270.jpg" }
+      ]
+    },
+    {
+      "external_id": "budmanhouse-ka78-g1-sz",
+      "product_id": "88d5a242-acae-4330-a650-d19a1cba0cae",
+      "name": "KA78 G1 SZ",
+      "source_url": "https://budman.house/projekty/ka78-g1-sz-dom-parterowy-140m2/",
+      "cover_image_url_in_db": "https://budman.house/wp-content/uploads/2022/08/Elewacja-frontowa-2-1200x700.jpg",
+      "media": [
+        { "role": "cover", "label_pl": "elewacja frontowa", "source_url": "https://budman.house/wp-content/uploads/2022/08/Elewacja-frontowa-2-1200x700.jpg" },
+        { "role": "gallery", "label_pl": "elewacja tylna", "source_url": "https://budman.house/wp-content/uploads/2022/08/Elewacja-tylna-2-460x270.jpg" },
+        { "role": "floorplan", "label_pl": "rzut", "source_url": "https://budman.house/wp-content/uploads/2022/08/Rzut-budynku-2-460x270.jpg" }
+      ]
+    },
+    {
+      "external_id": "budmanhouse-mary-antresola",
+      "product_id": "3c4d9557-bf0a-4b61-9f0d-6dbebf7c27aa",
+      "name": "Mary antresola",
+      "source_url": "https://budman.house/projekty/mary-z-antresola-35m2/",
+      "cover_image_url_in_db": "https://budman.house/wp-content/uploads/2021/02/1-e1612179063136-1200x700.jpg",
+      "media": [
+        { "role": "cover", "label_pl": "wizualizacja frontowa", "source_url": "https://budman.house/wp-content/uploads/2021/02/1-e1612179063136-1200x700.jpg" },
+        { "role": "gallery", "label_pl": "wizualizacja tylna", "source_url": "https://budman.house/wp-content/uploads/2021/02/2-460x270.jpg" },
+        { "role": "floorplan", "label_pl": "rzut antresoli", "source_url": "https://budman.house/wp-content/uploads/2021/02/Antresola-1-460x270.jpg" },
+        { "role": "floorplan", "label_pl": "rzut parteru", "source_url": "https://budman.house/wp-content/uploads/2021/02/Parter-1-460x270.jpg" }
+      ]
+    },
+    {
+      "external_id": "budmanhouse-mary-parterowa",
+      "product_id": "ab9e4ed7-5b8a-44eb-974b-35f108196b27",
+      "name": "Mary parterowa",
+      "source_url": "https://budman.house/projekty/mary-dom-parterowy-35m2/",
+      "cover_image_url_in_db": "https://budman.house/wp-content/uploads/2020/11/3-1200x700.jpg",
+      "media": [
+        { "role": "cover", "label_pl": "wizualizacja frontowa", "source_url": "https://budman.house/wp-content/uploads/2020/11/3-1200x700.jpg" },
+        { "role": "gallery", "label_pl": "wizualizacja tylna", "source_url": "https://budman.house/wp-content/uploads/2020/11/4-460x270.jpg" },
+        { "role": "gallery", "label_pl": "wariant elewacji", "source_url": "https://budman.house/wp-content/uploads/2020/11/1-460x270.jpg" },
+        { "role": "gallery", "label_pl": "wariant elewacji 2", "source_url": "https://budman.house/wp-content/uploads/2020/11/2-e1605566739529-460x270.jpg" }
+      ]
+    },
+    {
+      "external_id": "budmanhouse-monica-ii",
+      "product_id": "3892cf35-1bf2-4cf9-bf9e-0b84c43ceb19",
+      "name": "Monica II",
+      "source_url": "https://budman.house/projekty/monica-ii-dom-parterowy-142m2/",
+      "cover_image_url_in_db": "https://budman.house/wp-content/uploads/2020/04/5.-WERSJA-2-1200x700.jpg",
+      "pricing_note": "price_min_cents left NULL — source lists no price for this project (price on request).",
+      "media": [
+        { "role": "cover", "label_pl": "wizualizacja 1", "source_url": "https://budman.house/wp-content/uploads/2020/04/5.-WERSJA-2-1200x700.jpg" },
+        { "role": "gallery", "label_pl": "wizualizacja 2", "source_url": "https://budman.house/wp-content/uploads/2020/04/6.-WERSJA-2-460x270.jpg" },
+        { "role": "gallery", "label_pl": "wizualizacja 3", "source_url": "https://budman.house/wp-content/uploads/2020/04/4.-WERSJA-2-460x270.jpg" },
+        { "role": "floorplan", "label_pl": "rzut 3D", "source_url": "https://budman.house/wp-content/uploads/2020/04/7.-RZUT-460x270.jpg" }
+      ]
+    },
+    {
+      "external_id": "budmanhouse-monica-iii",
+      "product_id": "efaf67d8-e91b-4398-9aea-27feea86f3bd",
+      "name": "Monica III",
+      "source_url": "https://budman.house/projekty/monica-iii-dom-parterowy-142m2/",
+      "cover_image_url_in_db": "https://budman.house/wp-content/uploads/2020/06/3-1200x700.jpg",
+      "pricing_note": "price_min_cents left NULL — source lists no price for this project (price on request).",
+      "media": [
+        { "role": "cover", "label_pl": "wizualizacja 1", "source_url": "https://budman.house/wp-content/uploads/2020/06/3-1200x700.jpg" },
+        { "role": "gallery", "label_pl": "wizualizacja 2", "source_url": "https://budman.house/wp-content/uploads/2020/06/2-460x270.jpg" },
+        { "role": "gallery", "label_pl": "wizualizacja 3", "source_url": "https://budman.house/wp-content/uploads/2020/06/1-460x270.jpg" },
+        { "role": "floorplan", "label_pl": "rzut 3D", "source_url": "https://budman.house/wp-content/uploads/2020/04/7.-RZUT-460x270.jpg" }
+      ]
+    }
+  ],
+  "next_steps": [
+    "Confirm image reuse rights with Budman House before uploading any of these to Cloudflare R2 / the `document` table or setting product.status = 'published'.",
+    "Once rights confirmed: download each source_url, upload to R2, insert real `document` rows (purpose product_photo/product_floor_plan, isCover for the cover role, sortOrder from media order) referencing product_id.",
+    "Confirm producer.technology with the supplier and update the producer row (placeholder value: szkielet-drewniany).",
+    "Replace producer.nip with the real NIP once Budman House registers a real account (same user_id / producer_id can be kept, or migrate to a fresh Auth.js-created account — team's call).",
+    "Fill technical_specs (wallBuildUp, insulation, heatTransferCoefficients, windowClass, ventilation, heatSource, fireResistance, windResistance) before publishing — currently empty on every row, required non-partial once status flips to 'published' (lib/product-technical-specs.ts)."
+  ]
+}

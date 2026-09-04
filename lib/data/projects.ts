@@ -23,8 +23,20 @@ interface GetProjectsFilters {
 // dane. Pola specyficzne dla domu bez odpowiednika w technicalSpecs innej
 // rodziny zostają puste, nie rzucają błędu (Follow-up: pełne mapowanie
 // spa/pergola, gdy realne dane tych rodzin powstaną).
+// Bridge fields for spec 0020's Project.priceOnRequest/galleryImageUrls: the real
+// `product` table has no column for either yet (0023 never wired them — every
+// DB-seeded product until now always had a fixed price and only a cover photo).
+// Stashed inside technicalSpecs under an underscore prefix so they survive the
+// dom `.strict()` Zod schema's own reads (which only look up its 8 named keys),
+// without a schema migration. Follow-up: promote to real `product` columns
+// (same shape as priceIncludes/priceExcludes) once more than one producer needs this.
+interface TechnicalSpecsBridgeFields {
+  _priceOnRequest?: boolean;
+  _extraImageUrls?: string[];
+}
+
 function mapRowToProject(row: typeof product.$inferSelect, producerName: string): Project {
-  const specs = (row.technicalSpecs ?? {}) as ProductTechnicalSpecsDraft;
+  const specs = (row.technicalSpecs ?? {}) as ProductTechnicalSpecsDraft & TechnicalSpecsBridgeFields;
   const priceMinCents = row.priceMinCents ?? row.housePriceMinCents ?? 0;
   const priceMaxCents = row.priceMaxCents ?? row.housePriceMaxCents ?? 0;
   const housePriceMinCents = row.housePriceMinCents ?? priceMinCents;
@@ -75,6 +87,8 @@ function mapRowToProject(row: typeof product.$inferSelect, producerName: string)
       priceExcludes: row.priceExcludes ?? [],
     },
     featured: row.featured,
+    priceOnRequest: specs._priceOnRequest,
+    galleryImageUrls: specs._extraImageUrls,
   };
 }
 

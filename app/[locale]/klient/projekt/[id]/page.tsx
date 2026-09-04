@@ -111,6 +111,39 @@ export default async function ProjektPage({
   const eligibility = eligibilityRows.find((row) => row.projectId === project.id);
   const descriptionImageUrl = project.galleryImageUrls?.filter((url) => url.length > 0).at(-1) ?? project.coverImageUrl;
 
+  // Cztery ustalenia handlowe, filtrowane do tych realnie znanych: dane
+  // realnych dostawców bywają niepełne (Budman nie podaje gwarancji ani
+  // czasu produkcji/montażu), a "0 lat"/"0–0 dni" czytałoby się jako fałszywe
+  // zapewnienie, nie jako brak danych — ten sam wzorzec co ProjectTechnicalSpecs.
+  const commercialTerms = [
+    {
+      icon: CompletionStandardIcon,
+      label: "Standard wykończenia",
+      value: {
+        "surowy-zamkniety": "Stan surowy zamknięty",
+        deweloperski: "Standard deweloperski",
+        "pod-klucz": "Pod klucz",
+      }[project.commercial.completionStandard],
+    },
+    project.structuralWarrantyYears > 0
+      ? { icon: WarrantyIcon, label: "Gwarancja konstrukcyjna", value: `${project.structuralWarrantyYears} lat` }
+      : null,
+    project.commercial.productionLeadTimeWeeksMax > 0
+      ? {
+          icon: ProductionTimeIcon,
+          label: "Czas produkcji",
+          value: `${project.commercial.productionLeadTimeWeeksMin}–${project.commercial.productionLeadTimeWeeksMax} tyg.`,
+        }
+      : null,
+    project.commercial.onSiteAssemblyDaysMax > 0
+      ? {
+          icon: AssemblyTimeIcon,
+          label: "Czas montażu",
+          value: `${project.commercial.onSiteAssemblyDaysMin}–${project.commercial.onSiteAssemblyDaysMax} dni`,
+        }
+      : null,
+  ].filter((entry): entry is NonNullable<typeof entry> => entry !== null);
+
   const query = countryCode ? `&country=${countryCode}` : "";
   const zapytanieHref = `/${locale}/klient/zapytanie?projects=${project.id}${query}`;
   const shortlistHref = `/${locale}/klient/wyniki?projects=${project.id}${query}`;
@@ -208,12 +241,14 @@ export default async function ProjektPage({
                 zdjęcia) — ten sam moment decyzji nie musi czekać na scroll do
                 sekcji technicznej, żeby zbić pierwsze obawy. */}
             <div className="flex flex-col gap-brand-2">
-              <span className="flex items-center gap-brand-1">
-                <ShieldCheck className="size-4 shrink-0 text-status-approved" aria-hidden="true" />
-                <Text className="text-data" tone="muted">
-                  {project.structuralWarrantyYears} lat gwarancji konstrukcyjnej
-                </Text>
-              </span>
+              {project.structuralWarrantyYears > 0 && (
+                <span className="flex items-center gap-brand-1">
+                  <ShieldCheck className="size-4 shrink-0 text-status-approved" aria-hidden="true" />
+                  <Text className="text-data" tone="muted">
+                    {project.structuralWarrantyYears} lat gwarancji konstrukcyjnej
+                  </Text>
+                </span>
+              )}
               {project.certifications && project.certifications.length > 0 && (
                 <span className="flex items-center gap-brand-1">
                   <Award className="size-4 shrink-0 text-status-approved" aria-hidden="true" />
@@ -223,13 +258,15 @@ export default async function ProjektPage({
                   </Text>
                 </span>
               )}
-              <span className="flex items-center gap-brand-1">
-                <Truck className="size-4 shrink-0 text-status-approved" aria-hidden="true" />
-                <Text className="text-data" tone="muted">
-                  Montaż na działce w {project.commercial.onSiteAssemblyDaysMin}–
-                  {project.commercial.onSiteAssemblyDaysMax} dni
-                </Text>
-              </span>
+              {project.commercial.onSiteAssemblyDaysMax > 0 && (
+                <span className="flex items-center gap-brand-1">
+                  <Truck className="size-4 shrink-0 text-status-approved" aria-hidden="true" />
+                  <Text className="text-data" tone="muted">
+                    Montaż na działce w {project.commercial.onSiteAssemblyDaysMin}–
+                    {project.commercial.onSiteAssemblyDaysMax} dni
+                  </Text>
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -265,7 +302,9 @@ export default async function ProjektPage({
               {(
                 [
                   { icon: RoomsIcon, value: String(project.rooms), label: roomsLabel(project.rooms) },
-                  { icon: BedroomsIcon, value: String(project.bedrooms), label: bedroomsLabel(project.bedrooms) },
+                  project.bedrooms > 0
+                    ? { icon: BedroomsIcon, value: String(project.bedrooms), label: bedroomsLabel(project.bedrooms) }
+                    : null,
                   {
                     icon: BathroomsIcon,
                     value: String(project.bathrooms),
@@ -277,7 +316,9 @@ export default async function ProjektPage({
                     label: project.storeys === 1 ? "kondygnacja" : "kondygnacje",
                   },
                 ] as const
-              ).map(({ icon: Icon, value, label }) => (
+              )
+                .filter((entry) => entry !== null)
+                .map(({ icon: Icon, value, label }) => (
                 <div
                   key={label}
                   className="flex min-w-0 items-center gap-brand-2 lg:px-brand-4 lg:first:pl-0 lg:last:pr-0"
@@ -350,35 +391,10 @@ export default async function ProjektPage({
               wizualny co pasek "kluczowe dane" wyżej. Siatka z gap-px i wspólnym tłem
               rysuje cienkie linie podziału niezależnie od liczby kolumn na danej
               szerokości ekranu, bez osobnej logiki obramowań na komórkę. */}
-          <dl className="grid grid-cols-1 gap-px overflow-hidden rounded-card border border-brand-steel bg-brand-steel sm:grid-cols-2">
-            {(
-              [
-                {
-                  icon: CompletionStandardIcon,
-                  label: "Standard wykończenia",
-                  value: {
-                    "surowy-zamkniety": "Stan surowy zamknięty",
-                    deweloperski: "Standard deweloperski",
-                    "pod-klucz": "Pod klucz",
-                  }[project.commercial.completionStandard],
-                },
-                {
-                  icon: WarrantyIcon,
-                  label: "Gwarancja konstrukcyjna",
-                  value: `${project.structuralWarrantyYears} lat`,
-                },
-                {
-                  icon: ProductionTimeIcon,
-                  label: "Czas produkcji",
-                  value: `${project.commercial.productionLeadTimeWeeksMin}–${project.commercial.productionLeadTimeWeeksMax} tyg.`,
-                },
-                {
-                  icon: AssemblyTimeIcon,
-                  label: "Czas montażu",
-                  value: `${project.commercial.onSiteAssemblyDaysMin}–${project.commercial.onSiteAssemblyDaysMax} dni`,
-                },
-              ] as const
-            ).map(({ icon: Icon, label, value }) => (
+          <dl
+            className={`grid grid-cols-1 gap-px overflow-hidden rounded-card border border-brand-steel bg-brand-steel ${commercialTerms.length > 1 ? "sm:grid-cols-2" : ""}`}
+          >
+            {commercialTerms.map(({ icon: Icon, label, value }) => (
               <div key={label} className="flex items-center gap-brand-3 bg-brand-warm-white p-brand-4">
                 <span className="flex size-12 shrink-0 items-center justify-center rounded-data border border-brand-foundation-navy/15 bg-brand-foundation-navy/5">
                   <Icon className="size-6 text-brand-foundation-navy" />

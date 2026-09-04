@@ -190,10 +190,12 @@ export function ResultCard({
             </>
           )}
         </div>
-        <Text tone="muted" className="flex items-center gap-1 text-data">
-          <Clock3 className="size-3.5 shrink-0" aria-hidden="true" />
-          {project.commercial.productionLeadTimeWeeksMin}–{project.commercial.productionLeadTimeWeeksMax} tyg. produkcji · {project.commercial.onSiteAssemblyDaysMin}–{project.commercial.onSiteAssemblyDaysMax} dni montażu
-        </Text>
+        {project.commercial.productionLeadTimeWeeksMax > 0 && (
+          <Text tone="muted" className="flex items-center gap-1 text-data">
+            <Clock3 className="size-3.5 shrink-0" aria-hidden="true" />
+            {project.commercial.productionLeadTimeWeeksMin}–{project.commercial.productionLeadTimeWeeksMax} tyg. produkcji · {project.commercial.onSiteAssemblyDaysMin}–{project.commercial.onSiteAssemblyDaysMax} dni montażu
+          </Text>
+        )}
       </div>
     </Card>
   );
