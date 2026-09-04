@@ -1,15 +1,19 @@
 "use client";
 
-import { type FormEvent, useState } from "react";
-import { Button, Heading, Input, Label, Stack, Text } from "@/components/ui";
-import type { Project } from "@/lib/data/types";
+import { type FormEvent, useState, useTransition } from "react";
+import { Button, Heading, Input, Label, Select, Stack, Text } from "@/components/ui";
+import type { Country, CountryCode, Project } from "@/lib/data/types";
 import type { InquiryContact } from "@/lib/inquiry";
+import { submitInquiry } from "@/lib/inquiry-actions";
 import { InquiryConfirmationCard } from "./InquiryConfirmationCard";
 
 interface InquiryFlowProps {
   projects: Project[];
   resultsHref: string;
   dzialkaHref: string;
+  countries: Country[];
+  initialContact: InquiryContact;
+  initialCountryCode: CountryCode | null;
 }
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -18,20 +22,54 @@ function pluralizeDom(count: number): string {
   return count === 1 ? "dom" : "domy";
 }
 
-export function InquiryFlow({ projects, resultsHref, dzialkaHref }: InquiryFlowProps) {
+export function InquiryFlow({
+  projects,
+  resultsHref,
+  dzialkaHref,
+  countries,
+  initialContact,
+  initialCountryCode,
+}: InquiryFlowProps) {
   const [phase, setPhase] = useState<"form" | "sent">("form");
-  const [contact, setContact] = useState<InquiryContact>({ name: "", email: "", phone: "" });
+  const [contact, setContact] = useState<InquiryContact>(initialContact);
+  const [deliveryCountryCode, setDeliveryCountryCode] = useState<CountryCode | null>(initialCountryCode);
   const [emailTouched, setEmailTouched] = useState(false);
   const [sentAt, setSentAt] = useState<Date | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+  // Wygenerowany raz, przy otwarciu formularza (spec 0023 AC-7, AC-8): ponów po
+  // błędzie wysyła ten sam klucz, więc serwer nie tworzy drugiego wiersza.
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
 
   const emailValid = EMAIL_PATTERN.test(contact.email);
-  const canSubmit = contact.name.trim().length > 0 && emailValid && contact.phone.trim().length > 0;
+  const canSubmit =
+    contact.name.trim().length > 0 &&
+    emailValid &&
+    contact.phone.trim().length > 0 &&
+    deliveryCountryCode !== null &&
+    !isPending;
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!canSubmit) return;
-    setSentAt(new Date());
-    setPhase("sent");
+    if (!canSubmit || deliveryCountryCode === null) return;
+    setError(null);
+
+    startTransition(async () => {
+      const result = await submitInquiry({
+        contact,
+        deliveryCountryCode,
+        projectIds: projects.map((project) => project.id),
+        idempotencyKey,
+      });
+
+      if (!result.ok) {
+        setError(result.error ?? "Nie udało się wysłać zapytania. Spróbuj ponownie.");
+        return;
+      }
+
+      setSentAt(new Date());
+      setPhase("sent");
+    });
   }
 
   if (phase === "sent" && sentAt) {
@@ -57,6 +95,8 @@ export function InquiryFlow({ projects, resultsHref, dzialkaHref }: InquiryFlowP
       </Stack>
     );
   }
+
+  const countryOptions = countries.map((country) => ({ value: country.code, label: country.name }));
 
   return (
     <Stack gap={4}>
@@ -117,8 +157,24 @@ export function InquiryFlow({ projects, resultsHref, dzialkaHref }: InquiryFlowP
             onChange={(event) => setContact((prev) => ({ ...prev, phone: event.target.value }))}
           />
         </Stack>
+        <Stack gap={1}>
+          <Label id="inquiry-country-label" required>
+            Kraj dostawy
+          </Label>
+          <Select
+            value={deliveryCountryCode}
+            onChange={setDeliveryCountryCode}
+            options={countryOptions}
+            aria-labelledby="inquiry-country-label"
+          />
+        </Stack>
+        {error && (
+          <p className="font-sans text-body text-status-blocked" role="alert">
+            {error}
+          </p>
+        )}
         <Button type="submit" disabled={!canSubmit} className="w-fit">
-          Wyślij zapytanie
+          {isPending ? "Wysyłanie…" : error ? "Ponów wysyłanie" : "Wyślij zapytanie"}
         </Button>
       </form>
     </Stack>

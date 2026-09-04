@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { plotAnalysisResults } from "./fixtures/plot-analysis";
 import { getPlotAnalysisResult } from "./plot-analysis";
-import { getProjects } from "./projects";
+// The plot analysis fixture was built against the retired example-project
+// catalog (spec 0006), not the real database getProjects() now reads (spec
+// 0023) — producer-mock-projects.ts keeps that catalog available exactly for
+// this kind of fixture-consistency check.
+import { getProjects } from "./producer-mock-projects";
 
 describe("getPlotAnalysisResult", () => {
   it("returns the fixture row for a known project id (AC-5)", async () => {

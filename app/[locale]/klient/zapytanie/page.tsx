@@ -1,8 +1,12 @@
 import { redirect } from "next/navigation";
+import { auth } from "@/auth";
 import { InquiryFlow } from "@/components/klient/InquiryFlow";
-import type { Project } from "@/lib/data/types";
+import type { CountryCode, Project } from "@/lib/data/types";
+import { getCountries } from "@/lib/data/countries";
 import { getProjectById, getProjects } from "@/lib/data/projects";
 import { parseInquiryProjectIds } from "@/lib/inquiry";
+
+const VALID_COUNTRY_CODES: readonly CountryCode[] = ["PL", "DE", "NL"];
 
 function buildResultsHref(
   locale: string,
@@ -30,6 +34,20 @@ function buildDzialkaHref(
   return `/${locale}/klient/dzialka?${params.toString()}`;
 }
 
+// Zachowuje dokładnie ten sam URL (wliczając projects=), żeby po zalogowaniu
+// klient wrócił na ten sam wybór produktów (spec 0023 AC-5).
+function buildSelfHref(
+  locale: string,
+  searchParams: { [key: string]: string | string[] | undefined }
+): string {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(searchParams)) {
+    if (typeof value === "string") params.set(key, value);
+  }
+  const query = params.toString();
+  return `/${locale}/klient/zapytanie${query ? `?${query}` : ""}`;
+}
+
 export default async function ZapytaniePage({
   params,
   searchParams,
@@ -40,7 +58,19 @@ export default async function ZapytaniePage({
   const [{ locale }, rawSearchParams] = await Promise.all([params, searchParams]);
   const resultsHref = buildResultsHref(locale, rawSearchParams);
 
-  const allProjects = await getProjects();
+  const session = await auth();
+  if (!session) {
+    const selfHref = buildSelfHref(locale, rawSearchParams);
+    redirect(`/${locale}/logowanie?callbackUrl=${encodeURIComponent(selfHref)}`);
+  }
+  if (session.user.role === "producer") {
+    redirect(`/${locale}/producent`);
+  }
+  if (session.user.role === "admin") {
+    redirect(`/${locale}/internal/zapytania`);
+  }
+
+  const [allProjects, countries] = await Promise.all([getProjects(), getCountries()]);
   const knownIds = new Set(allProjects.map((project) => project.id));
   const projectIds = parseInquiryProjectIds(rawSearchParams.projects, knownIds);
 
@@ -53,5 +83,24 @@ export default async function ZapytaniePage({
   );
   const dzialkaHref = buildDzialkaHref(locale, projectIds, rawSearchParams);
 
-  return <InquiryFlow projects={selectedProjects} resultsHref={resultsHref} dzialkaHref={dzialkaHref} />;
+  const rawCountry = rawSearchParams.country;
+  const initialCountryCode =
+    typeof rawCountry === "string" && VALID_COUNTRY_CODES.includes(rawCountry as CountryCode)
+      ? (rawCountry as CountryCode)
+      : null;
+
+  return (
+    <InquiryFlow
+      projects={selectedProjects}
+      resultsHref={resultsHref}
+      dzialkaHref={dzialkaHref}
+      countries={countries}
+      initialContact={{
+        name: session.user.name ?? "",
+        email: session.user.email ?? "",
+        phone: session.user.phone ?? "",
+      }}
+      initialCountryCode={initialCountryCode}
+    />
+  );
 }

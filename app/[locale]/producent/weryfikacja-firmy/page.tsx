@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { CompanyVerificationView } from "@/components/producent/CompanyVerificationView";
 import { getFulfillmentOrder } from "@/lib/data/fulfillment";
-import { getProjectById } from "@/lib/data/projects";
+import { getProjectById } from "@/lib/data/producer-mock-projects";
 import type { FulfillmentStageName } from "@/lib/data/types";
 
 const STAGE_ORDER: FulfillmentStageName[] = ["produkcja", "transport", "montaz", "odbior", "gwarancja"];

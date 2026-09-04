@@ -27,6 +27,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: audit trail on create
       id: userId,
       name: "Original User Name",
       email: userEmail,
+      phone: "+48000000000",
       role: "producer",
     });
     await db.insert(producer).values({
@@ -120,6 +121,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: audit trail on delete
     await db.insert(users).values({
       id: userId,
       email: `audit-delete-${userId}@example.test`,
+      phone: "+48000000000",
       role: "client",
     });
     await db.insert(client).values({ id: clientId, userId });
@@ -155,6 +157,7 @@ describe.skipIf(!process.env.DATABASE_URL)(
       await db.insert(users).values({
         id: userId,
         email: `audit-fk-${userId}@example.test`,
+        phone: "+48000000000",
         role: "producer",
       });
       await db.insert(producer).values({

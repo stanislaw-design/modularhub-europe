@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { Button, Card, Heading, Stack, StageTimeline, Text } from "@/components/ui";
 import type { StageTimelineItem } from "@/components/ui";
 import { getFulfillmentOrder } from "@/lib/data/fulfillment";
-import { getProjectById } from "@/lib/data/projects";
+import { getProjectById } from "@/lib/data/producer-mock-projects";
 import type { FulfillmentStageName } from "@/lib/data/types";
 
 // Producer view carries only the four stages up to delivery — the same

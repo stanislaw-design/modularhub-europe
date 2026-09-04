@@ -9,6 +9,15 @@ const push = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
+  usePathname: () => "/pl/klient/wyniki",
+  useSearchParams: () => new URLSearchParams(),
+}));
+
+// ResultCard (via FavoriteButton) imports lib/favorite-actions, które
+// importuje auth.ts (next-auth) — niewczytywalne w środowisku testowym
+// Vitest, ten sam wzorzec co InquiryFlow.test.tsx dla lib/inquiry-actions.
+vi.mock("@/lib/favorite-actions", () => ({
+  toggleFavorite: vi.fn(),
 }));
 
 afterEach(() => {
@@ -28,7 +37,7 @@ const items: ResultItem[] = [
 
 describe("ResultsSelection", () => {
   it("shows no action bar and no checked boxes when nothing is selected (AC-2)", () => {
-    render(<ResultsSelection serverItems={items} locale="pl" countries={[]} />);
+    render(<ResultsSelection serverItems={items} locale="pl" countries={[]} family="dom" isClientSession={false} />);
     expect(screen.queryByText(/Zaznaczono:/)).not.toBeInTheDocument();
     for (const checkbox of screen.getAllByRole("checkbox")) {
       expect(checkbox).not.toBeChecked();
@@ -37,7 +46,7 @@ describe("ResultsSelection", () => {
 
   it("shows a pinned action bar with the count once at least 1 project is selected, and does not navigate on toggle (AC-1, AC-2)", async () => {
     const user = userEvent.setup();
-    render(<ResultsSelection serverItems={items} locale="pl" countries={[]} />);
+    render(<ResultsSelection serverItems={items} locale="pl" countries={[]} family="dom" isClientSession={false} />);
 
     await user.click(screen.getByRole("checkbox", { name: "Zaznacz Dom Jeden do zapytania" }));
 
@@ -47,7 +56,7 @@ describe("ResultsSelection", () => {
 
   it("hides the action bar again once the last selection is unchecked (AC-2)", async () => {
     const user = userEvent.setup();
-    render(<ResultsSelection serverItems={items} locale="pl" countries={[]} />);
+    render(<ResultsSelection serverItems={items} locale="pl" countries={[]} family="dom" isClientSession={false} />);
     const checkbox = screen.getByRole("checkbox", { name: "Zaznacz Dom Jeden do zapytania" });
 
     await user.click(checkbox);
@@ -59,7 +68,7 @@ describe("ResultsSelection", () => {
 
   it("disables the remaining unselected checkboxes once 3 are selected, and unblocks them when one is deselected (AC-3)", async () => {
     const user = userEvent.setup();
-    render(<ResultsSelection serverItems={items} locale="pl" countries={[]} />);
+    render(<ResultsSelection serverItems={items} locale="pl" countries={[]} family="dom" isClientSession={false} />);
 
     await user.click(screen.getByRole("checkbox", { name: "Zaznacz Dom Jeden do zapytania" }));
     await user.click(screen.getByRole("checkbox", { name: "Zaznacz Dom Dwa do zapytania" }));
@@ -77,7 +86,7 @@ describe("ResultsSelection", () => {
 
   it("never disables an already selected checkbox at the limit, only the unselected ones (AC-3)", async () => {
     const user = userEvent.setup();
-    render(<ResultsSelection serverItems={items} locale="pl" countries={[]} />);
+    render(<ResultsSelection serverItems={items} locale="pl" countries={[]} family="dom" isClientSession={false} />);
 
     await user.click(screen.getByRole("checkbox", { name: "Zaznacz Dom Jeden do zapytania" }));
     await user.click(screen.getByRole("checkbox", { name: "Zaznacz Dom Dwa do zapytania" }));
@@ -91,7 +100,16 @@ describe("ResultsSelection", () => {
   it("navigates with the selected project ids when 'Wyślij zapytanie' is clicked (AC-4)", async () => {
     const user = userEvent.setup();
     render(
-      <ResultsSelection serverItems={items} locale="pl" countries={[]} countryCode="DE" sizeMin={50} sizeMax={100} />
+      <ResultsSelection
+        serverItems={items}
+        locale="pl"
+        countries={[]}
+        countryCode="DE"
+        sizeMin={50}
+        sizeMax={100}
+        family="dom"
+        isClientSession={false}
+      />
     );
 
     await user.click(screen.getByRole("checkbox", { name: "Zaznacz Dom Jeden do zapytania" }));

@@ -3,7 +3,7 @@
 import { Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import type { Country, CountryCode } from "@/lib/data/types";
+import type { Country, CountryCode, ProductFamily } from "@/lib/data/types";
 import { SIZE_THRESHOLDS, type SizeThreshold } from "@/lib/size-thresholds";
 import { SearchSegment, type SegmentOption } from "./SearchSegment";
 
@@ -13,6 +13,7 @@ interface ResultsFilterBarProps {
   countryCode?: CountryCode;
   sizeMin?: SizeThreshold;
   sizeMax?: SizeThreshold;
+  family: ProductFamily;
 }
 
 const sizeOptions: SegmentOption[] = SIZE_THRESHOLDS.map((threshold) => ({
@@ -20,7 +21,14 @@ const sizeOptions: SegmentOption[] = SIZE_THRESHOLDS.map((threshold) => ({
   label: `${threshold} m²`,
 }));
 
-export function ResultsFilterBar({ locale, countries, countryCode, sizeMin, sizeMax }: ResultsFilterBarProps) {
+export function ResultsFilterBar({
+  locale,
+  countries,
+  countryCode,
+  sizeMin,
+  sizeMax,
+  family,
+}: ResultsFilterBarProps) {
   const router = useRouter();
   const [country, setCountry] = useState<CountryCode | null>(countryCode ?? null);
   const [min, setMin] = useState<number | null>(sizeMin ?? null);
@@ -37,6 +45,7 @@ export function ResultsFilterBar({ locale, countries, countryCode, sizeMin, size
 
   function handleSearch() {
     const params = new URLSearchParams();
+    if (family !== "dom") params.set("family", family);
     if (country) params.set("country", country);
     if (min !== null) params.set("sizeMin", String(min));
     if (max !== null) params.set("sizeMax", String(max));

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Country, CountryCode, EligibilityStatus, Project } from "@/lib/data/types";
+import type { Country, CountryCode, EligibilityStatus, ProductFamily, Project } from "@/lib/data/types";
 import { getAllLocalProducerProjects } from "@/lib/local-client-projects";
 import { matchesResultsFilter, sortResults } from "@/lib/results-filters";
 import type { SizeThreshold } from "@/lib/size-thresholds";
@@ -20,6 +20,8 @@ export interface ResultItem {
   /** Doklejone lokalnie z localStorage producenta w tej przeglądarce (spec 0016,
    * AC-11), nigdy zaznaczalne, nie liczy się do zapytania. */
   localPreview?: boolean;
+  /** Czy zalogowany klient już zapisał ten projekt do ulubionych (spec 0024 AC-2). */
+  favorited?: boolean;
 }
 
 interface ResultsSelectionProps {
@@ -29,6 +31,10 @@ interface ResultsSelectionProps {
   countryCode?: CountryCode;
   sizeMin?: SizeThreshold;
   sizeMax?: SizeThreshold;
+  family: ProductFamily;
+  /** Sesja istnieje i ma rolę client (spec 0024 Key invariants): serce staje
+   * się przyciskiem zamiast linku do logowania. */
+  isClientSession: boolean;
 }
 
 // Nagłówek i pusty stan (dawniej po stronie serwera w page.tsx) żyją teraz tutaj,
@@ -43,6 +49,8 @@ export function ResultsSelection({
   countryCode,
   sizeMin,
   sizeMax,
+  family,
+  isClientSession,
 }: ResultsSelectionProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [items, setItems] = useState<ResultItem[]>(serverItems);
@@ -56,11 +64,12 @@ export function ResultsSelection({
     const countryNameByCode = new Map(countries.map((country) => [country.code, country.name]));
 
     const matching = localProjects.filter((project) =>
-      matchesResultsFilter(project.floorAreaM2, eligibilityByProjectId.get(project.id), {
-        countryCode,
-        sizeMin,
-        sizeMax,
-      })
+      matchesResultsFilter(
+        project.floorAreaM2,
+        eligibilityByProjectId.get(project.id),
+        { countryCode, sizeMin, sizeMax, family },
+        project.family
+      )
     );
     if (matching.length === 0) return;
 
@@ -106,7 +115,7 @@ export function ResultsSelection({
       )}
       <div className={selectedIds.length > 0 ? "pb-24" : undefined}>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,20rem),1fr))] gap-brand-4">
-          {items.map(({ project, countryName, eligibilityStatus, localPreview }) => (
+          {items.map(({ project, countryName, eligibilityStatus, localPreview, favorited }) => (
             <ResultCard
               key={project.id}
               project={project}
@@ -118,6 +127,7 @@ export function ResultsSelection({
               onToggleSelect={localPreview ? undefined : () => toggle(project.id)}
               countryCode={countryCode}
               localPreview={localPreview}
+              favorite={{ isClientSession, initialFavorited: favorited ?? false }}
             />
           ))}
         </div>

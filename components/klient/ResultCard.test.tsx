@@ -5,6 +5,16 @@ import type { Project } from "@/lib/data/types";
 import { createMockProject } from "@/test/fixtures/project";
 import { ResultCard } from "./ResultCard";
 
+// ResultCard imports FavoriteButton, które importuje toggleFavorite z
+// lib/favorite-actions, które importuje auth.ts (next-auth) — niewczytywalne
+// w środowisku testowym Vitest. Żaden test poniżej nie przekazuje propa
+// `favorite`, więc FavoriteButton nigdy się nie renderuje, ale sam graf
+// importów musi być zamockowany, ten sam wzorzec co InquiryFlow.test.tsx dla
+// lib/inquiry-actions.
+vi.mock("@/lib/favorite-actions", () => ({
+  toggleFavorite: vi.fn(),
+}));
+
 const project: Project = createMockProject({ featured: true });
 
 describe("ResultCard", () => {

@@ -1,7 +1,8 @@
-import { Clock3, MapPin } from "lucide-react";
+import { Clock3, ImageOff, MapPin } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Card, Checkbox, DataText, Heading, StatusPill, Text } from "@/components/ui";
+import { FavoriteButton } from "./FavoriteButton";
 import { isLocalProjectId } from "@/lib/local-client-projects";
 import { getMockAssemblyPriceEur, getMockTransportPriceEur } from "@/lib/pricing";
 import type { CountryCode, EligibilityStatus, Project } from "@/lib/data/types";
@@ -25,6 +26,12 @@ interface ResultCardProps {
    * nieklikalna dla tych projektów, bo trasa /klient/projekt/[id] czyta tylko
    * katalog przykładowy (spec 0020 AC-8). */
   localPreview?: boolean;
+  /** Serce "dodaj do ulubionych" (spec 0024 AC-2, AC-4); pominięte dla podglądu
+   * lokalnego producenta, ten sam wyjątek co checkbox zaznaczenia powyżej. */
+  favorite?: {
+    isClientSession: boolean;
+    initialFavorited: boolean;
+  };
 }
 
 const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0 });
@@ -59,6 +66,7 @@ export function ResultCard({
   onToggleSelect,
   countryCode,
   localPreview,
+  favorite,
 }: ResultCardProps) {
   const transportPrice = countryCode ? getMockTransportPriceEur(countryCode) : null;
   const assemblyPrice = countryCode ? getMockAssemblyPriceEur(countryCode) : null;
@@ -81,13 +89,21 @@ export function ResultCard({
         />
       )}
       <div className="relative aspect-[3/2] overflow-hidden">
-        <Image
-          src={project.coverImageUrl}
-          alt=""
-          fill
-          sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
-          className="object-cover"
-        />
+        {project.coverImageUrl ? (
+          <Image
+            src={project.coverImageUrl}
+            alt=""
+            fill
+            sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+            className="object-cover"
+          />
+        ) : (
+          // Zdjęcie nieustawione (spec 0023 AC-10): łagodny placeholder zamiast
+          // pustego <Image src="">, które rzuciłoby błąd.
+          <div className="flex size-full items-center justify-center bg-brand-steel/20">
+            <ImageOff className="size-8 text-brand-technical-graphite/50" aria-hidden="true" />
+          </div>
+        )}
         {onToggleSelect && !localPreview && (
           <label className="absolute right-brand-2 top-brand-2 z-10 flex items-center justify-center rounded-data bg-brand-warm-white/95 p-1.5 shadow-sm">
             <span className="sr-only">Zaznacz {project.name} do zapytania</span>
@@ -98,6 +114,16 @@ export function ResultCard({
               title={selectionDisabled ? "Można zaznaczyć maksymalnie 3 projekty" : undefined}
             />
           </label>
+        )}
+        {favorite && !localPreview && (
+          <FavoriteButton
+            productId={project.id}
+            productName={project.name}
+            locale={locale}
+            isClientSession={favorite.isClientSession}
+            initialFavorited={favorite.initialFavorited}
+            className="absolute left-brand-2 top-brand-2 z-10"
+          />
         )}
       </div>
       <div className="flex flex-1 flex-col gap-brand-2 p-brand-3">

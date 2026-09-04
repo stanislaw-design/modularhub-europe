@@ -1,12 +1,17 @@
-import type { CountryCode, EligibilityStatus, Project } from "./data/types";
+import type { CountryCode, EligibilityStatus, ProductFamily, Project } from "./data/types";
 import { SIZE_THRESHOLDS, type SizeThreshold } from "./size-thresholds";
 
 const VALID_COUNTRY_CODES: readonly CountryCode[] = ["PL", "DE", "NL"];
+const VALID_FAMILIES: readonly ProductFamily[] = ["dom", "spa-modulowe", "pergola"];
+const DEFAULT_FAMILY: ProductFamily = "dom";
 
 export interface ResultsFilter {
   countryCode?: CountryCode;
   sizeMin?: SizeThreshold;
   sizeMax?: SizeThreshold;
+  // Domyślnie "dom" (spec 0023 AC-4): niepodany lub nieprawidłowy parametr URL
+  // pada łagodnie na dom, ten sam wzorzec co country/sizeMin/sizeMax.
+  family: ProductFamily;
 }
 
 function parseSizeValue(raw: string | string[] | undefined): SizeThreshold | undefined {
@@ -34,7 +39,13 @@ export function parseResultsSearchParams(
     sizeMax = undefined;
   }
 
-  return { countryCode, sizeMin, sizeMax };
+  const rawFamily = searchParams.family;
+  const family =
+    typeof rawFamily === "string" && VALID_FAMILIES.includes(rawFamily as ProductFamily)
+      ? (rawFamily as ProductFamily)
+      : DEFAULT_FAMILY;
+
+  return { countryCode, sizeMin, sizeMax, family };
 }
 
 // Ta sama reguła filtra co w getProjects() (lib/data/projects.ts), wyodrębniona żeby
@@ -43,8 +54,10 @@ export function parseResultsSearchParams(
 export function matchesResultsFilter(
   floorAreaM2: number,
   eligibilityStatus: EligibilityStatus | undefined,
-  filter: ResultsFilter
+  filter: ResultsFilter,
+  family: ProductFamily = DEFAULT_FAMILY
 ): boolean {
+  if (family !== filter.family) return false;
   if (filter.countryCode && (eligibilityStatus === undefined || eligibilityStatus === "blocked")) return false;
   if (filter.sizeMin !== undefined && floorAreaM2 < filter.sizeMin) return false;
   if (filter.sizeMax !== undefined && floorAreaM2 > filter.sizeMax) return false;

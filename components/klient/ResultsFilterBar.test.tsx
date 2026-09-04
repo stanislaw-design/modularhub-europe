@@ -22,7 +22,9 @@ const countries: Country[] = [
 
 describe("ResultsFilterBar", () => {
   it("pre-fills fields from the current URL values (AC-11)", () => {
-    render(<ResultsFilterBar locale="pl" countries={countries} countryCode="DE" sizeMin={50} sizeMax={100} />);
+    render(
+      <ResultsFilterBar locale="pl" countries={countries} countryCode="DE" sizeMin={50} sizeMax={100} family="dom" />
+    );
     expect(screen.getByText("Niemcy")).toBeInTheDocument();
     expect(screen.getByText("50 m²")).toBeInTheDocument();
     expect(screen.getByText("100 m²")).toBeInTheDocument();
@@ -30,7 +32,9 @@ describe("ResultsFilterBar", () => {
 
   it("navigates to the results URL with the selected params when Szukaj is clicked (AC-11)", async () => {
     const user = userEvent.setup();
-    render(<ResultsFilterBar locale="pl" countries={countries} countryCode="DE" sizeMin={50} sizeMax={100} />);
+    render(
+      <ResultsFilterBar locale="pl" countries={countries} countryCode="DE" sizeMin={50} sizeMax={100} family="dom" />
+    );
 
     await user.click(screen.getByRole("button", { name: /szukaj/i }));
 
@@ -39,7 +43,7 @@ describe("ResultsFilterBar", () => {
 
   it("navigates to the bare results URL when no filter is selected (AC-11)", async () => {
     const user = userEvent.setup();
-    render(<ResultsFilterBar locale="pl" countries={countries} />);
+    render(<ResultsFilterBar locale="pl" countries={countries} family="dom" />);
 
     await user.click(screen.getByRole("button", { name: /szukaj/i }));
 

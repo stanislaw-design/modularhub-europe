@@ -4,12 +4,12 @@ import { parseResultsSearchParams } from "./results-filters";
 describe("parseResultsSearchParams", () => {
   it("reads a valid country and a valid size range (AC-1)", () => {
     const filter = parseResultsSearchParams({ country: "DE", sizeMin: "50", sizeMax: "100" });
-    expect(filter).toEqual({ countryCode: "DE", sizeMin: 50, sizeMax: 100 });
+    expect(filter).toEqual({ countryCode: "DE", sizeMin: 50, sizeMax: 100, family: "dom" });
   });
 
   it("returns an empty filter when no params are present (AC-3)", () => {
     const filter = parseResultsSearchParams({});
-    expect(filter).toEqual({ countryCode: undefined, sizeMin: undefined, sizeMax: undefined });
+    expect(filter).toEqual({ countryCode: undefined, sizeMin: undefined, sizeMax: undefined, family: "dom" });
   });
 
   it.each(["FR", "US", "gb", ""])(
@@ -55,6 +55,6 @@ describe("parseResultsSearchParams", () => {
 
   it("drops an invalid country independently of a valid size range (AC-5, AC-6)", () => {
     const filter = parseResultsSearchParams({ country: "FR", sizeMin: "150", sizeMax: "50" });
-    expect(filter).toEqual({ countryCode: undefined, sizeMin: undefined, sizeMax: undefined });
+    expect(filter).toEqual({ countryCode: undefined, sizeMin: undefined, sizeMax: undefined, family: "dom" });
   });
 });

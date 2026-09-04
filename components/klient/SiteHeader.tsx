@@ -8,8 +8,17 @@ import { useState } from "react";
 import logoHorizontalCompactV2 from "@/assets/brand/logo/v2/horizontal/logo-horizontal-compact-v2.svg";
 import { Container } from "@/components/ui";
 
+interface SiteHeaderSession {
+  user: {
+    name?: string | null;
+    email?: string | null;
+    role: "client" | "producer" | "admin";
+  };
+}
+
 interface SiteHeaderProps {
   locale: string;
+  session: SiteHeaderSession | null;
 }
 
 interface NavItem {
@@ -35,7 +44,7 @@ function mainNavItems(locale: string): NavItem[] {
   ];
 }
 
-export function SiteHeader({ locale }: SiteHeaderProps) {
+export function SiteHeader({ locale, session }: SiteHeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navItems = mainNavItems(locale);
 
@@ -60,22 +69,42 @@ export function SiteHeader({ locale }: SiteHeaderProps) {
             PL
             <ChevronDown className="size-4" aria-hidden="true" />
           </button>
-          <button
-            type="button"
-            disabled
-            className="hidden items-center gap-1 text-body font-medium text-brand-v5-ink disabled:cursor-default disabled:opacity-50 sm:flex"
+          <Link
+            href={`/${locale}/klient/panel/ulubione`}
+            className="focus-ring hidden items-center gap-1 rounded-data text-body font-medium text-brand-v5-ink hover:text-brand-v5-amber-strong sm:flex"
           >
             <Heart className="size-4" aria-hidden="true" />
             Ulubione
-          </button>
-          <button
-            type="button"
-            disabled
-            className="hidden items-center gap-1 text-body font-medium text-brand-v5-ink disabled:cursor-default disabled:opacity-50 md:flex"
-          >
-            <User className="size-4" aria-hidden="true" />
-            Zaloguj się
-          </button>
+          </Link>
+          {session ? (
+            <div className="hidden items-center gap-brand-2 md:flex">
+              {session.user.role === "admin" && (
+                <Link
+                  href={`/${locale}/internal/zapytania`}
+                  className="focus-ring rounded-data text-body font-medium text-brand-v5-ink hover:text-brand-v5-amber-strong"
+                >
+                  Panel administratora
+                </Link>
+              )}
+              {session.user.role === "client" && (
+                <Link
+                  href={`/${locale}/klient/panel/zapytania`}
+                  className="focus-ring flex items-center gap-1 rounded-data text-body font-medium text-brand-v5-ink hover:text-brand-v5-amber-strong"
+                >
+                  <User className="size-4" aria-hidden="true" />
+                  Mój profil
+                </Link>
+              )}
+            </div>
+          ) : (
+            <Link
+              href={`/${locale}/logowanie`}
+              className="focus-ring hidden items-center gap-1 rounded-data text-body font-medium text-brand-v5-ink hover:text-brand-v5-amber-strong md:flex"
+            >
+              <User className="size-4" aria-hidden="true" />
+              Zaloguj się
+            </Link>
+          )}
           <Link
             href={`/${locale}/producent`}
             className="focus-ring rounded-v5-pill bg-brand-v5-amber px-brand-3 py-brand-1 text-body font-semibold text-brand-v5-amber-foreground hover:bg-brand-v5-amber-strong"

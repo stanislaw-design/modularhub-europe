@@ -21,7 +21,7 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 4 | Obserwowalność produkcyjna | Foundation | in progress |
 | 5 | RODO i zgodność prawna | Foundation | planned |
 | 6 | Rodziny produktów i kategorie (domy, spa modułowe, pergole) | Foundation | done |
-| 7 | Klient na realnym zapleczu, dane producentów zasiane ręcznie | Slice 1 | planned |
+| 7 | Klient na realnym zapleczu, dane producentów zasiane ręcznie | Slice 1 | in progress |
 | 8 | Dopracowanie wyszukiwania i wyników (klient) | Slice 2 | planned |
 | 9 | Domknięcie wizualne ścieżki klienta (marka v4) | Slice 2 | planned |
 | 10 | Treść i luki funkcjonalne klienta | Slice 2 | planned |
@@ -38,6 +38,7 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 21 | Wydajność: cel i audyt Core Web Vitals | Utwardzenie | planned |
 | 22 | Testy regresyjne ścieżek krytycznych | Utwardzenie | planned |
 | 23 | Przegląd bezpieczeństwa przed startem | Utwardzenie | planned |
+| 24 | Panel klienta (moje zapytania i ulubione) | Slice 2 | in progress |
 
 ## Foundations
 
@@ -99,10 +100,18 @@ Dziś `Project`/`ProjectCategory` zakłada wyłącznie jedną rodzinę produktu 
 
 ## Slice 1: klient na realnym zapleczu
 
-### 7. Klient na realnym zapleczu, dane producentów zasiane ręcznie · needs a decision · full
+### 7. Klient na realnym zapleczu, dane producentów zasiane ręcznie · full
 Zastępuje pierwotny plan symetrycznego „rdzenia pętli" (obie strony przez samoobsługowy formularz). Producent nie rejestruje się jeszcze sam: jego konto i produkty trafiają do bazy ręcznie, z pomocą Claude i Neon MCP, na bazie prawdziwych danych od pierwszych producentów (Budman House, Cocomodule), już z rodziną produktu ustaloną w funkcji 6. Klient dostaje realne konto i widzi te dane w wynikach pobranych z bazy zamiast z fixture'ów, a wysłane zapytanie jest trwale zapisane. Skupiamy się najpierw na kliencie, bo to jego dopracowujemy na pokaz inwestorom, a pierwsze oferty i tak robi ręcznie zamawiający (basis: podejście Tracer Bullet, jeden prawdziwy wątek przed rozbudową — tu jednak asymetryczny, nie oba końce naraz).
 **Done when:** przynajmniej jeden prawdziwy producent i jego produkt(y) istnieją w bazie (dodane ręcznie, z przypisaną rodziną produktu), klient zakłada konto i widzi te produkty w wynikach pobranych z bazy zamiast z fixture'ów, a wysłane zapytanie jest trwale zapisane i widoczne (prosty widok wewnętrzny wystarczy — pełny panel admina to osobna, późniejsza funkcja 18).
-- [ ] Zaprojektuj (spec): `/architect klient na realnym zapleczu`
+- [x] Zaprojektuj (spec): [0023](../specs/0023-klient-na-realnym-zapleczu/index.md) (logowanie linkiem magicznym dla klienta i producenta, Resend; ręczne zasianie pierwszego producenta/produktu przez Neon MCP; `/wyniki` czytane z bazy z przełącznikiem rodziny produktu; zapytanie trwale zapisane z widokiem wewnętrznym dla roli administratora)
+- [ ] Zbuduj: `/develop klient na realnym zapleczu` (kod w `auth.ts`, `app/api/auth/[...nextauth]/route.ts`, `lib/auth-registration.ts`, `lib/auth-shared.ts`, `lib/auth-session-actions.ts`, `lib/inquiry-actions.ts`, `lib/db/schema.ts` (+ migracja `drizzle/0005_lonely_magik.sql`, zastosowana na realnej bazie Neon, schemat potwierdzony na żywo), `lib/data/projects.ts`, `lib/data/producer-mock-projects.ts` (nowy — pięć ekranów producenta, spec 0023 nie dotyka, dalej czyta stary fixture), `components/auth/*`, `components/klient/FamilyTabs.tsx`, `app/[locale]/logowanie/`, `app/[locale]/klient/rejestracja/`, `app/[locale]/producent/rejestracja/`, `app/[locale]/internal/zapytania/`; 483/483 testów przechodzi, build/typecheck/lint czyste)
+  - [x] Migracja schematu (`product.cover_image_url`, `users.phone`, `inquiry.idempotency_key`, tabela `pending_registration`) i podłączenie Auth.js w wersji 5 (link magiczny, sesje w bazie, ochrona przed logowaniem na nieznany e mail), satisfies AC-2, AC-3, AC-8, AC-10, AC-11
+  - [ ] Formularze rejestracji klienta i producenta gotowe; **ręczne zasianie pierwszego prawdziwego producenta i produktu przez Neon MCP jeszcze nie zrobione — czeka na prawdziwe dane (Budman House/Cocomodule) od Ciebie**, satisfies AC-1, AC-2, AC-3
+  - [x] `/wyniki` czytane z bazy (przez `lib/data/projects.ts`) z przełącznikiem rodziny produktu, satisfies AC-4, AC-6
+  - [x] Bramka logowania na `/klient/zapytanie` i trwały zapis zapytania (`submitInquiry`, błąd + ponów, ochrona przed duplikatem), satisfies AC-5, AC-6, AC-7, AC-8
+  - [ ] Widok wewnętrzny zapytań (`/internal/zapytania`, rola administratora) gotowy; **ręczne oznaczenie własnego konta rolą admin jeszcze nie zrobione — czeka, aż zarejestrujesz się przez prawdziwy formularz**, satisfies AC-9
+- [ ] Zweryfikuj: `/check verify klient na realnym zapleczu`
+- [ ] Testuj: `/test klient na realnym zapleczu`
 
 ## Slice 2: dopracowanie strony klienta
 
@@ -120,6 +129,19 @@ Dziś tokeny marki v4 (spec 0013, epika Prototyp funkcja 17) konsumuje tylko str
 Zbiera rozproszone dziś w Deferred obu epik pozycje wpływające na wiarygodność i kompletność strony klienta: stopka (kontakt, informacje prawne — treść częściowo pokryta przez funkcję 5 RODO, bez przełącznika języka, bo aktywny jest dziś tylko polski), decyzja o walucie natywnej producenta (PLN) obok EUR (realni producenci Budman/Cocomodule podają ceny w PLN, model `Project` jest dziś EUR-only), i wynikające z realnych danych producentów braki na stronie szczegółów projektu (certyfikaty, galeria, próg zgłoszenia uproszczonego).
 **Done when:** stopka (kontakt, informacje prawne) jest widoczna na każdej stronie klienta, decyzja o walucie jest podjęta i zaimplementowana, a strona szczegółów projektu pokazuje certyfikaty/galerię dla produktów dodanych ręcznie w funkcji 7.
 - [ ] Zaprojektuj (spec): `/architect treść i luki funkcjonalne klienta`
+
+### 24. Panel klienta (moje zapytania i ulubione)
+Miejsce dla zalogowanego klienta, żeby zobaczyć swoje wysłane zapytania i zapisywać domy do ulubionych. Dziś (funkcja 7) klient ma konto i może wysłać zapytanie, ale po wysłaniu nie ma żadnego miejsca, żeby je ponownie zobaczyć, i nie ma sposobu zapisania interesującego domu bez od razu wysyłania zapytania — a dom to zwykle duża inwestycja, więc klienci wracają do przeglądanych opcji więcej niż raz. Zakres (dane ulubionych to nowa tabela, struktura strony) do ustalenia w spec.
+**Done when:** zalogowany klient widzi w jednym miejscu listę własnych wysłanych zapytań (produkty, status), może oznaczyć dowolny dom jako ulubiony z wyników lub ze strony szczegółów i przejrzeć listę ulubionych, a każdy klient widzi wyłącznie własne dane.
+- [x] Zaprojektuj (spec): [0024](../specs/0024-panel-klienta/index.md) (trzy osobne podstrony pod wspólnym layoutem panelu, zapytania/ulubione/profil, nowa tabela `favorite`, porównanie side by side dla 2+ ulubionych, wejście z już istniejącego przycisku "Ulubione" w nagłówku)
+- [x] Zbuduj: `/develop panel klienta` (kod w `app/[locale]/klient/panel/`, `lib/favorite-actions.ts`, `lib/profile-actions.ts`, `lib/panel-session.ts`, `components/klient/FavoriteButton.tsx`, `FavoriteCard.tsx`, `FavoriteCompareTable.tsx`, `FavoritesGrid.tsx`, `PanelTabs.tsx`, `PanelEmptyState.tsx`, `ProfileForm.tsx`; `favorite` w `lib/db/schema.ts`, migracja `drizzle/0006_clean_owl.sql`)
+  - [x] Fundament: migracja `favorite` (+ trigger audytu, zdarzenie PostHog `product_favorited`), wspólny layout `/klient/panel/*` z bramką sesji (brak sesji/zła rola → przekierowanie), satisfies AC-4, AC-5, AC-10
+  - [x] Ulubione: akcja `toggleFavorite` (idempotentna, insert/delete na docelowym stanie), serce na `ResultCard` i stronie szczegółów, strona `/klient/panel/ulubione` z oznaczeniem produktów niedostępnych i pustym stanem, satisfies AC-2, AC-3, AC-4, AC-8, AC-10, AC-11
+  - [x] Nagłówek: włączenie przycisku "Ulubione" i link do profilu z menu konta, satisfies AC-9
+  - [x] Porównanie: zaznaczenie do 3 ulubionych (parametr URL `compare`, walidowany po stronie serwera), tabela porównawcza, satisfies AC-6
+  - [x] Zapytania i profil: strona `/klient/panel/zapytania` (własne zapytania z sesji) i `/klient/panel/profil` (podgląd e mail, edycja imienia/telefonu, błąd + ponów), satisfies AC-1, AC-7, AC-8, AC-10, AC-11
+- [ ] Zweryfikuj: `/check verify panel klienta`
+- [ ] Testuj: `/test panel klienta`
 
 ## Slice 3: oferta
 
@@ -216,6 +238,7 @@ Poza zakresem tej epiki, świadomie odłożone.
 - **Alternatywny model przychodu** (np. subskrypcja producenta zamiast prowizji), gdyby model prowizyjny z funkcji 12 okazał się niewystarczający · needs a decision
 - **Automatyzacja usuwania danych obserwowalności**: proces usuwania historii użytkownika w Sentry/PostHog z funkcji 4 jest ręcznym runbookiem; automatyzacja odłożona do czasu realnego usuwania konta i większego wolumenu żądań (from spec 0021) · needs a decision
 - **Konsolidacja śledzenia błędów i analityki do jednego narzędzia**: PostHog oferuje już własne śledzenie błędów; spec 0021 ocenił je dziś jako słabsze od Sentry (stack trace, source mapy, release), warte ponownej oceny później (from spec 0021) · needs a decision
+- **Zapisane wyszukiwania z alertami e mail w panelu klienta**: częsty wzorzec na porównywalnych portalach nieruchomości (research w spec 0024 rationale.md), ale wymaga infrastruktury e mail z funkcji 17 (Powiadomienia e mail), której dziś nie ma; zaprojektuj jako osobną funkcję, gdy 17 będzie gotowa (from spec 0024) · needs a decision
 
 ## References
 

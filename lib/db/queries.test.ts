@@ -17,8 +17,8 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: producer isolation",
 
   beforeAll(async () => {
     await db.insert(users).values([
-      { id: userAId, email: `producer-a-${userAId}@example.test`, role: "producer" },
-      { id: userBId, email: `producer-b-${userBId}@example.test`, role: "producer" },
+      { id: userAId, email: `producer-a-${userAId}@example.test`, phone: "+48000000000", role: "producer" },
+      { id: userBId, email: `producer-b-${userBId}@example.test`, phone: "+48000000000", role: "producer" },
     ]);
     await db.insert(producer).values([
       {
@@ -98,6 +98,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: getProductFamilyCoun
     await db.insert(users).values({
       id: userId,
       email: `family-counts-${userId}@example.test`,
+      phone: "+48000000000",
       role: "producer",
     });
     await db.insert(producer).values({

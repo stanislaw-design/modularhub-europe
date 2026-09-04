@@ -2,7 +2,9 @@ import { Award, CheckCircle2, Minus, ShieldCheck, Truck } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import { auth } from "@/auth";
 import { Button, Card, DataText, Heading, StatusPill, Text } from "@/components/ui";
+import { FavoriteButton } from "@/components/klient/FavoriteButton";
 import { ProducerCard } from "@/components/klient/ProducerCard";
 import { ProjectCertifications } from "@/components/klient/ProjectCertifications";
 import { ProjectGalleryCover, ProjectGalleryThumbnails } from "@/components/klient/ProjectGallery";
@@ -22,6 +24,7 @@ import { getCountries } from "@/lib/data/countries";
 import { getProducerById } from "@/lib/data/producers";
 import { getEligibilityByCountry, getProjectById } from "@/lib/data/projects";
 import type { EligibilityByCountry, EligibilityStatus } from "@/lib/data/types";
+import { getClientIdForUser, getFavoritedProductIds } from "@/lib/db/queries";
 import { parseResultsSearchParams } from "@/lib/results-filters";
 
 const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0 });
@@ -84,13 +87,21 @@ export default async function ProjektPage({
 
   const { countryCode } = parseResultsSearchParams(rawSearchParams);
 
-  const [countries, producer, eligibilityRows] = await Promise.all([
+  const [countries, producer, eligibilityRows, session] = await Promise.all([
     getCountries(),
     getProducerById(project.producerId),
     countryCode
       ? getEligibilityByCountry(countryCode)
       : Promise.resolve<EligibilityByCountry[]>([]),
+    auth(),
   ]);
+
+  const isClientSession = session?.user.role === "client";
+  let isFavorited = false;
+  if (session && isClientSession) {
+    const clientId = await getClientIdForUser(session.user.id);
+    if (clientId) isFavorited = (await getFavoritedProductIds(clientId)).has(project.id);
+  }
 
   const countryNameByCode = new Map(countries.map((country) => [country.code, country.name]));
   const countryName = countryNameByCode.get(project.countryOfProduction) ?? project.countryOfProduction;
@@ -145,11 +156,20 @@ export default async function ProjektPage({
           </div>
           <div className="flex h-full flex-col justify-between gap-brand-3 lg:col-span-5">
             <div className="flex flex-col gap-brand-3">
-              <div className="flex flex-col gap-1">
-                <Heading level="h1">{project.name}</Heading>
-                <Text tone="muted">
-                  {project.producerName} · {countryName}
-                </Text>
+              <div className="flex items-start justify-between gap-brand-2">
+                <div className="flex flex-col gap-1">
+                  <Heading level="h1">{project.name}</Heading>
+                  <Text tone="muted">
+                    {project.producerName} · {countryName}
+                  </Text>
+                </div>
+                <FavoriteButton
+                  productId={project.id}
+                  productName={project.name}
+                  locale={locale}
+                  isClientSession={isClientSession}
+                  initialFavorited={isFavorited}
+                />
               </div>
 
               <Card padding="lg" className="flex flex-col gap-brand-2 border-brand-passage-blue/30">

@@ -1,6 +1,6 @@
 import { ProducerFulfillmentList } from "@/components/producent/ProducerFulfillmentList";
 import { getFulfillmentOrders } from "@/lib/data/fulfillment";
-import { getProjects } from "@/lib/data/projects";
+import { getProjects } from "@/lib/data/producer-mock-projects";
 
 export default async function ProducerRealizacjePage({
   params,

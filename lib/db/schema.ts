@@ -3,6 +3,7 @@
 // feature 6 onward fill them in one at a time (Tracer Bullet), see spec 0018
 // Feature design for the full rationale and per-table notes.
 import { sql } from "drizzle-orm";
+import type { PendingRegistrationPayload } from "@/lib/auth-shared";
 import {
   boolean,
   check,
@@ -140,9 +141,23 @@ export const users = pgTable("users", {
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   image: text("image"),
   role: roleEnum("role").notNull(),
+  // Brakowało w spec 0018 (przewidział tylko migawkę telefonu na inquiry).
+  // Wspólne dla klienta i producenta, zbierane raz przy rejestracji (spec 0023).
+  phone: text("phone").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
+});
+
+// Dane z formularza rejestracji do chwili potwierdzenia e mailem (spec 0023
+// Key invariants): users/client/producer powstają dopiero przy pierwszym
+// udanym logowaniu, ten wiersz jest wtedy kasowany. Zapobiega zajęciu cudzego
+// NIP/e maila przez niepotwierdzone konto.
+export const pendingRegistration = pgTable("pending_registration", {
+  email: text("email").primaryKey(),
+  role: roleEnum("role").notNull(),
+  payload: jsonb("payload").$type<PendingRegistrationPayload>().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
 export const accounts = pgTable(
@@ -298,6 +313,9 @@ export const product = pgTable(
     priceIncludes: jsonb("price_includes").$type<string[]>(),
     priceExcludes: jsonb("price_excludes").$type<string[]>(),
     featured: boolean("featured").notNull().default(false),
+    // Tymczasowe: zwykły URL zewnętrzny, zastąpione realnym przechowywaniem
+    // plików (Cloudflare R2) w Slice 5 (spec 0023 Context, Follow-up).
+    coverImageUrl: text("cover_image_url"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
@@ -395,6 +413,10 @@ export const inquiry = pgTable("inquiry", {
   status: inquiryStatusEnum("status").notNull().default("open"),
   receivedAt: timestamp("received_at", { withTimezone: true }).defaultNow().notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  // Wygenerowany po stronie przeglądarki przy otwarciu formularza; ponowne
+  // wysłanie z tym samym kluczem po błędzie nie tworzy drugiego wiersza
+  // (spec 0023 AC-7, AC-8).
+  idempotencyKey: text("idempotency_key").unique(),
 });
 
 export const inquiryItem = pgTable(
@@ -409,6 +431,24 @@ export const inquiryItem = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [primaryKey({ columns: [table.inquiryId, table.productId] })],
+);
+
+// Klucz (clientId, productId) unikalny (spec 0024 Feature design): jeden
+// klient nie może dodać tego samego produktu dwa razy. toggleFavorite
+// (lib/favorite-actions.ts) traktuje to jako idempotentny insert/delete, nigdy
+// sprawdź-potem-zapisz (spec 0024 Key invariants).
+export const favorite = pgTable(
+  "favorite",
+  {
+    clientId: uuid("client_id")
+      .notNull()
+      .references(() => client.id),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => product.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.clientId, table.productId] })],
 );
 
 export const offer = pgTable(

@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { ProducerOfferForm } from "@/components/producent/ProducerOfferForm";
 import { getCountries } from "@/lib/data/countries";
 import { getProducerInquiryById } from "@/lib/data/producer-inquiries";
-import { getProjectById } from "@/lib/data/projects";
+import { getProjectById } from "@/lib/data/producer-mock-projects";
 
 export default async function ProducerOfertaPage({
   params,

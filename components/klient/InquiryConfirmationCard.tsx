@@ -1,4 +1,4 @@
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, ImageOff } from "lucide-react";
 import Image from "next/image";
 import { Card, DataText, Heading, Text } from "@/components/ui";
 import type { Project } from "@/lib/data/types";
@@ -20,13 +20,19 @@ export function InquiryConfirmationCard({ project, sentAt }: InquiryConfirmation
   return (
     <Card as="article" padding="none" className="flex flex-col gap-brand-3 overflow-hidden sm:flex-row">
       <div className="relative aspect-[3/2] w-full shrink-0 overflow-hidden sm:w-48">
-        <Image
-          src={project.coverImageUrl}
-          alt=""
-          fill
-          sizes="(min-width: 640px) 12rem, 100vw"
-          className="object-cover"
-        />
+        {project.coverImageUrl ? (
+          <Image
+            src={project.coverImageUrl}
+            alt=""
+            fill
+            sizes="(min-width: 640px) 12rem, 100vw"
+            className="object-cover"
+          />
+        ) : (
+          <div className="flex size-full items-center justify-center bg-brand-steel/20">
+            <ImageOff className="size-8 text-brand-technical-graphite/50" aria-hidden="true" />
+          </div>
+        )}
       </div>
       <div className="flex flex-1 flex-col gap-brand-2 p-brand-3">
         <div className="flex flex-wrap items-baseline justify-between gap-brand-1">

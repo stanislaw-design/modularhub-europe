@@ -1,7 +1,7 @@
 import { ProducerInquiryList } from "@/components/producent/ProducerInquiryList";
 import { getCountries } from "@/lib/data/countries";
 import { getProducerInquiries } from "@/lib/data/producer-inquiries";
-import { getProjects } from "@/lib/data/projects";
+import { getProjects } from "@/lib/data/producer-mock-projects";
 
 export default async function ProducerZapytaniaPage({
   params,
