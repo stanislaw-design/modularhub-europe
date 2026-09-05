@@ -26,10 +26,10 @@ function completeDraft(overrides: Partial<ProjectDraft> = {}): ProjectDraft {
     technicalSpecs: {
       wallBuildUp: "Szkielet",
       insulation: "U = 0.15",
-      heatTransferCoefficients: "U = 0.9",
+      heatTransferCoefficients: "A",
       windowClass: "Uw = 0.8",
-      ventilation: "Mechaniczna",
-      heatSource: "Pompa ciepła",
+      ventilation: "rekuperacja",
+      heatSource: "pompa-ciepla-powietrze-woda",
       fireResistance: "REI 30",
       windResistance: "Strefa 2",
     },

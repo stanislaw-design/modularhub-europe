@@ -16,10 +16,19 @@ const text = tv({
     measure: {
       true: "max-w-[68ch]",
     },
+    surface: {
+      v3: "",
+      v5: "",
+    },
   },
+  compoundVariants: [
+    { tone: "default", surface: "v5", class: "text-brand-v5-ink" },
+    { tone: "muted", surface: "v5", class: "text-brand-v5-muted" },
+  ],
   defaultVariants: {
     variant: "body",
     tone: "default",
+    surface: "v3",
   },
 });
 
@@ -35,7 +44,7 @@ interface TextProps extends VariantProps<typeof text> {
   children: ReactNode;
 }
 
-export function Text({ as, variant = "body", tone, measure, className, children }: TextProps) {
+export function Text({ as, variant = "body", tone, measure, surface, className, children }: TextProps) {
   const Tag = as ?? defaultTagByVariant[variant];
-  return <Tag className={text({ variant, tone, measure, className })}>{children}</Tag>;
+  return <Tag className={text({ variant, tone, measure, surface, className })}>{children}</Tag>;
 }

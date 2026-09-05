@@ -47,13 +47,17 @@ async function fillStep1(user: ReturnType<typeof userEvent.setup>, name = "Modul
   await user.type(screen.getByLabelText(/opis/i), "Opis projektu");
 }
 
+// heatTransferCoefficients (klasa energetyczna)/ventilation/heatSource switched to
+// closed-list selects (spec 0026 AC-2): chooseOption, same as the family/category
+// selects on step 1, in the field's DOM order (heatTransferCoefficients before
+// windowClass, ventilation and heatSource after it).
 async function fillStep2(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText(/Układ ścian/), "Szkielet");
   await user.type(screen.getByLabelText(/Izolacja/), "U = 0.15");
-  await user.type(screen.getByLabelText(/Współczynniki przenikania ciepła/), "U = 0.9");
+  await chooseOption(user, "Klasa A");
   await user.type(screen.getByLabelText(/Klasa okien/), "Uw = 0.8");
-  await user.type(screen.getByLabelText(/Wentylacja/), "Mechaniczna");
-  await user.type(screen.getByLabelText(/Źródło ciepła/), "Pompa ciepła");
+  await chooseOption(user, "Rekuperacja (mechaniczna z odzyskiem ciepła)");
+  await chooseOption(user, "Pompa ciepła powietrze-woda");
   await user.type(screen.getByLabelText(/Odporność ogniowa/), "REI 30");
   await user.type(screen.getByLabelText(/Odporność wiatrowa/), "Strefa 2");
 }

@@ -180,7 +180,8 @@ describe("InquiryFlow", () => {
     expect(screen.getByLabelText(/imię i nazwisko/i)).toHaveValue("Jan Kowalski");
 
     mockedSubmitInquiry.mockResolvedValueOnce({ ok: true, inquiryId: "inq-1" });
-    await user.click(screen.getByRole("button", { name: "Ponów wysyłanie" }));
+    const retryButton = await screen.findByRole("button", { name: "Ponów wysyłanie" });
+    await user.click(retryButton);
 
     await waitFor(() => {
       expect(screen.getByRole("heading", { level: 1, name: "Zapytanie wysłane" })).toBeInTheDocument();

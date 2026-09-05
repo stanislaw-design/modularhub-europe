@@ -11,12 +11,14 @@ interface PanelEmptyStateProps {
 // nigdy błąd ani pusta strona.
 export function PanelEmptyState({ locale, title, description }: PanelEmptyStateProps) {
   return (
-    <Card padding="lg" className="flex flex-col items-center gap-brand-2 py-brand-5 text-center">
-      <Heading level="h2">{title}</Heading>
-      <Text tone="muted" measure className="mx-auto">
+    <Card padding="lg" surface="v5" className="flex flex-col items-center gap-brand-2 py-brand-5 text-center">
+      <Heading level="h2" surface="v5">
+        {title}
+      </Heading>
+      <Text tone="muted" surface="v5" measure className="mx-auto">
         {description}
       </Text>
-      <Button as="a" href={`/${locale}/klient/wyniki`} variant="secondary">
+      <Button as="a" href={`/${locale}/klient/wyniki`} variant="secondary" surface="v5">
         Przeglądaj domy
       </Button>
     </Card>

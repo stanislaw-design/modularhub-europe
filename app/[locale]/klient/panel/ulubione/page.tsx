@@ -36,7 +36,9 @@ export default async function UlubionePage({
   if (favorites.length === 0) {
     return (
       <Stack gap={4}>
-        <Heading level="h1">Ulubione</Heading>
+        <Heading level="h1" surface="v5">
+        Ulubione
+      </Heading>
         <PanelEmptyState
           locale={locale}
           title="Nie masz jeszcze żadnych ulubionych domów"
@@ -58,7 +60,9 @@ export default async function UlubionePage({
 
   return (
     <Stack gap={4}>
-      <Heading level="h1">Ulubione</Heading>
+      <Heading level="h1" surface="v5">
+        Ulubione
+      </Heading>
       <FavoritesGrid locale={locale} favorites={favorites} selectedIds={selectedIds} maxSelected={MAX_COMPARE} />
     </Stack>
   );

@@ -26,7 +26,7 @@ interface SpecGroup {
 // Każda grupa dostaje własny kolor plakietki zamiast jednolitego, czarnego
 // wariantu — powtarza kod barw już użyty wyżej na tej stronie (ShieldCheck/
 // Award w sygnałach zaufania używają text-status-approved, RoomsIcon i inne w
-// pasku "kluczowe dane" używają bg-brand-passage-blue/10), więc to nie nowa
+// pasku "kluczowe dane" używają bg-brand-v5-amber/10), więc to nie nowa
 // dekoracja, tylko konsekwentne domknięcie istniejącego kodu barw: czerń =
 // konstrukcja, pomarańcz = parametry energetyczne, zielony = bezpieczeństwo/
 // gwarancja (ten sam zielony co status "approved" wyżej na stronie).
@@ -35,14 +35,14 @@ const GROUP_ACCENTS: Record<
   { plaque: string; icon: string; rule: string }
 > = {
   "Konstrukcja i wykończenie": {
-    plaque: "bg-brand-foundation-navy",
-    icon: "text-brand-warm-white",
-    rule: "border-brand-foundation-navy/30",
+    plaque: "bg-brand-v5-ink",
+    icon: "text-brand-v5-paper",
+    rule: "border-brand-v5-ink/30",
   },
   "Efektywność energetyczna": {
-    plaque: "bg-brand-passage-blue/15",
-    icon: "text-brand-passage-blue",
-    rule: "border-brand-passage-blue/40",
+    plaque: "bg-brand-v5-amber/15",
+    icon: "text-brand-v5-amber-strong",
+    rule: "border-brand-v5-amber-strong/40",
   },
   "Bezpieczeństwo i gwarancja": {
     plaque: "bg-status-approved/15",
@@ -108,7 +108,7 @@ export function ProjectTechnicalSpecs({ project }: ProjectTechnicalSpecsProps) {
 
   return (
     <div className="flex flex-col gap-brand-6">
-      <Heading level="h2" className="text-h3">
+      <Heading level="h2" surface="v5" className="text-h3">
         Technologia i konstrukcja
       </Heading>
       {/* Odchodzimy od gęstej tabeli z cienkimi liniami podziału na rzecz układu
@@ -128,19 +128,19 @@ export function ProjectTechnicalSpecs({ project }: ProjectTechnicalSpecsProps) {
               className={
                 index === 0
                   ? "flex flex-col gap-brand-5"
-                  : `flex flex-col gap-brand-5 border-t pt-brand-6 lg:pt-brand-7 ${accent?.rule ?? "border-brand-steel"}`
+                  : `flex flex-col gap-brand-5 border-t pt-brand-6 lg:pt-brand-7 ${accent?.rule ?? "border-brand-v5-line"}`
               }
               style={{ transitionDelay: `${index * 120}ms` }}
             >
               <div className="flex items-center gap-brand-4">
                 <span
-                  className={`flex size-14 shrink-0 items-center justify-center rounded-data ${accent?.plaque ?? "bg-brand-foundation-navy"}`}
+                  className={`flex size-14 shrink-0 items-center justify-center rounded-data ${accent?.plaque ?? "bg-brand-v5-ink"}`}
                 >
                   <group.icon
-                    className={`size-7 ${accent?.icon ?? "text-brand-warm-white"}`}
+                    className={`size-7 ${accent?.icon ?? "text-brand-v5-paper"}`}
                   />
                 </span>
-                <Heading level="h3" className="text-h3 font-bold leading-snug">
+                <Heading level="h3" surface="v5" className="text-h3 font-bold leading-snug">
                   {group.title}
                 </Heading>
               </div>
@@ -156,11 +156,12 @@ export function ProjectTechnicalSpecs({ project }: ProjectTechnicalSpecsProps) {
                       key={row.label}
                       className={`flex flex-col gap-2 ${isLongValue ? "sm:col-span-2 lg:col-span-3" : ""}`}
                     >
-                      <Text as="dt" variant="label" tone="muted">
+                      <Text as="dt" variant="label" tone="muted" surface="v5">
                         {row.label}
                       </Text>
                       <DataText
                         as="dd"
+                        surface="v5"
                         className={
                           isLongValue
                             ? "text-body-l font-medium leading-snug"

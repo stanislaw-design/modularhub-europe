@@ -13,7 +13,9 @@ export default async function ProfilPage({
 
   return (
     <Stack gap={4}>
-      <Heading level="h1">Profil</Heading>
+      <Heading level="h1" surface="v5">
+        Profil
+      </Heading>
       <ProfileForm
         email={session.user.email ?? ""}
         initialName={session.user.name ?? ""}

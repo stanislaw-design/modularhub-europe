@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title desc">
+  <title id="title">ModularHub Passage symbol</title>
+  <desc id="desc">Two structural modules joined by a diagonal bridge with an orange forward passage.</desc>
+  <g fill="#000000">
+    <rect x="8" y="14" width="24" height="68" rx="12"/>
+    <rect x="64" y="14" width="24" height="68" rx="12"/>
+    <path d="M26 28h14l30 20v20H56L26 48V28Z"/>
+  </g>
+  <path fill="#FCA311" d="M40 41 57 52 40 63V41Z"/>
+</svg>

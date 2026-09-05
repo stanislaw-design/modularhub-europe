@@ -7,13 +7,37 @@ import { z } from "zod";
 export const PRODUCT_FAMILIES = ["dom", "spa-modulowe", "pergola"] as const;
 export type ProductFamily = (typeof PRODUCT_FAMILIES)[number];
 
+// Zamknięta lista źródeł ciepła (spec 0026 AC-2, Feature design). Chip "Pompa
+// ciepła" na /wyniki dopasowuje obie wartości pompy ciepła naraz przez skrót
+// heatSource=pompa-ciepla, rozwijany po stronie serwera (lib/results-filters.ts) —
+// sam enum trzyma je jako dwie osobne, precyzyjne wartości.
+export const HEAT_SOURCES = [
+  "pompa-ciepla-powietrze-woda",
+  "pompa-ciepla-grunt-woda",
+  "gazowe",
+  "elektryczne",
+  "biomasa-pellet",
+  "inne",
+] as const;
+export type HeatSource = (typeof HEAT_SOURCES)[number];
+
+export const VENTILATION_TYPES = ["grawitacyjna", "mechaniczna-nawiewno-wywiewna", "rekuperacja", "brak"] as const;
+export type VentilationType = (typeof VENTILATION_TYPES)[number];
+
+// Nazwa pola (heatTransferCoefficients) zostaje dla ciągłości historii Zod/bazy,
+// ale od spec 0026 niesie pasmo klasy energetycznej, nie opisowy współczynnik U
+// (patrz spec 0026 Consequences > Neutral). "nieznana" jest bezpieczną wartością
+// domyślną backfillu (AC-12), nie zwykłą opcją wyboru w kreatorze.
+export const ENERGY_CLASSES = ["A+", "A", "B", "C", "D", "nieznana"] as const;
+export type EnergyClass = (typeof ENERGY_CLASSES)[number];
+
 const domSpecsShape = {
   wallBuildUp: z.string(),
   insulation: z.string(),
-  heatTransferCoefficients: z.string(),
+  heatTransferCoefficients: z.enum(ENERGY_CLASSES),
   windowClass: z.string(),
-  ventilation: z.string(),
-  heatSource: z.string(),
+  ventilation: z.enum(VENTILATION_TYPES),
+  heatSource: z.enum(HEAT_SOURCES),
   fireResistance: z.string(),
   windResistance: z.string(),
 };

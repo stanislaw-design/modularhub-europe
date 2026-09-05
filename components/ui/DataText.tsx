@@ -8,9 +8,18 @@ const dataText = tv({
       default: "text-brand-foundation-navy",
       muted: "text-brand-technical-graphite",
     },
+    surface: {
+      v3: "",
+      v5: "",
+    },
   },
+  compoundVariants: [
+    { tone: "default", surface: "v5", class: "text-brand-v5-ink" },
+    { tone: "muted", surface: "v5", class: "text-brand-v5-muted" },
+  ],
   defaultVariants: {
     tone: "default",
+    surface: "v3",
   },
 });
 
@@ -20,6 +29,6 @@ interface DataTextProps extends VariantProps<typeof dataText> {
   children: ReactNode;
 }
 
-export function DataText({ as: As = "span", tone, className, children }: DataTextProps) {
-  return <As className={dataText({ tone, className })}>{children}</As>;
+export function DataText({ as: As = "span", tone, surface, className, children }: DataTextProps) {
+  return <As className={dataText({ tone, surface, className })}>{children}</As>;
 }

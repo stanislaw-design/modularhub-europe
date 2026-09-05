@@ -1,7 +1,7 @@
 # 0015. Redesign strony startowej w kierunku premium (jasny, oparty na zdjęciach)
 
 **Date**: 2026-08-23
-**Status**: In Progress
+**Status**: In Progress (AC-2, AC-13: Superseded by [0025](../0025-hero-fotograficzne-strony-startowej.md), reszta w mocy)
 
 ## Summary
 

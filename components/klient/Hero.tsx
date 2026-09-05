@@ -13,17 +13,15 @@ interface HeroProps {
   children?: ReactNode;
 }
 
-// TEMP facade iteration: full-bleed photo background, content anchored
-// bottom-left under a transparent overlay header (SiteHeader's isHomeRoute
-// branch) — not yet reconciled with spec 0015 AC-2/AC-13's "single column,
-// no photo, centered" decision. Flag to revisit via /architect or /sync once
-// this direction is confirmed. -mt-brand-5 fully cancels RouteShell's
-// pt-brand-5 (not just partially, like the old -mt-brand-4 did against the
-// previously in-flow sticky header) so the photo reaches the true top of the
-// viewport — SiteHeader now floats over it via fixed positioning instead of
-// occupying layout space. Reuses the v4 dark-gradient-over-photo pattern from
-// ClosingCta.tsx (bg-brand-v4-night gradient + brand-v4-surface/mist text)
-// since v5 has no on-photo text token.
+// Full-bleed photo background, content anchored bottom-left under a
+// transparent overlay header (SiteHeader's isHomeRoute branch) — supersedes
+// spec 0015 AC-2/AC-13's "single column, no photo, centered" decision, see
+// spec 0025. No dark scrim over the photo (deliberately dropped, not a TEMP
+// state — legibility relies on the heading's own text-shadow instead).
+// -mt-brand-5 fully cancels RouteShell's pt-brand-5 (not just partially, like
+// the old -mt-brand-4 did against the previously in-flow sticky header) so
+// the photo reaches the true top of the viewport — SiteHeader now floats
+// over it via fixed positioning instead of occupying layout space.
 export function Hero({ children }: HeroProps) {
   return (
     <section className="full-bleed -mt-brand-5 relative isolate flex min-h-[640px] flex-col justify-end overflow-hidden pt-24 pb-brand-6 text-brand-v4-surface lg:min-h-[760px] lg:pb-brand-8">
@@ -35,15 +33,6 @@ export function Hero({ children }: HeroProps) {
         sizes="100vw"
         className="-z-10 object-cover"
       />
-      {/* TEMP disabled 2026-09-04 at user request, to preview the raw photo
-          without the legibility scrim — kept in code, not deleted, restore
-          once the look is confirmed. */}
-      {false && (
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 -z-10 bg-gradient-to-t from-brand-v4-night via-brand-v4-night/45 to-transparent"
-        />
-      )}
       <Container className="flex flex-col items-start gap-brand-5 pl-[3%] text-left lg:pl-[1%]">
         {/* hero-heading-mask (globals.css) clips only for the entrance's
             duration, then reverts to visible — so descenders/diacritics/the

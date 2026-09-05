@@ -29,7 +29,7 @@ export default async function PanelLayout({
           <form action={signOutAction} className="pb-brand-2">
             <button
               type="submit"
-              className="focus-ring flex items-center gap-1 rounded-data text-body font-medium text-brand-technical-graphite hover:text-brand-foundation-navy"
+              className="focus-ring flex items-center gap-1 rounded-data text-body font-medium text-brand-v5-muted transition-colors hover:text-brand-v5-ink"
             >
               <LogOut className="size-4" aria-hidden="true" />
               Wyloguj

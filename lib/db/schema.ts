@@ -7,6 +7,8 @@ import type { PendingRegistrationPayload } from "@/lib/auth-shared";
 import {
   boolean,
   check,
+  customType,
+  index,
   integer,
   jsonb,
   pgEnum,
@@ -18,6 +20,15 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+
+// tsvector nie ma dedykowanego column builder w drizzle-orm (spec 0026, Feature
+// design). Read-only: kolumna jest GENERATED ALWAYS AS ... STORED przez Postgres
+// (patrz product.searchVector niżej), aplikacja nigdy w nią nie zapisuje.
+const tsvector = customType<{ data: string }>({
+  dataType() {
+    return "tsvector";
+  },
+});
 
 // ---------------------------------------------------------------------------
 // Enums
@@ -316,6 +327,13 @@ export const product = pgTable(
     // Tymczasowe: zwykły URL zewnętrzny, zastąpione realnym przechowywaniem
     // plików (Cloudflare R2) w Slice 5 (spec 0023 Context, Follow-up).
     coverImageUrl: text("cover_image_url"),
+    // Wyszukiwanie pełnotekstowe (spec 0026 AC-6, AC-13): kolumna generowana przez
+    // Postgres (GENERATED ALWAYS AS ... STORED, migracja ręczna drizzle/NNNN, ten
+    // sam wzorzec spoza DSL drizzle-kit co drizzle/0002_audit_log_trigger.sql —
+    // patrz lib/db/AGENTS.md). Zadeklarowana tu z komentarzem ostrzegawczym: NIE
+    // dodawaj tu `.generatedAlwaysAs()` i nie licz na to, że `db:generate`
+    // zarządzi tą kolumną — jej DDL żyje wyłącznie w tamtej migracji.
+    searchVector: tsvector("search_vector"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
@@ -328,6 +346,25 @@ export const product = pgTable(
       "product_family_subcategory_match",
       sql`(${table.category} IS NULL OR ${table.family} = 'dom') AND (${table.spaSubcategory} IS NULL OR ${table.family} = 'spa-modulowe') AND (${table.pergolaSubcategory} IS NULL OR ${table.family} = 'pergola')`,
     ),
+    // Wszystkie cztery poniżej wspierają /wyniki (spec 0026 AC-13): każde
+    // dzisiejsze zapytanie filtruje po status+family naraz, stąd złożony indeks
+    // zamiast dwóch osobnych; floor_area_m2/price_min_cents dostają zwykły
+    // B-drzewa, bo filtr ceny/metrażu przenosi się do WHERE (task 4); indeksy
+    // wyrażeniowe na trzech kluczach jsonb faktycznie filtrowanych, bez nich
+    // nowe filtry atrybutów skanowałyby całą tabelę mimo enumów.
+    index("product_status_family_idx").on(table.status, table.family),
+    index("product_floor_area_m2_idx").on(table.floorAreaM2),
+    index("product_price_min_cents_idx").on(table.priceMinCents),
+    index("product_technical_specs_heat_source_idx").on(sql`(${table.technicalSpecs}->>'heatSource')`),
+    index("product_technical_specs_ventilation_idx").on(sql`(${table.technicalSpecs}->>'ventilation')`),
+    index("product_technical_specs_energy_class_idx").on(
+      sql`(${table.technicalSpecs}->>'heatTransferCoefficients')`,
+    ),
+    // Indeks GIN na search_vector: zadeklarowany tu (drizzle-kit umie zwykłe
+    // indeksy DSL), ale sama kolumna istnieje tylko dzięki migracji ręcznej
+    // powyżej — ta migracja SQL musi wykonać się PRZED tą, którą wygeneruje
+    // `db:generate` dla tego indeksu (kolejność w drizzle/, patrz Build plan zadanie 1).
+    index("product_search_vector_idx").using("gin", table.searchVector),
   ],
 );
 

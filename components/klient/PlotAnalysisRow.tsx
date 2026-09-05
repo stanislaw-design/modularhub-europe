@@ -83,25 +83,25 @@ export function PlotAnalysisRow({ locale, project, address, request, onChangeReq
   }
 
   return (
-    <Card as="div" padding="none" className="overflow-hidden">
+    <Card as="div" padding="none" surface="v5" className="overflow-hidden">
       <button
         type="button"
         id={triggerId}
         aria-expanded={expanded}
         aria-controls={contentId}
         onClick={() => setExpanded((prev) => !prev)}
-        className="focus-ring flex w-full items-center justify-between gap-brand-2 p-brand-3 text-left"
+        className="focus-ring flex w-full items-center justify-between gap-brand-2 p-brand-3 text-left transition-colors hover:bg-brand-v5-line/20"
       >
         <span className="flex min-w-0 flex-1 flex-col gap-1">
-          <Text as="span" variant="bodyL" className="font-medium">
+          <Text as="span" variant="bodyL" surface="v5" className="font-medium">
             {project.name}
           </Text>
-          <Text as="span" tone="muted">
+          <Text as="span" tone="muted" surface="v5">
             {project.producerName} · {project.floorAreaM2} m²
           </Text>
         </span>
         <ChevronDown
-          className={`size-4 shrink-0 transition-transform ${expanded ? "rotate-180" : ""}`}
+          className={`size-4 shrink-0 text-brand-v5-muted transition-transform ${expanded ? "rotate-180" : ""}`}
           aria-hidden="true"
         />
       </button>
@@ -112,23 +112,23 @@ export function PlotAnalysisRow({ locale, project, address, request, onChangeReq
           aria-labelledby={triggerId}
           ref={contentRef}
           tabIndex={-1}
-          className="focus-ring border-t border-brand-steel p-brand-3"
+          className="focus-ring border-t border-brand-v5-line p-brand-3"
         >
           <Stack gap={3}>
-            <Text tone="muted" measure>
+            <Text tone="muted" surface="v5" measure>
               {SCOPE_DESCRIPTION}
             </Text>
             <div className="flex items-baseline justify-between gap-brand-2">
-              <Text as="span" variant="label" tone="muted">
+              <Text as="span" variant="label" tone="muted" surface="v5">
                 Cena usługi
               </Text>
-              <DataText>{priceFormatter.format(PLOT_ANALYSIS_PRICE_EUR)} €</DataText>
+              <DataText surface="v5">{priceFormatter.format(PLOT_ANALYSIS_PRICE_EUR)} €</DataText>
             </div>
 
             {request.phase === "idle" && (
               <Stack gap={2} align="start">
                 <Stack gap={1} className="max-w-xs">
-                  <Label htmlFor={areaId} required>
+                  <Label htmlFor={areaId} required surface="v5">
                     Metraż działki (m²)
                   </Label>
                   <Input
@@ -138,6 +138,7 @@ export function PlotAnalysisRow({ locale, project, address, request, onChangeReq
                     min={PLOT_AREA_MIN}
                     max={PLOT_AREA_MAX}
                     required
+                    surface="v5"
                     invalid={areaTouched && !areaValid}
                     aria-describedby={areaTouched && !areaValid ? `${areaId}-error` : undefined}
                     value={request.plotAreaM2 ?? ""}
@@ -158,6 +159,7 @@ export function PlotAnalysisRow({ locale, project, address, request, onChangeReq
                   type="button"
                   onClick={handlePay}
                   disabled={address.trim().length === 0 || !areaValid}
+                  surface="v5"
                   className="w-fit"
                 >
                   Zapłać
@@ -168,7 +170,9 @@ export function PlotAnalysisRow({ locale, project, address, request, onChangeReq
             {request.phase === "paying" && (
               <div aria-live="polite" className="flex items-center gap-brand-2">
                 <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden="true" />
-                <Text tone="muted">Przetwarzanie płatności…</Text>
+                <Text tone="muted" surface="v5">
+                  Przetwarzanie płatności…
+                </Text>
               </div>
             )}
 
@@ -176,12 +180,12 @@ export function PlotAnalysisRow({ locale, project, address, request, onChangeReq
               <div aria-live="polite">
                 <Stack gap={2} align="start">
                   <StatusPill status={result.status}>{statusLabel[result.status]}</StatusPill>
-                  <Text>{result.reason}</Text>
-                  <Text tone="muted" className="text-label normal-case tracking-normal">
+                  <Text surface="v5">{result.reason}</Text>
+                  <Text tone="muted" surface="v5" className="text-label normal-case tracking-normal">
                     {DISCLAIMER_TEXT}
                   </Text>
                   {result.status !== "blocked" && (
-                    <Button as="a" href={offerHref} className="w-fit">
+                    <Button as="a" href={offerHref} surface="v5" className="w-fit">
                       Przejdź do oferty wiążącej
                     </Button>
                   )}

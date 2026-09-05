@@ -22,8 +22,8 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 5 | RODO i zgodność prawna | Foundation | planned |
 | 6 | Rodziny produktów i kategorie (domy, spa modułowe, pergole) | Foundation | done |
 | 7 | Klient na realnym zapleczu, dane producentów zasiane ręcznie | Slice 1 | in progress |
-| 8 | Dopracowanie wyszukiwania i wyników (klient) | Slice 2 | planned |
-| 9 | Domknięcie wizualne ścieżki klienta (marka v4) | Slice 2 | planned |
+| 8 | Dopracowanie wyszukiwania i wyników (klient) | Slice 2 | done |
+| 9 | Domknięcie wizualne ścieżki klienta (marka v4) | Slice 2 | in progress |
 | 10 | Treść i luki funkcjonalne klienta | Slice 2 | planned |
 | 11 | Realna oferta i jej przyjęcie | Slice 3 | planned |
 | 12 | Realne płatności | Slice 4 | planned |
@@ -115,15 +115,34 @@ Zastępuje pierwotny plan symetrycznego „rdzenia pętli" (obie strony przez sa
 
 ## Slice 2: dopracowanie strony klienta
 
-### 8. Dopracowanie wyszukiwania i wyników (klient) · needs a decision
+### 8. Dopracowanie wyszukiwania i wyników (klient)
 Rozszerzenie dzisiejszej strony wyników (epika Prototyp, funkcja 6 — dziś tylko kraj i widełki metrażu) o głębsze wyszukiwanie i filtrowanie na prawdziwych danych z funkcji 7, w tym filtrowanie po rodzinie produktu i podkategorii z funkcji 6: więcej kryteriów, sortowanie, ewentualnie wyszukiwanie tekstowe — konkretny zakres do ustalenia w spec.
 **Done when:** klient może zawęzić i posortować wyniki więcej niż jednym kryterium (w tym rodziną produktu) na realnych danych z bazy, a pusta lista i błędne parametry URL zachowują dzisiejszy łagodny fallback (bez błędu).
-- [ ] Zaprojektuj (spec): `/architect dopracowanie wyszukiwania i wyników`
+- [x] Zaprojektuj (spec): [0026](../specs/0026-dopracowanie-wyszukiwania-i-wynikow/index.md) (enum dla heatSource/ventilation/energyClass, CategoryFilterBar i podkategorie podłączone do prawdziwych danych, filtr ceny, sortowanie, wyszukiwanie pełnotekstowe Postgres tsvector+GIN, jednorazowy backfill istniejących produktów przez Neon MCP)
+- [x] Zbuduj: `/develop dopracowanie wyszukiwania i wyników` — code in `lib/results-filters.ts`, `lib/data/projects.ts`, `lib/product-technical-specs.ts`, `lib/producer-project-draft.ts`, `lib/db/schema.ts` + `drizzle/0008_cheerful_ben_urich.sql`, `components/klient/{CategoryFilterBar,SubcategoryFilterBar,ResultsFilterBar,EmptyResults}.tsx`, `components/producent/ProjectWizardTechnicalStep.tsx`, `app/[locale]/klient/wyniki/page.tsx`
+  - [x] Fundament danych: migracja (enum technicalSpecs, kolumna search_vector + indeks GIN, indeksy family/floor_area_m2/price_min_cents/wyrażeniowe) i ręczny backfill istniejących produktów domu przez Neon MCP, satisfies AC-12, AC-13
+  - [x] Filtrowanie i sortowanie serwerowe: rozszerzone `lib/results-filters.ts` i `getProjects()` (wszystkie filtry w SQL, wyszukiwanie prefiksowe, sortowanie), satisfies AC-1, AC-2, AC-3, AC-4, AC-5, AC-6, AC-10
+  - [x] Kreator producenta: pola heatSource/ventilation/energyClass jako selektory zamiast wolnego tekstu
+  - [x] UI wyników: CategoryFilterBar i podkategorie podłączone do danych, pole wyszukiwania i sortowanie w pasku filtra, pusty stan świadomy rodziny produktu, satisfies AC-7, AC-8, AC-9, AC-11
+  - [x] Dostępność: chipy jako prawdziwe elementy interaktywne, WCAG 2.2 AA, satisfies AC-14
+- [x] Zweryfikuj: `/check verify dopracowanie wyszukiwania i wyników`
+- [x] Testuj: `/test dopracowanie wyszukiwania i wyników`
 
-### 9. Domknięcie wizualne ścieżki klienta (marka v4) · needs a decision
+### 9. Domknięcie wizualne ścieżki klienta (marka v4)
 Dziś tokeny marki v4 (spec 0013, epika Prototyp funkcja 17) konsumuje tylko strona startowa; reszta ścieżki klienta (wyniki, zapytanie, działka, oferta, realizacja, szczegóły projektu) zostaje na v3. Migracja całej ścieżki klienta na v4 dla spójnego, bliskiego finalnemu wyglądu, plus przegląd interakcji/mikroanimacji i dopracowanie pod telefon.
-**Done when:** każdy ekran ścieżki klienta konsumuje tokeny v4, przechodzi ten sam kontrast i test dostępności co dziś, a układ jest dopracowany na wąskich ekranach.
-- [ ] Zaprojektuj (spec): `/architect domknięcie wizualne ścieżki klienta`
+
+> ⚠️ Opis powyżej jest nieaktualny: spec [0027](../specs/0027-domkniecie-wizualne-sciezki-klienta/index.md) ustaliło, że właściwym celem jest v5 (jasny premium kierunek już używany przez stronę startową i nagłówek od spec 0015), nie v4 (który zostaje zarezerwowany dla zdjęciowych/ciemnych sekcji). Aktualizuj ten opis przy najbliższym `/scope`.
+
+**Done when:** każdy z ośmiu ekranów ścieżki klienta (wyniki, zapytanie, oferta, szczegóły projektu, działka, realizacja, panel klienta, rejestracja) konsumuje tokeny v5, przechodzi ten sam kontrast i test dostępności co dziś, a układ jest dopracowany na wąskich ekranach.
+- [x] Zaprojektuj (spec): [0027](../specs/0027-domkniecie-wizualne-sciezki-klienta/index.md) (v5 jako główny cel, v4 zarezerwowane dla zdjęciowych/ciemnych sekcji, nowy wariant `surface` na dziesięciu współdzielonych prymitywach żeby nie dotknąć strony producenta)
+- [x] Zbuduj: `/develop domknięcie wizualne ścieżki klienta` (kod w `components/ui/{Button,Card,Input,Select,Checkbox,Label,Heading,Text,DataText,StageTimeline}.tsx` — nowy wariant `surface`; ośmiu ekranów klienta w `components/klient/*`, `components/auth/ClientRegistrationForm.tsx`, `app/[locale]/klient/{wyniki,zapytanie,oferta,projekt/[id],dzialka,realizacja,panel/*,rejestracja}/`; testy zaktualizowane, flaky `InquiryFlow.test.tsx` race naprawiony `findByRole`)
+  - [x] Fundament: wariant `surface` na `Button`/`Card`/`Input`/`Select`/`Checkbox`/`Label`/`Heading`/`Text`/`DataText`/`StageTimeline`, zero zmiany na stronie producenta (satisfies AC-2, AC-3, AC-4)
+  - [x] Ekrany priorytetowe: wyniki, zapytanie, oferta na v5 (satisfies AC-1, AC-5 do AC-9)
+  - [x] Dokończenie: szczegóły projektu, działka, realizacja na v5 (satisfies AC-1, AC-5 do AC-9)
+  - [x] Panel klienta i rejestracja na v5 (satisfies AC-1, AC-5 do AC-9)
+  - [x] Przegląd WCAG 2.2 AA całości ośmiu ekranów (satisfies AC-9) — naprawiono kontrast tekstu `amber-strong` na białym (~2.5:1 → `ink`), patrz spec Follow-up dla tego samego problemu poza zakresem (SiteHeader/LoginForm/ProducerRegistrationForm/CategoryShowcase)
+- [x] Zweryfikuj: `/check verify domknięcie wizualne ścieżki klienta` (wyniki/oferta/działka/szczegóły projektu/rejestracja i regresja producenta potwierdzone na żywo w przeglądarce; zapytanie, panel klienta i oś realizacji potwierdzone ręcznie przez Ciebie, poza zasięgiem tej sesji — sesja klienta/magic link i brak żywego zamówienia na realnym projekcie)
+- [ ] Testuj: `/test domknięcie wizualne ścieżki klienta`
 
 ### 10. Treść i luki funkcjonalne klienta · needs a decision
 Zbiera rozproszone dziś w Deferred obu epik pozycje wpływające na wiarygodność i kompletność strony klienta: stopka (kontakt, informacje prawne — treść częściowo pokryta przez funkcję 5 RODO, bez przełącznika języka, bo aktywny jest dziś tylko polski), decyzja o walucie natywnej producenta (PLN) obok EUR (realni producenci Budman/Cocomodule podają ceny w PLN, model `Project` jest dziś EUR-only), i wynikające z realnych danych producentów braki na stronie szczegółów projektu (certyfikaty, galeria, próg zgłoszenia uproszczonego).
@@ -238,6 +257,7 @@ Poza zakresem tej epiki, świadomie odłożone.
 - **Alternatywny model przychodu** (np. subskrypcja producenta zamiast prowizji), gdyby model prowizyjny z funkcji 12 okazał się niewystarczający · needs a decision
 - **Automatyzacja usuwania danych obserwowalności**: proces usuwania historii użytkownika w Sentry/PostHog z funkcji 4 jest ręcznym runbookiem; automatyzacja odłożona do czasu realnego usuwania konta i większego wolumenu żądań (from spec 0021) · needs a decision
 - **Konsolidacja śledzenia błędów i analityki do jednego narzędzia**: PostHog oferuje już własne śledzenie błędów; spec 0021 ocenił je dziś jako słabsze od Sentry (stack trace, source mapy, release), warte ponownej oceny później (from spec 0021) · needs a decision
+- **Strona producenta na v5**: spec [0027](../specs/0027-domkniecie-wizualne-sciezki-klienta/index.md) migruje wyłącznie ścieżkę klienta; strona producenta zostaje na v3 bezterminowo, decyzja o ewentualnej migracji jest osobna i przyszła (from spec 0027) · needs a decision
 - **Zapisane wyszukiwania z alertami e mail w panelu klienta**: częsty wzorzec na porównywalnych portalach nieruchomości (research w spec 0024 rationale.md), ale wymaga infrastruktury e mail z funkcji 17 (Powiadomienia e mail), której dziś nie ma; zaprojektuj jako osobną funkcję, gdy 17 będzie gotowa (from spec 0024) · needs a decision
 
 ## References

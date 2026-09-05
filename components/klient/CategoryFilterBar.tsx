@@ -1,61 +1,53 @@
-import {
-  Accessibility,
-  Building2,
-  Flower2,
-  Home,
-  Layers,
-  Mountain,
-  SlidersHorizontal,
-  Sun,
-  Thermometer,
-  Warehouse,
-  Waves,
-  Wind,
-  Zap,
-} from "lucide-react";
+import { Building2, Home, Thermometer, Wind, Zap } from "lucide-react";
+import Link from "next/link";
+import type { ResultsFilter } from "@/lib/results-filters";
+import { buildResultsHref, toggleFilterValue } from "@/lib/results-filters";
 
-// Decorative for now — no filter data model backs these yet (spec 0003 doesn't
-// define home attributes as a filterable facet). Visual placeholder matching
-// the reference layout; wiring real filtering is a future decision.
-const categories = [
-  { icon: Home, label: "Parterowy" },
-  { icon: Building2, label: "Piętrowy" },
-  { icon: Thermometer, label: "Pompa ciepła" },
-  { icon: Sun, label: "Fotowoltaika" },
-  { icon: Wind, label: "Rekuperacja" },
-  { icon: Layers, label: "Konstrukcja CLT" },
-  { icon: Mountain, label: "Tereny górskie" },
-  { icon: Waves, label: "Nad wodą" },
-  { icon: Flower2, label: "Ogród" },
-  { icon: Warehouse, label: "Garaż" },
-  { icon: Accessibility, label: "Bez barier" },
-  { icon: Zap, label: "Klasa A+" },
+interface CategoryFilterBarProps {
+  locale: string;
+  filter: ResultsFilter;
+}
+
+// Cztery chipy oparte na realnych danych (spec 0026 AC-7): pozostałe sześć z
+// dawnej dekoracyjnej listy (Fotowoltaika, Tereny górskie, Nad wodą, Ogród,
+// Garaż, Bez barier, Konstrukcja CLT) i przycisk "Filtry" znikają, bo katalog
+// nie niesie tych atrybutów (patrz spec Follow-up). Prawdziwe linki, nie
+// wyłączone przyciski: klawiaturowo obsługiwane, aktualizują URL od razu po
+// kliknięciu, ponowne kliknięcie tego samego chipa czyści filtr (toggle).
+const CHIPS: {
+  icon: typeof Home;
+  label: string;
+  key: "storeys" | "heatSource" | "ventilation" | "energyClass";
+  value: NonNullable<ResultsFilter["storeys" | "heatSource" | "ventilation" | "energyClass"]>;
+}[] = [
+  { icon: Home, label: "Parterowy", key: "storeys", value: "parterowy" },
+  { icon: Building2, label: "Piętrowy", key: "storeys", value: "pietrowy" },
+  { icon: Thermometer, label: "Pompa ciepła", key: "heatSource", value: "pompa-ciepla" },
+  { icon: Wind, label: "Rekuperacja", key: "ventilation", value: "rekuperacja" },
+  { icon: Zap, label: "Klasa A+", key: "energyClass", value: "A+" },
 ];
 
-export function CategoryFilterBar() {
+export function CategoryFilterBar({ locale, filter }: CategoryFilterBarProps) {
   return (
-    <div className="flex items-center gap-brand-4 overflow-x-auto border-b border-brand-steel py-brand-2">
-      <div className="flex flex-1 items-center gap-brand-4">
-        {categories.map(({ icon: Icon, label }) => (
-          <button
+    <nav aria-label="Filtry atrybutów domu" className="flex items-center gap-brand-4 overflow-x-auto border-b border-brand-v5-line py-brand-2">
+      {CHIPS.map(({ icon: Icon, label, key, value }) => {
+        const active = filter[key] === value;
+        return (
+          <Link
             key={label}
-            type="button"
-            disabled
-            className="flex shrink-0 flex-col items-center gap-1 text-brand-technical-graphite disabled:cursor-default"
+            href={buildResultsHref(locale, toggleFilterValue(filter, key, value))}
+            aria-current={active ? "true" : undefined}
+            className={`focus-ring flex shrink-0 flex-col items-center gap-1 rounded-data border-b-2 px-1 transition-colors ${
+              active
+                ? "border-brand-v5-amber-strong font-semibold text-brand-v5-ink"
+                : "border-transparent text-brand-v5-muted hover:text-brand-v5-ink"
+            }`}
           >
             <Icon className="size-5" aria-hidden="true" />
             <span className="whitespace-nowrap text-xs">{label}</span>
-          </button>
-        ))}
-      </div>
-      <button
-        type="button"
-        disabled
-        className="flex shrink-0 items-center gap-2 rounded-full border border-brand-steel px-brand-2 py-brand-1 text-body text-brand-foundation-navy disabled:cursor-default"
-      >
-        <SlidersHorizontal className="size-4" aria-hidden="true" />
-        Filtry
-      </button>
-    </div>
+          </Link>
+        );
+      })}
+    </nav>
   );
 }

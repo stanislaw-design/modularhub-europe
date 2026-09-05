@@ -1,3 +1,4 @@
+import { ENERGY_CLASSES, HEAT_SOURCES, VENTILATION_TYPES } from "./product-technical-specs";
 import type {
   CompletionStandard,
   PergolaSubcategory,
@@ -61,6 +62,38 @@ export const PERGOLA_SUBCATEGORY_OPTIONS: { value: PergolaSubcategory; label: st
   { value: "wolnostojaca-przyscienna", label: "Wolnostojąca / przyścienna" },
 ];
 
+// Zamknięte listy dla trzech pól technicznych domu (spec 0026 AC-2, Feature design),
+// zastępujące dawne pola tekstowe w kreatorze. HEAT_SOURCES/VENTILATION_TYPES/
+// ENERGY_CLASSES pochodzą z lib/product-technical-specs.ts (ten sam Zod, który
+// waliduje zapis) — etykiety tylko tu, bo enum tam nie niesie tekstu dla klienta.
+const HEAT_SOURCE_LABELS: Record<(typeof HEAT_SOURCES)[number], string> = {
+  "pompa-ciepla-powietrze-woda": "Pompa ciepła powietrze-woda",
+  "pompa-ciepla-grunt-woda": "Pompa ciepła gruntowa (grunt-woda)",
+  gazowe: "Gazowe",
+  elektryczne: "Elektryczne",
+  "biomasa-pellet": "Biomasa / pellet",
+  inne: "Inne",
+};
+export const HEAT_SOURCE_OPTIONS: { value: (typeof HEAT_SOURCES)[number]; label: string }[] = HEAT_SOURCES.map(
+  (value) => ({ value, label: HEAT_SOURCE_LABELS[value] }),
+);
+
+const VENTILATION_TYPE_LABELS: Record<(typeof VENTILATION_TYPES)[number], string> = {
+  grawitacyjna: "Grawitacyjna",
+  "mechaniczna-nawiewno-wywiewna": "Mechaniczna nawiewno-wywiewna",
+  rekuperacja: "Rekuperacja (mechaniczna z odzyskiem ciepła)",
+  brak: "Brak",
+};
+export const VENTILATION_TYPE_OPTIONS: { value: (typeof VENTILATION_TYPES)[number]; label: string }[] =
+  VENTILATION_TYPES.map((value) => ({ value, label: VENTILATION_TYPE_LABELS[value] }));
+
+// "nieznana" celowo pominięta: to bezpieczna wartość domyślna jednorazowego
+// backfillu (spec 0026 AC-12), nie prawdziwa opcja wyboru producenta.
+export const ENERGY_CLASS_OPTIONS: { value: Exclude<(typeof ENERGY_CLASSES)[number], "nieznana">; label: string }[] =
+  ENERGY_CLASSES.filter((value): value is Exclude<(typeof ENERGY_CLASSES)[number], "nieznana"> => value !== "nieznana").map(
+    (value) => ({ value, label: `Klasa ${value}` }),
+  );
+
 export interface TechnicalFieldConfig {
   key: keyof import("./data/types").ProductTechnicalSpecsDraft;
   label: string;
@@ -88,22 +121,25 @@ export const TECHNICAL_FIELDS_BY_FAMILY: Record<ProductFamily, TechnicalFieldCon
     },
     {
       key: "heatTransferCoefficients",
-      label: "Współczynniki przenikania ciepła",
-      hint: "Współczynniki U dla okien i drzwi (W/m²K)",
-      type: "text",
+      label: "Klasa energetyczna",
+      hint: "Pasmo klasy energetycznej budynku",
+      type: "select",
+      options: ENERGY_CLASS_OPTIONS,
     },
     { key: "windowClass", label: "Klasa okien", hint: "Klasa energetyczna i typ szyby", type: "text" },
     {
       key: "ventilation",
       label: "Wentylacja",
-      hint: "Typ wentylacji, np. mechaniczna z odzyskiem ciepła",
-      type: "text",
+      hint: "Typ wentylacji",
+      type: "select",
+      options: VENTILATION_TYPE_OPTIONS,
     },
     {
       key: "heatSource",
       label: "Źródło ciepła",
-      hint: "Główne źródło ogrzewania, np. pompa ciepła",
-      type: "text",
+      hint: "Główne źródło ogrzewania",
+      type: "select",
+      options: HEAT_SOURCE_OPTIONS,
     },
     {
       key: "fireResistance",

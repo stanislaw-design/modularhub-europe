@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Project } from "@/lib/data/types";
 import { createMockProject } from "@/test/fixtures/project";
 import { type ResultItem, ResultsSelection } from "./ResultsSelection";
@@ -20,8 +20,19 @@ vi.mock("@/lib/favorite-actions", () => ({
   toggleFavorite: vi.fn(),
 }));
 
+const getAllLocalProducerProjects = vi.fn();
+vi.mock("@/lib/local-client-projects", () => ({
+  getAllLocalProducerProjects: () => getAllLocalProducerProjects(),
+  isLocalProjectId: () => false,
+}));
+
+beforeEach(() => {
+  getAllLocalProducerProjects.mockReturnValue({ projects: [], eligibility: [] });
+});
+
 afterEach(() => {
   push.mockClear();
+  getAllLocalProducerProjects.mockReset();
 });
 
 function makeProject(id: string, name: string): Project {
@@ -119,5 +130,37 @@ describe("ResultsSelection", () => {
     expect(push).toHaveBeenCalledWith(
       "/pl/klient/zapytanie?projects=id1%2Cid2&country=DE&sizeMin=50&sizeMax=100"
     );
+  });
+
+  // spec 0026 AC-5: sortResults() is the only place that sorts, applied again after a locally
+  // previewed producer product (spec 0016, AC-11) merges in, so the merged list still respects
+  // the active `sort`, not just the server's own order.
+  it("re-sorts by the active sort after merging a locally previewed producer product", async () => {
+    const cheapLocal = createMockProject({
+      id: "local-cheap",
+      name: "Lokalny Tani Dom",
+      priceMin: 10000,
+      floorAreaM2: 80,
+    });
+    getAllLocalProducerProjects.mockReturnValue({
+      projects: [cheapLocal],
+      eligibility: [],
+    });
+
+    render(
+      <ResultsSelection
+        serverItems={items}
+        locale="pl"
+        countries={[]}
+        family="dom"
+        sort="price-asc"
+        isClientSession={false}
+      />
+    );
+
+    const names = await screen.findAllByRole("heading", { level: 3 });
+    // items[] all share priceMin=100000 (equal), the locally previewed product is 10000 (cheapest):
+    // ascending by price must place it first once the merge effect re-sorts.
+    expect(names[0]).toHaveTextContent("Lokalny Tani Dom");
   });
 });

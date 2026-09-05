@@ -62,8 +62,10 @@ export default async function RealizacjaPage({
 
   return (
     <Stack gap={4}>
-      <Heading level="h1">Realizacja — {project.name}</Heading>
-      <Text tone="muted">
+      <Heading level="h1" surface="v5">
+        Realizacja — {project.name}
+      </Heading>
+      <Text tone="muted" surface="v5">
         {project.producerName} · {project.floorAreaM2} m²
       </Text>
 
@@ -73,17 +75,17 @@ export default async function RealizacjaPage({
           className="flex items-center gap-brand-2 rounded-data border border-status-approved/30 bg-status-approved/10 p-brand-3"
         >
           <CheckCircle2 className="size-5 shrink-0 text-status-approved" aria-hidden="true" />
-          <Text className="font-medium text-status-approved">
+          <Text surface="v5" className="font-medium text-status-approved">
             Zamówienie zrealizowane — wszystkie etapy zostały ukończone.
           </Text>
         </div>
       )}
 
-      <Card as="div">
-        <StageTimeline items={items} />
+      <Card as="div" surface="v5">
+        <StageTimeline items={items} surface="v5" />
       </Card>
 
-      <Button as="a" href={offerHref} variant="secondary" className="w-fit">
+      <Button as="a" href={offerHref} variant="secondary" surface="v5" className="w-fit">
         Wróć do oferty
       </Button>
     </Stack>

@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">ModularHub Europe Passage logo concept board</title>
+  <desc id="desc">Primary horizontal logo, symbol, monochrome version and small-size test.</desc>
+  <rect width="1600" height="1000" fill="#FFFFFF"/>
+  <rect x="48" y="48" width="1504" height="904" rx="28" fill="#FFFFFF" stroke="#E5E5E5" stroke-width="2"/>
+  <text x="96" y="112" fill="#4D5562" font-family="IBM Plex Mono, monospace" font-size="18" letter-spacing="2">CONCEPT 01 / PASSAGE</text>
+  <text x="96" y="168" fill="#000000" font-family="Manrope, Arial, sans-serif" font-size="44" font-weight="700">A modular connection with a clear way forward.</text>
+
+  <g transform="translate(108 254) scale(1.55)">
+    <g fill="#000000">
+      <rect x="8" y="14" width="24" height="68" rx="12"/>
+      <rect x="64" y="14" width="24" height="68" rx="12"/>
+      <path d="M26 28h14l30 20v20H56L26 48V28Z"/>
+    </g>
+    <path fill="#FCA311" d="M40 41 57 52 40 63V41Z"/>
+  </g>
+  <text x="294" y="340" fill="#000000" font-family="Manrope, Arial, sans-serif" font-size="70" font-weight="700" letter-spacing="-2.2">ModularHub</text>
+  <text x="299" y="390" fill="#4D5562" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" letter-spacing="10">EUROPE</text>
+
+  <line x1="96" y1="490" x2="1504" y2="490" stroke="#E5E5E5" stroke-width="2"/>
+  <line x1="560" y1="550" x2="560" y2="870" stroke="#E5E5E5" stroke-width="2"/>
+  <line x1="1050" y1="550" x2="1050" y2="870" stroke="#E5E5E5" stroke-width="2"/>
+
+  <text x="96" y="550" fill="#4D5562" font-family="IBM Plex Mono, monospace" font-size="16" letter-spacing="2">SYMBOL</text>
+  <g transform="translate(185 610) scale(2.2)">
+    <g fill="#000000">
+      <rect x="8" y="14" width="24" height="68" rx="12"/>
+      <rect x="64" y="14" width="24" height="68" rx="12"/>
+      <path d="M26 28h14l30 20v20H56L26 48V28Z"/>
+    </g>
+    <path fill="#FCA311" d="M40 41 57 52 40 63V41Z"/>
+  </g>
+
+  <text x="620" y="550" fill="#4D5562" font-family="IBM Plex Mono, monospace" font-size="16" letter-spacing="2">ONE COLOUR</text>
+  <defs>
+    <mask id="board-cutout">
+      <rect width="96" height="96" fill="#ffffff"/>
+      <path fill="#000000" d="M40 41 57 52 40 63V41Z"/>
+    </mask>
+  </defs>
+  <g transform="translate(720 610) scale(2.2)" fill="#000000" mask="url(#board-cutout)">
+    <rect x="8" y="14" width="24" height="68" rx="12"/>
+    <rect x="64" y="14" width="24" height="68" rx="12"/>
+    <path d="M26 28h14l30 20v20H56L26 48V28Z"/>
+  </g>
+
+  <text x="1110" y="550" fill="#4D5562" font-family="IBM Plex Mono, monospace" font-size="16" letter-spacing="2">SMALL SIZE</text>
+  <g transform="translate(1210 670) scale(.5)">
+    <g fill="#000000">
+      <rect x="8" y="14" width="24" height="68" rx="12"/>
+      <rect x="64" y="14" width="24" height="68" rx="12"/>
+      <path d="M26 28h14l30 20v20H56L26 48V28Z"/>
+    </g>
+    <path fill="#FCA311" d="M40 41 57 52 40 63V41Z"/>
+  </g>
+  <text x="1110" y="790" fill="#000000" font-family="Manrope, Arial, sans-serif" font-size="30" font-weight="700">24 px test</text>
+  <text x="96" y="920" fill="#4D5562" font-family="Inter, Arial, sans-serif" font-size="17">Black #000000 · Action orange #FCA311 · Geometry remains identifiable in monochrome</text>
+</svg>

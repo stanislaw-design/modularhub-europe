@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 116" role="img" aria-labelledby="title desc">
+  <title id="title">ModularHub Europe Passage logo</title>
+  <desc id="desc">Passage symbol with the ModularHub Europe wordmark.</desc>
+  <g transform="translate(8 10)">
+    <g fill="#000000">
+      <rect x="8" y="14" width="24" height="68" rx="12"/>
+      <rect x="64" y="14" width="24" height="68" rx="12"/>
+      <path d="M26 28h14l30 20v20H56L26 48V28Z"/>
+    </g>
+    <path fill="#FCA311" d="M40 41 57 52 40 63V41Z"/>
+  </g>
+  <text x="132" y="62" fill="#000000" font-family="Manrope, Inter, Arial, sans-serif" font-size="44" font-weight="700" letter-spacing="-1.5">ModularHub</text>
+  <text x="134" y="88" fill="#4D5562" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="600" letter-spacing="6">EUROPE</text>
+</svg>

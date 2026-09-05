@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { getTechnicalSpecsSchema } from "./product-technical-specs";
+import { ENERGY_CLASSES, getTechnicalSpecsSchema, HEAT_SOURCES, VENTILATION_TYPES } from "./product-technical-specs";
 
 describe("getTechnicalSpecsSchema: dom", () => {
   const complete = {
     wallBuildUp: "Szkielet",
     insulation: "U = 0.15",
-    heatTransferCoefficients: "U = 0.9",
+    heatTransferCoefficients: "A" as const,
     windowClass: "Uw = 0.8",
-    ventilation: "Mechaniczna",
-    heatSource: "Pompa ciepła",
+    ventilation: "rekuperacja" as const,
+    heatSource: "pompa-ciepla-powietrze-woda" as const,
     fireResistance: "REI 30",
     windResistance: "Strefa 2",
   };
@@ -22,6 +22,45 @@ describe("getTechnicalSpecsSchema: dom", () => {
     const missingWallBuildUp: Partial<typeof complete> = { ...complete };
     delete missingWallBuildUp.wallBuildUp;
     const result = getTechnicalSpecsSchema("dom", "published").safeParse(missingWallBuildUp);
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a heatSource outside the fixed set (spec 0026 AC-2)", () => {
+    const result = getTechnicalSpecsSchema("dom", "published").safeParse({
+      ...complete,
+      heatSource: "wegiel",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it.each(HEAT_SOURCES)("accepts each of the %s heatSource enum values (spec 0026 AC-2)", (heatSource) => {
+    const result = getTechnicalSpecsSchema("dom", "published").safeParse({ ...complete, heatSource });
+    expect(result.success).toBe(true);
+  });
+
+  it.each(VENTILATION_TYPES)("accepts each of the %s ventilation enum values (spec 0026)", (ventilation) => {
+    const result = getTechnicalSpecsSchema("dom", "published").safeParse({ ...complete, ventilation });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a ventilation outside the fixed set", () => {
+    const result = getTechnicalSpecsSchema("dom", "published").safeParse({
+      ...complete,
+      ventilation: "klimatyzacja",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it.each(ENERGY_CLASSES)("accepts each of the %s energy class (heatTransferCoefficients) enum values, including 'nieznana' (spec 0026)", (heatTransferCoefficients) => {
+    const result = getTechnicalSpecsSchema("dom", "published").safeParse({ ...complete, heatTransferCoefficients });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a heatTransferCoefficients (energy class) outside the fixed set", () => {
+    const result = getTechnicalSpecsSchema("dom", "published").safeParse({
+      ...complete,
+      heatTransferCoefficients: "U = 0.9",
+    });
     expect(result.success).toBe(false);
   });
 

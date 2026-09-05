@@ -13,7 +13,7 @@ interface CategoryShowcaseProps {
 
 type OutdoorFamily = Extract<ProductFamily, "spa-modulowe" | "pergola">;
 
-// "Outdoor & Wellness": spa i pergole tylko, dom żyje już wyżej na tej stronie
+// "Więcej niż dom": spa i pergole tylko, dom żyje już wyżej na tej stronie
 // (PopularHomes). Każda karta linkuje do jednego prawdziwego, klikalnego
 // przykładu z tej rodziny (getFeaturedProjectByFamily, lib/data/projects.ts),
 // nie do nieprzefiltrowanego /wyniki — to realne "oferty" zachęcające do
@@ -81,8 +81,7 @@ export async function CategoryShowcase({ locale }: CategoryShowcaseProps) {
     <section className="full-bleed bg-brand-v5-paper py-brand-5">
       <Container className="flex flex-col gap-brand-4">
         <div className="flex flex-col gap-1">
-          <h2 className="text-h2 font-display font-semibold text-brand-v5-ink">Outdoor & Wellness</h2>
-          <p className="text-body text-brand-v5-muted">Rozbuduj swoją przestrzeń</p>
+          <h2 className="text-h2 font-display font-semibold text-brand-v5-ink">Więcej niż dom</h2>
         </div>
         <div className="grid grid-cols-1 gap-brand-4 sm:grid-cols-2">
           {categories.map((category) => {

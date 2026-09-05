@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Heading, Input, Label, Stack, Text } from "@/components/ui";
+import { Button, Heading, Input, Label, ScrollReveal, Stack, Text } from "@/components/ui";
 import type { Project } from "@/lib/data/types";
 import { PlotAnalysisRow } from "./PlotAnalysisRow";
 
@@ -36,13 +36,15 @@ export function PlotDossierPanel({ locale, projects, resultsHref }: PlotDossierP
 
   return (
     <Stack gap={4}>
-      <Heading level="h1">Panel działki</Heading>
-      <Text tone="muted" measure>
+      <Heading level="h1" surface="v5">
+        Panel działki
+      </Heading>
+      <Text tone="muted" surface="v5" measure>
         Podaj adres swojej działki raz, a potem sprawdź osobno każdy dom, o który wcześniej pytałeś —
         cena, płatność i wynik liczą się niezależnie dla każdego z nich.
       </Text>
       <Stack gap={1} className="max-w-md">
-        <Label htmlFor="plot-address" required>
+        <Label htmlFor="plot-address" required surface="v5">
           Adres działki
         </Label>
         <Input
@@ -51,23 +53,25 @@ export function PlotDossierPanel({ locale, projects, resultsHref }: PlotDossierP
           type="text"
           autoComplete="street-address"
           required
+          surface="v5"
           value={address}
           onChange={(event) => setAddress(event.target.value)}
         />
       </Stack>
       <Stack gap={3}>
-        {projects.map((project) => (
-          <PlotAnalysisRow
-            key={project.id}
-            locale={locale}
-            project={project}
-            address={address}
-            request={requests[project.id]}
-            onChangeRequest={(patch) => updateRequest(project.id, patch)}
-          />
+        {projects.map((project, index) => (
+          <ScrollReveal key={project.id} style={{ transitionDelay: `${Math.min(index * 80, 480)}ms` }}>
+            <PlotAnalysisRow
+              locale={locale}
+              project={project}
+              address={address}
+              request={requests[project.id]}
+              onChangeRequest={(patch) => updateRequest(project.id, patch)}
+            />
+          </ScrollReveal>
         ))}
       </Stack>
-      <Button as="a" href={resultsHref} variant="secondary" className="w-fit">
+      <Button as="a" href={resultsHref} variant="secondary" surface="v5" className="w-fit">
         Wróć do wyników
       </Button>
     </Stack>

@@ -33,13 +33,15 @@ export function BindingOfferView({ locale, project, address }: BindingOfferViewP
 
   return (
     <Stack gap={4}>
-      <Heading level="h1">Oferta wiążąca — {project.name}</Heading>
-      <Text tone="muted" measure>
+      <Heading level="h1" surface="v5">
+        Oferta wiążąca — {project.name}
+      </Heading>
+      <Text tone="muted" surface="v5" measure>
         Cena poniżej to jedna, ostateczna kwota za dom, transport na wskazany adres i montaż — bez
         osobnego wyboru przewoźnika. Zaakceptowanie oferty rozpoczyna realizację.
       </Text>
 
-      <Card as="article" padding="none" className="overflow-hidden">
+      <Card as="article" padding="none" surface="v5" className="overflow-hidden">
         <div className="flex flex-col sm:flex-row">
           <div className="relative aspect-[3/2] w-full shrink-0 overflow-hidden sm:w-64">
             <Image
@@ -52,10 +54,10 @@ export function BindingOfferView({ locale, project, address }: BindingOfferViewP
           </div>
           <div className="flex flex-1 flex-col gap-brand-3 p-brand-3">
             <div>
-              <Heading level="h2" className="text-h3">
+              <Heading level="h2" surface="v5" className="text-h3">
                 {project.name}
               </Heading>
-              <Text tone="muted">
+              <Text tone="muted" surface="v5">
                 {project.producerName} · {project.floorAreaM2} m² · {project.bedrooms}{" "}
                 {bedroomsLabel(project.bedrooms)}
               </Text>
@@ -63,29 +65,31 @@ export function BindingOfferView({ locale, project, address }: BindingOfferViewP
 
             <dl className="grid gap-brand-3 sm:grid-cols-2">
               <div>
-                <Text as="dt" variant="label" tone="muted">
+                <Text as="dt" variant="label" tone="muted" surface="v5">
                   Adres montażu
                 </Text>
                 <dd>
-                  <Text>{address}</Text>
+                  <Text surface="v5">{address}</Text>
                 </dd>
               </div>
               <div>
-                <Text as="dt" variant="label" tone="muted">
+                <Text as="dt" variant="label" tone="muted" surface="v5">
                   Cena końcowa (dom, transport, montaż)
                 </Text>
                 <dd>
-                  <DataText className="text-h2">{priceFormatter.format(finalPriceEur)} €</DataText>
+                  <DataText surface="v5" className="text-h2">
+                    {priceFormatter.format(finalPriceEur)} €
+                  </DataText>
                 </dd>
               </div>
             </dl>
 
-            <Text tone="muted" className="text-label normal-case tracking-normal">
+            <Text tone="muted" surface="v5" className="text-label normal-case tracking-normal">
               {MOCK_DISCLAIMER}
             </Text>
 
             {acceptedAt === null ? (
-              <Button type="button" onClick={() => setAcceptedAt(new Date())} className="w-fit">
+              <Button type="button" onClick={() => setAcceptedAt(new Date())} surface="v5" className="w-fit">
                 Zaakceptuj ofertę
               </Button>
             ) : (
@@ -95,11 +99,16 @@ export function BindingOfferView({ locale, project, address }: BindingOfferViewP
                     <CheckCircle2 className="size-3.5 shrink-0" aria-hidden="true" />
                     Zaakceptowano {dateFormatter.format(acceptedAt)}
                   </span>
-                  <Text tone="muted">
+                  <Text tone="muted" surface="v5">
                     Dziękujemy — oferta wiążąca została zaakceptowana. Śledź postęp produkcji, transportu,
                     montażu i odbioru na osi statusów realizacji.
                   </Text>
-                  <Button as="a" href={`/${locale}/klient/realizacja?project=${project.id}`} className="w-fit">
+                  <Button
+                    as="a"
+                    href={`/${locale}/klient/realizacja?project=${project.id}`}
+                    surface="v5"
+                    className="w-fit"
+                  >
                     Śledź realizację
                   </Button>
                 </Stack>
@@ -109,7 +118,7 @@ export function BindingOfferView({ locale, project, address }: BindingOfferViewP
         </div>
       </Card>
 
-      <Button as="a" href={dzialkaHref} variant="secondary" className="w-fit">
+      <Button as="a" href={dzialkaHref} variant="secondary" surface="v5" className="w-fit">
         Wróć do panelu działki
       </Button>
     </Stack>

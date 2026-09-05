@@ -3,17 +3,15 @@
 import { Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import type { Country, CountryCode, ProductFamily } from "@/lib/data/types";
+import type { Country, CountryCode } from "@/lib/data/types";
+import { buildResultsHref, SORT_OPTIONS, type ResultsFilter, type SortOption } from "@/lib/results-filters";
 import { SIZE_THRESHOLDS, type SizeThreshold } from "@/lib/size-thresholds";
 import { SearchSegment, type SegmentOption } from "./SearchSegment";
 
 interface ResultsFilterBarProps {
   locale: string;
   countries: Country[];
-  countryCode?: CountryCode;
-  sizeMin?: SizeThreshold;
-  sizeMax?: SizeThreshold;
-  family: ProductFamily;
+  filter: ResultsFilter;
 }
 
 const sizeOptions: SegmentOption[] = SIZE_THRESHOLDS.map((threshold) => ({
@@ -21,18 +19,25 @@ const sizeOptions: SegmentOption[] = SIZE_THRESHOLDS.map((threshold) => ({
   label: `${threshold} m²`,
 }));
 
-export function ResultsFilterBar({
-  locale,
-  countries,
-  countryCode,
-  sizeMin,
-  sizeMax,
-  family,
-}: ResultsFilterBarProps) {
+const SORT_LABELS: Record<SortOption, string> = {
+  "price-asc": "Cena: rosnąco",
+  "price-desc": "Cena: malejąco",
+  "size-asc": "Metraż: rosnąco",
+  "size-desc": "Metraż: malejąco",
+};
+const sortOptions: SegmentOption[] = SORT_OPTIONS.map((value) => ({ value, label: SORT_LABELS[value] }));
+
+// Pole wyszukiwania i sortowanie (spec 0026 AC-5, AC-9) dzielą wzorzec nawigacji z
+// country/metraż poniżej: lokalny stan, nawigacja dopiero po kliknięciu "Szukaj"
+// (albo Enter w polu tekstowym), nigdy filtr atrybutów/podkategorii/ceny —
+// te przychodzą przez `filter` i zostają nietknięte (chipy je ustawiają osobno).
+export function ResultsFilterBar({ locale, countries, filter }: ResultsFilterBarProps) {
   const router = useRouter();
-  const [country, setCountry] = useState<CountryCode | null>(countryCode ?? null);
-  const [min, setMin] = useState<number | null>(sizeMin ?? null);
-  const [max, setMax] = useState<number | null>(sizeMax ?? null);
+  const [country, setCountry] = useState<CountryCode | null>(filter.countryCode ?? null);
+  const [min, setMin] = useState<number | null>(filter.sizeMin ?? null);
+  const [max, setMax] = useState<number | null>(filter.sizeMax ?? null);
+  const [sort, setSort] = useState<SortOption | null>(filter.sort ?? null);
+  const [q, setQ] = useState(filter.q ?? "");
 
   const countryOptions: SegmentOption[] = countries.map((c) => ({ value: c.code, label: c.name }));
   const sizeMaxOptions = sizeOptions.filter((option) => min === null || Number(option.value) >= min);
@@ -44,17 +49,20 @@ export function ResultsFilterBar({
   }
 
   function handleSearch() {
-    const params = new URLSearchParams();
-    if (family !== "dom") params.set("family", family);
-    if (country) params.set("country", country);
-    if (min !== null) params.set("sizeMin", String(min));
-    if (max !== null) params.set("sizeMax", String(max));
-    const query = params.toString();
-    router.push(`/${locale}/klient/wyniki${query ? `?${query}` : ""}`);
+    const trimmedQ = q.trim();
+    const merged: ResultsFilter = {
+      ...filter,
+      countryCode: country ?? undefined,
+      sizeMin: min === null ? undefined : (min as SizeThreshold),
+      sizeMax: max === null ? undefined : (max as SizeThreshold),
+      sort: sort ?? undefined,
+      q: trimmedQ.length > 0 ? trimmedQ : undefined,
+    };
+    router.push(buildResultsHref(locale, merged));
   }
 
   return (
-    <div className="flex w-full flex-col divide-y divide-brand-steel rounded-[2.5rem] border border-brand-steel bg-brand-warm-white shadow-sm sm:flex-row sm:items-stretch sm:divide-x sm:divide-y-0">
+    <div className="flex w-full flex-col divide-y divide-brand-v5-line rounded-[2.5rem] border border-brand-v5-line bg-brand-v5-surface shadow-sm sm:flex-row sm:items-stretch sm:divide-x sm:divide-y-0">
       <SearchSegment
         label="Kraj"
         value={country}
@@ -62,6 +70,7 @@ export function ResultsFilterBar({
         options={countryOptions}
         placeholder="Wybierz kraj"
         ariaLabel="Kraj docelowy"
+        surface="v5"
       />
       <SearchSegment
         label="Metraż od"
@@ -70,6 +79,7 @@ export function ResultsFilterBar({
         options={sizeOptions}
         placeholder="Dowolny"
         ariaLabel="Metraż od"
+        surface="v5"
       />
       <SearchSegment
         label="Metraż do"
@@ -78,13 +88,39 @@ export function ResultsFilterBar({
         options={sizeMaxOptions}
         placeholder="Dowolny"
         ariaLabel="Metraż do"
+        surface="v5"
       />
+      <SearchSegment
+        label="Sortuj"
+        value={sort}
+        onChange={(value) => setSort(value as SortOption)}
+        options={sortOptions}
+        placeholder="Polecane"
+        ariaLabel="Sortowanie wyników"
+        surface="v5"
+      />
+      <div className="flex flex-1 flex-col justify-center gap-0.5 px-brand-3 py-brand-2">
+        <label htmlFor="results-search-q" className="text-label font-semibold text-brand-v5-ink">
+          Słowo kluczowe
+        </label>
+        <input
+          id="results-search-q"
+          type="text"
+          value={q}
+          onChange={(event) => setQ(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") handleSearch();
+          }}
+          placeholder="Nazwa lub opis"
+          className="focus-ring w-full rounded-data bg-transparent text-body text-brand-v5-ink placeholder:text-brand-v5-muted/70"
+        />
+      </div>
       <div className="flex items-center justify-center p-brand-2">
         <button
           type="button"
           onClick={handleSearch}
           aria-label="Szukaj"
-          className="focus-ring flex size-12 shrink-0 items-center justify-center rounded-full bg-brand-passage-blue text-brand-action-foreground transition-colors hover:bg-brand-electric-plane"
+          className="focus-ring flex size-12 shrink-0 items-center justify-center rounded-full bg-brand-v5-amber text-brand-v5-amber-foreground transition-colors hover:bg-brand-v5-amber-strong"
         >
           <Search className="size-5" aria-hidden="true" />
         </button>

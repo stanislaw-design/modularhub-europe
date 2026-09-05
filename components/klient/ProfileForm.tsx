@@ -39,11 +39,13 @@ export function ProfileForm({ email, initialName, initialPhone }: ProfileFormPro
   return (
     <form onSubmit={handleSubmit} className="flex max-w-md flex-col gap-brand-3" noValidate>
       <Stack gap={1}>
-        <Label htmlFor="profile-email">E-mail</Label>
-        <Input id="profile-email" type="email" value={email} disabled readOnly />
+        <Label htmlFor="profile-email" surface="v5">
+          E-mail
+        </Label>
+        <Input id="profile-email" type="email" value={email} disabled readOnly surface="v5" />
       </Stack>
       <Stack gap={1}>
-        <Label htmlFor="profile-name" required>
+        <Label htmlFor="profile-name" required surface="v5">
           Imię i nazwisko
         </Label>
         <Input
@@ -52,12 +54,13 @@ export function ProfileForm({ email, initialName, initialPhone }: ProfileFormPro
           type="text"
           autoComplete="name"
           required
+          surface="v5"
           value={name}
           onChange={(event) => setName(event.target.value)}
         />
       </Stack>
       <Stack gap={1}>
-        <Label htmlFor="profile-phone" required>
+        <Label htmlFor="profile-phone" required surface="v5">
           Telefon
         </Label>
         <Input
@@ -66,6 +69,7 @@ export function ProfileForm({ email, initialName, initialPhone }: ProfileFormPro
           type="tel"
           autoComplete="tel"
           required
+          surface="v5"
           value={phone}
           onChange={(event) => setPhone(event.target.value)}
         />
@@ -80,7 +84,7 @@ export function ProfileForm({ email, initialName, initialPhone }: ProfileFormPro
           Zapisano zmiany.
         </p>
       )}
-      <Button type="submit" disabled={isPending} className="w-fit">
+      <Button type="submit" disabled={isPending} surface="v5" className="w-fit">
         {isPending ? "Zapisywanie…" : error ? "Ponów zapis" : "Zapisz zmiany"}
       </Button>
     </form>

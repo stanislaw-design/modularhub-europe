@@ -1,7 +1,7 @@
 "use client";
 
 import { type FormEvent, useState, useTransition } from "react";
-import { Button, Heading, Input, Label, Select, Stack, Text } from "@/components/ui";
+import { Button, Heading, Input, Label, ScrollReveal, Select, Stack, Text } from "@/components/ui";
 import type { Country, CountryCode, Project } from "@/lib/data/types";
 import type { InquiryContact } from "@/lib/inquiry";
 import { submitInquiry } from "@/lib/inquiry-actions";
@@ -75,20 +75,24 @@ export function InquiryFlow({
   if (phase === "sent" && sentAt) {
     return (
       <Stack gap={4}>
-        <Heading level="h1">Zapytanie wysłane</Heading>
-        <Text tone="muted">
+        <Heading level="h1" surface="v5">
+          Zapytanie wysłane
+        </Heading>
+        <Text tone="muted" surface="v5">
           Potwierdzenie zapytania o {projects.length} {pluralizeDom(projects.length)} poniżej.
         </Text>
         <Stack gap={3}>
-          {projects.map((project) => (
-            <InquiryConfirmationCard key={project.id} project={project} sentAt={sentAt} />
+          {projects.map((project, index) => (
+            <ScrollReveal key={project.id} style={{ transitionDelay: `${Math.min(index * 80, 480)}ms` }}>
+              <InquiryConfirmationCard project={project} sentAt={sentAt} />
+            </ScrollReveal>
           ))}
         </Stack>
         <Stack direction="row" gap={2}>
-          <Button as="a" href={dzialkaHref} className="w-fit">
+          <Button as="a" href={dzialkaHref} surface="v5" className="w-fit">
             Sprawdź działkę
           </Button>
-          <Button as="a" href={resultsHref} variant="secondary" className="w-fit">
+          <Button as="a" href={resultsHref} variant="secondary" surface="v5" className="w-fit">
             Wróć do wyników
           </Button>
         </Stack>
@@ -100,15 +104,17 @@ export function InquiryFlow({
 
   return (
     <Stack gap={4}>
-      <Heading level="h1">Zapytanie o wybrane domy</Heading>
-      <Text tone="muted">
+      <Heading level="h1" surface="v5">
+        Zapytanie o wybrane domy
+      </Heading>
+      <Text tone="muted" surface="v5">
         Wysyłasz jedno zapytanie o {projects.length} {pluralizeDom(projects.length)}:{" "}
         {projects.map((project) => project.name).join(", ")}. Podaj dane kontaktowe, żeby producenci
         mogli się z Tobą skontaktować.
       </Text>
       <form onSubmit={handleSubmit} className="flex max-w-md flex-col gap-brand-3" noValidate>
         <Stack gap={1}>
-          <Label htmlFor="inquiry-name" required>
+          <Label htmlFor="inquiry-name" required surface="v5">
             Imię i nazwisko
           </Label>
           <Input
@@ -117,12 +123,13 @@ export function InquiryFlow({
             type="text"
             autoComplete="name"
             required
+            surface="v5"
             value={contact.name}
             onChange={(event) => setContact((prev) => ({ ...prev, name: event.target.value }))}
           />
         </Stack>
         <Stack gap={1}>
-          <Label htmlFor="inquiry-email" required>
+          <Label htmlFor="inquiry-email" required surface="v5">
             E-mail
           </Label>
           <Input
@@ -131,6 +138,7 @@ export function InquiryFlow({
             type="email"
             autoComplete="email"
             required
+            surface="v5"
             invalid={emailTouched && contact.email.length > 0 && !emailValid}
             aria-describedby={emailTouched && contact.email.length > 0 && !emailValid ? "inquiry-email-error" : undefined}
             value={contact.email}
@@ -144,7 +152,7 @@ export function InquiryFlow({
           )}
         </Stack>
         <Stack gap={1}>
-          <Label htmlFor="inquiry-phone" required>
+          <Label htmlFor="inquiry-phone" required surface="v5">
             Telefon
           </Label>
           <Input
@@ -153,12 +161,13 @@ export function InquiryFlow({
             type="tel"
             autoComplete="tel"
             required
+            surface="v5"
             value={contact.phone}
             onChange={(event) => setContact((prev) => ({ ...prev, phone: event.target.value }))}
           />
         </Stack>
         <Stack gap={1}>
-          <Label id="inquiry-country-label" required>
+          <Label id="inquiry-country-label" required surface="v5">
             Kraj dostawy
           </Label>
           <Select
@@ -166,6 +175,7 @@ export function InquiryFlow({
             onChange={setDeliveryCountryCode}
             options={countryOptions}
             aria-labelledby="inquiry-country-label"
+            surface="v5"
           />
         </Stack>
         {error && (
@@ -173,7 +183,7 @@ export function InquiryFlow({
             {error}
           </p>
         )}
-        <Button type="submit" disabled={!canSubmit} className="w-fit">
+        <Button type="submit" disabled={!canSubmit} surface="v5" className="w-fit">
           {isPending ? "Wysyłanie…" : error ? "Ponów wysyłanie" : "Wyślij zapytanie"}
         </Button>
       </form>

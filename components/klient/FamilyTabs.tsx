@@ -31,7 +31,7 @@ export function FamilyTabs({ locale, family, countryCode, sizeMin, sizeMax }: Fa
   }
 
   return (
-    <nav aria-label="Rodzina produktu" className="flex gap-brand-2 border-b border-brand-steel">
+    <nav aria-label="Rodzina produktu" className="flex gap-brand-2 border-b border-brand-v5-line">
       {FAMILY_TABS.map((tab) => {
         const isCurrent = tab.value === family;
         return (
@@ -39,10 +39,10 @@ export function FamilyTabs({ locale, family, countryCode, sizeMin, sizeMax }: Fa
             key={tab.value}
             href={hrefFor(tab.value)}
             aria-current={isCurrent ? "page" : undefined}
-            className={`focus-ring -mb-px border-b-2 px-brand-1 py-brand-2 text-body font-medium ${
+            className={`focus-ring -mb-px border-b-2 px-brand-1 py-brand-2 text-body font-medium transition-colors ${
               isCurrent
-                ? "border-brand-passage-blue text-brand-foundation-navy"
-                : "border-transparent text-brand-technical-graphite hover:text-brand-foundation-navy"
+                ? "border-brand-v5-amber-strong text-brand-v5-ink"
+                : "border-transparent text-brand-v5-muted hover:text-brand-v5-ink"
             }`}
           >
             {tab.label}

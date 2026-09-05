@@ -3,6 +3,7 @@ import { CategoryFilterBar } from "@/components/klient/CategoryFilterBar";
 import { FamilyTabs } from "@/components/klient/FamilyTabs";
 import { ResultsFilterBar } from "@/components/klient/ResultsFilterBar";
 import { ResultsSelection } from "@/components/klient/ResultsSelection";
+import { SubcategoryFilterBar } from "@/components/klient/SubcategoryFilterBar";
 import { Stack } from "@/components/ui";
 import { getCountries } from "@/lib/data/countries";
 import { getEligibilityByCountry, getProjects } from "@/lib/data/projects";
@@ -36,7 +37,7 @@ export default async function WynikiPage({
     if (clientId) favoritedIds = await getFavoritedProductIds(clientId);
   }
 
-  const sortedProjects = sortResults(projects);
+  const sortedProjects = sortResults(projects, filter.sort);
   const countryNameByCode = new Map(countries.map((country) => [country.code, country.name]));
   const eligibilityByProjectId = new Map(eligibilityRows.map((row) => [row.projectId, row.status]));
 
@@ -49,21 +50,16 @@ export default async function WynikiPage({
         sizeMin={filter.sizeMin}
         sizeMax={filter.sizeMax}
       />
-      <ResultsFilterBar
-        locale={locale}
-        countries={countries}
-        countryCode={filter.countryCode}
-        sizeMin={filter.sizeMin}
-        sizeMax={filter.sizeMax}
-        family={filter.family}
-      />
-      {filter.family === "dom" && <CategoryFilterBar />}
+      <ResultsFilterBar locale={locale} countries={countries} filter={filter} />
+      {filter.family === "dom" && <CategoryFilterBar locale={locale} filter={filter} />}
+      <SubcategoryFilterBar locale={locale} filter={filter} />
       <ResultsSelection
         locale={locale}
         countryCode={filter.countryCode}
         sizeMin={filter.sizeMin}
         sizeMax={filter.sizeMax}
         family={filter.family}
+        sort={filter.sort}
         countries={countries}
         isClientSession={isClientSession}
         serverItems={sortedProjects.map((project) => ({

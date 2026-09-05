@@ -3,8 +3,12 @@ import type { ProjectDraft } from "./data/types";
 import {
   BEDROOMS_MAX,
   BEDROOMS_MIN,
+  ENERGY_CLASS_OPTIONS,
   FLOOR_AREA_MAX_M2,
   FLOOR_AREA_MIN_M2,
+  HEAT_SOURCE_OPTIONS,
+  TECHNICAL_FIELDS_BY_FAMILY,
+  VENTILATION_TYPE_OPTIONS,
   WIZARD_STEPS,
   clearDraft,
   createEmptyDraft,
@@ -27,10 +31,10 @@ function completeDraft(): ProjectDraft {
     technicalSpecs: {
       wallBuildUp: "Szkielet",
       insulation: "U = 0.15",
-      heatTransferCoefficients: "U = 0.9",
+      heatTransferCoefficients: "A",
       windowClass: "Uw = 0.8",
-      ventilation: "Mechaniczna",
-      heatSource: "Pompa ciepła",
+      ventilation: "rekuperacja",
+      heatSource: "pompa-ciepla-powietrze-woda",
       fireResistance: "REI 30",
       windResistance: "Strefa 2",
     },
@@ -333,5 +337,35 @@ describe("clearDraft", () => {
     expect(() => clearDraft("1234567890")).not.toThrow();
 
     spy.mockRestore();
+  });
+});
+
+// spec 0026 AC-2, Feature design: heatSource/ventilation/heatTransferCoefficients switched from
+// free text to closed-list selects in the producer wizard's "Dane techniczne" step.
+describe("dom technical fields: heatSource/ventilation/heatTransferCoefficients selects", () => {
+  it("configures all three as select fields with options, not text", () => {
+    const fields = TECHNICAL_FIELDS_BY_FAMILY.dom;
+    for (const key of ["heatSource", "ventilation", "heatTransferCoefficients"] as const) {
+      const field = fields.find((f) => f.key === key);
+      expect(field?.type).toBe("select");
+      expect(field?.options?.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("HEAT_SOURCE_OPTIONS has one entry per HEAT_SOURCES enum value, each with a Polish label", () => {
+    expect(HEAT_SOURCE_OPTIONS).toHaveLength(6);
+    for (const option of HEAT_SOURCE_OPTIONS) {
+      expect(option.label.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("VENTILATION_TYPE_OPTIONS has one entry per VENTILATION_TYPES enum value", () => {
+    expect(VENTILATION_TYPE_OPTIONS).toHaveLength(4);
+  });
+
+  it("ENERGY_CLASS_OPTIONS excludes 'nieznana' (a backfill default, not a real choice, spec 0026 Feature design)", () => {
+    const values: string[] = ENERGY_CLASS_OPTIONS.map((o) => o.value);
+    expect(values).toEqual(["A+", "A", "B", "C", "D"]);
+    expect(values).not.toContain("nieznana");
   });
 });

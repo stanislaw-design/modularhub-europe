@@ -20,7 +20,9 @@ const checklist = [
 // real competitive advantage, not one of four interchangeable benefit tiles
 // (the old WhyUs treatment this section replaces). Status text always
 // renders in white; only the paired icon carries the status color, so the
-// state is never color-only and stays readable on the dark card.
+// state is never color-only and stays readable on the dark card. The small
+// print under the pitch frames results as an orientational check, not legal
+// advice — liability guardrail without undercutting the engine's value prop.
 export function ComplianceEngineShowcase({ locale }: ComplianceEngineShowcaseProps) {
   return (
     <section className="py-brand-5">
@@ -35,6 +37,12 @@ export function ComplianceEngineShowcase({ locale }: ComplianceEngineShowcasePro
             Każdy dom porównujemy z lokalnymi przepisami budowlanymi kraju docelowego —
             konstrukcją, izolacją, wentylacją i wymaganą dokumentacją — zanim wyślesz zapytanie do
             producenta.
+          </Text>
+          <Text tone="muted" className="text-data">
+            Wynik to wstępna, orientacyjna weryfikacja — nie stanowi porady prawnej. Dane i logikę
+            Compliance Engine™ na bieżąco aktualizujemy, by jak najwierniej odzwierciedlały
+            przepisy budowlane danego kraju, jednak ostateczną zgodność projektu potwierdza
+            właściwy urząd i wybrany producent.
           </Text>
         </div>
         <div className="lg:col-span-7">

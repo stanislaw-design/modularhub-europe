@@ -15,6 +15,7 @@ interface FavoriteButtonProps {
   isClientSession: boolean;
   initialFavorited: boolean;
   className?: string;
+  surface?: "v3" | "v5";
 }
 
 // Serce widoczne na ResultCard (/wyniki) i stronie szczegółów projektu (spec
@@ -30,15 +31,18 @@ export function FavoriteButton({
   isClientSession,
   initialFavorited,
   className,
+  surface = "v3",
 }: FavoriteButtonProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [favorited, setFavorited] = useState(initialFavorited);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const isV5 = surface === "v5";
 
-  const baseClassName =
-    "focus-ring flex items-center justify-center rounded-data bg-brand-warm-white/95 p-1.5 shadow-sm hover:opacity-80";
+  const baseClassName = isV5
+    ? "focus-ring flex items-center justify-center rounded-data bg-brand-v5-surface/95 p-1.5 shadow-sm transition-opacity hover:opacity-80"
+    : "focus-ring flex items-center justify-center rounded-data bg-brand-warm-white/95 p-1.5 shadow-sm transition-opacity hover:opacity-80";
 
   if (!isClientSession) {
     const query = searchParams.toString();
@@ -49,7 +53,7 @@ export function FavoriteButton({
         aria-label={`Zaloguj się, żeby zapisać ${productName} do ulubionych`}
         className={`${baseClassName} ${className ?? ""}`}
       >
-        <Heart className="size-4 text-brand-foundation-navy" aria-hidden="true" />
+        <Heart className={`size-4 ${isV5 ? "text-brand-v5-ink" : "text-brand-foundation-navy"}`} aria-hidden="true" />
       </Link>
     );
   }
@@ -81,8 +85,12 @@ export function FavoriteButton({
           <Heart
             className={
               favorited
-                ? "size-4 fill-brand-passage-blue text-brand-passage-blue"
-                : "size-4 text-brand-foundation-navy"
+                ? isV5
+                  ? "size-4 fill-brand-v5-amber-strong text-brand-v5-amber-strong"
+                  : "size-4 fill-brand-passage-blue text-brand-passage-blue"
+                : isV5
+                  ? "size-4 text-brand-v5-ink"
+                  : "size-4 text-brand-foundation-navy"
             }
             aria-hidden="true"
           />

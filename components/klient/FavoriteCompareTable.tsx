@@ -19,10 +19,10 @@ const standardLabel = {
 // głównej liście (Key invariants: nigdy nie znika po cichu z żadnego widoku).
 export function FavoriteCompareTable({ favorites }: FavoriteCompareTableProps) {
   return (
-    <div className="overflow-x-auto rounded-card border border-brand-steel">
+    <div className="overflow-x-auto rounded-v5-card border border-brand-v5-line">
       <table className="w-full min-w-[36rem] border-collapse text-body">
         <thead>
-          <tr className="border-b border-brand-steel bg-brand-steel/10 text-left">
+          <tr className="border-b border-brand-v5-line bg-brand-v5-line/10 text-left">
             <th className="p-brand-2 font-medium">Dom</th>
             {favorites.map(({ project, available }) => (
               <th key={project.id} className="p-brand-2 font-medium">
@@ -33,32 +33,32 @@ export function FavoriteCompareTable({ favorites }: FavoriteCompareTableProps) {
           </tr>
         </thead>
         <tbody>
-          <tr className="border-b border-brand-steel/50">
-            <Text as="td" tone="muted" className="p-brand-2">
+          <tr className="border-b border-brand-v5-line/50">
+            <Text as="td" tone="muted" surface="v5" className="p-brand-2">
               Metraż
             </Text>
             {favorites.map(({ project }) => (
-              <DataText as="td" key={project.id} className="p-brand-2">
+              <DataText as="td" key={project.id} surface="v5" className="p-brand-2">
                 {project.floorAreaM2} m²
               </DataText>
             ))}
           </tr>
-          <tr className="border-b border-brand-steel/50">
-            <Text as="td" tone="muted" className="p-brand-2">
+          <tr className="border-b border-brand-v5-line/50">
+            <Text as="td" tone="muted" surface="v5" className="p-brand-2">
               Cena
             </Text>
             {favorites.map(({ project }) => (
-              <DataText as="td" key={project.id} className="p-brand-2">
+              <DataText as="td" key={project.id} surface="v5" className="p-brand-2">
                 {priceFormatter.format(project.priceMin)}–{priceFormatter.format(project.priceMax)} €
               </DataText>
             ))}
           </tr>
-          <tr className="border-b border-brand-steel/50">
-            <Text as="td" tone="muted" className="p-brand-2">
+          <tr className="border-b border-brand-v5-line/50">
+            <Text as="td" tone="muted" surface="v5" className="p-brand-2">
               Czas produkcji
             </Text>
             {favorites.map(({ project }) => (
-              <DataText as="td" key={project.id} className="p-brand-2">
+              <DataText as="td" key={project.id} surface="v5" className="p-brand-2">
                 {project.commercial.productionLeadTimeWeeksMax > 0
                   ? `${project.commercial.productionLeadTimeWeeksMin}–${project.commercial.productionLeadTimeWeeksMax} tyg.`
                   : "—"}
@@ -66,11 +66,11 @@ export function FavoriteCompareTable({ favorites }: FavoriteCompareTableProps) {
             ))}
           </tr>
           <tr>
-            <Text as="td" tone="muted" className="p-brand-2">
+            <Text as="td" tone="muted" surface="v5" className="p-brand-2">
               Standard wykończenia
             </Text>
             {favorites.map(({ project }) => (
-              <DataText as="td" key={project.id} className="p-brand-2">
+              <DataText as="td" key={project.id} surface="v5" className="p-brand-2">
                 {standardLabel[project.commercial.completionStandard]}
               </DataText>
             ))}

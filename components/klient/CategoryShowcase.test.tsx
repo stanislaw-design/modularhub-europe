@@ -8,7 +8,7 @@ import { CategoryShowcase } from "./CategoryShowcase";
 // The DB is one system boundary here (spec 0022 AC-8 product counts); the
 // mock project catalog (lib/data/projects) is the other, since each card now
 // links to a real featured example project instead of unfiltered /wyniki.
-// "Outdoor & Wellness" covers spa-modulowe and pergola only — dom already has
+// "Więcej niż dom" covers spa-modulowe and pergola only — dom already has
 // its own showcase (PopularHomes) higher on the home page.
 vi.mock("@/lib/db/queries", () => ({
   getProductFamilyCounts: vi.fn(),
@@ -33,7 +33,7 @@ describe("CategoryShowcase", () => {
 
     render(await CategoryShowcase({ locale: "pl" }));
 
-    expect(screen.getByText("Outdoor & Wellness")).toBeInTheDocument();
+    expect(screen.getByText("Więcej niż dom")).toBeInTheDocument();
     expect(screen.queryByText("Domy modułowe")).not.toBeInTheDocument();
     expect(screen.getByText("Spa modułowe")).toBeInTheDocument();
     expect(screen.getByText("Pergole")).toBeInTheDocument();

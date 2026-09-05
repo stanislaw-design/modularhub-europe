@@ -10,9 +10,14 @@ const heading = tv({
       h2: "text-h2",
       h3: "text-h3",
     },
+    surface: {
+      v3: "",
+      v5: "text-brand-v5-ink",
+    },
   },
   defaultVariants: {
     level: "h2",
+    surface: "v3",
   },
 });
 
@@ -28,7 +33,7 @@ interface HeadingProps extends VariantProps<typeof heading> {
   children: ReactNode;
 }
 
-export function Heading({ level = "h2", className, children }: HeadingProps) {
+export function Heading({ level = "h2", surface, className, children }: HeadingProps) {
   const Tag = tagByLevel[level];
-  return <Tag className={heading({ level, className })}>{children}</Tag>;
+  return <Tag className={heading({ level, surface, className })}>{children}</Tag>;
 }

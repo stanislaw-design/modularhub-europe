@@ -15,11 +15,21 @@ interface SearchSegmentProps {
   options: SegmentOption[];
   placeholder: string;
   ariaLabel: string;
+  surface?: "v3" | "v5";
 }
 
-export function SearchSegment({ label, value, onChange, options, placeholder, ariaLabel }: SearchSegmentProps) {
+export function SearchSegment({
+  label,
+  value,
+  onChange,
+  options,
+  placeholder,
+  ariaLabel,
+  surface = "v3",
+}: SearchSegmentProps) {
   const selected = options.find((option) => option.value === value) ?? null;
   const prefersReducedMotion = useReducedMotion();
+  const isV5 = surface === "v5";
 
   return (
     <Listbox value={value as string} onChange={onChange}>
@@ -29,12 +39,14 @@ export function SearchSegment({ label, value, onChange, options, placeholder, ar
             aria-label={ariaLabel}
             className="focus-ring flex w-full flex-col items-start gap-0.5 px-brand-3 py-brand-2 text-left"
           >
-            <span className="text-label font-semibold text-brand-foundation-navy">{label}</span>
+            <span className={`text-label font-semibold ${isV5 ? "text-brand-v5-ink" : "text-brand-foundation-navy"}`}>
+              {label}
+            </span>
             <span
               className={
                 selected
-                  ? "text-body text-brand-foundation-navy"
-                  : "text-body text-brand-technical-graphite/60"
+                  ? `text-body ${isV5 ? "text-brand-v5-ink" : "text-brand-foundation-navy"}`
+                  : `text-body ${isV5 ? "text-brand-v5-muted/70" : "text-brand-technical-graphite/60"}`
               }
             >
               {selected ? selected.label : placeholder}
@@ -59,17 +71,29 @@ export function SearchSegment({ label, value, onChange, options, placeholder, ar
                 animate={{ height: "auto" }}
                 exit={{ height: 0 }}
                 transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className="absolute left-0 z-10 mt-1 w-full min-w-40 overflow-hidden rounded-card border-x border-b border-brand-steel bg-brand-warm-white shadow-md"
+                className={
+                  isV5
+                    ? "absolute left-0 z-10 mt-1 w-full min-w-40 overflow-hidden rounded-v5-card border-x border-b border-brand-v5-line bg-brand-v5-surface shadow-md"
+                    : "absolute left-0 z-10 mt-1 w-full min-w-40 overflow-hidden rounded-card border-x border-b border-brand-steel bg-brand-warm-white shadow-md"
+                }
               >
                 <ListboxOptions
                   static
-                  className="max-h-60 overflow-auto py-1 focus:outline-none [scrollbar-color:var(--color-brand-technical-graphite)_transparent] [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-brand-technical-graphite/30 [&::-webkit-scrollbar-thumb:hover]:bg-brand-technical-graphite/50 [&::-webkit-scrollbar-track]:bg-transparent"
+                  className={
+                    isV5
+                      ? "max-h-60 overflow-auto py-1 focus:outline-none [scrollbar-color:var(--color-brand-v5-muted)_transparent] [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-brand-v5-muted/30 [&::-webkit-scrollbar-thumb:hover]:bg-brand-v5-muted/50 [&::-webkit-scrollbar-track]:bg-transparent"
+                      : "max-h-60 overflow-auto py-1 focus:outline-none [scrollbar-color:var(--color-brand-technical-graphite)_transparent] [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-brand-technical-graphite/30 [&::-webkit-scrollbar-thumb:hover]:bg-brand-technical-graphite/50 [&::-webkit-scrollbar-track]:bg-transparent"
+                  }
                 >
                   {options.map((option) => (
                     <ListboxOption
                       key={option.value}
                       value={option.value}
-                      className="cursor-default px-brand-2 py-brand-1 text-body text-brand-foundation-navy data-[focus]:bg-brand-passage-blue/10"
+                      className={
+                        isV5
+                          ? "cursor-default px-brand-2 py-brand-1 text-body text-brand-v5-ink data-[focus]:bg-brand-v5-amber/10"
+                          : "cursor-default px-brand-2 py-brand-1 text-body text-brand-foundation-navy data-[focus]:bg-brand-passage-blue/10"
+                      }
                     >
                       {option.label}
                     </ListboxOption>

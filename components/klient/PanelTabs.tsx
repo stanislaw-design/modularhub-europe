@@ -21,7 +21,7 @@ export function PanelTabs({ locale }: PanelTabsProps) {
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Panel klienta" className="flex gap-brand-2 border-b border-brand-steel">
+    <nav aria-label="Panel klienta" className="flex gap-brand-2 border-b border-brand-v5-line">
       {PANEL_TABS.map((tab) => {
         const href = `/${locale}/klient/panel/${tab.segment}`;
         const isCurrent = pathname === href;
@@ -30,10 +30,10 @@ export function PanelTabs({ locale }: PanelTabsProps) {
             key={tab.segment}
             href={href}
             aria-current={isCurrent ? "page" : undefined}
-            className={`focus-ring -mb-px border-b-2 px-brand-1 py-brand-2 text-body font-medium ${
+            className={`focus-ring -mb-px border-b-2 px-brand-1 py-brand-2 text-body font-medium transition-colors ${
               isCurrent
-                ? "border-brand-passage-blue text-brand-foundation-navy"
-                : "border-transparent text-brand-technical-graphite hover:text-brand-foundation-navy"
+                ? "border-brand-v5-amber-strong text-brand-v5-ink"
+                : "border-transparent text-brand-v5-muted hover:text-brand-v5-ink"
             }`}
           >
             {tab.label}

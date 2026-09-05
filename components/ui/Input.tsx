@@ -7,17 +7,32 @@ const input = tv({
     invalid: {
       true: "border-status-blocked",
     },
+    surface: {
+      v3: "",
+      v5: "border-brand-v5-line bg-brand-v5-surface text-brand-v5-ink placeholder:text-brand-v5-muted/70",
+    },
+  },
+  compoundVariants: [
+    {
+      invalid: true,
+      surface: "v5",
+      class: "border-status-blocked",
+    },
+  ],
+  defaultVariants: {
+    surface: "v3",
   },
 });
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   invalid?: boolean;
+  surface?: "v3" | "v5";
 }
 
-export function Input({ className, invalid, ...props }: InputProps) {
+export function Input({ className, invalid, surface, ...props }: InputProps) {
   return (
     <input
-      className={input({ invalid, className })}
+      className={input({ invalid, surface, className })}
       aria-invalid={invalid || undefined}
       {...props}
     />

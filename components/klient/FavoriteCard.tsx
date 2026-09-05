@@ -24,10 +24,15 @@ export function FavoriteCard({ entry, locale, selected, selectionDisabled, onTog
   const href = `/${locale}/klient/projekt/${project.id}`;
 
   return (
-    <Card as="article" padding="none" className="relative flex h-full flex-col overflow-hidden">
+    <Card
+      as="article"
+      padding="none"
+      surface="v5"
+      className="group relative flex h-full flex-col overflow-hidden transition-shadow hover:shadow-md"
+    >
       <Link
         href={href}
-        className="focus-ring absolute inset-0 z-0 rounded-card"
+        className="focus-ring absolute inset-0 z-0 rounded-v5-card"
         aria-label={`Zobacz szczegóły projektu ${project.name}`}
       />
       <div className="relative aspect-[3/2] overflow-hidden">
@@ -37,16 +42,17 @@ export function FavoriteCard({ entry, locale, selected, selectionDisabled, onTog
             alt=""
             fill
             sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
-            className="object-cover"
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
-          <div className="flex size-full items-center justify-center bg-brand-steel/20">
-            <ImageOff className="size-8 text-brand-technical-graphite/50" aria-hidden="true" />
+          <div className="flex size-full items-center justify-center bg-brand-v5-line/40">
+            <ImageOff className="size-8 text-brand-v5-muted/50" aria-hidden="true" />
           </div>
         )}
-        <label className="absolute right-brand-2 top-brand-2 z-10 flex items-center justify-center rounded-data bg-brand-warm-white/95 p-1.5 shadow-sm">
+        <label className="absolute right-brand-2 top-brand-2 z-10 flex items-center justify-center rounded-data bg-brand-v5-surface/95 p-1.5 shadow-sm">
           <span className="sr-only">Zaznacz {project.name} do porównania</span>
           <Checkbox
+            surface="v5"
             checked={selected}
             disabled={selectionDisabled}
             onChange={onToggleSelect}
@@ -60,21 +66,24 @@ export function FavoriteCard({ entry, locale, selected, selectionDisabled, onTog
           isClientSession
           initialFavorited
           className="absolute left-brand-2 top-brand-2 z-10"
+          surface="v5"
         />
       </div>
       <div className="relative z-10 flex flex-1 flex-col gap-brand-2 p-brand-3">
         {!available && <StatusPill status="blocked">Produkt niedostępny</StatusPill>}
         <div className="flex flex-col gap-1">
-          <Heading level="h3" className="text-body-l">
+          <Heading level="h3" surface="v5" className="text-body-l">
             {project.name}
           </Heading>
-          <Text tone="muted" className="flex items-center gap-1 text-data">
+          <Text tone="muted" surface="v5" className="flex items-center gap-1 text-data">
             <MapPin className="size-3.5 shrink-0" aria-hidden="true" />
             <span>{project.producerName}</span>
           </Text>
         </div>
-        <Text className="font-medium">{project.floorAreaM2} m² użytkowe</Text>
-        <DataText className="mt-auto border-t border-brand-steel pt-brand-2 text-body-l font-semibold">
+        <Text surface="v5" className="font-medium">
+          {project.floorAreaM2} m² użytkowe
+        </Text>
+        <DataText surface="v5" className="mt-auto border-t border-brand-v5-line pt-brand-2 text-body-l font-semibold">
           od {priceFormatter.format(project.priceMin)} €
         </DataText>
       </div>

@@ -35,12 +35,14 @@ export function ShortlistActionBar({
   }
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-10 border-t border-brand-steel bg-brand-warm-white/95 backdrop-blur">
+    <div className="fixed inset-x-0 bottom-0 z-10 border-t border-brand-v5-line bg-brand-v5-surface/95 backdrop-blur">
       <Container className="flex items-center justify-between gap-brand-3 py-brand-2">
-        <Text tone="muted">
+        <Text tone="muted" surface="v5">
           Zaznaczono: {selectedCount}/{maxSelected}
         </Text>
-        <Button onClick={handleSubmit}>Wyślij zapytanie</Button>
+        <Button onClick={handleSubmit} surface="v5">
+          Wyślij zapytanie
+        </Button>
       </Container>
     </div>
   );

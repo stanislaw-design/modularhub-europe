@@ -1,0 +1,93 @@
+{
+  "batch_id": "steelhouse-2026-09-05",
+  "imported_at": "2026-09-05",
+  "source_files": [
+    "_docs/SteelHouse_projekty_ModularHub — kopia.xlsx"
+  ],
+  "neon_project_id": "spring-rain-58383710",
+  "database": "neondb",
+  "placeholder_fields_needing_real_values": {
+    "users.id": "a63d5d2a-9241-49a0-aaa0-a26bbe397748",
+    "users.email": "import-steelhouse@example.modularhub.local — replace once Steel House registers with a real account",
+    "producer.id": "2bdfa3af-de90-48fe-a442-f0179ec41f26",
+    "producer.nip": "DEMO00000006 — placeholder, follows the same DEMO0000000N convention as the other 5 demo producers; replace with the real NIP",
+    "producer.technology": "modulowa-stal-lekka — this one is well justified: the source site itself states 'stalowy szkielet wykonany z bardzo wytrzymałych profili' (steel skeleton) for every family. Still worth a supplier confirmation before treating it as final.",
+    "producer.rating": "null — no reviews yet"
+  },
+  "rights": {
+    "content_owner": "Steel House (steel-house.com.pl)",
+    "reuse_permission_status": "requires_confirmation",
+    "publish_media": false,
+    "publish_source_description_verbatim": false,
+    "note_pl": "Przed publikacją grafik i materiałów producenta należy potwierdzić zgodę/licencję na ich wykorzystanie w ModularHub. Wszystkie 27 wariantów zostały mimo to ustawione na status='published', tak jak przy imporcie Budman House — do weryfikacji przez człowieka."
+  },
+  "qa_findings_source_spreadsheet": [
+    {
+      "issue": "Kolumna 'Cena od [PLN]' w arkuszu 'Projekty' zawiera 27 rosnących, zaokrąglonych wartości (20..119), ale arkusz 'Instrukcja' (wiersz 4) jawnie stwierdza: 'Na wykorzystanych kartach Steel House nie znaleziono jawnych cen katalogowych, dlatego kolumna Cena od [PLN] pozostaje pusta.' Odwiedziłem wszystkich 5 stron rodzin (Rosevia, Silesia, Posnania, Pomerania, Bukovina) na steel-house.com.pl i faktycznie żadna nie publikuje ceny.",
+      "resolution": "Zignorowano kolumnę cenową jako niewiarygodną/niespójną z własną instrukcją arkusza. Wszystkie 27 produktów mają price_min_cents/price_max_cents = NULL (cena na zapytanie), zgodnie z tym co arkusz sam deklarował."
+    },
+    {
+      "issue": "Kolumna 'Pow. całkowita [m²]' dla wszystkich 13 wariantów Rosevia/Silesia jest wypełniona stałą wartością '16', niezależnie od realnej wielkości domu (np. Rosevia 65 ma zabudowę 64.5 m², a 'całkowita' rzekomo 16 m²) — matematycznie niemożliwe, najpewniej artefakt kopiowania formuły.",
+      "resolution": "Wartość zignorowana dla rodzin jednopoziomowych bez antresoli (Rosevia, Silesia, Posnania) — nie ma dla nich sensownego pojęcia 'powierzchni całkowitej' różnej od zabudowy. Zachowana tylko dla Pomerania/Bukovina, gdzie wartość jest spójna z antresolą i widoczna też na stronie producenta."
+    },
+    {
+      "issue": "Silesia 48: kolumna 'Wysokość [m]' zawiera wartość '62' zamiast liczby w metrach — najpewniej cena omyłkowo wpisana o jedną kolumnę za wcześnie (pasuje do sąsiednich wariantów: 59, 62, 66 rosnąco). Arkusz 'Uwagi QA' potwierdza: 'W opisie wariantu nie podano wysokości.'",
+      "resolution": "Wysokość i external_dimensions dla Silesia 48 zapisane jako nieznane (bez wysokości), zamiast ryzykować błędną wartość."
+    },
+    {
+      "issue": "Rosevia 60: wymiary 4.3×14 m różnią się od Rosevia 57 (4.3×13.3 m), ale obie mają identyczne powierzchnie (47.5 / 57.2 m²) — arkusz 'Uwagi QA' oznacza to jako DO WERYFIKACJI.",
+      "resolution": "Dane przepisane 1:1 ze źródła (obie z tymi samymi powierzchniami) — niespójność pozostawiona do potwierdzenia z producentem, nie zgadywano która wartość jest błędna."
+    },
+    {
+      "issue": "Rooms/bedrooms/bathrooms: strony rodzin steel-house.com.pl pokazują rzuty, ale nie podają tekstowo liczby pokoi/sypialni/łazienek per wariant.",
+      "resolution": "product.rooms / bedrooms / bathrooms pozostawione NULL dla wszystkich 27 wariantów (brak zgadywania)."
+    }
+  ],
+  "fields_to_confirm_per_product": [
+    "producer.technology (uzasadnione źródłem, ale bez formalnego potwierdzenia dostawcy)",
+    "product.construction_system = 'stalowy szkielet z profili stalowych' (opisowe, nie certyfikowana nazwa systemu)",
+    "pricing — brak jawnych cen u źródła; wszystkie 27 wariantów mają cenę NULL / 'na zapytanie'",
+    "rights.reuse_permission_status przed jakąkolwiek promocją tych zdjęć poza prototypem",
+    "product_country_eligibility — wszystkie 27×3 (PL/DE/NL) wiersze ustawione na status='approved' z tym samym generycznym uzasadnieniem co przy imporcie Budman House (kopia 1:1, bez realnej weryfikacji zgodności z DIN/BENG dla Steel House)"
+  ],
+  "images": {
+    "note": "Steel House publikuje wizualizacje na poziomie RODZINY (5 rodzin), nie per wariant — w przeciwieństwie do Budman House, gdzie każdy produkt miał unikalne zdjęcia. 19 unikalnych plików pobrano raz i przypisano do wszystkich wariantów tej samej rodziny (ten sam cover_image_url + technicalSpecs._extraImageUrls w obrębie rodziny). Wyjątek: Posnania 35 ma dodatkowo 2 własne rzuty (techniczny + wizualizacja).",
+    "local_dir": "public/images/houses/steel-house/{rosevia,silesia,posnania,pomerania,bukovina}/",
+    "downloaded_files": 19
+  },
+  "products": [
+    { "external_id": "steelhouse-rosevia-20", "product_id": "ad2c69cb-77a2-48b2-b295-ce4c12fc99c1", "name": "Rosevia 20", "source_url": "https://steel-house.com.pl/domy-modulowe/dom-rosevia/" },
+    { "external_id": "steelhouse-rosevia-32", "product_id": "3549c58e-0ae1-4dc7-9289-5b803389d968", "name": "Rosevia 32", "source_url": "https://steel-house.com.pl/domy-modulowe/dom-rosevia/" },
+    { "external_id": "steelhouse-rosevia-35", "product_id": "c25887c2-54b9-49c0-a909-42478349a31a", "name": "Rosevia 35", "source_url": "https://steel-house.com.pl/domy-modulowe/dom-rosevia/" },
+    { "external_id": "steelhouse-rosevia-40", "product_id": "3f44678c-acf7-4881-a7cf-54df83867bc4", "name": "Rosevia 40", "source_url": "https://steel-house.com.pl/domy-modulowe/dom-rosevia/" },
+    { "external_id": "steelhouse-rosevia-48", "product_id": "194553a2-6cb5-421d-8894-1bd92be7aee3", "name": "Rosevia 48", "source_url": "https://steel-house.com.pl/domy-modulowe/dom-rosevia/" },
+    { "external_id": "steelhouse-rosevia-57", "product_id": "1a5df8e4-8afc-4fcb-9469-b1ec1369caa0", "name": "Rosevia 57", "source_url": "https://steel-house.com.pl/domy-modulowe/dom-rosevia/" },
+    { "external_id": "steelhouse-rosevia-60", "product_id": "d69bd465-06f0-4319-81de-34dcc7282d2f", "name": "Rosevia 60", "source_url": "https://steel-house.com.pl/domy-modulowe/dom-rosevia/", "note": "Wymiary vs Rosevia 57 — patrz qa_findings_source_spreadsheet" },
+    { "external_id": "steelhouse-rosevia-65", "product_id": "2706731b-628c-4a68-a741-885b86a1d672", "name": "Rosevia 65", "source_url": "https://steel-house.com.pl/domy-modulowe/dom-rosevia/" },
+    { "external_id": "steelhouse-silesia-32", "product_id": "c4a15b70-22f5-4dd9-bd3d-e70f7973e3f6", "name": "Silesia 32", "source_url": "https://steel-house.com.pl/domy-modulowe/dom-silesia/" },
+    { "external_id": "steelhouse-silesia-35", "product_id": "9be34f95-82b4-4821-9eb2-0872a0e189ff", "name": "Silesia 35", "source_url": "https://steel-house.com.pl/domy-modulowe/dom-silesia/" },
+    { "external_id": "steelhouse-silesia-40", "product_id": "bc68d475-259c-4546-8bb1-08ab2b165160", "name": "Silesia 40", "source_url": "https://steel-house.com.pl/domy-modulowe/dom-silesia/" },
+    { "external_id": "steelhouse-silesia-48", "product_id": "78e3f78c-879b-491a-949d-a1ff8d5010ee", "name": "Silesia 48", "source_url": "https://steel-house.com.pl/domy-modulowe/dom-silesia/", "note": "Wysokość nieznana — patrz qa_findings_source_spreadsheet" },
+    { "external_id": "steelhouse-silesia-57", "product_id": "ce3f9714-db23-4727-8cc3-fc2f29181c7f", "name": "Silesia 57", "source_url": "https://steel-house.com.pl/domy-modulowe/dom-silesia/" },
+    { "external_id": "steelhouse-posnania-35", "product_id": "23f809dc-cc37-44ff-a855-ad79174bfd35", "name": "Posnania 35", "source_url": "https://steel-house.com.pl/domy-modulowe/dom-posnania/", "note": "Jedyny wariant z własnymi rzutami (Posnania-35.png / Posnania-35-1.png)" },
+    { "external_id": "steelhouse-posnania-40", "product_id": "93d8cb43-743c-4888-bc14-ea2ba92587bf", "name": "Posnania 40", "source_url": "https://steel-house.com.pl/domy-modulowe/dom-posnania/" },
+    { "external_id": "steelhouse-posnania-48", "product_id": "0281c889-9754-4e55-b585-7fbb4259cccd", "name": "Posnania 48", "source_url": "https://steel-house.com.pl/domy-modulowe/dom-posnania/" },
+    { "external_id": "steelhouse-posnania-57", "product_id": "6301a6d6-96a2-4417-967c-6a70d8e8770a", "name": "Posnania 57", "source_url": "https://steel-house.com.pl/domy-modulowe/dom-posnania/" },
+    { "external_id": "steelhouse-pomerania-20", "product_id": "328c13f1-47af-459f-8942-215a2d88cfa1", "name": "Pomerania 20", "source_url": "https://steel-house.com.pl/domy-modulowe/dom-pomerania/" },
+    { "external_id": "steelhouse-pomerania-32", "product_id": "f0074599-48a1-4f70-9932-107ab2e044bc", "name": "Pomerania 32", "source_url": "https://steel-house.com.pl/domy-modulowe/dom-pomerania/" },
+    { "external_id": "steelhouse-pomerania-35", "product_id": "62121851-5972-4e47-b6c3-7828013fc63c", "name": "Pomerania 35", "source_url": "https://steel-house.com.pl/domy-modulowe/dom-pomerania/", "note": "Wymiary 3.2×10 m i zabudowa 35 m² podane niespójnie u źródła — dane przepisane 1:1" },
+    { "external_id": "steelhouse-pomerania-40", "product_id": "792bff0a-0848-4581-94cf-034b6dbf2a85", "name": "Pomerania 40", "source_url": "https://steel-house.com.pl/domy-modulowe/dom-pomerania/" },
+    { "external_id": "steelhouse-pomerania-48", "product_id": "6e351c95-83ff-454e-95a4-3a672c875086", "name": "Pomerania 48", "source_url": "https://steel-house.com.pl/domy-modulowe/dom-pomerania/" },
+    { "external_id": "steelhouse-pomerania-57", "product_id": "0a9117de-bd9f-483a-b382-881e090dd5da", "name": "Pomerania 57", "source_url": "https://steel-house.com.pl/domy-modulowe/dom-pomerania/" },
+    { "external_id": "steelhouse-pomerania-60", "product_id": "7bb43bbe-a1bf-480a-8236-63bad8ca0c5a", "name": "Pomerania 60", "source_url": "https://steel-house.com.pl/domy-modulowe/dom-pomerania/" },
+    { "external_id": "steelhouse-pomerania-65", "product_id": "54850d5b-c7bb-44c9-9a9b-a1b06200d348", "name": "Pomerania 65", "source_url": "https://steel-house.com.pl/domy-modulowe/dom-pomerania/" },
+    { "external_id": "steelhouse-bukovina-45", "product_id": "3ad383d1-44de-4a6c-a677-a2af49fb6c15", "name": "Bukovina 45", "source_url": "https://steel-house.com.pl/domy-modulowe/dom-bukovina/", "note": "Gwarancja nie opisana jednoznacznie u źródła — structural_warranty_years = NULL" },
+    { "external_id": "steelhouse-bukovina-55", "product_id": "ce370970-a0ee-4c75-9ad7-54165d6cdbf5", "name": "Bukovina 55", "source_url": "https://steel-house.com.pl/domy-modulowe/dom-bukovina/", "note": "Gwarancja nie opisana jednoznacznie u źródła — structural_warranty_years = NULL" }
+  ],
+  "next_steps": [
+    "Potwierdzić z Steel House prawa do wykorzystania 19 zdjęć/rzutów przed jakąkolwiek publiczną promocją tych ofert.",
+    "Ustalić realne ceny bezpośrednio z producentem — źródło (steel-house.com.pl) nie publikuje żadnych cen, kolumna w arkuszu była niewiarygodna (patrz qa_findings_source_spreadsheet).",
+    "Potwierdzić z producentem 5 rozbieżności oznaczonych w arkuszu 'Uwagi QA' (Rosevia 60 vs 57, Posnania 40/48 vs menu strony 41/45, Pomerania 35 wymiary, Silesia 48 wysokość, gwarancja Bukovina).",
+    "Wypełnić technical_specs (wallBuildUp, insulation, heatTransferCoefficients, windowClass, ventilation, heatSource, fireResistance, windResistance) przed przełączeniem na status wymagający pełnych danych — obecnie tylko placeholdery 'nieznana'/'inne' (lib/product-technical-specs.ts)."
+  ]
+}

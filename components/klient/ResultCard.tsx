@@ -80,11 +80,16 @@ export function ResultCard({
     : undefined;
 
   return (
-    <Card as="article" padding="none" className="relative flex h-full flex-col overflow-hidden">
+    <Card
+      as="article"
+      padding="none"
+      surface="v5"
+      className="group relative flex h-full flex-col overflow-hidden transition-shadow hover:shadow-md"
+    >
       {href && (
         <Link
           href={href}
-          className="focus-ring absolute inset-0 z-0 rounded-card"
+          className="focus-ring absolute inset-0 z-0 rounded-v5-card"
           aria-label={`Zobacz szczegóły projektu ${project.name}`}
         />
       )}
@@ -95,19 +100,20 @@ export function ResultCard({
             alt=""
             fill
             sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
-            className="object-cover"
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
           // Zdjęcie nieustawione (spec 0023 AC-10): łagodny placeholder zamiast
           // pustego <Image src="">, które rzuciłoby błąd.
-          <div className="flex size-full items-center justify-center bg-brand-steel/20">
-            <ImageOff className="size-8 text-brand-technical-graphite/50" aria-hidden="true" />
+          <div className="flex size-full items-center justify-center bg-brand-v5-line/40">
+            <ImageOff className="size-8 text-brand-v5-muted/50" aria-hidden="true" />
           </div>
         )}
         {onToggleSelect && !localPreview && (
-          <label className="absolute right-brand-2 top-brand-2 z-10 flex items-center justify-center rounded-data bg-brand-warm-white/95 p-1.5 shadow-sm">
+          <label className="absolute right-brand-2 top-brand-2 z-10 flex items-center justify-center rounded-data bg-brand-v5-surface/95 p-1.5 shadow-sm">
             <span className="sr-only">Zaznacz {project.name} do zapytania</span>
             <Checkbox
+              surface="v5"
               checked={selected ?? false}
               disabled={selectionDisabled}
               onChange={onToggleSelect}
@@ -123,12 +129,13 @@ export function ResultCard({
             isClientSession={favorite.isClientSession}
             initialFavorited={favorite.initialFavorited}
             className="absolute left-brand-2 top-brand-2 z-10"
+            surface="v5"
           />
         )}
       </div>
       <div className="flex flex-1 flex-col gap-brand-2 p-brand-3">
         {localPreview && (
-          <span className="w-fit rounded-data bg-brand-passage-blue/10 px-2 py-0.5 text-label font-medium uppercase tracking-[0.1em] text-brand-passage-blue">
+          <span className="w-fit rounded-data bg-brand-v5-amber/10 px-2 py-0.5 text-label font-medium uppercase tracking-[0.1em] text-brand-v5-ink">
             Twój dodany produkt (podgląd)
           </span>
         )}
@@ -136,62 +143,62 @@ export function ResultCard({
           <StatusPill status="conditional">Wymaga dodatkowych dokumentów</StatusPill>
         )}
         <div className="flex flex-col gap-1">
-          <Heading level="h3" className="text-body-l">
+          <Heading level="h3" surface="v5" className="text-body-l">
             {project.name}
           </Heading>
-          <Text tone="muted" className="flex items-center gap-1 text-data">
+          <Text tone="muted" surface="v5" className="flex items-center gap-1 text-data">
             <MapPin className="size-3.5 shrink-0" aria-hidden="true" />
             <span>{project.producerName} · {countryName}</span>
           </Text>
         </div>
-        <Text className="font-medium">
+        <Text surface="v5" className="font-medium">
           {project.floorAreaM2} m² użytkowe · {project.rooms} {roomsLabel(project.rooms)} · {project.storeys} kond.
         </Text>
-        <Text tone="muted" className="text-data">
+        <Text tone="muted" surface="v5" className="text-data">
           {project.constructionSystem} · {standardLabel[project.commercial.completionStandard]}
         </Text>
-        <div className="mt-auto border-t border-brand-steel pt-brand-2">
+        <div className="mt-auto border-t border-brand-v5-line pt-brand-2">
           {project.priceOnRequest ? (
             <>
-              <Text variant="label" tone="muted">Cena</Text>
-              <DataText as="p" className="mt-1 text-body-l font-semibold">Wycena indywidualna</DataText>
-              <Text tone="muted" className="mt-1 text-data">Ustalana bezpośrednio z producentem</Text>
+              <Text variant="label" tone="muted" surface="v5">Cena</Text>
+              <DataText as="p" surface="v5" className="mt-1 text-body-l font-semibold">Wycena indywidualna</DataText>
+              <Text tone="muted" surface="v5" className="mt-1 text-data">Ustalana bezpośrednio z producentem</Text>
             </>
           ) : totalPrice !== null && transportPrice !== null && assemblyPrice !== null ? (
             <div className="flex flex-col gap-0.5">
               <div className="flex items-center justify-between gap-brand-1">
-                <Text tone="muted" className="text-data">Dom</Text>
-                <DataText>od {priceFormatter.format(project.commercial.housePriceMinEur)} €</DataText>
+                <Text tone="muted" surface="v5" className="text-data">Dom</Text>
+                <DataText surface="v5">od {priceFormatter.format(project.commercial.housePriceMinEur)} €</DataText>
               </div>
               <div className="flex items-center justify-between gap-brand-1">
-                <Text tone="muted" className="text-data">
+                <Text tone="muted" surface="v5" className="text-data">
                   Transport do {countryCode ? targetCountryName[countryCode] : countryName}
                 </Text>
-                <DataText>~{priceFormatter.format(transportPrice)} €</DataText>
+                <DataText surface="v5">~{priceFormatter.format(transportPrice)} €</DataText>
               </div>
               <div className="flex items-center justify-between gap-brand-1">
-                <Text tone="muted" className="text-data">Montaż</Text>
-                <DataText>~{priceFormatter.format(assemblyPrice)} €</DataText>
+                <Text tone="muted" surface="v5" className="text-data">Montaż</Text>
+                <DataText surface="v5">~{priceFormatter.format(assemblyPrice)} €</DataText>
               </div>
-              <div className="mt-1 flex items-center justify-between gap-brand-1 border-t border-brand-steel pt-1">
-                <Text variant="label" tone="muted">Razem</Text>
-                <DataText className="text-body-l font-semibold">
+              <div className="mt-1 flex items-center justify-between gap-brand-1 border-t border-brand-v5-line pt-1">
+                <Text variant="label" tone="muted" surface="v5">Razem</Text>
+                <DataText surface="v5" className="text-body-l font-semibold">
                   od {priceFormatter.format(totalPrice)} €
                 </DataText>
               </div>
             </div>
           ) : (
             <>
-              <Text variant="label" tone="muted">Szacowany pakiet</Text>
-              <DataText as="p" className="mt-1 text-body-l font-semibold">
+              <Text variant="label" tone="muted" surface="v5">Szacowany pakiet</Text>
+              <DataText as="p" surface="v5" className="mt-1 text-body-l font-semibold">
                 {priceFormatter.format(project.priceMin)}–{priceFormatter.format(project.priceMax)} €
               </DataText>
-              <Text tone="muted" className="mt-1 text-data">Dom + standardowy transport + montaż</Text>
+              <Text tone="muted" surface="v5" className="mt-1 text-data">Dom + standardowy transport + montaż</Text>
             </>
           )}
         </div>
         {project.commercial.productionLeadTimeWeeksMax > 0 && (
-          <Text tone="muted" className="flex items-center gap-1 text-data">
+          <Text tone="muted" surface="v5" className="flex items-center gap-1 text-data">
             <Clock3 className="size-3.5 shrink-0" aria-hidden="true" />
             {project.commercial.productionLeadTimeWeeksMin}–{project.commercial.productionLeadTimeWeeksMax} tyg. produkcji · {project.commercial.onSiteAssemblyDaysMin}–{project.commercial.onSiteAssemblyDaysMax} dni montażu
           </Text>

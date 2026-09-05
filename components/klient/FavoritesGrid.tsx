@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Stack } from "@/components/ui";
+import { ScrollReveal, Stack } from "@/components/ui";
 import type { FavoriteListEntry } from "@/lib/data/projects";
 import { FavoriteCard } from "./FavoriteCard";
 import { FavoriteCompareTable } from "./FavoriteCompareTable";
@@ -60,15 +60,20 @@ export function FavoritesGrid({ locale, favorites, selectedIds: initialSelectedI
   return (
     <Stack gap={4}>
       <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,20rem),1fr))] gap-brand-4">
-        {favorites.map((entry) => (
-          <FavoriteCard
+        {favorites.map((entry, index) => (
+          <ScrollReveal
             key={entry.project.id}
-            entry={entry}
-            locale={locale}
-            selected={selectedIds.includes(entry.project.id)}
-            selectionDisabled={limitReached && !selectedIds.includes(entry.project.id)}
-            onToggleSelect={() => toggle(entry.project.id)}
-          />
+            className="h-full"
+            style={{ transitionDelay: `${Math.min(index * 60, 480)}ms` }}
+          >
+            <FavoriteCard
+              entry={entry}
+              locale={locale}
+              selected={selectedIds.includes(entry.project.id)}
+              selectionDisabled={limitReached && !selectedIds.includes(entry.project.id)}
+              onToggleSelect={() => toggle(entry.project.id)}
+            />
+          </ScrollReveal>
         ))}
       </div>
       {selectedFavorites.length >= 2 && <FavoriteCompareTable favorites={selectedFavorites} />}

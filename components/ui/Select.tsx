@@ -10,6 +10,46 @@ const button = tv({
     invalid: {
       true: "border-status-blocked",
     },
+    surface: {
+      v3: "",
+      v5: "border-brand-v5-line bg-brand-v5-surface text-brand-v5-ink data-[open]:border-brand-v5-amber-strong",
+    },
+  },
+  compoundVariants: [
+    {
+      invalid: true,
+      surface: "v5",
+      class: "border-status-blocked",
+    },
+  ],
+  defaultVariants: {
+    surface: "v3",
+  },
+});
+
+const panel = tv({
+  base: "absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-data border border-brand-steel bg-brand-warm-white py-1 shadow-md focus:outline-none data-[closed]:opacity-0 data-[closed]:scale-95 transition duration-100 ease-out",
+  variants: {
+    surface: {
+      v3: "",
+      v5: "border-brand-v5-line bg-brand-v5-surface",
+    },
+  },
+  defaultVariants: {
+    surface: "v3",
+  },
+});
+
+const option = tv({
+  base: "flex cursor-default items-center justify-between gap-brand-1 px-brand-2 py-brand-1 text-body text-brand-foundation-navy data-[focus]:bg-brand-passage-blue/10",
+  variants: {
+    surface: {
+      v3: "",
+      v5: "text-brand-v5-ink data-[focus]:bg-brand-v5-amber/10",
+    },
+  },
+  defaultVariants: {
+    surface: "v3",
   },
 });
 
@@ -26,6 +66,7 @@ interface SelectProps<T extends string> {
   invalid?: boolean;
   disabled?: boolean;
   name?: string;
+  surface?: "v3" | "v5";
   "aria-label"?: string;
   "aria-labelledby"?: string;
 }
@@ -38,9 +79,10 @@ export function Select<T extends string>({
   invalid,
   disabled,
   name,
+  surface,
   ...aria
 }: SelectProps<T>) {
-  const selected = options.find((option) => option.value === value) ?? null;
+  const selectedOption = options.find((item) => item.value === value) ?? null;
 
   // `value as T`: Headless UI infers TType as T from `onChange`/`ListboxOption`, but the real
   // value is T | null before a selection is made. Passing it through (rather than the previous
@@ -50,27 +92,34 @@ export function Select<T extends string>({
   return (
     <Listbox value={value as T} onChange={onChange} disabled={disabled} name={name}>
       <div className="relative">
-        <ListboxButton className={button({ invalid })} aria-invalid={invalid || undefined} {...aria}>
-          <span className={selected ? "" : "text-brand-technical-graphite/60"}>
-            {selected ? selected.label : placeholder}
-          </span>
-          <ChevronDown className="size-4 shrink-0 text-brand-technical-graphite" aria-hidden="true" />
-        </ListboxButton>
-        <ListboxOptions
-          transition
-          className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-data border border-brand-steel bg-brand-warm-white py-1 shadow-md focus:outline-none data-[closed]:opacity-0 data-[closed]:scale-95 transition duration-100 ease-out"
+        <ListboxButton
+          className={button({ invalid, surface })}
+          aria-invalid={invalid || undefined}
+          {...aria}
         >
-          {options.map((option) => (
-            <ListboxOption
-              key={option.value}
-              value={option.value}
-              className="flex cursor-default items-center justify-between gap-brand-1 px-brand-2 py-brand-1 text-body text-brand-foundation-navy data-[focus]:bg-brand-passage-blue/10"
-            >
+          <span
+            className={
+              selectedOption ? "" : surface === "v5" ? "text-brand-v5-muted/70" : "text-brand-technical-graphite/60"
+            }
+          >
+            {selectedOption ? selectedOption.label : placeholder}
+          </span>
+          <ChevronDown
+            className={`size-4 shrink-0 ${surface === "v5" ? "text-brand-v5-muted" : "text-brand-technical-graphite"}`}
+            aria-hidden="true"
+          />
+        </ListboxButton>
+        <ListboxOptions transition className={panel({ surface })}>
+          {options.map((item) => (
+            <ListboxOption key={item.value} value={item.value} className={option({ surface })}>
               {({ selected: isSelected }) => (
                 <>
-                  <span>{option.label}</span>
+                  <span>{item.label}</span>
                   {isSelected && (
-                    <Check className="size-4 shrink-0 text-brand-passage-blue" aria-hidden="true" />
+                    <Check
+                      className={`size-4 shrink-0 ${surface === "v5" ? "text-brand-v5-amber-strong" : "text-brand-passage-blue"}`}
+                      aria-hidden="true"
+                    />
                   )}
                 </>
               )}

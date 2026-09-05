@@ -47,9 +47,14 @@ export function ProjectGalleryThumbnails({ galleryImageUrls, projectName }: Proj
   if (extraImages.length === 0) return null;
 
   return (
-    <div className="grid grid-cols-3 gap-brand-2 sm:grid-cols-4">
+    // Poziomy snap-scroll na mobile (przegląda się kciukiem jak karuzelę zdjęć),
+    // siatka od sm w górę — ten sam DOM, dwa układy przez warianty responsywne.
+    <div className="-mx-[6%] flex snap-x snap-mandatory gap-brand-2 overflow-x-auto px-[6%] pb-1 [scrollbar-width:none] sm:mx-0 sm:grid sm:snap-none sm:grid-cols-4 sm:gap-brand-2 sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden">
       {extraImages.map((url, index) => (
-        <div key={url} className="group relative aspect-square overflow-hidden rounded-v5-card sm:aspect-[4/3]">
+        <div
+          key={url}
+          className="group relative aspect-square w-24 shrink-0 snap-start overflow-hidden rounded-v5-card sm:aspect-[4/3] sm:w-auto"
+        >
           <Image
             src={url}
             alt={`${projectName}, zdjęcie ${index + 2}`}

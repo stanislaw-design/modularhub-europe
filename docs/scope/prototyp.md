@@ -72,8 +72,12 @@ Pełny układ marketingowy strony startowej (hero ze zdjęciem, pasek statystyk,
   - [x] Sprzątanie: usunięcie `FeaturedHomes`/`HowItWorks`/`getFeaturedProjects()` (bez pola `featured`, zostaje dla `/wyniki`), przepisanie zależnego testu e2e (satisfies AC-13)
   - [x] Dostępność i responsywność: jeden H1, skip link pierwszy w Tab, kontrast tokenów v4, układ na wąskich ekranach (satisfies AC-11, AC-12)
 - [x] Zaprojektuj ponownie (spec): [0015](../specs/0015-premium-redesign-strony-startowej/index.md) — jasny, wyśrodkowany hero bez zdjęcia (nieodnotowane tu wcześniej)
-- [ ] Zaprojektuj trzeci raz (spec): `/architect strona startowa` — pogodzić dzisiejszy ad hoc facade (zdjęcie w tle, treść w lewym dolnym rogu, przezroczysty nagłówek na scrollu) ze spec 0015 AC-2/AC-13, albo świadomie ją zastąpić nową specyfikacją
-- [ ] Zweryfikuj: `/check verify strona startowa`
+- [x] Zaprojektuj trzeci raz (spec): [0025](../specs/0025-hero-fotograficzne-strony-startowej.md) — pełnoekranowe zdjęcie, treść w lewym dolnym rogu, przezroczysty nagłówek na scrollu; zastępuje AC-2/AC-13 spec 0015, reszta spec 0015 zostaje w mocy
+- [x] Zbuduj: `/develop strona startowa` (kod w `components/klient/Hero.tsx`, `components/klient/SiteHeader.tsx`, `public/images/hero/klient-hero-bg.png`)
+  - [x] Zdjęcie tła i przebudowa Hero: pełnoekranowe zdjęcie sięgające góry strony, treść w lewym dolnym rogu, bez ciemnego gradientu (satisfies AC-1, AC-2, AC-3)
+  - [x] Przezroczysty nagłówek na scrollu: `isHomeRoute`/`isScrolled` w `SiteHeader`, logo inline'owane z `currentColor` (satisfies AC-4, AC-5)
+  - [x] Pozostałe trasy klienta bez regresji (satisfies AC-6)
+- [x] Zweryfikuj: `/check verify strona startowa`
 - [ ] Testuj: `/test strona startowa`
 
 ### 5. Kreator ceny (klient) · dropped

@@ -18,7 +18,12 @@ const MESSAGE_TEXT =
 
 export function InquiryConfirmationCard({ project, sentAt }: InquiryConfirmationCardProps) {
   return (
-    <Card as="article" padding="none" className="flex flex-col gap-brand-3 overflow-hidden sm:flex-row">
+    <Card
+      as="article"
+      padding="none"
+      surface="v5"
+      className="flex flex-col gap-brand-3 overflow-hidden sm:flex-row"
+    >
       <div className="relative aspect-[3/2] w-full shrink-0 overflow-hidden sm:w-48">
         {project.coverImageUrl ? (
           <Image
@@ -29,22 +34,24 @@ export function InquiryConfirmationCard({ project, sentAt }: InquiryConfirmation
             className="object-cover"
           />
         ) : (
-          <div className="flex size-full items-center justify-center bg-brand-steel/20">
-            <ImageOff className="size-8 text-brand-technical-graphite/50" aria-hidden="true" />
+          <div className="flex size-full items-center justify-center bg-brand-v5-line/40">
+            <ImageOff className="size-8 text-brand-v5-muted/50" aria-hidden="true" />
           </div>
         )}
       </div>
       <div className="flex flex-1 flex-col gap-brand-2 p-brand-3">
         <div className="flex flex-wrap items-baseline justify-between gap-brand-1">
-          <Heading level="h3" className="text-body-l">
+          <Heading level="h3" surface="v5" className="text-body-l">
             {project.name}
           </Heading>
-          <DataText>
+          <DataText surface="v5">
             {priceFormatter.format(project.priceMin)}–{priceFormatter.format(project.priceMax)} €
           </DataText>
         </div>
-        <Text tone="muted">{project.producerName}</Text>
-        <Text tone="muted" measure>
+        <Text tone="muted" surface="v5">
+          {project.producerName}
+        </Text>
+        <Text tone="muted" surface="v5" measure>
           {MESSAGE_TEXT}
         </Text>
         <span className="inline-flex w-fit items-center gap-brand-1 rounded-data border border-status-approved/30 bg-status-approved/10 px-brand-2 py-1 text-label font-medium uppercase tracking-[0.1em] text-status-approved">

@@ -34,10 +34,12 @@ export interface ProductTechnicalSpecsDraft {
   // dom
   wallBuildUp?: string;
   insulation?: string;
-  heatTransferCoefficients?: string;
+  /** Pasmo klasy energetycznej, nie opisowy współczynnik U (spec 0026, nazwa pola
+   * zostaje dla ciągłości historii Zod/bazy — patrz lib/product-technical-specs.ts). */
+  heatTransferCoefficients?: import("../product-technical-specs").EnergyClass;
   windowClass?: string;
-  ventilation?: string;
-  heatSource?: string;
+  ventilation?: import("../product-technical-specs").VentilationType;
+  heatSource?: import("../product-technical-specs").HeatSource;
   fireResistance?: string;
   windResistance?: string;
   // spa-modulowe
