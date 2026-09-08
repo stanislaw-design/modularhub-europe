@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronDown, Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect, useId, useRef, useState } from "react";
 import { Button, Card, DataText, Input, Label, StatusPill, Stack, Text } from "@/components/ui";
 import { getPlotAnalysisResult } from "@/lib/data/plot-analysis";
@@ -20,18 +21,6 @@ const PLOT_AREA_MIN = 100;
 const PLOT_AREA_MAX = 100_000;
 const PAYMENT_DELAY_MS = 1200;
 
-const SCOPE_DESCRIPTION =
-  "Sprawdzamy, czy obrys tego domu wraz z wymaganymi odsunięciami od granic działki, dostępem do drogi i podstawowymi ograniczeniami terenu mieści się na Twojej działce.";
-
-const DISCLAIMER_TEXT =
-  "To nie jest opinia prawna. Wynik to szacunkowa ocena na podstawie danych przykładowych, nie realna ekspertyza prawna ani budowlana.";
-
-const statusLabel: Record<EligibilityStatus, string> = {
-  approved: "Dopuszczone",
-  conditional: "Warunkowo dopuszczone",
-  blocked: "Niedopuszczone",
-};
-
 const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0 });
 
 function isAreaValid(value: number | null): value is number {
@@ -39,6 +28,12 @@ function isAreaValid(value: number | null): value is number {
 }
 
 export function PlotAnalysisRow({ locale, project, address, request, onChangeRequest }: PlotAnalysisRowProps) {
+  const t = useTranslations("PlotAnalysisRow");
+  const statusLabel: Record<EligibilityStatus, string> = {
+    approved: t("status.approved"),
+    conditional: t("status.conditional"),
+    blocked: t("status.blocked"),
+  };
   const [expanded, setExpanded] = useState(false);
   const [areaTouched, setAreaTouched] = useState(false);
   const [result, setResult] = useState<PlotAnalysisResult | null>(null);
@@ -61,7 +56,7 @@ export function PlotAnalysisRow({ locale, project, address, request, onChangeReq
         analysis ?? {
           projectId: project.id,
           status: "blocked",
-          reason: "Brak danych analizy dla tego projektu; spróbuj ponownie później.",
+          reason: t("noAnalysisData"),
         }
       );
       onChangeRequest({ phase: "result" });
@@ -116,11 +111,11 @@ export function PlotAnalysisRow({ locale, project, address, request, onChangeReq
         >
           <Stack gap={3}>
             <Text tone="muted" surface="v5" measure>
-              {SCOPE_DESCRIPTION}
+              {t("scopeDescription")}
             </Text>
             <div className="flex items-baseline justify-between gap-brand-2">
               <Text as="span" variant="label" tone="muted" surface="v5">
-                Cena usługi
+                {t("servicePrice")}
               </Text>
               <DataText surface="v5">{priceFormatter.format(PLOT_ANALYSIS_PRICE_EUR)} €</DataText>
             </div>
@@ -129,7 +124,7 @@ export function PlotAnalysisRow({ locale, project, address, request, onChangeReq
               <Stack gap={2} align="start">
                 <Stack gap={1} className="max-w-xs">
                   <Label htmlFor={areaId} required surface="v5">
-                    Metraż działki (m²)
+                    {t("plotAreaLabel")}
                   </Label>
                   <Input
                     id={areaId}
@@ -151,7 +146,7 @@ export function PlotAnalysisRow({ locale, project, address, request, onChangeReq
                   />
                   {areaTouched && !areaValid && (
                     <p id={`${areaId}-error`} className="font-sans text-body text-status-blocked">
-                      Podaj metraż w zakresie {PLOT_AREA_MIN}–{PLOT_AREA_MAX} m².
+                      {t("plotAreaError", { min: PLOT_AREA_MIN, max: PLOT_AREA_MAX })}
                     </p>
                   )}
                 </Stack>
@@ -162,7 +157,7 @@ export function PlotAnalysisRow({ locale, project, address, request, onChangeReq
                   surface="v5"
                   className="w-fit"
                 >
-                  Zapłać
+                  {t("pay")}
                 </Button>
               </Stack>
             )}
@@ -171,7 +166,7 @@ export function PlotAnalysisRow({ locale, project, address, request, onChangeReq
               <div aria-live="polite" className="flex items-center gap-brand-2">
                 <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden="true" />
                 <Text tone="muted" surface="v5">
-                  Przetwarzanie płatności…
+                  {t("processingPayment")}
                 </Text>
               </div>
             )}
@@ -182,11 +177,11 @@ export function PlotAnalysisRow({ locale, project, address, request, onChangeReq
                   <StatusPill status={result.status}>{statusLabel[result.status]}</StatusPill>
                   <Text surface="v5">{result.reason}</Text>
                   <Text tone="muted" surface="v5" className="text-label normal-case tracking-normal">
-                    {DISCLAIMER_TEXT}
+                    {t("disclaimer")}
                   </Text>
                   {result.status !== "blocked" && (
                     <Button as="a" href={offerHref} surface="v5" className="w-fit">
-                      Przejdź do oferty wiążącej
+                      {t("goToOffer")}
                     </Button>
                   )}
                 </Stack>

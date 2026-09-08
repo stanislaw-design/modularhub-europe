@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { PlotDossierPanel } from "@/components/klient/PlotDossierPanel";
 import type { Project } from "@/lib/data/types";
 import { getProjectById, getProjects } from "@/lib/data/projects";
+import type { Locale } from "@/lib/i18n/routing";
 import { parseInquiryProjectIds } from "@/lib/inquiry";
 
 function buildResultsHref(
@@ -27,7 +28,7 @@ export default async function DzialkaPage({
   const [{ locale }, rawSearchParams] = await Promise.all([params, searchParams]);
   const resultsHref = buildResultsHref(locale, rawSearchParams);
 
-  const allProjects = await getProjects();
+  const allProjects = await getProjects({ locale: locale as Locale });
   const knownIds = new Set(allProjects.map((project) => project.id));
   const projectIds = parseInquiryProjectIds(rawSearchParams.projects, knownIds);
 
@@ -35,9 +36,9 @@ export default async function DzialkaPage({
     redirect(resultsHref);
   }
 
-  const selectedProjects = (await Promise.all(projectIds.map(getProjectById))).filter(
-    (project): project is Project => project !== null
-  );
+  const selectedProjects = (
+    await Promise.all(projectIds.map((id) => getProjectById(id, locale as Locale)))
+  ).filter((project): project is Project => project !== null);
 
   return <PlotDossierPanel locale={locale} projects={selectedProjects} resultsHref={resultsHref} />;
 }

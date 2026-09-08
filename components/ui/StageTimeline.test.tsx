@@ -1,7 +1,13 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { StageTimeline } from "./StageTimeline";
-import type { StageTimelineItem } from "./StageTimeline";
+import type { StageStatus, StageTimelineItem } from "./StageTimeline";
+
+const statusLabels: Record<StageStatus, string> = {
+  completed: "Ukończono",
+  current: "Aktualny etap",
+  upcoming: "Nadchodzący",
+};
 
 const items: StageTimelineItem[] = [
   {
@@ -31,7 +37,7 @@ const items: StageTimelineItem[] = [
 
 describe("StageTimeline", () => {
   it("renders every stage label in the given order", () => {
-    const { container } = render(<StageTimeline items={items} />);
+    const { container } = render(<StageTimeline items={items} statusLabels={statusLabels} />);
     const text = container.textContent ?? "";
     const positions = items.map((item) => text.indexOf(item.label));
 
@@ -40,26 +46,26 @@ describe("StageTimeline", () => {
   });
 
   it("marks exactly one stage as the current step via aria-current, matching the item flagged current", () => {
-    render(<StageTimeline items={items} />);
+    render(<StageTimeline items={items} statusLabels={statusLabels} />);
     const current = screen.getByRole("listitem", { current: "step" });
     expect(current).toHaveTextContent("Montaż");
   });
 
   it("shows a status label for every stage (Ukończono / Aktualny etap / Nadchodzący), not color alone", () => {
-    render(<StageTimeline items={items} />);
+    render(<StageTimeline items={items} statusLabels={statusLabels} />);
     expect(screen.getAllByText("Ukończono")).toHaveLength(2);
     expect(screen.getAllByText("Aktualny etap")).toHaveLength(1);
     expect(screen.getAllByText("Nadchodzący")).toHaveLength(2);
   });
 
   it("pairs every status label with a visual icon marker, not text alone", () => {
-    const { container } = render(<StageTimeline items={items} />);
+    const { container } = render(<StageTimeline items={items} statusLabels={statusLabels} />);
     const markerIcons = container.querySelectorAll("ol > li > div > span > svg");
     expect(markerIcons).toHaveLength(items.length);
   });
 
   it("shows the reached date and documents only for stages that have them", () => {
-    render(<StageTimeline items={items} />);
+    render(<StageTimeline items={items} statusLabels={statusLabels} />);
 
     const odbiorRow = screen.getByText("Odbiór").closest("li") as HTMLElement;
     expect(within(odbiorRow).queryByText(/2026/)).not.toBeInTheDocument();
@@ -71,7 +77,7 @@ describe("StageTimeline", () => {
   });
 
   it("lists each document by name with an inert (mock) download affordance, never a real link or button", () => {
-    render(<StageTimeline items={items} />);
+    render(<StageTimeline items={items} statusLabels={statusLabels} />);
 
     const produkcjaRow = screen.getByText("Produkcja").closest("li") as HTMLElement;
     const docItem = within(produkcjaRow)
@@ -83,7 +89,7 @@ describe("StageTimeline", () => {
   });
 
   it("renders no stages for an empty item list instead of throwing", () => {
-    const { container } = render(<StageTimeline items={[]} />);
+    const { container } = render(<StageTimeline items={[]} statusLabels={statusLabels} />);
     expect(container.querySelectorAll("ol > li")).toHaveLength(0);
   });
 });

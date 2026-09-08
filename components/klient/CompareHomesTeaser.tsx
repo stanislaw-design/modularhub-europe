@@ -1,4 +1,5 @@
 import { ArrowRight } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import Image from "next/image";
 import Link from "next/link";
 import { DataText, Heading, Text } from "@/components/ui";
@@ -16,7 +17,8 @@ const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0
 // comparison logic lives here; the button hands off to /wyniki, where
 // selecting up to three projects and comparing them for real already works
 // (spec 0004/0005).
-export function CompareHomesTeaser({ locale, projects }: CompareHomesTeaserProps) {
+export async function CompareHomesTeaser({ locale, projects }: CompareHomesTeaserProps) {
+  const t = await getTranslations("CompareHomesTeaser");
   const compareProjects = projects.filter((project) => project.featured).slice(0, 3);
   const resultsHref = `/${locale}/klient/wyniki`;
 
@@ -25,29 +27,26 @@ export function CompareHomesTeaser({ locale, projects }: CompareHomesTeaserProps
       <div className="flex flex-col gap-brand-4">
         <div className="flex flex-wrap items-end justify-between gap-brand-3">
           <div className="flex flex-col gap-1">
-            <Heading level="h2">Porównaj domy obok siebie</Heading>
-            <Text tone="muted">
-              Zestaw do trzech projektów i zobacz różnice w cenie, metrażu i pokojach na jednym
-              ekranie.
-            </Text>
+            <Heading level="h2">{t("heading")}</Heading>
+            <Text tone="muted">{t("subheading")}</Text>
           </div>
           <Link
             href={resultsHref}
             className="focus-ring inline-flex shrink-0 items-center gap-1 rounded-v5-pill bg-brand-v5-amber px-brand-4 py-brand-2 text-body font-semibold text-brand-v5-amber-foreground hover:bg-brand-v5-amber-strong"
           >
-            Porównaj domy
+            {t("compareButton")}
             <ArrowRight className="size-4" aria-hidden="true" />
           </Link>
         </div>
         <div className="overflow-x-auto rounded-v5-card border border-brand-v5-line">
           <table className="w-full min-w-[36rem] border-collapse text-left">
             <caption className="sr-only">
-              Przykładowe porównanie {compareProjects.length} domów: cena, metraż i liczba pokoi
+              {t("captionCompare", { count: compareProjects.length })}
             </caption>
             <thead>
               <tr>
                 <th scope="col" className="w-32 p-brand-2">
-                  <span className="sr-only">Cecha</span>
+                  <span className="sr-only">{t("featureColumnSr")}</span>
                 </th>
                 {compareProjects.map((project) => (
                   <th key={project.id} scope="col" className="p-brand-2">
@@ -70,19 +69,19 @@ export function CompareHomesTeaser({ locale, projects }: CompareHomesTeaserProps
             <tbody>
               <tr className="border-t border-brand-v5-line">
                 <th scope="row" className="p-brand-2 text-data font-semibold text-brand-v5-muted">
-                  Cena od
+                  {t("priceFromRow")}
                 </th>
                 {compareProjects.map((project) => (
                   <td key={project.id} className="p-brand-2">
                     <DataText className="text-body font-semibold">
-                      {priceFormatter.format(project.priceMin)} €
+                      {priceFormatter.format(project.commercial.housePriceMinEur)} €
                     </DataText>
                   </td>
                 ))}
               </tr>
               <tr className="border-t border-brand-v5-line">
                 <th scope="row" className="p-brand-2 text-data font-semibold text-brand-v5-muted">
-                  Metraż
+                  {t("floorAreaRow")}
                 </th>
                 {compareProjects.map((project) => (
                   <td key={project.id} className="p-brand-2">
@@ -92,7 +91,7 @@ export function CompareHomesTeaser({ locale, projects }: CompareHomesTeaserProps
               </tr>
               <tr className="border-t border-brand-v5-line">
                 <th scope="row" className="p-brand-2 text-data font-semibold text-brand-v5-muted">
-                  Pokoje
+                  {t("roomsRow")}
                 </th>
                 {compareProjects.map((project) => (
                   <td key={project.id} className="p-brand-2">

@@ -1,7 +1,8 @@
 import { CheckCircle2 } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { Button, Card, Heading, Stack, StageTimeline, Text } from "@/components/ui";
-import type { StageTimelineItem } from "@/components/ui";
+import type { StageStatus, StageTimelineItem } from "@/components/ui";
 import { getFulfillmentOrder } from "@/lib/data/fulfillment";
 import { getProjectById } from "@/lib/data/producer-mock-projects";
 import type { FulfillmentStageName } from "@/lib/data/types";
@@ -13,14 +14,6 @@ const STAGE_ORDER: FulfillmentStageName[] = ["produkcja", "transport", "montaz",
 const PRODUCER_STAGES: FulfillmentStageName[] = ["produkcja", "transport", "montaz", "odbior"];
 const DELIVERED_INDEX = STAGE_ORDER.indexOf("odbior");
 
-const stageLabel: Record<FulfillmentStageName, string> = {
-  produkcja: "Produkcja",
-  transport: "Transport",
-  montaz: "Montaż",
-  odbior: "Odbiór",
-  gwarancja: "Gwarancja",
-};
-
 const dateFormatter = new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium" });
 
 export default async function ProducerRealizacjaPage({
@@ -30,7 +23,25 @@ export default async function ProducerRealizacjaPage({
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const [{ locale }, rawSearchParams] = await Promise.all([params, searchParams]);
+  const [{ locale }, rawSearchParams, t, tStage, tStatus] = await Promise.all([
+    params,
+    searchParams,
+    getTranslations("ProducentRealizacjaPage"),
+    getTranslations("FulfillmentStage"),
+    getTranslations("StageTimelineStatus"),
+  ]);
+  const stageLabel: Record<FulfillmentStageName, string> = {
+    produkcja: tStage("produkcja"),
+    transport: tStage("transport"),
+    montaz: tStage("montaz"),
+    odbior: tStage("odbior"),
+    gwarancja: tStage("gwarancja"),
+  };
+  const statusLabels: Record<StageStatus, string> = {
+    completed: tStatus("completed"),
+    current: tStatus("current"),
+    upcoming: tStatus("upcoming"),
+  };
   const listHref = `/${locale}/producent/realizacje`;
 
   const projectId = typeof rawSearchParams.project === "string" ? rawSearchParams.project : undefined;
@@ -70,7 +81,7 @@ export default async function ProducerRealizacjaPage({
 
   return (
     <Stack gap={4}>
-      <Heading level="h1">Realizacja — {project.name}</Heading>
+      <Heading level="h1">{t("heading", { name: project.name })}</Heading>
       <Text tone="muted">
         {project.producerName} · {project.floorAreaM2} m²
       </Text>
@@ -81,23 +92,21 @@ export default async function ProducerRealizacjaPage({
           className="flex items-center gap-brand-2 rounded-data border border-status-approved/30 bg-status-approved/10 p-brand-3"
         >
           <CheckCircle2 className="size-5 shrink-0 text-status-approved" aria-hidden="true" />
-          <Text className="font-medium text-status-approved">
-            Zamówienie odebrane — można teraz przejść do weryfikacji firmy przed pierwszą wypłatą.
-          </Text>
+          <Text className="font-medium text-status-approved">{t("deliveredBanner")}</Text>
         </div>
       )}
 
       <Card as="div">
-        <StageTimeline items={items} />
+        <StageTimeline items={items} statusLabels={statusLabels} />
       </Card>
 
       <Stack direction="row" gap={3} className="flex-wrap">
         <Button as="a" href={listHref} variant="secondary" className="w-fit">
-          Wróć do realizacji
+          {t("backToList")}
         </Button>
         {isDelivered && (
           <Button as="a" href={verificationHref} className="w-fit">
-            Weryfikacja firmy i wypłata
+            {t("verification")}
           </Button>
         )}
       </Stack>

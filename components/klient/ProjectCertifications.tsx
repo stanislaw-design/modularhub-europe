@@ -1,4 +1,5 @@
 import { BadgeCheck } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import { Heading, Text } from "@/components/ui";
 
 interface ProjectCertificationsProps {
@@ -7,13 +8,14 @@ interface ProjectCertificationsProps {
 
 // Puste lub brak certifications → sekcja nie renderuje się w ogóle, żaden pusty
 // placeholder (spec 0020 AC-4).
-export function ProjectCertifications({ certifications }: ProjectCertificationsProps) {
+export async function ProjectCertifications({ certifications }: ProjectCertificationsProps) {
   if (!certifications || certifications.length === 0) return null;
+  const t = await getTranslations("ProjectCertifications");
 
   return (
     <div className="flex flex-col gap-brand-2 rounded-v5-card border border-status-approved/30 bg-status-approved/10 p-brand-3">
       <Heading level="h3" surface="v5" className="text-body-l">
-        Certyfikaty
+        {t("heading")}
       </Heading>
       <ul className="flex flex-wrap gap-brand-2">
         {certifications.map((certification) => (

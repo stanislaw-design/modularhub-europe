@@ -1,6 +1,7 @@
 "use client";
 
 import { CheckCircle2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useState } from "react";
 import { Button, Card, DataText, Heading, Stack, Text } from "@/components/ui";
@@ -16,29 +17,20 @@ interface BindingOfferViewProps {
 const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0 });
 const dateFormatter = new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium", timeStyle: "short" });
 
-// Same "this is a mock, no real money or contract" framing as PlotAnalysisRow's
-// legal disclaimer, adapted for the acceptance step (scope.md: no real
-// payments, no login, nothing is persisted at this stage).
-const MOCK_DISCLAIMER =
-  "To demonstracyjna oferta na danych przykładowych. Akceptacja nie zawiera prawdziwej umowy ani nie wiąże się z realną płatnością — etap makiety, bez logowania i bez trwałego zapisu danych.";
-
-function bedroomsLabel(count: number): string {
-  return count === 1 ? "sypialnia" : "sypialnie";
-}
-
 export function BindingOfferView({ locale, project, address }: BindingOfferViewProps) {
+  const t = useTranslations("BindingOfferView");
   const [acceptedAt, setAcceptedAt] = useState<Date | null>(null);
   const finalPriceEur = getBindingOfferPriceEur(project);
   const dzialkaHref = `/${locale}/klient/dzialka?projects=${project.id}`;
+  const bedroomsLabel = t(`bedroomsLabel.${project.bedrooms === 1 ? "one" : "other"}`);
 
   return (
     <Stack gap={4}>
       <Heading level="h1" surface="v5">
-        Oferta wiążąca — {project.name}
+        {t("heading", { name: project.name })}
       </Heading>
       <Text tone="muted" surface="v5" measure>
-        Cena poniżej to jedna, ostateczna kwota za dom, transport na wskazany adres i montaż — bez
-        osobnego wyboru przewoźnika. Zaakceptowanie oferty rozpoczyna realizację.
+        {t("intro")}
       </Text>
 
       <Card as="article" padding="none" surface="v5" className="overflow-hidden">
@@ -58,15 +50,14 @@ export function BindingOfferView({ locale, project, address }: BindingOfferViewP
                 {project.name}
               </Heading>
               <Text tone="muted" surface="v5">
-                {project.producerName} · {project.floorAreaM2} m² · {project.bedrooms}{" "}
-                {bedroomsLabel(project.bedrooms)}
+                {project.producerName} · {project.floorAreaM2} m² · {project.bedrooms} {bedroomsLabel}
               </Text>
             </div>
 
             <dl className="grid gap-brand-3 sm:grid-cols-2">
               <div>
                 <Text as="dt" variant="label" tone="muted" surface="v5">
-                  Adres montażu
+                  {t("addressLabel")}
                 </Text>
                 <dd>
                   <Text surface="v5">{address}</Text>
@@ -74,7 +65,7 @@ export function BindingOfferView({ locale, project, address }: BindingOfferViewP
               </div>
               <div>
                 <Text as="dt" variant="label" tone="muted" surface="v5">
-                  Cena końcowa (dom, transport, montaż)
+                  {t("finalPriceLabel")}
                 </Text>
                 <dd>
                   <DataText surface="v5" className="text-h2">
@@ -85,23 +76,22 @@ export function BindingOfferView({ locale, project, address }: BindingOfferViewP
             </dl>
 
             <Text tone="muted" surface="v5" className="text-label normal-case tracking-normal">
-              {MOCK_DISCLAIMER}
+              {t("disclaimer")}
             </Text>
 
             {acceptedAt === null ? (
               <Button type="button" onClick={() => setAcceptedAt(new Date())} surface="v5" className="w-fit">
-                Zaakceptuj ofertę
+                {t("acceptOffer")}
               </Button>
             ) : (
               <div aria-live="polite">
                 <Stack gap={2} align="start">
                   <span className="inline-flex w-fit items-center gap-brand-1 rounded-data border border-status-approved/30 bg-status-approved/10 px-brand-2 py-1 text-label font-medium uppercase tracking-[0.1em] text-status-approved">
                     <CheckCircle2 className="size-3.5 shrink-0" aria-hidden="true" />
-                    Zaakceptowano {dateFormatter.format(acceptedAt)}
+                    {t("acceptedAt", { date: dateFormatter.format(acceptedAt) })}
                   </span>
                   <Text tone="muted" surface="v5">
-                    Dziękujemy — oferta wiążąca została zaakceptowana. Śledź postęp produkcji, transportu,
-                    montażu i odbioru na osi statusów realizacji.
+                    {t("acceptedThanks")}
                   </Text>
                   <Button
                     as="a"
@@ -109,7 +99,7 @@ export function BindingOfferView({ locale, project, address }: BindingOfferViewP
                     surface="v5"
                     className="w-fit"
                   >
-                    Śledź realizację
+                    {t("trackFulfillment")}
                   </Button>
                 </Stack>
               </div>
@@ -119,7 +109,7 @@ export function BindingOfferView({ locale, project, address }: BindingOfferViewP
       </Card>
 
       <Button as="a" href={dzialkaHref} variant="secondary" surface="v5" className="w-fit">
-        Wróć do panelu działki
+        {t("backToPlot")}
       </Button>
     </Stack>
   );

@@ -2,6 +2,7 @@
 
 import { type ChangeEvent, useRef } from "react";
 import { FileText, Upload, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { MockUploadedFile } from "@/lib/data/types";
 import { Button } from "./Button";
 import { Label } from "./Label";
@@ -24,6 +25,7 @@ function formatFileSize(bytes: number): string {
 }
 
 export function FileUpload({ id, label, files, onFilesChange, accept, required }: FileUploadProps) {
+  const t = useTranslations("FileUpload");
   const inputRef = useRef<HTMLInputElement>(null);
   const listId = `${id}-list`;
 
@@ -66,17 +68,17 @@ export function FileUpload({ id, label, files, onFilesChange, accept, required }
           onClick={() => inputRef.current?.click()}
         >
           <Upload className="size-4" aria-hidden="true" />
-          Wybierz pliki
+          {t("chooseFiles")}
         </Button>
         <Text as="span" variant="label" tone="muted">
-          Makieta — pliki nie są nigdzie zapisywane ani wysyłane
+          {t("mockNotice")}
         </Text>
       </Stack>
       <ul id={listId} className="flex flex-col gap-1">
         {files.length === 0 && (
           <li>
             <Text as="span" tone="muted">
-              Nie wybrano jeszcze żadnego pliku.
+              {t("noFilesSelected")}
             </Text>
           </li>
         )}
@@ -97,7 +99,7 @@ export function FileUpload({ id, label, files, onFilesChange, accept, required }
             <button
               type="button"
               onClick={() => handleRemove(index)}
-              aria-label={`Usuń plik ${file.name}`}
+              aria-label={t("removeFile", { name: file.name })}
               className="focus-ring flex size-6 shrink-0 items-center justify-center rounded-data text-brand-technical-graphite hover:text-status-blocked"
             >
               <X className="size-4" aria-hidden="true" />

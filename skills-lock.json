@@ -751,6 +751,18 @@
       "skillPath": "skills/neon-postgres/SKILL.md",
       "computedHash": "af5d7593c2c45b33c8860b37fd470dcc40027972420ebd06311c1263296fd0a5"
     },
+    "next-intl-add-language": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "skillPath": "skills/next-intl-add-language/SKILL.md",
+      "computedHash": "6b30075c5f43a4498782729f129c513ca28db37d93032a81a07e444d4db575c5"
+    },
+    "next-intl-app-router": {
+      "source": "liuchiawei/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/frontend/next-intl-app-router/SKILL.md",
+      "computedHash": "dda9e89338746e27dfd49ae8923266c49d01872b07cf13d3600ac9431ac087c3"
+    },
     "nextjs": {
       "source": "pproenca/dot-skills",
       "sourceType": "github",
@@ -768,6 +780,12 @@
       "sourceType": "github",
       "skillPath": "skills/.experimental/nextjs-bundle-optimizer/SKILL.md",
       "computedHash": "391e083a279159a470f1b3cef8ea86a531734297cc021ac95a3c6c7cde1ed53c"
+    },
+    "nextjs-i18n": {
+      "source": "fusengine/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/nextjs-expert/skills/nextjs-i18n/SKILL.md",
+      "computedHash": "6b42dd0929c3b7efcfdc1f7a35c25f27ee8c730c8572d7f18ce9ec5bdb9f1c8a"
     },
     "nextjs-ppr-patterns": {
       "source": "pproenca/dot-skills",

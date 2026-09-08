@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { Heading, Text } from "@/components/ui";
 import { isLocalProjectId } from "@/lib/local-client-projects";
 import type { Country, Project } from "@/lib/data/types";
@@ -13,7 +14,8 @@ interface PopularHomesProps {
 // 0004 AC-12) shown right after the search card, so the product sells
 // itself before any marketing copy (spec 0015 AC-4). Illustrative in the
 // sense that "popular" isn't computed from real view counts.
-export function PopularHomes({ locale, projects, countries }: PopularHomesProps) {
+export async function PopularHomes({ locale, projects, countries }: PopularHomesProps) {
+  const t = await getTranslations("PopularHomes");
   // featured projects są dziś zawsze z katalogu przykładowego (getProjects()
   // nigdy nie zwraca id z prefiksem local-), ale filtr zostaje jako ta sama
   // asercja co ResultCard — projekt local- nigdy nie jest linkowany (spec 0020 AC-8).
@@ -24,10 +26,8 @@ export function PopularHomes({ locale, projects, countries }: PopularHomesProps)
     <section className="py-brand-5">
       <div className="flex flex-col gap-brand-4">
         <div className="flex flex-col gap-1">
-          <Heading level="h2">Popularne domy</Heading>
-          <Text tone="muted">
-            Wybór ilustracyjny — tak dziś wygląda kilka najczęściej oglądanych projektów.
-          </Text>
+          <Heading level="h2">{t("heading")}</Heading>
+          <Text tone="muted">{t("subheading")}</Text>
         </div>
         <div className="grid grid-cols-1 gap-brand-4 sm:grid-cols-2 lg:grid-cols-4">
           {featured.map((project) => (

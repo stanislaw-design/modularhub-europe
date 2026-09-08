@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import type { Country, CountryCode, EligibilityStatus, ProductFamily, Project } from "@/lib/data/types";
 import { getAllLocalProducerProjects } from "@/lib/local-client-projects";
@@ -57,6 +58,7 @@ export function ResultsSelection({
   sort,
   isClientSession,
 }: ResultsSelectionProps) {
+  const t = useTranslations("ResultsSelection");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [items, setItems] = useState<ResultItem[]>(serverItems);
   const [localAddedCount, setLocalAddedCount] = useState(0);
@@ -111,7 +113,7 @@ export function ResultsSelection({
       <ResultsHeader count={items.length} family={family} countryCode={countryCode} />
       {localAddedCount > 0 && (
         <span role="status" aria-live="polite" className="sr-only">
-          Dodano {localAddedCount} Twoich produktów do listy.
+          {t("addedLocalProducts", { count: localAddedCount })}
         </span>
       )}
       <div className={selectedIds.length > 0 ? "pb-24" : undefined}>

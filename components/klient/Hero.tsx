@@ -1,13 +1,8 @@
 import { FileCheck2, ShieldCheck, Wallet } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { Container } from "@/components/ui";
-
-const trustBadges = [
-  { icon: ShieldCheck, label: "Zweryfikowani producenci" },
-  { icon: Wallet, label: "Przejrzyste ceny" },
-  { icon: FileCheck2, label: "Compliance Engine™" },
-];
 
 interface HeroProps {
   children?: ReactNode;
@@ -22,7 +17,14 @@ interface HeroProps {
 // the old -mt-brand-4 did against the previously in-flow sticky header) so
 // the photo reaches the true top of the viewport — SiteHeader now floats
 // over it via fixed positioning instead of occupying layout space.
-export function Hero({ children }: HeroProps) {
+export async function Hero({ children }: HeroProps) {
+  const t = await getTranslations("Hero");
+  const trustBadges = [
+    { icon: ShieldCheck, label: t("trustVerified") },
+    { icon: Wallet, label: t("trustPricing") },
+    { icon: FileCheck2, label: "Compliance Engine™" },
+  ];
+
   return (
     <section className="full-bleed -mt-brand-5 relative isolate flex min-h-[640px] flex-col justify-end overflow-hidden pt-24 pb-brand-6 text-brand-v4-surface lg:min-h-[760px] lg:pb-brand-8">
       <Image
@@ -39,17 +41,15 @@ export function Hero({ children }: HeroProps) {
             underline are never clipped once the heading settles. */}
         <div className="hero-heading-mask">
           <h1 className="hero-heading-in whitespace-nowrap font-display text-[clamp(1.75rem,4.6vw,5.25rem)] leading-[0.97] font-bold tracking-[-0.04em] text-brand-v4-surface [text-shadow:0_2px_12px_rgba(0,0,0,0.35)]">
-            Twój{" "}
-            <span className="hero-underline">dom.</span>{" "}
-            Mądrze{" "}
-            <span className="hero-underline">wybrany.</span>
+            {t("headingLine1")}{" "}
+            <span className="hero-underline">{t("headingUnderline1")}</span>{" "}
+            {t("headingLine2")}{" "}
+            <span className="hero-underline">{t("headingUnderline2")}</span>
           </h1>
         </div>
         {children ? <div className="w-full max-w-3xl">{children}</div> : null}
         <div className="flex flex-col items-start gap-brand-2">
-          <p className="max-w-[46ch] text-body-l text-brand-v4-mist">
-            Porównaj sprawdzone domy modułowe z całej Europy.
-          </p>
+          <p className="max-w-[46ch] text-body-l text-brand-v4-mist">{t("subheading")}</p>
           <ul className="flex flex-col items-start gap-brand-2 sm:flex-row sm:flex-wrap sm:gap-brand-4">
             {trustBadges.map(({ icon: Icon, label }) => (
               <li

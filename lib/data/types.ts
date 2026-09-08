@@ -170,6 +170,13 @@ export interface ProjectDraft {
   bedrooms: number | null;
   countryOfProduction: CountryCode | null;
   description: string;
+  // Opcjonalne tłumaczenia EN/NL nazwy i opisu (spec 0028 AC-5): polski
+  // (name/description) zostaje wymaganym tekstem źródłowym, te pola mogą
+  // zostać puste — strona klienta wtedy pokazuje polski tekst (AC-6).
+  nameEn: string;
+  nameNl: string;
+  descriptionEn: string;
+  descriptionNl: string;
   // Niezmienna po utworzeniu produktu (spec 0022 AC-7): ścieżka edycji nie
   // pokazuje selektora, a updateProduct (lib/producer-products.ts) ignoruje
   // to pole z draftu i zachowuje wartość istniejącego produktu.
@@ -204,6 +211,10 @@ export interface SavedProduct {
   bedrooms: number;
   countryOfProduction: CountryCode;
   description: string;
+  nameEn: string;
+  nameNl: string;
+  descriptionEn: string;
+  descriptionNl: string;
   family: ProductFamily;
   category: ProjectCategory | null;
   spaSubcategory: SpaSubcategory | null;

@@ -1,11 +1,12 @@
 "use client";
 
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
-import { ChevronDown, Heart, Menu, User, X } from "lucide-react";
+import { Heart, Menu, User, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Container } from "@/components/ui";
+import { Container, LanguageSwitcher } from "@/components/ui";
 
 interface SiteHeaderSession {
   user: {
@@ -25,32 +26,29 @@ interface NavItem {
   href?: string;
 }
 
-// "Domy" mirrors the logo (both point at the home page); "Jak to działa" is
-// the only other real destination, an anchor into the closing CTA's
-// explainer (spec 0014 AC-1, AC-9) — an absolute path (not a bare "#…"
-// fragment) because SiteHeader renders on every klient/ page, not just the
-// home page it's targeting. The rest are disabled placeholders — no
-// catalog/blog/about page exists yet, same pattern as the icon buttons
-// below and CategoryFilterBar's placeholder chips on /wyniki.
-function mainNavItems(locale: string): NavItem[] {
-  return [
-    { label: "Domy", href: `/${locale}/klient` },
-    { label: "Producenci" },
-    { label: "Projekty" },
-    { label: "Inspiracje" },
-    { label: "Jak to działa", href: `/${locale}/klient#jak-to-dziala` },
-    { label: "O nas" },
-  ];
-}
-
 // How far (px) the visitor scrolls past the top of the home hero before its
 // transparent overlay header (see isHomeRoute below) switches to the same
 // solid header every other klient/ route always uses.
 const HOME_HERO_SCROLL_THRESHOLD = 96;
 
 export function SiteHeader({ locale, session }: SiteHeaderProps) {
+  const t = useTranslations("SiteHeader");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const navItems = mainNavItems(locale);
+  // "Domy" mirrors the logo (both point at the home page); "Jak to działa" is
+  // the only other real destination, an anchor into the closing CTA's
+  // explainer (spec 0014 AC-1, AC-9) — an absolute path (not a bare "#…"
+  // fragment) because SiteHeader renders on every klient/ page, not just the
+  // home page it's targeting. The rest are disabled placeholders — no
+  // catalog/blog/about page exists yet, same pattern as the icon buttons
+  // below and CategoryFilterBar's placeholder chips on /wyniki.
+  const navItems: NavItem[] = [
+    { label: t("nav.homes"), href: `/${locale}/klient` },
+    { label: t("nav.producers") },
+    { label: t("nav.projects") },
+    { label: t("nav.inspirations") },
+    { label: t("nav.howItWorks"), href: `/${locale}/klient#jak-to-dziala` },
+    { label: t("nav.about") },
+  ];
   const pathname = usePathname();
   // Only the home route renders Hero's full-bleed photo directly under the
   // header (see Hero.tsx) — every other klient/ route keeps the always-solid
@@ -126,21 +124,17 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
           </svg>
         </Link>
         <div className="flex items-center gap-brand-3">
-          <button
-            type="button"
-            disabled
-            aria-label="Zmień język"
-            className={`hidden items-center gap-1 text-body font-medium disabled:cursor-default disabled:opacity-50 sm:flex ${navTextClass}`}
-          >
-            PL
-            <ChevronDown className="size-4" aria-hidden="true" />
-          </button>
+          <LanguageSwitcher
+            locale={locale}
+            surface="v5"
+            triggerClassName={`hidden disabled:cursor-default disabled:opacity-50 sm:flex ${navTextClass}`}
+          />
           <Link
             href={`/${locale}/klient/panel/ulubione`}
             className={`focus-ring hidden items-center gap-1 rounded-data text-body font-medium sm:flex ${navTextClass}`}
           >
             <Heart className="size-4" aria-hidden="true" />
-            Ulubione
+            {t("favorites")}
           </Link>
           {session ? (
             <div className="hidden items-center gap-brand-2 md:flex">
@@ -149,7 +143,7 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
                   href={`/${locale}/internal/zapytania`}
                   className={`focus-ring rounded-data text-body font-medium ${navTextClass}`}
                 >
-                  Panel administratora
+                  {t("adminPanel")}
                 </Link>
               )}
               {session.user.role === "client" && (
@@ -158,7 +152,7 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
                   className={`focus-ring flex items-center gap-1 rounded-data text-body font-medium ${navTextClass}`}
                 >
                   <User className="size-4" aria-hidden="true" />
-                  Mój profil
+                  {t("myProfile")}
                 </Link>
               )}
             </div>
@@ -168,19 +162,19 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
               className={`focus-ring hidden items-center gap-1 rounded-data text-body font-medium md:flex ${navTextClass}`}
             >
               <User className="size-4" aria-hidden="true" />
-              Zaloguj się
+              {t("signIn")}
             </Link>
           )}
           <Link
             href={`/${locale}/producent`}
             className="focus-ring rounded-v5-pill bg-brand-v5-amber px-brand-3 py-brand-1 text-body font-semibold text-brand-v5-amber-foreground hover:bg-brand-v5-amber-strong"
           >
-            Zacznij
+            {t("start")}
           </Link>
           <button
             type="button"
             onClick={() => setIsMenuOpen(true)}
-            aria-label="Otwórz menu"
+            aria-label={t("openMenu")}
             aria-haspopup="dialog"
             aria-expanded={isMenuOpen}
             className={`focus-ring flex items-center justify-center rounded-data p-1 hover:opacity-70 ${navTextClass}`}
@@ -201,17 +195,17 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
             className="flex h-full w-full max-w-xs flex-col gap-brand-4 overflow-y-auto bg-brand-v5-surface p-brand-4 shadow-xl transition duration-200 ease-out data-[closed]:translate-x-full"
           >
             <div className="flex items-center justify-between">
-              <span className="text-body font-medium text-brand-v5-ink">Menu</span>
+              <span className="text-body font-medium text-brand-v5-ink">{t("menu")}</span>
               <button
                 type="button"
                 onClick={() => setIsMenuOpen(false)}
-                aria-label="Zamknij menu"
+                aria-label={t("closeMenu")}
                 className="focus-ring flex items-center justify-center rounded-data p-1 text-brand-v5-ink hover:opacity-70"
               >
                 <X className="size-6" aria-hidden="true" />
               </button>
             </div>
-            <nav aria-label="Główna">
+            <nav aria-label={t("mainNav")}>
               <ul className="flex flex-col gap-brand-3">
                 {navItems.map((item) =>
                   item.href ? (

@@ -1,4 +1,5 @@
 import { Building2, Home, Thermometer, Wind, Zap } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import type { ResultsFilter } from "@/lib/results-filters";
 import { buildResultsHref, toggleFilterValue } from "@/lib/results-filters";
@@ -14,23 +15,24 @@ interface CategoryFilterBarProps {
 // nie niesie tych atrybutów (patrz spec Follow-up). Prawdziwe linki, nie
 // wyłączone przyciski: klawiaturowo obsługiwane, aktualizują URL od razu po
 // kliknięciu, ponowne kliknięcie tego samego chipa czyści filtr (toggle).
-const CHIPS: {
-  icon: typeof Home;
-  label: string;
-  key: "storeys" | "heatSource" | "ventilation" | "energyClass";
-  value: NonNullable<ResultsFilter["storeys" | "heatSource" | "ventilation" | "energyClass"]>;
-}[] = [
-  { icon: Home, label: "Parterowy", key: "storeys", value: "parterowy" },
-  { icon: Building2, label: "Piętrowy", key: "storeys", value: "pietrowy" },
-  { icon: Thermometer, label: "Pompa ciepła", key: "heatSource", value: "pompa-ciepla" },
-  { icon: Wind, label: "Rekuperacja", key: "ventilation", value: "rekuperacja" },
-  { icon: Zap, label: "Klasa A+", key: "energyClass", value: "A+" },
-];
+export async function CategoryFilterBar({ locale, filter }: CategoryFilterBarProps) {
+  const t = await getTranslations("CategoryFilterBar");
+  const chips: {
+    icon: typeof Home;
+    label: string;
+    key: "storeys" | "heatSource" | "ventilation" | "energyClass";
+    value: NonNullable<ResultsFilter["storeys" | "heatSource" | "ventilation" | "energyClass"]>;
+  }[] = [
+    { icon: Home, label: t("singleStorey"), key: "storeys", value: "parterowy" },
+    { icon: Building2, label: t("twoStorey"), key: "storeys", value: "pietrowy" },
+    { icon: Thermometer, label: t("heatPump"), key: "heatSource", value: "pompa-ciepla" },
+    { icon: Wind, label: t("heatRecovery"), key: "ventilation", value: "rekuperacja" },
+    { icon: Zap, label: t("energyClassA"), key: "energyClass", value: "A+" },
+  ];
 
-export function CategoryFilterBar({ locale, filter }: CategoryFilterBarProps) {
   return (
-    <nav aria-label="Filtry atrybutów domu" className="flex items-center gap-brand-4 overflow-x-auto border-b border-brand-v5-line py-brand-2">
-      {CHIPS.map(({ icon: Icon, label, key, value }) => {
+    <nav aria-label={t("navAriaLabel")} className="flex items-center gap-brand-4 overflow-x-auto border-b border-brand-v5-line py-brand-2">
+      {chips.map(({ icon: Icon, label, key, value }) => {
         const active = filter[key] === value;
         return (
           <Link

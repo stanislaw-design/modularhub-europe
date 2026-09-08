@@ -1,5 +1,6 @@
 import { Award, CheckCircle2, Minus, ShieldCheck, Truck } from "lucide-react";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
@@ -23,24 +24,15 @@ import { ProjectTechnicalSpecs } from "@/components/klient/ProjectTechnicalSpecs
 import { getCountries } from "@/lib/data/countries";
 import { getProducerById } from "@/lib/data/producers";
 import { getEligibilityByCountry, getProjectById } from "@/lib/data/projects";
-import type { EligibilityByCountry, EligibilityStatus } from "@/lib/data/types";
+import type { EligibilityByCountry } from "@/lib/data/types";
 import { getClientIdForUser, getFavoritedProductIds } from "@/lib/db/queries";
+import { routing, type Locale } from "@/lib/i18n/routing";
 import { parseResultsSearchParams } from "@/lib/results-filters";
 
 const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0 });
 
-const legalStatusLabel: Record<EligibilityStatus, string> = {
-  approved: "Zgodny z przepisami",
-  conditional: "Wymaga dodatkowych dokumentów",
-  blocked: "Niedostępny w tym kraju",
-};
-
-function roomsLabel(count: number) {
-  return count === 1 ? "pokój" : count >= 2 && count <= 4 ? "pokoje" : "pokoi";
-}
-
-function bedroomsLabel(count: number) {
-  return count === 1 ? "sypialnia" : count >= 2 && count <= 4 ? "sypialnie" : "sypialni";
+function countBucket(count: number): "one" | "few" | "many" {
+  return count === 1 ? "one" : count >= 2 && count <= 4 ? "few" : "many";
 }
 
 type PageParams = { locale: string; id: string };
@@ -52,19 +44,32 @@ export async function generateMetadata({
   params: Promise<PageParams>;
 }): Promise<Metadata> {
   const { locale, id } = await params;
-  const project = await getProjectById(id);
+  const [project, t] = await Promise.all([
+    getProjectById(id, locale as Locale),
+    getTranslations({ locale, namespace: "KlientProjektPage" }),
+  ]);
   if (!project) return {};
 
   const priceLabel = project.priceOnRequest
-    ? "wycena indywidualna"
-    : `od ${priceFormatter.format(project.priceMin)} €`;
-  const description = `${project.name} od ${project.producerName} — ${project.floorAreaM2} m², ${project.rooms} ${roomsLabel(project.rooms)}, ${priceLabel}.`;
+    ? t("priceOnRequest").toLowerCase()
+    : `${t("from")} ${priceFormatter.format(project.priceMin)} €`;
+  const roomsLabel = t(`roomsLabel.${countBucket(project.rooms)}`);
+  const description = `${project.name} ${t("from")} ${project.producerName} — ${project.floorAreaM2} m², ${project.rooms} ${roomsLabel}, ${priceLabel}.`;
   const canonicalPath = `/${locale}/klient/projekt/${project.id}`;
+
+  // Ten sam zasób pod trzema prefiksami języka (AC-8): x-default wskazuje na
+  // /pl, bo to jedyny język z gwarantowaną, kompletną treścią dziś.
+  const languageAlternates = Object.fromEntries(
+    routing.locales.map((code) => [code, `/${code}/klient/projekt/${project.id}`]),
+  );
 
   return {
     title: `${project.name} — ${project.producerName} | ModularHub Europe`,
     description,
-    alternates: { canonical: canonicalPath },
+    alternates: {
+      canonical: canonicalPath,
+      languages: { ...languageAlternates, "x-default": `/${routing.defaultLocale}/klient/projekt/${project.id}` },
+    },
     openGraph: {
       title: project.name,
       description,
@@ -81,8 +86,12 @@ export default async function ProjektPage({
   params: Promise<PageParams>;
   searchParams: Promise<PageSearchParams>;
 }) {
-  const [{ locale, id }, rawSearchParams] = await Promise.all([params, searchParams]);
-  const project = await getProjectById(id);
+  const [{ locale, id }, rawSearchParams, t] = await Promise.all([
+    params,
+    searchParams,
+    getTranslations("KlientProjektPage"),
+  ]);
+  const project = await getProjectById(id, locale as Locale);
   if (!project) notFound();
 
   const { countryCode } = parseResultsSearchParams(rawSearchParams);
@@ -119,28 +128,34 @@ export default async function ProjektPage({
   const commercialTerms = [
     {
       icon: CompletionStandardIcon,
-      label: "Standard wykończenia",
-      value: {
-        "surowy-zamkniety": "Stan surowy zamknięty",
-        deweloperski: "Standard deweloperski",
-        "pod-klucz": "Pod klucz",
-      }[project.commercial.completionStandard],
+      label: t("completionStandardLabel"),
+      value: t(`completionStandard.${project.commercial.completionStandard}`),
     },
     project.structuralWarrantyYears > 0
-      ? { icon: WarrantyIcon, label: "Gwarancja konstrukcyjna", value: `${project.structuralWarrantyYears} lat` }
+      ? {
+          icon: WarrantyIcon,
+          label: t("warrantyTermLabel"),
+          value: t("warrantyYearsValue", { years: project.structuralWarrantyYears }),
+        }
       : null,
     project.commercial.productionLeadTimeWeeksMax > 0
       ? {
           icon: ProductionTimeIcon,
-          label: "Czas produkcji",
-          value: `${project.commercial.productionLeadTimeWeeksMin}–${project.commercial.productionLeadTimeWeeksMax} tyg.`,
+          label: t("productionTimeLabel"),
+          value: t("productionTimeValue", {
+            min: project.commercial.productionLeadTimeWeeksMin,
+            max: project.commercial.productionLeadTimeWeeksMax,
+          }),
         }
       : null,
     project.commercial.onSiteAssemblyDaysMax > 0
       ? {
           icon: AssemblyTimeIcon,
-          label: "Czas montażu",
-          value: `${project.commercial.onSiteAssemblyDaysMin}–${project.commercial.onSiteAssemblyDaysMax} dni`,
+          label: t("assemblyTimeLabel"),
+          value: t("assemblyTimeValue", {
+            min: project.commercial.onSiteAssemblyDaysMin,
+            max: project.commercial.onSiteAssemblyDaysMax,
+          }),
         }
       : null,
   ].filter((entry): entry is NonNullable<typeof entry> => entry !== null);
@@ -190,7 +205,7 @@ export default async function ProjektPage({
               coverImageUrl={project.coverImageUrl}
               totalCount={(project.galleryImageUrls?.filter((url) => url.length > 0).length ?? 0) + 1}
               projectName={project.name}
-              className="h-full max-lg:rounded-none"
+              className="max-lg:rounded-none"
             />
           </div>
           <div className="flex h-full flex-col justify-between gap-brand-3 lg:col-span-5">
@@ -218,30 +233,30 @@ export default async function ProjektPage({
                 {project.priceOnRequest ? (
                   <>
                     <Text variant="label" tone="muted" surface="v5">
-                      Cena
+                      {t("price")}
                     </Text>
                     <DataText as="p" surface="v5" className="text-h2 font-semibold">
-                      Wycena indywidualna
+                      {t("priceOnRequest")}
                     </DataText>
                     <Text tone="muted" surface="v5" className="text-data">
-                      Cena ustalana bezpośrednio z producentem po zgłoszeniu zapytania.
+                      {t("priceOnRequestHint")}
                     </Text>
                   </>
                 ) : (
                   <>
                     <Text variant="label" tone="muted" surface="v5">
-                      Szacowany pakiet
+                      {t("estimatedPackage")}
                     </Text>
                     <DataText as="p" surface="v5" className="text-h2 font-semibold">
-                      {priceFormatter.format(project.priceMin)}–{priceFormatter.format(project.priceMax)} €
+                      {t("from")} {priceFormatter.format(project.priceMin)} €
                     </DataText>
                     <Text tone="muted" surface="v5" className="text-data">
-                      Dom + standardowy transport + montaż
+                      {t("packageIncludes")}
                     </Text>
                   </>
                 )}
                 <Button as="a" href={zapytanieHref} size="lg" surface="v5" className="mt-brand-1 w-full sm:w-fit">
-                  Wyślij zapytanie
+                  {t("sendInquiry")}
                 </Button>
               </Card>
             </div>
@@ -254,7 +269,7 @@ export default async function ProjektPage({
                 <span className="flex items-center gap-brand-1">
                   <ShieldCheck className="size-4 shrink-0 text-status-approved" aria-hidden="true" />
                   <Text className="text-data" tone="muted" surface="v5">
-                    {project.structuralWarrantyYears} lat gwarancji konstrukcyjnej
+                    {t("warrantyYears", { years: project.structuralWarrantyYears })}
                   </Text>
                 </span>
               )}
@@ -262,8 +277,9 @@ export default async function ProjektPage({
                 <span className="flex items-center gap-brand-1">
                   <Award className="size-4 shrink-0 text-status-approved" aria-hidden="true" />
                   <Text className="text-data" tone="muted" surface="v5">
-                    Potwierdzone {project.certifications.length}{" "}
-                    {project.certifications.length === 1 ? "certyfikatem" : "certyfikatami"}
+                    {t(`certifiedCount.${project.certifications.length === 1 ? "one" : "other"}`, {
+                      count: project.certifications.length,
+                    })}
                   </Text>
                 </span>
               )}
@@ -271,8 +287,10 @@ export default async function ProjektPage({
                 <span className="flex items-center gap-brand-1">
                   <Truck className="size-4 shrink-0 text-status-approved" aria-hidden="true" />
                   <Text className="text-data" tone="muted" surface="v5">
-                    Montaż na działce w {project.commercial.onSiteAssemblyDaysMin}–
-                    {project.commercial.onSiteAssemblyDaysMax} dni
+                    {t("assemblyDays", {
+                      min: project.commercial.onSiteAssemblyDaysMin,
+                      max: project.commercial.onSiteAssemblyDaysMax,
+                    })}
                   </Text>
                 </span>
               )}
@@ -294,8 +312,8 @@ export default async function ProjektPage({
               jednego rzędu identycznych kafli, a rysunkowe ikony (linia wymiarowa,
               rozwarcie drzwi, rzut łóżka...) mówią czego dotyczy dany parametr,
               zamiast być zamiennym glifem z biblioteki. */}
-          <div className="flex flex-col gap-brand-4 rounded-v5-card border-2 border-brand-v5-ink bg-brand-v5-surface p-brand-4 sm:p-brand-5 lg:flex-row lg:items-stretch lg:gap-brand-5">
-            <div className="flex items-center gap-brand-3 border-b border-brand-v5-line pb-brand-4 lg:border-b-0 lg:border-r lg:pb-0 lg:pr-brand-5">
+          <div className="flex flex-col gap-brand-4 rounded-v5-card border-2 border-brand-v5-ink bg-brand-v5-surface p-brand-4 sm:p-brand-5">
+            <div className="flex items-center gap-brand-3 border-b border-brand-v5-line pb-brand-4">
               <span className="flex size-16 shrink-0 items-center justify-center rounded-data bg-brand-v5-ink">
                 <FloorAreaIcon className="size-8 text-brand-v5-paper" />
               </span>
@@ -304,27 +322,35 @@ export default async function ProjektPage({
                   {project.floorAreaM2} m²
                 </DataText>
                 <Text variant="label" tone="muted" surface="v5" className="font-semibold">
-                  Powierzchnia użytkowa
+                  {t("floorAreaLabel")}
                 </Text>
               </div>
             </div>
 
-            <div className="grid min-w-0 flex-1 grid-cols-2 gap-brand-4 sm:grid-cols-4 lg:gap-0 lg:divide-x lg:divide-brand-v5-line">
+            <div className="grid min-w-0 grid-cols-2 gap-brand-4 sm:grid-cols-4">
               {(
                 [
-                  { icon: RoomsIcon, value: String(project.rooms), label: roomsLabel(project.rooms) },
+                  {
+                    icon: RoomsIcon,
+                    value: String(project.rooms),
+                    label: t(`roomsLabel.${countBucket(project.rooms)}`),
+                  },
                   project.bedrooms > 0
-                    ? { icon: BedroomsIcon, value: String(project.bedrooms), label: bedroomsLabel(project.bedrooms) }
+                    ? {
+                        icon: BedroomsIcon,
+                        value: String(project.bedrooms),
+                        label: t(`bedroomsLabel.${countBucket(project.bedrooms)}`),
+                      }
                     : null,
                   {
                     icon: BathroomsIcon,
                     value: String(project.bathrooms),
-                    label: project.bathrooms === 1 ? "łazienka" : "łazienki",
+                    label: t(`bathroomsLabel.${project.bathrooms === 1 ? "one" : "other"}`),
                   },
                   {
                     icon: StoreysIcon,
                     value: String(project.storeys),
-                    label: project.storeys === 1 ? "kondygnacja" : "kondygnacje",
+                    label: t(`storeysLabel.${project.storeys === 1 ? "one" : "other"}`),
                   },
                 ] as const
               )
@@ -332,7 +358,7 @@ export default async function ProjektPage({
                 .map(({ icon: Icon, value, label }) => (
                 <div
                   key={label}
-                  className="flex min-w-0 items-center gap-brand-2 lg:px-brand-4 lg:first:pl-0 lg:last:pr-0"
+                  className="flex min-w-0 items-center gap-brand-2"
                 >
                   <span className="flex size-11 shrink-0 items-center justify-center rounded-data bg-brand-v5-amber/10">
                     <Icon className="size-6 text-brand-v5-amber-strong" />
@@ -354,7 +380,7 @@ export default async function ProjektPage({
             <div className="grid grid-cols-1 gap-brand-5 lg:grid-cols-12 lg:items-center lg:gap-brand-6">
               <div className="flex flex-col gap-brand-3 lg:col-span-7">
                 <Text variant="label" tone="muted" surface="v5">
-                  Opis
+                  {t("descriptionLabel")}
                 </Text>
                 {isLongDescription ? (
                   // Bez JS: `details[open]` w obrębie `.group/desc` steruje przez
@@ -371,8 +397,8 @@ export default async function ProjektPage({
                     </Text>
                     <details>
                       <summary className="focus-ring w-fit cursor-pointer list-none text-body-l font-semibold text-brand-v5-ink underline underline-offset-2 [&::-webkit-details-marker]:hidden">
-                        <span className="group-has-[[open]]/desc:hidden">Pokaż więcej</span>
-                        <span className="hidden group-has-[[open]]/desc:inline">Pokaż mniej</span>
+                        <span className="group-has-[[open]]/desc:hidden">{t("showMore")}</span>
+                        <span className="hidden group-has-[[open]]/desc:inline">{t("showLess")}</span>
                       </summary>
                     </details>
                   </div>
@@ -387,7 +413,7 @@ export default async function ProjektPage({
                   <div className="relative aspect-[4/3] overflow-hidden rounded-v5-card">
                     <Image
                       src={descriptionImageUrl}
-                      alt={`${project.name}, dom modułowy`}
+                      alt={t("descriptionImageAlt", { name: project.name })}
                       fill
                       sizes="(min-width: 1024px) 33vw, 100vw"
                       className="object-cover"
@@ -408,8 +434,8 @@ export default async function ProjektPage({
               {project.simplifiedPermitEligible !== undefined && (
                 <StatusPill status={project.simplifiedPermitEligible ? "approved" : "blocked"}>
                   {project.simplifiedPermitEligible
-                    ? "Kwalifikuje się do zgłoszenia uproszczonego"
-                    : "Nie kwalifikuje się do zgłoszenia uproszczonego"}
+                    ? t("simplifiedPermitEligible")
+                    : t("simplifiedPermitNotEligible")}
                 </StatusPill>
               )}
             </div>
@@ -418,7 +444,7 @@ export default async function ProjektPage({
 
         <div className="flex flex-col gap-brand-4">
           <Heading level="h2" surface="v5" className="text-h3">
-            Warunki komercyjne
+            {t("commercialTermsHeading")}
           </Heading>
           {/* Cztery ustalenia handlowe, każde odpowiada na inne pytanie kupującego
               (w jakim stanie odbieram dom / na ile lat / jak długo czekam / ile trwa
@@ -451,7 +477,7 @@ export default async function ProjektPage({
               {project.commercial.priceIncludes.length > 0 && (
                 <div className="flex flex-col gap-brand-3 rounded-v5-card border border-status-approved/30 bg-status-approved/5 p-brand-4">
                   <Text variant="label" tone="muted" surface="v5">
-                    Cena zawiera
+                    {t("priceIncludesHeading")}
                   </Text>
                   <ul className="flex flex-col gap-brand-2">
                     {project.commercial.priceIncludes.map((item) => (
@@ -471,7 +497,7 @@ export default async function ProjektPage({
               {project.commercial.priceExcludes.length > 0 && (
                 <div className="flex flex-col gap-brand-3 rounded-v5-card border border-brand-v5-line bg-brand-v5-line/10 p-brand-4">
                   <Text variant="label" tone="muted" surface="v5">
-                    Cena nie zawiera
+                    {t("priceExcludesHeading")}
                   </Text>
                   <ul className="flex flex-col gap-brand-2">
                     {project.commercial.priceExcludes.map((item) => (
@@ -492,9 +518,9 @@ export default async function ProjektPage({
         {countryCode && eligibility && (
           <div className="flex flex-col gap-brand-2">
             <Heading level="h2" surface="v5" className="text-h3">
-              Zgodność prawna w {targetCountryName ?? countryCode}
+              {t("legalComplianceHeading", { country: targetCountryName ?? countryCode })}
             </Heading>
-            <StatusPill status={eligibility.status}>{legalStatusLabel[eligibility.status]}</StatusPill>
+            <StatusPill status={eligibility.status}>{t(`status.${eligibility.status}`)}</StatusPill>
             <Text tone="muted" surface="v5">
               {eligibility.reason}
             </Text>
@@ -504,7 +530,7 @@ export default async function ProjektPage({
         {producer && (
           <div className="flex flex-col gap-brand-3">
             <Heading level="h2" surface="v5" className="text-h3">
-              Producent
+              {t("producerHeading")}
             </Heading>
             <ProducerCard producer={producer} />
           </div>
@@ -512,13 +538,13 @@ export default async function ProjektPage({
 
         <div className="flex flex-wrap items-center gap-brand-2 border-t border-brand-v5-line pt-brand-4">
           <Button as="a" href={zapytanieHref} size="lg" surface="v5">
-            Wyślij zapytanie
+            {t("sendInquiry")}
           </Button>
           <Button as="a" href={shortlistHref} variant="secondary" surface="v5">
-            Dodaj do shortlisty
+            {t("addToShortlist")}
           </Button>
           <Button as="a" href={dzialkaHref} variant="secondary" surface="v5">
-            Sprawdź działkę pod ten projekt
+            {t("checkPlot")}
           </Button>
         </div>
       </div>
@@ -529,12 +555,12 @@ export default async function ProjektPage({
         <div className="flex min-w-0 flex-col">
           {project.priceOnRequest ? (
             <DataText surface="v5" className="truncate text-body-l font-semibold">
-              Wycena indywidualna
+              {t("priceOnRequest")}
             </DataText>
           ) : (
             <>
               <Text variant="label" tone="muted" surface="v5">
-                od
+                {t("from")}
               </Text>
               <DataText surface="v5" className="text-body-l font-black leading-none">
                 {priceFormatter.format(project.priceMin)} €
@@ -543,7 +569,7 @@ export default async function ProjektPage({
           )}
         </div>
         <Button as="a" href={zapytanieHref} size="lg" surface="v5" className="shrink-0">
-          Wyślij zapytanie
+          {t("sendInquiry")}
         </Button>
       </div>
     </>

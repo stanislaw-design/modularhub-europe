@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { FavoritesGrid } from "@/components/klient/FavoritesGrid";
 import { PanelEmptyState } from "@/components/klient/PanelEmptyState";
 import { Heading, Stack } from "@/components/ui";
@@ -26,7 +27,11 @@ export default async function UlubionePage({
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const [{ locale }, rawSearchParams] = await Promise.all([params, searchParams]);
+  const [{ locale }, rawSearchParams, t] = await Promise.all([
+    params,
+    searchParams,
+    getTranslations("KlientPanelUlubionePage"),
+  ]);
   const selfHref = buildSelfHref(locale, rawSearchParams);
   const session = await requirePanelClientSession(locale, selfHref);
 
@@ -37,13 +42,9 @@ export default async function UlubionePage({
     return (
       <Stack gap={4}>
         <Heading level="h1" surface="v5">
-        Ulubione
-      </Heading>
-        <PanelEmptyState
-          locale={locale}
-          title="Nie masz jeszcze żadnych ulubionych domów"
-          description="Kliknij serce na wynikach wyszukiwania albo stronie projektu, żeby zapisać dom i wrócić do niego później."
-        />
+          {t("heading")}
+        </Heading>
+        <PanelEmptyState locale={locale} title={t("emptyTitle")} description={t("emptyDescription")} />
       </Stack>
     );
   }
@@ -61,7 +62,7 @@ export default async function UlubionePage({
   return (
     <Stack gap={4}>
       <Heading level="h1" surface="v5">
-        Ulubione
+        {t("heading")}
       </Heading>
       <FavoritesGrid locale={locale} favorites={favorites} selectedIds={selectedIds} maxSelected={MAX_COMPARE} />
     </Stack>

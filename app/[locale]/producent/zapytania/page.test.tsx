@@ -1,10 +1,11 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { resolveAsyncTree } from "@/test/resolve-async-tree";
 import ProducerZapytaniaPage from "./page";
 
 async function renderPage() {
   const element = await ProducerZapytaniaPage({ params: Promise.resolve({ locale: "pl" }) });
-  render(element);
+  render(await resolveAsyncTree(element));
 }
 
 describe("ProducerZapytaniaPage", () => {

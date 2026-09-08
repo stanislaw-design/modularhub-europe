@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { type FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Checkbox, Input, Label, Select, Stack } from "@/components/ui";
@@ -18,6 +19,7 @@ const technologyOptions = PRODUCER_TECHNOLOGIES.map((technology) => ({
 }));
 
 export function RegistrationForm({ locale, countries }: RegistrationFormProps) {
+  const t = useTranslations("RegistrationForm");
   const router = useRouter();
   const [nip, setNip] = useState("");
   const [nipTouched, setNipTouched] = useState(false);
@@ -49,7 +51,7 @@ export function RegistrationForm({ locale, countries }: RegistrationFormProps) {
     <form onSubmit={handleSubmit} className="flex w-full flex-col gap-brand-3" noValidate>
       <Stack gap={1}>
         <Label htmlFor="registration-nip" required>
-          NIP
+          {t("nipLabel")}
         </Label>
         <Input
           id="registration-nip"
@@ -57,7 +59,7 @@ export function RegistrationForm({ locale, countries }: RegistrationFormProps) {
           type="text"
           inputMode="numeric"
           autoComplete="off"
-          placeholder="000-000-00-00"
+          placeholder={t("nipPlaceholder")}
           required
           invalid={nipInvalid}
           aria-describedby={nipInvalid ? "registration-nip-error" : undefined}
@@ -67,14 +69,14 @@ export function RegistrationForm({ locale, countries }: RegistrationFormProps) {
         />
         {nipInvalid && (
           <p id="registration-nip-error" className="font-sans text-body text-status-blocked">
-            Podaj prawidłowy NIP (10 cyfr).
+            {t("nipError")}
           </p>
         )}
       </Stack>
 
       <fieldset className="flex flex-col gap-brand-1 border-0 p-0 m-0">
         <legend className="text-label font-medium uppercase tracking-[0.1em] text-brand-technical-graphite">
-          Kraje dostawy<span className="text-status-blocked" aria-hidden="true"> *</span>
+          {t("deliveryCountriesLegend")}<span className="text-status-blocked" aria-hidden="true"> *</span>
         </legend>
         <Stack direction="row" gap={3} className="flex-wrap">
           {countries.map((country) => (
@@ -94,20 +96,20 @@ export function RegistrationForm({ locale, countries }: RegistrationFormProps) {
 
       <Stack gap={1}>
         <Label id="registration-technology-label" required>
-          Technologia
+          {t("technologyLabel")}
         </Label>
         <Select
           value={technology}
           onChange={setTechnology}
           options={technologyOptions}
-          placeholder="Wybierz technologię"
+          placeholder={t("technologyPlaceholder")}
           name="technology"
           aria-labelledby="registration-technology-label"
         />
       </Stack>
 
       <Button type="submit" disabled={!canSubmit} className="w-fit">
-        Zarejestruj się
+        {t("submitButton")}
       </Button>
     </form>
   );

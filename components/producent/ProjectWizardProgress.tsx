@@ -1,6 +1,7 @@
 "use client";
 
 import { Check } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { tv } from "tailwind-variants";
 import { Text } from "@/components/ui";
 import type { WizardStep } from "@/lib/producer-project-draft";
@@ -37,8 +38,9 @@ export function ProjectWizardProgress({
   maxReachedIndex,
   onStepClick,
 }: ProjectWizardProgressProps) {
+  const t = useTranslations("ProjectWizardProgress");
   return (
-    <ol className="flex flex-wrap gap-brand-3" aria-label="Postęp kreatora">
+    <ol className="flex flex-wrap gap-brand-3" aria-label={t("ariaLabel")}>
       {steps.map((step, index) => {
         const status = statusFor(index, currentIndex, maxReachedIndex);
         const clickable = status === "completed";

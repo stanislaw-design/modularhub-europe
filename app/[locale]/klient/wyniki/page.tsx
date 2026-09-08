@@ -9,6 +9,7 @@ import { getCountries } from "@/lib/data/countries";
 import { getEligibilityByCountry, getProjects } from "@/lib/data/projects";
 import type { EligibilityByCountry } from "@/lib/data/types";
 import { getClientIdForUser, getFavoritedProductIds } from "@/lib/db/queries";
+import type { Locale } from "@/lib/i18n/routing";
 import { parseResultsSearchParams, sortResults } from "@/lib/results-filters";
 
 export default async function WynikiPage({
@@ -23,7 +24,7 @@ export default async function WynikiPage({
 
   const [countries, projects, eligibilityRows, session] = await Promise.all([
     getCountries(),
-    getProjects(filter),
+    getProjects({ ...filter, locale: locale as Locale }),
     filter.countryCode
       ? getEligibilityByCountry(filter.countryCode)
       : Promise.resolve<EligibilityByCountry[]>([]),

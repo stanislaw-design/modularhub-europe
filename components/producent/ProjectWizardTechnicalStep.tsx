@@ -1,6 +1,7 @@
+import { useTranslations } from "next-intl";
 import { Heading, Label, Select, Stack } from "@/components/ui";
 import type { ProjectDraft, ProductTechnicalSpecsDraft } from "@/lib/data/types";
-import { TECHNICAL_FIELDS_BY_FAMILY } from "@/lib/producer-project-draft";
+import { getTechnicalFieldsByFamily } from "@/lib/producer-project-draft";
 import { ProjectWizardTechnicalField } from "./ProjectWizardTechnicalField";
 
 interface ProjectWizardTechnicalStepProps {
@@ -13,15 +14,18 @@ interface ProjectWizardTechnicalStepProps {
 // pola zależą od draft.family (spec 0022 AC-6). Krok "podstawowe" wymusza
 // wybór family wcześniej w kreatorze, więc draft.family jest tu zawsze ustawione.
 export function ProjectWizardTechnicalStep({ draft, showValidation, onChange }: ProjectWizardTechnicalStepProps) {
+  const t = useTranslations("ProjectWizardTechnicalStep");
+  const tOptions = useTranslations("ProjectOptions");
+
   if (draft.family === null) {
     return (
       <Stack gap={3}>
-        <Heading level="h2">Dane techniczne</Heading>
+        <Heading level="h2">{t("heading")}</Heading>
       </Stack>
     );
   }
 
-  const fields = TECHNICAL_FIELDS_BY_FAMILY[draft.family];
+  const fields = getTechnicalFieldsByFamily(draft.family, tOptions);
 
   function updateSpec(key: keyof ProductTechnicalSpecsDraft, value: string | number) {
     onChange({ technicalSpecs: { ...draft.technicalSpecs, [key]: value } });
@@ -29,7 +33,7 @@ export function ProjectWizardTechnicalStep({ draft, showValidation, onChange }: 
 
   return (
     <Stack gap={3}>
-      <Heading level="h2">Dane techniczne</Heading>
+      <Heading level="h2">{t("heading")}</Heading>
       {fields.map((field) => {
         const value = draft.technicalSpecs[field.key];
         if (field.type === "select") {
@@ -48,7 +52,9 @@ export function ProjectWizardTechnicalStep({ draft, showValidation, onChange }: 
                 aria-labelledby={labelId}
               />
               {invalid && (
-                <p className="font-sans text-body text-status-blocked">Wybierz {field.label.toLowerCase()}.</p>
+                <p className="font-sans text-body text-status-blocked">
+                  {t("selectRequiredError", { label: field.label.toLowerCase() })}
+                </p>
               )}
             </Stack>
           );
@@ -69,7 +75,7 @@ export function ProjectWizardTechnicalStep({ draft, showValidation, onChange }: 
             type={field.type === "number" ? "number" : "text"}
             value={(value as string | number | undefined) ?? (field.type === "number" ? null : "")}
             invalid={invalid}
-            errorMessage={`Podaj ${field.label.toLowerCase()}.`}
+            errorMessage={t("textRequiredError", { label: field.label.toLowerCase() })}
             onChange={(next) => updateSpec(field.key, next)}
           />
         );

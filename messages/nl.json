@@ -1,0 +1,971 @@
+{
+  "SiteHeader": {
+    "nav": {
+      "homes": "Woningen",
+      "producers": "Fabrikanten",
+      "projects": "Projecten",
+      "inspirations": "Inspiratie",
+      "howItWorks": "Hoe het werkt",
+      "about": "Over ons"
+    },
+    "favorites": "Favorieten",
+    "adminPanel": "Beheerderspaneel",
+    "myProfile": "Mijn profiel",
+    "signIn": "Inloggen",
+    "start": "Beginnen",
+    "openMenu": "Menu openen",
+    "closeMenu": "Menu sluiten",
+    "menu": "Menu",
+    "mainNav": "Hoofdmenu"
+  },
+  "ProducerHeader": {
+    "imClient": "Ik ben klant",
+    "menu": "Menu",
+    "account": "Account"
+  },
+  "LanguageSwitcher": {
+    "changeLanguage": "Taal wijzigen",
+    "pl": "Polski",
+    "en": "English",
+    "nl": "Nederlands"
+  },
+  "FileUpload": {
+    "chooseFiles": "Bestanden kiezen",
+    "mockNotice": "Mockup — bestanden worden nergens opgeslagen of geüpload",
+    "noFilesSelected": "Nog geen bestand geselecteerd.",
+    "removeFile": "Bestand {name} verwijderen"
+  },
+  "FulfillmentStage": {
+    "produkcja": "Productie",
+    "transport": "Transport",
+    "montaz": "Montage",
+    "odbior": "Oplevering",
+    "gwarancja": "Garantie"
+  },
+  "StageTimelineStatus": {
+    "completed": "Voltooid",
+    "current": "Huidige fase",
+    "upcoming": "Aankomend"
+  },
+  "KlientRealizacjaPage": {
+    "heading": "Uitvoering — {name}",
+    "completionBanner": "Bestelling voltooid — alle fasen zijn afgerond.",
+    "backToOffer": "Terug naar het aanbod"
+  },
+  "ProducentRealizacjaPage": {
+    "heading": "Uitvoering — {name}",
+    "deliveredBanner": "Bestelling opgeleverd — u kunt nu doorgaan naar bedrijfsverificatie voor de eerste uitbetaling.",
+    "backToList": "Terug naar uitvoering",
+    "verification": "Bedrijfsverificatie en uitbetaling"
+  },
+  "ProducerFulfillmentList": {
+    "heading": "Uitvoering",
+    "intro": "De statusas voor productie, transport, montage en oplevering — dezelfde die de klant ziet voor deze bestelling. Bedrijfsverificatie wordt ontgrendeld na oplevering, voor de eerste uitbetaling.",
+    "empty": "Nog geen uitvoeringen — bestellingen met een geaccepteerd aanbod verschijnen hier.",
+    "readyForVerification": "Klaar voor bedrijfsverificatie",
+    "currentStage": "Huidige fase: {stage}",
+    "viewTimeline": "Bekijk statusas"
+  },
+  "ProjectCertifications": {
+    "heading": "Certificeringen"
+  },
+  "InquiryConfirmationCard": {
+    "message": "De klant vraagt om een aanbod voor dit project, inclusief woning, transport en montage.",
+    "sentAt": "Verzonden {date}"
+  },
+  "PopularHomeCard": {
+    "coverAlt": "{name}, een modulaire woning",
+    "summary": "{area} m² · {rooms} kamers",
+    "summaryNoRooms": "{area} m²",
+    "priceOnRequest": "Prijs op aanvraag",
+    "priceFrom": "vanaf €{price}"
+  },
+  "ProducerCard": {
+    "photoAlt": "Een project van {name}",
+    "verified": "Geverifieerd door ModularHub",
+    "countryOfProduction": "Productieland: {country}",
+    "modelsAndSize": "{models} modellen · {min}–{max} m²",
+    "delivery": "Levert aan:",
+    "country": {
+      "PL": "Polen",
+      "DE": "Duitsland",
+      "NL": "Nederland"
+    }
+  },
+  "ResultCard": {
+    "viewDetails": "Bekijk details voor {name}",
+    "selectForInquiry": "Selecteer {name} voor de aanvraag",
+    "selectionLimitReached": "U kunt maximaal 3 projecten selecteren",
+    "localPreviewBadge": "Uw toegevoegde product (voorbeeld)",
+    "needsMoreDocuments": "Vereist aanvullende documenten",
+    "summary": "{area} m² bruikbaar · {rooms} {roomsLabel} · {storeys} bouwlagen",
+    "rooms": {
+      "one": "kamer",
+      "few": "kamers",
+      "many": "kamers"
+    },
+    "completionStandard": {
+      "surowy-zamkniety": "Casco",
+      "deweloperski": "Ontwikkelaarsstandaard",
+      "pod-klucz": "Sleutelklaar"
+    },
+    "price": "Prijs",
+    "priceOnRequest": "Prijs op aanvraag",
+    "priceOnRequestHint": "Rechtstreeks overeengekomen met de producent",
+    "house": "Woning",
+    "priceFrom": "vanaf €{price}",
+    "leadTime": "{productionMin}–{productionMax} weken productie · {assemblyMin}–{assemblyMax} dagen montage"
+  },
+  "ProductFamilyNoun": {
+    "dom": {
+      "one": "woning",
+      "few": "woningen",
+      "many": "woningen"
+    },
+    "spa-modulowe": {
+      "one": "modulaire spa",
+      "few": "modulaire spa's",
+      "many": "modulaire spa's"
+    },
+    "pergola": {
+      "one": "pergola",
+      "few": "pergola's",
+      "many": "pergola's"
+    }
+  },
+  "CountryLocative": {
+    "PL": "in Polen",
+    "DE": "in Duitsland",
+    "NL": "in Nederland"
+  },
+  "ResultsHeader": {
+    "eligibleSuffix": " toegestaan {country}",
+    "hint": "Kies een land in de balk hierboven om te zien welke {familyFew} daar wettelijk zijn toegestaan."
+  },
+  "EmptyResults": {
+    "heading": "Geen {familyMany} voldoen aan de gekozen criteria",
+    "description": "Geen enkel project voldoet tegelijk aan de gekozen criteria. Pas de filters hierboven aan, of begin opnieuw zonder beperkingen.",
+    "clearFilters": "Filters wissen"
+  },
+  "PanelEmptyState": {
+    "browseHomes": "Woningen bekijken"
+  },
+  "PlotAnalysisRow": {
+    "scopeDescription": "We controleren of de omtrek van deze woning, samen met de vereiste afstanden tot de perceelgrenzen, wegtoegang en basisbeperkingen van het terrein, op uw perceel past.",
+    "disclaimer": "Dit is geen juridisch advies. Het resultaat is een geschatte beoordeling op basis van voorbeeldgegevens, geen echte juridische of bouwkundige expertise.",
+    "status": {
+      "approved": "Toegestaan",
+      "conditional": "Voorwaardelijk toegestaan",
+      "blocked": "Niet toegestaan"
+    },
+    "noAnalysisData": "Geen analysegegevens voor dit project; probeer het later opnieuw.",
+    "servicePrice": "Prijs van de dienst",
+    "plotAreaLabel": "Perceeloppervlakte (m²)",
+    "plotAreaError": "Voer een oppervlakte in tussen {min}–{max} m².",
+    "pay": "Betalen",
+    "processingPayment": "Betaling wordt verwerkt…",
+    "goToOffer": "Naar het bindende aanbod"
+  },
+  "PlotDossierPanel": {
+    "heading": "Perceelpaneel",
+    "intro": "Voer het adres van uw perceel eenmaal in en controleer daarna elke woning waarover u eerder een aanvraag deed afzonderlijk — prijs, betaling en resultaat worden onafhankelijk voor elk berekend.",
+    "addressLabel": "Perceeladres",
+    "backToResults": "Terug naar resultaten"
+  },
+  "FavoriteButton": {
+    "signInToFavorite": "Log in om {name} op te slaan bij favorieten",
+    "removeFavorite": "Verwijder {name} uit favorieten",
+    "addFavorite": "Voeg {name} toe aan favorieten",
+    "genericError": "Opslaan is niet gelukt. Probeer het opnieuw."
+  },
+  "FavoriteCard": {
+    "viewDetails": "Bekijk details voor {name}",
+    "selectForCompare": "Selecteer {name} om te vergelijken",
+    "compareLimitReached": "U kunt maximaal 3 woningen vergelijken",
+    "unavailable": "Product niet beschikbaar",
+    "floorArea": "{area} m² bruikbaar",
+    "priceFrom": "vanaf €{price}"
+  },
+  "FavoriteCompareTable": {
+    "house": "Woning",
+    "unavailableSuffix": "(niet beschikbaar)",
+    "floorArea": "Oppervlakte",
+    "price": "Prijs",
+    "productionTime": "Productietijd",
+    "weeksRange": "{min}–{max} wk",
+    "completionStandardLabel": "Afwerkingsniveau",
+    "completionStandard": {
+      "surowy-zamkniety": "Casco",
+      "deweloperski": "Ontwikkelaarsstandaard",
+      "pod-klucz": "Sleutelklaar"
+    }
+  },
+  "ProjectOptions": {
+    "wizardSteps": {
+      "podstawowe": "Basisinformatie",
+      "techniczne": "Technische gegevens",
+      "pliki": "Bestanden",
+      "cena": "Prijs en verkoop",
+      "podsumowanie": "Samenvatting"
+    },
+    "family": {
+      "dom": "Huis",
+      "spa-modulowe": "Modulaire spa",
+      "pergola": "Pergola"
+    },
+    "category": {
+      "caloroczny": "Het hele jaar bewoonbaar",
+      "rekreacyjny-caloroczny": "Recreatief, het hele jaar bruikbaar",
+      "mobilny": "Mobiel"
+    },
+    "spaSubcategory": {
+      "sauna": "Sauna",
+      "jacuzzi": "Jacuzzi",
+      "wellness-combo": "Wellnesscabine (sauna + jacuzzi)"
+    },
+    "pergolaSubcategory": {
+      "bioklimatyczna": "Bioklimatisch",
+      "aluminiowa-stala": "Vaste aluminium",
+      "drewniana": "Houten",
+      "wolnostojaca-przyscienna": "Vrijstaand / wandgemonteerd"
+    },
+    "completionStandard": {
+      "surowy-zamkniety": "Casco",
+      "deweloperski": "Ontwikkelaarsstandaard",
+      "pod-klucz": "Sleutelklaar"
+    },
+    "energyClassPrefix": "Klasse {code}",
+    "technicalFields": {
+      "dom": {
+        "wallBuildUp": {
+          "label": "Wandopbouw",
+          "hint": "Wandlagen van buiten naar binnen, bijv. constructie, isolatie, beplating"
+        },
+        "insulation": {
+          "label": "Isolatie",
+          "hint": "U-waarde voor wanden en dak (W/m²K)"
+        },
+        "heatTransferCoefficients": {
+          "label": "Energieklasse",
+          "hint": "Energieklasse van het gebouw"
+        },
+        "windowClass": {
+          "label": "Raamklasse",
+          "hint": "Energieklasse en type beglazing"
+        },
+        "ventilation": {
+          "label": "Ventilatie",
+          "hint": "Type ventilatie",
+          "options": {
+            "grawitacyjna": "Natuurlijke (zwaartekracht)",
+            "mechaniczna-nawiewno-wywiewna": "Mechanische toe- en afvoer",
+            "rekuperacja": "Warmteterugwinning (mechanisch met warmtewisselaar)",
+            "brak": "Geen"
+          }
+        },
+        "heatSource": {
+          "label": "Warmtebron",
+          "hint": "Belangrijkste verwarmingsbron",
+          "options": {
+            "pompa-ciepla-powietrze-woda": "Lucht-water warmtepomp",
+            "pompa-ciepla-grunt-woda": "Bodemwarmtepomp (grond-water)",
+            "gazowe": "Gas",
+            "elektryczne": "Elektrisch",
+            "biomasa-pellet": "Biomassa / pellets",
+            "inne": "Overig"
+          }
+        },
+        "fireResistance": {
+          "label": "Brandwerendheid",
+          "hint": "Brandwerendheidsklasse van de constructie, bijv. REI 30"
+        },
+        "windResistance": {
+          "label": "Windweerstand",
+          "hint": "Windzone en maximale windsnelheid"
+        }
+      },
+      "spa-modulowe": {
+        "seatingCapacity": {
+          "label": "Aantal zitplaatsen",
+          "hint": "Aantal zitplaatsen in de cabine/kuip"
+        },
+        "waterVolumeLiters": {
+          "label": "Watervolume (l)",
+          "hint": "Waterinhoud van het bad in liters"
+        },
+        "heatingType": {
+          "label": "Type verwarming",
+          "hint": "Belangrijkste manier van waterverwarming",
+          "options": {
+            "electric": "Elektrisch",
+            "heat-pump": "Warmtepomp",
+            "wood-fired": "Op hout gestookt"
+          }
+        },
+        "filtrationSystem": {
+          "label": "Filtratiesysteem",
+          "hint": "Methode voor waterfiltratie en -behandeling"
+        },
+        "shellMaterial": {
+          "label": "Materiaal van de kuip",
+          "hint": "Materiaal van de cabine/kuip"
+        },
+        "electricalRequirement": {
+          "label": "Elektrische vereisten",
+          "hint": "Vereiste stroomvoorziening, bijv. aansluitvermogen"
+        },
+        "foundationType": {
+          "label": "Funderingstype",
+          "hint": "Funderingsmethode, bijv. betonplaat"
+        }
+      },
+      "pergola": {
+        "roofType": {
+          "label": "Type dak",
+          "hint": "Type pergoladak",
+          "options": {
+            "bioklimatyczny": "Bioklimatisch (verstelbare lamellen)",
+            "staly": "Vast",
+            "rozsuwany": "Uitschuifbaar"
+          }
+        },
+        "roofMaterial": {
+          "label": "Dakmateriaal",
+          "hint": "Materiaal van de dakbedekking"
+        },
+        "dimensions": {
+          "label": "Afmetingen",
+          "hint": "Breedte × diepte × hoogte"
+        },
+        "windLoadRating": {
+          "label": "Windbelastingsklasse",
+          "hint": "Maximaal toegestane windsnelheid"
+        },
+        "snowLoadRating": {
+          "label": "Sneeuwbelastingsklasse",
+          "hint": "Maximale sneeuwbelasting (kN/m²)"
+        },
+        "glazingType": {
+          "label": "Type beglazing",
+          "hint": "Zijpanelen of beglazing, indien van toepassing"
+        },
+        "foundationType": {
+          "label": "Funderingstype",
+          "hint": "Funderingsmethode van de palen"
+        }
+      }
+    }
+  },
+  "ProjectWizard": {
+    "heading": "Voeg je eerste project toe",
+    "back": "Terug",
+    "next": "Volgende",
+    "save": "Project opslaan",
+    "saveError": "Het project kon niet worden opgeslagen (opslaglimiet van de browser). Probeer ongebruikte gegevens te verwijderen of ruimte vrij te maken en probeer het opnieuw."
+  },
+  "ProductEditWizard": {
+    "heading": "Product bewerken",
+    "loading": "Laden…",
+    "back": "Terug",
+    "next": "Volgende",
+    "save": "Wijzigingen opslaan",
+    "saveError": "De wijzigingen konden niet worden opgeslagen (opslaglimiet van de browser). Probeer ongebruikte gegevens te verwijderen of ruimte vrij te maken en probeer het opnieuw."
+  },
+  "ProjectWizardProgress": {
+    "ariaLabel": "Voortgang van de wizard"
+  },
+  "ProjectWizardBasicInfoStep": {
+    "heading": "Basisinformatie",
+    "familyLabel": "Productfamilie",
+    "familyRequiredError": "Kies een productfamilie.",
+    "categoryLabel": "Categorie",
+    "categoryRequiredError": "Kies een categorie.",
+    "spaSubcategoryLabel": "Subcategorie",
+    "pergolaSubcategoryLabel": "Subcategorie",
+    "subcategoryRequiredError": "Kies een subcategorie.",
+    "nameLabel": "Projectnaam",
+    "nameRequiredError": "Voer een projectnaam in.",
+    "floorAreaLabel": "Oppervlakte (m²)",
+    "floorAreaRequiredError": "Voer een oppervlakte tussen {min} en {max} m² in.",
+    "bedroomsLabel": "Aantal slaapkamers",
+    "bedroomsRequiredError": "Voer een aantal slaapkamers tussen {min} en {max} in.",
+    "countryLabel": "Productieland",
+    "countryRequiredError": "Kies een productieland.",
+    "descriptionLabel": "Beschrijving",
+    "descriptionRequiredError": "Voer een projectbeschrijving in.",
+    "translationsHeading": "Vertalingen (optioneel)",
+    "translationsHint": "Engels en Nederlands zijn optioneel — zonder vertaling zien buitenlandse klanten de Poolse tekst.",
+    "translationTabEn": "Engels",
+    "translationTabNl": "Nederlands",
+    "nameEnLabel": "Naam (Engels)",
+    "nameNlLabel": "Naam (Nederlands)",
+    "descriptionEnLabel": "Beschrijving (Engels)",
+    "descriptionNlLabel": "Beschrijving (Nederlands)"
+  },
+  "ProjectWizardTechnicalStep": {
+    "heading": "Technische gegevens",
+    "selectRequiredError": "Kies {label}.",
+    "textRequiredError": "Voer {label} in."
+  },
+  "ProjectWizardPricingStep": {
+    "heading": "Prijs en verkoop",
+    "priceLabel": "Prijs van het huis in de basisstandaard (EUR)",
+    "priceFromAriaLabel": "Prijs van het huis, vanaf (EUR)",
+    "priceToAriaLabel": "Prijs van het huis, tot (EUR)",
+    "priceRequiredError": "Voer een prijs vanaf en tot in, zodat de vanaf-prijs niet hoger is dan de tot-prijs.",
+    "standardLabel": "Afwerkingsstandaard",
+    "standardRequiredError": "Kies een afwerkingsstandaard.",
+    "leadTimeLabel": "Productietermijn (weken)",
+    "leadTimeFromAriaLabel": "Productietermijn, vanaf (weken)",
+    "leadTimeToAriaLabel": "Productietermijn, tot (weken)",
+    "leadTimeRequiredError": "Voer een productietermijn vanaf en tot in, zodat de vanaf-waarde niet hoger is dan de tot-waarde.",
+    "assemblyTimeLabel": "Montagetijd ter plaatse (dagen)",
+    "assemblyTimeFromAriaLabel": "Montagetijd, vanaf (dagen)",
+    "assemblyTimeToAriaLabel": "Montagetijd, tot (dagen)",
+    "assemblyTimeRequiredError": "Voer een montagetijd vanaf en tot in, zodat de vanaf-waarde niet hoger is dan de tot-waarde.",
+    "warrantyLabel": "Constructiegarantie (jaar)",
+    "warrantyRequiredError": "Voer de constructiegarantie in jaren in."
+  },
+  "ProjectWizardFilesStep": {
+    "heading": "Bestanden",
+    "floorPlanLabel": "Plattegronden",
+    "floorPlanRequiredError": "Voeg minstens één plattegrond toe.",
+    "photoLabel": "Foto's",
+    "photoRequiredError": "Voeg minstens één foto toe."
+  },
+  "ProjectWizardSummaryStep": {
+    "heading": "Samenvatting",
+    "intro": "Controleer alle gegevens voordat je het project opslaat.",
+    "groupBasicInfo": "Basisinformatie",
+    "rowName": "Projectnaam",
+    "rowFloorArea": "Oppervlakte",
+    "rowFloorAreaValue": "{area} m²",
+    "rowBedrooms": "Aantal slaapkamers",
+    "rowCountry": "Productieland",
+    "rowDescription": "Beschrijving",
+    "rowFamily": "Productfamilie",
+    "rowSubcategory": "Subcategorie",
+    "groupTechnical": "Technische gegevens",
+    "groupPricing": "Prijs en verkoop",
+    "rowPrice": "Prijs van het huis",
+    "rowPriceValue": "{min}–{max} EUR",
+    "rowStandard": "Afwerkingsstandaard",
+    "rowLeadTime": "Productietermijn",
+    "rowLeadTimeValue": "{min}–{max} wk.",
+    "rowAssemblyTime": "Montagetijd",
+    "rowAssemblyTimeValue": "{min}–{max} dagen",
+    "rowWarranty": "Constructiegarantie",
+    "rowWarrantyValue": "{years} jaar",
+    "groupFiles": "Bestanden",
+    "floorPlanCount": "Plattegronden ({count})",
+    "photoCount": "Foto's ({count})",
+    "empty": "—"
+  },
+  "SubcategoryFilterBar": {
+    "spaAriaLabel": "Subcategorie modulaire spa",
+    "pergolaAriaLabel": "Subcategorie pergola"
+  },
+  "ProducentPage": {
+    "heading": "Word producent bij ModularHub Europe",
+    "subheading": "Een korte registratie, zonder inloggen — drie velden en u gaat meteen door naar uw eerste project.",
+    "whyHeading": "Waarom ModularHub Europe",
+    "benefitRegistrationTitle": "Eén registratie, alle landen",
+    "benefitRegistrationDescription": "Selecteer uw leverlanden één keer — wij controleren de projectgeschiktheid voor elk land.",
+    "benefitInquiriesTitle": "Aanvragen met kant en klare context",
+    "benefitInquiriesDescription": "Klanten sturen aanvragen direct met het gekozen project en hun contactgegevens.",
+    "benefitStatusTitle": "Uitvoeringsstatus op één plek",
+    "benefitStatusDescription": "Productie, transport, montage en oplevering — één statusas, dezelfde die de klant ziet.",
+    "existingAccountInquiries": "Heeft u al een account? Bekijk inkomende aanvragen",
+    "existingAccountOrders": "Heeft u al een lopende bestelling? Bekijk status en uitbetaling",
+    "companyDataHeading": "Bedrijfsgegevens"
+  },
+  "KlientPanelZapytaniaPage": {
+    "heading": "Aanvragen",
+    "emptyTitle": "U heeft nog geen aanvragen verstuurd",
+    "emptyDescription": "Kies een woning op de resultatenpagina en stuur een aanvraag om deze hier met de status te zien.",
+    "columnProducts": "Producten",
+    "columnStatus": "Status",
+    "columnDate": "Datum",
+    "statusOpen": "Wacht op antwoord",
+    "statusOffered": "Aanbod ontvangen",
+    "statusClosed": "Gesloten"
+  },
+  "KlientPanelUlubionePage": {
+    "heading": "Favorieten",
+    "emptyTitle": "U heeft nog geen favoriete woningen",
+    "emptyDescription": "Klik op het hartje op de resultatenpagina of een projectpagina om een woning op te slaan en er later naar terug te keren."
+  },
+  "KlientPanelProfilPage": {
+    "heading": "Profiel"
+  },
+  "KlientProjektPage": {
+    "price": "Prijs",
+    "priceOnRequest": "Prijs op aanvraag",
+    "priceOnRequestHint": "De prijs wordt rechtstreeks met de producent afgesproken na uw aanvraag.",
+    "estimatedPackage": "Geschat pakket",
+    "packageIncludes": "Woning",
+    "sendInquiry": "Aanvraag versturen",
+    "warrantyYears": "{years} jaar constructiegarantie",
+    "warrantyYearsValue": "{years} jaar",
+    "certifiedCount": {
+      "one": "Geverifieerd met {count} certificaat",
+      "other": "Geverifieerd met {count} certificaten"
+    },
+    "assemblyDays": "Montage op locatie in {min}–{max} dagen",
+    "floorAreaLabel": "Bruikbare vloeroppervlakte",
+    "roomsLabel": {
+      "one": "kamer",
+      "few": "kamers",
+      "many": "kamers"
+    },
+    "bedroomsLabel": {
+      "one": "slaapkamer",
+      "few": "slaapkamers",
+      "many": "slaapkamers"
+    },
+    "bathroomsLabel": {
+      "one": "badkamer",
+      "other": "badkamers"
+    },
+    "storeysLabel": {
+      "one": "verdieping",
+      "other": "verdiepingen"
+    },
+    "descriptionLabel": "Beschrijving",
+    "showMore": "Meer tonen",
+    "showLess": "Minder tonen",
+    "completionStandardLabel": "Afwerkingsniveau",
+    "completionStandard": {
+      "surowy-zamkniety": "Casco dicht",
+      "deweloperski": "Afbouwniveau ontwikkelaar",
+      "pod-klucz": "Sleutelklaar"
+    },
+    "warrantyTermLabel": "Constructiegarantie",
+    "productionTimeLabel": "Productietijd",
+    "productionTimeValue": "{min}–{max} wk",
+    "assemblyTimeLabel": "Montagetijd",
+    "assemblyTimeValue": "{min}–{max} dagen",
+    "commercialTermsHeading": "Commerciële voorwaarden",
+    "priceIncludesHeading": "Prijs inclusief",
+    "priceExcludesHeading": "Prijs exclusief",
+    "legalComplianceHeading": "Wettelijke conformiteit in {country}",
+    "status": {
+      "approved": "Conform de regelgeving",
+      "conditional": "Vereist aanvullende documenten",
+      "blocked": "Niet beschikbaar in dit land"
+    },
+    "simplifiedPermitEligible": "In aanmerking voor de vereenvoudigde vergunningsmelding",
+    "simplifiedPermitNotEligible": "Niet in aanmerking voor de vereenvoudigde vergunningsmelding",
+    "producerHeading": "Producent",
+    "addToShortlist": "Toevoegen aan shortlist",
+    "checkPlot": "Controleer uw perceel voor dit project",
+    "from": "vanaf",
+    "descriptionImageAlt": "{name}, modulaire woning"
+  },
+  "Faq": {
+    "heading": "Veelgestelde vragen",
+    "subheading": "Geen antwoord gevonden? Neem contact met ons op via het contactformulier.",
+    "howQuestion": "Hoe werkt ModularHub precies?",
+    "howAnswer": "U zoekt woningen die beschikbaar zijn in uw land, vergelijkt tot drie projecten, controleert de wettelijke conformiteit via de Compliance Engine™ en stuurt vervolgens één aanvraag naar de gekozen producenten in plaats van elk apart te schrijven.",
+    "costQuestion": "Is het gebruik van het platform betaald?",
+    "costAnswer": "Aanbiedingen bekijken, vergelijken en aanvragen versturen zijn gratis. Alleen het optionele perceelanalyserapport voor een specifiek project is betaald.",
+    "priceQuestion": "Waarom is de prijs een bandbreedte en geen vast bedrag?",
+    "priceAnswer": "De uiteindelijke prijs hangt af van het afwerkingsniveau, het transport naar uw locatie en de omvang van de montage. De bandbreedte toont de werkelijke marge voordat u een bindend aanbod van de producent ontvangt.",
+    "complianceQuestion": "Wat controleert de Compliance Engine™?",
+    "complianceAnswer": "De constructie, isolatie, ventilatie en vereiste documentatie van een woning tegenover de bouwvoorschriften van het land waar deze naartoe gaat — voordat u een aanvraag naar de producent stuurt.",
+    "producersQuestion": "Hoe weet u dat de producenten gecontroleerd zijn?",
+    "producersAnswer": "Elke producent op het platform doorloopt de ModularHub-verificatie, zichtbaar als badge op hun kaart, voordat hun projecten in de zoekresultaten verschijnen.",
+    "timeQuestion": "Hoe lang duurt het voordat u aanbiedingen ontvangt?",
+    "timeAnswer": "Meestal tot 48 uur na het versturen van de aanvraag — producenten reageren rechtstreeks op het adres dat u in het contactformulier heeft opgegeven."
+  },
+  "ProjectTechnicalSpecs": {
+    "heading": "Technologie en constructie",
+    "groupConstructionTitle": "Constructie en afwerking",
+    "groupEnergyTitle": "Energie-efficiëntie",
+    "groupSafetyTitle": "Veiligheid en garantie",
+    "constructionSystem": "Constructiesysteem",
+    "externalDimensions": "Buitenafmetingen",
+    "roofType": "Dak",
+    "foundationOptions": "Fundering",
+    "wallBuildUp": "Wandopbouw",
+    "customizationScope": "Aanpassingsmogelijkheden",
+    "insulation": "Isolatie",
+    "heatTransferCoefficients": "Warmtedoorgangscoëfficiënten",
+    "windowClass": "Raamklasse",
+    "ventilation": "Ventilatie",
+    "heatSource": "Warmtebron",
+    "fireResistance": "Brandwerendheid",
+    "windResistance": "Windbestendigheid",
+    "warrantyLabel": "Constructiegarantie",
+    "warrantyValue": "{years} jaar"
+  },
+  "ResultsFilterBar": {
+    "sortPriceAsc": "Prijs: oplopend",
+    "sortPriceDesc": "Prijs: aflopend",
+    "sortSizeAsc": "Oppervlakte: oplopend",
+    "sortSizeDesc": "Oppervlakte: aflopend",
+    "countryLabel": "Land",
+    "countryPlaceholder": "Kies een land",
+    "countryAriaLabel": "Doelland",
+    "sizeMinLabel": "Oppervlakte vanaf",
+    "sizeMaxLabel": "Oppervlakte tot",
+    "anyPlaceholder": "Elke",
+    "sortLabel": "Sorteren",
+    "sortPlaceholder": "Aanbevolen",
+    "sortAriaLabel": "Resultaten sorteren",
+    "keywordLabel": "Trefwoord",
+    "keywordPlaceholder": "Naam of beschrijving",
+    "searchAriaLabel": "Zoeken"
+  },
+  "SearchCard": {
+    "teaserPrompt": "Waarmee kan ik u helpen?",
+    "teaserWordHome": "Een woning?",
+    "teaserWordPergola": "Een pergola?",
+    "teaserWordSpa": "Een spa?",
+    "budgetAny": "Elk budget",
+    "budgetUpTo50k": "tot €50K",
+    "budget50to100k": "€50K–100K",
+    "budget100to200k": "€100K–200K",
+    "budgetOver200k": "boven €200K",
+    "categoryHome": "Woningen",
+    "categoryPergola": "Pergola's",
+    "categorySpa": "Spa's",
+    "categoryAriaLabel": "Productcategorie",
+    "whereLabel": "Waar?",
+    "wherePlaceholder": "Land, regio of stad",
+    "whereAriaLabel": "Doelland",
+    "budgetLabel": "Budget",
+    "budgetAriaLabel": "Budget",
+    "areaLabel": "Oppervlakte",
+    "areaPlaceholder": "Elke",
+    "searchButton": "Woningen zoeken"
+  },
+  "Testimonials": {
+    "heading": "Wat onze klanten zeggen",
+    "subheading": "Illustratieve reviews, in afwachting van onze eerste echte klanten.",
+    "countryPl": "Polen",
+    "countryDe": "Duitsland",
+    "countryNl": "Nederland",
+    "quote1": "Ik stuurde in één avond een aanvraag naar drie producenten, in plaats van elk apart te schrijven. De antwoorden kwamen binnen twee dagen.",
+    "quote2": "Het controleren van de conformiteit met de Duitse voorschriften vóór het versturen van de aanvraag bespaarde me weken correspondentie met een advocaat.",
+    "quote3": "Ik vond het fijn dat ik meteen de uitgesplitste prijs zag — woning, transport, montage — in plaats van één mysterieus totaalbedrag.",
+    "quote4": "Door drie projecten naast elkaar te vergelijken zag ik dat ik te veel betaalde voor vierkante meters die ik niet nodig had.",
+    "quote5": "Het platform is onafhankelijk van de producenten, dus ik voelde dat het me adviseerde in plaats van iets verkocht."
+  },
+  "ClosingCta": {
+    "eyebrow": "Weet u niet waar te beginnen?",
+    "heading": "Ontvang binnen 48 uur 3 passende aanbiedingen",
+    "body": "Vertel ons wat u nodig heeft en wij bekijken voor u gepersonaliseerde aanbiedingen van de beste producenten.",
+    "cta": "Ontvang gratis aanbiedingen",
+    "step1Title": "Vertel ons wat u nodig heeft",
+    "step1Description": "Beantwoord een paar vragen over uw droomwoning.",
+    "step2Title": "Wij selecteren de beste producenten",
+    "step2Description": "Wij kiezen gecontroleerde producenten die bij uw project passen.",
+    "step3Title": "U ontvangt aanbiedingen",
+    "step3Description": "U ontvangt aanbiedingen en kiest de beste optie voor uzelf."
+  },
+  "HowItWorksExplainer": {
+    "heading": "Zo werkt ModularHub",
+    "subheading": "Vijf stappen van uw eerste zoekopdracht tot de sleuteloverdracht.",
+    "stage1Title": "Zoeken",
+    "stage1Description": "Kies een land en oppervlakte in de zoekbalk, bekijk passende woningen.",
+    "stage2Title": "Vergelijken",
+    "stage2Description": "Zet tot drie projecten naast elkaar: prijs, oppervlakte, niveau.",
+    "stage3Title": "Conformiteit controleren",
+    "stage3Description": "De Compliance Engine™ controleert de woning aan de wetgeving van uw land.",
+    "stage4Title": "Aanbiedingen aanvragen",
+    "stage4Description": "Stuur in één keer een aanvraag naar de gekozen producenten.",
+    "stage5Title": "Woning ontvangen",
+    "stage5Description": "Volg productie, transport en montage tot aan de sleuteloverdracht."
+  },
+  "CategoryShowcase": {
+    "headingUnderline": "Meer",
+    "headingRest": "dan een woning",
+    "spaName": "Modulaire spa's",
+    "spaDescription": "Sauna's, jacuzzi's en wellnesszones voor uw tuin",
+    "pergolaName": "Pergola's",
+    "pergolaDescription": "Aluminium en hout, met overkapping en beglazing",
+    "imageAlt": "Voorbeeldproject uit de categorie {category}",
+    "viewOffers": "Bekijk aanbiedingen",
+    "viewOffersShort": "Bekijk",
+    "productCount": {
+      "one": "1 product",
+      "few": "{count} producten",
+      "many": "{count} producten"
+    },
+    "priceFrom": "vanaf €{price}",
+    "nextCategory": "Volgende categorie",
+    "dotLabel": "Ga naar {category}"
+  },
+  "FamilyTabs": {
+    "navAriaLabel": "Productfamilie",
+    "home": "Woningen",
+    "spa": "Modulaire spa's",
+    "pergola": "Pergola's"
+  },
+  "CategoryFilterBar": {
+    "navAriaLabel": "Woningkenmerkfilters",
+    "singleStorey": "Gelijkvloers",
+    "twoStorey": "Met verdieping",
+    "heatPump": "Warmtepomp",
+    "heatRecovery": "Warmteterugwinning",
+    "energyClassA": "Klasse A+"
+  },
+  "BindingOfferView": {
+    "heading": "Bindend aanbod — {name}",
+    "intro": "De prijs hieronder is één definitief bedrag voor de woning, transport naar het opgegeven adres en montage — zonder aparte keuze van vervoerder. Het accepteren van het aanbod start de uitvoering.",
+    "bedroomsLabel": {
+      "one": "slaapkamer",
+      "other": "slaapkamers"
+    },
+    "addressLabel": "Montageadres",
+    "finalPriceLabel": "Eindprijs (woning, transport, montage)",
+    "disclaimer": "Dit is een demonstratieaanbod op voorbeelddata. Acceptatie vormt geen echt contract en gaat niet gepaard met een echte betaling — een mockup-fase, zonder inloggen en zonder permanente gegevensopslag.",
+    "acceptOffer": "Aanbod accepteren",
+    "acceptedAt": "Geaccepteerd op {date}",
+    "acceptedThanks": "Bedankt — het bindende aanbod is geaccepteerd. Volg de voortgang van productie, transport, montage en oplevering op de uitvoeringsstatusas.",
+    "trackFulfillment": "Uitvoering volgen",
+    "backToPlot": "Terug naar het perceelpaneel"
+  },
+  "InquiryFlow": {
+    "sentHeading": "Aanvraag verstuurd",
+    "productNoun": {
+      "one": "woning",
+      "other": "woningen"
+    },
+    "sentConfirmation": "Bevestiging van uw aanvraag voor {count} {noun} hieronder.",
+    "checkPlot": "Perceel controleren",
+    "backToResults": "Terug naar resultaten",
+    "heading": "Aanvraag voor de geselecteerde woningen",
+    "intro": "U stuurt één aanvraag voor {count} {noun}: {names}. Vul uw contactgegevens in zodat producenten contact met u kunnen opnemen.",
+    "nameLabel": "Volledige naam",
+    "emailInvalidError": "Voer een geldig e-mailadres in.",
+    "phoneLabel": "Telefoon",
+    "deliveryCountryLabel": "Leverland",
+    "sendingLabel": "Versturen…",
+    "retrySendLabel": "Opnieuw versturen",
+    "sendLabel": "Aanvraag versturen",
+    "genericSendError": "Kon de aanvraag niet versturen. Probeer het opnieuw."
+  },
+  "ProfileForm": {
+    "nameLabel": "Volledige naam",
+    "phoneLabel": "Telefoon",
+    "savedMessage": "Wijzigingen opgeslagen.",
+    "savingLabel": "Opslaan…",
+    "retryLabel": "Opnieuw opslaan",
+    "saveLabel": "Wijzigingen opslaan",
+    "genericError": "Kon de wijzigingen niet opslaan. Probeer het opnieuw."
+  },
+  "CompanyVerificationView": {
+    "heading": "Bedrijfsverificatie — {name}",
+    "disclaimer": "Dit is een mockup — er wordt hier geen echte verificatie uitgevoerd en geen uitbetaling is echt.",
+    "disclaimerSuffix": "Vóór de eerste uitbetaling controleren we het bedrijf op basis van onderstaande documenten.",
+    "requiredDocsHeading": "Vereiste documenten",
+    "doc1": "Uittreksel uit het ondernemersregister (KRS of CEIDG)",
+    "doc2": "Verklaring van geen openstaande schulden (ZUS en belastingdienst)",
+    "doc3": "Bevestiging van de bedrijfsbankrekening (afschrift of verificatieoverschrijving)",
+    "doc4": "Polis bedrijfsaansprakelijkheidsverzekering",
+    "submittedMessage": "Documenten ingediend ter verificatie. De eerste uitbetaling wordt vrijgegeven zodra deze is afgerond (mockup, geen echte verificatie).",
+    "backToFulfillment": "Terug naar uitvoering",
+    "uploadLabel": "Documenten ter verificatie",
+    "submitButton": "Indienen ter verificatie"
+  },
+  "ExportReadinessCountryRow": {
+    "statusApproved": "Toegestaan",
+    "statusConditional": "Voorwaardelijk toegestaan",
+    "statusBlocked": "Niet toegestaan",
+    "resolvedReason": "Lacunes gesloten door aankoop van het lacunepakket (opgeslagen in deze browser).",
+    "whatsMissing": "Wat ontbreekt",
+    "closeGaps": "Lacunes sluiten"
+  },
+  "GapClosureView": {
+    "heading": "Lacunes sluiten: {country}",
+    "headingWithProject": "Lacunes sluiten: {country} — „{project}”",
+    "disclaimer": "Dit is geen juridisch advies. Het resultaat is een geschatte beoordeling op basis van voorbeelddata, geen echt juridisch of bouwkundig deskundigenoordeel.",
+    "alreadyResolved": "Dit land is al gesloten — de lacunes zijn opgelost door aankoop van het pakket.",
+    "backToMap": "Terug naar de exportgereedheidskaart"
+  },
+  "ExportReadinessMap": {
+    "headingWithProject": "Exportgereedheid: „{project}”",
+    "heading": "Exportgereedheid",
+    "disclaimer": "Dit is geen juridisch advies. Het resultaat is een geschatte beoordeling op basis van voorbeelddata, geen echt juridisch of bouwkundig deskundigenoordeel.",
+    "viewProducts": "Bekijk uw producten"
+  },
+  "GapClosureUploadSection": {
+    "heading": "Zelf documenten uploaden",
+    "submittedMessage": "Documenten ingediend ter verificatie.",
+    "backToMap": "Terug naar de exportgereedheidskaart",
+    "intro": "Verklaar zelf dat u de ontbrekende documenten uploadt. Dit pad verifieert niets en verandert de status van het land op de kaart niet.",
+    "uploadLabel": "Ontbrekende documenten",
+    "submitButton": "Versturen"
+  },
+  "ProducerInquiryRow": {
+    "messageText": "De klant vraagt om een aanbod voor dit project, inclusief woning, transport en montage.",
+    "statusSubmitted": "Aanbod ingediend",
+    "statusNew": "Nieuwe aanvraag",
+    "viewOffer": "Aanbod bekijken",
+    "prepareOffer": "Aanbod opstellen"
+  },
+  "ProducerOfferForm": {
+    "messageText": "De klant vraagt om een aanbod voor dit project, inclusief woning, transport en montage.",
+    "heading": "Aanbod — {name}",
+    "offerSentMessage": "Aanbod verstuurd naar de klant op {date}.",
+    "housePriceLabel": "Prijs woning",
+    "transportLabel": "Transport",
+    "assemblyLabel": "Montage",
+    "totalLabel": "Totaal",
+    "backToInquiries": "Terug naar aanvragen",
+    "templateHeading": "Aanbodsjabloon",
+    "templateIntro": "Hetzelfde sjabloon geldt voor elke producent op het platform.",
+    "housePriceInputLabel": "Prijs woning (€)",
+    "transportInputLabel": "Transport (€)",
+    "transportHint": "Automatisch berekend voor het leverland ({country}) — alleen-lezen veld.",
+    "installationInputLabel": "Montage (€)",
+    "submitOffer": "Aanbod versturen"
+  },
+  "RegistrationForm": {
+    "nipLabel": "BTW/KVK-nummer (NIP)",
+    "nipPlaceholder": "000-000-00-00",
+    "nipError": "Voer een geldig NIP-nummer in (10 cijfers).",
+    "deliveryCountriesLegend": "Leverlanden",
+    "technologyLabel": "Technologie",
+    "technologyPlaceholder": "Kies een technologie",
+    "submitButton": "Registreren"
+  },
+  "Hero": {
+    "trustVerified": "Geverifieerde producenten",
+    "trustPricing": "Transparante prijzen",
+    "headingLine1": "Uw",
+    "headingUnderline1": "woning.",
+    "headingLine2": "Verstandig",
+    "headingUnderline2": "gekozen.",
+    "subheading": "Vergelijk gecontroleerde modulaire woningen uit heel Europa."
+  },
+  "ComplianceEngineShowcase": {
+    "heading": "Wij controleren de wettelijke conformiteit, voordat u dat hoeft te doen",
+    "intro": "Wij vergelijken elke woning met de lokale bouwvoorschriften van het doelland — constructie, isolatie, ventilatie en vereiste documentatie — voordat u een aanvraag naar de producent stuurt.",
+    "disclaimer": "Het resultaat is een voorlopige, indicatieve controle — het vormt geen juridisch advies. We houden de gegevens en logica van de Compliance Engine™ voortdurend up-to-date om de bouwvoorschriften van een land zo nauwkeurig mogelijk weer te geven, maar de definitieve conformiteit wordt bevestigd door de bevoegde instantie en de gekozen producent.",
+    "exampleLocation": "Locatie: Venlo, Nederland",
+    "complianceSuffix": "conform",
+    "checklistConstruction": "Constructie",
+    "checklistInsulation": "Isolatie",
+    "checklistVentilation": "Ventilatie",
+    "checklistDocumentation": "Documentatie",
+    "checklistPermit": "Lokale vergunning",
+    "statusOk": "Voldaan",
+    "statusWarning": "Vereist aandacht",
+    "checkHouse": "Woning controleren"
+  },
+  "CompareHomesTeaser": {
+    "heading": "Vergelijk woningen naast elkaar",
+    "subheading": "Zet tot drie projecten naast elkaar en bekijk de verschillen in prijs, oppervlakte en kamers op één scherm.",
+    "compareButton": "Woningen vergelijken",
+    "captionCompare": "Voorbeeldvergelijking van {count} woningen: prijs, oppervlakte en aantal kamers",
+    "featureColumnSr": "Kenmerk",
+    "priceFromRow": "Prijs vanaf",
+    "floorAreaRow": "Oppervlakte",
+    "roomsRow": "Kamers"
+  },
+  "ProducerShowcase": {
+    "heading": "Geverifieerde producenten",
+    "subheading": "Elke producent op het platform doorloopt onze verificatie.",
+    "viewAllButton": "Bekijk alle producenten"
+  },
+  "PopularHomes": {
+    "heading": "Populaire woningen",
+    "subheading": "Een illustratieve selectie — zo zien enkele van de meest bekeken projecten er vandaag uit."
+  },
+  "PanelTabs": {
+    "navAriaLabel": "Klantenpaneel",
+    "zapytania": "Aanvragen",
+    "ulubione": "Favorieten",
+    "profil": "Profiel"
+  },
+  "ProjectGallery": {
+    "photoCountBadge": {
+      "few": "{count} foto's",
+      "many": "{count} foto's"
+    },
+    "coverAlt": "{name}, modulaire woning",
+    "thumbnailAlt": "{name}, foto {index}"
+  },
+  "ResultsSelection": {
+    "addedLocalProducts": "{count} van uw producten toegevoegd aan de lijst."
+  },
+  "ShortlistActionBar": {
+    "selectedCount": "Geselecteerd: {count}/{max}",
+    "sendInquiry": "Aanvraag versturen"
+  },
+  "DeleteProductDialog": {
+    "heading": "Product verwijderen?",
+    "body": "Het product „{name}” wordt permanent verwijderd uit uw catalogus. Deze actie kan niet ongedaan worden gemaakt.",
+    "cancel": "Annuleren",
+    "confirm": "Verwijderen"
+  },
+  "GapClosurePackageSection": {
+    "heading": "Lacunepakket kopen",
+    "intro": "Wij kopen namens u de volledige set ontbrekende documenten en verklaren het land toegestaan.",
+    "priceLabel": "Pakketprijs",
+    "payButton": "Betalen",
+    "processingPayment": "Betaling wordt verwerkt…",
+    "approvedStatus": "Toegestaan",
+    "paidMessage": "Pakket betaald — het land is nu toegestaan.",
+    "backToMap": "Terug naar de exportgereedheidskaart"
+  },
+  "ProducerInquiryList": {
+    "heading": "Aanvragen en aanbiedingen",
+    "intro": "Inkomende aanvragen van klanten. Elke aanvraag opent een aanbodformulier met hetzelfde sjabloon als bij elke producent — het transportveld wordt automatisch ingevuld en is alleen-lezen.",
+    "emptyMessage": "Nog geen aanvragen — berichten van klanten die geïnteresseerd zijn in uw project verschijnen hier."
+  },
+  "ProducerRegistrationBar": {
+    "registeredBadge": "Geregistreerd",
+    "nipLabel": "NIP-nummer"
+  },
+  "ClientRegistrationForm": {
+    "checkInboxHeading": "Controleer uw inbox",
+    "checkInboxBody": "We hebben een inloglink gestuurd naar het opgegeven e-mailadres. Klik erop om uw account af te ronden — de link is 24 uur geldig.",
+    "heading": "Klantaccount aanmaken",
+    "intro": "Vul uw gegevens in om aanvragen naar producenten te sturen. Geen wachtwoord — u logt in met een link die per e-mail wordt verstuurd.",
+    "nameLabel": "Volledige naam",
+    "phoneLabel": "Telefoon",
+    "submitButton": "Account aanmaken",
+    "alreadyHaveAccount": "Heeft u al een account?",
+    "loginLink": "Inloggen"
+  },
+  "LoginForm": {
+    "checkInboxHeading": "Controleer uw inbox",
+    "checkInboxBody": "We hebben een inloglink gestuurd naar het opgegeven e-mailadres. Klik erop om in te loggen — de link is 24 uur geldig.",
+    "heading": "Inloggen",
+    "intro": "Vul het e-mailadres in waar we de inloglink naartoe moeten sturen. Geen wachtwoord.",
+    "unknownEmail": "We konden geen account vinden voor dit e-mailadres. Maak een account aan om in te loggen.",
+    "registerAsClient": "Registreren als klant",
+    "registerAsProducer": "Registreren als producent",
+    "submitButton": "Inloglink versturen"
+  },
+  "ProducerRegistrationForm": {
+    "checkInboxHeading": "Controleer uw inbox",
+    "checkInboxBody": "We hebben een inloglink gestuurd naar het opgegeven e-mailadres. Klik erop om uw account af te ronden — de link is 24 uur geldig.",
+    "heading": "Producentaccount aanmaken",
+    "intro": "Vul de gegevens van uw bedrijf in. Geen wachtwoord — u logt in met een link die per e-mail wordt verstuurd, net als een klant.",
+    "companyNameLabel": "Bedrijfsnaam",
+    "phoneLabel": "Telefoon",
+    "countryLabel": "Land",
+    "technologyLabel": "Technologie",
+    "submitButton": "Account aanmaken",
+    "alreadyHaveAccount": "Heeft u al een account?",
+    "loginLink": "Inloggen"
+  },
+  "ProductCatalogList": {
+    "heading": "Uw producten",
+    "loading": "Laden…",
+    "subtitle": "Alle producten toegevoegd onder NIP-nummer {nip}.",
+    "addProduct": "Product toevoegen",
+    "emptyMessage": "U heeft nog geen producten in uw catalogus.",
+    "addFirstProduct": "Voeg uw eerste product toe",
+    "addedOn": "Toegevoegd op {date}",
+    "bedroomsOne": "slaapkamer",
+    "bedroomsOther": "slaapkamers",
+    "editButton": "Bewerken",
+    "deleteButton": "Verwijderen"
+  }
+}

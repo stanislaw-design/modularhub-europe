@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Card, DataText, Heading, Stack, Text } from "@/components/ui";
@@ -33,6 +34,7 @@ function buildAddProductHref(locale: string, registration: RegistrationDetails):
 // serwerowym. Bez tego stanu producent bez zapisanych danych rejestracji zobaczyłby
 // najpierw stan pusty, a dopiero potem redirect — spec 0016, AC-1, AC-2, Key invariants.
 export function ProductCatalogList({ locale, nip, countries }: ProductCatalogListProps) {
+  const t = useTranslations("ProductCatalogList");
   const router = useRouter();
   const [status, setStatus] = useState<LoadStatus>("loading");
   const [registration, setRegistration] = useState<RegistrationDetails | null>(null);
@@ -56,8 +58,8 @@ export function ProductCatalogList({ locale, nip, countries }: ProductCatalogLis
   if (status !== "ready" || registration === null) {
     return (
       <Stack gap={4}>
-        <Heading level="h1">Twoje produkty</Heading>
-        <Text tone="muted">Ładowanie…</Text>
+        <Heading level="h1">{t("heading")}</Heading>
+        <Text tone="muted">{t("loading")}</Text>
       </Stack>
     );
   }
@@ -75,20 +77,20 @@ export function ProductCatalogList({ locale, nip, countries }: ProductCatalogLis
     <Stack gap={4}>
       <div className="flex flex-wrap items-center justify-between gap-brand-2">
         <Stack gap={1}>
-          <Heading level="h1">Twoje produkty</Heading>
-          <Text tone="muted">Wszystkie produkty dodane pod NIP {registration.nip}.</Text>
+          <Heading level="h1">{t("heading")}</Heading>
+          <Text tone="muted">{t("subtitle", { nip: registration.nip })}</Text>
         </Stack>
         <Button as="a" href={buildAddProductHref(locale, registration)} className="w-fit">
-          Dodaj produkt
+          {t("addProduct")}
         </Button>
       </div>
 
       {products.length === 0 ? (
         <Card as="div" padding="md">
           <Stack gap={2} align="start">
-            <Text tone="muted">Nie masz jeszcze żadnego produktu w katalogu.</Text>
+            <Text tone="muted">{t("emptyMessage")}</Text>
             <Button as="a" href={buildAddProductHref(locale, registration)} variant="secondary">
-              Dodaj pierwszy produkt
+              {t("addFirstProduct")}
             </Button>
           </Stack>
         </Card>
@@ -99,11 +101,14 @@ export function ProductCatalogList({ locale, nip, countries }: ProductCatalogLis
               <Stack gap={2} align="start">
                 <div className="flex w-full flex-wrap items-baseline justify-between gap-brand-2">
                   <Heading level="h2">{product.name}</Heading>
-                  <DataText tone="muted">Dodano {dateFormatter.format(new Date(product.createdAt))}</DataText>
+                  <DataText tone="muted">
+                    {t("addedOn", { date: dateFormatter.format(new Date(product.createdAt)) })}
+                  </DataText>
                 </div>
                 <Text tone="muted">
                   {product.floorAreaM2} m² · {product.bedrooms}{" "}
-                  {product.bedrooms === 1 ? "sypialnia" : "sypialnie"} · {countryName(product.countryOfProduction)}
+                  {product.bedrooms === 1 ? t("bedroomsOne") : t("bedroomsOther")} ·{" "}
+                  {countryName(product.countryOfProduction)}
                 </Text>
                 <Stack direction="row" gap={2}>
                   <Button
@@ -112,10 +117,10 @@ export function ProductCatalogList({ locale, nip, countries }: ProductCatalogLis
                     variant="secondary"
                     size="sm"
                   >
-                    Edytuj
+                    {t("editButton")}
                   </Button>
                   <Button type="button" variant="ghost" size="sm" onClick={() => setDeleteTarget(product)}>
-                    Usuń
+                    {t("deleteButton")}
                   </Button>
                 </Stack>
               </Stack>

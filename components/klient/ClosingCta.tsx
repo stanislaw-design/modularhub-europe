@@ -1,22 +1,5 @@
+import { getTranslations } from "next-intl/server";
 import Image from "next/image";
-
-const steps = [
-  {
-    number: "1",
-    title: "Powiedz nam, czego potrzebujesz",
-    description: "Odpowiedz na kilka pytań o Twój wymarzony dom.",
-  },
-  {
-    number: "2",
-    title: "Dobieramy najlepszych producentów",
-    description: "Wybieramy sprawdzonych producentów dopasowanych do Twojego projektu.",
-  },
-  {
-    number: "3",
-    title: "Otrzymujesz oferty",
-    description: "Otrzymujesz oferty i wybierasz najlepszą opcję dla siebie.",
-  },
-];
 
 // id="jak-to-dziala" is the anchor target for SiteHeader's "Jak to działa"
 // link and WhyUs's "Dowiedz się, jak to działa" button (spec 0014 AC-1,
@@ -24,7 +7,14 @@ const steps = [
 // rather than starting a new flow — the "3 dopasowane oferty" promise isn't
 // built yet (see spec 0014 rationale.md); redirecting to a working search is
 // an honest substitute, not a literal fulfilment of the headline's promise.
-export function ClosingCta() {
+export async function ClosingCta() {
+  const t = await getTranslations("ClosingCta");
+  const steps = [
+    { number: "1", title: t("step1Title"), description: t("step1Description") },
+    { number: "2", title: t("step2Title"), description: t("step2Description") },
+    { number: "3", title: t("step3Title"), description: t("step3Description") },
+  ];
+
   return (
     <section
       id="jak-to-dziala"
@@ -44,20 +34,15 @@ export function ClosingCta() {
       <div className="relative mx-auto grid w-full max-w-brand-max grid-cols-1 gap-brand-5 px-[6%] lg:grid-cols-12">
         <div className="flex flex-col items-start gap-brand-3 lg:col-span-5">
           <span className="text-label font-semibold tracking-[0.1em] text-brand-v4-amber">
-            Nie wiesz, od czego zacząć?
+            {t("eyebrow")}
           </span>
-          <h2 className="text-h2 font-display font-bold text-balance">
-            Otrzymaj 3 dopasowane oferty w 48 godzin
-          </h2>
-          <p className="text-body-l text-brand-v4-mist">
-            Powiedz nam, czego potrzebujesz, a my przejrzymy dla Ciebie spersonalizowane oferty od
-            najlepszych producentów.
-          </p>
+          <h2 className="text-h2 font-display font-bold text-balance">{t("heading")}</h2>
+          <p className="text-body-l text-brand-v4-mist">{t("body")}</p>
           <a
             href="#search-card"
             className="focus-ring inline-flex items-center rounded-v4-pill bg-brand-v4-amber px-brand-4 py-brand-2 text-body font-semibold text-brand-v4-amber-foreground hover:bg-brand-v4-amber-strong"
           >
-            Otrzymaj darmowe oferty
+            {t("cta")}
           </a>
         </div>
         <ol className="flex list-none flex-col gap-brand-3 lg:col-span-7">

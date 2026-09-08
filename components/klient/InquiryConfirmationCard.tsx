@@ -1,4 +1,5 @@
 import { CheckCircle2, ImageOff } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { Card, DataText, Heading, Text } from "@/components/ui";
 import type { Project } from "@/lib/data/types";
@@ -11,12 +12,12 @@ interface InquiryConfirmationCardProps {
 const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0 });
 const dateFormatter = new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium", timeStyle: "short" });
 
-// Fixed, platform imposed message: every producer sees the same request text
-// for every inquiry, per spec 0005's "narzucony szablon" (AC-7).
-const MESSAGE_TEXT =
-  "Klient prosi o przygotowanie oferty na ten projekt, uwzględniającej dom, transport i montaż.";
-
+// Only ever rendered from InquiryFlow ("use client"), so it's already part of
+// the client bundle regardless of its own directive — useTranslations (client
+// safe), never getTranslations (server only, and async function components
+// aren't supported by React's client reconciler).
 export function InquiryConfirmationCard({ project, sentAt }: InquiryConfirmationCardProps) {
+  const t = useTranslations("InquiryConfirmationCard");
   return (
     <Card
       as="article"
@@ -52,11 +53,11 @@ export function InquiryConfirmationCard({ project, sentAt }: InquiryConfirmation
           {project.producerName}
         </Text>
         <Text tone="muted" surface="v5" measure>
-          {MESSAGE_TEXT}
+          {t("message")}
         </Text>
         <span className="inline-flex w-fit items-center gap-brand-1 rounded-data border border-status-approved/30 bg-status-approved/10 px-brand-2 py-1 text-label font-medium uppercase tracking-[0.1em] text-status-approved">
           <CheckCircle2 className="size-3.5 shrink-0" aria-hidden="true" />
-          Wysłano {dateFormatter.format(sentAt)}
+          {t("sentAt", { date: dateFormatter.format(sentAt) })}
         </span>
       </div>
     </Card>

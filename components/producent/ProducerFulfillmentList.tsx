@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { Button, Card, Heading, Stack, StatusPill, Text } from "@/components/ui";
 import type { FulfillmentOrder, FulfillmentStageName, Project } from "@/lib/data/types";
 
@@ -10,28 +11,31 @@ interface ProducerFulfillmentListProps {
 const STAGE_ORDER: FulfillmentStageName[] = ["produkcja", "transport", "montaz", "odbior", "gwarancja"];
 const DELIVERED_INDEX = STAGE_ORDER.indexOf("odbior");
 
-const stageLabel: Record<FulfillmentStageName, string> = {
-  produkcja: "Produkcja",
-  transport: "Transport",
-  montaz: "Montaż",
-  odbior: "Odbiór",
-  gwarancja: "Gwarancja",
-};
+export async function ProducerFulfillmentList({ locale, orders, projects }: ProducerFulfillmentListProps) {
+  const [t, tStage] = await Promise.all([
+    getTranslations("ProducerFulfillmentList"),
+    getTranslations("FulfillmentStage"),
+  ]);
+  const stageLabel: Record<FulfillmentStageName, string> = {
+    produkcja: tStage("produkcja"),
+    transport: tStage("transport"),
+    montaz: tStage("montaz"),
+    odbior: tStage("odbior"),
+    gwarancja: tStage("gwarancja"),
+  };
 
-export function ProducerFulfillmentList({ locale, orders, projects }: ProducerFulfillmentListProps) {
   return (
     <Stack gap={4}>
       <Stack gap={2}>
-        <Heading level="h1">Realizacje</Heading>
+        <Heading level="h1">{t("heading")}</Heading>
         <Text variant="bodyL" tone="muted" measure>
-          Oś statusu produkcji, transportu, montażu i odbioru — ta sama, którą widzi klient dla tego
-          samego zamówienia. Po odbiorze odblokowuje się weryfikacja firmy przed pierwszą wypłatą.
+          {t("intro")}
         </Text>
       </Stack>
 
       {orders.length === 0 ? (
         <Card as="div" padding="md">
-          <Text tone="muted">Brak realizacji — pojawią się tu zamówienia z zaakceptowaną ofertą.</Text>
+          <Text tone="muted">{t("empty")}</Text>
         </Card>
       ) : (
         <Stack gap={3}>
@@ -50,10 +54,10 @@ export function ProducerFulfillmentList({ locale, orders, projects }: ProducerFu
                     {project.producerName} · {project.floorAreaM2} m²
                   </Text>
                   <StatusPill status={isDelivered ? "approved" : "conditional"}>
-                    {isDelivered ? "Gotowe do weryfikacji firmy" : `Aktualny etap: ${stageLabel[order.currentStage]}`}
+                    {isDelivered ? t("readyForVerification") : t("currentStage", { stage: stageLabel[order.currentStage] })}
                   </StatusPill>
                   <Button as="a" href={detailHref} variant="secondary" className="w-fit">
-                    Zobacz oś statusu
+                    {t("viewTimeline")}
                   </Button>
                 </Stack>
               </Card>

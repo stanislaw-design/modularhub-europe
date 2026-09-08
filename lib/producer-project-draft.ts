@@ -1,3 +1,4 @@
+import type { useTranslations } from "next-intl";
 import { ENERGY_CLASSES, HEAT_SOURCES, VENTILATION_TYPES } from "./product-technical-specs";
 import type {
   CompletionStandard,
@@ -7,6 +8,11 @@ import type {
   ProjectDraft,
   SpaSubcategory,
 } from "./data/types";
+
+// Callable shape shared by client `useTranslations()` and awaited server
+// `getTranslations()` (next-intl, spec 0028): lets the get*Options helpers
+// below accept either without depending on one entry point.
+type Translate = ReturnType<typeof useTranslations>;
 
 export type WizardStepId = "podstawowe" | "techniczne" | "pliki" | "cena" | "podsumowanie";
 
@@ -31,36 +37,50 @@ export const FLOOR_AREA_MAX_M2 = 500;
 export const BEDROOMS_MIN = 0;
 export const BEDROOMS_MAX = 10;
 
-export const COMPLETION_STANDARD_OPTIONS: { value: CompletionStandard; label: string }[] = [
-  { value: "surowy-zamkniety", label: "Stan surowy zamknięty" },
-  { value: "deweloperski", label: "Standard deweloperski" },
-  { value: "pod-klucz", label: "Pod klucz" },
-];
+// Etykiety wybierane przez t() z namespace "ProjectOptions" (messages/*.json,
+// spec 0028 AC-1: "etykiety filtrów/enumów"), value listy zostają value listami
+// (klucze domenowe, nie tekst). Współdzielone przez kreator, edycję produktu i
+// SubcategoryFilterBar (klient) — jedno źródło etykiet, nie duplikat per ekran.
+export function getCompletionStandardOptions(t: Translate): { value: CompletionStandard; label: string }[] {
+  return [
+    { value: "surowy-zamkniety", label: t("completionStandard.surowy-zamkniety") },
+    { value: "deweloperski", label: t("completionStandard.deweloperski") },
+    { value: "pod-klucz", label: t("completionStandard.pod-klucz") },
+  ];
+}
 
-export const PRODUCT_FAMILY_OPTIONS: { value: ProductFamily; label: string }[] = [
-  { value: "dom", label: "Dom" },
-  { value: "spa-modulowe", label: "Spa modułowe" },
-  { value: "pergola", label: "Pergola" },
-];
+export function getProductFamilyOptions(t: Translate): { value: ProductFamily; label: string }[] {
+  return [
+    { value: "dom", label: t("family.dom") },
+    { value: "spa-modulowe", label: t("family.spa-modulowe") },
+    { value: "pergola", label: t("family.pergola") },
+  ];
+}
 
-export const PROJECT_CATEGORY_OPTIONS: { value: ProjectCategory; label: string }[] = [
-  { value: "caloroczny", label: "Całoroczny" },
-  { value: "rekreacyjny-caloroczny", label: "Rekreacyjny całoroczny" },
-  { value: "mobilny", label: "Mobilny" },
-];
+export function getProjectCategoryOptions(t: Translate): { value: ProjectCategory; label: string }[] {
+  return [
+    { value: "caloroczny", label: t("category.caloroczny") },
+    { value: "rekreacyjny-caloroczny", label: t("category.rekreacyjny-caloroczny") },
+    { value: "mobilny", label: t("category.mobilny") },
+  ];
+}
 
-export const SPA_SUBCATEGORY_OPTIONS: { value: SpaSubcategory; label: string }[] = [
-  { value: "sauna", label: "Sauna" },
-  { value: "jacuzzi", label: "Jacuzzi" },
-  { value: "wellness-combo", label: "Kabina wellness (sauna + jacuzzi)" },
-];
+export function getSpaSubcategoryOptions(t: Translate): { value: SpaSubcategory; label: string }[] {
+  return [
+    { value: "sauna", label: t("spaSubcategory.sauna") },
+    { value: "jacuzzi", label: t("spaSubcategory.jacuzzi") },
+    { value: "wellness-combo", label: t("spaSubcategory.wellness-combo") },
+  ];
+}
 
-export const PERGOLA_SUBCATEGORY_OPTIONS: { value: PergolaSubcategory; label: string }[] = [
-  { value: "bioklimatyczna", label: "Bioklimatyczna" },
-  { value: "aluminiowa-stala", label: "Aluminiowa stała" },
-  { value: "drewniana", label: "Drewniana" },
-  { value: "wolnostojaca-przyscienna", label: "Wolnostojąca / przyścienna" },
-];
+export function getPergolaSubcategoryOptions(t: Translate): { value: PergolaSubcategory; label: string }[] {
+  return [
+    { value: "bioklimatyczna", label: t("pergolaSubcategory.bioklimatyczna") },
+    { value: "aluminiowa-stala", label: t("pergolaSubcategory.aluminiowa-stala") },
+    { value: "drewniana", label: t("pergolaSubcategory.drewniana") },
+    { value: "wolnostojaca-przyscienna", label: t("pergolaSubcategory.wolnostojaca-przyscienna") },
+  ];
+}
 
 // Zamknięte listy dla trzech pól technicznych domu (spec 0026 AC-2, Feature design),
 // zastępujące dawne pola tekstowe w kreatorze. HEAT_SOURCES/VENTILATION_TYPES/
@@ -234,6 +254,33 @@ export const TECHNICAL_FIELDS_BY_FAMILY: Record<ProductFamily, TechnicalFieldCon
   ],
 };
 
+// Kroki kreatora z etykietą przetłumaczoną przez t() (namespace "ProjectOptions").
+// WIZARD_STEPS powyżej zostaje strukturalnym źródłem (id, kolejność, .length) dla
+// logiki niezależnej od języka; ten getter buduje osobną, wyświetlaną tablicę.
+export function getWizardSteps(t: Translate): WizardStep[] {
+  return WIZARD_STEPS.map((step) => ({ id: step.id, label: t(`wizardSteps.${step.id}`) }));
+}
+
+// Wersja TECHNICAL_FIELDS_BY_FAMILY z etykietą/hintem/opcjami przetłumaczonymi przez
+// t() (namespace "ProjectOptions", klucz per field.key — "foundationType" occurs w
+// dwóch rodzinach z innym hintem, stąd family w ścieżce klucza). Struktura (key, type,
+// value listy opcji) zostaje z TECHNICAL_FIELDS_BY_FAMILY — ten getter tylko nakłada
+// tekst do wyświetlenia, walidacja (isTechnicalSpecsComplete) niżej go nie potrzebuje.
+export function getTechnicalFieldsByFamily(family: ProductFamily, t: Translate): TechnicalFieldConfig[] {
+  return TECHNICAL_FIELDS_BY_FAMILY[family].map((field) => ({
+    ...field,
+    label: t(`technicalFields.${family}.${field.key}.label`),
+    hint: t(`technicalFields.${family}.${field.key}.hint`),
+    options: field.options?.map((option) => ({
+      ...option,
+      label:
+        field.key === "heatTransferCoefficients"
+          ? t("energyClassPrefix", { code: option.value })
+          : t(`technicalFields.${family}.${field.key}.options.${option.value}`),
+    })),
+  }));
+}
+
 export function createEmptyDraft(): ProjectDraft {
   return {
     name: "",
@@ -241,6 +288,10 @@ export function createEmptyDraft(): ProjectDraft {
     bedrooms: null,
     countryOfProduction: null,
     description: "",
+    nameEn: "",
+    nameNl: "",
+    descriptionEn: "",
+    descriptionNl: "",
     family: null,
     category: null,
     spaSubcategory: null,

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { type FormEvent, useState, useTransition } from "react";
 import { Button, Input, Label, Stack } from "@/components/ui";
 import { updateProfile } from "@/lib/profile-actions";
@@ -15,6 +16,7 @@ interface ProfileFormProps {
 // wprowadzonych danych (AC-8): pola formularza zostają w lokalnym stanie
 // niezależnie od wyniku zapisu.
 export function ProfileForm({ email, initialName, initialPhone }: ProfileFormProps) {
+  const t = useTranslations("ProfileForm");
   const [name, setName] = useState(initialName);
   const [phone, setPhone] = useState(initialPhone);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +31,7 @@ export function ProfileForm({ email, initialName, initialPhone }: ProfileFormPro
     startTransition(async () => {
       const result = await updateProfile(name, phone);
       if (!result.ok) {
-        setError(result.error ?? "Nie udało się zapisać zmian. Spróbuj ponownie.");
+        setError(result.error ?? t("genericError"));
         return;
       }
       setSaved(true);
@@ -46,7 +48,7 @@ export function ProfileForm({ email, initialName, initialPhone }: ProfileFormPro
       </Stack>
       <Stack gap={1}>
         <Label htmlFor="profile-name" required surface="v5">
-          Imię i nazwisko
+          {t("nameLabel")}
         </Label>
         <Input
           id="profile-name"
@@ -61,7 +63,7 @@ export function ProfileForm({ email, initialName, initialPhone }: ProfileFormPro
       </Stack>
       <Stack gap={1}>
         <Label htmlFor="profile-phone" required surface="v5">
-          Telefon
+          {t("phoneLabel")}
         </Label>
         <Input
           id="profile-phone"
@@ -81,11 +83,11 @@ export function ProfileForm({ email, initialName, initialPhone }: ProfileFormPro
       )}
       {saved && !error && (
         <p className="font-sans text-body text-status-approved" role="status">
-          Zapisano zmiany.
+          {t("savedMessage")}
         </p>
       )}
       <Button type="submit" disabled={isPending} surface="v5" className="w-fit">
-        {isPending ? "Zapisywanie…" : error ? "Ponów zapis" : "Zapisz zmiany"}
+        {isPending ? t("savingLabel") : error ? t("retryLabel") : t("saveLabel")}
       </Button>
     </form>
   );

@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import type { ComponentType } from "react";
 import { Heading, Text, DataText, ScrollReveal } from "@/components/ui";
 import {
@@ -12,12 +13,15 @@ interface ProjectTechnicalSpecsProps {
   project: Project;
 }
 
+type GroupId = "construction" | "energy" | "safety";
+
 interface SpecRow {
   label: string;
   value: string;
 }
 
 interface SpecGroup {
+  id: GroupId;
   title: string;
   icon: ComponentType<SpecIconProps>;
   rows: SpecRow[];
@@ -30,21 +34,18 @@ interface SpecGroup {
 // dekoracja, tylko konsekwentne domknięcie istniejącego kodu barw: czerń =
 // konstrukcja, pomarańcz = parametry energetyczne, zielony = bezpieczeństwo/
 // gwarancja (ten sam zielony co status "approved" wyżej na stronie).
-const GROUP_ACCENTS: Record<
-  string,
-  { plaque: string; icon: string; rule: string }
-> = {
-  "Konstrukcja i wykończenie": {
+const GROUP_ACCENTS: Record<GroupId, { plaque: string; icon: string; rule: string }> = {
+  construction: {
     plaque: "bg-brand-v5-ink",
     icon: "text-brand-v5-paper",
     rule: "border-brand-v5-ink/30",
   },
-  "Efektywność energetyczna": {
+  energy: {
     plaque: "bg-brand-v5-amber/15",
     icon: "text-brand-v5-amber-strong",
     rule: "border-brand-v5-amber-strong/40",
   },
-  "Bezpieczeństwo i gwarancja": {
+  safety: {
     plaque: "bg-status-approved/15",
     icon: "text-status-approved",
     rule: "border-status-approved/40",
@@ -57,43 +58,47 @@ const GROUP_ACCENTS: Record<
 // (spec 0020 AC-4, ten sam wzorzec co ProjectCertifications). Pola grupują się w trzy
 // pytania, jakie zadaje sobie pierwszy raz kupujący dom transgranicznie (z czego to jest,
 // czy będzie tanio w utrzymaniu, czy to bezpieczne) zamiast płaskiej listy 14 wierszy.
-export function ProjectTechnicalSpecs({ project }: ProjectTechnicalSpecsProps) {
+export async function ProjectTechnicalSpecs({ project }: ProjectTechnicalSpecsProps) {
+  const t = await getTranslations("ProjectTechnicalSpecs");
   const groups: SpecGroup[] = [
     {
-      title: "Konstrukcja i wykończenie",
+      id: "construction" as const,
+      title: t("groupConstructionTitle"),
       icon: ConstructionIcon,
       rows: [
-        { label: "System konstrukcyjny", value: project.constructionSystem },
-        { label: "Wymiary zewnętrzne", value: project.externalDimensions },
-        { label: "Dach", value: project.roofType },
-        { label: "Fundament", value: project.foundationOptions },
-        { label: "Przegroda ścienna", value: project.wallBuildUp },
-        { label: "Zakres personalizacji", value: project.customizationScope },
+        { label: t("constructionSystem"), value: project.constructionSystem },
+        { label: t("externalDimensions"), value: project.externalDimensions },
+        { label: t("roofType"), value: project.roofType },
+        { label: t("foundationOptions"), value: project.foundationOptions },
+        { label: t("wallBuildUp"), value: project.wallBuildUp },
+        { label: t("customizationScope"), value: project.customizationScope },
       ],
     },
     {
-      title: "Efektywność energetyczna",
+      id: "energy" as const,
+      title: t("groupEnergyTitle"),
       icon: EnergyEfficiencyIcon,
       rows: [
-        { label: "Izolacyjność", value: project.insulation },
+        { label: t("insulation"), value: project.insulation },
         {
-          label: "Współczynniki przenikania ciepła",
+          label: t("heatTransferCoefficients"),
           value: project.heatTransferCoefficients,
         },
-        { label: "Klasa okien", value: project.windowClass },
-        { label: "Wentylacja", value: project.ventilation },
-        { label: "Źródło ciepła", value: project.heatSource },
+        { label: t("windowClass"), value: project.windowClass },
+        { label: t("ventilation"), value: project.ventilation },
+        { label: t("heatSource"), value: project.heatSource },
       ],
     },
     {
-      title: "Bezpieczeństwo i gwarancja",
+      id: "safety" as const,
+      title: t("groupSafetyTitle"),
       icon: SafetyIcon,
       rows: [
-        { label: "Odporność ogniowa", value: project.fireResistance },
-        { label: "Odporność na wiatr", value: project.windResistance },
+        { label: t("fireResistance"), value: project.fireResistance },
+        { label: t("windResistance"), value: project.windResistance },
         {
-          label: "Gwarancja konstrukcyjna",
-          value: `${project.structuralWarrantyYears} lat`,
+          label: t("warrantyLabel"),
+          value: t("warrantyValue", { years: project.structuralWarrantyYears }),
         },
       ],
     },
@@ -109,7 +114,7 @@ export function ProjectTechnicalSpecs({ project }: ProjectTechnicalSpecsProps) {
   return (
     <div className="flex flex-col gap-brand-6">
       <Heading level="h2" surface="v5" className="text-h3">
-        Technologia i konstrukcja
+        {t("heading")}
       </Heading>
       {/* Odchodzimy od gęstej tabeli z cienkimi liniami podziału na rzecz układu
           edytorialnego: każda grupa to osobna, przestronna sekcja oddzielona samą
@@ -121,10 +126,10 @@ export function ProjectTechnicalSpecs({ project }: ProjectTechnicalSpecsProps) {
           w swoim tempie przy scrollu, zamiast wyskakiwać w całości naraz. */}
       <div className="flex flex-col gap-brand-6 lg:gap-brand-7">
         {groups.map((group, index) => {
-          const accent = GROUP_ACCENTS[group.title];
+          const accent = GROUP_ACCENTS[group.id];
           return (
             <ScrollReveal
-              key={group.title}
+              key={group.id}
               className={
                 index === 0
                   ? "flex flex-col gap-brand-5"

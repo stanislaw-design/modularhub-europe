@@ -70,6 +70,10 @@ export const productCategoryEnum = pgEnum("product_category", [
 // musi jawnie podać family (spec 0022 AC-1).
 export const productFamilyEnum = pgEnum("product_family", ["dom", "spa-modulowe", "pergola"]);
 
+// Tylko en/nl: polski zostaje na product.name/description samym, jako tekst
+// źródłowy (spec 0028 Decision) — ten enum nigdy nie nosi "pl".
+export const productTranslationLocaleEnum = pgEnum("product_translation_locale", ["en", "nl"]);
+
 export const spaSubcategoryEnum = pgEnum("spa_subcategory", ["sauna", "jacuzzi", "wellness-combo"]);
 
 export const pergolaSubcategoryEnum = pgEnum("pergola_subcategory", [
@@ -388,6 +392,27 @@ export const productCountryEligibility = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [primaryKey({ columns: [table.productId, table.countryCode] })],
+);
+
+// Tłumaczenie EN/NL nazwy i opisu produktu, wprowadzane ręcznie przez
+// producenta (spec 0028 Decision, Feature design). Co najwyżej jeden wiersz
+// na (product, locale); name/description nullable, brak lub puste pole
+// spada na fallback do polskiego source of truth na `product` (AC-6),
+// rozwiązywane w lib/data/projects.ts, nie tutaj.
+export const productTranslation = pgTable(
+  "product_translation",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => product.id),
+    locale: productTranslationLocaleEnum("locale").notNull(),
+    name: text("name"),
+    description: text("description"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex("product_translation_product_id_locale_idx").on(table.productId, table.locale)],
 );
 
 // Kluczowane per (product, client), nie per product samo: dwóch różnych

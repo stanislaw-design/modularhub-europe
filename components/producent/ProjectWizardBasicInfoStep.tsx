@@ -1,14 +1,16 @@
-import { Heading, Input, Label, Select, Stack, Text, Textarea } from "@/components/ui";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { Button, Heading, Input, Label, Select, Stack, Text, Textarea } from "@/components/ui";
 import type { Country, ProjectDraft } from "@/lib/data/types";
 import {
   BEDROOMS_MAX,
   BEDROOMS_MIN,
   FLOOR_AREA_MAX_M2,
   FLOOR_AREA_MIN_M2,
-  PERGOLA_SUBCATEGORY_OPTIONS,
-  PRODUCT_FAMILY_OPTIONS,
-  PROJECT_CATEGORY_OPTIONS,
-  SPA_SUBCATEGORY_OPTIONS,
+  getPergolaSubcategoryOptions,
+  getProductFamilyOptions,
+  getProjectCategoryOptions,
+  getSpaSubcategoryOptions,
 } from "@/lib/producer-project-draft";
 
 interface ProjectWizardBasicInfoStepProps {
@@ -29,6 +31,11 @@ export function ProjectWizardBasicInfoStep({
   familyLocked = false,
   onChange,
 }: ProjectWizardBasicInfoStepProps) {
+  const t = useTranslations("ProjectWizardBasicInfoStep");
+  const tOptions = useTranslations("ProjectOptions");
+  // Zakładki EN/NL są opcjonalne (spec 0028 AC-5): brak walidacji, w
+  // przeciwieństwie do wymaganych pól polskich poniżej.
+  const [translationTab, setTranslationTab] = useState<"en" | "nl">("en");
   const nameInvalid = showValidation && draft.name.trim().length === 0;
   const floorAreaInvalid =
     showValidation &&
@@ -48,23 +55,24 @@ export function ProjectWizardBasicInfoStep({
       (draft.family === "pergola" && draft.pergolaSubcategory === null));
 
   const countryOptions = countries.map((country) => ({ value: country.code, label: country.name }));
-  const familyLabel = PRODUCT_FAMILY_OPTIONS.find((option) => option.value === draft.family)?.label ?? "—";
+  const familyOptions = getProductFamilyOptions(tOptions);
+  const familyLabel = familyOptions.find((option) => option.value === draft.family)?.label ?? "—";
 
   return (
     <Stack gap={3}>
-      <Heading level="h2">Informacje podstawowe</Heading>
+      <Heading level="h2">{t("heading")}</Heading>
       <Stack gap={1}>
         {familyLocked ? (
           <>
             <Text as="span" variant="label" tone="muted">
-              Rodzina produktu
+              {t("familyLabel")}
             </Text>
             <Text>{familyLabel}</Text>
           </>
         ) : (
           <>
             <Label id="wizard-family-label" required>
-              Rodzina produktu
+              {t("familyLabel")}
             </Label>
             <Select
               value={draft.family}
@@ -77,12 +85,12 @@ export function ProjectWizardBasicInfoStep({
                   technicalSpecs: {},
                 })
               }
-              options={PRODUCT_FAMILY_OPTIONS}
+              options={familyOptions}
               invalid={familyInvalid}
               aria-labelledby="wizard-family-label"
             />
             {familyInvalid && (
-              <p className="font-sans text-body text-status-blocked">Wybierz rodzinę produktu.</p>
+              <p className="font-sans text-body text-status-blocked">{t("familyRequiredError")}</p>
             )}
           </>
         )}
@@ -90,57 +98,57 @@ export function ProjectWizardBasicInfoStep({
       {draft.family === "dom" && (
         <Stack gap={1}>
           <Label id="wizard-category-label" required>
-            Kategoria
+            {t("categoryLabel")}
           </Label>
           <Select
             value={draft.category}
             onChange={(value) => onChange({ category: value })}
-            options={PROJECT_CATEGORY_OPTIONS}
+            options={getProjectCategoryOptions(tOptions)}
             invalid={subcategoryInvalid}
             aria-labelledby="wizard-category-label"
           />
           {subcategoryInvalid && (
-            <p className="font-sans text-body text-status-blocked">Wybierz kategorię produktu.</p>
+            <p className="font-sans text-body text-status-blocked">{t("categoryRequiredError")}</p>
           )}
         </Stack>
       )}
       {draft.family === "spa-modulowe" && (
         <Stack gap={1}>
           <Label id="wizard-spa-subcategory-label" required>
-            Podkategoria
+            {t("spaSubcategoryLabel")}
           </Label>
           <Select
             value={draft.spaSubcategory}
             onChange={(value) => onChange({ spaSubcategory: value })}
-            options={SPA_SUBCATEGORY_OPTIONS}
+            options={getSpaSubcategoryOptions(tOptions)}
             invalid={subcategoryInvalid}
             aria-labelledby="wizard-spa-subcategory-label"
           />
           {subcategoryInvalid && (
-            <p className="font-sans text-body text-status-blocked">Wybierz podkategorię.</p>
+            <p className="font-sans text-body text-status-blocked">{t("subcategoryRequiredError")}</p>
           )}
         </Stack>
       )}
       {draft.family === "pergola" && (
         <Stack gap={1}>
           <Label id="wizard-pergola-subcategory-label" required>
-            Podkategoria
+            {t("pergolaSubcategoryLabel")}
           </Label>
           <Select
             value={draft.pergolaSubcategory}
             onChange={(value) => onChange({ pergolaSubcategory: value })}
-            options={PERGOLA_SUBCATEGORY_OPTIONS}
+            options={getPergolaSubcategoryOptions(tOptions)}
             invalid={subcategoryInvalid}
             aria-labelledby="wizard-pergola-subcategory-label"
           />
           {subcategoryInvalid && (
-            <p className="font-sans text-body text-status-blocked">Wybierz podkategorię.</p>
+            <p className="font-sans text-body text-status-blocked">{t("subcategoryRequiredError")}</p>
           )}
         </Stack>
       )}
       <Stack gap={1}>
         <Label htmlFor="wizard-name" required>
-          Nazwa projektu
+          {t("nameLabel")}
         </Label>
         <Input
           id="wizard-name"
@@ -152,14 +160,14 @@ export function ProjectWizardBasicInfoStep({
         />
         {nameInvalid && (
           <p id="wizard-name-error" className="font-sans text-body text-status-blocked">
-            Podaj nazwę projektu.
+            {t("nameRequiredError")}
           </p>
         )}
       </Stack>
       <Stack direction="row" gap={3} className="flex-wrap">
         <Stack gap={1} className="min-w-40 flex-1">
           <Label htmlFor="wizard-floor-area" required>
-            Metraż (m²)
+            {t("floorAreaLabel")}
           </Label>
           <Input
             id="wizard-floor-area"
@@ -176,13 +184,13 @@ export function ProjectWizardBasicInfoStep({
           />
           {floorAreaInvalid && (
             <p id="wizard-floor-area-error" className="font-sans text-body text-status-blocked">
-              Podaj metraż od {FLOOR_AREA_MIN_M2} do {FLOOR_AREA_MAX_M2} m².
+              {t("floorAreaRequiredError", { min: FLOOR_AREA_MIN_M2, max: FLOOR_AREA_MAX_M2 })}
             </p>
           )}
         </Stack>
         <Stack gap={1} className="min-w-40 flex-1">
           <Label htmlFor="wizard-bedrooms" required>
-            Liczba sypialni
+            {t("bedroomsLabel")}
           </Label>
           <Input
             id="wizard-bedrooms"
@@ -199,14 +207,14 @@ export function ProjectWizardBasicInfoStep({
           />
           {bedroomsInvalid && (
             <p id="wizard-bedrooms-error" className="font-sans text-body text-status-blocked">
-              Podaj liczbę sypialni od {BEDROOMS_MIN} do {BEDROOMS_MAX}.
+              {t("bedroomsRequiredError", { min: BEDROOMS_MIN, max: BEDROOMS_MAX })}
             </p>
           )}
         </Stack>
       </Stack>
       <Stack gap={1}>
         <Label id="wizard-country-label" required>
-          Kraj produkcji
+          {t("countryLabel")}
         </Label>
         <Select
           value={draft.countryOfProduction}
@@ -216,12 +224,12 @@ export function ProjectWizardBasicInfoStep({
           aria-labelledby="wizard-country-label"
         />
         {countryInvalid && (
-          <p className="font-sans text-body text-status-blocked">Wybierz kraj produkcji.</p>
+          <p className="font-sans text-body text-status-blocked">{t("countryRequiredError")}</p>
         )}
       </Stack>
       <Stack gap={1}>
         <Label htmlFor="wizard-description" required>
-          Opis
+          {t("descriptionLabel")}
         </Label>
         <Textarea
           id="wizard-description"
@@ -233,8 +241,77 @@ export function ProjectWizardBasicInfoStep({
         />
         {descriptionInvalid && (
           <p id="wizard-description-error" className="font-sans text-body text-status-blocked">
-            Podaj opis projektu.
+            {t("descriptionRequiredError")}
           </p>
+        )}
+      </Stack>
+      <Stack gap={2}>
+        <Stack gap={1}>
+          <Text as="span" variant="label">
+            {t("translationsHeading")}
+          </Text>
+          <Text tone="muted">{t("translationsHint")}</Text>
+        </Stack>
+        <div role="tablist" aria-label={t("translationsHeading")} className="flex gap-brand-1">
+          <Button
+            type="button"
+            role="tab"
+            aria-selected={translationTab === "en"}
+            variant={translationTab === "en" ? "primary" : "secondary"}
+            size="sm"
+            onClick={() => setTranslationTab("en")}
+          >
+            {t("translationTabEn")}
+          </Button>
+          <Button
+            type="button"
+            role="tab"
+            aria-selected={translationTab === "nl"}
+            variant={translationTab === "nl" ? "primary" : "secondary"}
+            size="sm"
+            onClick={() => setTranslationTab("nl")}
+          >
+            {t("translationTabNl")}
+          </Button>
+        </div>
+        {translationTab === "en" ? (
+          <Stack gap={2}>
+            <Stack gap={1}>
+              <Label htmlFor="wizard-name-en">{t("nameEnLabel")}</Label>
+              <Input
+                id="wizard-name-en"
+                value={draft.nameEn}
+                onChange={(event) => onChange({ nameEn: event.target.value })}
+              />
+            </Stack>
+            <Stack gap={1}>
+              <Label htmlFor="wizard-description-en">{t("descriptionEnLabel")}</Label>
+              <Textarea
+                id="wizard-description-en"
+                value={draft.descriptionEn}
+                onChange={(event) => onChange({ descriptionEn: event.target.value })}
+              />
+            </Stack>
+          </Stack>
+        ) : (
+          <Stack gap={2}>
+            <Stack gap={1}>
+              <Label htmlFor="wizard-name-nl">{t("nameNlLabel")}</Label>
+              <Input
+                id="wizard-name-nl"
+                value={draft.nameNl}
+                onChange={(event) => onChange({ nameNl: event.target.value })}
+              />
+            </Stack>
+            <Stack gap={1}>
+              <Label htmlFor="wizard-description-nl">{t("descriptionNlLabel")}</Label>
+              <Textarea
+                id="wizard-description-nl"
+                value={draft.descriptionNl}
+                onChange={(event) => onChange({ descriptionNl: event.target.value })}
+              />
+            </Stack>
+          </Stack>
         )}
       </Stack>
     </Stack>

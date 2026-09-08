@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import type { CountryCode, ProductFamily } from "@/lib/data/types";
 import type { SizeThreshold } from "@/lib/size-thresholds";
@@ -10,16 +11,17 @@ interface FamilyTabsProps {
   sizeMax?: SizeThreshold;
 }
 
-const FAMILY_TABS: { value: ProductFamily; label: string }[] = [
-  { value: "dom", label: "Domy" },
-  { value: "spa-modulowe", label: "Spa modułowe" },
-  { value: "pergola", label: "Pergole" },
-];
-
 // Przełącznik rodziny produktu na /wyniki (spec 0023 AC-4): parametr URL
 // `family`, domyślnie "dom". Zachowuje kraj/metraż przy przełączeniu, żeby nie
 // gubić reszty filtra.
-export function FamilyTabs({ locale, family, countryCode, sizeMin, sizeMax }: FamilyTabsProps) {
+export async function FamilyTabs({ locale, family, countryCode, sizeMin, sizeMax }: FamilyTabsProps) {
+  const t = await getTranslations("FamilyTabs");
+  const familyTabs: { value: ProductFamily; label: string }[] = [
+    { value: "dom", label: t("home") },
+    { value: "spa-modulowe", label: t("spa") },
+    { value: "pergola", label: t("pergola") },
+  ];
+
   function hrefFor(value: ProductFamily): string {
     const params = new URLSearchParams();
     if (value !== "dom") params.set("family", value);
@@ -31,8 +33,8 @@ export function FamilyTabs({ locale, family, countryCode, sizeMin, sizeMax }: Fa
   }
 
   return (
-    <nav aria-label="Rodzina produktu" className="flex gap-brand-2 border-b border-brand-v5-line">
-      {FAMILY_TABS.map((tab) => {
+    <nav aria-label={t("navAriaLabel")} className="flex gap-brand-2 border-b border-brand-v5-line">
+      {familyTabs.map((tab) => {
         const isCurrent = tab.value === family;
         return (
           <Link

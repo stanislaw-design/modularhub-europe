@@ -1,0 +1,971 @@
+{
+  "SiteHeader": {
+    "nav": {
+      "homes": "Domy",
+      "producers": "Producenci",
+      "projects": "Projekty",
+      "inspirations": "Inspiracje",
+      "howItWorks": "Jak to działa",
+      "about": "O nas"
+    },
+    "favorites": "Ulubione",
+    "adminPanel": "Panel administratora",
+    "myProfile": "Mój profil",
+    "signIn": "Zaloguj się",
+    "start": "Zacznij",
+    "openMenu": "Otwórz menu",
+    "closeMenu": "Zamknij menu",
+    "menu": "Menu",
+    "mainNav": "Główna"
+  },
+  "ProducerHeader": {
+    "imClient": "Jestem klientem",
+    "menu": "Menu",
+    "account": "Konto"
+  },
+  "LanguageSwitcher": {
+    "changeLanguage": "Zmień język",
+    "pl": "Polski",
+    "en": "English",
+    "nl": "Nederlands"
+  },
+  "FileUpload": {
+    "chooseFiles": "Wybierz pliki",
+    "mockNotice": "Makieta — pliki nie są nigdzie zapisywane ani wysyłane",
+    "noFilesSelected": "Nie wybrano jeszcze żadnego pliku.",
+    "removeFile": "Usuń plik {name}"
+  },
+  "FulfillmentStage": {
+    "produkcja": "Produkcja",
+    "transport": "Transport",
+    "montaz": "Montaż",
+    "odbior": "Odbiór",
+    "gwarancja": "Gwarancja"
+  },
+  "StageTimelineStatus": {
+    "completed": "Ukończono",
+    "current": "Aktualny etap",
+    "upcoming": "Nadchodzący"
+  },
+  "KlientRealizacjaPage": {
+    "heading": "Realizacja — {name}",
+    "completionBanner": "Zamówienie zrealizowane — wszystkie etapy zostały ukończone.",
+    "backToOffer": "Wróć do oferty"
+  },
+  "ProducentRealizacjaPage": {
+    "heading": "Realizacja — {name}",
+    "deliveredBanner": "Zamówienie odebrane — można teraz przejść do weryfikacji firmy przed pierwszą wypłatą.",
+    "backToList": "Wróć do realizacji",
+    "verification": "Weryfikacja firmy i wypłata"
+  },
+  "ProducerFulfillmentList": {
+    "heading": "Realizacje",
+    "intro": "Oś statusu produkcji, transportu, montażu i odbioru — ta sama, którą widzi klient dla tego samego zamówienia. Po odbiorze odblokowuje się weryfikacja firmy przed pierwszą wypłatą.",
+    "empty": "Brak realizacji — pojawią się tu zamówienia z zaakceptowaną ofertą.",
+    "readyForVerification": "Gotowe do weryfikacji firmy",
+    "currentStage": "Aktualny etap: {stage}",
+    "viewTimeline": "Zobacz oś statusu"
+  },
+  "ProjectCertifications": {
+    "heading": "Certyfikaty"
+  },
+  "InquiryConfirmationCard": {
+    "message": "Klient prosi o przygotowanie oferty na ten projekt, uwzględniającej dom, transport i montaż.",
+    "sentAt": "Wysłano {date}"
+  },
+  "PopularHomeCard": {
+    "coverAlt": "{name}, dom modułowy",
+    "summary": "{area} m² · {rooms} pokoi",
+    "summaryNoRooms": "{area} m²",
+    "priceOnRequest": "Wycena indywidualna",
+    "priceFrom": "od {price} €"
+  },
+  "ProducerCard": {
+    "photoAlt": "Realizacja producenta {name}",
+    "verified": "Zweryfikowany przez ModularHub",
+    "countryOfProduction": "Kraj produkcji: {country}",
+    "modelsAndSize": "{models} modeli · {min}–{max} m²",
+    "delivery": "Dostawa:",
+    "country": {
+      "PL": "Polska",
+      "DE": "Niemcy",
+      "NL": "Holandia"
+    }
+  },
+  "ResultCard": {
+    "viewDetails": "Zobacz szczegóły projektu {name}",
+    "selectForInquiry": "Zaznacz {name} do zapytania",
+    "selectionLimitReached": "Można zaznaczyć maksymalnie 3 projekty",
+    "localPreviewBadge": "Twój dodany produkt (podgląd)",
+    "needsMoreDocuments": "Wymaga dodatkowych dokumentów",
+    "summary": "{area} m² użytkowe · {rooms} {roomsLabel} · {storeys} kond.",
+    "rooms": {
+      "one": "pokój",
+      "few": "pokoje",
+      "many": "pokoi"
+    },
+    "completionStandard": {
+      "surowy-zamkniety": "Stan surowy zamknięty",
+      "deweloperski": "Standard deweloperski",
+      "pod-klucz": "Pod klucz"
+    },
+    "price": "Cena",
+    "priceOnRequest": "Wycena indywidualna",
+    "priceOnRequestHint": "Ustalana bezpośrednio z producentem",
+    "house": "Dom",
+    "priceFrom": "od {price} €",
+    "leadTime": "{productionMin}–{productionMax} tyg. produkcji · {assemblyMin}–{assemblyMax} dni montażu"
+  },
+  "ProductFamilyNoun": {
+    "dom": {
+      "one": "dom",
+      "few": "domy",
+      "many": "domów"
+    },
+    "spa-modulowe": {
+      "one": "spa modułowe",
+      "few": "spa modułowe",
+      "many": "spa modułowych"
+    },
+    "pergola": {
+      "one": "pergola",
+      "few": "pergole",
+      "many": "pergoli"
+    }
+  },
+  "CountryLocative": {
+    "PL": "w Polsce",
+    "DE": "w Niemczech",
+    "NL": "w Holandii"
+  },
+  "ResultsHeader": {
+    "eligibleSuffix": " dopuszczonych {country}",
+    "hint": "Wybierz kraj w pasku wyżej, żeby zobaczyć, które {familyFew} są tam dopuszczone prawnie."
+  },
+  "EmptyResults": {
+    "heading": "Brak {familyMany} pasujących do wybranych kryteriów",
+    "description": "Żaden projekt nie spełnia jednocześnie wybranych kryteriów. Zmień filtry powyżej albo zacznij od nowa bez ograniczeń.",
+    "clearFilters": "Wyczyść filtry"
+  },
+  "PanelEmptyState": {
+    "browseHomes": "Przeglądaj domy"
+  },
+  "PlotAnalysisRow": {
+    "scopeDescription": "Sprawdzamy, czy obrys tego domu wraz z wymaganymi odsunięciami od granic działki, dostępem do drogi i podstawowymi ograniczeniami terenu mieści się na Twojej działce.",
+    "disclaimer": "To nie jest opinia prawna. Wynik to szacunkowa ocena na podstawie danych przykładowych, nie realna ekspertyza prawna ani budowlana.",
+    "status": {
+      "approved": "Dopuszczone",
+      "conditional": "Warunkowo dopuszczone",
+      "blocked": "Niedopuszczone"
+    },
+    "noAnalysisData": "Brak danych analizy dla tego projektu; spróbuj ponownie później.",
+    "servicePrice": "Cena usługi",
+    "plotAreaLabel": "Metraż działki (m²)",
+    "plotAreaError": "Podaj metraż w zakresie {min}–{max} m².",
+    "pay": "Zapłać",
+    "processingPayment": "Przetwarzanie płatności…",
+    "goToOffer": "Przejdź do oferty wiążącej"
+  },
+  "PlotDossierPanel": {
+    "heading": "Panel działki",
+    "intro": "Podaj adres swojej działki raz, a potem sprawdź osobno każdy dom, o który wcześniej pytałeś — cena, płatność i wynik liczą się niezależnie dla każdego z nich.",
+    "addressLabel": "Adres działki",
+    "backToResults": "Wróć do wyników"
+  },
+  "FavoriteButton": {
+    "signInToFavorite": "Zaloguj się, żeby zapisać {name} do ulubionych",
+    "removeFavorite": "Usuń {name} z ulubionych",
+    "addFavorite": "Dodaj {name} do ulubionych",
+    "genericError": "Nie udało się zapisać. Spróbuj ponownie."
+  },
+  "FavoriteCard": {
+    "viewDetails": "Zobacz szczegóły projektu {name}",
+    "selectForCompare": "Zaznacz {name} do porównania",
+    "compareLimitReached": "Można porównać maksymalnie 3 domy",
+    "unavailable": "Produkt niedostępny",
+    "floorArea": "{area} m² użytkowe",
+    "priceFrom": "od {price} €"
+  },
+  "FavoriteCompareTable": {
+    "house": "Dom",
+    "unavailableSuffix": "(niedostępny)",
+    "floorArea": "Metraż",
+    "price": "Cena",
+    "productionTime": "Czas produkcji",
+    "weeksRange": "{min}–{max} tyg.",
+    "completionStandardLabel": "Standard wykończenia",
+    "completionStandard": {
+      "surowy-zamkniety": "Stan surowy zamknięty",
+      "deweloperski": "Standard deweloperski",
+      "pod-klucz": "Pod klucz"
+    }
+  },
+  "ProjectOptions": {
+    "wizardSteps": {
+      "podstawowe": "Informacje podstawowe",
+      "techniczne": "Dane techniczne",
+      "pliki": "Pliki",
+      "cena": "Cena i sprzedaż",
+      "podsumowanie": "Podsumowanie"
+    },
+    "family": {
+      "dom": "Dom",
+      "spa-modulowe": "Spa modułowe",
+      "pergola": "Pergola"
+    },
+    "category": {
+      "caloroczny": "Całoroczny",
+      "rekreacyjny-caloroczny": "Rekreacyjny całoroczny",
+      "mobilny": "Mobilny"
+    },
+    "spaSubcategory": {
+      "sauna": "Sauna",
+      "jacuzzi": "Jacuzzi",
+      "wellness-combo": "Kabina wellness (sauna + jacuzzi)"
+    },
+    "pergolaSubcategory": {
+      "bioklimatyczna": "Bioklimatyczna",
+      "aluminiowa-stala": "Aluminiowa stała",
+      "drewniana": "Drewniana",
+      "wolnostojaca-przyscienna": "Wolnostojąca / przyścienna"
+    },
+    "completionStandard": {
+      "surowy-zamkniety": "Stan surowy zamknięty",
+      "deweloperski": "Standard deweloperski",
+      "pod-klucz": "Pod klucz"
+    },
+    "energyClassPrefix": "Klasa {code}",
+    "technicalFields": {
+      "dom": {
+        "wallBuildUp": {
+          "label": "Układ ścian",
+          "hint": "Warstwy ściany od zewnątrz do wewnątrz, np. konstrukcja, izolacja, poszycie"
+        },
+        "insulation": {
+          "label": "Izolacja",
+          "hint": "Współczynnik U dla ścian i dachu (W/m²K)"
+        },
+        "heatTransferCoefficients": {
+          "label": "Klasa energetyczna",
+          "hint": "Pasmo klasy energetycznej budynku"
+        },
+        "windowClass": {
+          "label": "Klasa okien",
+          "hint": "Klasa energetyczna i typ szyby"
+        },
+        "ventilation": {
+          "label": "Wentylacja",
+          "hint": "Typ wentylacji",
+          "options": {
+            "grawitacyjna": "Grawitacyjna",
+            "mechaniczna-nawiewno-wywiewna": "Mechaniczna nawiewno-wywiewna",
+            "rekuperacja": "Rekuperacja (mechaniczna z odzyskiem ciepła)",
+            "brak": "Brak"
+          }
+        },
+        "heatSource": {
+          "label": "Źródło ciepła",
+          "hint": "Główne źródło ogrzewania",
+          "options": {
+            "pompa-ciepla-powietrze-woda": "Pompa ciepła powietrze-woda",
+            "pompa-ciepla-grunt-woda": "Pompa ciepła gruntowa (grunt-woda)",
+            "gazowe": "Gazowe",
+            "elektryczne": "Elektryczne",
+            "biomasa-pellet": "Biomasa / pellet",
+            "inne": "Inne"
+          }
+        },
+        "fireResistance": {
+          "label": "Odporność ogniowa",
+          "hint": "Klasa odporności ogniowej konstrukcji, np. REI 30"
+        },
+        "windResistance": {
+          "label": "Odporność wiatrowa",
+          "hint": "Strefa wiatrowa i maksymalna prędkość wiatru"
+        }
+      },
+      "spa-modulowe": {
+        "seatingCapacity": {
+          "label": "Liczba miejsc",
+          "hint": "Liczba miejsc siedzących w kabinie/wannie"
+        },
+        "waterVolumeLiters": {
+          "label": "Objętość wody (l)",
+          "hint": "Pojemność wodna niecki w litrach"
+        },
+        "heatingType": {
+          "label": "Typ ogrzewania",
+          "hint": "Główny sposób podgrzewania wody",
+          "options": {
+            "electric": "Elektryczne",
+            "heat-pump": "Pompa ciepła",
+            "wood-fired": "Na drewno"
+          }
+        },
+        "filtrationSystem": {
+          "label": "System filtracji",
+          "hint": "Sposób filtrowania i uzdatniania wody"
+        },
+        "shellMaterial": {
+          "label": "Materiał niecki",
+          "hint": "Materiał kabiny/niecki"
+        },
+        "electricalRequirement": {
+          "label": "Wymagania elektryczne",
+          "hint": "Wymagane zasilanie, np. moc przyłącza"
+        },
+        "foundationType": {
+          "label": "Typ fundamentu",
+          "hint": "Sposób posadowienia, np. płyta betonowa"
+        }
+      },
+      "pergola": {
+        "roofType": {
+          "label": "Typ dachu",
+          "hint": "Rodzaj dachu pergoli",
+          "options": {
+            "bioklimatyczny": "Bioklimatyczny (regulowane lamele)",
+            "staly": "Stały",
+            "rozsuwany": "Rozsuwany"
+          }
+        },
+        "roofMaterial": {
+          "label": "Materiał dachu",
+          "hint": "Materiał pokrycia dachu"
+        },
+        "dimensions": {
+          "label": "Wymiary",
+          "hint": "Szerokość × głębokość × wysokość"
+        },
+        "windLoadRating": {
+          "label": "Klasa obciążenia wiatrem",
+          "hint": "Maksymalna dopuszczalna prędkość wiatru"
+        },
+        "snowLoadRating": {
+          "label": "Klasa obciążenia śniegiem",
+          "hint": "Maksymalne obciążenie śniegiem (kN/m²)"
+        },
+        "glazingType": {
+          "label": "Typ przeszklenia",
+          "hint": "Panele boczne lub przeszklenie, jeśli dotyczy"
+        },
+        "foundationType": {
+          "label": "Typ fundamentu",
+          "hint": "Sposób posadowienia słupów"
+        }
+      }
+    }
+  },
+  "ProjectWizard": {
+    "heading": "Dodaj pierwszy projekt",
+    "back": "Wstecz",
+    "next": "Dalej",
+    "save": "Zapisz projekt",
+    "saveError": "Nie udało się zapisać projektu (limit pamięci przeglądarki). Spróbuj usunąć nieużywane dane albo zwolnić miejsce i spróbuj ponownie."
+  },
+  "ProductEditWizard": {
+    "heading": "Edytuj produkt",
+    "loading": "Ładowanie…",
+    "back": "Wstecz",
+    "next": "Dalej",
+    "save": "Zapisz zmiany",
+    "saveError": "Nie udało się zapisać zmian (limit pamięci przeglądarki). Spróbuj usunąć nieużywane dane albo zwolnić miejsce i spróbuj ponownie."
+  },
+  "ProjectWizardProgress": {
+    "ariaLabel": "Postęp kreatora"
+  },
+  "ProjectWizardBasicInfoStep": {
+    "heading": "Informacje podstawowe",
+    "familyLabel": "Rodzina produktu",
+    "familyRequiredError": "Wybierz rodzinę produktu.",
+    "categoryLabel": "Kategoria",
+    "categoryRequiredError": "Wybierz kategorię produktu.",
+    "spaSubcategoryLabel": "Podkategoria",
+    "pergolaSubcategoryLabel": "Podkategoria",
+    "subcategoryRequiredError": "Wybierz podkategorię.",
+    "nameLabel": "Nazwa projektu",
+    "nameRequiredError": "Podaj nazwę projektu.",
+    "floorAreaLabel": "Metraż (m²)",
+    "floorAreaRequiredError": "Podaj metraż od {min} do {max} m².",
+    "bedroomsLabel": "Liczba sypialni",
+    "bedroomsRequiredError": "Podaj liczbę sypialni od {min} do {max}.",
+    "countryLabel": "Kraj produkcji",
+    "countryRequiredError": "Wybierz kraj produkcji.",
+    "descriptionLabel": "Opis",
+    "descriptionRequiredError": "Podaj opis projektu.",
+    "translationsHeading": "Tłumaczenia (opcjonalnie)",
+    "translationsHint": "Angielski i niderlandzki są opcjonalne — bez tłumaczenia klienci z zagranicy zobaczą tekst polski.",
+    "translationTabEn": "Angielski",
+    "translationTabNl": "Niderlandzki",
+    "nameEnLabel": "Nazwa (angielski)",
+    "nameNlLabel": "Nazwa (niderlandzki)",
+    "descriptionEnLabel": "Opis (angielski)",
+    "descriptionNlLabel": "Opis (niderlandzki)"
+  },
+  "ProjectWizardTechnicalStep": {
+    "heading": "Dane techniczne",
+    "selectRequiredError": "Wybierz {label}.",
+    "textRequiredError": "Podaj {label}."
+  },
+  "ProjectWizardPricingStep": {
+    "heading": "Cena i sprzedaż",
+    "priceLabel": "Cena domu w standardzie bazowym (EUR)",
+    "priceFromAriaLabel": "Cena domu, od (EUR)",
+    "priceToAriaLabel": "Cena domu, do (EUR)",
+    "priceRequiredError": "Podaj cenę od i do, tak by cena od nie przekraczała ceny do.",
+    "standardLabel": "Standard wykończenia",
+    "standardRequiredError": "Wybierz standard wykończenia.",
+    "leadTimeLabel": "Termin produkcji (tygodnie)",
+    "leadTimeFromAriaLabel": "Termin produkcji, od (tygodnie)",
+    "leadTimeToAriaLabel": "Termin produkcji, do (tygodnie)",
+    "leadTimeRequiredError": "Podaj termin produkcji od i do, tak by wartość od nie przekraczała wartości do.",
+    "assemblyTimeLabel": "Czas montażu na miejscu (dni)",
+    "assemblyTimeFromAriaLabel": "Czas montażu, od (dni)",
+    "assemblyTimeToAriaLabel": "Czas montażu, do (dni)",
+    "assemblyTimeRequiredError": "Podaj czas montażu od i do, tak by wartość od nie przekraczała wartości do.",
+    "warrantyLabel": "Gwarancja konstrukcyjna (lata)",
+    "warrantyRequiredError": "Podaj gwarancję konstrukcyjną w latach."
+  },
+  "ProjectWizardFilesStep": {
+    "heading": "Pliki",
+    "floorPlanLabel": "Rzuty",
+    "floorPlanRequiredError": "Dodaj co najmniej jeden rzut.",
+    "photoLabel": "Zdjęcia",
+    "photoRequiredError": "Dodaj co najmniej jedno zdjęcie."
+  },
+  "ProjectWizardSummaryStep": {
+    "heading": "Podsumowanie",
+    "intro": "Sprawdź wszystkie dane przed zapisaniem projektu.",
+    "groupBasicInfo": "Informacje podstawowe",
+    "rowName": "Nazwa projektu",
+    "rowFloorArea": "Metraż",
+    "rowFloorAreaValue": "{area} m²",
+    "rowBedrooms": "Liczba sypialni",
+    "rowCountry": "Kraj produkcji",
+    "rowDescription": "Opis",
+    "rowFamily": "Rodzina produktu",
+    "rowSubcategory": "Podkategoria",
+    "groupTechnical": "Dane techniczne",
+    "groupPricing": "Cena i sprzedaż",
+    "rowPrice": "Cena domu",
+    "rowPriceValue": "{min}–{max} EUR",
+    "rowStandard": "Standard wykończenia",
+    "rowLeadTime": "Termin produkcji",
+    "rowLeadTimeValue": "{min}–{max} tyg.",
+    "rowAssemblyTime": "Czas montażu",
+    "rowAssemblyTimeValue": "{min}–{max} dni",
+    "rowWarranty": "Gwarancja konstrukcyjna",
+    "rowWarrantyValue": "{years} lat",
+    "groupFiles": "Pliki",
+    "floorPlanCount": "Rzuty ({count})",
+    "photoCount": "Zdjęcia ({count})",
+    "empty": "—"
+  },
+  "SubcategoryFilterBar": {
+    "spaAriaLabel": "Podkategoria spa modułowego",
+    "pergolaAriaLabel": "Podkategoria pergoli"
+  },
+  "ProducentPage": {
+    "heading": "Zostań producentem ModularHub Europe",
+    "subheading": "Krótka rejestracja, bez logowania — trzy pola i przechodzisz od razu do dodania pierwszego projektu.",
+    "whyHeading": "Dlaczego ModularHub Europe",
+    "benefitRegistrationTitle": "Jedna rejestracja, wszystkie kraje",
+    "benefitRegistrationDescription": "Zaznacz kraje dostawy raz — dopuszczalność projektów sprawdzamy dla każdego z nich.",
+    "benefitInquiriesTitle": "Zapytania z gotowym kontekstem",
+    "benefitInquiriesDescription": "Klienci wysyłają zapytania od razu z wybranym projektem i danymi kontaktowymi.",
+    "benefitStatusTitle": "Status realizacji w jednym miejscu",
+    "benefitStatusDescription": "Produkcja, transport, montaż i odbiór — jedna oś statusu, ta sama co u klienta.",
+    "existingAccountInquiries": "Masz już konto? Sprawdź przychodzące zapytania",
+    "existingAccountOrders": "Masz już zamówienie w realizacji? Sprawdź status i wypłatę",
+    "companyDataHeading": "Dane firmy"
+  },
+  "KlientPanelZapytaniaPage": {
+    "heading": "Zapytania",
+    "emptyTitle": "Nie masz jeszcze żadnych wysłanych zapytań",
+    "emptyDescription": "Wybierz dom na wynikach wyszukiwania i wyślij zapytanie, żeby zobaczyć je tutaj wraz ze statusem.",
+    "columnProducts": "Produkty",
+    "columnStatus": "Status",
+    "columnDate": "Data",
+    "statusOpen": "Oczekuje na odpowiedź",
+    "statusOffered": "Otrzymano ofertę",
+    "statusClosed": "Zamknięte"
+  },
+  "KlientPanelUlubionePage": {
+    "heading": "Ulubione",
+    "emptyTitle": "Nie masz jeszcze żadnych ulubionych domów",
+    "emptyDescription": "Kliknij serce na wynikach wyszukiwania albo stronie projektu, żeby zapisać dom i wrócić do niego później."
+  },
+  "KlientPanelProfilPage": {
+    "heading": "Profil"
+  },
+  "KlientProjektPage": {
+    "price": "Cena",
+    "priceOnRequest": "Wycena indywidualna",
+    "priceOnRequestHint": "Cena ustalana bezpośrednio z producentem po zgłoszeniu zapytania.",
+    "estimatedPackage": "Szacowany pakiet",
+    "packageIncludes": "Dom",
+    "sendInquiry": "Wyślij zapytanie",
+    "warrantyYears": "{years} lat gwarancji konstrukcyjnej",
+    "warrantyYearsValue": "{years} lat",
+    "certifiedCount": {
+      "one": "Potwierdzone {count} certyfikatem",
+      "other": "Potwierdzone {count} certyfikatami"
+    },
+    "assemblyDays": "Montaż na działce w {min}–{max} dni",
+    "floorAreaLabel": "Powierzchnia użytkowa",
+    "roomsLabel": {
+      "one": "pokój",
+      "few": "pokoje",
+      "many": "pokoi"
+    },
+    "bedroomsLabel": {
+      "one": "sypialnia",
+      "few": "sypialnie",
+      "many": "sypialni"
+    },
+    "bathroomsLabel": {
+      "one": "łazienka",
+      "other": "łazienki"
+    },
+    "storeysLabel": {
+      "one": "kondygnacja",
+      "other": "kondygnacje"
+    },
+    "descriptionLabel": "Opis",
+    "showMore": "Pokaż więcej",
+    "showLess": "Pokaż mniej",
+    "completionStandardLabel": "Standard wykończenia",
+    "completionStandard": {
+      "surowy-zamkniety": "Stan surowy zamknięty",
+      "deweloperski": "Standard deweloperski",
+      "pod-klucz": "Pod klucz"
+    },
+    "warrantyTermLabel": "Gwarancja konstrukcyjna",
+    "productionTimeLabel": "Czas produkcji",
+    "productionTimeValue": "{min}–{max} tyg.",
+    "assemblyTimeLabel": "Czas montażu",
+    "assemblyTimeValue": "{min}–{max} dni",
+    "commercialTermsHeading": "Warunki komercyjne",
+    "priceIncludesHeading": "Cena zawiera",
+    "priceExcludesHeading": "Cena nie zawiera",
+    "legalComplianceHeading": "Zgodność prawna w {country}",
+    "status": {
+      "approved": "Zgodny z przepisami",
+      "conditional": "Wymaga dodatkowych dokumentów",
+      "blocked": "Niedostępny w tym kraju"
+    },
+    "simplifiedPermitEligible": "Kwalifikuje się do zgłoszenia uproszczonego",
+    "simplifiedPermitNotEligible": "Nie kwalifikuje się do zgłoszenia uproszczonego",
+    "producerHeading": "Producent",
+    "addToShortlist": "Dodaj do shortlisty",
+    "checkPlot": "Sprawdź działkę pod ten projekt",
+    "from": "od",
+    "descriptionImageAlt": "{name}, dom modułowy"
+  },
+  "Faq": {
+    "heading": "Najczęstsze pytania",
+    "subheading": "Nie znalazłeś odpowiedzi? Napisz do nas przez formularz kontaktowy.",
+    "howQuestion": "Jak dokładnie działa ModularHub?",
+    "howAnswer": "Wyszukujesz domy dostępne w Twoim kraju, porównujesz do trzech projektów, sprawdzasz zgodność z prawem przez Compliance Engine™, a następnie wysyłasz jedno zapytanie do wybranych producentów zamiast pisać do każdego osobno.",
+    "costQuestion": "Czy korzystanie z platformy jest płatne?",
+    "costAnswer": "Przeglądanie ofert, porównywanie i wysyłanie zapytań są bezpłatne. Płatny jest wyłącznie opcjonalny raport analizy działki pod konkretny projekt.",
+    "priceQuestion": "Dlaczego cena to widełki, a nie jedna kwota?",
+    "priceAnswer": "Ostateczna cena zależy od standardu wykończenia, transportu do Twojej lokalizacji i zakresu montażu. Widełki pokazują realny zakres, zanim otrzymasz wiążącą ofertę od producenta.",
+    "complianceQuestion": "Co sprawdza Compliance Engine™?",
+    "complianceAnswer": "Konstrukcję, izolację, wentylację i wymaganą dokumentację danego domu w zestawieniu z przepisami budowlanymi kraju, do którego ma trafić — zanim wyślesz zapytanie do producenta.",
+    "producersQuestion": "Skąd wiadomo, że producenci są sprawdzeni?",
+    "producersAnswer": "Każdy producent na platformie przechodzi weryfikację ModularHub, widoczną jako odznaka na jego karcie, zanim jego projekty pojawią się w wynikach wyszukiwania.",
+    "timeQuestion": "Ile czasu zajmuje otrzymanie ofert?",
+    "timeAnswer": "Zwykle do 48 godzin od wysłania zapytania — producenci odpowiadają bezpośrednio na adres podany w formularzu kontaktowym."
+  },
+  "ProjectTechnicalSpecs": {
+    "heading": "Technologia i konstrukcja",
+    "groupConstructionTitle": "Konstrukcja i wykończenie",
+    "groupEnergyTitle": "Efektywność energetyczna",
+    "groupSafetyTitle": "Bezpieczeństwo i gwarancja",
+    "constructionSystem": "System konstrukcyjny",
+    "externalDimensions": "Wymiary zewnętrzne",
+    "roofType": "Dach",
+    "foundationOptions": "Fundament",
+    "wallBuildUp": "Przegroda ścienna",
+    "customizationScope": "Zakres personalizacji",
+    "insulation": "Izolacyjność",
+    "heatTransferCoefficients": "Współczynniki przenikania ciepła",
+    "windowClass": "Klasa okien",
+    "ventilation": "Wentylacja",
+    "heatSource": "Źródło ciepła",
+    "fireResistance": "Odporność ogniowa",
+    "windResistance": "Odporność na wiatr",
+    "warrantyLabel": "Gwarancja konstrukcyjna",
+    "warrantyValue": "{years} lat"
+  },
+  "ResultsFilterBar": {
+    "sortPriceAsc": "Cena: rosnąco",
+    "sortPriceDesc": "Cena: malejąco",
+    "sortSizeAsc": "Metraż: rosnąco",
+    "sortSizeDesc": "Metraż: malejąco",
+    "countryLabel": "Kraj",
+    "countryPlaceholder": "Wybierz kraj",
+    "countryAriaLabel": "Kraj docelowy",
+    "sizeMinLabel": "Metraż od",
+    "sizeMaxLabel": "Metraż do",
+    "anyPlaceholder": "Dowolny",
+    "sortLabel": "Sortuj",
+    "sortPlaceholder": "Polecane",
+    "sortAriaLabel": "Sortowanie wyników",
+    "keywordLabel": "Słowo kluczowe",
+    "keywordPlaceholder": "Nazwa lub opis",
+    "searchAriaLabel": "Szukaj"
+  },
+  "SearchCard": {
+    "teaserPrompt": "W czym mogę pomóc?",
+    "teaserWordHome": "Dom?",
+    "teaserWordPergola": "Pergole?",
+    "teaserWordSpa": "SPA?",
+    "budgetAny": "Dowolny budżet",
+    "budgetUpTo50k": "do 50K €",
+    "budget50to100k": "50K–100K €",
+    "budget100to200k": "100K–200K €",
+    "budgetOver200k": "powyżej 200K €",
+    "categoryHome": "Domy",
+    "categoryPergola": "Pergole",
+    "categorySpa": "SPA",
+    "categoryAriaLabel": "Kategoria produktu",
+    "whereLabel": "Gdzie?",
+    "wherePlaceholder": "Kraj, region lub miasto",
+    "whereAriaLabel": "Kraj docelowy",
+    "budgetLabel": "Budżet",
+    "budgetAriaLabel": "Budżet",
+    "areaLabel": "Powierzchnia",
+    "areaPlaceholder": "Dowolna",
+    "searchButton": "Szukaj domów"
+  },
+  "Testimonials": {
+    "heading": "Co mówią nasi klienci",
+    "subheading": "Opinie ilustracyjne, w oczekiwaniu na pierwszych klientów.",
+    "countryPl": "Polska",
+    "countryDe": "Niemcy",
+    "countryNl": "Holandia",
+    "quote1": "Zapytanie do trzech producentów wysłałam w jeden wieczór, zamiast pisać do każdego osobno. Odpowiedzi przyszły w dwa dni.",
+    "quote2": "Sprawdzenie zgodności z niemieckimi przepisami przed wysłaniem zapytania oszczędziło mi tygodni korespondencji z prawnikiem.",
+    "quote3": "Podobało mi się, że od razu widziałam rozbitą cenę — dom, transport, montaż — a nie jeden tajemniczy zakres.",
+    "quote4": "Porównanie trzech projektów obok siebie pokazało mi, że dopłacałem za metry, których nie potrzebowałem.",
+    "quote5": "Platforma niezależna od producentów, więc czułam, że doradzają mi, a nie sprzedają."
+  },
+  "ClosingCta": {
+    "eyebrow": "Nie wiesz, od czego zacząć?",
+    "heading": "Otrzymaj 3 dopasowane oferty w 48 godzin",
+    "body": "Powiedz nam, czego potrzebujesz, a my przejrzymy dla Ciebie spersonalizowane oferty od najlepszych producentów.",
+    "cta": "Otrzymaj darmowe oferty",
+    "step1Title": "Powiedz nam, czego potrzebujesz",
+    "step1Description": "Odpowiedz na kilka pytań o Twój wymarzony dom.",
+    "step2Title": "Dobieramy najlepszych producentów",
+    "step2Description": "Wybieramy sprawdzonych producentów dopasowanych do Twojego projektu.",
+    "step3Title": "Otrzymujesz oferty",
+    "step3Description": "Otrzymujesz oferty i wybierasz najlepszą opcję dla siebie."
+  },
+  "HowItWorksExplainer": {
+    "heading": "Jak działa ModularHub",
+    "subheading": "Pięć kroków od pierwszego wyszukiwania do odbioru kluczy.",
+    "stage1Title": "Szukaj",
+    "stage1Description": "Wybierz kraj i metraż w wyszukiwarce, przejrzyj dopasowane domy.",
+    "stage2Title": "Porównaj",
+    "stage2Description": "Zestaw do trzech projektów obok siebie: cena, metraż, standard.",
+    "stage3Title": "Sprawdź zgodność",
+    "stage3Description": "Compliance Engine™ sprawdza dom pod kątem prawa Twojego kraju.",
+    "stage4Title": "Zapytaj o oferty",
+    "stage4Description": "Wyślij jedno zapytanie do wybranych producentów naraz.",
+    "stage5Title": "Odbierz dom",
+    "stage5Description": "Śledź produkcję, transport i montaż aż po odbiór kluczy."
+  },
+  "CategoryShowcase": {
+    "headingUnderline": "Więcej",
+    "headingRest": "niż dom",
+    "spaName": "Spa modułowe",
+    "spaDescription": "Sauny, jacuzzi i strefy wellness do Twojego ogrodu",
+    "pergolaName": "Pergole",
+    "pergolaDescription": "Aluminiowe i drewniane, z zadaszeniem i przeszkleniami",
+    "imageAlt": "Przykładowa realizacja z kategorii {category}",
+    "viewOffers": "Zobacz oferty",
+    "viewOffersShort": "Zobacz",
+    "productCount": {
+      "one": "1 produkt",
+      "few": "{count} produkty",
+      "many": "{count} produktów"
+    },
+    "priceFrom": "od {price} €",
+    "nextCategory": "Następna kategoria",
+    "dotLabel": "Przejdź do kategorii {category}"
+  },
+  "FamilyTabs": {
+    "navAriaLabel": "Rodzina produktu",
+    "home": "Domy",
+    "spa": "Spa modułowe",
+    "pergola": "Pergole"
+  },
+  "CategoryFilterBar": {
+    "navAriaLabel": "Filtry atrybutów domu",
+    "singleStorey": "Parterowy",
+    "twoStorey": "Piętrowy",
+    "heatPump": "Pompa ciepła",
+    "heatRecovery": "Rekuperacja",
+    "energyClassA": "Klasa A+"
+  },
+  "BindingOfferView": {
+    "heading": "Oferta wiążąca — {name}",
+    "intro": "Cena poniżej to jedna, ostateczna kwota za dom, transport na wskazany adres i montaż — bez osobnego wyboru przewoźnika. Zaakceptowanie oferty rozpoczyna realizację.",
+    "bedroomsLabel": {
+      "one": "sypialnia",
+      "other": "sypialnie"
+    },
+    "addressLabel": "Adres montażu",
+    "finalPriceLabel": "Cena końcowa (dom, transport, montaż)",
+    "disclaimer": "To demonstracyjna oferta na danych przykładowych. Akceptacja nie zawiera prawdziwej umowy ani nie wiąże się z realną płatnością — etap makiety, bez logowania i bez trwałego zapisu danych.",
+    "acceptOffer": "Zaakceptuj ofertę",
+    "acceptedAt": "Zaakceptowano {date}",
+    "acceptedThanks": "Dziękujemy — oferta wiążąca została zaakceptowana. Śledź postęp produkcji, transportu, montażu i odbioru na osi statusów realizacji.",
+    "trackFulfillment": "Śledź realizację",
+    "backToPlot": "Wróć do panelu działki"
+  },
+  "InquiryFlow": {
+    "sentHeading": "Zapytanie wysłane",
+    "productNoun": {
+      "one": "dom",
+      "other": "domy"
+    },
+    "sentConfirmation": "Potwierdzenie zapytania o {count} {noun} poniżej.",
+    "checkPlot": "Sprawdź działkę",
+    "backToResults": "Wróć do wyników",
+    "heading": "Zapytanie o wybrane domy",
+    "intro": "Wysyłasz jedno zapytanie o {count} {noun}: {names}. Podaj dane kontaktowe, żeby producenci mogli się z Tobą skontaktować.",
+    "nameLabel": "Imię i nazwisko",
+    "emailInvalidError": "Podaj prawidłowy adres e-mail.",
+    "phoneLabel": "Telefon",
+    "deliveryCountryLabel": "Kraj dostawy",
+    "sendingLabel": "Wysyłanie…",
+    "retrySendLabel": "Ponów wysyłanie",
+    "sendLabel": "Wyślij zapytanie",
+    "genericSendError": "Nie udało się wysłać zapytania. Spróbuj ponownie."
+  },
+  "ProfileForm": {
+    "nameLabel": "Imię i nazwisko",
+    "phoneLabel": "Telefon",
+    "savedMessage": "Zapisano zmiany.",
+    "savingLabel": "Zapisywanie…",
+    "retryLabel": "Ponów zapis",
+    "saveLabel": "Zapisz zmiany",
+    "genericError": "Nie udało się zapisać zmian. Spróbuj ponownie."
+  },
+  "CompanyVerificationView": {
+    "heading": "Weryfikacja firmy — {name}",
+    "disclaimer": "To jest makieta — żadna weryfikacja nie jest tu naprawdę przeprowadzana, a wypłata nie jest realna.",
+    "disclaimerSuffix": "Przed pierwszą wypłatą sprawdzamy firmę na podstawie poniższych dokumentów.",
+    "requiredDocsHeading": "Wymagane dokumenty",
+    "doc1": "Odpis z rejestru przedsiębiorców (KRS lub CEIDG)",
+    "doc2": "Zaświadczenie o niezaleganiu w ZUS i US",
+    "doc3": "Potwierdzenie rachunku bankowego firmy (wyciąg lub przelew weryfikacyjny)",
+    "doc4": "Polisa ubezpieczenia OC działalności",
+    "submittedMessage": "Dokumenty przesłane do weryfikacji. Pierwsza wypłata zostanie odblokowana po jej zakończeniu (makieta, bez realnej weryfikacji).",
+    "backToFulfillment": "Wróć do realizacji",
+    "uploadLabel": "Dokumenty do weryfikacji",
+    "submitButton": "Wyślij do weryfikacji"
+  },
+  "ExportReadinessCountryRow": {
+    "statusApproved": "Dopuszczone",
+    "statusConditional": "Warunkowo dopuszczone",
+    "statusBlocked": "Niedopuszczone",
+    "resolvedReason": "Luki domknięte poprzez zakup pakietu domykania luk (zapisane w tej przeglądarce).",
+    "whatsMissing": "Czego brakuje",
+    "closeGaps": "Domknij luki"
+  },
+  "GapClosureView": {
+    "heading": "Domknij luki: {country}",
+    "headingWithProject": "Domknij luki: {country} — „{project}”",
+    "disclaimer": "To nie jest opinia prawna. Wynik to szacunkowa ocena na podstawie danych przykładowych, nie realna ekspertyza prawna ani budowlana.",
+    "alreadyResolved": "Ten kraj jest już domknięty — luki zostały uzupełnione poprzez zakup pakietu.",
+    "backToMap": "Wróć do mapy gotowości eksportowej"
+  },
+  "ExportReadinessMap": {
+    "headingWithProject": "Gotowość eksportowa: „{project}”",
+    "heading": "Gotowość eksportowa",
+    "disclaimer": "To nie jest opinia prawna. Wynik to szacunkowa ocena na podstawie danych przykładowych, nie realna ekspertyza prawna ani budowlana.",
+    "viewProducts": "Zobacz swoje produkty"
+  },
+  "GapClosureUploadSection": {
+    "heading": "Wgraj dokumenty samodzielnie",
+    "submittedMessage": "Dokumenty przesłane do weryfikacji.",
+    "backToMap": "Wróć do mapy gotowości eksportowej",
+    "intro": "Zadeklaruj samodzielnie, że wgrywasz brakujące dokumenty. Ta ścieżka niczego nie weryfikuje i nie zmienia statusu kraju na mapie.",
+    "uploadLabel": "Brakujące dokumenty",
+    "submitButton": "Wyślij"
+  },
+  "ProducerInquiryRow": {
+    "messageText": "Klient prosi o przygotowanie oferty na ten projekt, uwzględniającej dom, transport i montaż.",
+    "statusSubmitted": "Oferta złożona",
+    "statusNew": "Nowe zapytanie",
+    "viewOffer": "Zobacz ofertę",
+    "prepareOffer": "Przygotuj ofertę"
+  },
+  "ProducerOfferForm": {
+    "messageText": "Klient prosi o przygotowanie oferty na ten projekt, uwzględniającej dom, transport i montaż.",
+    "heading": "Oferta — {name}",
+    "offerSentMessage": "Oferta wysłana do klienta {date}.",
+    "housePriceLabel": "Cena domu",
+    "transportLabel": "Transport",
+    "assemblyLabel": "Montaż",
+    "totalLabel": "Razem",
+    "backToInquiries": "Wróć do zapytań",
+    "templateHeading": "Szablon oferty",
+    "templateIntro": "Ten sam szablon obowiązuje każdego producenta na platformie.",
+    "housePriceInputLabel": "Cena domu (€)",
+    "transportInputLabel": "Transport (€)",
+    "transportHint": "Wyliczone automatycznie dla kraju dostawy ({country}) — pole tylko do odczytu.",
+    "installationInputLabel": "Montaż (€)",
+    "submitOffer": "Wyślij ofertę"
+  },
+  "RegistrationForm": {
+    "nipLabel": "NIP",
+    "nipPlaceholder": "000-000-00-00",
+    "nipError": "Podaj prawidłowy NIP (10 cyfr).",
+    "deliveryCountriesLegend": "Kraje dostawy",
+    "technologyLabel": "Technologia",
+    "technologyPlaceholder": "Wybierz technologię",
+    "submitButton": "Zarejestruj się"
+  },
+  "Hero": {
+    "trustVerified": "Zweryfikowani producenci",
+    "trustPricing": "Przejrzyste ceny",
+    "headingLine1": "Twój",
+    "headingUnderline1": "dom.",
+    "headingLine2": "Mądrze",
+    "headingUnderline2": "wybrany.",
+    "subheading": "Porównaj sprawdzone domy modułowe z całej Europy."
+  },
+  "ComplianceEngineShowcase": {
+    "heading": "Sprawdzamy zgodność z prawem, zanim Ty to zrobisz",
+    "intro": "Każdy dom porównujemy z lokalnymi przepisami budowlanymi kraju docelowego — konstrukcją, izolacją, wentylacją i wymaganą dokumentacją — zanim wyślesz zapytanie do producenta.",
+    "disclaimer": "Wynik to wstępna, orientacyjna weryfikacja — nie stanowi porady prawnej. Dane i logikę Compliance Engine™ na bieżąco aktualizujemy, by jak najwierniej odzwierciedlały przepisy budowlane danego kraju, jednak ostateczną zgodność projektu potwierdza właściwy urząd i wybrany producent.",
+    "exampleLocation": "Lokalizacja: Venlo, Holandia",
+    "complianceSuffix": "zgodności",
+    "checklistConstruction": "Konstrukcja",
+    "checklistInsulation": "Izolacja",
+    "checklistVentilation": "Wentylacja",
+    "checklistDocumentation": "Dokumentacja",
+    "checklistPermit": "Lokalne pozwolenie",
+    "statusOk": "Spełnione",
+    "statusWarning": "Wymaga uwagi",
+    "checkHouse": "Sprawdź dom"
+  },
+  "CompareHomesTeaser": {
+    "heading": "Porównaj domy obok siebie",
+    "subheading": "Zestaw do trzech projektów i zobacz różnice w cenie, metrażu i pokojach na jednym ekranie.",
+    "compareButton": "Porównaj domy",
+    "captionCompare": "Przykładowe porównanie {count} domów: cena, metraż i liczba pokoi",
+    "featureColumnSr": "Cecha",
+    "priceFromRow": "Cena od",
+    "floorAreaRow": "Metraż",
+    "roomsRow": "Pokoje"
+  },
+  "ProducerShowcase": {
+    "heading": "Zweryfikowani producenci",
+    "subheading": "Każdy producent na platformie przechodzi naszą weryfikację.",
+    "viewAllButton": "Zobacz wszystkich producentów"
+  },
+  "PopularHomes": {
+    "heading": "Popularne domy",
+    "subheading": "Wybór ilustracyjny — tak dziś wygląda kilka najczęściej oglądanych projektów."
+  },
+  "PanelTabs": {
+    "navAriaLabel": "Panel klienta",
+    "zapytania": "Zapytania",
+    "ulubione": "Ulubione",
+    "profil": "Profil"
+  },
+  "ProjectGallery": {
+    "photoCountBadge": {
+      "few": "{count} zdjęcia",
+      "many": "{count} zdjęć"
+    },
+    "coverAlt": "{name}, dom modułowy",
+    "thumbnailAlt": "{name}, zdjęcie {index}"
+  },
+  "ResultsSelection": {
+    "addedLocalProducts": "Dodano {count} Twoich produktów do listy."
+  },
+  "ShortlistActionBar": {
+    "selectedCount": "Zaznaczono: {count}/{max}",
+    "sendInquiry": "Wyślij zapytanie"
+  },
+  "DeleteProductDialog": {
+    "heading": "Usunąć produkt?",
+    "body": "Produkt „{name}” zostanie trwale usunięty z twojego katalogu. Tej operacji nie można cofnąć.",
+    "cancel": "Anuluj",
+    "confirm": "Usuń"
+  },
+  "GapClosurePackageSection": {
+    "heading": "Kup pakiet domknięcia luk",
+    "intro": "Kupujemy w Twoim imieniu komplet brakujących dokumentów i deklarujemy kraj jako dopuszczony.",
+    "priceLabel": "Cena pakietu",
+    "payButton": "Zapłać",
+    "processingPayment": "Przetwarzanie płatności…",
+    "approvedStatus": "Dopuszczone",
+    "paidMessage": "Pakiet opłacony — kraj jest teraz dopuszczony.",
+    "backToMap": "Wróć do mapy gotowości eksportowej"
+  },
+  "ProducerInquiryList": {
+    "heading": "Zapytania i oferty",
+    "intro": "Przychodzące zapytania od klientów. Każde zapytanie otwiera formularz oferty w tym samym szablonie co u wszystkich producentów — pole transportu jest wypełnione automatycznie i tylko do odczytu.",
+    "emptyMessage": "Brak zapytań — pojawią się tu wiadomości od klientów zainteresowanych projektem."
+  },
+  "ProducerRegistrationBar": {
+    "registeredBadge": "Zarejestrowano",
+    "nipLabel": "NIP"
+  },
+  "ClientRegistrationForm": {
+    "checkInboxHeading": "Sprawdź swoją skrzynkę",
+    "checkInboxBody": "Wysłaliśmy link logowania na podany adres e mail. Kliknij go, żeby dokończyć zakładanie konta — link jest ważny przez 24 godziny.",
+    "heading": "Załóż konto klienta",
+    "intro": "Podaj swoje dane, żeby wysyłać zapytania do producentów. Bez hasła — logujesz się linkiem wysłanym e mailem.",
+    "nameLabel": "Imię i nazwisko",
+    "phoneLabel": "Telefon",
+    "submitButton": "Załóż konto",
+    "alreadyHaveAccount": "Masz już konto?",
+    "loginLink": "Zaloguj się"
+  },
+  "LoginForm": {
+    "checkInboxHeading": "Sprawdź swoją skrzynkę",
+    "checkInboxBody": "Wysłaliśmy link logowania na podany adres e mail. Kliknij go, żeby się zalogować — link jest ważny przez 24 godziny.",
+    "heading": "Zaloguj się",
+    "intro": "Podaj adres e mail, na który wyślemy link logowania. Bez hasła.",
+    "unknownEmail": "Nie znaleźliśmy konta na ten adres e mail. Załóż konto, żeby się zalogować.",
+    "registerAsClient": "Zarejestruj się jako klient",
+    "registerAsProducer": "Zarejestruj się jako producent",
+    "submitButton": "Wyślij link logowania"
+  },
+  "ProducerRegistrationForm": {
+    "checkInboxHeading": "Sprawdź swoją skrzynkę",
+    "checkInboxBody": "Wysłaliśmy link logowania na podany adres e mail. Kliknij go, żeby dokończyć zakładanie konta — link jest ważny przez 24 godziny.",
+    "heading": "Załóż konto producenta",
+    "intro": "Podaj dane swojej firmy. Bez hasła — logujesz się linkiem wysłanym e mailem, tak samo jak klient.",
+    "companyNameLabel": "Nazwa firmy",
+    "phoneLabel": "Telefon",
+    "countryLabel": "Kraj",
+    "technologyLabel": "Technologia",
+    "submitButton": "Załóż konto",
+    "alreadyHaveAccount": "Masz już konto?",
+    "loginLink": "Zaloguj się"
+  },
+  "ProductCatalogList": {
+    "heading": "Twoje produkty",
+    "loading": "Ładowanie…",
+    "subtitle": "Wszystkie produkty dodane pod NIP {nip}.",
+    "addProduct": "Dodaj produkt",
+    "emptyMessage": "Nie masz jeszcze żadnego produktu w katalogu.",
+    "addFirstProduct": "Dodaj pierwszy produkt",
+    "addedOn": "Dodano {date}",
+    "bedroomsOne": "sypialnia",
+    "bedroomsOther": "sypialnie",
+    "editButton": "Edytuj",
+    "deleteButton": "Usuń"
+  }
+}

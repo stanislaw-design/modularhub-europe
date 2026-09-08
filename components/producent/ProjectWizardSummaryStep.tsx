@@ -1,14 +1,17 @@
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import { Card, DataText, Heading, Stack, Text } from "@/components/ui";
 import type { Country, ProjectDraft } from "@/lib/data/types";
 import {
-  COMPLETION_STANDARD_OPTIONS,
-  PERGOLA_SUBCATEGORY_OPTIONS,
-  PRODUCT_FAMILY_OPTIONS,
-  PROJECT_CATEGORY_OPTIONS,
-  SPA_SUBCATEGORY_OPTIONS,
-  TECHNICAL_FIELDS_BY_FAMILY,
+  getCompletionStandardOptions,
+  getPergolaSubcategoryOptions,
+  getProductFamilyOptions,
+  getProjectCategoryOptions,
+  getSpaSubcategoryOptions,
+  getTechnicalFieldsByFamily,
 } from "@/lib/producer-project-draft";
+
+type Translate = ReturnType<typeof useTranslations>;
 
 interface ProjectWizardSummaryStepProps {
   draft: ProjectDraft;
@@ -37,101 +40,117 @@ function SummaryGroup({ title, children }: { title: string; children: ReactNode 
   );
 }
 
-function subcategoryLabel(draft: ProjectDraft): string {
+function subcategoryLabel(draft: ProjectDraft, tOptions: Translate, empty: string): string {
   switch (draft.family) {
     case "dom":
-      return PROJECT_CATEGORY_OPTIONS.find((option) => option.value === draft.category)?.label ?? "—";
+      return getProjectCategoryOptions(tOptions).find((option) => option.value === draft.category)?.label ?? empty;
     case "spa-modulowe":
-      return SPA_SUBCATEGORY_OPTIONS.find((option) => option.value === draft.spaSubcategory)?.label ?? "—";
+      return (
+        getSpaSubcategoryOptions(tOptions).find((option) => option.value === draft.spaSubcategory)?.label ?? empty
+      );
     case "pergola":
       return (
-        PERGOLA_SUBCATEGORY_OPTIONS.find((option) => option.value === draft.pergolaSubcategory)?.label ?? "—"
+        getPergolaSubcategoryOptions(tOptions).find((option) => option.value === draft.pergolaSubcategory)?.label ??
+        empty
       );
     case null:
-      return "—";
+      return empty;
   }
 }
 
 export function ProjectWizardSummaryStep({ draft, countries }: ProjectWizardSummaryStepProps) {
+  const t = useTranslations("ProjectWizardSummaryStep");
+  const tOptions = useTranslations("ProjectOptions");
+  const empty = t("empty");
   const countryName =
-    countries.find((country) => country.code === draft.countryOfProduction)?.name ?? "—";
-  const familyLabel = PRODUCT_FAMILY_OPTIONS.find((option) => option.value === draft.family)?.label ?? "—";
+    countries.find((country) => country.code === draft.countryOfProduction)?.name ?? empty;
+  const familyLabel = getProductFamilyOptions(tOptions).find((option) => option.value === draft.family)?.label ?? empty;
 
   return (
     <Stack gap={4}>
-      <Heading level="h2">Podsumowanie</Heading>
-      <Text tone="muted">Sprawdź wszystkie dane przed zapisaniem projektu.</Text>
+      <Heading level="h2">{t("heading")}</Heading>
+      <Text tone="muted">{t("intro")}</Text>
 
-      <SummaryGroup title="Informacje podstawowe">
-        <SummaryRow label="Nazwa projektu" value={draft.name} />
-        <SummaryRow label="Metraż" value={draft.floorAreaM2 !== null ? `${draft.floorAreaM2} m²` : "—"} />
-        <SummaryRow label="Liczba sypialni" value={draft.bedrooms !== null ? String(draft.bedrooms) : "—"} />
-        <SummaryRow label="Kraj produkcji" value={countryName} />
-        <SummaryRow label="Opis" value={draft.description} />
-        <SummaryRow label="Rodzina produktu" value={familyLabel} />
-        <SummaryRow label="Podkategoria" value={subcategoryLabel(draft)} />
+      <SummaryGroup title={t("groupBasicInfo")}>
+        <SummaryRow label={t("rowName")} value={draft.name} />
+        <SummaryRow
+          label={t("rowFloorArea")}
+          value={draft.floorAreaM2 !== null ? t("rowFloorAreaValue", { area: draft.floorAreaM2 }) : empty}
+        />
+        <SummaryRow label={t("rowBedrooms")} value={draft.bedrooms !== null ? String(draft.bedrooms) : empty} />
+        <SummaryRow label={t("rowCountry")} value={countryName} />
+        <SummaryRow label={t("rowDescription")} value={draft.description} />
+        <SummaryRow label={t("rowFamily")} value={familyLabel} />
+        <SummaryRow label={t("rowSubcategory")} value={subcategoryLabel(draft, tOptions, empty)} />
       </SummaryGroup>
 
       {draft.family !== null && (
-        <SummaryGroup title="Dane techniczne">
-          {TECHNICAL_FIELDS_BY_FAMILY[draft.family].map((field) => {
+        <SummaryGroup title={t("groupTechnical")}>
+          {getTechnicalFieldsByFamily(draft.family, tOptions).map((field) => {
             const value = draft.technicalSpecs[field.key];
             const displayValue =
               field.type === "select"
-                ? field.options?.find((option) => option.value === value)?.label ?? "—"
+                ? field.options?.find((option) => option.value === value)?.label ?? empty
                 : value !== undefined && value !== "" && value !== null
                   ? String(value)
-                  : "—";
+                  : empty;
             return <SummaryRow key={field.key} label={field.label} value={displayValue} />;
           })}
         </SummaryGroup>
       )}
 
-      <SummaryGroup title="Cena i sprzedaż">
+      <SummaryGroup title={t("groupPricing")}>
         <SummaryRow
-          label="Cena domu"
+          label={t("rowPrice")}
           value={
             draft.housePriceMinEur !== null && draft.housePriceMaxEur !== null
-              ? `${draft.housePriceMinEur}–${draft.housePriceMaxEur} EUR`
-              : "—"
+              ? t("rowPriceValue", { min: draft.housePriceMinEur, max: draft.housePriceMaxEur })
+              : empty
           }
         />
         <SummaryRow
-          label="Standard wykończenia"
+          label={t("rowStandard")}
           value={
-            COMPLETION_STANDARD_OPTIONS.find((option) => option.value === draft.completionStandard)?.label ??
-            "—"
+            getCompletionStandardOptions(tOptions).find((option) => option.value === draft.completionStandard)
+              ?.label ?? empty
           }
         />
         <SummaryRow
-          label="Termin produkcji"
+          label={t("rowLeadTime")}
           value={
             draft.productionLeadTimeWeeksMin !== null && draft.productionLeadTimeWeeksMax !== null
-              ? `${draft.productionLeadTimeWeeksMin}–${draft.productionLeadTimeWeeksMax} tyg.`
-              : "—"
+              ? t("rowLeadTimeValue", {
+                  min: draft.productionLeadTimeWeeksMin,
+                  max: draft.productionLeadTimeWeeksMax,
+                })
+              : empty
           }
         />
         <SummaryRow
-          label="Czas montażu"
+          label={t("rowAssemblyTime")}
           value={
             draft.onSiteAssemblyDaysMin !== null && draft.onSiteAssemblyDaysMax !== null
-              ? `${draft.onSiteAssemblyDaysMin}–${draft.onSiteAssemblyDaysMax} dni`
-              : "—"
+              ? t("rowAssemblyTimeValue", { min: draft.onSiteAssemblyDaysMin, max: draft.onSiteAssemblyDaysMax })
+              : empty
           }
         />
         <SummaryRow
-          label="Gwarancja konstrukcyjna"
-          value={draft.structuralWarrantyYears !== null ? `${draft.structuralWarrantyYears} lat` : "—"}
+          label={t("rowWarranty")}
+          value={
+            draft.structuralWarrantyYears !== null
+              ? t("rowWarrantyValue", { years: draft.structuralWarrantyYears })
+              : empty
+          }
         />
       </SummaryGroup>
 
       <Stack gap={2}>
-        <Heading level="h3">Pliki</Heading>
+        <Heading level="h3">{t("groupFiles")}</Heading>
         <Card padding="md">
           <Stack gap={3}>
             <Stack gap={1}>
               <Text variant="label" tone="muted">
-                Rzuty ({draft.floorPlanFiles.length})
+                {t("floorPlanCount", { count: draft.floorPlanFiles.length })}
               </Text>
               <ul className="flex flex-col gap-1">
                 {draft.floorPlanFiles.map((file, index) => (
@@ -143,7 +162,7 @@ export function ProjectWizardSummaryStep({ draft, countries }: ProjectWizardSumm
             </Stack>
             <Stack gap={1}>
               <Text variant="label" tone="muted">
-                Zdjęcia ({draft.photoFiles.length})
+                {t("photoCount", { count: draft.photoFiles.length })}
               </Text>
               <ul className="flex flex-col gap-1">
                 {draft.photoFiles.map((file, index) => (

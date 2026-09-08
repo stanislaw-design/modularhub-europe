@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -7,22 +8,22 @@ interface PanelTabsProps {
   locale: string;
 }
 
-const PANEL_TABS: { segment: "zapytania" | "ulubione" | "profil"; label: string }[] = [
-  { segment: "zapytania", label: "Zapytania" },
-  { segment: "ulubione", label: "Ulubione" },
-  { segment: "profil", label: "Profil" },
-];
-
 // Pasek zakładek wspólny dla /klient/panel/* (spec 0024 Decision). Klient
 // komponent, żeby móc podświetlić aktywną zakładkę przez usePathname() — layout
 // serwerowy nadrzędny nie zna dokładnej podstrony, którą renderuje, bo żadna z
 // trzech tras nie ma dynamicznego segmentu.
 export function PanelTabs({ locale }: PanelTabsProps) {
+  const t = useTranslations("PanelTabs");
   const pathname = usePathname();
+  const panelTabs: { segment: "zapytania" | "ulubione" | "profil"; label: string }[] = [
+    { segment: "zapytania", label: t("zapytania") },
+    { segment: "ulubione", label: t("ulubione") },
+    { segment: "profil", label: t("profil") },
+  ];
 
   return (
-    <nav aria-label="Panel klienta" className="flex gap-brand-2 border-b border-brand-v5-line">
-      {PANEL_TABS.map((tab) => {
+    <nav aria-label={t("navAriaLabel")} className="flex gap-brand-2 border-b border-brand-v5-line">
+      {panelTabs.map((tab) => {
         const href = `/${locale}/klient/panel/${tab.segment}`;
         const isCurrent = pathname === href;
         return (

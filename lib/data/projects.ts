@@ -1,6 +1,7 @@
 import { and, desc, eq, gte, lte, ne, or, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { favorite, producer, product, productCountryEligibility } from "@/lib/db/schema";
+import { favorite, producer, product, productCountryEligibility, productTranslation } from "@/lib/db/schema";
+import type { Locale } from "@/lib/i18n/routing";
 import type { EnergyClass, VentilationType } from "@/lib/product-technical-specs";
 import { resolveHeatSourceValues, type HeatSourceFilterValue, type PriceThreshold, type StoreysFilter } from "@/lib/results-filters";
 import type {
@@ -14,6 +15,10 @@ import type {
 } from "./types";
 
 interface GetProjectsFilters {
+  // Polski jest tekstem źródłowym i nigdy nie wymaga JOIN-a na product_translation
+  // (spec 0028 Decision); domyślnie "pl", więc wywołujący, które nie znają jeszcze
+  // aktywnego locale, zachowują dzisiejsze zachowanie bez zmian.
+  locale?: Locale;
   countryCode?: CountryCode;
   sizeMin?: number;
   sizeMax?: number;
@@ -65,7 +70,23 @@ interface TechnicalSpecsBridgeFields {
   _extraImageUrls?: string[];
 }
 
-function mapRowToProject(row: typeof product.$inferSelect, producerName: string): Project {
+// pl jest tekstem źródłowym (AC-5); en/nl pokazują tłumaczenie producenta,
+// jeśli istnieje i nie jest puste, inaczej spadają na polski (AC-6) — nigdy
+// pusty string na stronie klienta.
+interface ProductTranslationText {
+  name: string | null;
+  description: string | null;
+}
+
+function resolveTranslatedText(base: string | null, translated: string | null | undefined): string {
+  return translated && translated.trim().length > 0 ? translated : (base ?? "");
+}
+
+function mapRowToProject(
+  row: typeof product.$inferSelect,
+  producerName: string,
+  translation?: ProductTranslationText,
+): Project {
   const specs = (row.technicalSpecs ?? {}) as ProductTechnicalSpecsDraft & TechnicalSpecsBridgeFields;
   const priceMinCents = row.priceMinCents ?? row.housePriceMinCents ?? 0;
   const priceMaxCents = row.priceMaxCents ?? row.housePriceMaxCents ?? 0;
@@ -76,7 +97,7 @@ function mapRowToProject(row: typeof product.$inferSelect, producerName: string)
     id: row.id,
     producerId: row.producerId,
     producerName,
-    name: row.name ?? "",
+    name: resolveTranslatedText(row.name, translation?.name),
     countryOfProduction: (row.countryOfProduction ?? "PL") as CountryCode,
     floorAreaM2: row.floorAreaM2 ?? 0,
     builtUpAreaM2: row.builtUpAreaM2 ?? 0,
@@ -96,7 +117,7 @@ function mapRowToProject(row: typeof product.$inferSelect, producerName: string)
     priceMax: priceMaxCents / 100,
     currency: "EUR",
     coverImageUrl: row.coverImageUrl ?? "",
-    description: row.description ?? "",
+    description: resolveTranslatedText(row.description, translation?.description),
     wallBuildUp: specs.wallBuildUp ?? "",
     insulation: specs.insulation ?? "",
     heatTransferCoefficients: specs.heatTransferCoefficients ?? "",
@@ -136,6 +157,7 @@ function mapRowToProject(row: typeof product.$inferSelect, producerName: string)
 // (patrz sortResults() w lib/results-filters.ts, jedyne miejsce sortowania).
 export async function getProjects(filters?: GetProjectsFilters): Promise<Project[]> {
   const {
+    locale = "pl",
     countryCode,
     sizeMin,
     sizeMax,
@@ -197,13 +219,36 @@ export async function getProjects(filters?: GetProjectsFilters): Promise<Project
     if (tsQuery !== null) conditions.push(sql`${product.searchVector} @@ to_tsquery('simple', ${tsQuery})`);
   }
 
-  const rows = await db
-    .select({ product, producerName: producer.name })
-    .from(product)
-    .innerJoin(producer, eq(product.producerId, producer.id))
-    .where(and(...conditions));
-
-  let projects = rows.map((row) => mapRowToProject(row.product, row.producerName));
+  let projects: Project[];
+  if (locale === "en" || locale === "nl") {
+    const rows = await db
+      .select({
+        product,
+        producerName: producer.name,
+        translationName: productTranslation.name,
+        translationDescription: productTranslation.description,
+      })
+      .from(product)
+      .innerJoin(producer, eq(product.producerId, producer.id))
+      .leftJoin(
+        productTranslation,
+        and(eq(productTranslation.productId, product.id), eq(productTranslation.locale, locale)),
+      )
+      .where(and(...conditions));
+    projects = rows.map((row) =>
+      mapRowToProject(row.product, row.producerName, {
+        name: row.translationName,
+        description: row.translationDescription,
+      }),
+    );
+  } else {
+    const rows = await db
+      .select({ product, producerName: producer.name })
+      .from(product)
+      .innerJoin(producer, eq(product.producerId, producer.id))
+      .where(and(...conditions));
+    projects = rows.map((row) => mapRowToProject(row.product, row.producerName));
+  }
 
   if (countryCode) {
     const eligibleRows = await db
@@ -222,7 +267,31 @@ export async function getProjects(filters?: GetProjectsFilters): Promise<Project
   return projects;
 }
 
-export async function getProjectById(id: string): Promise<Project | null> {
+export async function getProjectById(id: string, locale: Locale = "pl"): Promise<Project | null> {
+  if (locale === "en" || locale === "nl") {
+    const [row] = await db
+      .select({
+        product,
+        producerName: producer.name,
+        translationName: productTranslation.name,
+        translationDescription: productTranslation.description,
+      })
+      .from(product)
+      .innerJoin(producer, eq(product.producerId, producer.id))
+      .leftJoin(
+        productTranslation,
+        and(eq(productTranslation.productId, product.id), eq(productTranslation.locale, locale)),
+      )
+      .where(eq(product.id, id));
+
+    return row
+      ? mapRowToProject(row.product, row.producerName, {
+          name: row.translationName,
+          description: row.translationDescription,
+        })
+      : null;
+  }
+
   const [row] = await db
     .select({ product, producerName: producer.name })
     .from(product)
@@ -234,7 +303,34 @@ export async function getProjectById(id: string): Promise<Project | null> {
 
 // Public: feeds CategoryShowcase on the home page with one real, clickable
 // project per family instead of a generic unfiltered /wyniki link.
-export async function getFeaturedProjectByFamily(family: ProductFamily): Promise<Project | null> {
+export async function getFeaturedProjectByFamily(
+  family: ProductFamily,
+  locale: Locale = "pl",
+): Promise<Project | null> {
+  if (locale === "en" || locale === "nl") {
+    const [row] = await db
+      .select({
+        product,
+        producerName: producer.name,
+        translationName: productTranslation.name,
+        translationDescription: productTranslation.description,
+      })
+      .from(product)
+      .innerJoin(producer, eq(product.producerId, producer.id))
+      .leftJoin(
+        productTranslation,
+        and(eq(productTranslation.productId, product.id), eq(productTranslation.locale, locale)),
+      )
+      .where(and(eq(product.family, family), eq(product.featured, true), eq(product.status, "published")));
+
+    return row
+      ? mapRowToProject(row.product, row.producerName, {
+          name: row.translationName,
+          description: row.translationDescription,
+        })
+      : null;
+  }
+
   const [row] = await db
     .select({ product, producerName: producer.name })
     .from(product)

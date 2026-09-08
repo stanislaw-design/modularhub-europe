@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { type FormEvent, useState, useTransition } from "react";
 import { Button, Heading, Input, Label, ScrollReveal, Select, Stack, Text } from "@/components/ui";
 import type { Country, CountryCode, Project } from "@/lib/data/types";
@@ -18,10 +19,6 @@ interface InquiryFlowProps {
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-function pluralizeDom(count: number): string {
-  return count === 1 ? "dom" : "domy";
-}
-
 export function InquiryFlow({
   projects,
   resultsHref,
@@ -30,6 +27,8 @@ export function InquiryFlow({
   initialContact,
   initialCountryCode,
 }: InquiryFlowProps) {
+  const t = useTranslations("InquiryFlow");
+  const productNoun = t(`productNoun.${projects.length === 1 ? "one" : "other"}`);
   const [phase, setPhase] = useState<"form" | "sent">("form");
   const [contact, setContact] = useState<InquiryContact>(initialContact);
   const [deliveryCountryCode, setDeliveryCountryCode] = useState<CountryCode | null>(initialCountryCode);
@@ -63,7 +62,7 @@ export function InquiryFlow({
       });
 
       if (!result.ok) {
-        setError(result.error ?? "Nie udało się wysłać zapytania. Spróbuj ponownie.");
+        setError(result.error ?? t("genericSendError"));
         return;
       }
 
@@ -76,10 +75,10 @@ export function InquiryFlow({
     return (
       <Stack gap={4}>
         <Heading level="h1" surface="v5">
-          Zapytanie wysłane
+          {t("sentHeading")}
         </Heading>
         <Text tone="muted" surface="v5">
-          Potwierdzenie zapytania o {projects.length} {pluralizeDom(projects.length)} poniżej.
+          {t("sentConfirmation", { count: projects.length, noun: productNoun })}
         </Text>
         <Stack gap={3}>
           {projects.map((project, index) => (
@@ -90,10 +89,10 @@ export function InquiryFlow({
         </Stack>
         <Stack direction="row" gap={2}>
           <Button as="a" href={dzialkaHref} surface="v5" className="w-fit">
-            Sprawdź działkę
+            {t("checkPlot")}
           </Button>
           <Button as="a" href={resultsHref} variant="secondary" surface="v5" className="w-fit">
-            Wróć do wyników
+            {t("backToResults")}
           </Button>
         </Stack>
       </Stack>
@@ -105,17 +104,19 @@ export function InquiryFlow({
   return (
     <Stack gap={4}>
       <Heading level="h1" surface="v5">
-        Zapytanie o wybrane domy
+        {t("heading")}
       </Heading>
       <Text tone="muted" surface="v5">
-        Wysyłasz jedno zapytanie o {projects.length} {pluralizeDom(projects.length)}:{" "}
-        {projects.map((project) => project.name).join(", ")}. Podaj dane kontaktowe, żeby producenci
-        mogli się z Tobą skontaktować.
+        {t("intro", {
+          count: projects.length,
+          noun: productNoun,
+          names: projects.map((project) => project.name).join(", "),
+        })}
       </Text>
       <form onSubmit={handleSubmit} className="flex max-w-md flex-col gap-brand-3" noValidate>
         <Stack gap={1}>
           <Label htmlFor="inquiry-name" required surface="v5">
-            Imię i nazwisko
+            {t("nameLabel")}
           </Label>
           <Input
             id="inquiry-name"
@@ -147,13 +148,13 @@ export function InquiryFlow({
           />
           {emailTouched && contact.email.length > 0 && !emailValid && (
             <p id="inquiry-email-error" className="font-sans text-body text-status-blocked">
-              Podaj prawidłowy adres e-mail.
+              {t("emailInvalidError")}
             </p>
           )}
         </Stack>
         <Stack gap={1}>
           <Label htmlFor="inquiry-phone" required surface="v5">
-            Telefon
+            {t("phoneLabel")}
           </Label>
           <Input
             id="inquiry-phone"
@@ -168,7 +169,7 @@ export function InquiryFlow({
         </Stack>
         <Stack gap={1}>
           <Label id="inquiry-country-label" required surface="v5">
-            Kraj dostawy
+            {t("deliveryCountryLabel")}
           </Label>
           <Select
             value={deliveryCountryCode}
@@ -184,7 +185,7 @@ export function InquiryFlow({
           </p>
         )}
         <Button type="submit" disabled={!canSubmit} surface="v5" className="w-fit">
-          {isPending ? "Wysyłanie…" : error ? "Ponów wysyłanie" : "Wyślij zapytanie"}
+          {isPending ? t("sendingLabel") : error ? t("retrySendLabel") : t("sendLabel")}
         </Button>
       </form>
     </Stack>

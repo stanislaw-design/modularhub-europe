@@ -1,11 +1,13 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Heading, Stack, Text } from "@/components/ui";
 import type { Country, ProjectDraft } from "@/lib/data/types";
 import {
   WIZARD_STEPS,
+  getWizardSteps,
   isStepComplete,
 } from "@/lib/producer-project-draft";
 import {
@@ -38,6 +40,9 @@ type LoadStatus = "loading" | "ready";
 // (`producent:${nip}:edycja:${id}`), niezależnym od ewentualnego szkicu nowego produktu
 // w toku (spec 0016, AC-8, Key invariants).
 export function ProductEditWizard({ locale, nip, productId, countries }: ProductEditWizardProps) {
+  const t = useTranslations("ProductEditWizard");
+  const tOptions = useTranslations("ProjectOptions");
+  const wizardSteps = getWizardSteps(tOptions);
   const router = useRouter();
   const [status, setStatus] = useState<LoadStatus>("loading");
   const [draft, setDraft] = useState<ProjectDraft | null>(null);
@@ -69,8 +74,8 @@ export function ProductEditWizard({ locale, nip, productId, countries }: Product
   if (status !== "ready" || draft === null) {
     return (
       <Stack gap={4}>
-        <Heading level="h1">Edytuj produkt</Heading>
-        <Text tone="muted">Ładowanie…</Text>
+        <Heading level="h1">{t("heading")}</Heading>
+        <Text tone="muted">{t("loading")}</Text>
       </Stack>
     );
   }
@@ -128,9 +133,9 @@ export function ProductEditWizard({ locale, nip, productId, countries }: Product
 
   return (
     <Stack gap={5}>
-      <Heading level="h1">Edytuj produkt</Heading>
+      <Heading level="h1">{t("heading")}</Heading>
       <ProjectWizardProgress
-        steps={WIZARD_STEPS}
+        steps={wizardSteps}
         currentIndex={stepIndex}
         maxReachedIndex={maxReachedIndex}
         onStepClick={handleStepClick}
@@ -156,25 +161,20 @@ export function ProductEditWizard({ locale, nip, productId, countries }: Product
         )}
         {isSummaryStep && <ProjectWizardSummaryStep draft={draft} countries={countries} />}
       </Stack>
-      {saveError && (
-        <Text className="text-status-blocked">
-          Nie udało się zapisać zmian (limit pamięci przeglądarki). Spróbuj usunąć nieużywane dane albo
-          zwolnić miejsce i spróbuj ponownie.
-        </Text>
-      )}
+      {saveError && <Text className="text-status-blocked">{t("saveError")}</Text>}
       <Stack direction="row" gap={2}>
         {stepIndex > 0 && (
           <Button type="button" variant="secondary" onClick={handleBack} className="w-fit">
-            Wstecz
+            {t("back")}
           </Button>
         )}
         {isSummaryStep ? (
           <Button type="button" onClick={handleSave} className="w-fit">
-            Zapisz zmiany
+            {t("save")}
           </Button>
         ) : (
           <Button type="button" onClick={handleNext} className="w-fit">
-            Dalej
+            {t("next")}
           </Button>
         )}
       </Stack>

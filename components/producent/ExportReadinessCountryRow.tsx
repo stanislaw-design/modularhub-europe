@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect, useId, useRef, useState } from "react";
 import { Button, Card, StatusPill, Stack, Text } from "@/components/ui";
 import type { ExportReadinessCountryStatus } from "@/lib/data/types";
@@ -13,21 +14,18 @@ interface ExportReadinessCountryRowProps {
   entry: ExportReadinessCountryStatus;
 }
 
-const statusLabel: Record<ExportReadinessCountryStatus["status"], string> = {
-  approved: "Dopuszczone",
-  conditional: "Warunkowo dopuszczone",
-  blocked: "Niedopuszczone",
-};
-
-const RESOLVED_REASON_TEXT =
-  "Luki domknięte poprzez zakup pakietu domykania luk (zapisane w tej przeglądarce).";
-
 export function ExportReadinessCountryRow({
   locale,
   countryName,
   projectName,
   entry,
 }: ExportReadinessCountryRowProps) {
+  const t = useTranslations("ExportReadinessCountryRow");
+  const statusLabel: Record<ExportReadinessCountryStatus["status"], string> = {
+    approved: t("statusApproved"),
+    conditional: t("statusConditional"),
+    blocked: t("statusBlocked"),
+  };
   const [expanded, setExpanded] = useState(false);
   // Odczyt localStorage tylko po stronie klienta, po zamontowaniu — patrz spec
   // 0010, Consequences (możliwe krótkie mignięcie akordeonu przy pierwszym renderze).
@@ -48,7 +46,7 @@ export function ExportReadinessCountryRow({
   }, [expanded]);
 
   const effectiveStatus = resolved ? "approved" : entry.status;
-  const effectiveReason = resolved ? RESOLVED_REASON_TEXT : entry.reason;
+  const effectiveReason = resolved ? t("resolvedReason") : entry.reason;
 
   if (effectiveStatus !== "conditional") {
     return (
@@ -101,7 +99,7 @@ export function ExportReadinessCountryRow({
         >
           <Stack gap={2}>
             <Text as="span" variant="label" tone="muted">
-              Czego brakuje
+              {t("whatsMissing")}
             </Text>
             <ul className="flex flex-col gap-2">
               {entry.gaps.map((gap) => (
@@ -111,7 +109,7 @@ export function ExportReadinessCountryRow({
               ))}
             </ul>
             <Button as="a" href={gapClosureHref} className="w-fit">
-              Domknij luki
+              {t("closeGaps")}
             </Button>
           </Stack>
         </div>

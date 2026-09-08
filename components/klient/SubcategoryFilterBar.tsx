@@ -1,6 +1,7 @@
+import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import type { PergolaSubcategory, SpaSubcategory } from "@/lib/data/types";
-import { PERGOLA_SUBCATEGORY_OPTIONS, SPA_SUBCATEGORY_OPTIONS } from "@/lib/producer-project-draft";
+import { getPergolaSubcategoryOptions, getSpaSubcategoryOptions } from "@/lib/producer-project-draft";
 import type { ResultsFilter } from "@/lib/results-filters";
 import { buildResultsHref, toggleFilterValue } from "@/lib/results-filters";
 
@@ -16,13 +17,17 @@ interface SubcategoryFilterBarProps {
 // producenta, lib/producer-project-draft.ts) zamiast duplikować tekst. Bez
 // dedykowanych ikon per podkategoria — brak źródła projektowego dla tego
 // szczegółu, zwykłe pigułki tekstowe w stylu marki.
-export function SubcategoryFilterBar({ locale, filter }: SubcategoryFilterBarProps) {
+export async function SubcategoryFilterBar({ locale, filter }: SubcategoryFilterBarProps) {
   if (filter.family !== "spa-modulowe" && filter.family !== "pergola") return null;
 
+  const [tOptions, t] = await Promise.all([
+    getTranslations("ProjectOptions"),
+    getTranslations("SubcategoryFilterBar"),
+  ]);
   const options: { value: SpaSubcategory | PergolaSubcategory; label: string }[] =
-    filter.family === "spa-modulowe" ? SPA_SUBCATEGORY_OPTIONS : PERGOLA_SUBCATEGORY_OPTIONS;
+    filter.family === "spa-modulowe" ? getSpaSubcategoryOptions(tOptions) : getPergolaSubcategoryOptions(tOptions);
   const key = filter.family === "spa-modulowe" ? "spaSubcategory" : "pergolaSubcategory";
-  const ariaLabel = filter.family === "spa-modulowe" ? "Podkategoria spa modułowego" : "Podkategoria pergoli";
+  const ariaLabel = filter.family === "spa-modulowe" ? t("spaAriaLabel") : t("pergolaAriaLabel");
 
   return (
     <nav aria-label={ariaLabel} className="flex items-center gap-brand-2 overflow-x-auto border-b border-brand-v5-line py-brand-2">

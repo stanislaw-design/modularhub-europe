@@ -4,6 +4,7 @@ import { InquiryFlow } from "@/components/klient/InquiryFlow";
 import type { CountryCode, Project } from "@/lib/data/types";
 import { getCountries } from "@/lib/data/countries";
 import { getProjectById, getProjects } from "@/lib/data/projects";
+import type { Locale } from "@/lib/i18n/routing";
 import { parseInquiryProjectIds } from "@/lib/inquiry";
 
 const VALID_COUNTRY_CODES: readonly CountryCode[] = ["PL", "DE", "NL"];
@@ -70,7 +71,10 @@ export default async function ZapytaniePage({
     redirect(`/${locale}/internal/zapytania`);
   }
 
-  const [allProjects, countries] = await Promise.all([getProjects(), getCountries()]);
+  const [allProjects, countries] = await Promise.all([
+    getProjects({ locale: locale as Locale }),
+    getCountries(),
+  ]);
   const knownIds = new Set(allProjects.map((project) => project.id));
   const projectIds = parseInquiryProjectIds(rawSearchParams.projects, knownIds);
 
@@ -78,9 +82,9 @@ export default async function ZapytaniePage({
     redirect(resultsHref);
   }
 
-  const selectedProjects = (await Promise.all(projectIds.map(getProjectById))).filter(
-    (project): project is Project => project !== null
-  );
+  const selectedProjects = (
+    await Promise.all(projectIds.map((id) => getProjectById(id, locale as Locale)))
+  ).filter((project): project is Project => project !== null);
   const dzialkaHref = buildDzialkaHref(locale, projectIds, rawSearchParams);
 
   const rawCountry = rawSearchParams.country;

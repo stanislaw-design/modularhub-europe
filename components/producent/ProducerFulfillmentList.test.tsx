@@ -23,52 +23,67 @@ function makeOrder(overrides: Partial<FulfillmentOrder> = {}): FulfillmentOrder 
   };
 }
 
+// ProducerFulfillmentList is an async Server Component (it awaits
+// getTranslations): React's client reconciler, which Testing Library's
+// render() drives, cannot resolve an async function component the way
+// Next.js's RSC pipeline does — calling it as JSX and passing that element to
+// render() would silently render an empty tree. Calling the function directly
+// and awaiting its result first gives render() a plain, already resolved
+// element, same pattern for every async Server Component test in this repo.
 describe("ProducerFulfillmentList", () => {
-  it("shows an empty state message when there are no orders", () => {
-    render(<ProducerFulfillmentList locale="pl" orders={[]} projects={[]} />);
+  it("shows an empty state message when there are no orders", async () => {
+    render(await ProducerFulfillmentList({ locale: "pl", orders: [], projects: [] }));
 
     expect(screen.getByText(/Brak realizacji/)).toBeInTheDocument();
   });
 
-  it("renders one card per order with project name, producer, and floor area", () => {
-    render(
-      <ProducerFulfillmentList locale="pl" orders={[makeOrder()]} projects={[makeProject()]} />
-    );
+  it("renders one card per order with project name, producer, and floor area", async () => {
+    render(await ProducerFulfillmentList({ locale: "pl", orders: [makeOrder()], projects: [makeProject()] }));
 
     expect(screen.getByRole("heading", { level: 2, name: "Modulor Family 90" })).toBeInTheDocument();
     expect(screen.getByText(/Modulor Systems Sp\. z o\.o\. · 90 m²/)).toBeInTheDocument();
   });
 
-  it("shows the current stage label, not the delivered badge, for an order still before odbiór", () => {
+  it("shows the current stage label, not the delivered badge, for an order still before odbiór", async () => {
     render(
-      <ProducerFulfillmentList locale="pl" orders={[makeOrder({ currentStage: "montaz" })]} projects={[makeProject()]} />
+      await ProducerFulfillmentList({
+        locale: "pl",
+        orders: [makeOrder({ currentStage: "montaz" })],
+        projects: [makeProject()],
+      })
     );
 
     expect(screen.getByText("Aktualny etap: Montaż")).toBeInTheDocument();
     expect(screen.queryByText("Gotowe do weryfikacji firmy")).not.toBeInTheDocument();
   });
 
-  it("shows the delivered badge once the order reached odbiór or later", () => {
+  it("shows the delivered badge once the order reached odbiór or later", async () => {
     render(
-      <ProducerFulfillmentList locale="pl" orders={[makeOrder({ currentStage: "odbior" })]} projects={[makeProject()]} />
+      await ProducerFulfillmentList({
+        locale: "pl",
+        orders: [makeOrder({ currentStage: "odbior" })],
+        projects: [makeProject()],
+      })
     );
 
     expect(screen.getByText("Gotowe do weryfikacji firmy")).toBeInTheDocument();
     expect(screen.queryByText(/Aktualny etap/)).not.toBeInTheDocument();
   });
 
-  it("still shows the delivered badge for an order on the final gwarancja stage", () => {
+  it("still shows the delivered badge for an order on the final gwarancja stage", async () => {
     render(
-      <ProducerFulfillmentList locale="pl" orders={[makeOrder({ currentStage: "gwarancja" })]} projects={[makeProject()]} />
+      await ProducerFulfillmentList({
+        locale: "pl",
+        orders: [makeOrder({ currentStage: "gwarancja" })],
+        projects: [makeProject()],
+      })
     );
 
     expect(screen.getByText("Gotowe do weryfikacji firmy")).toBeInTheDocument();
   });
 
-  it("links each card to the realizacja axis for that project, locale-prefixed", () => {
-    render(
-      <ProducerFulfillmentList locale="pl" orders={[makeOrder()]} projects={[makeProject()]} />
-    );
+  it("links each card to the realizacja axis for that project, locale-prefixed", async () => {
+    render(await ProducerFulfillmentList({ locale: "pl", orders: [makeOrder()], projects: [makeProject()] }));
 
     expect(screen.getByRole("link", { name: "Zobacz oś statusu" })).toHaveAttribute(
       "href",
@@ -76,27 +91,31 @@ describe("ProducerFulfillmentList", () => {
     );
   });
 
-  it("skips an order whose project cannot be found, without throwing", () => {
+  it("skips an order whose project cannot be found, without throwing", async () => {
     render(
-      <ProducerFulfillmentList locale="pl" orders={[makeOrder({ projectId: "does-not-exist" })]} projects={[makeProject()]} />
+      await ProducerFulfillmentList({
+        locale: "pl",
+        orders: [makeOrder({ projectId: "does-not-exist" })],
+        projects: [makeProject()],
+      })
     );
 
     expect(screen.queryByRole("heading", { level: 2 })).not.toBeInTheDocument();
   });
 
-  it("renders one card per order when there are several", () => {
+  it("renders one card per order when there are several", async () => {
     render(
-      <ProducerFulfillmentList
-        locale="pl"
-        orders={[
+      await ProducerFulfillmentList({
+        locale: "pl",
+        orders: [
           makeOrder({ projectId: "prj-modulor-family-90", currentStage: "montaz" }),
           makeOrder({ projectId: "prj-baltyk-loft-120", currentStage: "produkcja" }),
-        ]}
-        projects={[
+        ],
+        projects: [
           makeProject(),
           makeProject({ id: "prj-baltyk-loft-120", name: "Baltyk Loft 120", producerName: "Baltyk Modular Sp. z o.o.", floorAreaM2: 120 }),
-        ]}
-      />
+        ],
+      })
     );
 
     expect(screen.getAllByRole("heading", { level: 2 })).toHaveLength(2);

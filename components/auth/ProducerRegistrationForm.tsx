@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
 import Link from "next/link";
 import { Button, Heading, Input, Label, Select, Stack, Text } from "@/components/ui";
@@ -16,6 +17,7 @@ interface ProducerRegistrationFormProps {
 const initialState: RegistrationActionState = { status: "idle" };
 
 export function ProducerRegistrationForm({ locale, callbackUrl, countries }: ProducerRegistrationFormProps) {
+  const t = useTranslations("ProducerRegistrationForm");
   const [state, formAction, isPending] = useActionState(registerProducer, initialState);
   const [countryCode, setCountryCode] = useState<CountryCode | null>(null);
   const [technology, setTechnology] = useState<ProducerTechnology | null>(null);
@@ -23,11 +25,8 @@ export function ProducerRegistrationForm({ locale, callbackUrl, countries }: Pro
   if (state.status === "sent") {
     return (
       <Stack gap={3}>
-        <Heading level="h1">Sprawdź swoją skrzynkę</Heading>
-        <Text tone="muted">
-          Wysłaliśmy link logowania na podany adres e mail. Kliknij go, żeby dokończyć zakładanie konta
-          — link jest ważny przez 24 godziny.
-        </Text>
+        <Heading level="h1">{t("checkInboxHeading")}</Heading>
+        <Text tone="muted">{t("checkInboxBody")}</Text>
       </Stack>
     );
   }
@@ -36,16 +35,13 @@ export function ProducerRegistrationForm({ locale, callbackUrl, countries }: Pro
 
   return (
     <Stack gap={4}>
-      <Heading level="h1">Załóż konto producenta</Heading>
-      <Text tone="muted">
-        Podaj dane swojej firmy. Bez hasła — logujesz się linkiem wysłanym e mailem, tak samo jak
-        klient.
-      </Text>
+      <Heading level="h1">{t("heading")}</Heading>
+      <Text tone="muted">{t("intro")}</Text>
       <form action={formAction} className="flex max-w-md flex-col gap-brand-3" noValidate>
         <input type="hidden" name="callbackUrl" value={callbackUrl} />
         <Stack gap={1}>
           <Label htmlFor="producer-reg-name" required>
-            Nazwa firmy
+            {t("companyNameLabel")}
           </Label>
           <Input id="producer-reg-name" name="name" type="text" autoComplete="organization" required />
         </Stack>
@@ -57,7 +53,7 @@ export function ProducerRegistrationForm({ locale, callbackUrl, countries }: Pro
         </Stack>
         <Stack gap={1}>
           <Label htmlFor="producer-reg-phone" required>
-            Telefon
+            {t("phoneLabel")}
           </Label>
           <Input id="producer-reg-phone" name="phone" type="tel" autoComplete="tel" required />
         </Stack>
@@ -69,7 +65,7 @@ export function ProducerRegistrationForm({ locale, callbackUrl, countries }: Pro
         </Stack>
         <Stack gap={1}>
           <Label id="producer-reg-country-label" required>
-            Kraj
+            {t("countryLabel")}
           </Label>
           <Select
             name="countryCode"
@@ -81,7 +77,7 @@ export function ProducerRegistrationForm({ locale, callbackUrl, countries }: Pro
         </Stack>
         <Stack gap={1}>
           <Label id="producer-reg-technology-label" required>
-            Technologia
+            {t("technologyLabel")}
           </Label>
           <Select
             name="technology"
@@ -97,16 +93,16 @@ export function ProducerRegistrationForm({ locale, callbackUrl, countries }: Pro
           </p>
         )}
         <Button type="submit" disabled={isPending} className="w-fit">
-          Załóż konto
+          {t("submitButton")}
         </Button>
       </form>
       <Text tone="muted">
-        Masz już konto?{" "}
+        {t("alreadyHaveAccount")}{" "}
         <Link
           href={`/${locale}/logowanie?callbackUrl=${encodeURIComponent(callbackUrl)}`}
           className="focus-ring rounded-data font-medium text-brand-v5-amber-strong underline"
         >
-          Zaloguj się
+          {t("loginLink")}
         </Link>
       </Text>
     </Stack>

@@ -1,18 +1,11 @@
 import { AlertTriangle, ArrowRight, CheckCircle2, FileCheck2 } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { DataText, Heading, Text } from "@/components/ui";
 
 interface ComplianceEngineShowcaseProps {
   locale: string;
 }
-
-const checklist = [
-  { label: "Konstrukcja", status: "ok" as const },
-  { label: "Izolacja", status: "ok" as const },
-  { label: "Wentylacja", status: "ok" as const },
-  { label: "Dokumentacja", status: "ok" as const },
-  { label: "Lokalne pozwolenie", status: "warning" as const },
-];
 
 // One hard-coded illustrative example (not real EligibilityByCountry data,
 // spec 0015 AC-6) — deliberately styled as a technology/SaaS surface (dark
@@ -23,7 +16,16 @@ const checklist = [
 // state is never color-only and stays readable on the dark card. The small
 // print under the pitch frames results as an orientational check, not legal
 // advice — liability guardrail without undercutting the engine's value prop.
-export function ComplianceEngineShowcase({ locale }: ComplianceEngineShowcaseProps) {
+export async function ComplianceEngineShowcase({ locale }: ComplianceEngineShowcaseProps) {
+  const t = await getTranslations("ComplianceEngineShowcase");
+  const checklist = [
+    { label: t("checklistConstruction"), status: "ok" as const },
+    { label: t("checklistInsulation"), status: "ok" as const },
+    { label: t("checklistVentilation"), status: "ok" as const },
+    { label: t("checklistDocumentation"), status: "ok" as const },
+    { label: t("checklistPermit"), status: "warning" as const },
+  ];
+
   return (
     <section className="py-brand-5">
       <div className="grid grid-cols-1 items-center gap-brand-5 lg:grid-cols-12">
@@ -32,17 +34,12 @@ export function ComplianceEngineShowcase({ locale }: ComplianceEngineShowcasePro
             <FileCheck2 className="size-4" aria-hidden="true" />
             Compliance Engine™
           </span>
-          <Heading level="h2">Sprawdzamy zgodność z prawem, zanim Ty to zrobisz</Heading>
+          <Heading level="h2">{t("heading")}</Heading>
           <Text tone="muted" className="text-body-l">
-            Każdy dom porównujemy z lokalnymi przepisami budowlanymi kraju docelowego —
-            konstrukcją, izolacją, wentylacją i wymaganą dokumentacją — zanim wyślesz zapytanie do
-            producenta.
+            {t("intro")}
           </Text>
           <Text tone="muted" className="text-data">
-            Wynik to wstępna, orientacyjna weryfikacja — nie stanowi porady prawnej. Dane i logikę
-            Compliance Engine™ na bieżąco aktualizujemy, by jak najwierniej odzwierciedlały
-            przepisy budowlane danego kraju, jednak ostateczną zgodność projektu potwierdza
-            właściwy urząd i wybrany producent.
+            {t("disclaimer")}
           </Text>
         </div>
         <div className="lg:col-span-7">
@@ -52,11 +49,11 @@ export function ComplianceEngineShowcase({ locale }: ComplianceEngineShowcasePro
                 <Text className="text-body-l font-semibold text-brand-v5-surface">
                   Nordic 126
                 </Text>
-                <Text className="text-data text-brand-v4-mist">Lokalizacja: Venlo, Holandia</Text>
+                <Text className="text-data text-brand-v4-mist">{t("exampleLocation")}</Text>
               </div>
               <div className="flex flex-col items-end">
                 <DataText className="text-h2 font-semibold text-brand-v5-amber">92%</DataText>
-                <Text className="text-data text-brand-v4-mist">zgodności</Text>
+                <Text className="text-data text-brand-v4-mist">{t("complianceSuffix")}</Text>
               </div>
             </div>
             <ul className="flex flex-col divide-y divide-brand-v4-line-dark border-t border-brand-v4-line-dark">
@@ -69,12 +66,12 @@ export function ComplianceEngineShowcase({ locale }: ComplianceEngineShowcasePro
                   {item.status === "ok" ? (
                     <span className="flex items-center gap-1 text-data text-brand-v5-surface">
                       <CheckCircle2 className="size-4 text-status-approved" aria-hidden="true" />
-                      Spełnione
+                      {t("statusOk")}
                     </span>
                   ) : (
                     <span className="flex items-center gap-1 text-data text-brand-v5-surface">
                       <AlertTriangle className="size-4 text-status-conditional" aria-hidden="true" />
-                      Wymaga uwagi
+                      {t("statusWarning")}
                     </span>
                   )}
                 </li>
@@ -84,7 +81,7 @@ export function ComplianceEngineShowcase({ locale }: ComplianceEngineShowcasePro
               href={`/${locale}/klient/wyniki`}
               className="focus-ring inline-flex w-fit items-center gap-1 rounded-v5-pill bg-brand-v5-amber px-brand-3 py-brand-2 text-body font-semibold text-brand-v5-amber-foreground hover:bg-brand-v5-amber-strong"
             >
-              Sprawdź dom
+              {t("checkHouse")}
               <ArrowRight className="size-4" aria-hidden="true" />
             </Link>
           </div>

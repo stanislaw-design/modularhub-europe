@@ -116,11 +116,18 @@
 /* .full-bleed sections below use 100vw, which can be a few pixels wider than
    the real viewport when a classic (non-overlay) scrollbar is present; this
    is the standard safety net so that inflation never produces a horizontal
-   scrollbar of its own. Needed on both html and body: the viewport's
-   scrolling box takes its overflow behavior from body by default (per the
-   HTML overflow-propagation rules), so html alone doesn't reliably block it
-   in every browser. */
-html,
+   scrollbar of its own. body alone is deliberate (not html too, despite an
+   earlier version of this comment claiming otherwise): the CSS overflow
+   propagation rule hands body's overflow-x up to the viewport as long as
+   html's own overflow stays visible — set overflow-x on html directly and
+   that propagation is skipped, which (per the overflow-x/overflow-y coupling
+   rule) leaves html AND body each independently computing overflow-y: auto
+   instead of one delegating to the real viewport scroller. That turns body
+   into its own (non-scrolling, since it never overflows itself, so no
+   visible scrollbar) scroll container, which breaks position: sticky for
+   any descendant expecting to stick against the real viewport (spec 0029's
+   pinned CategoryShowcase, discovered when its sticky track rendered as
+   plain relative-positioned content instead of pinning). */
 body {
   overflow-x: hidden;
 }

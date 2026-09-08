@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button, Heading, Input, Label, ScrollReveal, Stack, Text } from "@/components/ui";
 import type { Project } from "@/lib/data/types";
@@ -23,6 +24,7 @@ interface PlotDossierPanelProps {
 }
 
 export function PlotDossierPanel({ locale, projects, resultsHref }: PlotDossierPanelProps) {
+  const t = useTranslations("PlotDossierPanel");
   const [address, setAddress] = useState("");
   const [requests, setRequests] = useState<Record<string, PlotAnalysisRequest>>(() =>
     Object.fromEntries(projects.map((project) => [project.id, initialRequest()]))
@@ -37,15 +39,14 @@ export function PlotDossierPanel({ locale, projects, resultsHref }: PlotDossierP
   return (
     <Stack gap={4}>
       <Heading level="h1" surface="v5">
-        Panel działki
+        {t("heading")}
       </Heading>
       <Text tone="muted" surface="v5" measure>
-        Podaj adres swojej działki raz, a potem sprawdź osobno każdy dom, o który wcześniej pytałeś —
-        cena, płatność i wynik liczą się niezależnie dla każdego z nich.
+        {t("intro")}
       </Text>
       <Stack gap={1} className="max-w-md">
         <Label htmlFor="plot-address" required surface="v5">
-          Adres działki
+          {t("addressLabel")}
         </Label>
         <Input
           id="plot-address"
@@ -72,7 +73,7 @@ export function PlotDossierPanel({ locale, projects, resultsHref }: PlotDossierP
         ))}
       </Stack>
       <Button as="a" href={resultsHref} variant="secondary" surface="v5" className="w-fit">
-        Wróć do wyników
+        {t("backToResults")}
       </Button>
     </Stack>
   );

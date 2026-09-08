@@ -1,6 +1,7 @@
 "use client";
 
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
+import { useTranslations } from "next-intl";
 import { Button, Heading, Stack, Text } from "@/components/ui";
 
 interface DeleteProductDialogProps {
@@ -14,6 +15,7 @@ interface DeleteProductDialogProps {
 // pakiet i wzorzec data-[closed] co Select.tsx/Accordion.tsx, focus trap i zamknięcie
 // na Esc gotowe bez dodatkowego kodu.
 export function DeleteProductDialog({ productName, open, onCancel, onConfirm }: DeleteProductDialogProps) {
+  const t = useTranslations("DeleteProductDialog");
   return (
     <Dialog open={open} onClose={onCancel} transition className="relative z-20">
       <DialogBackdrop
@@ -26,19 +28,16 @@ export function DeleteProductDialog({ productName, open, onCancel, onConfirm }: 
           className="w-full max-w-md rounded-card border border-brand-steel bg-brand-warm-white p-brand-4 shadow-lg transition duration-150 ease-out data-[closed]:scale-95 data-[closed]:opacity-0"
         >
           <DialogTitle as="div">
-            <Heading level="h3">Usunąć produkt?</Heading>
+            <Heading level="h3">{t("heading")}</Heading>
           </DialogTitle>
           <Stack gap={4} className="mt-brand-3">
-            <Text tone="muted">
-              Produkt „{productName}” zostanie trwale usunięty z twojego katalogu. Tej operacji nie można
-              cofnąć.
-            </Text>
+            <Text tone="muted">{t("body", { name: productName })}</Text>
             <Stack direction="row" gap={2} className="justify-end">
               <Button type="button" variant="secondary" onClick={onCancel}>
-                Anuluj
+                {t("cancel")}
               </Button>
               <Button type="button" variant="primary" onClick={onConfirm}>
-                Usuń
+                {t("confirm")}
               </Button>
             </Stack>
           </Stack>

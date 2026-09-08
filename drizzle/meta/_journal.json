@@ -64,6 +64,13 @@
       "when": 1788527501482,
       "tag": "0008_cheerful_ben_urich",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1788780879346,
+      "tag": "0009_warm_golden_guardian",
+      "breakpoints": true
     }
   ]
 }

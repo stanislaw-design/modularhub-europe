@@ -1,6 +1,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { Button, Card, DataText, Heading, Stack, StatusPill, Text } from "@/components/ui";
 import type { CountryCode } from "@/lib/data/types";
@@ -18,6 +19,7 @@ const PAYMENT_DELAY_MS = 1200;
 const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0 });
 
 export function GapClosurePackageSection({ countryCode, mapHref }: GapClosurePackageSectionProps) {
+  const t = useTranslations("GapClosurePackageSection");
   const [phase, setPhase] = useState<PackagePhase>("idle");
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -35,37 +37,37 @@ export function GapClosurePackageSection({ countryCode, mapHref }: GapClosurePac
   return (
     <Card as="div" padding="md">
       <Stack gap={3} align="start">
-        <Heading level="h2">Kup pakiet domknięcia luk</Heading>
+        <Heading level="h2">{t("heading")}</Heading>
         <Text tone="muted" measure>
-          Kupujemy w Twoim imieniu komplet brakujących dokumentów i deklarujemy kraj jako dopuszczony.
+          {t("intro")}
         </Text>
         <div className="flex items-baseline justify-between gap-brand-2">
           <Text as="span" variant="label" tone="muted">
-            Cena pakietu
+            {t("priceLabel")}
           </Text>
           <DataText>{priceFormatter.format(PLOT_ANALYSIS_PRICE_EUR)} €</DataText>
         </div>
 
         {phase === "idle" && (
           <Button type="button" onClick={() => setPhase("paying")} className="w-fit">
-            Zapłać
+            {t("payButton")}
           </Button>
         )}
 
         {phase === "paying" && (
           <div aria-live="polite" className="flex items-center gap-brand-2">
             <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden="true" />
-            <Text tone="muted">Przetwarzanie płatności…</Text>
+            <Text tone="muted">{t("processingPayment")}</Text>
           </div>
         )}
 
         {phase === "result" && (
           <div aria-live="polite">
             <Stack gap={2} align="start">
-              <StatusPill status="approved">Dopuszczone</StatusPill>
-              <Text>Pakiet opłacony — kraj jest teraz dopuszczony.</Text>
+              <StatusPill status="approved">{t("approvedStatus")}</StatusPill>
+              <Text>{t("paidMessage")}</Text>
               <Button as="a" href={mapHref} variant="secondary" className="w-fit">
-                Wróć do mapy gotowości eksportowej
+                {t("backToMap")}
               </Button>
             </Stack>
           </div>

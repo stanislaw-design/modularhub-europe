@@ -1,20 +1,13 @@
 import { CheckCircle2 } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { Button, Card, Heading, Stack, StageTimeline, Text } from "@/components/ui";
-import type { StageTimelineItem } from "@/components/ui";
+import type { StageStatus, StageTimelineItem } from "@/components/ui";
 import { getFulfillmentOrder } from "@/lib/data/fulfillment";
 import { getProjectById } from "@/lib/data/projects";
 import type { FulfillmentStageName } from "@/lib/data/types";
 
 const STAGE_ORDER: FulfillmentStageName[] = ["produkcja", "transport", "montaz", "odbior", "gwarancja"];
-
-const stageLabel: Record<FulfillmentStageName, string> = {
-  produkcja: "Produkcja",
-  transport: "Transport",
-  montaz: "Montaż",
-  odbior: "Odbiór",
-  gwarancja: "Gwarancja",
-};
 
 const dateFormatter = new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium" });
 
@@ -25,7 +18,25 @@ export default async function RealizacjaPage({
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const [{ locale }, rawSearchParams] = await Promise.all([params, searchParams]);
+  const [{ locale }, rawSearchParams, t, tStage, tStatus] = await Promise.all([
+    params,
+    searchParams,
+    getTranslations("KlientRealizacjaPage"),
+    getTranslations("FulfillmentStage"),
+    getTranslations("StageTimelineStatus"),
+  ]);
+  const stageLabel: Record<FulfillmentStageName, string> = {
+    produkcja: tStage("produkcja"),
+    transport: tStage("transport"),
+    montaz: tStage("montaz"),
+    odbior: tStage("odbior"),
+    gwarancja: tStage("gwarancja"),
+  };
+  const statusLabels: Record<StageStatus, string> = {
+    completed: tStatus("completed"),
+    current: tStatus("current"),
+    upcoming: tStatus("upcoming"),
+  };
 
   const projectId = typeof rawSearchParams.project === "string" ? rawSearchParams.project : undefined;
   if (!projectId) {
@@ -63,7 +74,7 @@ export default async function RealizacjaPage({
   return (
     <Stack gap={4}>
       <Heading level="h1" surface="v5">
-        Realizacja — {project.name}
+        {t("heading", { name: project.name })}
       </Heading>
       <Text tone="muted" surface="v5">
         {project.producerName} · {project.floorAreaM2} m²
@@ -76,17 +87,17 @@ export default async function RealizacjaPage({
         >
           <CheckCircle2 className="size-5 shrink-0 text-status-approved" aria-hidden="true" />
           <Text surface="v5" className="font-medium text-status-approved">
-            Zamówienie zrealizowane — wszystkie etapy zostały ukończone.
+            {t("completionBanner")}
           </Text>
         </div>
       )}
 
       <Card as="div" surface="v5">
-        <StageTimeline items={items} surface="v5" />
+        <StageTimeline items={items} surface="v5" statusLabels={statusLabels} />
       </Card>
 
       <Button as="a" href={offerHref} variant="secondary" surface="v5" className="w-fit">
-        Wróć do oferty
+        {t("backToOffer")}
       </Button>
     </Stack>
   );

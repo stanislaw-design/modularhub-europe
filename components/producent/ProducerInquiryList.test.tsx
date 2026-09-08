@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { Country, Project, ProducerInquiry } from "@/lib/data/types";
 import { createMockProject } from "@/test/fixtures/project";
+import { resolveAsyncTree } from "@/test/resolve-async-tree";
 import { ProducerInquiryList } from "./ProducerInquiryList";
 
 const countries: Country[] = [
@@ -25,46 +26,54 @@ function makeInquiry(overrides: Partial<ProducerInquiry> = {}): ProducerInquiry 
 }
 
 describe("ProducerInquiryList", () => {
-  it("shows an empty state message when there are no inquiries", () => {
-    render(<ProducerInquiryList locale="pl" inquiries={[]} projects={[]} countries={countries} />);
+  it("shows an empty state message when there are no inquiries", async () => {
+    render(
+      await resolveAsyncTree(<ProducerInquiryList locale="pl" inquiries={[]} projects={[]} countries={countries} />)
+    );
 
     expect(screen.getByText(/Brak zapytań/)).toBeInTheDocument();
   });
 
-  it("renders one row per inquiry with a matching project", () => {
+  it("renders one row per inquiry with a matching project", async () => {
     render(
-      <ProducerInquiryList
-        locale="pl"
-        inquiries={[makeInquiry()]}
-        projects={[project]}
-        countries={countries}
-      />
+      await resolveAsyncTree(
+        <ProducerInquiryList
+          locale="pl"
+          inquiries={[makeInquiry()]}
+          projects={[project]}
+          countries={countries}
+        />
+      )
     );
 
     expect(screen.getByRole("heading", { level: 2, name: "Modulor Family 90" })).toBeInTheDocument();
   });
 
-  it("skips an inquiry whose project cannot be found, without throwing", () => {
+  it("skips an inquiry whose project cannot be found, without throwing", async () => {
     render(
-      <ProducerInquiryList
-        locale="pl"
-        inquiries={[makeInquiry({ projectId: "does-not-exist" })]}
-        projects={[project]}
-        countries={countries}
-      />
+      await resolveAsyncTree(
+        <ProducerInquiryList
+          locale="pl"
+          inquiries={[makeInquiry({ projectId: "does-not-exist" })]}
+          projects={[project]}
+          countries={countries}
+        />
+      )
     );
 
     expect(screen.queryByRole("heading", { level: 2 })).not.toBeInTheDocument();
   });
 
-  it("falls back to the raw country code when the country isn't in the fixture", () => {
+  it("falls back to the raw country code when the country isn't in the fixture", async () => {
     render(
-      <ProducerInquiryList
-        locale="pl"
-        inquiries={[makeInquiry({ deliveryCountry: "NL" })]}
-        projects={[project]}
-        countries={countries}
-      />
+      await resolveAsyncTree(
+        <ProducerInquiryList
+          locale="pl"
+          inquiries={[makeInquiry({ deliveryCountry: "NL" })]}
+          projects={[project]}
+          countries={countries}
+        />
+      )
     );
 
     expect(screen.getByText(/NL/)).toBeInTheDocument();

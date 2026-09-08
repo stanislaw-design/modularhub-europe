@@ -12,6 +12,7 @@ import { Testimonials } from "@/components/klient/Testimonials";
 import { getCountries } from "@/lib/data/countries";
 import { getProducers } from "@/lib/data/producers";
 import { getProjects } from "@/lib/data/projects";
+import type { Locale } from "@/lib/i18n/routing";
 
 export default async function KlientHomePage({
   params,
@@ -21,7 +22,7 @@ export default async function KlientHomePage({
   const { locale } = await params;
   const [countries, projects, producers] = await Promise.all([
     getCountries(),
-    getProjects(),
+    getProjects({ locale: locale as Locale }),
     getProducers(),
   ]);
 

@@ -1,0 +1,971 @@
+{
+  "SiteHeader": {
+    "nav": {
+      "homes": "Homes",
+      "producers": "Producers",
+      "projects": "Projects",
+      "inspirations": "Inspiration",
+      "howItWorks": "How it works",
+      "about": "About us"
+    },
+    "favorites": "Favorites",
+    "adminPanel": "Admin panel",
+    "myProfile": "My profile",
+    "signIn": "Sign in",
+    "start": "Get started",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "menu": "Menu",
+    "mainNav": "Main"
+  },
+  "ProducerHeader": {
+    "imClient": "I'm a customer",
+    "menu": "Menu",
+    "account": "Account"
+  },
+  "LanguageSwitcher": {
+    "changeLanguage": "Change language",
+    "pl": "Polski",
+    "en": "English",
+    "nl": "Nederlands"
+  },
+  "FileUpload": {
+    "chooseFiles": "Choose files",
+    "mockNotice": "Mockup — files are never saved or uploaded anywhere",
+    "noFilesSelected": "No file selected yet.",
+    "removeFile": "Remove file {name}"
+  },
+  "FulfillmentStage": {
+    "produkcja": "Production",
+    "transport": "Transport",
+    "montaz": "Assembly",
+    "odbior": "Handover",
+    "gwarancja": "Warranty"
+  },
+  "StageTimelineStatus": {
+    "completed": "Completed",
+    "current": "Current stage",
+    "upcoming": "Upcoming"
+  },
+  "KlientRealizacjaPage": {
+    "heading": "Fulfillment — {name}",
+    "completionBanner": "Order complete — every stage has been finished.",
+    "backToOffer": "Back to the offer"
+  },
+  "ProducentRealizacjaPage": {
+    "heading": "Fulfillment — {name}",
+    "deliveredBanner": "Order handed over — you can now proceed to company verification before the first payout.",
+    "backToList": "Back to fulfillment",
+    "verification": "Company verification and payout"
+  },
+  "ProducerFulfillmentList": {
+    "heading": "Fulfillment",
+    "intro": "The production, transport, assembly, and handover status axis — the same one the client sees for this order. Company verification unlocks after handover, before the first payout.",
+    "empty": "No fulfillments yet — orders with an accepted offer will appear here.",
+    "readyForVerification": "Ready for company verification",
+    "currentStage": "Current stage: {stage}",
+    "viewTimeline": "View status axis"
+  },
+  "ProjectCertifications": {
+    "heading": "Certifications"
+  },
+  "InquiryConfirmationCard": {
+    "message": "The customer is requesting an offer for this project, covering the house, transport, and assembly.",
+    "sentAt": "Sent {date}"
+  },
+  "PopularHomeCard": {
+    "coverAlt": "{name}, a modular house",
+    "summary": "{area} m² · {rooms} rooms",
+    "summaryNoRooms": "{area} m²",
+    "priceOnRequest": "Price on request",
+    "priceFrom": "from €{price}"
+  },
+  "ProducerCard": {
+    "photoAlt": "A project by {name}",
+    "verified": "Verified by ModularHub",
+    "countryOfProduction": "Country of production: {country}",
+    "modelsAndSize": "{models} models · {min}–{max} m²",
+    "delivery": "Delivers to:",
+    "country": {
+      "PL": "Poland",
+      "DE": "Germany",
+      "NL": "Netherlands"
+    }
+  },
+  "ResultCard": {
+    "viewDetails": "View details for {name}",
+    "selectForInquiry": "Select {name} for the inquiry",
+    "selectionLimitReached": "You can select up to 3 projects",
+    "localPreviewBadge": "Your added product (preview)",
+    "needsMoreDocuments": "Needs additional documents",
+    "summary": "{area} m² usable · {rooms} {roomsLabel} · {storeys} floors",
+    "rooms": {
+      "one": "room",
+      "few": "rooms",
+      "many": "rooms"
+    },
+    "completionStandard": {
+      "surowy-zamkniety": "Shell and core",
+      "deweloperski": "Developer standard",
+      "pod-klucz": "Turnkey"
+    },
+    "price": "Price",
+    "priceOnRequest": "Price on request",
+    "priceOnRequestHint": "Agreed directly with the producer",
+    "house": "House",
+    "priceFrom": "from €{price}",
+    "leadTime": "{productionMin}–{productionMax} weeks production · {assemblyMin}–{assemblyMax} days assembly"
+  },
+  "ProductFamilyNoun": {
+    "dom": {
+      "one": "house",
+      "few": "houses",
+      "many": "houses"
+    },
+    "spa-modulowe": {
+      "one": "modular spa",
+      "few": "modular spas",
+      "many": "modular spas"
+    },
+    "pergola": {
+      "one": "pergola",
+      "few": "pergolas",
+      "many": "pergolas"
+    }
+  },
+  "CountryLocative": {
+    "PL": "in Poland",
+    "DE": "in Germany",
+    "NL": "in the Netherlands"
+  },
+  "ResultsHeader": {
+    "eligibleSuffix": " allowed {country}",
+    "hint": "Choose a country in the bar above to see which {familyFew} are legally allowed there."
+  },
+  "EmptyResults": {
+    "heading": "No {familyMany} match the selected criteria",
+    "description": "No project meets all the selected criteria at once. Adjust the filters above, or start over without any.",
+    "clearFilters": "Clear filters"
+  },
+  "PanelEmptyState": {
+    "browseHomes": "Browse homes"
+  },
+  "PlotAnalysisRow": {
+    "scopeDescription": "We check whether this house's footprint, together with the required setbacks from plot boundaries, road access, and basic site constraints, fits on your plot.",
+    "disclaimer": "This is not legal advice. The result is an estimated assessment based on sample data, not a real legal or construction expert opinion.",
+    "status": {
+      "approved": "Allowed",
+      "conditional": "Conditionally allowed",
+      "blocked": "Not allowed"
+    },
+    "noAnalysisData": "No analysis data for this project; please try again later.",
+    "servicePrice": "Service price",
+    "plotAreaLabel": "Plot area (m²)",
+    "plotAreaError": "Enter an area between {min}–{max} m².",
+    "pay": "Pay",
+    "processingPayment": "Processing payment…",
+    "goToOffer": "Go to the binding offer"
+  },
+  "PlotDossierPanel": {
+    "heading": "Plot panel",
+    "intro": "Enter your plot address once, then check each house you previously inquired about separately — price, payment, and result are calculated independently for each.",
+    "addressLabel": "Plot address",
+    "backToResults": "Back to results"
+  },
+  "FavoriteButton": {
+    "signInToFavorite": "Sign in to save {name} to favorites",
+    "removeFavorite": "Remove {name} from favorites",
+    "addFavorite": "Add {name} to favorites",
+    "genericError": "Couldn't save. Please try again."
+  },
+  "FavoriteCard": {
+    "viewDetails": "View details for {name}",
+    "selectForCompare": "Select {name} for comparison",
+    "compareLimitReached": "You can compare up to 3 homes",
+    "unavailable": "Product unavailable",
+    "floorArea": "{area} m² usable",
+    "priceFrom": "from €{price}"
+  },
+  "FavoriteCompareTable": {
+    "house": "House",
+    "unavailableSuffix": "(unavailable)",
+    "floorArea": "Floor area",
+    "price": "Price",
+    "productionTime": "Production time",
+    "weeksRange": "{min}–{max} wks",
+    "completionStandardLabel": "Completion standard",
+    "completionStandard": {
+      "surowy-zamkniety": "Shell and core",
+      "deweloperski": "Developer standard",
+      "pod-klucz": "Turnkey"
+    }
+  },
+  "ProjectOptions": {
+    "wizardSteps": {
+      "podstawowe": "Basic information",
+      "techniczne": "Technical data",
+      "pliki": "Files",
+      "cena": "Price and sale",
+      "podsumowanie": "Summary"
+    },
+    "family": {
+      "dom": "House",
+      "spa-modulowe": "Modular spa",
+      "pergola": "Pergola"
+    },
+    "category": {
+      "caloroczny": "Year-round",
+      "rekreacyjny-caloroczny": "Year-round recreational",
+      "mobilny": "Mobile"
+    },
+    "spaSubcategory": {
+      "sauna": "Sauna",
+      "jacuzzi": "Jacuzzi",
+      "wellness-combo": "Wellness cabin (sauna + jacuzzi)"
+    },
+    "pergolaSubcategory": {
+      "bioklimatyczna": "Bioclimatic",
+      "aluminiowa-stala": "Fixed aluminium",
+      "drewniana": "Wooden",
+      "wolnostojaca-przyscienna": "Freestanding / wall-mounted"
+    },
+    "completionStandard": {
+      "surowy-zamkniety": "Shell and core",
+      "deweloperski": "Developer standard",
+      "pod-klucz": "Turnkey"
+    },
+    "energyClassPrefix": "Class {code}",
+    "technicalFields": {
+      "dom": {
+        "wallBuildUp": {
+          "label": "Wall build-up",
+          "hint": "Wall layers from outside to inside, e.g. structure, insulation, cladding"
+        },
+        "insulation": {
+          "label": "Insulation",
+          "hint": "U-value for walls and roof (W/m²K)"
+        },
+        "heatTransferCoefficients": {
+          "label": "Energy class",
+          "hint": "Building's energy class band"
+        },
+        "windowClass": {
+          "label": "Window class",
+          "hint": "Energy class and glazing type"
+        },
+        "ventilation": {
+          "label": "Ventilation",
+          "hint": "Ventilation type",
+          "options": {
+            "grawitacyjna": "Natural (gravity)",
+            "mechaniczna-nawiewno-wywiewna": "Mechanical supply-and-exhaust",
+            "rekuperacja": "Heat recovery (mechanical with heat exchanger)",
+            "brak": "None"
+          }
+        },
+        "heatSource": {
+          "label": "Heat source",
+          "hint": "Main heating source",
+          "options": {
+            "pompa-ciepla-powietrze-woda": "Air-to-water heat pump",
+            "pompa-ciepla-grunt-woda": "Ground source heat pump (ground-to-water)",
+            "gazowe": "Gas",
+            "elektryczne": "Electric",
+            "biomasa-pellet": "Biomass / pellet",
+            "inne": "Other"
+          }
+        },
+        "fireResistance": {
+          "label": "Fire resistance",
+          "hint": "Structural fire resistance class, e.g. REI 30"
+        },
+        "windResistance": {
+          "label": "Wind resistance",
+          "hint": "Wind zone and maximum wind speed"
+        }
+      },
+      "spa-modulowe": {
+        "seatingCapacity": {
+          "label": "Seating capacity",
+          "hint": "Number of seats in the cabin/tub"
+        },
+        "waterVolumeLiters": {
+          "label": "Water volume (l)",
+          "hint": "Water capacity of the basin in litres"
+        },
+        "heatingType": {
+          "label": "Heating type",
+          "hint": "Main way of heating the water",
+          "options": {
+            "electric": "Electric",
+            "heat-pump": "Heat pump",
+            "wood-fired": "Wood-fired"
+          }
+        },
+        "filtrationSystem": {
+          "label": "Filtration system",
+          "hint": "Water filtration and treatment method"
+        },
+        "shellMaterial": {
+          "label": "Shell material",
+          "hint": "Cabin/basin material"
+        },
+        "electricalRequirement": {
+          "label": "Electrical requirements",
+          "hint": "Required power supply, e.g. connection capacity"
+        },
+        "foundationType": {
+          "label": "Foundation type",
+          "hint": "Foundation method, e.g. concrete slab"
+        }
+      },
+      "pergola": {
+        "roofType": {
+          "label": "Roof type",
+          "hint": "Type of pergola roof",
+          "options": {
+            "bioklimatyczny": "Bioclimatic (adjustable louvres)",
+            "staly": "Fixed",
+            "rozsuwany": "Retractable"
+          }
+        },
+        "roofMaterial": {
+          "label": "Roof material",
+          "hint": "Roof covering material"
+        },
+        "dimensions": {
+          "label": "Dimensions",
+          "hint": "Width × depth × height"
+        },
+        "windLoadRating": {
+          "label": "Wind load rating",
+          "hint": "Maximum permitted wind speed"
+        },
+        "snowLoadRating": {
+          "label": "Snow load rating",
+          "hint": "Maximum snow load (kN/m²)"
+        },
+        "glazingType": {
+          "label": "Glazing type",
+          "hint": "Side panels or glazing, if applicable"
+        },
+        "foundationType": {
+          "label": "Foundation type",
+          "hint": "Post foundation method"
+        }
+      }
+    }
+  },
+  "ProjectWizard": {
+    "heading": "Add your first project",
+    "back": "Back",
+    "next": "Next",
+    "save": "Save project",
+    "saveError": "Couldn't save the project (browser storage limit). Try removing unused data or freeing up space, then try again."
+  },
+  "ProductEditWizard": {
+    "heading": "Edit product",
+    "loading": "Loading…",
+    "back": "Back",
+    "next": "Next",
+    "save": "Save changes",
+    "saveError": "Couldn't save the changes (browser storage limit). Try removing unused data or freeing up space, then try again."
+  },
+  "ProjectWizardProgress": {
+    "ariaLabel": "Wizard progress"
+  },
+  "ProjectWizardBasicInfoStep": {
+    "heading": "Basic information",
+    "familyLabel": "Product family",
+    "familyRequiredError": "Choose a product family.",
+    "categoryLabel": "Category",
+    "categoryRequiredError": "Choose a category.",
+    "spaSubcategoryLabel": "Subcategory",
+    "pergolaSubcategoryLabel": "Subcategory",
+    "subcategoryRequiredError": "Choose a subcategory.",
+    "nameLabel": "Project name",
+    "nameRequiredError": "Enter a project name.",
+    "floorAreaLabel": "Floor area (m²)",
+    "floorAreaRequiredError": "Enter a floor area between {min} and {max} m².",
+    "bedroomsLabel": "Number of bedrooms",
+    "bedroomsRequiredError": "Enter a number of bedrooms between {min} and {max}.",
+    "countryLabel": "Country of production",
+    "countryRequiredError": "Choose a country of production.",
+    "descriptionLabel": "Description",
+    "descriptionRequiredError": "Enter a project description.",
+    "translationsHeading": "Translations (optional)",
+    "translationsHint": "English and Dutch are optional — without a translation, foreign clients see the Polish text.",
+    "translationTabEn": "English",
+    "translationTabNl": "Dutch",
+    "nameEnLabel": "Name (English)",
+    "nameNlLabel": "Name (Dutch)",
+    "descriptionEnLabel": "Description (English)",
+    "descriptionNlLabel": "Description (Dutch)"
+  },
+  "ProjectWizardTechnicalStep": {
+    "heading": "Technical data",
+    "selectRequiredError": "Choose {label}.",
+    "textRequiredError": "Enter {label}."
+  },
+  "ProjectWizardPricingStep": {
+    "heading": "Price and sale",
+    "priceLabel": "House price in the base standard (EUR)",
+    "priceFromAriaLabel": "House price, from (EUR)",
+    "priceToAriaLabel": "House price, to (EUR)",
+    "priceRequiredError": "Enter a from and to price, so that the from price doesn't exceed the to price.",
+    "standardLabel": "Completion standard",
+    "standardRequiredError": "Choose a completion standard.",
+    "leadTimeLabel": "Production lead time (weeks)",
+    "leadTimeFromAriaLabel": "Production lead time, from (weeks)",
+    "leadTimeToAriaLabel": "Production lead time, to (weeks)",
+    "leadTimeRequiredError": "Enter a from and to lead time, so that the from value doesn't exceed the to value.",
+    "assemblyTimeLabel": "On-site assembly time (days)",
+    "assemblyTimeFromAriaLabel": "Assembly time, from (days)",
+    "assemblyTimeToAriaLabel": "Assembly time, to (days)",
+    "assemblyTimeRequiredError": "Enter a from and to assembly time, so that the from value doesn't exceed the to value.",
+    "warrantyLabel": "Structural warranty (years)",
+    "warrantyRequiredError": "Enter the structural warranty in years."
+  },
+  "ProjectWizardFilesStep": {
+    "heading": "Files",
+    "floorPlanLabel": "Floor plans",
+    "floorPlanRequiredError": "Add at least one floor plan.",
+    "photoLabel": "Photos",
+    "photoRequiredError": "Add at least one photo."
+  },
+  "ProjectWizardSummaryStep": {
+    "heading": "Summary",
+    "intro": "Review all the details before saving the project.",
+    "groupBasicInfo": "Basic information",
+    "rowName": "Project name",
+    "rowFloorArea": "Floor area",
+    "rowFloorAreaValue": "{area} m²",
+    "rowBedrooms": "Number of bedrooms",
+    "rowCountry": "Country of production",
+    "rowDescription": "Description",
+    "rowFamily": "Product family",
+    "rowSubcategory": "Subcategory",
+    "groupTechnical": "Technical data",
+    "groupPricing": "Price and sale",
+    "rowPrice": "House price",
+    "rowPriceValue": "{min}–{max} EUR",
+    "rowStandard": "Completion standard",
+    "rowLeadTime": "Production lead time",
+    "rowLeadTimeValue": "{min}–{max} wks",
+    "rowAssemblyTime": "Assembly time",
+    "rowAssemblyTimeValue": "{min}–{max} days",
+    "rowWarranty": "Structural warranty",
+    "rowWarrantyValue": "{years} yrs",
+    "groupFiles": "Files",
+    "floorPlanCount": "Floor plans ({count})",
+    "photoCount": "Photos ({count})",
+    "empty": "—"
+  },
+  "SubcategoryFilterBar": {
+    "spaAriaLabel": "Modular spa subcategory",
+    "pergolaAriaLabel": "Pergola subcategory"
+  },
+  "ProducentPage": {
+    "heading": "Become a ModularHub Europe producer",
+    "subheading": "A short registration, no login required — three fields and you go straight to adding your first project.",
+    "whyHeading": "Why ModularHub Europe",
+    "benefitRegistrationTitle": "One registration, every country",
+    "benefitRegistrationDescription": "Select your delivery countries once — we check project eligibility for each of them.",
+    "benefitInquiriesTitle": "Inquiries with ready context",
+    "benefitInquiriesDescription": "Clients send inquiries straight away with the chosen project and their contact details.",
+    "benefitStatusTitle": "Fulfillment status in one place",
+    "benefitStatusDescription": "Production, transport, assembly and handover — one status axis, the same one the client sees.",
+    "existingAccountInquiries": "Already have an account? Check incoming inquiries",
+    "existingAccountOrders": "Already have an order in progress? Check status and payout",
+    "companyDataHeading": "Company details"
+  },
+  "KlientPanelZapytaniaPage": {
+    "heading": "Inquiries",
+    "emptyTitle": "You haven't sent any inquiries yet",
+    "emptyDescription": "Pick a house on the results page and send an inquiry to see it here along with its status.",
+    "columnProducts": "Products",
+    "columnStatus": "Status",
+    "columnDate": "Date",
+    "statusOpen": "Awaiting response",
+    "statusOffered": "Offer received",
+    "statusClosed": "Closed"
+  },
+  "KlientPanelUlubionePage": {
+    "heading": "Favorites",
+    "emptyTitle": "You don't have any favorite houses yet",
+    "emptyDescription": "Click the heart on the results page or a project page to save a house and come back to it later."
+  },
+  "KlientPanelProfilPage": {
+    "heading": "Profile"
+  },
+  "KlientProjektPage": {
+    "price": "Price",
+    "priceOnRequest": "Custom quote",
+    "priceOnRequestHint": "Price is agreed directly with the producer after you send an inquiry.",
+    "estimatedPackage": "Estimated package",
+    "packageIncludes": "House",
+    "sendInquiry": "Send inquiry",
+    "warrantyYears": "{years}-year structural warranty",
+    "warrantyYearsValue": "{years} yrs",
+    "certifiedCount": {
+      "one": "Verified by {count} certificate",
+      "other": "Verified by {count} certificates"
+    },
+    "assemblyDays": "On-site assembly in {min}–{max} days",
+    "floorAreaLabel": "Usable floor area",
+    "roomsLabel": {
+      "one": "room",
+      "few": "rooms",
+      "many": "rooms"
+    },
+    "bedroomsLabel": {
+      "one": "bedroom",
+      "few": "bedrooms",
+      "many": "bedrooms"
+    },
+    "bathroomsLabel": {
+      "one": "bathroom",
+      "other": "bathrooms"
+    },
+    "storeysLabel": {
+      "one": "storey",
+      "other": "storeys"
+    },
+    "descriptionLabel": "Description",
+    "showMore": "Show more",
+    "showLess": "Show less",
+    "completionStandardLabel": "Finishing standard",
+    "completionStandard": {
+      "surowy-zamkniety": "Closed shell condition",
+      "deweloperski": "Developer finish",
+      "pod-klucz": "Turnkey"
+    },
+    "warrantyTermLabel": "Structural warranty",
+    "productionTimeLabel": "Production time",
+    "productionTimeValue": "{min}–{max} wks",
+    "assemblyTimeLabel": "Assembly time",
+    "assemblyTimeValue": "{min}–{max} days",
+    "commercialTermsHeading": "Commercial terms",
+    "priceIncludesHeading": "Price includes",
+    "priceExcludesHeading": "Price excludes",
+    "legalComplianceHeading": "Legal compliance in {country}",
+    "status": {
+      "approved": "Compliant",
+      "conditional": "Requires additional documents",
+      "blocked": "Not available in this country"
+    },
+    "simplifiedPermitEligible": "Eligible for the simplified permit notice",
+    "simplifiedPermitNotEligible": "Not eligible for the simplified permit notice",
+    "producerHeading": "Producer",
+    "addToShortlist": "Add to shortlist",
+    "checkPlot": "Check your plot for this project",
+    "from": "from",
+    "descriptionImageAlt": "{name}, modular house"
+  },
+  "Faq": {
+    "heading": "Frequently asked questions",
+    "subheading": "Didn't find your answer? Write to us through the contact form.",
+    "howQuestion": "How exactly does ModularHub work?",
+    "howAnswer": "You search for houses available in your country, compare up to three projects, check legal compliance through the Compliance Engine™, and then send one inquiry to your chosen producers instead of writing to each one separately.",
+    "costQuestion": "Is using the platform paid?",
+    "costAnswer": "Browsing offers, comparing, and sending inquiries are free. The only paid item is the optional plot analysis report for a specific project.",
+    "priceQuestion": "Why is the price a range, not a single amount?",
+    "priceAnswer": "The final price depends on the finishing standard, transport to your location, and the scope of assembly. The range shows the real span before you receive a binding offer from the producer.",
+    "complianceQuestion": "What does the Compliance Engine™ check?",
+    "complianceAnswer": "The construction, insulation, ventilation, and required documentation of a given house against the building regulations of the country it's going to — before you send an inquiry to the producer.",
+    "producersQuestion": "How do you know the producers are vetted?",
+    "producersAnswer": "Every producer on the platform goes through ModularHub verification, shown as a badge on their card, before their projects appear in search results.",
+    "timeQuestion": "How long does it take to receive offers?",
+    "timeAnswer": "Usually up to 48 hours after sending the inquiry — producers reply directly to the address given in the contact form."
+  },
+  "ProjectTechnicalSpecs": {
+    "heading": "Technology and construction",
+    "groupConstructionTitle": "Construction and finish",
+    "groupEnergyTitle": "Energy efficiency",
+    "groupSafetyTitle": "Safety and warranty",
+    "constructionSystem": "Construction system",
+    "externalDimensions": "External dimensions",
+    "roofType": "Roof",
+    "foundationOptions": "Foundation",
+    "wallBuildUp": "Wall build-up",
+    "customizationScope": "Customization scope",
+    "insulation": "Insulation",
+    "heatTransferCoefficients": "Heat transfer coefficients",
+    "windowClass": "Window class",
+    "ventilation": "Ventilation",
+    "heatSource": "Heat source",
+    "fireResistance": "Fire resistance",
+    "windResistance": "Wind resistance",
+    "warrantyLabel": "Structural warranty",
+    "warrantyValue": "{years} yrs"
+  },
+  "ResultsFilterBar": {
+    "sortPriceAsc": "Price: ascending",
+    "sortPriceDesc": "Price: descending",
+    "sortSizeAsc": "Floor area: ascending",
+    "sortSizeDesc": "Floor area: descending",
+    "countryLabel": "Country",
+    "countryPlaceholder": "Choose a country",
+    "countryAriaLabel": "Target country",
+    "sizeMinLabel": "Floor area from",
+    "sizeMaxLabel": "Floor area to",
+    "anyPlaceholder": "Any",
+    "sortLabel": "Sort",
+    "sortPlaceholder": "Featured",
+    "sortAriaLabel": "Sort results",
+    "keywordLabel": "Keyword",
+    "keywordPlaceholder": "Name or description",
+    "searchAriaLabel": "Search"
+  },
+  "SearchCard": {
+    "teaserPrompt": "What can I help you find?",
+    "teaserWordHome": "A house?",
+    "teaserWordPergola": "A pergola?",
+    "teaserWordSpa": "A spa?",
+    "budgetAny": "Any budget",
+    "budgetUpTo50k": "up to €50K",
+    "budget50to100k": "€50K–100K",
+    "budget100to200k": "€100K–200K",
+    "budgetOver200k": "over €200K",
+    "categoryHome": "Houses",
+    "categoryPergola": "Pergolas",
+    "categorySpa": "Spas",
+    "categoryAriaLabel": "Product category",
+    "whereLabel": "Where?",
+    "wherePlaceholder": "Country, region, or city",
+    "whereAriaLabel": "Target country",
+    "budgetLabel": "Budget",
+    "budgetAriaLabel": "Budget",
+    "areaLabel": "Floor area",
+    "areaPlaceholder": "Any",
+    "searchButton": "Search houses"
+  },
+  "Testimonials": {
+    "heading": "What our clients say",
+    "subheading": "Illustrative reviews, pending our first real clients.",
+    "countryPl": "Poland",
+    "countryDe": "Germany",
+    "countryNl": "Netherlands",
+    "quote1": "I sent an inquiry to three producers in one evening instead of writing to each one separately. Replies came in two days.",
+    "quote2": "Checking compliance with German regulations before sending the inquiry saved me weeks of correspondence with a lawyer.",
+    "quote3": "I liked that I immediately saw the broken-down price — house, transport, assembly — instead of one mysterious total.",
+    "quote4": "Comparing three projects side by side showed me I was overpaying for square meters I didn't need.",
+    "quote5": "The platform is independent from the producers, so I felt like it was advising me, not selling to me."
+  },
+  "ClosingCta": {
+    "eyebrow": "Not sure where to start?",
+    "heading": "Get 3 matched offers within 48 hours",
+    "body": "Tell us what you need, and we'll review personalized offers from the best producers for you.",
+    "cta": "Get free offers",
+    "step1Title": "Tell us what you need",
+    "step1Description": "Answer a few questions about your dream house.",
+    "step2Title": "We match the best producers",
+    "step2Description": "We select vetted producers matched to your project.",
+    "step3Title": "You receive offers",
+    "step3Description": "You receive offers and pick the best option for yourself."
+  },
+  "HowItWorksExplainer": {
+    "heading": "How ModularHub works",
+    "subheading": "Five steps from your first search to receiving the keys.",
+    "stage1Title": "Search",
+    "stage1Description": "Choose a country and floor area in the search bar, browse matching houses.",
+    "stage2Title": "Compare",
+    "stage2Description": "Set up to three projects side by side: price, floor area, standard.",
+    "stage3Title": "Check compliance",
+    "stage3Description": "The Compliance Engine™ checks the house against your country's regulations.",
+    "stage4Title": "Ask for offers",
+    "stage4Description": "Send one inquiry to your chosen producers at once.",
+    "stage5Title": "Receive the house",
+    "stage5Description": "Track production, transport, and assembly all the way to the handover."
+  },
+  "CategoryShowcase": {
+    "headingUnderline": "More",
+    "headingRest": "than a house",
+    "spaName": "Modular spas",
+    "spaDescription": "Saunas, hot tubs, and wellness zones for your garden",
+    "pergolaName": "Pergolas",
+    "pergolaDescription": "Aluminum and wood, with roofing and glazing",
+    "imageAlt": "Example project from the {category} category",
+    "viewOffers": "See offers",
+    "viewOffersShort": "See",
+    "productCount": {
+      "one": "1 product",
+      "few": "{count} products",
+      "many": "{count} products"
+    },
+    "priceFrom": "from €{price}",
+    "nextCategory": "Next category",
+    "dotLabel": "Go to {category}"
+  },
+  "FamilyTabs": {
+    "navAriaLabel": "Product family",
+    "home": "Houses",
+    "spa": "Modular spas",
+    "pergola": "Pergolas"
+  },
+  "CategoryFilterBar": {
+    "navAriaLabel": "House attribute filters",
+    "singleStorey": "Single-storey",
+    "twoStorey": "Two-storey",
+    "heatPump": "Heat pump",
+    "heatRecovery": "Heat recovery",
+    "energyClassA": "Class A+"
+  },
+  "BindingOfferView": {
+    "heading": "Binding offer — {name}",
+    "intro": "The price below is one final amount for the house, transport to the given address, and assembly — with no separate carrier choice. Accepting the offer starts fulfillment.",
+    "bedroomsLabel": {
+      "one": "bedroom",
+      "other": "bedrooms"
+    },
+    "addressLabel": "Assembly address",
+    "finalPriceLabel": "Final price (house, transport, assembly)",
+    "disclaimer": "This is a demonstration offer on sample data. Acceptance does not create a real contract or involve a real payment — a mockup stage, with no login and no data persisted.",
+    "acceptOffer": "Accept offer",
+    "acceptedAt": "Accepted {date}",
+    "acceptedThanks": "Thank you — the binding offer has been accepted. Track production, transport, assembly, and handover progress on the fulfillment status axis.",
+    "trackFulfillment": "Track fulfillment",
+    "backToPlot": "Back to the plot panel"
+  },
+  "InquiryFlow": {
+    "sentHeading": "Inquiry sent",
+    "productNoun": {
+      "one": "house",
+      "other": "houses"
+    },
+    "sentConfirmation": "Confirmation of your inquiry for {count} {noun} below.",
+    "checkPlot": "Check the plot",
+    "backToResults": "Back to results",
+    "heading": "Inquiry about the selected houses",
+    "intro": "You're sending one inquiry about {count} {noun}: {names}. Enter your contact details so producers can reach you.",
+    "nameLabel": "Full name",
+    "emailInvalidError": "Enter a valid e-mail address.",
+    "phoneLabel": "Phone",
+    "deliveryCountryLabel": "Delivery country",
+    "sendingLabel": "Sending…",
+    "retrySendLabel": "Retry sending",
+    "sendLabel": "Send inquiry",
+    "genericSendError": "Couldn't send the inquiry. Please try again."
+  },
+  "ProfileForm": {
+    "nameLabel": "Full name",
+    "phoneLabel": "Phone",
+    "savedMessage": "Changes saved.",
+    "savingLabel": "Saving…",
+    "retryLabel": "Retry save",
+    "saveLabel": "Save changes",
+    "genericError": "Couldn't save the changes. Please try again."
+  },
+  "CompanyVerificationView": {
+    "heading": "Company verification — {name}",
+    "disclaimer": "This is a mockup — no verification is actually performed here, and no payout is real.",
+    "disclaimerSuffix": "Before the first payout, we check the company based on the documents below.",
+    "requiredDocsHeading": "Required documents",
+    "doc1": "Business register extract (KRS or CEIDG)",
+    "doc2": "Certificate of no outstanding dues (ZUS and tax office)",
+    "doc3": "Confirmation of the company's bank account (statement or verification transfer)",
+    "doc4": "Business liability insurance policy",
+    "submittedMessage": "Documents submitted for verification. The first payout will be unlocked once it's complete (mockup, no real verification).",
+    "backToFulfillment": "Back to fulfillment",
+    "uploadLabel": "Documents for verification",
+    "submitButton": "Submit for verification"
+  },
+  "ExportReadinessCountryRow": {
+    "statusApproved": "Eligible",
+    "statusConditional": "Conditionally eligible",
+    "statusBlocked": "Not eligible",
+    "resolvedReason": "Gaps closed by purchasing the gap-closure package (saved in this browser).",
+    "whatsMissing": "What's missing",
+    "closeGaps": "Close gaps"
+  },
+  "GapClosureView": {
+    "heading": "Close gaps: {country}",
+    "headingWithProject": "Close gaps: {country} — \"{project}\"",
+    "disclaimer": "This is not legal advice. The result is an estimated assessment based on sample data, not a real legal or construction expert opinion.",
+    "alreadyResolved": "This country is already closed — the gaps were resolved by purchasing the package.",
+    "backToMap": "Back to the export readiness map"
+  },
+  "ExportReadinessMap": {
+    "headingWithProject": "Export readiness: \"{project}\"",
+    "heading": "Export readiness",
+    "disclaimer": "This is not legal advice. The result is an estimated assessment based on sample data, not a real legal or construction expert opinion.",
+    "viewProducts": "See your products"
+  },
+  "GapClosureUploadSection": {
+    "heading": "Upload documents yourself",
+    "submittedMessage": "Documents submitted for verification.",
+    "backToMap": "Back to the export readiness map",
+    "intro": "Self-declare that you're uploading the missing documents. This path doesn't verify anything and doesn't change the country's status on the map.",
+    "uploadLabel": "Missing documents",
+    "submitButton": "Submit"
+  },
+  "ProducerInquiryRow": {
+    "messageText": "The client is requesting an offer for this project, covering the house, transport, and assembly.",
+    "statusSubmitted": "Offer submitted",
+    "statusNew": "New inquiry",
+    "viewOffer": "View offer",
+    "prepareOffer": "Prepare offer"
+  },
+  "ProducerOfferForm": {
+    "messageText": "The client is requesting an offer for this project, covering the house, transport, and assembly.",
+    "heading": "Offer — {name}",
+    "offerSentMessage": "Offer sent to the client {date}.",
+    "housePriceLabel": "House price",
+    "transportLabel": "Transport",
+    "assemblyLabel": "Assembly",
+    "totalLabel": "Total",
+    "backToInquiries": "Back to inquiries",
+    "templateHeading": "Offer template",
+    "templateIntro": "The same template applies to every producer on the platform.",
+    "housePriceInputLabel": "House price (€)",
+    "transportInputLabel": "Transport (€)",
+    "transportHint": "Calculated automatically for the delivery country ({country}) — read-only field.",
+    "installationInputLabel": "Assembly (€)",
+    "submitOffer": "Send offer"
+  },
+  "RegistrationForm": {
+    "nipLabel": "Tax ID (NIP)",
+    "nipPlaceholder": "000-000-00-00",
+    "nipError": "Enter a valid tax ID (10 digits).",
+    "deliveryCountriesLegend": "Delivery countries",
+    "technologyLabel": "Technology",
+    "technologyPlaceholder": "Choose a technology",
+    "submitButton": "Register"
+  },
+  "Hero": {
+    "trustVerified": "Verified producers",
+    "trustPricing": "Transparent pricing",
+    "headingLine1": "Your",
+    "headingUnderline1": "house.",
+    "headingLine2": "Wisely",
+    "headingUnderline2": "chosen.",
+    "subheading": "Compare vetted modular houses from all over Europe."
+  },
+  "ComplianceEngineShowcase": {
+    "heading": "We check legal compliance before you have to",
+    "intro": "We compare every house against the local building regulations of the target country — construction, insulation, ventilation, and required documentation — before you send an inquiry to the producer.",
+    "disclaimer": "The result is a preliminary, orientational check — it is not legal advice. We keep the Compliance Engine™'s data and logic up to date to reflect a country's building regulations as closely as possible, but final compliance is confirmed by the relevant authority and the chosen producer.",
+    "exampleLocation": "Location: Venlo, Netherlands",
+    "complianceSuffix": "compliant",
+    "checklistConstruction": "Construction",
+    "checklistInsulation": "Insulation",
+    "checklistVentilation": "Ventilation",
+    "checklistDocumentation": "Documentation",
+    "checklistPermit": "Local permit",
+    "statusOk": "Met",
+    "statusWarning": "Needs attention",
+    "checkHouse": "Check a house"
+  },
+  "CompareHomesTeaser": {
+    "heading": "Compare houses side by side",
+    "subheading": "Set up to three projects and see the differences in price, floor area, and rooms on one screen.",
+    "compareButton": "Compare houses",
+    "captionCompare": "Example comparison of {count} houses: price, floor area, and room count",
+    "featureColumnSr": "Feature",
+    "priceFromRow": "Price from",
+    "floorAreaRow": "Floor area",
+    "roomsRow": "Rooms"
+  },
+  "ProducerShowcase": {
+    "heading": "Verified producers",
+    "subheading": "Every producer on the platform goes through our verification.",
+    "viewAllButton": "See all producers"
+  },
+  "PopularHomes": {
+    "heading": "Popular houses",
+    "subheading": "An illustrative selection — this is what a few of the most viewed projects look like today."
+  },
+  "PanelTabs": {
+    "navAriaLabel": "Client panel",
+    "zapytania": "Inquiries",
+    "ulubione": "Favorites",
+    "profil": "Profile"
+  },
+  "ProjectGallery": {
+    "photoCountBadge": {
+      "few": "{count} photos",
+      "many": "{count} photos"
+    },
+    "coverAlt": "{name}, modular house",
+    "thumbnailAlt": "{name}, photo {index}"
+  },
+  "ResultsSelection": {
+    "addedLocalProducts": "Added {count} of your products to the list."
+  },
+  "ShortlistActionBar": {
+    "selectedCount": "Selected: {count}/{max}",
+    "sendInquiry": "Send inquiry"
+  },
+  "DeleteProductDialog": {
+    "heading": "Delete this product?",
+    "body": "The product \"{name}\" will be permanently deleted from your catalog. This action cannot be undone.",
+    "cancel": "Cancel",
+    "confirm": "Delete"
+  },
+  "GapClosurePackageSection": {
+    "heading": "Buy the gap-closure package",
+    "intro": "We purchase the complete set of missing documents on your behalf and declare the country eligible.",
+    "priceLabel": "Package price",
+    "payButton": "Pay",
+    "processingPayment": "Processing payment…",
+    "approvedStatus": "Eligible",
+    "paidMessage": "Package paid — the country is now eligible.",
+    "backToMap": "Back to the export readiness map"
+  },
+  "ProducerInquiryList": {
+    "heading": "Inquiries and offers",
+    "intro": "Incoming inquiries from clients. Each inquiry opens an offer form using the same template as every producer — the transport field is filled in automatically and is read-only.",
+    "emptyMessage": "No inquiries yet — messages from clients interested in your project will appear here."
+  },
+  "ProducerRegistrationBar": {
+    "registeredBadge": "Registered",
+    "nipLabel": "Tax ID"
+  },
+  "ClientRegistrationForm": {
+    "checkInboxHeading": "Check your inbox",
+    "checkInboxBody": "We've sent a login link to the given e-mail address. Click it to finish creating your account — the link is valid for 24 hours.",
+    "heading": "Create a client account",
+    "intro": "Enter your details to send inquiries to producers. No password — you sign in with a link sent by e-mail.",
+    "nameLabel": "Full name",
+    "phoneLabel": "Phone",
+    "submitButton": "Create account",
+    "alreadyHaveAccount": "Already have an account?",
+    "loginLink": "Log in"
+  },
+  "LoginForm": {
+    "checkInboxHeading": "Check your inbox",
+    "checkInboxBody": "We've sent a login link to the given e-mail address. Click it to log in — the link is valid for 24 hours.",
+    "heading": "Log in",
+    "intro": "Enter the e-mail address we should send the login link to. No password.",
+    "unknownEmail": "We couldn't find an account for this e-mail address. Create an account to log in.",
+    "registerAsClient": "Register as a client",
+    "registerAsProducer": "Register as a producer",
+    "submitButton": "Send login link"
+  },
+  "ProducerRegistrationForm": {
+    "checkInboxHeading": "Check your inbox",
+    "checkInboxBody": "We've sent a login link to the given e-mail address. Click it to finish creating your account — the link is valid for 24 hours.",
+    "heading": "Create a producer account",
+    "intro": "Enter your company details. No password — you sign in with a link sent by e-mail, same as a client.",
+    "companyNameLabel": "Company name",
+    "phoneLabel": "Phone",
+    "countryLabel": "Country",
+    "technologyLabel": "Technology",
+    "submitButton": "Create account",
+    "alreadyHaveAccount": "Already have an account?",
+    "loginLink": "Log in"
+  },
+  "ProductCatalogList": {
+    "heading": "Your products",
+    "loading": "Loading…",
+    "subtitle": "All products added under tax ID {nip}.",
+    "addProduct": "Add product",
+    "emptyMessage": "You don't have any products in your catalog yet.",
+    "addFirstProduct": "Add your first product",
+    "addedOn": "Added {date}",
+    "bedroomsOne": "bedroom",
+    "bedroomsOther": "bedrooms",
+    "editButton": "Edit",
+    "deleteButton": "Delete"
+  }
+}

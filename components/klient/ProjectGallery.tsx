@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import Image from "next/image";
 
 interface ProjectGalleryCoverProps {
@@ -8,18 +9,25 @@ interface ProjectGalleryCoverProps {
   className?: string;
 }
 
+function photoCountBucket(count: number): "few" | "many" {
+  const lastDigit = count % 10;
+  const lastTwoDigits = count % 100;
+  return lastDigit >= 2 && lastDigit <= 4 && !(lastTwoDigits >= 12 && lastTwoDigits <= 14) ? "few" : "many";
+}
+
 // Rozdzielone na dwa komponenty (cover / thumbnails), żeby strona mogła ułożyć
 // prawą kolumnę (nazwa, cena, CTA) w tym samym wierszu siatki co samo zdjęcie
 // główne — wyrównaną do jego wysokości, a nie do wysokości całej galerii razem
 // z paskiem miniatur pod spodem.
-export function ProjectGalleryCover({ coverImageUrl, totalCount, projectName, className }: ProjectGalleryCoverProps) {
+export async function ProjectGalleryCover({ coverImageUrl, totalCount, projectName, className }: ProjectGalleryCoverProps) {
+  const t = await getTranslations("ProjectGallery");
   return (
     <div
       className={`group relative aspect-[4/3] overflow-hidden rounded-v5-card sm:aspect-[3/2] ${className ?? ""}`}
     >
       <Image
         src={coverImageUrl}
-        alt={`${projectName}, dom modułowy`}
+        alt={t("coverAlt", { name: projectName })}
         fill
         priority
         sizes="(min-width: 1024px) 66vw, 100vw"
@@ -27,7 +35,7 @@ export function ProjectGalleryCover({ coverImageUrl, totalCount, projectName, cl
       />
       {totalCount > 1 && (
         <span className="absolute bottom-brand-2 left-brand-2 rounded-v5-pill bg-brand-v5-night/70 px-brand-2 py-1 text-label font-medium text-brand-v5-paper backdrop-blur-sm">
-          {totalCount} zdjęć
+          {t(`photoCountBadge.${photoCountBucket(totalCount)}`, { count: totalCount })}
         </span>
       )}
     </div>
@@ -42,9 +50,11 @@ interface ProjectGalleryThumbnailsProps {
 // coverImageUrl (renderowany przez ProjectGalleryCover) zostaje pierwszym/głównym
 // zdjęciem niezależnie od galleryImageUrls (spec 0020 Feature design); brak
 // dodatkowych zdjęć nie renderuje pustego paska miniatur.
-export function ProjectGalleryThumbnails({ galleryImageUrls, projectName }: ProjectGalleryThumbnailsProps) {
+export async function ProjectGalleryThumbnails({ galleryImageUrls, projectName }: ProjectGalleryThumbnailsProps) {
   const extraImages = galleryImageUrls?.filter((url) => url.length > 0) ?? [];
   if (extraImages.length === 0) return null;
+
+  const t = await getTranslations("ProjectGallery");
 
   return (
     // Poziomy snap-scroll na mobile (przegląda się kciukiem jak karuzelę zdjęć),
@@ -57,7 +67,7 @@ export function ProjectGalleryThumbnails({ galleryImageUrls, projectName }: Proj
         >
           <Image
             src={url}
-            alt={`${projectName}, zdjęcie ${index + 2}`}
+            alt={t("thumbnailAlt", { name: projectName, index: index + 2 })}
             fill
             sizes="(min-width: 1024px) 16vw, 25vw"
             className="object-cover transition-transform duration-300 ease-out motion-safe:group-hover:scale-110"

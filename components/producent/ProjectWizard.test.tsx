@@ -7,7 +7,8 @@ import { ProjectWizard } from "./ProjectWizard";
 
 const push = vi.fn();
 
-vi.mock("next/navigation", () => ({
+vi.mock("next/navigation", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/navigation")>()),
   useRouter: () => ({ push }),
 }));
 
@@ -44,7 +45,7 @@ async function fillStep1(user: ReturnType<typeof userEvent.setup>, name = "Modul
   await user.type(screen.getByLabelText(/metraż/i), "120");
   await user.type(screen.getByLabelText(/liczba sypialni/i), "3");
   await chooseOption(user, "Polska");
-  await user.type(screen.getByLabelText(/opis/i), "Opis projektu");
+  await user.type(screen.getByLabelText("Opis *"), "Opis projektu");
 }
 
 // heatTransferCoefficients (klasa energetyczna)/ventilation/heatSource switched to

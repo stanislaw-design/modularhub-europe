@@ -1,6 +1,7 @@
 "use client";
 
 import { Search } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { Country, CountryCode } from "@/lib/data/types";
@@ -19,19 +20,12 @@ const sizeOptions: SegmentOption[] = SIZE_THRESHOLDS.map((threshold) => ({
   label: `${threshold} m²`,
 }));
 
-const SORT_LABELS: Record<SortOption, string> = {
-  "price-asc": "Cena: rosnąco",
-  "price-desc": "Cena: malejąco",
-  "size-asc": "Metraż: rosnąco",
-  "size-desc": "Metraż: malejąco",
-};
-const sortOptions: SegmentOption[] = SORT_OPTIONS.map((value) => ({ value, label: SORT_LABELS[value] }));
-
 // Pole wyszukiwania i sortowanie (spec 0026 AC-5, AC-9) dzielą wzorzec nawigacji z
 // country/metraż poniżej: lokalny stan, nawigacja dopiero po kliknięciu "Szukaj"
 // (albo Enter w polu tekstowym), nigdy filtr atrybutów/podkategorii/ceny —
 // te przychodzą przez `filter` i zostają nietknięte (chipy je ustawiają osobno).
 export function ResultsFilterBar({ locale, countries, filter }: ResultsFilterBarProps) {
+  const t = useTranslations("ResultsFilterBar");
   const router = useRouter();
   const [country, setCountry] = useState<CountryCode | null>(filter.countryCode ?? null);
   const [min, setMin] = useState<number | null>(filter.sizeMin ?? null);
@@ -39,6 +33,13 @@ export function ResultsFilterBar({ locale, countries, filter }: ResultsFilterBar
   const [sort, setSort] = useState<SortOption | null>(filter.sort ?? null);
   const [q, setQ] = useState(filter.q ?? "");
 
+  const sortLabels: Record<SortOption, string> = {
+    "price-asc": t("sortPriceAsc"),
+    "price-desc": t("sortPriceDesc"),
+    "size-asc": t("sortSizeAsc"),
+    "size-desc": t("sortSizeDesc"),
+  };
+  const sortOptions: SegmentOption[] = SORT_OPTIONS.map((value) => ({ value, label: sortLabels[value] }));
   const countryOptions: SegmentOption[] = countries.map((c) => ({ value: c.code, label: c.name }));
   const sizeMaxOptions = sizeOptions.filter((option) => min === null || Number(option.value) >= min);
 
@@ -64,44 +65,44 @@ export function ResultsFilterBar({ locale, countries, filter }: ResultsFilterBar
   return (
     <div className="flex w-full flex-col divide-y divide-brand-v5-line rounded-[2.5rem] border border-brand-v5-line bg-brand-v5-surface shadow-sm sm:flex-row sm:items-stretch sm:divide-x sm:divide-y-0">
       <SearchSegment
-        label="Kraj"
+        label={t("countryLabel")}
         value={country}
         onChange={(value) => setCountry(value as CountryCode)}
         options={countryOptions}
-        placeholder="Wybierz kraj"
-        ariaLabel="Kraj docelowy"
+        placeholder={t("countryPlaceholder")}
+        ariaLabel={t("countryAriaLabel")}
         surface="v5"
       />
       <SearchSegment
-        label="Metraż od"
+        label={t("sizeMinLabel")}
         value={min === null ? null : String(min)}
         onChange={handleMinChange}
         options={sizeOptions}
-        placeholder="Dowolny"
-        ariaLabel="Metraż od"
+        placeholder={t("anyPlaceholder")}
+        ariaLabel={t("sizeMinLabel")}
         surface="v5"
       />
       <SearchSegment
-        label="Metraż do"
+        label={t("sizeMaxLabel")}
         value={max === null ? null : String(max)}
         onChange={(value) => setMax(Number(value))}
         options={sizeMaxOptions}
-        placeholder="Dowolny"
-        ariaLabel="Metraż do"
+        placeholder={t("anyPlaceholder")}
+        ariaLabel={t("sizeMaxLabel")}
         surface="v5"
       />
       <SearchSegment
-        label="Sortuj"
+        label={t("sortLabel")}
         value={sort}
         onChange={(value) => setSort(value as SortOption)}
         options={sortOptions}
-        placeholder="Polecane"
-        ariaLabel="Sortowanie wyników"
+        placeholder={t("sortPlaceholder")}
+        ariaLabel={t("sortAriaLabel")}
         surface="v5"
       />
       <div className="flex flex-1 flex-col justify-center gap-0.5 px-brand-3 py-brand-2">
         <label htmlFor="results-search-q" className="text-label font-semibold text-brand-v5-ink">
-          Słowo kluczowe
+          {t("keywordLabel")}
         </label>
         <input
           id="results-search-q"
@@ -111,7 +112,7 @@ export function ResultsFilterBar({ locale, countries, filter }: ResultsFilterBar
           onKeyDown={(event) => {
             if (event.key === "Enter") handleSearch();
           }}
-          placeholder="Nazwa lub opis"
+          placeholder={t("keywordPlaceholder")}
           className="focus-ring w-full rounded-data bg-transparent text-body text-brand-v5-ink placeholder:text-brand-v5-muted/70"
         />
       </div>
@@ -119,7 +120,7 @@ export function ResultsFilterBar({ locale, countries, filter }: ResultsFilterBar
         <button
           type="button"
           onClick={handleSearch}
-          aria-label="Szukaj"
+          aria-label={t("searchAriaLabel")}
           className="focus-ring flex size-12 shrink-0 items-center justify-center rounded-full bg-brand-v5-amber text-brand-v5-amber-foreground transition-colors hover:bg-brand-v5-amber-strong"
         >
           <Search className="size-5" aria-hidden="true" />

@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { resolveAsyncTree } from "@/test/resolve-async-tree";
 import GotowoscEksportowaPage from "./page";
 
 function makeProps(searchParams: Record<string, string | string[] | undefined>) {
@@ -11,7 +12,7 @@ function makeProps(searchParams: Record<string, string | string[] | undefined>) 
 
 async function renderPage(searchParams: Record<string, string | string[] | undefined>) {
   const element = await GotowoscEksportowaPage(makeProps(searchParams));
-  render(element);
+  render(await resolveAsyncTree(element));
 }
 
 describe("GotowoscEksportowaPage", () => {

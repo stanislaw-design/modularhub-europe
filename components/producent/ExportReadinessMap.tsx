@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { Button, Heading, Stack, Text } from "@/components/ui";
 import type { Country, ExportReadinessCountryStatus } from "@/lib/data/types";
 import { ExportReadinessCountryRow } from "./ExportReadinessCountryRow";
@@ -12,27 +13,25 @@ interface ExportReadinessMapProps {
   catalogHref: string | null;
 }
 
-const DISCLAIMER_TEXT =
-  "To nie jest opinia prawna. Wynik to szacunkowa ocena na podstawie danych przykładowych, nie realna ekspertyza prawna ani budowlana.";
-
-export function ExportReadinessMap({
+export async function ExportReadinessMap({
   locale,
   projectName,
   countries,
   entries,
   catalogHref,
 }: ExportReadinessMapProps) {
+  const t = await getTranslations("ExportReadinessMap");
   return (
     <Stack gap={4}>
       <Heading level="h1">
-        {projectName ? `Gotowość eksportowa: „${projectName}”` : "Gotowość eksportowa"}
+        {projectName ? t("headingWithProject", { project: projectName }) : t("heading")}
       </Heading>
       <Text tone="muted" measure>
-        {DISCLAIMER_TEXT}
+        {t("disclaimer")}
       </Text>
       {catalogHref && (
         <Button as="a" href={catalogHref} variant="secondary" className="w-fit">
-          Zobacz swoje produkty
+          {t("viewProducts")}
         </Button>
       )}
       <Stack gap={3}>

@@ -9,7 +9,7 @@ Zakres jest podzielony na dwie epiki, po jednej na etap budowy.
 | Epika | Zakres | Status |
 |---|---|---|
 | [Prototyp (Facade)](prototyp.md) | Klikalny interfejs klienta i producenta na danych przykładowych, na realnym brandingu | 11 done, 5 in progress, 1 planned, 1 dropped (18 funkcji) |
-| [Produkcja](produkcja.md) | Prawdziwe zaplecze (konta, baza danych, płatności, pliki, silnik zgodności, transport, rodziny produktów) i utwardzenie produkcyjne (RODO, bezpieczeństwo, wydajność, SEO, CI/CD) | 3 done, 2 in progress, 18 planned (23 funkcje) |
+| [Produkcja](produkcja.md) | Prawdziwe zaplecze (konta, baza danych, płatności, pliki, silnik zgodności, transport, rodziny produktów) i utwardzenie produkcyjne (RODO, bezpieczeństwo, wydajność, SEO, CI/CD) | 4 done, 6 in progress, 16 planned (26 funkcji) |
 
 ## Legend
 

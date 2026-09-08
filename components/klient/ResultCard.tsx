@@ -1,10 +1,10 @@
 import { Clock3, ImageOff, MapPin } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
 import { Card, Checkbox, DataText, Heading, StatusPill, Text } from "@/components/ui";
 import { FavoriteButton } from "./FavoriteButton";
 import { isLocalProjectId } from "@/lib/local-client-projects";
-import { getMockAssemblyPriceEur, getMockTransportPriceEur } from "@/lib/pricing";
 import type { CountryCode, EligibilityStatus, Project } from "@/lib/data/types";
 
 interface ResultCardProps {
@@ -16,9 +16,9 @@ interface ResultCardProps {
   selected?: boolean;
   selectionDisabled?: boolean;
   onToggleSelect?: () => void;
-  /** Target delivery country from /wyniki's `country` URL param. When
-   * present, the price breaks down into dom/transport/montaż instead of the
-   * flat priceMin–priceMax range (spec 0015 AC-14). */
+  /** Target delivery country from /wyniki's `country` URL param, carried into
+   * the /klient/projekt/[id] link so the legal compliance section there can
+   * resolve it (spec 0015 AC-14). */
   countryCode?: CountryCode;
   /** Doklejone lokalnie z localStorage producenta (spec 0016, AC-11): pokazuje
    * etykietę podglądu zamiast checkboxa zaznaczenia, bo ta ścieżka nie może dziś
@@ -36,24 +36,8 @@ interface ResultCardProps {
 
 const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0 });
 
-// Display name for the *target delivery* country (the countryCode prop),
-// deliberately separate from the countryName prop (the project's country of
-// production) — the two are different countries whenever a client searches
-// a country other than where the house is built.
-const targetCountryName: Record<CountryCode, string> = {
-  PL: "Polski",
-  DE: "Niemiec",
-  NL: "Holandii",
-};
-
-const standardLabel = {
-  "surowy-zamkniety": "Stan surowy zamknięty",
-  deweloperski: "Standard deweloperski",
-  "pod-klucz": "Pod klucz",
-} as const;
-
-function roomsLabel(count: number) {
-  return count === 1 ? "pokój" : count >= 2 && count <= 4 ? "pokoje" : "pokoi";
+function roomsCountBucket(count: number): "one" | "few" | "many" {
+  return count === 1 ? "one" : count >= 2 && count <= 4 ? "few" : "many";
 }
 
 export function ResultCard({
@@ -68,12 +52,13 @@ export function ResultCard({
   localPreview,
   favorite,
 }: ResultCardProps) {
-  const transportPrice = countryCode ? getMockTransportPriceEur(countryCode) : null;
-  const assemblyPrice = countryCode ? getMockAssemblyPriceEur(countryCode) : null;
-  const totalPrice =
-    transportPrice !== null && assemblyPrice !== null
-      ? project.commercial.housePriceMinEur + transportPrice + assemblyPrice
-      : null;
+  const t = useTranslations("ResultCard");
+  const standardLabel = {
+    "surowy-zamkniety": t("completionStandard.surowy-zamkniety"),
+    deweloperski: t("completionStandard.deweloperski"),
+    "pod-klucz": t("completionStandard.pod-klucz"),
+  } as const;
+  const roomsLabel = t(`rooms.${roomsCountBucket(project.rooms)}`);
   const isClickable = !localPreview && !isLocalProjectId(project.id);
   const href = isClickable
     ? `/${locale}/klient/projekt/${project.id}${countryCode ? `?country=${countryCode}` : ""}`
@@ -90,7 +75,7 @@ export function ResultCard({
         <Link
           href={href}
           className="focus-ring absolute inset-0 z-0 rounded-v5-card"
-          aria-label={`Zobacz szczegóły projektu ${project.name}`}
+          aria-label={t("viewDetails", { name: project.name })}
         />
       )}
       <div className="relative aspect-[3/2] overflow-hidden">
@@ -111,13 +96,13 @@ export function ResultCard({
         )}
         {onToggleSelect && !localPreview && (
           <label className="absolute right-brand-2 top-brand-2 z-10 flex items-center justify-center rounded-data bg-brand-v5-surface/95 p-1.5 shadow-sm">
-            <span className="sr-only">Zaznacz {project.name} do zapytania</span>
+            <span className="sr-only">{t("selectForInquiry", { name: project.name })}</span>
             <Checkbox
               surface="v5"
               checked={selected ?? false}
               disabled={selectionDisabled}
               onChange={onToggleSelect}
-              title={selectionDisabled ? "Można zaznaczyć maksymalnie 3 projekty" : undefined}
+              title={selectionDisabled ? t("selectionLimitReached") : undefined}
             />
           </label>
         )}
@@ -136,11 +121,11 @@ export function ResultCard({
       <div className="flex flex-1 flex-col gap-brand-2 p-brand-3">
         {localPreview && (
           <span className="w-fit rounded-data bg-brand-v5-amber/10 px-2 py-0.5 text-label font-medium uppercase tracking-[0.1em] text-brand-v5-ink">
-            Twój dodany produkt (podgląd)
+            {t("localPreviewBadge")}
           </span>
         )}
         {eligibilityStatus === "conditional" && (
-          <StatusPill status="conditional">Wymaga dodatkowych dokumentów</StatusPill>
+          <StatusPill status="conditional">{t("needsMoreDocuments")}</StatusPill>
         )}
         <div className="flex flex-col gap-1">
           <Heading level="h3" surface="v5" className="text-body-l">
@@ -152,7 +137,7 @@ export function ResultCard({
           </Text>
         </div>
         <Text surface="v5" className="font-medium">
-          {project.floorAreaM2} m² użytkowe · {project.rooms} {roomsLabel(project.rooms)} · {project.storeys} kond.
+          {t("summary", { area: project.floorAreaM2, rooms: project.rooms, roomsLabel, storeys: project.storeys })}
         </Text>
         <Text tone="muted" surface="v5" className="text-data">
           {project.constructionSystem} · {standardLabel[project.commercial.completionStandard]}
@@ -160,47 +145,28 @@ export function ResultCard({
         <div className="mt-auto border-t border-brand-v5-line pt-brand-2">
           {project.priceOnRequest ? (
             <>
-              <Text variant="label" tone="muted" surface="v5">Cena</Text>
-              <DataText as="p" surface="v5" className="mt-1 text-body-l font-semibold">Wycena indywidualna</DataText>
-              <Text tone="muted" surface="v5" className="mt-1 text-data">Ustalana bezpośrednio z producentem</Text>
+              <Text variant="label" tone="muted" surface="v5">{t("price")}</Text>
+              <DataText as="p" surface="v5" className="mt-1 text-body-l font-semibold">{t("priceOnRequest")}</DataText>
+              <Text tone="muted" surface="v5" className="mt-1 text-data">{t("priceOnRequestHint")}</Text>
             </>
-          ) : totalPrice !== null && transportPrice !== null && assemblyPrice !== null ? (
-            <div className="flex flex-col gap-0.5">
-              <div className="flex items-center justify-between gap-brand-1">
-                <Text tone="muted" surface="v5" className="text-data">Dom</Text>
-                <DataText surface="v5">od {priceFormatter.format(project.commercial.housePriceMinEur)} €</DataText>
-              </div>
-              <div className="flex items-center justify-between gap-brand-1">
-                <Text tone="muted" surface="v5" className="text-data">
-                  Transport do {countryCode ? targetCountryName[countryCode] : countryName}
-                </Text>
-                <DataText surface="v5">~{priceFormatter.format(transportPrice)} €</DataText>
-              </div>
-              <div className="flex items-center justify-between gap-brand-1">
-                <Text tone="muted" surface="v5" className="text-data">Montaż</Text>
-                <DataText surface="v5">~{priceFormatter.format(assemblyPrice)} €</DataText>
-              </div>
-              <div className="mt-1 flex items-center justify-between gap-brand-1 border-t border-brand-v5-line pt-1">
-                <Text variant="label" tone="muted" surface="v5">Razem</Text>
-                <DataText surface="v5" className="text-body-l font-semibold">
-                  od {priceFormatter.format(totalPrice)} €
-                </DataText>
-              </div>
-            </div>
           ) : (
             <>
-              <Text variant="label" tone="muted" surface="v5">Szacowany pakiet</Text>
+              <Text variant="label" tone="muted" surface="v5">{t("house")}</Text>
               <DataText as="p" surface="v5" className="mt-1 text-body-l font-semibold">
-                {priceFormatter.format(project.priceMin)}–{priceFormatter.format(project.priceMax)} €
+                {t("priceFrom", { price: priceFormatter.format(project.commercial.housePriceMinEur) })}
               </DataText>
-              <Text tone="muted" surface="v5" className="mt-1 text-data">Dom + standardowy transport + montaż</Text>
             </>
           )}
         </div>
         {project.commercial.productionLeadTimeWeeksMax > 0 && (
           <Text tone="muted" surface="v5" className="flex items-center gap-1 text-data">
             <Clock3 className="size-3.5 shrink-0" aria-hidden="true" />
-            {project.commercial.productionLeadTimeWeeksMin}–{project.commercial.productionLeadTimeWeeksMax} tyg. produkcji · {project.commercial.onSiteAssemblyDaysMin}–{project.commercial.onSiteAssemblyDaysMax} dni montażu
+            {t("leadTime", {
+              productionMin: project.commercial.productionLeadTimeWeeksMin,
+              productionMax: project.commercial.productionLeadTimeWeeksMax,
+              assemblyMin: project.commercial.onSiteAssemblyDaysMin,
+              assemblyMax: project.commercial.onSiteAssemblyDaysMax,
+            })}
           </Text>
         )}
       </div>

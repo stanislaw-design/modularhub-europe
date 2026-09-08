@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useActionState } from "react";
 import Link from "next/link";
 import { Button, Heading, Input, Label, Stack, Text } from "@/components/ui";
@@ -13,17 +14,17 @@ interface ClientRegistrationFormProps {
 const initialState: RegistrationActionState = { status: "idle" };
 
 export function ClientRegistrationForm({ locale, callbackUrl }: ClientRegistrationFormProps) {
+  const t = useTranslations("ClientRegistrationForm");
   const [state, formAction, isPending] = useActionState(registerClient, initialState);
 
   if (state.status === "sent") {
     return (
       <Stack gap={3}>
         <Heading level="h1" surface="v5">
-          Sprawdź swoją skrzynkę
+          {t("checkInboxHeading")}
         </Heading>
         <Text tone="muted" surface="v5">
-          Wysłaliśmy link logowania na podany adres e mail. Kliknij go, żeby dokończyć zakładanie konta
-          — link jest ważny przez 24 godziny.
+          {t("checkInboxBody")}
         </Text>
       </Stack>
     );
@@ -32,17 +33,16 @@ export function ClientRegistrationForm({ locale, callbackUrl }: ClientRegistrati
   return (
     <Stack gap={4}>
       <Heading level="h1" surface="v5">
-        Załóż konto klienta
+        {t("heading")}
       </Heading>
       <Text tone="muted" surface="v5">
-        Podaj swoje dane, żeby wysyłać zapytania do producentów. Bez hasła — logujesz się linkiem
-        wysłanym e mailem.
+        {t("intro")}
       </Text>
       <form action={formAction} className="flex max-w-md flex-col gap-brand-3" noValidate>
         <input type="hidden" name="callbackUrl" value={callbackUrl} />
         <Stack gap={1}>
           <Label htmlFor="client-reg-name" required surface="v5">
-            Imię i nazwisko
+            {t("nameLabel")}
           </Label>
           <Input id="client-reg-name" name="name" type="text" autoComplete="name" required surface="v5" />
         </Stack>
@@ -54,7 +54,7 @@ export function ClientRegistrationForm({ locale, callbackUrl }: ClientRegistrati
         </Stack>
         <Stack gap={1}>
           <Label htmlFor="client-reg-phone" required surface="v5">
-            Telefon
+            {t("phoneLabel")}
           </Label>
           <Input id="client-reg-phone" name="phone" type="tel" autoComplete="tel" required surface="v5" />
         </Stack>
@@ -64,16 +64,16 @@ export function ClientRegistrationForm({ locale, callbackUrl }: ClientRegistrati
           </p>
         )}
         <Button type="submit" disabled={isPending} surface="v5" className="w-fit">
-          Załóż konto
+          {t("submitButton")}
         </Button>
       </form>
       <Text tone="muted" surface="v5">
-        Masz już konto?{" "}
+        {t("alreadyHaveAccount")}{" "}
         <Link
           href={`/${locale}/logowanie?callbackUrl=${encodeURIComponent(callbackUrl)}`}
           className="focus-ring rounded-data font-medium text-brand-v5-ink underline"
         >
-          Zaloguj się
+          {t("loginLink")}
         </Link>
       </Text>
     </Stack>

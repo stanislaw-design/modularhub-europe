@@ -1,16 +1,17 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { ResultsFilter } from "@/lib/results-filters";
+import { resolveAsyncTree } from "@/test/resolve-async-tree";
 import { SubcategoryFilterBar } from "./SubcategoryFilterBar";
 
 describe("SubcategoryFilterBar", () => {
-  it("renders nothing for family dom (AC-8: subcategories are spa/pergola only)", () => {
-    const { container } = render(<SubcategoryFilterBar locale="pl" filter={{ family: "dom" }} />);
+  it("renders nothing for family dom (AC-8: subcategories are spa/pergola only)", async () => {
+    const { container } = render(await resolveAsyncTree(<SubcategoryFilterBar locale="pl" filter={{ family: "dom" }} />));
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("renders the three spa subcategory chips for family spa-modulowe (AC-8)", () => {
-    render(<SubcategoryFilterBar locale="pl" filter={{ family: "spa-modulowe" }} />);
+  it("renders the three spa subcategory chips for family spa-modulowe (AC-8)", async () => {
+    render(await resolveAsyncTree(<SubcategoryFilterBar locale="pl" filter={{ family: "spa-modulowe" }} />));
 
     const nav = screen.getByRole("navigation", { name: "Podkategoria spa modułowego" });
     expect(nav).toBeInTheDocument();
@@ -19,8 +20,8 @@ describe("SubcategoryFilterBar", () => {
     }
   });
 
-  it("renders the four pergola subcategory chips for family pergola (AC-8)", () => {
-    render(<SubcategoryFilterBar locale="pl" filter={{ family: "pergola" }} />);
+  it("renders the four pergola subcategory chips for family pergola (AC-8)", async () => {
+    render(await resolveAsyncTree(<SubcategoryFilterBar locale="pl" filter={{ family: "pergola" }} />));
 
     const nav = screen.getByRole("navigation", { name: "Podkategoria pergoli" });
     expect(nav).toBeInTheDocument();
@@ -29,8 +30,8 @@ describe("SubcategoryFilterBar", () => {
     }
   });
 
-  it("links each spa chip to the results URL scoped to spaSubcategory, preserving family", () => {
-    render(<SubcategoryFilterBar locale="pl" filter={{ family: "spa-modulowe" }} />);
+  it("links each spa chip to the results URL scoped to spaSubcategory, preserving family", async () => {
+    render(await resolveAsyncTree(<SubcategoryFilterBar locale="pl" filter={{ family: "spa-modulowe" }} />));
 
     expect(screen.getByRole("link", { name: "Jacuzzi" })).toHaveAttribute(
       "href",
@@ -38,8 +39,12 @@ describe("SubcategoryFilterBar", () => {
     );
   });
 
-  it("marks the active subcategory with aria-current and toggles it off on its own href", () => {
-    render(<SubcategoryFilterBar locale="pl" filter={{ family: "spa-modulowe", spaSubcategory: "jacuzzi" }} />);
+  it("marks the active subcategory with aria-current and toggles it off on its own href", async () => {
+    render(
+      await resolveAsyncTree(
+        <SubcategoryFilterBar locale="pl" filter={{ family: "spa-modulowe", spaSubcategory: "jacuzzi" }} />
+      )
+    );
 
     const active = screen.getByRole("link", { name: "Jacuzzi" });
     expect(active).toHaveAttribute("aria-current", "true");
@@ -48,8 +53,12 @@ describe("SubcategoryFilterBar", () => {
     expect(screen.getByRole("link", { name: "Sauna" })).not.toHaveAttribute("aria-current");
   });
 
-  it("uses pergolaSubcategory, not spaSubcategory, when family is pergola", () => {
-    render(<SubcategoryFilterBar locale="pl" filter={{ family: "pergola", pergolaSubcategory: "drewniana" }} />);
+  it("uses pergolaSubcategory, not spaSubcategory, when family is pergola", async () => {
+    render(
+      await resolveAsyncTree(
+        <SubcategoryFilterBar locale="pl" filter={{ family: "pergola", pergolaSubcategory: "drewniana" }} />
+      )
+    );
 
     expect(screen.getByRole("link", { name: "Drewniana" })).toHaveAttribute("aria-current", "true");
     expect(screen.getByRole("link", { name: "Bioklimatyczna" })).toHaveAttribute(
@@ -58,9 +67,9 @@ describe("SubcategoryFilterBar", () => {
     );
   });
 
-  it("preserves other active filters (q, sort) alongside family when linking a subcategory chip", () => {
+  it("preserves other active filters (q, sort) alongside family when linking a subcategory chip", async () => {
     const filter: ResultsFilter = { family: "spa-modulowe", q: "spa", sort: "price-asc" };
-    render(<SubcategoryFilterBar locale="pl" filter={filter} />);
+    render(await resolveAsyncTree(<SubcategoryFilterBar locale="pl" filter={filter} />));
 
     expect(screen.getByRole("link", { name: "Sauna" })).toHaveAttribute(
       "href",

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { Button, Card, Heading, Stack, Text } from "@/components/ui";
 import type { CountryCode } from "@/lib/data/types";
@@ -14,10 +15,8 @@ interface GapClosureViewProps {
   mapHref: string;
 }
 
-const DISCLAIMER_TEXT =
-  "To nie jest opinia prawna. Wynik to szacunkowa ocena na podstawie danych przykładowych, nie realna ekspertyza prawna ani budowlana.";
-
 export function GapClosureView({ countryCode, countryName, projectName, mapHref }: GapClosureViewProps) {
+  const t = useTranslations("GapClosureView");
   // Odczyt po zamontowaniu — przy pierwszym renderze może na moment mignąć
   // pełny widok, zanim przełączy się na komunikat (spec 0010, Consequences).
   const [resolved, setResolved] = useState(false);
@@ -30,19 +29,20 @@ export function GapClosureView({ countryCode, countryName, projectName, mapHref 
   return (
     <Stack gap={4}>
       <Heading level="h1">
-        Domknij luki: {countryName}
-        {projectName ? ` — „${projectName}”` : ""}
+        {projectName
+          ? t("headingWithProject", { country: countryName, project: projectName })
+          : t("heading", { country: countryName })}
       </Heading>
       <Text tone="muted" measure>
-        {DISCLAIMER_TEXT}
+        {t("disclaimer")}
       </Text>
 
       {resolved ? (
         <Card as="div" padding="md">
           <Stack gap={2} align="start">
-            <Text>Ten kraj jest już domknięty — luki zostały uzupełnione poprzez zakup pakietu.</Text>
+            <Text>{t("alreadyResolved")}</Text>
             <Button as="a" href={mapHref} variant="secondary" className="w-fit">
-              Wróć do mapy gotowości eksportowej
+              {t("backToMap")}
             </Button>
           </Stack>
         </Card>

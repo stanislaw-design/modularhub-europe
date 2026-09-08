@@ -2,6 +2,7 @@
 
 import { Droplets, Home, LayoutGrid, Search } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { WordRotate } from "@/components/ui";
@@ -9,9 +10,6 @@ import type { Country, CountryCode } from "@/lib/data/types";
 import type { ProductFamily } from "@/lib/product-technical-specs";
 import { SIZE_RANGE_OPTIONS } from "@/lib/size-thresholds";
 import { SearchSegment, type SegmentOption } from "./SearchSegment";
-
-// Same three families/order as categoryTabs below and CategoryShowcase.
-const teaserWords = ["Dom?", "Pergole?", "SPA?"];
 
 interface SearchCardProps {
   locale: string;
@@ -23,35 +21,14 @@ const sizeRangeOptions: SegmentOption[] = SIZE_RANGE_OPTIONS.map((option) => ({
   label: option.label,
 }));
 
-// Mock ranges only — no budget field on Project yet, so unlike country/size
-// this selection never reaches handleSearch's params (spec 0014/0015 AC-3
-// deferred the underlying data model). Interactive so the toolbar reads as
-// one consistent control, same visual/keyboard behavior as Gdzie/Powierzchnia.
-const budgetRangeOptions: SegmentOption[] = [
-  { value: "any", label: "Dowolny budżet" },
-  { value: "upTo50k", label: "do 50K €" },
-  { value: "50to100k", label: "50K–100K €" },
-  { value: "100to200k", label: "100K–200K €" },
-  { value: "over200k", label: "powyżej 200K €" },
-];
-
-// Same three families as CategoryShowcase's FAMILY_DISPLAY. Selection is
-// visual only for now (mirrors CategoryFilterBar's decorative-placeholder
-// pattern below) — /wyniki has no family filter yet (spec 0022 defers real
-// filtering to a later feature).
-const categoryTabs: { family: ProductFamily; icon: typeof Home; label: string }[] = [
-  { family: "dom", icon: Home, label: "Domy" },
-  { family: "pergola", icon: LayoutGrid, label: "Pergole" },
-  { family: "spa-modulowe", icon: Droplets, label: "SPA" },
-];
-
 // The white toolbar-like card sitting inside Hero (spec 0015 AC-3 dropped the
 // old "Znajdź idealny dom dla siebie" heading + subcopy so it reads as one
 // tool, not a second section with its own intro). Gdzie, Budżet and
 // Powierzchnia are all real SearchSegment instances; Budżet's selection is
-// visual only (see budgetRangeOptions above). Navigation contract to /wyniki
+// visual only (see budgetRangeOptions below). Navigation contract to /wyniki
 // (country, sizeMin, sizeMax) is unchanged from spec 0003/0004.
 export function SearchCard({ locale, countries }: SearchCardProps) {
+  const t = useTranslations("SearchCard");
   const router = useRouter();
   const prefersReducedMotion = useReducedMotion();
   const [activeCategory, setActiveCategory] = useState<ProductFamily>("dom");
@@ -75,6 +52,31 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
   }, []);
 
   const countryOptions: SegmentOption[] = countries.map((c) => ({ value: c.code, label: c.name }));
+
+  // Same three families/order as categoryTabs below and CategoryShowcase.
+  const teaserWords = [t("teaserWordHome"), t("teaserWordPergola"), t("teaserWordSpa")];
+
+  // Mock ranges only — no budget field on Project yet, so unlike country/size
+  // this selection never reaches handleSearch's params (spec 0014/0015 AC-3
+  // deferred the underlying data model). Interactive so the toolbar reads as
+  // one consistent control, same visual/keyboard behavior as Gdzie/Powierzchnia.
+  const budgetRangeOptions: SegmentOption[] = [
+    { value: "any", label: t("budgetAny") },
+    { value: "upTo50k", label: t("budgetUpTo50k") },
+    { value: "50to100k", label: t("budget50to100k") },
+    { value: "100to200k", label: t("budget100to200k") },
+    { value: "over200k", label: t("budgetOver200k") },
+  ];
+
+  // Same three families as CategoryShowcase's FAMILY_DISPLAY. Selection is
+  // visual only for now (mirrors CategoryFilterBar's decorative-placeholder
+  // pattern below) — /wyniki has no family filter yet (spec 0022 defers real
+  // filtering to a later feature).
+  const categoryTabs: { family: ProductFamily; icon: typeof Home; label: string }[] = [
+    { family: "dom", icon: Home, label: t("categoryHome") },
+    { family: "pergola", icon: LayoutGrid, label: t("categoryPergola") },
+    { family: "spa-modulowe", icon: Droplets, label: t("categorySpa") },
+  ];
 
   function handleSearch() {
     if (!country) return;
@@ -107,8 +109,8 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
         }`}
       >
         <Search className="size-5 shrink-0 text-brand-v5-muted" aria-hidden="true" />
-        <span className="text-body-l text-brand-v5-muted">
-          W czym mogę pomóc?{" "}
+        <span className="text-body text-brand-v5-muted sm:text-body-l">
+          {t("teaserPrompt")}{" "}
           <WordRotate
             words={teaserWords}
             duration={3000}
@@ -142,7 +144,11 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
               isExpanded ? "opacity-100 delay-200" : "opacity-0"
             }`}
           >
-            <div role="tablist" aria-label="Kategoria produktu" className="flex items-center gap-brand-2 px-brand-1">
+            <div
+              role="tablist"
+              aria-label={t("categoryAriaLabel")}
+              className="flex items-center gap-brand-1 overflow-x-auto px-brand-1 [scrollbar-width:none] sm:gap-brand-2 [&::-webkit-scrollbar]:hidden"
+            >
               {categoryTabs.map(({ family, icon: Icon, label }) => {
                 const isActive = activeCategory === family;
                 return (
@@ -152,7 +158,7 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
                     role="tab"
                     aria-selected={isActive}
                     onClick={() => setActiveCategory(family)}
-                    className={`focus-ring relative flex items-center gap-1.5 rounded-v5-pill px-brand-3 py-brand-1 text-body font-semibold transition-colors ${
+                    className={`focus-ring relative flex shrink-0 items-center gap-1.5 rounded-v5-pill px-brand-2 py-brand-1 text-body font-semibold whitespace-nowrap transition-colors sm:px-brand-3 ${
                       isActive ? "text-brand-v5-paper" : "text-brand-v5-muted hover:bg-brand-v5-line/60"
                     }`}
                   >
@@ -176,28 +182,28 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
             </div>
             <div className="flex flex-col divide-y divide-brand-v5-line rounded-v5-card sm:flex-row sm:items-stretch sm:divide-x sm:divide-y-0">
               <SearchSegment
-                label="Gdzie?"
+                label={t("whereLabel")}
                 value={country}
                 onChange={(value) => setCountry(value as CountryCode)}
                 options={countryOptions}
-                placeholder="Kraj, region lub miasto"
-                ariaLabel="Kraj docelowy"
+                placeholder={t("wherePlaceholder")}
+                ariaLabel={t("whereAriaLabel")}
               />
               <SearchSegment
-                label="Budżet"
+                label={t("budgetLabel")}
                 value={budgetRangeValue}
                 onChange={setBudgetRangeValue}
                 options={budgetRangeOptions}
-                placeholder="Dowolny budżet"
-                ariaLabel="Budżet"
+                placeholder={t("budgetAny")}
+                ariaLabel={t("budgetAriaLabel")}
               />
               <SearchSegment
-                label="Powierzchnia"
+                label={t("areaLabel")}
                 value={sizeRangeValue}
                 onChange={setSizeRangeValue}
                 options={sizeRangeOptions}
-                placeholder="Dowolna"
-                ariaLabel="Powierzchnia"
+                placeholder={t("areaPlaceholder")}
+                ariaLabel={t("areaLabel")}
               />
               <div className="flex items-center justify-center p-brand-2">
                 <button
@@ -207,7 +213,7 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
                   className="focus-ring flex w-full items-center justify-center gap-brand-1 rounded-v5-pill bg-brand-v5-amber px-brand-4 py-brand-2 text-body font-semibold text-brand-v5-amber-foreground transition-opacity hover:bg-brand-v5-amber-strong disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
                 >
                   <Search className="size-4" aria-hidden="true" />
-                  Szukaj domów
+                  {t("searchButton")}
                 </button>
               </div>
             </div>

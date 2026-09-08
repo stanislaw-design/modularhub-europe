@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { Button, Card, DataText, Heading, Input, Label, Stack, Text } from "@/components/ui";
 import type { Project, ProducerInquiry } from "@/lib/data/types";
@@ -18,12 +19,8 @@ const dateFormatter = new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium", ti
 
 const MOCK_INSTALLATION_PRICE_EUR = 8000;
 
-// Fixed, platform imposed message — same text every producer sees for this
-// inquiry, mirroring ProducerInquiryRow / InquiryConfirmationCard.
-const MESSAGE_TEXT =
-  "Klient prosi o przygotowanie oferty na ten projekt, uwzględniającej dom, transport i montaż.";
-
 export function ProducerOfferForm({ inquiry, project, countryName, listHref }: ProducerOfferFormProps) {
+  const t = useTranslations("ProducerOfferForm");
   const transportPriceEur = getMockTransportPriceEur(inquiry.deliveryCountry);
 
   const [housePriceEur, setHousePriceEur] = useState(project.commercial.housePriceMinEur);
@@ -53,7 +50,7 @@ export function ProducerOfferForm({ inquiry, project, countryName, listHref }: P
         {inquiry.clientName} · {countryName} · {inquiry.clientEmail}
       </Text>
       <Text tone="muted" measure>
-        {MESSAGE_TEXT}
+        {t("messageText")}
       </Text>
     </Stack>
   );
@@ -62,17 +59,17 @@ export function ProducerOfferForm({ inquiry, project, countryName, listHref }: P
     const total = stored.housePriceEur + transportPriceEur + stored.installationPriceEur;
     return (
       <Stack gap={4}>
-        <Heading level="h1">Oferta — {project.name}</Heading>
+        <Heading level="h1">{t("heading", { name: project.name })}</Heading>
         {summary}
         <Card as="div" padding="md">
           <Stack gap={3} align="start">
             <Text className="font-medium text-status-approved">
-              Oferta wysłana do klienta {dateFormatter.format(new Date(stored.submittedAt))}.
+              {t("offerSentMessage", { date: dateFormatter.format(new Date(stored.submittedAt)) })}
             </Text>
             <dl className="grid gap-brand-2 sm:grid-cols-3">
               <div>
                 <Text as="dt" variant="label" tone="muted">
-                  Cena domu
+                  {t("housePriceLabel")}
                 </Text>
                 <dd>
                   <DataText>{priceFormatter.format(stored.housePriceEur)} €</DataText>
@@ -80,7 +77,7 @@ export function ProducerOfferForm({ inquiry, project, countryName, listHref }: P
               </div>
               <div>
                 <Text as="dt" variant="label" tone="muted">
-                  Transport
+                  {t("transportLabel")}
                 </Text>
                 <dd>
                   <DataText>{priceFormatter.format(transportPriceEur)} €</DataText>
@@ -88,7 +85,7 @@ export function ProducerOfferForm({ inquiry, project, countryName, listHref }: P
               </div>
               <div>
                 <Text as="dt" variant="label" tone="muted">
-                  Montaż
+                  {t("assemblyLabel")}
                 </Text>
                 <dd>
                   <DataText>{priceFormatter.format(stored.installationPriceEur)} €</DataText>
@@ -96,11 +93,11 @@ export function ProducerOfferForm({ inquiry, project, countryName, listHref }: P
               </div>
             </dl>
             <Text as="span" variant="label" tone="muted">
-              Razem
+              {t("totalLabel")}
             </Text>
             <DataText className="text-h2">{priceFormatter.format(total)} €</DataText>
             <Button as="a" href={listHref} variant="secondary" className="w-fit">
-              Wróć do zapytań
+              {t("backToInquiries")}
             </Button>
           </Stack>
         </Card>
@@ -112,17 +109,17 @@ export function ProducerOfferForm({ inquiry, project, countryName, listHref }: P
 
   return (
     <Stack gap={4}>
-      <Heading level="h1">Oferta — {project.name}</Heading>
+      <Heading level="h1">{t("heading", { name: project.name })}</Heading>
       {summary}
       <Card as="div" padding="md">
         <Stack gap={3} align="start">
-          <Heading level="h2">Szablon oferty</Heading>
+          <Heading level="h2">{t("templateHeading")}</Heading>
           <Text tone="muted" measure>
-            Ten sam szablon obowiązuje każdego producenta na platformie.
+            {t("templateIntro")}
           </Text>
           <Stack gap={1} className="w-full max-w-xs">
             <Label htmlFor="offer-house-price" required>
-              Cena domu (€)
+              {t("housePriceInputLabel")}
             </Label>
             <Input
               id="offer-house-price"
@@ -134,15 +131,15 @@ export function ProducerOfferForm({ inquiry, project, countryName, listHref }: P
             />
           </Stack>
           <Stack gap={1} className="w-full max-w-xs">
-            <Label htmlFor="offer-transport-price">Transport (€)</Label>
+            <Label htmlFor="offer-transport-price">{t("transportInputLabel")}</Label>
             <Input id="offer-transport-price" type="number" value={transportPriceEur} disabled readOnly />
             <Text tone="muted" variant="label">
-              Wyliczone automatycznie dla kraju dostawy ({countryName}) — pole tylko do odczytu.
+              {t("transportHint", { country: countryName })}
             </Text>
           </Stack>
           <Stack gap={1} className="w-full max-w-xs">
             <Label htmlFor="offer-installation-price" required>
-              Montaż (€)
+              {t("installationInputLabel")}
             </Label>
             <Input
               id="offer-installation-price"
@@ -154,16 +151,16 @@ export function ProducerOfferForm({ inquiry, project, countryName, listHref }: P
             />
           </Stack>
           <Text as="span" variant="label" tone="muted">
-            Razem
+            {t("totalLabel")}
           </Text>
           <DataText className="text-h2">{priceFormatter.format(total)} €</DataText>
           <Button type="button" onClick={handleSubmit} className="w-fit">
-            Wyślij ofertę
+            {t("submitOffer")}
           </Button>
         </Stack>
       </Card>
       <Button as="a" href={listHref} variant="secondary" className="w-fit">
-        Wróć do zapytań
+        {t("backToInquiries")}
       </Button>
     </Stack>
   );

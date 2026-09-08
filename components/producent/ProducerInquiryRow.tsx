@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { Button, Card, DataText, Heading, Stack, StatusPill, Text } from "@/components/ui";
 import type { Project, ProducerInquiry } from "@/lib/data/types";
@@ -14,13 +15,8 @@ interface ProducerInquiryRowProps {
 
 const dateFormatter = new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium" });
 
-// Fixed, platform imposed message — every producer sees the same request
-// text for every inquiry, mirroring lib InquiryConfirmationCard's MESSAGE_TEXT
-// on the client side (spec 0005's "narzucony szablon").
-const MESSAGE_TEXT =
-  "Klient prosi o przygotowanie oferty na ten projekt, uwzględniającej dom, transport i montaż.";
-
 export function ProducerInquiryRow({ locale, inquiry, project, countryName }: ProducerInquiryRowProps) {
+  const t = useTranslations("ProducerInquiryRow");
   // Odczyt localStorage po zamontowaniu — patrz precedens lib/gap-closure.ts /
   // ExportReadinessCountryRow (możliwe krótkie mignięcie przy pierwszym renderze).
   const [submitted, setSubmitted] = useState(false);
@@ -43,13 +39,13 @@ export function ProducerInquiryRow({ locale, inquiry, project, countryName }: Pr
           {inquiry.clientName} · {countryName} · {inquiry.clientEmail}
         </Text>
         <Text tone="muted" measure>
-          {MESSAGE_TEXT}
+          {t("messageText")}
         </Text>
         <StatusPill status={submitted ? "approved" : "conditional"}>
-          {submitted ? "Oferta złożona" : "Nowe zapytanie"}
+          {submitted ? t("statusSubmitted") : t("statusNew")}
         </StatusPill>
         <Button as="a" href={offerHref} variant={submitted ? "secondary" : "primary"} className="w-fit">
-          {submitted ? "Zobacz ofertę" : "Przygotuj ofertę"}
+          {submitted ? t("viewOffer") : t("prepareOffer")}
         </Button>
       </Stack>
     </Card>

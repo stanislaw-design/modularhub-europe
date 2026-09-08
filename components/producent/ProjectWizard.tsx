@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Heading, Stack, Text } from "@/components/ui";
@@ -11,6 +12,7 @@ import {
   WIZARD_STEPS,
   clearDraft,
   createEmptyDraft,
+  getWizardSteps,
   isStepComplete,
   loadDraft,
   saveDraft,
@@ -29,6 +31,9 @@ interface ProjectWizardProps {
 }
 
 export function ProjectWizard({ locale, countries, registration }: ProjectWizardProps) {
+  const t = useTranslations("ProjectWizard");
+  const tOptions = useTranslations("ProjectOptions");
+  const wizardSteps = getWizardSteps(tOptions);
   const nip = registration.nip;
   const router = useRouter();
   const [draft, setDraft] = useState<ProjectDraft>(() => createEmptyDraft());
@@ -111,9 +116,9 @@ export function ProjectWizard({ locale, countries, registration }: ProjectWizard
 
   return (
     <Stack gap={5}>
-      <Heading level="h1">Dodaj pierwszy projekt</Heading>
+      <Heading level="h1">{t("heading")}</Heading>
       <ProjectWizardProgress
-        steps={WIZARD_STEPS}
+        steps={wizardSteps}
         currentIndex={stepIndex}
         maxReachedIndex={maxReachedIndex}
         onStepClick={handleStepClick}
@@ -138,25 +143,20 @@ export function ProjectWizard({ locale, countries, registration }: ProjectWizard
         )}
         {isSummaryStep && <ProjectWizardSummaryStep draft={draft} countries={countries} />}
       </Stack>
-      {saveError && (
-        <Text className="text-status-blocked">
-          Nie udało się zapisać projektu (limit pamięci przeglądarki). Spróbuj usunąć nieużywane dane albo
-          zwolnić miejsce i spróbuj ponownie.
-        </Text>
-      )}
+      {saveError && <Text className="text-status-blocked">{t("saveError")}</Text>}
       <Stack direction="row" gap={2}>
         {stepIndex > 0 && (
           <Button type="button" variant="secondary" onClick={handleBack} className="w-fit">
-            Wstecz
+            {t("back")}
           </Button>
         )}
         {isSummaryStep ? (
           <Button type="button" onClick={handleSave} className="w-fit">
-            Zapisz projekt
+            {t("save")}
           </Button>
         ) : (
           <Button type="button" onClick={handleNext} className="w-fit">
-            Dalej
+            {t("next")}
           </Button>
         )}
       </Stack>

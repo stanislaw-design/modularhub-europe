@@ -1,4 +1,5 @@
 import { ImageOff, MapPin } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
 import { Card, Checkbox, DataText, Heading, StatusPill, Text } from "@/components/ui";
@@ -19,7 +20,10 @@ const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0
 // ulubienie (zawsze sesja klienta, zawsze favorited na tej stronie), checkbox
 // zaznacza do porównania (maksymalnie 3, stan w URL, patrz FavoritesGrid).
 // Produkt niedostępny zostaje na liście, tylko oznaczony, nie znika po cichu.
+// Only ever rendered from FavoritesGrid ("use client"): useTranslations, not
+// getTranslations (same reason as InquiryConfirmationCard).
 export function FavoriteCard({ entry, locale, selected, selectionDisabled, onToggleSelect }: FavoriteCardProps) {
+  const t = useTranslations("FavoriteCard");
   const { project, available } = entry;
   const href = `/${locale}/klient/projekt/${project.id}`;
 
@@ -33,7 +37,7 @@ export function FavoriteCard({ entry, locale, selected, selectionDisabled, onTog
       <Link
         href={href}
         className="focus-ring absolute inset-0 z-0 rounded-v5-card"
-        aria-label={`Zobacz szczegóły projektu ${project.name}`}
+        aria-label={t("viewDetails", { name: project.name })}
       />
       <div className="relative aspect-[3/2] overflow-hidden">
         {project.coverImageUrl ? (
@@ -50,13 +54,13 @@ export function FavoriteCard({ entry, locale, selected, selectionDisabled, onTog
           </div>
         )}
         <label className="absolute right-brand-2 top-brand-2 z-10 flex items-center justify-center rounded-data bg-brand-v5-surface/95 p-1.5 shadow-sm">
-          <span className="sr-only">Zaznacz {project.name} do porównania</span>
+          <span className="sr-only">{t("selectForCompare", { name: project.name })}</span>
           <Checkbox
             surface="v5"
             checked={selected}
             disabled={selectionDisabled}
             onChange={onToggleSelect}
-            title={selectionDisabled ? "Można porównać maksymalnie 3 domy" : undefined}
+            title={selectionDisabled ? t("compareLimitReached") : undefined}
           />
         </label>
         <FavoriteButton
@@ -70,7 +74,7 @@ export function FavoriteCard({ entry, locale, selected, selectionDisabled, onTog
         />
       </div>
       <div className="relative z-10 flex flex-1 flex-col gap-brand-2 p-brand-3">
-        {!available && <StatusPill status="blocked">Produkt niedostępny</StatusPill>}
+        {!available && <StatusPill status="blocked">{t("unavailable")}</StatusPill>}
         <div className="flex flex-col gap-1">
           <Heading level="h3" surface="v5" className="text-body-l">
             {project.name}
@@ -81,10 +85,10 @@ export function FavoriteCard({ entry, locale, selected, selectionDisabled, onTog
           </Text>
         </div>
         <Text surface="v5" className="font-medium">
-          {project.floorAreaM2} m² użytkowe
+          {t("floorArea", { area: project.floorAreaM2 })}
         </Text>
         <DataText surface="v5" className="mt-auto border-t border-brand-v5-line pt-brand-2 text-body-l font-semibold">
-          od {priceFormatter.format(project.priceMin)} €
+          {t("priceFrom", { price: priceFormatter.format(project.priceMin) })}
         </DataText>
       </div>
     </Card>

@@ -21,11 +21,10 @@ describe("ResultCard", () => {
   it("shows the comparable project, scope, technology and delivery facts (AC-7)", () => {
     render(<ResultCard project={project} countryName="Polska" locale="pl" />);
     expect(screen.getByText("Modulor Family 90")).toBeInTheDocument();
-    expect(screen.getByText(/118\s?000.*142\s?000.*€/)).toBeInTheDocument();
+    expect(screen.getByText(/od 105\s?000\s?€/)).toBeInTheDocument();
     expect(screen.getByText(/Modulor Systems Sp\. z o\.o\..*Polska/)).toBeInTheDocument();
     expect(screen.getByText(/90 m² użytkowe.*4 pokoje.*1 kond/)).toBeInTheDocument();
     expect(screen.getByText(/Prefabrykowany szkielet drewniany.*Standard deweloperski/)).toBeInTheDocument();
-    expect(screen.getByText("Dom + standardowy transport + montaż")).toBeInTheDocument();
     expect(screen.getByText(/12.*16 tyg. produkcji.*3.*5 dni montażu/)).toBeInTheDocument();
   });
 
@@ -54,13 +53,21 @@ describe("ResultCard", () => {
     expect(screen.queryByText(/142\s?000/)).not.toBeInTheDocument();
   });
 
-  it("shows Wycena indywidualna instead of the dom/transport/montaż breakdown when priceOnRequest is true and countryCode is set (spec 0020 AC-5)", () => {
+  it("shows Wycena indywidualna instead of the house price when priceOnRequest is true and countryCode is set (spec 0020 AC-5)", () => {
     const onRequestProject = createMockProject({ priceOnRequest: true });
     render(<ResultCard project={onRequestProject} countryName="Polska" locale="pl" countryCode="DE" />);
 
     expect(screen.getByText("Wycena indywidualna")).toBeInTheDocument();
     expect(screen.queryByText("Dom")).not.toBeInTheDocument();
+  });
+
+  it("shows only the house price, without transport or assembly, even when countryCode is set", () => {
+    render(<ResultCard project={project} countryName="Polska" locale="pl" countryCode="DE" />);
+
+    expect(screen.getByText("Dom")).toBeInTheDocument();
+    expect(screen.getByText(/od 105\s?000\s?€/)).toBeInTheDocument();
     expect(screen.queryByText("Razem")).not.toBeInTheDocument();
+    expect(screen.queryByText("Montaż")).not.toBeInTheDocument();
   });
 
   it("shows the conditional badge only when eligibilityStatus is conditional (AC-7)", () => {

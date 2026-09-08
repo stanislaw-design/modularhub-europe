@@ -25,7 +25,7 @@ describe("ProjectWizardBasicInfoStep", () => {
     expect(screen.getByLabelText(/nazwa projektu/i)).toBeRequired();
     expect(screen.getByLabelText(/metraż/i)).toBeRequired();
     expect(screen.getByLabelText(/liczba sypialni/i)).toBeRequired();
-    expect(screen.getByLabelText(/opis/i)).toBeRequired();
+    expect(screen.getByLabelText("Opis *")).toBeRequired();
     // Rodzina i Kraj produkcji są oba selecty z placeholderem "Wybierz…" (spec 0022 AC-6).
     expect(screen.getAllByRole("button", { name: "Wybierz…" })).toHaveLength(2);
   });

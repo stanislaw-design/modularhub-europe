@@ -1,6 +1,7 @@
 "use client";
 
 import { Heart } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -33,6 +34,7 @@ export function FavoriteButton({
   className,
   surface = "v3",
 }: FavoriteButtonProps) {
+  const t = useTranslations("FavoriteButton");
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [favorited, setFavorited] = useState(initialFavorited);
@@ -50,7 +52,7 @@ export function FavoriteButton({
     return (
       <Link
         href={`/${locale}/logowanie?callbackUrl=${encodeURIComponent(returnHref)}`}
-        aria-label={`Zaloguj się, żeby zapisać ${productName} do ulubionych`}
+        aria-label={t("signInToFavorite", { name: productName })}
         className={`${baseClassName} ${className ?? ""}`}
       >
         <Heart className={`size-4 ${isV5 ? "text-brand-v5-ink" : "text-brand-foundation-navy"}`} aria-hidden="true" />
@@ -66,7 +68,7 @@ export function FavoriteButton({
       const result = await toggleFavorite(productId, next);
       if (!result.ok) {
         setFavorited(!next);
-        setError(result.error ?? "Nie udało się zapisać. Spróbuj ponownie.");
+        setError(result.error ?? t("genericError"));
       }
     });
   }
@@ -79,7 +81,7 @@ export function FavoriteButton({
           onClick={handleClick}
           disabled={isPending}
           aria-pressed={favorited}
-          aria-label={favorited ? `Usuń ${productName} z ulubionych` : `Dodaj ${productName} do ulubionych`}
+          aria-label={favorited ? t("removeFavorite", { name: productName }) : t("addFavorite", { name: productName })}
           className={`${baseClassName} disabled:opacity-60`}
         >
           <Heart

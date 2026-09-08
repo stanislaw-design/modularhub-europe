@@ -21,6 +21,9 @@ interface StageTimelineProps {
   items: StageTimelineItem[];
   className?: string;
   surface?: "v3" | "v5";
+  // Domain free primitive: never bakes in its own copy (see components/ui/AGENTS.md),
+  // so the three status words come from the caller, already resolved via next-intl.
+  statusLabels: Record<StageStatus, string>;
 }
 
 const marker = tv({
@@ -73,12 +76,6 @@ const connector = tv({
   },
 });
 
-const statusLabel: Record<StageStatus, string> = {
-  completed: "Ukończono",
-  current: "Aktualny etap",
-  upcoming: "Nadchodzący",
-};
-
 const statusLabelClassName: Record<"v3" | "v5", Record<StageStatus, string>> = {
   v3: {
     completed: "text-brand-foundation-navy",
@@ -99,7 +96,7 @@ const documentIconByType = {
   image: ImageIcon,
 } as const;
 
-export function StageTimeline({ items, className, surface = "v3" }: StageTimelineProps) {
+export function StageTimeline({ items, className, surface = "v3", statusLabels }: StageTimelineProps) {
   const iconMutedClass = surface === "v5" ? "text-brand-v5-muted" : "text-brand-technical-graphite";
   return (
     <ol className={`flex flex-col ${className ?? ""}`}>
@@ -127,7 +124,7 @@ export function StageTimeline({ items, className, surface = "v3" }: StageTimelin
                   {item.label}
                 </Text>
                 <Text as="span" variant="label" surface={surface} className={statusLabelClassName[surface][item.status]}>
-                  {statusLabel[item.status]}
+                  {statusLabels[item.status]}
                 </Text>
               </div>
               {item.date && (
