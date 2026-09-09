@@ -9,10 +9,10 @@ function makeProject(id: string, name: string, producerName: string, floorAreaM2
   return createMockProject({ id, producerId: "prod-1", producerName, name, floorAreaM2, priceMin: 100000, priceMax: 120000 });
 }
 
-// prj-modulor-family-90 (approved) and prj-karpaty-alpine-104 (blocked) both have
+// prj-budman-familia-90 (approved) and prj-steelhouse-alpine-104 (blocked) both have
 // fixture rows in lib/data/fixtures/plot-analysis.ts.
-const projectA = makeProject("prj-modulor-family-90", "Modulor Family 90", "Modulor Systems", 90);
-const projectB = makeProject("prj-karpaty-alpine-104", "Karpaty Alpine 104", "Karpaty Haus", 104);
+const projectA = makeProject("prj-budman-familia-90", "Budman Familia 90", "Budman House", 90);
+const projectB = makeProject("prj-steelhouse-alpine-104", "Steel House Alpine 104", "Steel House", 104);
 
 describe("PlotDossierPanel", () => {
   it("renders exactly one H1 and one collapsed row per selected project (AC-2)", () => {
@@ -21,8 +21,8 @@ describe("PlotDossierPanel", () => {
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Panel działki");
 
-    const rowA = screen.getByRole("button", { name: /Modulor Family 90/ });
-    const rowB = screen.getByRole("button", { name: /Karpaty Alpine 104/ });
+    const rowA = screen.getByRole("button", { name: /Budman Familia 90/ });
+    const rowB = screen.getByRole("button", { name: /Steel House Alpine 104/ });
     expect(rowA).toHaveAttribute("aria-expanded", "false");
     expect(rowB).toHaveAttribute("aria-expanded", "false");
   });
@@ -31,7 +31,7 @@ describe("PlotDossierPanel", () => {
     const user = userEvent.setup();
     render(<PlotDossierPanel locale="pl" projects={[projectA]} resultsHref="/pl/klient/wyniki" />);
 
-    await user.click(screen.getByRole("button", { name: /Modulor Family 90/ }));
+    await user.click(screen.getByRole("button", { name: /Budman Familia 90/ }));
     await user.type(screen.getByLabelText(/metraż działki/i), "250");
     expect(screen.getByRole("button", { name: "Zapłać" })).toBeDisabled();
 
@@ -46,15 +46,15 @@ describe("PlotDossierPanel", () => {
       render(<PlotDossierPanel locale="pl" projects={[projectA, projectB]} resultsHref="/pl/klient/wyniki" />);
 
       await user.type(screen.getByLabelText(/adres działki/i), "Ul. Testowa 10");
-      await user.click(screen.getByRole("button", { name: /Modulor Family 90/ }));
-      await user.click(screen.getByRole("button", { name: /Karpaty Alpine 104/ }));
+      await user.click(screen.getByRole("button", { name: /Budman Familia 90/ }));
+      await user.click(screen.getByRole("button", { name: /Steel House Alpine 104/ }));
 
       const areaInputs = screen.getAllByLabelText(/metraż działki/i);
       const payButtons = screen.getAllByRole("button", { name: "Zapłać" });
       expect(areaInputs).toHaveLength(2);
       expect(payButtons).toHaveLength(2);
 
-      // Fill and pay only row A (Modulor Family 90).
+      // Fill and pay only row A (Budman Familia 90).
       await user.type(areaInputs[0], "300");
       expect(payButtons[1]).toBeDisabled();
       await user.click(payButtons[0]);

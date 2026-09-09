@@ -12,7 +12,7 @@ describe("ProducerRealizacjePage (feature 16)", () => {
     render(await resolveAsyncTree(element));
 
     expect(screen.getByRole("heading", { level: 1, name: "Realizacje" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 2, name: "Modulor Family 90" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 2, name: "Karpaty Alpine 104" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "Budman Familia 90" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "Steel House Alpine 104" })).toBeInTheDocument();
   });
 });

@@ -2,11 +2,8 @@
   "SiteHeader": {
     "nav": {
       "homes": "Domy",
-      "producers": "Producenci",
       "projects": "Projekty",
-      "inspirations": "Inspiracje",
-      "howItWorks": "Jak to działa",
-      "about": "O nas"
+      "howItWorks": "Jak to działa"
     },
     "favorites": "Ulubione",
     "adminPanel": "Panel administratora",
@@ -16,7 +13,8 @@
     "openMenu": "Otwórz menu",
     "closeMenu": "Zamknij menu",
     "menu": "Menu",
-    "mainNav": "Główna"
+    "mainNav": "Nawigacja",
+    "account": "Konto"
   },
   "ProducerHeader": {
     "imClient": "Jestem klientem",
@@ -842,7 +840,9 @@
     "subheading": "Porównaj sprawdzone domy modułowe z całej Europy."
   },
   "ComplianceEngineShowcase": {
-    "heading": "Sprawdzamy zgodność z prawem, zanim Ty to zrobisz",
+    "headingBefore": "Sprawdzamy",
+    "headingUnderline": "zgodność z prawem",
+    "headingAfter": "zanim Ty to zrobisz",
     "intro": "Każdy dom porównujemy z lokalnymi przepisami budowlanymi kraju docelowego — konstrukcją, izolacją, wentylacją i wymaganą dokumentacją — zanim wyślesz zapytanie do producenta.",
     "disclaimer": "Wynik to wstępna, orientacyjna weryfikacja — nie stanowi porady prawnej. Dane i logikę Compliance Engine™ na bieżąco aktualizujemy, by jak najwierniej odzwierciedlały przepisy budowlane danego kraju, jednak ostateczną zgodność projektu potwierdza właściwy urząd i wybrany producent.",
     "exampleLocation": "Lokalizacja: Venlo, Holandia",

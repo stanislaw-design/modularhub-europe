@@ -12,9 +12,9 @@ function makeProject(id: string, name: string, producerName: string, floorAreaM2
 }
 
 // Known fixture rows (lib/data/fixtures/plot-analysis.ts): pick one of each status.
-const approvedProject = makeProject("prj-modulor-family-90", "Modulor Family 90", "Modulor Systems", 90);
-const conditionalProject = makeProject("prj-baltyk-loft-120", "Baltyk Loft 120", "Baltyk Modular", 120);
-const blockedProject = makeProject("prj-karpaty-alpine-104", "Karpaty Alpine 104", "Karpaty Haus", 104);
+const approvedProject = makeProject("prj-budman-familia-90", "Budman Familia 90", "Budman House", 90);
+const conditionalProject = makeProject("prj-steelhouse-loft-120", "Steel House Loft 120", "Steel House", 120);
+const blockedProject = makeProject("prj-steelhouse-alpine-104", "Steel House Alpine 104", "Steel House", 104);
 const projectWithNoFixtureRow = makeProject("prj-unknown-999", "Nieznany Dom", "Nieznany Producent", 70);
 
 function initialRequest(): PlotAnalysisRequest {
@@ -42,7 +42,7 @@ function Harness({ project, initialAddress = "" }: { project: Project; initialAd
 }
 
 async function expandAndFillArea(user: ReturnType<typeof userEvent.setup>, area: string) {
-  await user.click(screen.getByRole("button", { name: /Modulor Family 90|Baltyk Loft 120|Karpaty Alpine 104|Nieznany Dom/ }));
+  await user.click(screen.getByRole("button", { name: /Budman Familia 90|Steel House Loft 120|Steel House Alpine 104|Nieznany Dom/ }));
   await user.type(screen.getByLabelText(/metraż działki/i), area);
 }
 
@@ -50,9 +50,9 @@ describe("PlotAnalysisRow", () => {
   it("is collapsed by default and shows the project name, producer and floor area on the trigger", () => {
     render(<Harness project={approvedProject} />);
 
-    const trigger = screen.getByRole("button", { name: /Modulor Family 90/ });
+    const trigger = screen.getByRole("button", { name: /Budman Familia 90/ });
     expect(trigger).toHaveAttribute("aria-expanded", "false");
-    expect(screen.getByText(/Modulor Systems.*90 m²/)).toBeInTheDocument();
+    expect(screen.getByText(/Budman House.*90 m²/)).toBeInTheDocument();
     expect(screen.queryByRole("region")).not.toBeInTheDocument();
   });
 
@@ -60,7 +60,7 @@ describe("PlotAnalysisRow", () => {
     const user = userEvent.setup();
     render(<Harness project={approvedProject} initialAddress="" />);
 
-    await user.click(screen.getByRole("button", { name: /Modulor Family 90/ }));
+    await user.click(screen.getByRole("button", { name: /Budman Familia 90/ }));
 
     expect(screen.getByRole("region")).toBeInTheDocument();
     expect(screen.getByText(/Sprawdzamy, czy obrys tego domu/)).toBeInTheDocument();
@@ -72,7 +72,7 @@ describe("PlotAnalysisRow", () => {
     const user = userEvent.setup();
     render(<Harness project={approvedProject} initialAddress="Ul. Polna 5" />);
 
-    await user.click(screen.getByRole("button", { name: /Modulor Family 90/ }));
+    await user.click(screen.getByRole("button", { name: /Budman Familia 90/ }));
     const areaInput = screen.getByLabelText(/metraż działki/i);
 
     await user.type(areaInput, "50");
@@ -90,7 +90,7 @@ describe("PlotAnalysisRow", () => {
     const user = userEvent.setup();
     render(<Harness project={approvedProject} initialAddress="Ul. Polna 5" />);
 
-    await user.click(screen.getByRole("button", { name: /Modulor Family 90/ }));
+    await user.click(screen.getByRole("button", { name: /Budman Familia 90/ }));
     await user.type(screen.getByLabelText(/metraż działki/i), "250");
 
     expect(screen.getByRole("button", { name: "Zapłać" })).toBeEnabled();
@@ -102,7 +102,7 @@ describe("PlotAnalysisRow", () => {
       const user = userEvent.setup();
       render(<Harness project={approvedProject} initialAddress="Ul. Polna 5" />);
 
-      await user.click(screen.getByRole("button", { name: /Modulor Family 90/ }));
+      await user.click(screen.getByRole("button", { name: /Budman Familia 90/ }));
       await user.type(screen.getByLabelText(/metraż działki/i), "250");
       await user.click(screen.getByRole("button", { name: "Zapłać" }));
 
@@ -117,7 +117,7 @@ describe("PlotAnalysisRow", () => {
       const offerLink = screen.getByRole("link", { name: "Przejdź do oferty wiążącej" });
       expect(offerLink).toHaveAttribute(
         "href",
-        `/pl/klient/oferta?project=prj-modulor-family-90&address=${encodeURIComponent("Ul. Polna 5")}`
+        `/pl/klient/oferta?project=prj-budman-familia-90&address=${encodeURIComponent("Ul. Polna 5")}`
       );
     },
     5000
@@ -129,7 +129,7 @@ describe("PlotAnalysisRow", () => {
       const user = userEvent.setup();
       render(<Harness project={approvedProject} initialAddress="Ul. Polna 5" />);
 
-      await user.click(screen.getByRole("button", { name: /Modulor Family 90/ }));
+      await user.click(screen.getByRole("button", { name: /Budman Familia 90/ }));
       await user.type(screen.getByLabelText(/metraż działki/i), "250");
       await user.click(screen.getByRole("button", { name: "Zapłać" }));
       await screen.findByText("Dopuszczone", {}, { timeout: 3000 });
@@ -139,7 +139,7 @@ describe("PlotAnalysisRow", () => {
       const offerLink = screen.getByRole("link", { name: "Przejdź do oferty wiążącej" });
       expect(offerLink).toHaveAttribute(
         "href",
-        `/pl/klient/oferta?project=prj-modulor-family-90&address=${encodeURIComponent("Ul. Polna 5")}`
+        `/pl/klient/oferta?project=prj-budman-familia-90&address=${encodeURIComponent("Ul. Polna 5")}`
       );
     },
     5000

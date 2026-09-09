@@ -2,11 +2,8 @@
   "SiteHeader": {
     "nav": {
       "homes": "Woningen",
-      "producers": "Fabrikanten",
       "projects": "Projecten",
-      "inspirations": "Inspiratie",
-      "howItWorks": "Hoe het werkt",
-      "about": "Over ons"
+      "howItWorks": "Hoe het werkt"
     },
     "favorites": "Favorieten",
     "adminPanel": "Beheerderspaneel",
@@ -16,7 +13,8 @@
     "openMenu": "Menu openen",
     "closeMenu": "Menu sluiten",
     "menu": "Menu",
-    "mainNav": "Hoofdmenu"
+    "mainNav": "Navigatie",
+    "account": "Account"
   },
   "ProducerHeader": {
     "imClient": "Ik ben klant",
@@ -842,7 +840,9 @@
     "subheading": "Vergelijk gecontroleerde modulaire woningen uit heel Europa."
   },
   "ComplianceEngineShowcase": {
-    "heading": "Wij controleren de wettelijke conformiteit, voordat u dat hoeft te doen",
+    "headingBefore": "Wij controleren",
+    "headingUnderline": "de wettelijke conformiteit",
+    "headingAfter": "voordat u dat hoeft te doen",
     "intro": "Wij vergelijken elke woning met de lokale bouwvoorschriften van het doelland — constructie, isolatie, ventilatie en vereiste documentatie — voordat u een aanvraag naar de producent stuurt.",
     "disclaimer": "Het resultaat is een voorlopige, indicatieve controle — het vormt geen juridisch advies. We houden de gegevens en logica van de Compliance Engine™ voortdurend up-to-date om de bouwvoorschriften van een land zo nauwkeurig mogelijk weer te geven, maar de definitieve conformiteit wordt bevestigd door de bevoegde instantie en de gekozen producent.",
     "exampleLocation": "Locatie: Venlo, Nederland",

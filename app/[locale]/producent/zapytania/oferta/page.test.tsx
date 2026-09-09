@@ -47,7 +47,7 @@ describe("ProducerOfertaPage", () => {
   it("renders the offer template for a known inquiry id", async () => {
     await renderPage({ zapytanie: "inq-001" });
 
-    expect(screen.getByRole("heading", { level: 1, name: "Oferta — Modulor Family 90" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Oferta — Budman Familia 90" })).toBeInTheDocument();
     expect(redirect).not.toHaveBeenCalled();
   });
 

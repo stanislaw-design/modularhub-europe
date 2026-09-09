@@ -22,7 +22,7 @@ describe("getProducerInquiryById", () => {
     const inquiry = await getProducerInquiryById("inq-001");
 
     expect(inquiry?.id).toBe("inq-001");
-    expect(inquiry?.projectId).toBe("prj-modulor-family-90");
+    expect(inquiry?.projectId).toBe("prj-budman-familia-90");
   });
 
   it("returns null for an unknown id", async () => {

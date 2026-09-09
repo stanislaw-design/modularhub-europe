@@ -3,8 +3,8 @@ import { getProducerById } from "./producers";
 
 describe("getProducerById", () => {
   it("returns the matching producer for a known id (spec 0020)", async () => {
-    const producer = await getProducerById("prod-modulor");
-    expect(producer?.name).toBe("Modulor Systems Sp. z o.o.");
+    const producer = await getProducerById("prod-cocomodule");
+    expect(producer?.name).toBe("Cocomodule");
   });
 
   it("returns null for an unknown id instead of throwing (spec 0020)", async () => {

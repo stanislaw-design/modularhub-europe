@@ -34,7 +34,11 @@ export async function ComplianceEngineShowcase({ locale }: ComplianceEngineShowc
             <FileCheck2 className="size-4" aria-hidden="true" />
             Compliance Engine™
           </span>
-          <Heading level="h2">{t("heading")}</Heading>
+          <Heading level="h2">
+            {t("headingBefore")}{" "}
+            <span className="hero-underline">{t("headingUnderline")}</span>{" "}
+            {t("headingAfter")}
+          </Heading>
           <Text tone="muted" className="text-body-l">
             {t("intro")}
           </Text>

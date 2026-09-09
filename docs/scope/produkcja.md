@@ -41,6 +41,7 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 24 | Panel klienta (moje zapytania i ulubione) | Slice 2 | in progress |
 | 25 | Wersje językowe (EN/NL) i przełącznik języka | Slice 0 | in progress |
 | 26 | Sekcja "Więcej niż dom": przewijana witryna kategorii | Slice 2 | in progress |
+| 27 | Poprawki nagłówka i nawigacji klienta (SiteHeader) | Slice 2 | in progress |
 
 ## Foundations
 
@@ -190,6 +191,18 @@ Dzisiejsza sekcja `CategoryShowcase` (spa modułowe, pergole) na stronie startow
   - Odkryte po drodze: `app/globals.css`'s `html, body { overflow-x: hidden }` (spec 0014/0015) łamało globalnie `position: sticky` (overflow-x/y coupling + brak propagacji z `body` na viewport, gdy `html` też ma ustawiony `overflow`) — przeniesione na samo `body`, zweryfikowane w przeglądarce (przypięcie działa, brak nowego poziomego scrolla)
 - [ ] Zweryfikuj: `/check verify sekcja "Więcej niż dom": przewijana witryna kategorii`
 - [ ] Testuj: `/test sekcja "Więcej niż dom": przewijana witryna kategorii`
+
+### 27. Poprawki nagłówka i nawigacji klienta (SiteHeader) · in progress
+Na telefonie przycisk hamburgera w `SiteHeader` wychodzi poza widoczny ekran (potwierdzone w przeglądarce), więc na najwęższych ekranach widać tylko przycisk "Zacznij"; ten sam hamburger jest jedynym dostępem do nawigacji na każdej szerokości ekranu, ale połowa pozycji menu (Producenci, Inspiracje, O nas) nie prowadzi nigdzie, a Ulubione, Zaloguj się/Mój profil i przełącznik języka są dziś dostępne tylko na komputerze.
+**Done when:** hamburger jest widoczny i klikalny na telefonie od 320px szerokości, menu zawiera wyłącznie żywe pozycje nawigacji, a grupa akcji konta (Ulubione, logowanie/profil, panel administratora, język) jest dostępna z menu na każdej szerokości ekranu.
+- [x] Zaprojektuj (spec): [0030](../specs/0030-poprawki-naglowka-i-nawigacji/index.md) (naprawa w miejscu: mniejsze logo/odstępy/padding poniżej `sm` zamiast samego `shrink-0`, przycięcie nawigacji do żywych pozycji, druga grupa "Konto" w istniejącym wysuwanym menu, hamburger na komputerze zostaje bez zmian)
+- [x] Zbuduj: `/develop poprawki nagłówka i nawigacji klienta` (kod w `components/klient/SiteHeader.tsx`, `messages/{pl,en,nl}.json`)
+  - [x] Naprawa przycinania hamburgera: mniejsze logo/odstępy/padding "Zacznij" poniżej `sm`, gwarantowany rozmiar dotykowy hamburgera, satisfies AC-1
+  - [x] Uporządkowanie nawigacji: przycięcie `navItems` do Domy/Projekty/Jak to działa, usunięcie martwych kluczy tłumaczeń z `messages/{pl,en,nl}.json`, satisfies AC-3
+  - [x] Grupa "Konto" w wysuwanym menu: Ulubione/logowanie/profil/panel administratora przeniesione z paska, przełącznik języka jako proste przyciski (nie rozwijana lista), satisfies AC-2, AC-4, AC-5
+  - [x] Dostępność i weryfikacja wielojęzyczna: etykiety grup, fokus, sprawdzone przy 320px w `pl`/`en`/`nl`, testy `SiteHeader.test.tsx` i e2e, satisfies AC-6, AC-7
+- [ ] Zweryfikuj: `/check verify poprawki nagłówka i nawigacji klienta`
+- [ ] Testuj: `/test poprawki nagłówka i nawigacji klienta`
 
 ## Slice 3: oferta
 

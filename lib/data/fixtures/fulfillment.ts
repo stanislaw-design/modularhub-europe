@@ -7,7 +7,7 @@ import type { FulfillmentOrder } from "../types";
 // to exercise the completion banner scenario (spec 0007 AC-7).
 export const fulfillmentOrders: FulfillmentOrder[] = [
   {
-    projectId: "prj-modulor-family-90",
+    projectId: "prj-budman-familia-90",
     currentStage: "montaz",
     stages: [
       {
@@ -33,7 +33,7 @@ export const fulfillmentOrders: FulfillmentOrder[] = [
     ],
   },
   {
-    projectId: "prj-baltyk-loft-120",
+    projectId: "prj-steelhouse-loft-120",
     currentStage: "produkcja",
     stages: [
       {
@@ -48,7 +48,7 @@ export const fulfillmentOrders: FulfillmentOrder[] = [
     ],
   },
   {
-    projectId: "prj-karpaty-alpine-104",
+    projectId: "prj-steelhouse-alpine-104",
     currentStage: "gwarancja",
     stages: [
       {

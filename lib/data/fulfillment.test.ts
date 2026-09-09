@@ -6,13 +6,13 @@ const STAGE_ORDER = ["produkcja", "transport", "montaz", "odbior", "gwarancja"] 
 
 describe("getFulfillmentOrder", () => {
   it("returns the fixture order for a known project id", async () => {
-    const order = await getFulfillmentOrder("prj-modulor-family-90");
+    const order = await getFulfillmentOrder("prj-budman-familia-90");
     expect(order?.currentStage).toBe("montaz");
     expect(order?.stages).toHaveLength(5);
   });
 
   it("returns null for a known project with no accepted-offer order yet, not an error (AC-2)", async () => {
-    expect(await getFulfillmentOrder("prj-baltyk-studio-38")).toBeNull();
+    expect(await getFulfillmentOrder("prj-steelhouse-studio-38")).toBeNull();
   });
 
   it("returns null for an unknown project id, not an error", async () => {
@@ -64,6 +64,6 @@ describe("fulfillmentOrders fixture invariants (spec 0007 Key invariants)", () =
 
   it("includes at least one project id with no matching order, for the AC-2 redirect scenario", () => {
     const withOrder = new Set(fulfillmentOrders.map((order) => order.projectId));
-    expect(withOrder.has("prj-baltyk-studio-38")).toBe(false);
+    expect(withOrder.has("prj-steelhouse-studio-38")).toBe(false);
   });
 });

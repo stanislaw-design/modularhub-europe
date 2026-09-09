@@ -40,22 +40,22 @@ describe("WeryfikacjaFirmyPage (feature 16)", () => {
   });
 
   it("redirects back to the realizacja axis when the project has no order yet", async () => {
-    await expect(renderPage({ project: "prj-baltyk-studio-38" })).rejects.toThrow(
-      "NEXT_REDIRECT:/pl/producent/realizacja?project=prj-baltyk-studio-38"
+    await expect(renderPage({ project: "prj-steelhouse-studio-38" })).rejects.toThrow(
+      "NEXT_REDIRECT:/pl/producent/realizacja?project=prj-steelhouse-studio-38"
     );
   });
 
   it("redirects back to the realizacja axis when the order has not reached odbiór yet", async () => {
-    await expect(renderPage({ project: "prj-modulor-family-90" })).rejects.toThrow(
-      "NEXT_REDIRECT:/pl/producent/realizacja?project=prj-modulor-family-90"
+    await expect(renderPage({ project: "prj-budman-familia-90" })).rejects.toThrow(
+      "NEXT_REDIRECT:/pl/producent/realizacja?project=prj-budman-familia-90"
     );
   });
 
   it("renders the verification screen for a project that has reached odbiór", async () => {
-    await renderPage({ project: "prj-karpaty-alpine-104" });
+    await renderPage({ project: "prj-steelhouse-alpine-104" });
 
     expect(redirect).not.toHaveBeenCalled();
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Karpaty Alpine 104");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Steel House Alpine 104");
     expect(screen.getByRole("heading", { name: "Wymagane dokumenty" })).toBeInTheDocument();
   });
 });

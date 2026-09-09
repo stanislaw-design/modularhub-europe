@@ -7,7 +7,7 @@ import type { ProducerInquiry } from "../types";
 export const producerInquiries: ProducerInquiry[] = [
   {
     id: "inq-001",
-    projectId: "prj-modulor-family-90",
+    projectId: "prj-budman-familia-90",
     clientName: "Anna Kowalska",
     clientEmail: "anna.kowalska@example.com",
     clientPhone: "+48 601 234 567",
@@ -16,7 +16,7 @@ export const producerInquiries: ProducerInquiry[] = [
   },
   {
     id: "inq-002",
-    projectId: "prj-baltyk-loft-120",
+    projectId: "prj-steelhouse-loft-120",
     clientName: "Jonas Becker",
     clientEmail: "jonas.becker@example.de",
     clientPhone: "+49 151 2233 4455",
@@ -25,7 +25,7 @@ export const producerInquiries: ProducerInquiry[] = [
   },
   {
     id: "inq-003",
-    projectId: "prj-karpaty-ridge-72",
+    projectId: "prj-budman-ridge-72",
     clientName: "Sanne de Vries",
     clientEmail: "sanne.devries@example.nl",
     clientPhone: "+31 6 1234 5678",
@@ -34,7 +34,7 @@ export const producerInquiries: ProducerInquiry[] = [
   },
   {
     id: "inq-004",
-    projectId: "prj-modulor-compact-56",
+    projectId: "prj-budman-kompakt-56",
     clientName: "Piotr Zieliński",
     clientEmail: "piotr.zielinski@example.com",
     clientPhone: "+48 602 345 678",

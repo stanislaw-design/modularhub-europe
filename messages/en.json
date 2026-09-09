@@ -2,11 +2,8 @@
   "SiteHeader": {
     "nav": {
       "homes": "Homes",
-      "producers": "Producers",
       "projects": "Projects",
-      "inspirations": "Inspiration",
-      "howItWorks": "How it works",
-      "about": "About us"
+      "howItWorks": "How it works"
     },
     "favorites": "Favorites",
     "adminPanel": "Admin panel",
@@ -16,7 +13,8 @@
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "menu": "Menu",
-    "mainNav": "Main"
+    "mainNav": "Navigation",
+    "account": "Account"
   },
   "ProducerHeader": {
     "imClient": "I'm a customer",
@@ -842,7 +840,9 @@
     "subheading": "Compare vetted modular houses from all over Europe."
   },
   "ComplianceEngineShowcase": {
-    "heading": "We check legal compliance before you have to",
+    "headingBefore": "We check",
+    "headingUnderline": "legal compliance",
+    "headingAfter": "before you have to",
     "intro": "We compare every house against the local building regulations of the target country — construction, insulation, ventilation, and required documentation — before you send an inquiry to the producer.",
     "disclaimer": "The result is a preliminary, orientational check — it is not legal advice. We keep the Compliance Engine™'s data and logic up to date to reflect a country's building regulations as closely as possible, but final compliance is confirmed by the relevant authority and the chosen producer.",
     "exampleLocation": "Location: Venlo, Netherlands",

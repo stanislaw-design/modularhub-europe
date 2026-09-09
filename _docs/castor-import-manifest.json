@@ -1,0 +1,70 @@
+{
+  "batch_id": "castor-2026-09-09",
+  "imported_at": "2026-09-09",
+  "source_files": [
+    "_docs/Katalog domów PDF skompresowany 3.pdf (Castor, \"Katalog domów\", 77 pages)"
+  ],
+  "neon_project_id": "spring-rain-58383710",
+  "database": "modularhub",
+  "producer": {
+    "id": "b6e4d1a2-7c53-4a1e-9f0a-3d5c8e2b7a41",
+    "user_id": "5f2a9c31-8e6b-4d70-9a1c-2b7f4e0d6c95",
+    "nip": "DEMO00000007 — placeholder, follows the same DEMO0000000N convention as the other demo producers (cocomodule=4, budman=5, steelhouse=6)",
+    "email": "import-castor@example.modularhub.local — replace once Castor registers with a real account",
+    "technology": "szkielet-drewniany — Castor's catalog spans domy prefabrykowane (prefab wood-frame panels), domy szkieletowe (timber frame) and domy mobilne (wood-frame modules); all three are wood-frame construction so this single enum value applies to the whole range",
+    "contact_from_catalog": "ul. Demokracji 4b, 14-100 Ostróda; tel. 691 95 95 95 / 661 95 95 95; castor@castor.net.pl (not copied into any DB field — informational only)"
+  },
+  "currency_conversion": {
+    "note": "Every price in the source catalog is PLN netto (no VAT). The product.currency column is fixed to EUR across the whole app (lib/data/projects.ts hardcodes currency: \"EUR\" in mapRowToProject regardless of the DB row), so all 20 prices were converted PLN → EUR at an approximate rate of 1 EUR = 4.30 PLN and rounded to the nearest 100 EUR for clean price points. This rate is a Facade-stage approximation, not a live FX feed — replace with a real conversion (or a stored PLN price with FX at render time) before this becomes a production concern.",
+    "rate_pln_per_eur": 4.3
+  },
+  "price_tiers": {
+    "note": "OPTIMO (prefabrykowane) and domy mobilne (DA/DL/DI/N2) models list only one price (\"Stan wykończony\") in the source, so price_min_cents = price_max_cents. CAS (szkieletowe) models list two: \"Stan surowy zamknięty\" (→ price_min_cents) and \"Stan wykończony\" (→ price_max_cents). price_includes reflects the fuller \"Stan wykończony\" bullet list in both cases; the surowy-zamknięty tier for CAS models is a subset of those items (structural shell + roof + windows/doors + soundproofed ceiling, without insulation/interior finish) — not separately encoded since the schema has one priceIncludes array per product.",
+    "completion_standard": "Set to 'pod-klucz' for all 20 products, reflecting the finished ('wykończony') tier. No model in the catalog offers a true furnished turn-key handover — 'pod-klucz' was the closest of the three enum options (surowy-zamkniety / deweloperski / pod-klucz) to \"stan wykończony\"."
+  },
+  "technical_specs_caveats": {
+    "wallBuildUp / insulation": "Taken directly from the catalog's three wall cross-section diagrams (p.13 domy prefabrykowane/OPTIMO, p.31 domy szkieletowe/CAS, p.49 domy mobilne) — one shared layer stack per family group, not per individual model.",
+    "windowClass": "PVC trzyszybowe (three-pane PVC) — stated for every model in the catalog.",
+    "ventilation": "Not stated per model anywhere in the catalog. Set to 'grawitacyjna' (gravity/natural ventilation) as the defensible default for this construction type absent a stated mechanical system — NOT confirmed with the producer. Note: the ventilation enum (lib/product-technical-specs.ts) has no 'unknown' value, unlike heatTransferCoefficients; the Steel House import (see steelhouse-import-manifest.json precedent in git history) stored the literal string 'nieznana' for this field, which is not a valid enum member — this import deliberately avoided repeating that inconsistency.",
+    "heatSource": "Not stated as a fixed spec — heating (grzejniki elektryczne, klimatyzacja, otwór pod komin) appears only in the catalog's \"Lista opcji dodatkowych\" as buyer-selected add-ons. Set to 'inne' (other/unspecified).",
+    "heatTransferCoefficients (energy class)": "Not stated anywhere in the catalog. Set to 'nieznana' (a valid enum member for this field).",
+    "fireResistance / windResistance": "Not stated in the catalog. Set to the literal string 'nie podano w katalogu producenta' (not stated in the producer's catalog)."
+  },
+  "images": {
+    "extraction_method": "Programmatic: PyMuPDF (fitz) extracted the embedded raster images per PDF page, filtered by bounding-box position (cover = full-width image at the top of the page; gallery = the 2-3 photo thumbnails in the lower third) to exclude logos, price-banner graphics and icons. Script and output manifest: castor-extracted-images-manifest.json (scratch, not committed) listed the filenames; final files live under public/images/houses/castor/<slug>/.",
+    "counts": "OPTIMO (7 models) and domy mobilne (6 models) have 1 cover + 3 gallery photos each; CAS (7 models) have 1 cover + 2 gallery photos each (the catalog itself shows fewer photos per CAS spread).",
+    "rights": "Same caveat as prior imports (Budman House, Steel House): these are the producer's own catalog renders/photos. Reuse rights were not separately confirmed with Castor before publishing — this import followed the same direct-publish precedent already established for Budman House and Steel House in this repository."
+  },
+  "products": [
+    { "slug": "optimo-35", "name": "Optimo 35", "family_group": "domy prefabrykowane", "source_pages": "14-15" },
+    { "slug": "optimo-70p1", "name": "Optimo 70P1", "family_group": "domy prefabrykowane", "source_pages": "16-17" },
+    { "slug": "optimo-70p2", "name": "Optimo 70P2", "family_group": "domy prefabrykowane", "source_pages": "18-19" },
+    { "slug": "optimo-70pp", "name": "Optimo 70PP", "family_group": "domy prefabrykowane", "source_pages": "20-21" },
+    { "slug": "optimo-82p1", "name": "Optimo 82P1", "family_group": "domy prefabrykowane", "source_pages": "22-23" },
+    { "slug": "optimo-100p1", "name": "Optimo 100P1", "family_group": "domy prefabrykowane", "source_pages": "24-25" },
+    { "slug": "optimo-100p2", "name": "Optimo 100P2", "family_group": "domy prefabrykowane", "source_pages": "26-27" },
+    { "slug": "cas-98-mikolajki", "name": "Cas 98 Mikołajki", "family_group": "domy szkieletowe", "source_pages": "32-33" },
+    { "slug": "cas-123-olecko", "name": "Cas 123 Olecko", "family_group": "domy szkieletowe", "source_pages": "34-35" },
+    { "slug": "cas-70-modern", "name": "Cas 70 Modern", "family_group": "domy szkieletowe", "source_pages": "36-37" },
+    { "slug": "cas-88-modern", "name": "Cas 88 Modern", "family_group": "domy szkieletowe", "source_pages": "38-39" },
+    { "slug": "cas-164-modern", "name": "Cas 164 Modern", "family_group": "domy szkieletowe", "source_pages": "40-41" },
+    { "slug": "cas-105-murawki", "name": "Cas 105 Murawki", "family_group": "domy szkieletowe", "source_pages": "42-43" },
+    { "slug": "cas-106-pisz", "name": "Cas 106 Pisz", "family_group": "domy szkieletowe", "source_pages": "44-45" },
+    { "slug": "da-30-apartamentowiec", "name": "DA-30 Dom Apartamentowiec", "family_group": "domy mobilne", "source_pages": "50-51" },
+    { "slug": "dl-35-letni", "name": "DL-35 Dom Letni", "family_group": "domy mobilne", "source_pages": "52-53" },
+    { "slug": "dl-35-letni-na-wodzie", "name": "DL-35 Dom Letni na wodzie", "family_group": "domy mobilne", "source_pages": "54-55" },
+    { "slug": "di-42-idealny", "name": "DI-42 Dom Idealny", "family_group": "domy mobilne", "source_pages": "56-57" },
+    { "slug": "di-44-idealny", "name": "DI-44 Dom Idealny", "family_group": "domy mobilne", "source_pages": "58-59" },
+    { "slug": "n2-48-laczony", "name": "N2-48 Dom Łączony", "family_group": "domy mobilne", "source_pages": "60-61" }
+  ],
+  "known_gap": {
+    "producer_directory_mismatch": "lib/data/producers.ts (getProducerById) reads from the static fixture lib/data/fixtures/producers.ts, keyed by slug ids like 'prod-castor' — NOT the real DB producer UUID (b6e4d1a2-...) that lib/data/projects.ts joins from the `producer` table. app/[locale]/klient/projekt/[id]/page.tsx calls getProducerById(project.producerId) with the real DB UUID, which will not match any fixture id for Castor (or for Budman House / Steel House, which have the same pre-existing mismatch). This is a known architectural gap predating this import, not something this import introduced or fixed — the fixture entry added here only feeds the homepage ProducerShowcase grid (getProducers()), not the project detail page's producer panel."
+  },
+  "next_steps": [
+    "Confirm image reuse rights with Castor before treating these as final marketing assets.",
+    "Confirm producer.technology, real NIP and a real contact account once Castor registers.",
+    "Replace the approximate PLN→EUR conversion with a real rate or a stored-PLN-with-render-time-FX approach before this leaves the Facade stage.",
+    "Confirm ventilation/heatSource/energy class with the producer instead of the defaults used here.",
+    "Fix the pre-existing producer directory mismatch (see known_gap) so getProducerById resolves real DB producers — affects Castor, Budman House and Steel House alike."
+  ]
+}

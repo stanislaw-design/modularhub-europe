@@ -13,10 +13,10 @@ describe("ProducerZapytaniaPage", () => {
     await renderPage();
 
     expect(screen.getByRole("heading", { level: 1, name: "Zapytania i oferty" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 2, name: "Modulor Family 90" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 2, name: "Baltyk Loft 120" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 2, name: "Karpaty Ridge 72" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 2, name: "Modulor Compact 56" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "Budman Familia 90" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "Steel House Loft 120" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "Budman Ridge 72" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "Budman Kompakt 56" })).toBeInTheDocument();
   });
 
   it("links each inquiry's offer button to the offer page with its id, under the given locale", async () => {

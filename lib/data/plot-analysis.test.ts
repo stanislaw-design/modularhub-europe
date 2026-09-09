@@ -9,7 +9,7 @@ import { getProjects } from "./producer-mock-projects";
 
 describe("getPlotAnalysisResult", () => {
   it("returns the fixture row for a known project id (AC-5)", async () => {
-    const result = await getPlotAnalysisResult("prj-modulor-family-90");
+    const result = await getPlotAnalysisResult("prj-budman-familia-90");
     expect(result?.status).toBe("approved");
     expect(result?.reason).toMatch(/obrysie budynku/);
   });
