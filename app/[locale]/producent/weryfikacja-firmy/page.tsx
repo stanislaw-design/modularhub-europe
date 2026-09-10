@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 import { CompanyVerificationView } from "@/components/producent/CompanyVerificationView";
+import { DemoScreenNotice } from "@/components/producent/DemoScreenNotice";
+import { Stack } from "@/components/ui";
 import { getFulfillmentOrder } from "@/lib/data/fulfillment";
 import { getProjectById } from "@/lib/data/producer-mock-projects";
 import type { FulfillmentStageName } from "@/lib/data/types";
@@ -37,6 +39,9 @@ export default async function WeryfikacjaFirmyPage({
   }
 
   return (
-    <CompanyVerificationView projectId={projectId} projectName={project.name} realizacjaHref={realizacjaHref} />
+    <Stack gap={4}>
+      <DemoScreenNotice />
+      <CompanyVerificationView projectId={projectId} projectName={project.name} realizacjaHref={realizacjaHref} />
+    </Stack>
   );
 }

@@ -1,17 +1,30 @@
 import { useTranslations } from "next-intl";
-import { FileUpload, Heading, Stack } from "@/components/ui";
+import { FileUpload, Heading, Stack, Text } from "@/components/ui";
 import type { ProjectDraft } from "@/lib/data/types";
+import { ProducerProductPhotosStep, type ProducerProductPhoto } from "./ProducerProductPhotosStep";
 
 interface ProjectWizardFilesStepProps {
   draft: ProjectDraft;
   showValidation: boolean;
+  productId: string | null;
+  photos: ProducerProductPhoto[];
   onChange: (patch: Partial<ProjectDraft>) => void;
+  onPhotosChange: (photos: ProducerProductPhoto[]) => void;
 }
 
-export function ProjectWizardFilesStep({ draft, showValidation, onChange }: ProjectWizardFilesStepProps) {
+// Rzuty (floorPlanFiles) zostają makietą (spec 0032: żadne kryterium akceptacji
+// tej funkcji ich nie dotyczy, product nie ma dla nich kolumny) — tylko zdjęcia
+// przechodzą na realne wgrywanie (AC-7), patrz ProducerProductPhotosStep.
+export function ProjectWizardFilesStep({
+  draft,
+  showValidation,
+  productId,
+  photos,
+  onChange,
+  onPhotosChange,
+}: ProjectWizardFilesStepProps) {
   const t = useTranslations("ProjectWizardFilesStep");
   const floorPlanInvalid = showValidation && draft.floorPlanFiles.length === 0;
-  const photoInvalid = showValidation && draft.photoFiles.length === 0;
 
   return (
     <Stack gap={4}>
@@ -28,18 +41,16 @@ export function ProjectWizardFilesStep({ draft, showValidation, onChange }: Proj
           <p className="font-sans text-body text-status-blocked">{t("floorPlanRequiredError")}</p>
         )}
       </Stack>
-      <Stack gap={2}>
-        <FileUpload
-          id="wizard-photo-files"
-          label={t("photoLabel")}
-          required
-          files={draft.photoFiles}
-          onFilesChange={(files) => onChange({ photoFiles: files })}
+      {productId ? (
+        <ProducerProductPhotosStep
+          productId={productId}
+          photos={photos}
+          showValidation={showValidation}
+          onPhotosChange={onPhotosChange}
         />
-        {photoInvalid && (
-          <p className="font-sans text-body text-status-blocked">{t("photoRequiredError")}</p>
-        )}
-      </Stack>
+      ) : (
+        <Text tone="muted">{t("photosUnavailable")}</Text>
+      )}
     </Stack>
   );
 }

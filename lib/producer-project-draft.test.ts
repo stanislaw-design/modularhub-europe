@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import type { ProjectDraft } from "./data/types";
 import {
   BEDROOMS_MAX,
@@ -10,11 +10,8 @@ import {
   TECHNICAL_FIELDS_BY_FAMILY,
   VENTILATION_TYPE_OPTIONS,
   WIZARD_STEPS,
-  clearDraft,
   createEmptyDraft,
   isStepComplete,
-  loadDraft,
-  saveDraft,
 } from "./producer-project-draft";
 
 function completeDraft(): ProjectDraft {
@@ -54,10 +51,6 @@ function completeDraft(): ProjectDraft {
     structuralWarrantyYears: 25,
   };
 }
-
-beforeEach(() => {
-  window.localStorage.clear();
-});
 
 describe("WIZARD_STEPS", () => {
   it("has five steps in the fixed spec order (spec 0022)", () => {
@@ -205,12 +198,16 @@ describe("isStepComplete: cena", () => {
     expect(isStepComplete("cena", completeDraft())).toBe(true);
   });
 
-  it("rejects a reversed price, lead time, or assembly time range", () => {
-    expect(isStepComplete("cena", { ...completeDraft(), housePriceMinEur: 130000 })).toBe(false);
+  it("rejects a reversed lead time or assembly time range", () => {
     expect(
       isStepComplete("cena", { ...completeDraft(), productionLeadTimeWeeksMin: 20 })
     ).toBe(false);
     expect(isStepComplete("cena", { ...completeDraft(), onSiteAssemblyDaysMin: 10 })).toBe(false);
+  });
+
+  it("is incomplete when the price is missing, regardless of housePriceMaxEur (spec 0032: kreator zbiera tylko cenę minimalną)", () => {
+    expect(isStepComplete("cena", { ...completeDraft(), housePriceMinEur: null })).toBe(false);
+    expect(isStepComplete("cena", { ...completeDraft(), housePriceMinEur: 130000 })).toBe(true);
   });
 
   it("is incomplete when the standard or warranty is missing", () => {
@@ -238,109 +235,6 @@ describe("isStepComplete: podsumowanie", () => {
       })
     ).toBe(false);
     expect(isStepComplete("podsumowanie", { ...completeDraft(), photoFiles: [] })).toBe(false);
-  });
-});
-
-describe("saveDraft / loadDraft round trip", () => {
-  it("loads back exactly what was saved, keyed by NIP", () => {
-    const draft = completeDraft();
-    saveDraft("1234567890", draft, 3);
-
-    const loaded = loadDraft("1234567890");
-
-    expect(loaded).toEqual({ draft, step: 3 });
-  });
-
-  it("returns null when nothing is stored for that NIP", () => {
-    expect(loadDraft("0000000000")).toBeNull();
-  });
-
-  it("keeps two producers' drafts fully isolated under different NIPs", () => {
-    saveDraft("1111111111", { ...completeDraft(), name: "Dom A" }, 1);
-    saveDraft("2222222222", { ...completeDraft(), name: "Dom B" }, 4);
-
-    expect(loadDraft("1111111111")?.draft.name).toBe("Dom A");
-    expect(loadDraft("2222222222")?.draft.name).toBe("Dom B");
-  });
-
-  it("clamps an out-of-range stored step into the valid range", () => {
-    window.localStorage.setItem(
-      "producent:1234567890:projekt-szkic",
-      JSON.stringify({ draft: completeDraft(), step: 99 })
-    );
-
-    expect(loadDraft("1234567890")?.step).toBe(WIZARD_STEPS.length - 1);
-  });
-});
-
-describe("loadDraft: fail-soft on a corrupted or incompatible saved state", () => {
-  it("returns null for syntactically invalid JSON, never throws", () => {
-    window.localStorage.setItem("producent:1234567890:projekt-szkic", "{not-json");
-
-    expect(() => loadDraft("1234567890")).not.toThrow();
-    expect(loadDraft("1234567890")).toBeNull();
-  });
-
-  it("returns null when the stored value is valid JSON but not the expected shape", () => {
-    window.localStorage.setItem("producent:1234567890:projekt-szkic", JSON.stringify({ foo: "bar" }));
-    expect(loadDraft("1234567890")).toBeNull();
-  });
-
-  it("returns null when draft is present but step is missing", () => {
-    window.localStorage.setItem(
-      "producent:1234567890:projekt-szkic",
-      JSON.stringify({ draft: completeDraft() })
-    );
-    expect(loadDraft("1234567890")).toBeNull();
-  });
-
-  it("merges a partial draft object with defaults instead of rejecting it outright", () => {
-    window.localStorage.setItem(
-      "producent:1234567890:projekt-szkic",
-      JSON.stringify({ draft: { name: "Częściowy" }, step: 0 })
-    );
-
-    const loaded = loadDraft("1234567890");
-
-    expect(loaded?.draft.name).toBe("Częściowy");
-    expect(loaded?.draft.floorAreaM2).toBeNull();
-    expect(loaded?.draft.floorPlanFiles).toEqual([]);
-  });
-});
-
-describe("saveDraft: fails soft when the underlying write throws", () => {
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
-  it("does not throw when localStorage.setItem throws (e.g. quota exceeded, private mode)", () => {
-    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
-      throw new Error("QuotaExceededError");
-    });
-
-    expect(() => saveDraft("1234567890", completeDraft(), 0)).not.toThrow();
-  });
-});
-
-describe("clearDraft", () => {
-  it("removes only the given NIP's saved state", () => {
-    saveDraft("1111111111", completeDraft(), 2);
-    saveDraft("2222222222", completeDraft(), 2);
-
-    clearDraft("1111111111");
-
-    expect(loadDraft("1111111111")).toBeNull();
-    expect(loadDraft("2222222222")).not.toBeNull();
-  });
-
-  it("does not throw when localStorage.removeItem throws", () => {
-    const spy = vi.spyOn(Storage.prototype, "removeItem").mockImplementation(() => {
-      throw new Error("blocked");
-    });
-
-    expect(() => clearDraft("1234567890")).not.toThrow();
-
-    spy.mockRestore();
   });
 });
 

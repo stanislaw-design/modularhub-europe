@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { resolveAsyncTree } from "@/test/resolve-async-tree";
 import DomykanieLukPage from "./page";
 
 const redirect = vi.fn((path: string) => {
@@ -20,7 +21,7 @@ function makeProps(searchParams: Record<string, string | string[] | undefined>) 
 
 async function renderPage(searchParams: Record<string, string | string[] | undefined>) {
   const element = await DomykanieLukPage(makeProps(searchParams));
-  render(element);
+  render(await resolveAsyncTree(element));
 }
 
 describe("DomykanieLukPage (spec 0010)", () => {

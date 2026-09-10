@@ -33,17 +33,6 @@ describe("ResultCard", () => {
     expect(screen.getByRole("link")).toHaveAttribute("href", `/pl/klient/projekt/${project.id}`);
   });
 
-  it("is not rendered as a link when it is a local producer preview (spec 0020 AC-8)", () => {
-    render(<ResultCard project={project} countryName="Polska" locale="pl" localPreview />);
-    expect(screen.queryByRole("link")).not.toBeInTheDocument();
-  });
-
-  it("is not rendered as a link for a local- prefixed id (spec 0020 AC-8)", () => {
-    const localProject = createMockProject({ id: "local-nip-1" });
-    render(<ResultCard project={localProject} countryName="Polska" locale="pl" />);
-    expect(screen.queryByRole("link")).not.toBeInTheDocument();
-  });
-
   it("shows Wycena indywidualna instead of a price range when priceOnRequest is true (spec 0020 AC-5)", () => {
     const onRequestProject = createMockProject({ priceOnRequest: true });
     render(<ResultCard project={onRequestProject} countryName="Polska" locale="pl" />);

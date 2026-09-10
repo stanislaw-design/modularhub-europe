@@ -20,3 +20,20 @@ export async function requirePanelClientSession(locale: string, selfHref: string
   }
   return session;
 }
+
+// Bramka sesji wspólna dla /producent/panel/* (spec 0032 AC-1), mirror
+// requirePanelClientSession: brak sesji -> logowanie z powrotem; rola client ->
+// panel klienta; rola admin -> widok wewnętrzny.
+export async function requirePanelProducerSession(locale: string, selfHref: string) {
+  const session = await auth();
+  if (!session) {
+    redirect(`/${locale}/logowanie?callbackUrl=${encodeURIComponent(selfHref)}`);
+  }
+  if (session.user.role === "client") {
+    redirect(`/${locale}/klient/panel`);
+  }
+  if (session.user.role === "admin") {
+    redirect(`/${locale}/internal/zapytania`);
+  }
+  return session;
+}

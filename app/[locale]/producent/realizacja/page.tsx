@@ -1,6 +1,7 @@
 import { CheckCircle2 } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
+import { DemoScreenNotice } from "@/components/producent/DemoScreenNotice";
 import { Button, Card, Heading, Stack, StageTimeline, Text } from "@/components/ui";
 import type { StageStatus, StageTimelineItem } from "@/components/ui";
 import { getFulfillmentOrder } from "@/lib/data/fulfillment";
@@ -81,6 +82,7 @@ export default async function ProducerRealizacjaPage({
 
   return (
     <Stack gap={4}>
+      <DemoScreenNotice />
       <Heading level="h1">{t("heading", { name: project.name })}</Heading>
       <Text tone="muted">
         {project.producerName} · {project.floorAreaM2} m²

@@ -27,7 +27,7 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 10 | Treść i luki funkcjonalne klienta | Slice 2 | planned |
 | 11 | Realna oferta i jej przyjęcie | Slice 3 | planned |
 | 12 | Realne płatności | Slice 4 | planned |
-| 13 | Realne przechowywanie plików | Slice 5 | planned |
+| 13 | Realne przechowywanie plików | Slice 5 | done |
 | 14 | Realny silnik zgodności (Polska, pilot) | Slice 6 | planned |
 | 15 | Realna wycena transportu | Slice 7 | planned |
 | 16 | Realizacja i statusy na prawdziwym zapleczu | Slice 8 | planned |
@@ -42,6 +42,7 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 25 | Wersje językowe (EN/NL) i przełącznik języka | Slice 0 | in progress |
 | 26 | Sekcja "Więcej niż dom": przewijana witryna kategorii | Slice 2 | in progress |
 | 27 | Poprawki nagłówka i nawigacji klienta (SiteHeader) | Slice 2 | in progress |
+| 28 | Panel producenta | Slice 2b | in progress |
 
 ## Foundations
 
@@ -204,6 +205,19 @@ Na telefonie przycisk hamburgera w `SiteHeader` wychodzi poza widoczny ekran (po
 - [ ] Zweryfikuj: `/check verify poprawki nagłówka i nawigacji klienta`
 - [ ] Testuj: `/test poprawki nagłówka i nawigacji klienta`
 
+## Slice 2b: panel producenta
+
+### 28. Panel producenta · in progress
+Cofa reprioritization z 2026-09-02 (funkcja 7): producent dostaje prawdziwe konto (logowanie linkiem magicznym, już gotowe od spec 0023) zamiast dzisiejszego formularza NIP w adresie i danych w `localStorage`. Nowy, chroniony panel `/producent/panel/*` pokazuje dane firmy z bazy i daje producentowi własny katalog produktów (dodawanie, edycja, usuwanie, zdjęcia) na realnej tabeli `product`, plus podgląd własnych zapytań. Stara mockowa ścieżka znika w tym samym buildzie. Trzy przyszłe funkcje producenta (11 Realna oferta, 16 Realizacja i statusy, 19 Weryfikacja firmy) zostają świadomie poza zakresem, ich ekrany dziś zostają oznaczone jako demo.
+**Done when:** zalogowany producent widzi własne dane firmy i katalog produktów z bazy, może dodać/edytować/usunąć produkt ze zdjęciami, widzi własne zapytania bez ujawniania produktów innych producentów, a stara ścieżka NIP/`localStorage` jest usunięta.
+- [x] Zaprojektuj (spec): [0032](../specs/0032-panel-producenta/index.md) (sesja producenta mirror spec 0024, katalog na tabeli `product` już zaprojektowanej w spec 0018/0022, zdjęcia na R2/`document` ze spec 0031; zastąpienie bezpośrednie starej ścieżki, nie strangler, bo brak żywego ruchu na dzisiejszym mocku)
+- [x] Zbuduj: `/develop panel producenta` (code in `app/[locale]/producent/panel/`, `lib/producer-product-actions.ts`, `lib/product-photo-actions.ts`, `lib/panel-session.ts`, `lib/db/queries.ts`)
+  - [x] Fundament: sesja producenta (`requirePanelProducerSession`), strona główna panelu z danymi firmy z bazy, przepięcie rejestracji na kreator, przepisanie `/producent` na marketing z przekierowaniem zalogowanego producenta, satisfies AC-1, AC-2, AC-9, AC-10
+  - [x] Katalog: akcje CRUD produktu na realnej bazie (+ tłumaczenia EN/NL), własne zdjęcia (przebudowany krok kreatora, prawdziwy plik), poprawka filtra `deletedAt` na `/wyniki`, satisfies AC-3, AC-4, AC-5, AC-6, AC-7, AC-14
+  - [x] Zapytania i sprzątanie: podgląd własnych zapytań bez ujawniania cudzych produktów, oznaczenie "wersja demonstracyjna" na czterech ekranach mock, usunięcie starej ścieżki NIP/`localStorage` i jej testów, satisfies AC-8, AC-11, AC-12
+- [ ] Zweryfikuj: `/check verify panel producenta`
+- [ ] Testuj: `/test panel producenta`
+
 ## Slice 3: oferta
 
 ### 11. Realna oferta i jej przyjęcie · needs a decision
@@ -220,10 +234,17 @@ Prawdziwa integracja płatnicza za usługi jednorazowe (analiza działki, domyka
 
 ## Slice 5: pliki
 
-### 13. Realne przechowywanie plików · needs a decision · full
+### 13. Realne przechowywanie plików · full
 Rzuty, zdjęcia i dokumenty producenta trwale przechowywane i pobieralne, zastępujące dzisiejszą makietę uploadu bez zapisu.
 **Done when:** wgrany plik jest trwale zapisany, dostępny do pobrania po odświeżeniu strony i w kolejnej sesji, a niedozwolony typ lub rozmiar pliku jest odrzucany z komunikatem.
-- [ ] Zaprojektuj (spec): `/architect realne przechowywanie plików`
+- [x] Zaprojektuj (spec): [0031](../specs/0031-realne-przechowywanie-plikow/index.md) (klient Cloudflare R2 plus tabela `document` już zaprojektowana w spec 0018; wąski zakres: skrypt migrujący dzisiejsze 65 realnych produktów z `public/images/houses/` do R2, i nowy ekran wewnętrzny `/internal/produkty` dla administratora do zarządzania zdjęciami idąc naprzód; ekrany producenta i zdjęcia producentów świadomie odłożone, patrz spec Follow-up)
+- [x] Zbuduj: `/develop realne przechowywanie plików` (code in `lib/storage/`, `lib/product-photo-actions.ts`, `lib/db/queries.ts`, `lib/data/projects.ts`, `app/[locale]/internal/produkty/`, `scripts/migrate-existing-product-photos.ts`)
+  - [x] Fundament magazynu: migracja indeksu (jedna okładka na produkt), kubełek R2 założony ręcznie, klient R2, walidacja pliku (typ/rozmiar, sygnatura bajtowa), satisfies AC-3, AC-4 — kubełek `modular-hub` (jurysdykcja UE, publiczny przez `r2.dev`) założony 2026-09-09
+  - [x] Akcje serwerowe i ekran administratora: wgrywanie/okładka/kolejność/usuwanie za bramką roli `admin`, `/internal/produkty`, satisfies AC-2, AC-4, AC-5, AC-6, AC-9
+  - [x] Odczyt po stronie klienta: `lib/data/projects.ts` czyta okładkę i galerię z `document` z fallbackiem do `coverImageUrl`/`_extraImageUrls`, satisfies AC-7, AC-8
+  - [x] Skrypt migracyjny i jednorazowe uruchomienie na wszystkich 65 istniejących produktach, satisfies AC-1 — uruchomiony na realnej bazie 2026-09-09, 65/65 produktów, 204 wiersze `document`, zweryfikowano publicznie i na `/pl/klient/wyniki`
+- [x] Zweryfikuj: `/check verify realne przechowywanie plików` — PASS 2026-09-09, wszystkie 9 kryteriów akceptacji potwierdzone na żywo (patrz `verify.md`)
+- [x] Testuj: `/test realne przechowywanie plików` — 66 nowych testów (Vitest, real DB integration), 688/688 przechodzi; patrz raport /test 2026-09-09
 
 ## Slice 6: silnik zgodności
 
@@ -303,6 +324,9 @@ Poza zakresem tej epiki, świadomie odłożone.
 - **Tłumaczenie certyfikatów produktu i podpisów galerii**: pola istnieją dziś tylko w warstwie mockowej (epika Prototyp), nie w prawdziwej tabeli `product`; jeśli zostaną kiedyś przeniesione do bazy, ich tłumaczenie EN/NL wymaga osobnej decyzji (from spec 0028) · needs a decision
 - **Wyszukiwanie i sortowanie po nazwie produktu, świadome języka**: `search_vector` (spec 0026) indeksuje wyłącznie polski tekst; funkcja 25 nie dodaje osobnego indeksu per język, więc `/en`/`/nl` sortują/wyszukują po polskiej nazwie (from spec 0028) · needs a decision
 - **Formatowanie liczb, dat i separatora dziesiętnego świadome języka**: next intl to umie, ale nikt dziś o to nie prosił (np. `120,5 m²` po polsku vs `120.5 m²` po angielsku) (from spec 0028) · needs a decision
+- **Podłączenie konta do już istniejącego, ręcznie zasianego producenta** (Castro, Steel House, Budman, Cocomodule…): dziś bez konta do zalogowania; świadomie odłożone, testowanie idzie na nowym, samodzielnie zarejestrowanym koncie (from spec 0032) · needs a decision
+- **Statystyki/analityka dla producenta** w panelu (np. liczba zapytań w czasie, popularność produktów) (from spec 0032) · needs a decision
+- **Edycja profilu firmy przez producenta** (nazwa, telefon, kraje dostawy): panel producenta dziś pokazuje wyłącznie podgląd (from spec 0032) · needs a decision
 
 ## References
 

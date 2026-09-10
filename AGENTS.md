@@ -79,6 +79,7 @@ Stored in `docs/specs/`. Each is a directory `docs/specs/NNNN-title/` with `inde
 - [authjs-skills](.agents/skills/authjs-skills/): `gocallum/nextjs16-agent-skills`, Auth.js v5 setup (not yet wired into the app, see spec 0017 Follow-up)
 - [sentry-nextjs-sdk](.agents/skills/sentry-nextjs-sdk/): `getsentry/sentry-for-ai`, Sentry Next.js SDK setup and conventions (error tracking, see `lib/observability/AGENTS.md`)
 - [posthog-instrumentation](.agents/skills/posthog-instrumentation/): `posthog/posthog-for-claude`, PostHog event tracking conventions (business analytics, see `lib/observability/AGENTS.md`)
+- [aws-sdk-js-v3-usage](.agents/skills/aws-sdk-js-v3-usage/): `aws/agent-toolkit-for-aws`, AWS SDK for JavaScript v3 patterns (used for `@aws-sdk/client-s3` against Cloudflare R2, spec 0031, see `lib/storage/AGENTS.md`)
 
 MCP servers: playwright (connected), Neon (connected), Sentry (connected)
 
@@ -92,5 +93,7 @@ MCP servers: playwright (connected), Neon (connected), Sentry (connected)
 - [lib/data/AGENTS.md](lib/data/AGENTS.md): the mock/fixture data access layer for the Facade epic
 - [lib/db/AGENTS.md](lib/db/AGENTS.md): the real (production) database client, Neon Postgres and Drizzle ORM
 - [lib/observability/AGENTS.md](lib/observability/AGENTS.md): the one sanctioned path to error tracking (Sentry) and business event analytics (PostHog)
+- [lib/storage/AGENTS.md](lib/storage/AGENTS.md): the Cloudflare R2 file storage layer (client, upload validation), spec 0031
+- [app/[locale]/internal/produkty/AGENTS.md](app/[locale]/internal/produkty/AGENTS.md): admin screen for managing product photos, spec 0031
 
 _Drafted by /audit from the repo, worth a quick human pass. Edit freely: once a line stops matching this draft, later runs treat it as curated and will flag rather than overwrite it._

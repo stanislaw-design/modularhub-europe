@@ -1,4 +1,6 @@
+import { DemoScreenNotice } from "@/components/producent/DemoScreenNotice";
 import { ExportReadinessMap } from "@/components/producent/ExportReadinessMap";
+import { Stack } from "@/components/ui";
 import { getCountries } from "@/lib/data/countries";
 import { getExportReadiness } from "@/lib/data/export-readiness";
 
@@ -12,30 +14,23 @@ export default async function GotowoscEksportowaPage({ params, searchParams }: G
   const nazwaRaw = rawSearchParams.nazwa;
   const nazwa = typeof nazwaRaw === "string" && nazwaRaw.trim().length > 0 ? nazwaRaw : null;
 
-  // Opcjonalne nip/countries/technology (spec 0016, AC-6): obecne tylko gdy producent
-  // trafił tu z zapisu produktu, budują link do katalogu; brak nip nie zmienia dzisiejszego
-  // zachowania (spec 0008, AC-10).
-  const nipRaw = rawSearchParams.nip;
-  const countriesRaw = rawSearchParams.countries;
-  const technologyRaw = rawSearchParams.technology;
-  const catalogHref =
-    typeof nipRaw === "string" && nipRaw.length > 0
-      ? `/${locale}/producent/produkty?${new URLSearchParams({
-          nip: nipRaw,
-          ...(typeof countriesRaw === "string" ? { countries: countriesRaw } : {}),
-          ...(typeof technologyRaw === "string" ? { technology: technologyRaw } : {}),
-        }).toString()}`
-      : null;
+  // Ekran wersji demonstracyjnej (spec 0032 AC-11): "Zobacz produkty" wraca
+  // teraz do realnego katalogu w panelu, nie do dawnego mocka NIP (spec 0016,
+  // usunięty w tym samym buildzie).
+  const catalogHref = `/${locale}/producent/panel/produkty`;
 
   const [countries, entries] = await Promise.all([getCountries(), getExportReadiness()]);
 
   return (
-    <ExportReadinessMap
-      locale={locale}
-      projectName={nazwa}
-      countries={countries}
-      entries={entries}
-      catalogHref={catalogHref}
-    />
+    <Stack gap={4}>
+      <DemoScreenNotice />
+      <ExportReadinessMap
+        locale={locale}
+        projectName={nazwa}
+        countries={countries}
+        entries={entries}
+        catalogHref={catalogHref}
+      />
+    </Stack>
   );
 }

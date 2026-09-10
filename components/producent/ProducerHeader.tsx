@@ -1,27 +1,31 @@
-import { Menu, User } from "lucide-react";
+import { LogOut, User } from "lucide-react";
 import { getTranslations } from "next-intl/server";
-import Image from "next/image";
 import Link from "next/link";
-import logoHorizontalCompactV2 from "@/assets/brand/logo/v2/horizontal/logo-horizontal-compact-v2.svg";
+import { auth } from "@/auth";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Container, LanguageSwitcher } from "@/components/ui";
+import { signOutAction } from "@/lib/auth-session-actions";
 
 interface ProducerHeaderProps {
   locale: string;
 }
 
+// Menu konta na sesji (spec 0032 Build plan zadanie 7): zastępuje dwa dawne,
+// zawsze wyłączone przyciski. Brak sesji producenta (gość albo inna rola) ->
+// link do logowania zamiast panelu, ten sam wzorzec co SiteHeader (klient).
 export async function ProducerHeader({ locale }: ProducerHeaderProps) {
-  const t = await getTranslations("ProducerHeader");
+  const [session, t] = await Promise.all([auth(), getTranslations("ProducerHeader")]);
+  const isProducerSession = session?.user.role === "producer";
 
   return (
     <header className="border-b border-brand-steel">
       <Container className="flex items-center justify-between py-brand-2">
-        <Link href={`/${locale}/producent`} className="focus-ring rounded-data">
-          <Image
-            src={logoHorizontalCompactV2}
-            alt="ModularHub Europe"
-            className="h-8 w-auto"
-            preload
-          />
+        <Link
+          href={`/${locale}/producent`}
+          aria-label="ModularHub Europe"
+          className="focus-ring rounded-data"
+        >
+          <BrandLogo className="text-[0.78rem]" />
         </Link>
         <div className="flex items-center gap-brand-3">
           <Link
@@ -31,22 +35,33 @@ export async function ProducerHeader({ locale }: ProducerHeaderProps) {
             {t("imClient")}
           </Link>
           <LanguageSwitcher locale={locale} surface="v3" triggerClassName="flex text-brand-foundation-navy" />
-          <button
-            type="button"
-            disabled
-            aria-label={t("menu")}
-            className="flex size-10 items-center justify-center rounded-full bg-brand-steel/40 text-brand-foundation-navy disabled:cursor-default"
-          >
-            <Menu className="size-4" aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            disabled
-            aria-label={t("account")}
-            className="flex size-10 items-center justify-center rounded-full bg-brand-foundation-navy text-brand-warm-white disabled:cursor-default"
-          >
-            <User className="size-4" aria-hidden="true" />
-          </button>
+          {isProducerSession ? (
+            <>
+              <Link
+                href={`/${locale}/producent/panel`}
+                aria-label={t("account")}
+                className="focus-ring flex size-10 items-center justify-center rounded-full bg-brand-foundation-navy text-brand-warm-white"
+              >
+                <User className="size-4" aria-hidden="true" />
+              </Link>
+              <form action={signOutAction}>
+                <button
+                  type="submit"
+                  className="focus-ring flex items-center gap-1 rounded-data text-body font-medium text-brand-foundation-navy hover:underline"
+                >
+                  <LogOut className="size-4" aria-hidden="true" />
+                  {t("signOut")}
+                </button>
+              </form>
+            </>
+          ) : (
+            <Link
+              href={`/${locale}/logowanie?callbackUrl=${encodeURIComponent(`/${locale}/producent/panel`)}`}
+              className="focus-ring rounded-data text-body font-medium text-brand-foundation-navy hover:underline"
+            >
+              {t("signIn")}
+            </Link>
+          )}
         </div>
       </Container>
     </header>

@@ -1,8 +1,8 @@
 import { createHash } from "node:crypto";
 import { and, eq, inArray } from "drizzle-orm";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { db } from "./client";
-import { auditLog, client, producer, product, users } from "./schema";
+import { auditLog, client, document, producer, product, users } from "./schema";
 
 // Confirms AC-2 (spec 0018): every mutation of a personal-data table is
 // captured by the Postgres trigger (drizzle/0002_audit_log_trigger.sql), not
@@ -199,3 +199,145 @@ describe.skipIf(!process.env.DATABASE_URL)(
     });
   },
 );
+
+// spec 0031 AC-4: "co najwyżej jedna okładka na produkt" jest wymuszone przez
+// bazę (document_one_cover_per_product), nie tylko kod aplikacji — więc nawet
+// wstawienie z pominięciem lib/product-photo-actions.ts musi na to trafić.
+describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: document_one_cover_per_product partial unique index", () => {
+  const userId = crypto.randomUUID();
+  const producerId = crypto.randomUUID();
+  const productId = crypto.randomUUID();
+
+  beforeAll(async () => {
+    await db.insert(users).values({
+      id: userId,
+      email: `document-cover-${userId}@example.test`,
+      phone: "+48000000000",
+      role: "admin",
+    });
+    await db.insert(producer).values({
+      id: producerId,
+      userId,
+      nip: `DC${producerId.slice(0, 8)}`,
+      name: "Document Cover Index Test Producer",
+      countryCode: "PL",
+      technology: "szkielet-drewniany",
+    });
+    await db.insert(product).values({ id: productId, producerId, family: "dom", name: "Document Cover Index Test Product" });
+  });
+
+  afterEach(async () => {
+    // Każdy test zaczyna od zera dla tego productId, inaczej wiersz z
+    // poprzedniego testu sam zderzyłby się z indeksem w następnym.
+    const docs = await db.select({ id: document.id }).from(document).where(eq(document.productId, productId));
+    if (docs.length > 0) {
+      await db.delete(auditLog).where(inArray(auditLog.recordId, docs.map((d) => d.id)));
+      await db.delete(document).where(eq(document.productId, productId));
+    }
+  });
+
+  afterAll(async () => {
+    const docs = await db.select({ id: document.id }).from(document).where(eq(document.productId, productId));
+    if (docs.length > 0) {
+      await db.delete(auditLog).where(inArray(auditLog.recordId, docs.map((d) => d.id)));
+      await db.delete(document).where(eq(document.productId, productId));
+    }
+    await db.delete(product).where(eq(product.id, productId));
+    await db.delete(producer).where(eq(producer.id, producerId));
+    await db.delete(users).where(eq(users.id, userId));
+    await db.delete(auditLog).where(inArray(auditLog.recordId, [userId, producerId]));
+  });
+
+  it("rejects a second is_cover=true product_photo row for the same product", async () => {
+    await db.insert(document).values({
+      r2Key: "cover-index-1.jpg",
+      filename: "1.jpg",
+      mimeType: "image/jpeg",
+      sizeBytes: 10,
+      purpose: "product_photo",
+      isCover: true,
+      ownerUserId: userId,
+      productId,
+    });
+
+    let caught: unknown;
+    try {
+      await db.insert(document).values({
+        r2Key: "cover-index-2.jpg",
+        filename: "2.jpg",
+        mimeType: "image/jpeg",
+        sizeBytes: 10,
+        purpose: "product_photo",
+        isCover: true,
+        ownerUserId: userId,
+        productId,
+      });
+    } catch (error) {
+      caught = error;
+    }
+
+    // drizzle-orm wraps the raw Postgres error; the constraint detail lives
+    // on `.cause`, not the top-level message (same pattern as the FK test above).
+    const topMessage = caught instanceof Error ? caught.message : String(caught);
+    const causeMessage = caught instanceof Error && caught.cause instanceof Error ? caught.cause.message : "";
+    expect(`${topMessage} ${causeMessage}`).toMatch(/document_one_cover_per_product|unique constraint/i);
+  });
+
+  it("allows a second is_cover=true row for the same product under a different purpose (the index is scoped by purpose)", async () => {
+    await db.insert(document).values({
+      r2Key: "cover-index-photo.jpg",
+      filename: "photo.jpg",
+      mimeType: "image/jpeg",
+      sizeBytes: 10,
+      purpose: "product_photo",
+      isCover: true,
+      ownerUserId: userId,
+      productId,
+    });
+
+    // product_floor_plan is a different purpose; its own is_cover=true row
+    // must not collide with product_photo's, per the index's WHERE clause.
+    await expect(
+      db.insert(document).values({
+        r2Key: "cover-index-floorplan.jpg",
+        filename: "floorplan.jpg",
+        mimeType: "image/jpeg",
+        sizeBytes: 10,
+        purpose: "product_floor_plan",
+        isCover: true,
+        ownerUserId: userId,
+        productId,
+      }),
+    ).resolves.not.toThrow();
+  });
+
+  it("allows a new is_cover=true row once the previous cover is soft-deleted (deleted_at excludes it from the index)", async () => {
+    const [firstCover] = await db
+      .insert(document)
+      .values({
+        r2Key: "cover-index-soft-1.jpg",
+        filename: "1.jpg",
+        mimeType: "image/jpeg",
+        sizeBytes: 10,
+        purpose: "product_photo",
+        isCover: true,
+        ownerUserId: userId,
+        productId,
+      })
+      .returning({ id: document.id });
+    await db.update(document).set({ deletedAt: new Date() }).where(eq(document.id, firstCover.id));
+
+    await expect(
+      db.insert(document).values({
+        r2Key: "cover-index-soft-2.jpg",
+        filename: "2.jpg",
+        mimeType: "image/jpeg",
+        sizeBytes: 10,
+        purpose: "product_photo",
+        isCover: true,
+        ownerUserId: userId,
+        productId,
+      }),
+    ).resolves.not.toThrow();
+  });
+});

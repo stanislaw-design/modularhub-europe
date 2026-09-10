@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { Card, Checkbox, DataText, Heading, StatusPill, Text } from "@/components/ui";
 import { FavoriteButton } from "./FavoriteButton";
-import { isLocalProjectId } from "@/lib/local-client-projects";
 import type { CountryCode, EligibilityStatus, Project } from "@/lib/data/types";
 
 interface ResultCardProps {
@@ -20,14 +19,7 @@ interface ResultCardProps {
    * the /klient/projekt/[id] link so the legal compliance section there can
    * resolve it (spec 0015 AC-14). */
   countryCode?: CountryCode;
-  /** Doklejone lokalnie z localStorage producenta (spec 0016, AC-11): pokazuje
-   * etykietę podglądu zamiast checkboxa zaznaczenia, bo ta ścieżka nie może dziś
-   * wejść w zapytanie (serwer nie widzi localStorage producenta). Karta pozostaje
-   * nieklikalna dla tych projektów, bo trasa /klient/projekt/[id] czyta tylko
-   * katalog przykładowy (spec 0020 AC-8). */
-  localPreview?: boolean;
-  /** Serce "dodaj do ulubionych" (spec 0024 AC-2, AC-4); pominięte dla podglądu
-   * lokalnego producenta, ten sam wyjątek co checkbox zaznaczenia powyżej. */
+  /** Serce "dodaj do ulubionych" (spec 0024 AC-2, AC-4). */
   favorite?: {
     isClientSession: boolean;
     initialFavorited: boolean;
@@ -49,7 +41,6 @@ export function ResultCard({
   selectionDisabled,
   onToggleSelect,
   countryCode,
-  localPreview,
   favorite,
 }: ResultCardProps) {
   const t = useTranslations("ResultCard");
@@ -59,10 +50,7 @@ export function ResultCard({
     "pod-klucz": t("completionStandard.pod-klucz"),
   } as const;
   const roomsLabel = t(`rooms.${roomsCountBucket(project.rooms)}`);
-  const isClickable = !localPreview && !isLocalProjectId(project.id);
-  const href = isClickable
-    ? `/${locale}/klient/projekt/${project.id}${countryCode ? `?country=${countryCode}` : ""}`
-    : undefined;
+  const href = `/${locale}/klient/projekt/${project.id}${countryCode ? `?country=${countryCode}` : ""}`;
 
   return (
     <Card
@@ -94,7 +82,7 @@ export function ResultCard({
             <ImageOff className="size-8 text-brand-v5-muted/50" aria-hidden="true" />
           </div>
         )}
-        {onToggleSelect && !localPreview && (
+        {onToggleSelect && (
           <label className="absolute right-brand-2 top-brand-2 z-10 flex items-center justify-center rounded-data bg-brand-v5-surface/95 p-1.5 shadow-sm">
             <span className="sr-only">{t("selectForInquiry", { name: project.name })}</span>
             <Checkbox
@@ -106,7 +94,7 @@ export function ResultCard({
             />
           </label>
         )}
-        {favorite && !localPreview && (
+        {favorite && (
           <FavoriteButton
             productId={project.id}
             productName={project.name}
@@ -119,11 +107,6 @@ export function ResultCard({
         )}
       </div>
       <div className="flex flex-1 flex-col gap-brand-2 p-brand-3">
-        {localPreview && (
-          <span className="w-fit rounded-data bg-brand-v5-amber/10 px-2 py-0.5 text-label font-medium uppercase tracking-[0.1em] text-brand-v5-ink">
-            {t("localPreviewBadge")}
-          </span>
-        )}
         {eligibilityStatus === "conditional" && (
           <StatusPill status="conditional">{t("needsMoreDocuments")}</StatusPill>
         )}

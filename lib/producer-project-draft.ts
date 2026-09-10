@@ -363,8 +363,6 @@ export function isStepComplete(stepId: WizardStepId, draft: ProjectDraft): boole
     case "cena":
       return (
         draft.housePriceMinEur !== null &&
-        draft.housePriceMaxEur !== null &&
-        draft.housePriceMinEur <= draft.housePriceMaxEur &&
         draft.completionStandard !== null &&
         draft.productionLeadTimeWeeksMin !== null &&
         draft.productionLeadTimeWeeksMax !== null &&
@@ -381,55 +379,3 @@ export function isStepComplete(stepId: WizardStepId, draft: ProjectDraft): boole
   }
 }
 
-export interface StoredWizardState {
-  draft: ProjectDraft;
-  step: number;
-}
-
-function draftStorageKey(nip: string): string {
-  return `producent:${nip}:projekt-szkic`;
-}
-
-function clampStepIndex(step: number): number {
-  return Math.min(Math.max(0, Math.trunc(step)), WIZARD_STEPS.length - 1);
-}
-
-// Uszkodzony/nieczytelny zapis jest po cichu odrzucany (zwraca null zamiast rzucać),
-// kreator startuje pusty zamiast pokazać błąd (spec 0008, AC-8).
-export function loadDraft(nip: string): StoredWizardState | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.localStorage.getItem(draftStorageKey(nip));
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as { draft?: unknown; step?: unknown };
-    if (typeof parsed !== "object" || parsed === null) return null;
-    if (typeof parsed.draft !== "object" || parsed.draft === null) return null;
-    if (typeof parsed.step !== "number") return null;
-    return {
-      draft: { ...createEmptyDraft(), ...parsed.draft },
-      step: clampStepIndex(parsed.step),
-    };
-  } catch {
-    return null;
-  }
-}
-
-// Zapis opakowany w bezpieczną próbę: nieudany zapis (limit magazynu, tryb prywatny)
-// po cichu pomija tę aktualizację, nigdy nie blokuje pracy w kreatorze (spec 0008, Key invariants).
-export function saveDraft(nip: string, draft: ProjectDraft, step: number): void {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(draftStorageKey(nip), JSON.stringify({ draft, step }));
-  } catch {
-    // fail soft — pomiń tę jedną aktualizację
-  }
-}
-
-export function clearDraft(nip: string): void {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.removeItem(draftStorageKey(nip));
-  } catch {
-    // fail soft
-  }
-}

@@ -16,17 +16,13 @@ describe("ProjectWizardPricingStep", () => {
     render(<ProjectWizardPricingStep draft={createEmptyDraft()} showValidation={false} onChange={vi.fn()} />);
 
     expect(screen.queryByText("Wybierz standard wykończenia.")).not.toBeInTheDocument();
-    expect(
-      screen.queryByText("Podaj cenę od i do, tak by cena od nie przekraczała ceny do.")
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Podaj cenę domu.")).not.toBeInTheDocument();
   });
 
   it("shows an inline error under every empty required field once showValidation is true", () => {
     render(<ProjectWizardPricingStep draft={createEmptyDraft()} showValidation onChange={vi.fn()} />);
 
-    expect(
-      screen.getByText("Podaj cenę od i do, tak by cena od nie przekraczała ceny do.")
-    ).toBeInTheDocument();
+    expect(screen.getByText("Podaj cenę domu.")).toBeInTheDocument();
     expect(screen.getByText("Wybierz standard wykończenia.")).toBeInTheDocument();
     expect(
       screen.getByText("Podaj termin produkcji od i do, tak by wartość od nie przekraczała wartości do.")
@@ -37,28 +33,16 @@ describe("ProjectWizardPricingStep", () => {
     expect(screen.getByText("Podaj gwarancję konstrukcyjną w latach.")).toBeInTheDocument();
   });
 
-  it("flags a reversed price range as invalid even when both fields are filled", () => {
-    render(
-      <ProjectWizardPricingStep
-        draft={{ ...createEmptyDraft(), housePriceMinEur: 130000, housePriceMaxEur: 100000 }}
-        showValidation
-        onChange={vi.fn()}
-      />
-    );
-
-    expect(
-      screen.getByText("Podaj cenę od i do, tak by cena od nie przekraczała ceny do.")
-    ).toBeInTheDocument();
-  });
-
-  it("calls onChange with a numeric housePriceMinEur as digits are typed", async () => {
+  // spec 0032: kreator zbiera tylko jedną cenę (nie widełki), więc zmiana ceny
+  // ustawia housePriceMinEur i housePriceMaxEur na tę samą wartość naraz.
+  it("calls onChange with the same value for housePriceMinEur and housePriceMaxEur as digits are typed", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
     render(<ProjectWizardPricingStep draft={createEmptyDraft()} showValidation={false} onChange={onChange} />);
 
-    await user.type(screen.getByLabelText("Cena domu, od (EUR)"), "1");
+    await user.type(screen.getByLabelText(/cena domu w standardzie bazowym/i), "1");
 
-    expect(onChange).toHaveBeenCalledWith({ housePriceMinEur: 1 });
+    expect(onChange).toHaveBeenCalledWith({ housePriceMinEur: 1, housePriceMaxEur: 1 });
   });
 
   it("selects a completion standard and calls onChange with its value", async () => {

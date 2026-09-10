@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
+import { DemoScreenNotice } from "@/components/producent/DemoScreenNotice";
 import { GapClosureView } from "@/components/producent/GapClosureView";
+import { Stack } from "@/components/ui";
 import { getCountries } from "@/lib/data/countries";
 import { getExportReadiness } from "@/lib/data/export-readiness";
 
@@ -35,11 +37,14 @@ export default async function DomykanieLukPage({ params, searchParams }: Domykan
   const countryName = countries.find((country) => country.code === entry.countryCode)?.name ?? entry.countryCode;
 
   return (
-    <GapClosureView
-      countryCode={entry.countryCode}
-      countryName={countryName}
-      projectName={projectName}
-      mapHref={mapHref}
-    />
+    <Stack gap={4}>
+      <DemoScreenNotice />
+      <GapClosureView
+        countryCode={entry.countryCode}
+        countryName={countryName}
+        projectName={projectName}
+        mapHref={mapHref}
+      />
+    </Stack>
   );
 }

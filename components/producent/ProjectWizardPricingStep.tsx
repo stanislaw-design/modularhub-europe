@@ -12,11 +12,7 @@ interface ProjectWizardPricingStepProps {
 export function ProjectWizardPricingStep({ draft, showValidation, onChange }: ProjectWizardPricingStepProps) {
   const t = useTranslations("ProjectWizardPricingStep");
   const tOptions = useTranslations("ProjectOptions");
-  const priceInvalid =
-    showValidation &&
-    (draft.housePriceMinEur === null ||
-      draft.housePriceMaxEur === null ||
-      draft.housePriceMinEur > draft.housePriceMaxEur);
+  const priceInvalid = showValidation && draft.housePriceMinEur === null;
   const standardInvalid = showValidation && draft.completionStandard === null;
   const leadTimeInvalid =
     showValidation &&
@@ -38,42 +34,27 @@ export function ProjectWizardPricingStep({ draft, showValidation, onChange }: Pr
     <Stack gap={3}>
       <Heading level="h2">{t("heading")}</Heading>
       <Stack gap={1}>
-        <Label id="wizard-price-label" required>
+        <Label htmlFor="wizard-price" required>
           {t("priceLabel")}
         </Label>
-        <Stack direction="row" gap={3} className="flex-wrap">
-          <Stack gap={1} className="min-w-40 flex-1">
-            <Input
-              type="number"
-              min={0}
-              required
-              aria-label={t("priceFromAriaLabel")}
-              invalid={priceInvalid}
-              aria-describedby={priceInvalid ? "wizard-price-error" : undefined}
-              value={draft.housePriceMinEur ?? ""}
-              onChange={(event) =>
-                onChange({
-                  housePriceMinEur: event.target.value === "" ? null : Number(event.target.value),
-                })
-              }
-            />
-          </Stack>
-          <Stack gap={1} className="min-w-40 flex-1">
-            <Input
-              type="number"
-              min={0}
-              required
-              aria-label={t("priceToAriaLabel")}
-              invalid={priceInvalid}
-              aria-describedby={priceInvalid ? "wizard-price-error" : undefined}
-              value={draft.housePriceMaxEur ?? ""}
-              onChange={(event) =>
-                onChange({
-                  housePriceMaxEur: event.target.value === "" ? null : Number(event.target.value),
-                })
-              }
-            />
-          </Stack>
+        <Stack gap={1} className="min-w-40 max-w-56">
+          <Input
+            id="wizard-price"
+            type="number"
+            min={0}
+            required
+            invalid={priceInvalid}
+            aria-describedby={priceInvalid ? "wizard-price-error" : undefined}
+            value={draft.housePriceMinEur ?? ""}
+            onChange={(event) => {
+              // Kreator zbiera dziś tylko jedną cenę (nie widełki): oba pola
+              // bazy (min/max) trzymają tę samą wartość, żeby ekrany, które
+              // wciąż czytają zakres (porównanie ulubionych, potwierdzenie
+              // zapytania), nadal poprawnie się renderowały.
+              const value = event.target.value === "" ? null : Number(event.target.value);
+              onChange({ housePriceMinEur: value, housePriceMaxEur: value });
+            }}
+          />
         </Stack>
         {priceInvalid && (
           <p id="wizard-price-error" className="font-sans text-body text-status-blocked">

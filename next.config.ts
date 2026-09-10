@@ -4,6 +4,11 @@ import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin("./lib/i18n/request.ts");
 
+// R2_PUBLIC_DOMAIN nie jest jeszcze ustawione (kubełek R2 to ręczny krok poza
+// kodem, spec 0031 Follow-up); wzorzec jest dodawany dopiero, gdy domena
+// istnieje, żeby build nie wymagał zmiennej, której jeszcze nie ma.
+const r2PublicDomain = process.env.R2_PUBLIC_DOMAIN;
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
@@ -12,6 +17,15 @@ const nextConfig: NextConfig = {
         hostname: "picsum.photos",
         pathname: "/**",
       },
+      ...(r2PublicDomain
+        ? [
+            {
+              protocol: "https" as const,
+              hostname: r2PublicDomain,
+              pathname: "/**",
+            },
+          ]
+        : []),
     ],
   },
 };

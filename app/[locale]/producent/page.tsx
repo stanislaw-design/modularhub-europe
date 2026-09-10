@@ -1,9 +1,13 @@
 import { ShieldCheck, Truck, Workflow } from "lucide-react";
+import { redirect } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { RegistrationForm } from "@/components/producent/RegistrationForm";
+import { auth } from "@/auth";
 import { Button, Card, Grid, Heading, Stack, Text } from "@/components/ui";
-import { getCountries } from "@/lib/data/countries";
 
+// Strona główna /producent (spec 0032 AC-10): treść marketingowa z CTA do
+// rejestracji/logowania, zastępuje dzisiejszy mockowy formularz NIP. Sesja z
+// rolą producer trafiająca tu jest przekierowana prosto do panelu — root
+// zostaje wyłącznie dla gości.
 export default async function ProducentPage({
   params,
 }: {
@@ -15,7 +19,11 @@ export default async function ProducentPage({
   // samej stronie, nie tylko w layoucie, żeby wrócić do statycznego
   // renderowania po dodaniu getTranslations, spec 0028, zadanie 4).
   setRequestLocale(locale);
-  const [countries, t] = await Promise.all([getCountries(), getTranslations("ProducentPage")]);
+  const [session, t] = await Promise.all([auth(), getTranslations("ProducentPage")]);
+
+  if (session?.user.role === "producer") {
+    redirect(`/${locale}/producent/panel`);
+  }
 
   const benefits = [
     { icon: Workflow, title: t("benefitRegistrationTitle"), description: t("benefitRegistrationDescription") },
@@ -32,7 +40,7 @@ export default async function ProducentPage({
         </Text>
       </Stack>
       <Grid gap={4}>
-        <Stack gap={3} className="col-span-12 lg:col-span-5">
+        <Stack gap={3} className="col-span-12 lg:col-span-7">
           <Heading level="h2">{t("whyHeading")}</Heading>
           {benefits.map((benefit) => (
             <Card key={benefit.title} padding="md">
@@ -48,17 +56,22 @@ export default async function ProducentPage({
               </Stack>
             </Card>
           ))}
-          <Button as="a" href={`/${locale}/producent/zapytania`} variant="ghost" className="w-fit">
-            {t("existingAccountInquiries")}
-          </Button>
-          <Button as="a" href={`/${locale}/producent/realizacje`} variant="ghost" className="w-fit">
-            {t("existingAccountOrders")}
-          </Button>
         </Stack>
-        <Card padding="lg" className="col-span-12 lg:col-span-7">
-          <Stack gap={4}>
-            <Heading level="h2">{t("companyDataHeading")}</Heading>
-            <RegistrationForm locale={locale} countries={countries} />
+        <Card padding="lg" className="col-span-12 lg:col-span-5">
+          <Stack gap={4} align="start">
+            <Heading level="h2">{t("ctaHeading")}</Heading>
+            <Text tone="muted">{t("ctaBody")}</Text>
+            <Button as="a" href={`/${locale}/producent/rejestracja`} className="w-fit">
+              {t("ctaRegister")}
+            </Button>
+            <Button
+              as="a"
+              href={`/${locale}/logowanie?callbackUrl=${encodeURIComponent(`/${locale}/producent/panel`)}`}
+              variant="secondary"
+              className="w-fit"
+            >
+              {t("ctaLogin")}
+            </Button>
           </Stack>
         </Card>
       </Grid>

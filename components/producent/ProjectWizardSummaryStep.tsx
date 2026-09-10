@@ -102,11 +102,7 @@ export function ProjectWizardSummaryStep({ draft, countries }: ProjectWizardSumm
       <SummaryGroup title={t("groupPricing")}>
         <SummaryRow
           label={t("rowPrice")}
-          value={
-            draft.housePriceMinEur !== null && draft.housePriceMaxEur !== null
-              ? t("rowPriceValue", { min: draft.housePriceMinEur, max: draft.housePriceMaxEur })
-              : empty
-          }
+          value={draft.housePriceMinEur !== null ? t("rowPriceValue", { price: draft.housePriceMinEur }) : empty}
         />
         <SummaryRow
           label={t("rowStandard")}

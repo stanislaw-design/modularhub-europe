@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "document_one_cover_per_product" ON "document" USING btree ("product_id") WHERE "document"."is_cover" AND "document"."purpose" = 'product_photo' AND "document"."deleted_at" IS NULL;

@@ -12,6 +12,8 @@ export type ErrorContext = {
 export type EventName =
   | "user_registered"
   | "product_added"
+  | "product_updated"
+  | "product_deleted"
   | "query_sent"
   | "offer_submitted"
   | "offer_accepted"

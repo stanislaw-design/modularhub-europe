@@ -1,131 +1,100 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Heading, Stack, Text } from "@/components/ui";
 import type { Country, ProjectDraft } from "@/lib/data/types";
-import {
-  WIZARD_STEPS,
-  getWizardSteps,
-  isStepComplete,
-} from "@/lib/producer-project-draft";
-import {
-  clearEditDraft,
-  getProduct,
-  loadEditDraft,
-  saveEditDraft,
-  savedProductToDraft,
-  updateProduct,
-} from "@/lib/producer-products";
+import { updateProducerProduct } from "@/lib/producer-product-actions";
+import { WIZARD_STEPS, getWizardSteps, isStepComplete } from "@/lib/producer-project-draft";
 import { ProjectWizardBasicInfoStep } from "./ProjectWizardBasicInfoStep";
 import { ProjectWizardFilesStep } from "./ProjectWizardFilesStep";
 import { ProjectWizardPricingStep } from "./ProjectWizardPricingStep";
 import { ProjectWizardProgress } from "./ProjectWizardProgress";
 import { ProjectWizardSummaryStep } from "./ProjectWizardSummaryStep";
 import { ProjectWizardTechnicalStep } from "./ProjectWizardTechnicalStep";
+import type { ProducerProductPhoto } from "./ProducerProductPhotosStep";
 
 interface ProductEditWizardProps {
   locale: string;
-  nip: string;
   productId: string;
+  initialDraft: ProjectDraft;
+  initialPhotos: ProducerProductPhoto[];
   countries: Country[];
 }
 
-type LoadStatus = "loading" | "ready";
-
-// Osobny ekran od ProjectWizard (dodawanie nowego produktu), świadomy wybór przy
-// projektowaniu (spec 0016, rationale.md): kreator nowego produktu zostaje nietknięty,
-// ten komponent reużywa tylko jego siedem kroków. Stan edycji żyje pod osobnym kluczem
-// (`producent:${nip}:edycja:${id}`), niezależnym od ewentualnego szkicu nowego produktu
-// w toku (spec 0016, AC-8, Key invariants).
-export function ProductEditWizard({ locale, nip, productId, countries }: ProductEditWizardProps) {
+// Kreator edycji na sesji producenta (spec 0032 AC-5, AC-13): dane wejściowe
+// już wczytane po stronie serwera (strona ownership-checked producenta,
+// getProducerProductForEdit), więc bez stanu "loading"/fetch po stronie
+// przeglądarki jak w dawnym mocku (spec 0016). Osobny komponent od ProjectWizard
+// (dodawanie nowego produktu), świadomy wybór z tamtego builda — reużywa tylko
+// jego siedem kroków (rationale.md 0016).
+export function ProductEditWizard({ locale, productId, initialDraft, initialPhotos, countries }: ProductEditWizardProps) {
   const t = useTranslations("ProductEditWizard");
   const tOptions = useTranslations("ProjectOptions");
   const wizardSteps = getWizardSteps(tOptions);
   const router = useRouter();
-  const [status, setStatus] = useState<LoadStatus>("loading");
-  const [draft, setDraft] = useState<ProjectDraft | null>(null);
+  const [draft, setDraft] = useState<ProjectDraft>(initialDraft);
+  const [photos, setPhotos] = useState<ProducerProductPhoto[]>(initialPhotos);
   const [stepIndex, setStepIndex] = useState(0);
-  const [maxReachedIndex, setMaxReachedIndex] = useState(0);
+  const [maxReachedIndex, setMaxReachedIndex] = useState(WIZARD_STEPS.length - 1);
   const [showValidation, setShowValidation] = useState(false);
-  const [saveError, setSaveError] = useState(false);
-
-  useEffect(() => {
-    const product = getProduct(nip, productId);
-    if (product === null) {
-      // Nieznane id: przekierowanie samo odmontuje ten komponent, status zostaje
-      // "loading" (ten sam widok co w trakcie odczytu).
-      router.replace(`/${locale}/producent/produkty?nip=${nip}`);
-      return;
-    }
-    const storedEdit = loadEditDraft(nip, productId);
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- synchronizacja z localStorage po hydracji
-    setDraft(storedEdit ? storedEdit.draft : savedProductToDraft(product));
-    setStepIndex(storedEdit ? storedEdit.step : 0);
-    // Produkt startuje kompletny (był już zapisany), więc edycja od razu pozwala
-    // przejść do dowolnego kroku, w przeciwieństwie do sekwencyjnego kreatora nowego
-    // produktu — nie tylko do ostatnio odwiedzonego kroku szkicu edycji.
-    setMaxReachedIndex(WIZARD_STEPS.length - 1);
-    setStatus("ready");
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- locale/router są stałe dla tego montowania, nip/productId wystarczą
-  }, [nip, productId]);
-
-  if (status !== "ready" || draft === null) {
-    return (
-      <Stack gap={4}>
-        <Heading level="h1">{t("heading")}</Heading>
-        <Text tone="muted">{t("loading")}</Text>
-      </Stack>
-    );
-  }
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   function updateDraft(patch: Partial<ProjectDraft>) {
-    setDraft((prev) => {
-      if (prev === null) return prev;
-      const next = { ...prev, ...patch };
-      saveEditDraft(nip, productId, next, stepIndex);
-      return next;
-    });
+    setDraft((prev) => ({ ...prev, ...patch }));
   }
 
-  function goToStep(index: number, currentDraft: ProjectDraft) {
+  function handlePhotosChange(next: ProducerProductPhoto[]) {
+    setPhotos(next);
+    updateDraft({ photoFiles: next.map((photo) => ({ name: photo.filename, sizeBytes: 0 })) });
+  }
+
+  function goToStep(index: number) {
     setStepIndex(index);
     setShowValidation(false);
-    saveEditDraft(nip, productId, currentDraft, index);
   }
 
-  function handleNext() {
-    if (draft === null) return;
+  async function handleNext() {
     const currentStepId = WIZARD_STEPS[stepIndex].id;
     if (!isStepComplete(currentStepId, draft)) {
       setShowValidation(true);
       return;
     }
+    setSaveError(null);
+    setIsSaving(true);
+    const result = await updateProducerProduct(productId, draft, { publish: false });
+    setIsSaving(false);
+    if (!result.ok) {
+      setSaveError(result.error ?? t("saveError"));
+      return;
+    }
     const nextIndex = Math.min(stepIndex + 1, WIZARD_STEPS.length - 1);
     setMaxReachedIndex((prev) => Math.max(prev, nextIndex));
-    goToStep(nextIndex, draft);
+    goToStep(nextIndex);
   }
 
   function handleBack() {
-    if (draft === null || stepIndex === 0) return;
-    goToStep(stepIndex - 1, draft);
+    if (stepIndex === 0) return;
+    goToStep(stepIndex - 1);
   }
 
   function handleStepClick(index: number) {
-    if (draft === null || index === stepIndex || index > maxReachedIndex) return;
-    goToStep(index, draft);
+    if (index === stepIndex || index > maxReachedIndex) return;
+    goToStep(index);
   }
 
-  function handleSave() {
-    if (draft === null) return;
-    const updated = updateProduct(nip, productId, draft);
-    if (updated === null) {
-      setSaveError(true);
+  async function handleSave() {
+    setSaveError(null);
+    setIsSaving(true);
+    const result = await updateProducerProduct(productId, draft, { publish: true });
+    setIsSaving(false);
+    if (!result.ok) {
+      setSaveError(result.error ?? t("saveError"));
       return;
     }
-    clearEditDraft(nip, productId);
-    router.push(`/${locale}/producent/produkty?nip=${nip}`);
+    router.push(`/${locale}/producent/panel/produkty`);
   }
 
   const currentStep = WIZARD_STEPS[stepIndex];
@@ -154,26 +123,33 @@ export function ProductEditWizard({ locale, nip, productId, countries }: Product
           <ProjectWizardTechnicalStep draft={draft} showValidation={showValidation} onChange={updateDraft} />
         )}
         {currentStep.id === "pliki" && (
-          <ProjectWizardFilesStep draft={draft} showValidation={showValidation} onChange={updateDraft} />
+          <ProjectWizardFilesStep
+            draft={draft}
+            showValidation={showValidation}
+            productId={productId}
+            photos={photos}
+            onChange={updateDraft}
+            onPhotosChange={handlePhotosChange}
+          />
         )}
         {currentStep.id === "cena" && (
           <ProjectWizardPricingStep draft={draft} showValidation={showValidation} onChange={updateDraft} />
         )}
         {isSummaryStep && <ProjectWizardSummaryStep draft={draft} countries={countries} />}
       </Stack>
-      {saveError && <Text className="text-status-blocked">{t("saveError")}</Text>}
+      {saveError && <Text className="text-status-blocked">{saveError}</Text>}
       <Stack direction="row" gap={2}>
         {stepIndex > 0 && (
-          <Button type="button" variant="secondary" onClick={handleBack} className="w-fit">
+          <Button type="button" variant="secondary" onClick={handleBack} disabled={isSaving} className="w-fit">
             {t("back")}
           </Button>
         )}
         {isSummaryStep ? (
-          <Button type="button" onClick={handleSave} className="w-fit">
+          <Button type="button" onClick={handleSave} disabled={isSaving} className="w-fit">
             {t("save")}
           </Button>
         ) : (
-          <Button type="button" onClick={handleNext} className="w-fit">
+          <Button type="button" onClick={handleNext} disabled={isSaving} className="w-fit">
             {t("next")}
           </Button>
         )}

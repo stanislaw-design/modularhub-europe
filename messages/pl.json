@@ -18,8 +18,9 @@
   },
   "ProducerHeader": {
     "imClient": "Jestem klientem",
-    "menu": "Menu",
-    "account": "Konto"
+    "account": "Konto",
+    "signIn": "Zaloguj się",
+    "signOut": "Wyloguj"
   },
   "LanguageSwitcher": {
     "changeLanguage": "Zmień język",
@@ -94,7 +95,6 @@
     "viewDetails": "Zobacz szczegóły projektu {name}",
     "selectForInquiry": "Zaznacz {name} do zapytania",
     "selectionLimitReached": "Można zaznaczyć maksymalnie 3 projekty",
-    "localPreviewBadge": "Twój dodany produkt (podgląd)",
     "needsMoreDocuments": "Wymaga dodatkowych dokumentów",
     "summary": "{area} m² użytkowe · {rooms} {roomsLabel} · {storeys} kond.",
     "rooms": {
@@ -359,15 +359,14 @@
     "back": "Wstecz",
     "next": "Dalej",
     "save": "Zapisz projekt",
-    "saveError": "Nie udało się zapisać projektu (limit pamięci przeglądarki). Spróbuj usunąć nieużywane dane albo zwolnić miejsce i spróbuj ponownie."
+    "saveError": "Nie udało się zapisać projektu. Spróbuj ponownie."
   },
   "ProductEditWizard": {
     "heading": "Edytuj produkt",
-    "loading": "Ładowanie…",
     "back": "Wstecz",
     "next": "Dalej",
     "save": "Zapisz zmiany",
-    "saveError": "Nie udało się zapisać zmian (limit pamięci przeglądarki). Spróbuj usunąć nieużywane dane albo zwolnić miejsce i spróbuj ponownie."
+    "saveError": "Nie udało się zapisać zmian. Spróbuj ponownie."
   },
   "ProjectWizardProgress": {
     "ariaLabel": "Postęp kreatora"
@@ -408,9 +407,7 @@
   "ProjectWizardPricingStep": {
     "heading": "Cena i sprzedaż",
     "priceLabel": "Cena domu w standardzie bazowym (EUR)",
-    "priceFromAriaLabel": "Cena domu, od (EUR)",
-    "priceToAriaLabel": "Cena domu, do (EUR)",
-    "priceRequiredError": "Podaj cenę od i do, tak by cena od nie przekraczała ceny do.",
+    "priceRequiredError": "Podaj cenę domu.",
     "standardLabel": "Standard wykończenia",
     "standardRequiredError": "Wybierz standard wykończenia.",
     "leadTimeLabel": "Termin produkcji (tygodnie)",
@@ -428,8 +425,7 @@
     "heading": "Pliki",
     "floorPlanLabel": "Rzuty",
     "floorPlanRequiredError": "Dodaj co najmniej jeden rzut.",
-    "photoLabel": "Zdjęcia",
-    "photoRequiredError": "Dodaj co najmniej jedno zdjęcie."
+    "photosUnavailable": "Zapisz najpierw podstawowe informacje o produkcie, żeby dodać zdjęcia."
   },
   "ProjectWizardSummaryStep": {
     "heading": "Podsumowanie",
@@ -446,7 +442,7 @@
     "groupTechnical": "Dane techniczne",
     "groupPricing": "Cena i sprzedaż",
     "rowPrice": "Cena domu",
-    "rowPriceValue": "{min}–{max} EUR",
+    "rowPriceValue": "{price} EUR",
     "rowStandard": "Standard wykończenia",
     "rowLeadTime": "Termin produkcji",
     "rowLeadTimeValue": "{min}–{max} tyg.",
@@ -465,7 +461,7 @@
   },
   "ProducentPage": {
     "heading": "Zostań producentem ModularHub Europe",
-    "subheading": "Krótka rejestracja, bez logowania — trzy pola i przechodzisz od razu do dodania pierwszego projektu.",
+    "subheading": "Załóż konto, zaloguj się linkiem mailowym i zarządzaj swoim katalogiem produktów oraz zapytaniami klientów w jednym miejscu.",
     "whyHeading": "Dlaczego ModularHub Europe",
     "benefitRegistrationTitle": "Jedna rejestracja, wszystkie kraje",
     "benefitRegistrationDescription": "Zaznacz kraje dostawy raz — dopuszczalność projektów sprawdzamy dla każdego z nich.",
@@ -473,9 +469,10 @@
     "benefitInquiriesDescription": "Klienci wysyłają zapytania od razu z wybranym projektem i danymi kontaktowymi.",
     "benefitStatusTitle": "Status realizacji w jednym miejscu",
     "benefitStatusDescription": "Produkcja, transport, montaż i odbiór — jedna oś statusu, ta sama co u klienta.",
-    "existingAccountInquiries": "Masz już konto? Sprawdź przychodzące zapytania",
-    "existingAccountOrders": "Masz już zamówienie w realizacji? Sprawdź status i wypłatę",
-    "companyDataHeading": "Dane firmy"
+    "ctaHeading": "Masz już konto?",
+    "ctaBody": "Zaloguj się, żeby zobaczyć swój panel, albo załóż nowe konto producenta.",
+    "ctaRegister": "Zarejestruj się",
+    "ctaLogin": "Zaloguj się"
   },
   "KlientPanelZapytaniaPage": {
     "heading": "Zapytania",
@@ -889,9 +886,6 @@
     "coverAlt": "{name}, dom modułowy",
     "thumbnailAlt": "{name}, zdjęcie {index}"
   },
-  "ResultsSelection": {
-    "addedLocalProducts": "Dodano {count} Twoich produktów do listy."
-  },
   "ShortlistActionBar": {
     "selectedCount": "Zaznaczono: {count}/{max}",
     "sendInquiry": "Wyślij zapytanie"
@@ -967,5 +961,74 @@
     "bedroomsOther": "sypialnie",
     "editButton": "Edytuj",
     "deleteButton": "Usuń"
+  },
+  "ProducerCatalogLookupForm": {
+    "label": "Masz już konto? Wpisz NIP, żeby zobaczyć swój katalog produktów",
+    "placeholder": "000-000-00-00",
+    "error": "Podaj prawidłowy NIP (10 cyfr).",
+    "submitButton": "Zobacz produkty"
+  },
+  "ProducerPanelTabs": {
+    "navAriaLabel": "Panel producenta",
+    "konto": "Konto",
+    "produkty": "Produkty",
+    "zapytania": "Zapytania"
+  },
+  "ProducerPanelPage": {
+    "heading": "Konto",
+    "noProfile": "Nie znaleziono danych firmy dla tego konta.",
+    "companyNameLabel": "Nazwa firmy",
+    "deliveryCountriesLabel": "Kraje dostawy",
+    "technologyLabel": "Technologia",
+    "verificationStatusLabel": "Status weryfikacji",
+    "verificationNotSubmitted": "Nie zgłoszono",
+    "verificationPending": "W trakcie weryfikacji",
+    "verificationApproved": "Zweryfikowana",
+    "verificationRejected": "Odrzucona",
+    "demoScreensHeading": "Materiały demonstracyjne",
+    "demoScreensDescription": "Te ekrany pokazują, jak wygląda dalsza część ścieżki producenta — dziś jeszcze na danych przykładowych, nie na Twoim koncie.",
+    "demoExportReadiness": "Gotowość eksportowa",
+    "demoCompanyVerification": "Weryfikacja firmy",
+    "demoFulfillment": "Realizacje",
+    "demoInquiriesOffers": "Zapytania i oferty (demo)"
+  },
+  "ProducerProductPhotosStep": {
+    "label": "Zdjęcia",
+    "chooseFiles": "Wybierz pliki",
+    "hint": "JPEG, PNG lub WebP, maks. 10 MB.",
+    "noPhotos": "Nie wgrano jeszcze żadnego zdjęcia.",
+    "requiredError": "Dodaj co najmniej jedno zdjęcie.",
+    "uploadError": "Nie udało się wgrać pliku.",
+    "coverError": "Nie udało się ustawić okładki.",
+    "deleteError": "Nie udało się usunąć zdjęcia.",
+    "coverLabel": "Okładka",
+    "setCoverButton": "Ustaw jako okładkę",
+    "removePhoto": "Usuń {name}"
+  },
+  "ProducerProductList": {
+    "heading": "Produkty",
+    "addProduct": "Dodaj produkt",
+    "addFirstProduct": "Dodaj pierwszy produkt",
+    "emptyMessage": "Nie masz jeszcze żadnego produktu w katalogu.",
+    "unnamedProduct": "Produkt bez nazwy",
+    "addedOn": "Dodano {date}",
+    "statusPublished": "Opublikowany",
+    "statusDraft": "Szkic",
+    "editButton": "Edytuj",
+    "deleteButton": "Usuń",
+    "deleteError": "Nie udało się usunąć produktu."
+  },
+  "DemoScreenNotice": {
+    "message": "Wersja demonstracyjna: ten ekran pokazuje dane przykładowe, nie dane Twojego konta."
+  },
+  "ProducerPanelZapytaniaPage": {
+    "heading": "Zapytania",
+    "emptyMessage": "Nie masz jeszcze żadnych zapytań od klientów.",
+    "columnProducts": "Produkty",
+    "columnStatus": "Status",
+    "columnDate": "Data",
+    "statusOpen": "Oczekuje na odpowiedź",
+    "statusOffered": "Otrzymano ofertę",
+    "statusClosed": "Zamknięte"
   }
 }

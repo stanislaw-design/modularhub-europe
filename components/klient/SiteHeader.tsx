@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState, useTransition } from "react";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Container, LanguageSwitcher } from "@/components/ui";
 import { usePathname as useLocalizedPathname, useRouter as useLocalizedRouter } from "@/lib/i18n/navigation";
 import { routing, type Locale } from "@/lib/i18n/routing";
@@ -137,10 +138,6 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
   const navTextClass = isOverlay
     ? "text-brand-v4-surface hover:text-brand-v4-surface/80"
     : "text-brand-v5-ink hover:text-brand-v5-amber-strong";
-  // No hover shift (unlike navTextClass) — the logo never changed color on
-  // hover, only across the overlay/solid transition.
-  const logoTextClass = isOverlay ? "text-brand-v4-surface" : "text-brand-v5-ink";
-
   return (
     <header
       className={`${isHomeRoute ? "fixed" : "sticky"} inset-x-0 top-0 z-40 border-b transition-colors duration-300 ${
@@ -150,49 +147,15 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
       }`}
     >
       <Container className="flex items-center justify-between gap-brand-1 py-brand-2 sm:gap-brand-4">
-        <Link href={`/${locale}/klient`} className="focus-ring shrink-0 rounded-data">
-          {/* Inlined (not a static Image import) so the wordmark/symbol's
-              dark shapes can pick up currentColor and cross-fade between
-              white (overlay) and ink (solid) with the rest of the nav —
-              amber shapes/text stay the fixed brand amber in both states.
-              Smaller below `sm` (spec 0030 AC-1): at `h-7` the full lockup
-              plus the group on the right no longer fits down to a 320px
-              wide phone screen. */}
-          <svg
-            viewBox="0 0 700 116"
-            role="img"
-            aria-label="ModularHub Europe"
-            className={`h-5 w-auto transition-colors duration-300 sm:h-7 ${logoTextClass}`}
-          >
-            <g transform="translate(10 10) scale(.92)">
-              <path fill="currentColor" d="M8 30h13l14 15 14-15h13v52H49V49L35 63 21 49v33H8V30Z" />
-              <path fill="#FCA311" d="M62 30h13v19h16V30h13v52H91V62H75v20H62V30Z" />
-              <path fill="currentColor" d="M14 8h43v12H26v13H14V8Z" />
-              <path fill="#FCA311" d="M57 8h17l30 16v14L71 20H57V8Z" />
-            </g>
-            <text
-              x="133"
-              y="71"
-              fontFamily="Manrope, Avenir Next, Arial, sans-serif"
-              fontSize="49"
-              fontWeight="700"
-              letterSpacing="-1.5"
-            >
-              <tspan fill="currentColor">Modular</tspan>
-              <tspan fill="#FCA311">Hub</tspan>
-            </text>
-            <text
-              x="526"
-              y="70"
-              fill="currentColor"
-              fontFamily="Manrope, Avenir Next, Arial, sans-serif"
-              fontSize="16"
-              fontWeight="600"
-              letterSpacing="5"
-            >
-              EUROPE
-            </text>
-          </svg>
+        <Link
+          href={`/${locale}/klient`}
+          aria-label="ModularHub Europe"
+          className="focus-ring shrink-0 rounded-data"
+        >
+          <BrandLogo
+            tone={isOverlay ? "light" : "dark"}
+            className="text-[0.55rem] transition-colors duration-300 sm:text-[0.72rem]"
+          />
         </Link>
         <div className="flex items-center gap-brand-1 sm:gap-brand-3">
           <LanguageSwitcher

@@ -34,17 +34,6 @@ describe("PopularHomes", () => {
     expect(screen.getByRole("link")).toHaveAttribute("href", "/pl/klient/projekt/prj-modulor-family-90");
   });
 
-  it("excludes a featured project with a local- id from the links, defensively (spec 0020 AC-8)", async () => {
-    const projects = [
-      createMockProject({ id: "local-9998887770-abc", featured: true, name: "Local Preview" }),
-      createMockProject({ id: "prj-modulor-family-90", featured: true, name: "Catalog Home" }),
-    ];
-    render(await resolveAsyncTree(<PopularHomes locale="pl" projects={projects} countries={countries} />));
-
-    expect(screen.queryByRole("heading", { name: "Local Preview" })).not.toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Catalog Home" })).toBeInTheDocument();
-  });
-
   it("renders nothing in the grid when no project is featured", async () => {
     const projects = [createMockProject({ id: "prj-a", featured: false })];
     render(await resolveAsyncTree(<PopularHomes locale="pl" projects={projects} countries={countries} />));

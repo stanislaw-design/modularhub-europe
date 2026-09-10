@@ -15,6 +15,17 @@ ModularHub Europe ma wyglądać precyzyjnie, nowocześnie i pewnie. Czerń buduj
 - techniczny, ale ludzki,
 - wyrazisty, nie krzykliwy.
 
+## Logo — v4 „Passage”
+
+Wybranym znakiem prototypu jest płaski system `assets/brand/logo/v4/`. Dwie stabilne podpory i ukośny łącznik tworzą abstrakcyjny hub, a pomarańczowe przejście komunikuje kierunek procesu. Pełny lockup jest używany w nagłówkach klienta i producenta, wariant odwrócony nad fotograficznym hero, a znak na pomarańczowym polu jako favicon i ikona aplikacji.
+
+- podstawowy lockup: `v4/horizontal/logo-horizontal-primary-v4.svg`,
+- ciemne lub fotograficzne tło: `v4/horizontal/logo-horizontal-reversed-v4.svg`,
+- favicon i aplikacja: `v4/app/logo-app-icon-v4.svg`,
+- minimalna szerokość lockupu: 120 px; symbolu: 24 px.
+
+Wersje v2 i v3 pozostają historią kierunku i nie powinny być używane w nowych ekranach. Przed rejestracją lub produkcją wielkoformatową nadal wymagany jest screening znaków towarowych.
+
 ## Paleta
 
 | Rola | Nazwa | HEX | Użycie |
@@ -54,4 +65,3 @@ Nagłówki Manrope są zwarte i geometryczne. Inter pozostaje podstawą czytelno
 - Marketingowe aliasy istnieją w `assets/tokens/brand-v4-tokens.{css,json}`, ale rozwiązują się do tej samej palety.
 - Mapowanie Tailwind CSS v4 znajduje się w `app/globals.css`.
 - Starsze nazwy tokenów (`foundation-navy`, `passage-blue`) pozostają tymczasowo jako aliasy, aby nie rozrywać istniejących ekranów podczas migracji.
-

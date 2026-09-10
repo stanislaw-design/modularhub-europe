@@ -71,6 +71,13 @@
       "when": 1788780879346,
       "tag": "0009_warm_golden_guardian",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788948479213,
+      "tag": "0010_high_blue_marvel",
+      "breakpoints": true
     }
   ]
 }

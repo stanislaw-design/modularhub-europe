@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 120" role="img" aria-labelledby="title desc">
+  <title id="title">ModularHub Europe</title>
+  <desc id="desc">Reversed horizontal ModularHub Europe logo for dark backgrounds.</desc>
+  <defs>
+    <mask id="passage-cutout">
+      <rect width="100" height="100" fill="#fff"/>
+      <path d="M34 39 61 56v13L34 85Z" fill="#000"/>
+    </mask>
+  </defs>
+  <g transform="translate(8 10)">
+    <g fill="#fff" mask="url(#passage-cutout)">
+      <rect x="8" y="10" width="26" height="80" rx="10"/>
+      <rect x="70" y="10" width="22" height="80" rx="10"/>
+      <path d="M32 20q0-7 7-3l35 23v42q0 8-8 8H55V57L32 42Z"/>
+    </g>
+    <path d="M37 48q0-5 5-2l15 10v12L42 78q-5 3-5-3Z" fill="#FCA311"/>
+  </g>
+  <text x="132" y="70" fill="#fff" font-family="Manrope, Avenir Next, Arial, sans-serif" font-size="52" font-weight="800" letter-spacing="-3">ModularHub</text>
+  <text x="136" y="101" fill="#fff" font-family="Manrope, Avenir Next, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="10">EUROPE</text>
+</svg>

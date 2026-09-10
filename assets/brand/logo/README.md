@@ -1,4 +1,10 @@
-# Working logo lockups
+# ModularHub Europe — logo assets
+
+## Current direction: v4 „Passage”
+
+The user-selected flat identity is stored in `v4/`. Use its horizontal primary lockup on light surfaces, the reversed lockup over the client homepage hero, and the app icon for browser/application identity. The website implementation uses the same geometry through `components/brand/BrandLogo.tsx`, keeping the Manrope wordmark native and responsive.
+
+V2 and v3 below remain archived direction history and should not be introduced into new screens.
 
 These files explore the relationship between the **Clearance Gate** symbol and the working title “Modular Hub Europe”. They are not final trademarks or production wordmarks.
 

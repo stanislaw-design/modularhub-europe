@@ -1,7 +1,7 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { db } from "@/lib/db/client";
-import { auditLog, producer, product, productCountryEligibility, users } from "@/lib/db/schema";
+import { auditLog, document, producer, product, productCountryEligibility, users } from "@/lib/db/schema";
 import { getEligibilityByCountry, getFeaturedProjectByFamily, getProjectById, getProjects } from "./projects";
 
 // Confirms spec 0023 AC-4/AC-6: getProjects/getProjectById/getEligibilityByCountry
@@ -312,5 +312,120 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: reads from the da
 
     expect(rows.some((row) => row.projectId === publishedDomId && row.status === "approved")).toBe(true);
     expect(rows.every((row) => row.countryCode === "DE")).toBe(true);
+  });
+});
+
+// spec 0031 AC-7/AC-8: cover/gallery read from the document table when rows
+// exist, falling back to product.coverImageUrl/technicalSpecs._extraImageUrls
+// otherwise (strangler pattern, spec 0031 Migration plan). Own producer/product
+// fixtures so this describe never depends on the big shared block above.
+describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: document-sourced cover/gallery (spec 0031)", () => {
+  const userId = crypto.randomUUID();
+  const producerId = crypto.randomUUID();
+  const ownerUserId = crypto.randomUUID();
+  const migratedProductId = crypto.randomUUID();
+  const notYetMigratedProductId = crypto.randomUUID();
+
+  beforeAll(async () => {
+    await db.insert(users).values([
+      { id: userId, email: `doc-photos-${userId}@example.test`, phone: "+48000000000", role: "producer" },
+      { id: ownerUserId, email: `doc-photos-owner-${ownerUserId}@example.test`, phone: "+48000000001", role: "admin" },
+    ]);
+    await db.insert(producer).values({
+      id: producerId,
+      userId,
+      nip: `DP${producerId.slice(0, 8)}`,
+      name: "Document Photos Test Producer",
+      countryCode: "PL",
+      technology: "szkielet-drewniany",
+    });
+    await db.insert(product).values([
+      {
+        id: migratedProductId,
+        producerId,
+        family: "dom",
+        status: "published",
+        name: "Migrated Test Dom",
+        floorAreaM2: 80,
+        countryOfProduction: "PL",
+        coverImageUrl: "/images/houses/legacy-mock-cover.jpg",
+        technicalSpecs: { _extraImageUrls: ["/images/houses/legacy-mock-extra.jpg"] },
+      },
+      {
+        id: notYetMigratedProductId,
+        producerId,
+        family: "dom",
+        status: "published",
+        name: "Not Yet Migrated Test Dom",
+        floorAreaM2: 80,
+        countryOfProduction: "PL",
+        coverImageUrl: "/images/houses/still-on-mock-cover.jpg",
+        technicalSpecs: { _extraImageUrls: ["/images/houses/still-on-mock-extra.jpg"] },
+      },
+    ]);
+    // migratedProductId dostaje realne wiersze document; notYetMigratedProductId
+    // celowo żadnego, żeby sprawdzić oba ramiona fallbacku w jednym describe.
+    await db.insert(document).values([
+      {
+        r2Key: "doc-photos-cover.jpg",
+        filename: "cover.jpg",
+        mimeType: "image/jpeg",
+        sizeBytes: 10,
+        purpose: "product_photo",
+        isCover: true,
+        sortOrder: 0,
+        ownerUserId,
+        productId: migratedProductId,
+      },
+      {
+        r2Key: "doc-photos-gallery-1.jpg",
+        filename: "gallery-1.jpg",
+        mimeType: "image/jpeg",
+        sizeBytes: 10,
+        purpose: "product_photo",
+        isCover: false,
+        sortOrder: 1,
+        ownerUserId,
+        productId: migratedProductId,
+      },
+    ]);
+  });
+
+  afterAll(async () => {
+    const docs = await db.select({ id: document.id }).from(document).where(eq(document.productId, migratedProductId));
+    const docIds = docs.map((d) => d.id);
+    if (docIds.length > 0) {
+      await db.delete(auditLog).where(inArray(auditLog.recordId, docIds));
+      await db.delete(document).where(inArray(document.id, docIds));
+    }
+    await db.delete(product).where(inArray(product.id, [migratedProductId, notYetMigratedProductId]));
+    await db.delete(producer).where(eq(producer.id, producerId));
+    await db.delete(users).where(inArray(users.id, [userId, ownerUserId]));
+    await db.delete(auditLog).where(inArray(auditLog.recordId, [userId, ownerUserId, producerId]));
+  });
+
+  it("getProjectById prefers the document-sourced cover and gallery over the legacy mock fields once document rows exist", async () => {
+    const project = await getProjectById(migratedProductId);
+
+    expect(project?.coverImageUrl).toMatch(/doc-photos-cover\.jpg$/);
+    expect(project?.coverImageUrl).not.toBe("/images/houses/legacy-mock-cover.jpg");
+    expect(project?.galleryImageUrls).toHaveLength(1);
+    expect(project?.galleryImageUrls?.[0]).toMatch(/doc-photos-gallery-1\.jpg$/);
+  });
+
+  it("getProjectById falls back to product.coverImageUrl/_extraImageUrls when a product has no document rows yet", async () => {
+    const project = await getProjectById(notYetMigratedProductId);
+
+    expect(project?.coverImageUrl).toBe("/images/houses/still-on-mock-cover.jpg");
+    expect(project?.galleryImageUrls).toEqual(["/images/houses/still-on-mock-extra.jpg"]);
+  });
+
+  it("getProjects applies the same document-sourced override in a batch call, not just getProjectById", async () => {
+    const projects = await getProjects({ family: "dom" });
+
+    const migrated = projects.find((p) => p.id === migratedProductId);
+    const notYetMigrated = projects.find((p) => p.id === notYetMigratedProductId);
+    expect(migrated?.coverImageUrl).toMatch(/doc-photos-cover\.jpg$/);
+    expect(notYetMigrated?.coverImageUrl).toBe("/images/houses/still-on-mock-cover.jpg");
   });
 });

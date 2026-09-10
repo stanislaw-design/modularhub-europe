@@ -60,8 +60,6 @@ export default async function WynikiPage({
         sizeMin={filter.sizeMin}
         sizeMax={filter.sizeMax}
         family={filter.family}
-        sort={filter.sort}
-        countries={countries}
         isClientSession={isClientSession}
         serverItems={sortedProjects.map((project) => ({
           project,

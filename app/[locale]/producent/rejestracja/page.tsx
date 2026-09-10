@@ -14,7 +14,9 @@ export default async function ProducentRejestracjaPage({
     searchParams,
     getCountries(),
   ]);
-  const safeCallbackUrl = callbackUrl?.startsWith("/") ? callbackUrl : `/${locale}/producent`;
+  // AC-9 (spec 0032): bez jawnie podanego celu rejestracja ląduje po
+  // potwierdzeniu w kreatorze pierwszego produktu, nie na stronie głównej producenta.
+  const safeCallbackUrl = callbackUrl?.startsWith("/") ? callbackUrl : `/${locale}/producent/panel/projekt`;
 
   return (
     <Container className="py-brand-6">

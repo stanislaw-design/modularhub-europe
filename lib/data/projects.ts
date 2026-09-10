@@ -1,9 +1,10 @@
-import { and, desc, eq, gte, lte, ne, or, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNull, lte, ne, or, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { favorite, producer, product, productCountryEligibility, productTranslation } from "@/lib/db/schema";
+import { document, favorite, producer, product, productCountryEligibility, productTranslation } from "@/lib/db/schema";
 import type { Locale } from "@/lib/i18n/routing";
 import type { EnergyClass, VentilationType } from "@/lib/product-technical-specs";
 import { resolveHeatSourceValues, type HeatSourceFilterValue, type PriceThreshold, type StoreysFilter } from "@/lib/results-filters";
+import { buildPublicUrl } from "@/lib/storage/r2-client";
 import type {
   CountryCode,
   EligibilityByCountry,
@@ -80,6 +81,65 @@ interface ProductTranslationText {
 
 function resolveTranslatedText(base: string | null, translated: string | null | undefined): string {
   return translated && translated.trim().length > 0 ? translated : (base ?? "");
+}
+
+interface ProductDocumentPhotos {
+  coverUrl: string | null;
+  galleryUrls: string[];
+}
+
+// AC-7, AC-8: jedno zagregowane query dla wielu produktów naraz (nie fanout na
+// wywołanie mapRowToProject), łagodny fallback w obie strony do
+// coverImageUrl/_extraImageUrls dopóki produkt nie ma żadnego wiersza document
+// (strangler, spec 0031 Migration plan) — okładka i galeria nigdy się nie psują
+// w trakcie migracji.
+async function resolveProductDocumentPhotos(productIds: string[]): Promise<Map<string, ProductDocumentPhotos>> {
+  if (productIds.length === 0) return new Map();
+
+  const rows = await db
+    .select({
+      productId: document.productId,
+      r2Key: document.r2Key,
+      isCover: document.isCover,
+      sortOrder: document.sortOrder,
+    })
+    .from(document)
+    .where(
+      and(inArray(document.productId, productIds), eq(document.purpose, "product_photo"), isNull(document.deletedAt)),
+    );
+
+  const byProduct = new Map<string, typeof rows>();
+  for (const row of rows) {
+    if (!row.productId) continue;
+    const bucket = byProduct.get(row.productId) ?? [];
+    bucket.push(row);
+    byProduct.set(row.productId, bucket);
+  }
+
+  const result = new Map<string, ProductDocumentPhotos>();
+  for (const [productId, docs] of byProduct) {
+    const sorted = [...docs].sort(
+      (a, b) => (a.sortOrder ?? Number.MAX_SAFE_INTEGER) - (b.sortOrder ?? Number.MAX_SAFE_INTEGER),
+    );
+    const cover = sorted.find((doc) => doc.isCover) ?? null;
+    result.set(productId, {
+      coverUrl: cover ? buildPublicUrl(cover.r2Key) : null,
+      galleryUrls: sorted.filter((doc) => !doc.isCover).map((doc) => buildPublicUrl(doc.r2Key)),
+    });
+  }
+  return result;
+}
+
+// Nadpisuje okładkę/galerię danymi z document tylko gdy produkt ma już
+// przynajmniej jeden zmigrowany/wgrany wiersz (AC-8); bez żadnego wiersza
+// project zostaje bez zmian (dzisiejszy mock/mostek, patrz mapRowToProject).
+function applyDocumentPhotos(projectItem: Project, photos: ProductDocumentPhotos | undefined): Project {
+  if (!photos) return projectItem;
+  return {
+    ...projectItem,
+    coverImageUrl: photos.coverUrl ?? projectItem.coverImageUrl,
+    galleryImageUrls: photos.galleryUrls.length > 0 ? photos.galleryUrls : projectItem.galleryImageUrls,
+  };
 }
 
 function mapRowToProject(
@@ -264,7 +324,8 @@ export async function getProjects(filters?: GetProjectsFilters): Promise<Project
     projects = projects.filter((project) => eligibleIds.has(project.id));
   }
 
-  return projects;
+  const documentPhotos = await resolveProductDocumentPhotos(projects.map((project) => project.id));
+  return projects.map((project) => applyDocumentPhotos(project, documentPhotos.get(project.id)));
 }
 
 export async function getProjectById(id: string, locale: Locale = "pl"): Promise<Project | null> {
@@ -284,12 +345,15 @@ export async function getProjectById(id: string, locale: Locale = "pl"): Promise
       )
       .where(eq(product.id, id));
 
-    return row
-      ? mapRowToProject(row.product, row.producerName, {
-          name: row.translationName,
-          description: row.translationDescription,
-        })
-      : null;
+    if (!row) return null;
+    const documentPhotos = await resolveProductDocumentPhotos([id]);
+    return applyDocumentPhotos(
+      mapRowToProject(row.product, row.producerName, {
+        name: row.translationName,
+        description: row.translationDescription,
+      }),
+      documentPhotos.get(id),
+    );
   }
 
   const [row] = await db
@@ -298,7 +362,9 @@ export async function getProjectById(id: string, locale: Locale = "pl"): Promise
     .innerJoin(producer, eq(product.producerId, producer.id))
     .where(eq(product.id, id));
 
-  return row ? mapRowToProject(row.product, row.producerName) : null;
+  if (!row) return null;
+  const documentPhotos = await resolveProductDocumentPhotos([id]);
+  return applyDocumentPhotos(mapRowToProject(row.product, row.producerName), documentPhotos.get(id));
 }
 
 // Public: feeds CategoryShowcase on the home page with one real, clickable
@@ -323,12 +389,15 @@ export async function getFeaturedProjectByFamily(
       )
       .where(and(eq(product.family, family), eq(product.featured, true), eq(product.status, "published")));
 
-    return row
-      ? mapRowToProject(row.product, row.producerName, {
-          name: row.translationName,
-          description: row.translationDescription,
-        })
-      : null;
+    if (!row) return null;
+    const documentPhotos = await resolveProductDocumentPhotos([row.product.id]);
+    return applyDocumentPhotos(
+      mapRowToProject(row.product, row.producerName, {
+        name: row.translationName,
+        description: row.translationDescription,
+      }),
+      documentPhotos.get(row.product.id),
+    );
   }
 
   const [row] = await db
@@ -337,7 +406,9 @@ export async function getFeaturedProjectByFamily(
     .innerJoin(producer, eq(product.producerId, producer.id))
     .where(and(eq(product.family, family), eq(product.featured, true), eq(product.status, "published")));
 
-  return row ? mapRowToProject(row.product, row.producerName) : null;
+  if (!row) return null;
+  const documentPhotos = await resolveProductDocumentPhotos([row.product.id]);
+  return applyDocumentPhotos(mapRowToProject(row.product, row.producerName), documentPhotos.get(row.product.id));
 }
 
 export async function getEligibilityByCountry(
@@ -376,8 +447,10 @@ export async function getFavoritesForClient(clientId: string): Promise<FavoriteL
     .where(eq(favorite.clientId, clientId))
     .orderBy(desc(favorite.createdAt));
 
+  const documentPhotos = await resolveProductDocumentPhotos(rows.map((row) => row.product.id));
+
   return rows.map((row) => ({
-    project: mapRowToProject(row.product, row.producerName),
+    project: applyDocumentPhotos(mapRowToProject(row.product, row.producerName), documentPhotos.get(row.product.id)),
     available: row.product.status === "published" && row.product.deletedAt === null,
   }));
 }

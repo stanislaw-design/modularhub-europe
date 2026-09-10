@@ -18,8 +18,9 @@
   },
   "ProducerHeader": {
     "imClient": "Ik ben klant",
-    "menu": "Menu",
-    "account": "Account"
+    "account": "Account",
+    "signIn": "Inloggen",
+    "signOut": "Uitloggen"
   },
   "LanguageSwitcher": {
     "changeLanguage": "Taal wijzigen",
@@ -94,7 +95,6 @@
     "viewDetails": "Bekijk details voor {name}",
     "selectForInquiry": "Selecteer {name} voor de aanvraag",
     "selectionLimitReached": "U kunt maximaal 3 projecten selecteren",
-    "localPreviewBadge": "Uw toegevoegde product (voorbeeld)",
     "needsMoreDocuments": "Vereist aanvullende documenten",
     "summary": "{area} m² bruikbaar · {rooms} {roomsLabel} · {storeys} bouwlagen",
     "rooms": {
@@ -359,15 +359,14 @@
     "back": "Terug",
     "next": "Volgende",
     "save": "Project opslaan",
-    "saveError": "Het project kon niet worden opgeslagen (opslaglimiet van de browser). Probeer ongebruikte gegevens te verwijderen of ruimte vrij te maken en probeer het opnieuw."
+    "saveError": "Opslaan van het project is mislukt. Probeer het opnieuw."
   },
   "ProductEditWizard": {
     "heading": "Product bewerken",
-    "loading": "Laden…",
     "back": "Terug",
     "next": "Volgende",
     "save": "Wijzigingen opslaan",
-    "saveError": "De wijzigingen konden niet worden opgeslagen (opslaglimiet van de browser). Probeer ongebruikte gegevens te verwijderen of ruimte vrij te maken en probeer het opnieuw."
+    "saveError": "Opslaan van de wijzigingen is mislukt. Probeer het opnieuw."
   },
   "ProjectWizardProgress": {
     "ariaLabel": "Voortgang van de wizard"
@@ -408,9 +407,7 @@
   "ProjectWizardPricingStep": {
     "heading": "Prijs en verkoop",
     "priceLabel": "Prijs van het huis in de basisstandaard (EUR)",
-    "priceFromAriaLabel": "Prijs van het huis, vanaf (EUR)",
-    "priceToAriaLabel": "Prijs van het huis, tot (EUR)",
-    "priceRequiredError": "Voer een prijs vanaf en tot in, zodat de vanaf-prijs niet hoger is dan de tot-prijs.",
+    "priceRequiredError": "Voer de prijs van het huis in.",
     "standardLabel": "Afwerkingsstandaard",
     "standardRequiredError": "Kies een afwerkingsstandaard.",
     "leadTimeLabel": "Productietermijn (weken)",
@@ -428,8 +425,7 @@
     "heading": "Bestanden",
     "floorPlanLabel": "Plattegronden",
     "floorPlanRequiredError": "Voeg minstens één plattegrond toe.",
-    "photoLabel": "Foto's",
-    "photoRequiredError": "Voeg minstens één foto toe."
+    "photosUnavailable": "Sla eerst de basisinformatie van het product op om foto's toe te voegen."
   },
   "ProjectWizardSummaryStep": {
     "heading": "Samenvatting",
@@ -446,7 +442,7 @@
     "groupTechnical": "Technische gegevens",
     "groupPricing": "Prijs en verkoop",
     "rowPrice": "Prijs van het huis",
-    "rowPriceValue": "{min}–{max} EUR",
+    "rowPriceValue": "{price} EUR",
     "rowStandard": "Afwerkingsstandaard",
     "rowLeadTime": "Productietermijn",
     "rowLeadTimeValue": "{min}–{max} wk.",
@@ -465,7 +461,7 @@
   },
   "ProducentPage": {
     "heading": "Word producent bij ModularHub Europe",
-    "subheading": "Een korte registratie, zonder inloggen — drie velden en u gaat meteen door naar uw eerste project.",
+    "subheading": "Maak een account aan, log in met een e-maillink en beheer uw productcatalogus en klantaanvragen op één plek.",
     "whyHeading": "Waarom ModularHub Europe",
     "benefitRegistrationTitle": "Eén registratie, alle landen",
     "benefitRegistrationDescription": "Selecteer uw leverlanden één keer — wij controleren de projectgeschiktheid voor elk land.",
@@ -473,9 +469,10 @@
     "benefitInquiriesDescription": "Klanten sturen aanvragen direct met het gekozen project en hun contactgegevens.",
     "benefitStatusTitle": "Uitvoeringsstatus op één plek",
     "benefitStatusDescription": "Productie, transport, montage en oplevering — één statusas, dezelfde die de klant ziet.",
-    "existingAccountInquiries": "Heeft u al een account? Bekijk inkomende aanvragen",
-    "existingAccountOrders": "Heeft u al een lopende bestelling? Bekijk status en uitbetaling",
-    "companyDataHeading": "Bedrijfsgegevens"
+    "ctaHeading": "Heeft u al een account?",
+    "ctaBody": "Log in om uw paneel te zien, of maak een nieuw producentenaccount aan.",
+    "ctaRegister": "Registreren",
+    "ctaLogin": "Inloggen"
   },
   "KlientPanelZapytaniaPage": {
     "heading": "Aanvragen",
@@ -889,9 +886,6 @@
     "coverAlt": "{name}, modulaire woning",
     "thumbnailAlt": "{name}, foto {index}"
   },
-  "ResultsSelection": {
-    "addedLocalProducts": "{count} van uw producten toegevoegd aan de lijst."
-  },
   "ShortlistActionBar": {
     "selectedCount": "Geselecteerd: {count}/{max}",
     "sendInquiry": "Aanvraag versturen"
@@ -967,5 +961,74 @@
     "bedroomsOther": "slaapkamers",
     "editButton": "Bewerken",
     "deleteButton": "Verwijderen"
+  },
+  "ProducerCatalogLookupForm": {
+    "label": "Heeft u al een account? Voer uw NIP in om uw productcatalogus te bekijken",
+    "placeholder": "000-000-00-00",
+    "error": "Voer een geldig NIP in (10 cijfers).",
+    "submitButton": "Producten bekijken"
+  },
+  "ProducerPanelTabs": {
+    "navAriaLabel": "Fabrikantenpaneel",
+    "konto": "Account",
+    "produkty": "Producten",
+    "zapytania": "Aanvragen"
+  },
+  "ProducerPanelPage": {
+    "heading": "Account",
+    "noProfile": "Geen bedrijfsgegevens gevonden voor dit account.",
+    "companyNameLabel": "Bedrijfsnaam",
+    "deliveryCountriesLabel": "Leveringslanden",
+    "technologyLabel": "Technologie",
+    "verificationStatusLabel": "Verificatiestatus",
+    "verificationNotSubmitted": "Niet ingediend",
+    "verificationPending": "In beoordeling",
+    "verificationApproved": "Geverifieerd",
+    "verificationRejected": "Afgewezen",
+    "demoScreensHeading": "Demomateriaal",
+    "demoScreensDescription": "Deze schermen tonen hoe de rest van het producententraject eruitziet — vandaag nog met voorbeeldgegevens, niet met uw eigen account.",
+    "demoExportReadiness": "Exportgereedheid",
+    "demoCompanyVerification": "Bedrijfsverificatie",
+    "demoFulfillment": "Uitvoeringen",
+    "demoInquiriesOffers": "Aanvragen en aanbiedingen (demo)"
+  },
+  "ProducerProductPhotosStep": {
+    "label": "Foto's",
+    "chooseFiles": "Bestanden kiezen",
+    "hint": "JPEG, PNG of WebP, max. 10 MB.",
+    "noPhotos": "Nog geen foto geüpload.",
+    "requiredError": "Voeg minstens één foto toe.",
+    "uploadError": "Uploaden van het bestand is mislukt.",
+    "coverError": "Instellen van de omslagfoto is mislukt.",
+    "deleteError": "Verwijderen van de foto is mislukt.",
+    "coverLabel": "Omslag",
+    "setCoverButton": "Instellen als omslag",
+    "removePhoto": "{name} verwijderen"
+  },
+  "ProducerProductList": {
+    "heading": "Producten",
+    "addProduct": "Product toevoegen",
+    "addFirstProduct": "Voeg uw eerste product toe",
+    "emptyMessage": "U heeft nog geen producten in uw catalogus.",
+    "unnamedProduct": "Naamloos product",
+    "addedOn": "Toegevoegd op {date}",
+    "statusPublished": "Gepubliceerd",
+    "statusDraft": "Concept",
+    "editButton": "Bewerken",
+    "deleteButton": "Verwijderen",
+    "deleteError": "Verwijderen van het product is mislukt."
+  },
+  "DemoScreenNotice": {
+    "message": "Demoversie: dit scherm toont voorbeeldgegevens, niet de echte gegevens van uw account."
+  },
+  "ProducerPanelZapytaniaPage": {
+    "heading": "Aanvragen",
+    "emptyMessage": "U heeft nog geen klantaanvragen.",
+    "columnProducts": "Producten",
+    "columnStatus": "Status",
+    "columnDate": "Datum",
+    "statusOpen": "Wacht op antwoord",
+    "statusOffered": "Aanbieding ontvangen",
+    "statusClosed": "Gesloten"
   }
 }

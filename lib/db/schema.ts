@@ -605,25 +605,36 @@ export const payment = pgTable("payment", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-export const document = pgTable("document", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  r2Key: text("r2_key").notNull(),
-  filename: text("filename").notNull(),
-  mimeType: text("mime_type").notNull(),
-  sizeBytes: integer("size_bytes").notNull(),
-  purpose: documentPurposeEnum("purpose").notNull(),
-  // Zastępuje dzisiejsze coverImageUrl/featuredPhotoUrl (spec 0018 Feature design).
-  isCover: boolean("is_cover").notNull().default(false),
-  sortOrder: integer("sort_order"),
-  ownerUserId: text("owner_user_id")
-    .notNull()
-    .references(() => users.id),
-  productId: uuid("product_id").references(() => product.id),
-  orderStageEventId: uuid("order_stage_event_id").references(() => orderStageEvent.id),
-  producerId: uuid("producer_id").references(() => producer.id),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  deletedAt: timestamp("deleted_at", { withTimezone: true }),
-});
+export const document = pgTable(
+  "document",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    r2Key: text("r2_key").notNull(),
+    filename: text("filename").notNull(),
+    mimeType: text("mime_type").notNull(),
+    sizeBytes: integer("size_bytes").notNull(),
+    purpose: documentPurposeEnum("purpose").notNull(),
+    // Zastępuje dzisiejsze coverImageUrl/featuredPhotoUrl (spec 0018 Feature design).
+    isCover: boolean("is_cover").notNull().default(false),
+    sortOrder: integer("sort_order"),
+    ownerUserId: text("owner_user_id")
+      .notNull()
+      .references(() => users.id),
+    productId: uuid("product_id").references(() => product.id),
+    orderStageEventId: uuid("order_stage_event_id").references(() => orderStageEvent.id),
+    producerId: uuid("producer_id").references(() => producer.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  },
+  (table) => [
+    // Najwyżej jedna okładka (is_cover) na produkt, filtrowane też po purpose
+    // (spec 0031 Feature design): bez tego filtru zdjęcie i przyszły rzut
+    // techniczny tego samego produktu mogłyby rywalizować o ten sam indeks.
+    uniqueIndex("document_one_cover_per_product")
+      .on(table.productId)
+      .where(sql`${table.isCover} AND ${table.purpose} = 'product_photo' AND ${table.deletedAt} IS NULL`),
+  ],
+);
 
 // ---------------------------------------------------------------------------
 // Audyt: wypełniane triggerem Postgres (migracja 0002), nie kodem aplikacji

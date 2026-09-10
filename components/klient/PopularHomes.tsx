@@ -1,6 +1,5 @@
 import { getTranslations } from "next-intl/server";
 import { Heading, Text } from "@/components/ui";
-import { isLocalProjectId } from "@/lib/local-client-projects";
 import type { Country, Project } from "@/lib/data/types";
 import { PopularHomeCard } from "./PopularHomeCard";
 
@@ -16,10 +15,7 @@ interface PopularHomesProps {
 // sense that "popular" isn't computed from real view counts.
 export async function PopularHomes({ locale, projects, countries }: PopularHomesProps) {
   const t = await getTranslations("PopularHomes");
-  // featured projects są dziś zawsze z katalogu przykładowego (getProjects()
-  // nigdy nie zwraca id z prefiksem local-), ale filtr zostaje jako ta sama
-  // asercja co ResultCard — projekt local- nigdy nie jest linkowany (spec 0020 AC-8).
-  const featured = projects.filter((project) => project.featured && !isLocalProjectId(project.id));
+  const featured = projects.filter((project) => project.featured);
   const countryNameByCode = new Map(countries.map((country) => [country.code, country.name]));
 
   return (

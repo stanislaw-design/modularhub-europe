@@ -18,8 +18,9 @@
   },
   "ProducerHeader": {
     "imClient": "I'm a customer",
-    "menu": "Menu",
-    "account": "Account"
+    "account": "Account",
+    "signIn": "Sign in",
+    "signOut": "Sign out"
   },
   "LanguageSwitcher": {
     "changeLanguage": "Change language",
@@ -94,7 +95,6 @@
     "viewDetails": "View details for {name}",
     "selectForInquiry": "Select {name} for the inquiry",
     "selectionLimitReached": "You can select up to 3 projects",
-    "localPreviewBadge": "Your added product (preview)",
     "needsMoreDocuments": "Needs additional documents",
     "summary": "{area} m² usable · {rooms} {roomsLabel} · {storeys} floors",
     "rooms": {
@@ -359,15 +359,14 @@
     "back": "Back",
     "next": "Next",
     "save": "Save project",
-    "saveError": "Couldn't save the project (browser storage limit). Try removing unused data or freeing up space, then try again."
+    "saveError": "Failed to save the project. Please try again."
   },
   "ProductEditWizard": {
     "heading": "Edit product",
-    "loading": "Loading…",
     "back": "Back",
     "next": "Next",
     "save": "Save changes",
-    "saveError": "Couldn't save the changes (browser storage limit). Try removing unused data or freeing up space, then try again."
+    "saveError": "Failed to save the changes. Please try again."
   },
   "ProjectWizardProgress": {
     "ariaLabel": "Wizard progress"
@@ -408,9 +407,7 @@
   "ProjectWizardPricingStep": {
     "heading": "Price and sale",
     "priceLabel": "House price in the base standard (EUR)",
-    "priceFromAriaLabel": "House price, from (EUR)",
-    "priceToAriaLabel": "House price, to (EUR)",
-    "priceRequiredError": "Enter a from and to price, so that the from price doesn't exceed the to price.",
+    "priceRequiredError": "Enter the house price.",
     "standardLabel": "Completion standard",
     "standardRequiredError": "Choose a completion standard.",
     "leadTimeLabel": "Production lead time (weeks)",
@@ -428,8 +425,7 @@
     "heading": "Files",
     "floorPlanLabel": "Floor plans",
     "floorPlanRequiredError": "Add at least one floor plan.",
-    "photoLabel": "Photos",
-    "photoRequiredError": "Add at least one photo."
+    "photosUnavailable": "Save the basic product information first to add photos."
   },
   "ProjectWizardSummaryStep": {
     "heading": "Summary",
@@ -446,7 +442,7 @@
     "groupTechnical": "Technical data",
     "groupPricing": "Price and sale",
     "rowPrice": "House price",
-    "rowPriceValue": "{min}–{max} EUR",
+    "rowPriceValue": "{price} EUR",
     "rowStandard": "Completion standard",
     "rowLeadTime": "Production lead time",
     "rowLeadTimeValue": "{min}–{max} wks",
@@ -465,7 +461,7 @@
   },
   "ProducentPage": {
     "heading": "Become a ModularHub Europe producer",
-    "subheading": "A short registration, no login required — three fields and you go straight to adding your first project.",
+    "subheading": "Create an account, sign in with an email link, and manage your product catalog and client inquiries in one place.",
     "whyHeading": "Why ModularHub Europe",
     "benefitRegistrationTitle": "One registration, every country",
     "benefitRegistrationDescription": "Select your delivery countries once — we check project eligibility for each of them.",
@@ -473,9 +469,10 @@
     "benefitInquiriesDescription": "Clients send inquiries straight away with the chosen project and their contact details.",
     "benefitStatusTitle": "Fulfillment status in one place",
     "benefitStatusDescription": "Production, transport, assembly and handover — one status axis, the same one the client sees.",
-    "existingAccountInquiries": "Already have an account? Check incoming inquiries",
-    "existingAccountOrders": "Already have an order in progress? Check status and payout",
-    "companyDataHeading": "Company details"
+    "ctaHeading": "Already have an account?",
+    "ctaBody": "Sign in to see your panel, or create a new producer account.",
+    "ctaRegister": "Sign up",
+    "ctaLogin": "Sign in"
   },
   "KlientPanelZapytaniaPage": {
     "heading": "Inquiries",
@@ -889,9 +886,6 @@
     "coverAlt": "{name}, modular house",
     "thumbnailAlt": "{name}, photo {index}"
   },
-  "ResultsSelection": {
-    "addedLocalProducts": "Added {count} of your products to the list."
-  },
   "ShortlistActionBar": {
     "selectedCount": "Selected: {count}/{max}",
     "sendInquiry": "Send inquiry"
@@ -967,5 +961,74 @@
     "bedroomsOther": "bedrooms",
     "editButton": "Edit",
     "deleteButton": "Delete"
+  },
+  "ProducerCatalogLookupForm": {
+    "label": "Already have an account? Enter your NIP to see your product catalog",
+    "placeholder": "000-000-00-00",
+    "error": "Enter a valid NIP (10 digits).",
+    "submitButton": "View products"
+  },
+  "ProducerPanelTabs": {
+    "navAriaLabel": "Producer panel",
+    "konto": "Account",
+    "produkty": "Products",
+    "zapytania": "Inquiries"
+  },
+  "ProducerPanelPage": {
+    "heading": "Account",
+    "noProfile": "No company data found for this account.",
+    "companyNameLabel": "Company name",
+    "deliveryCountriesLabel": "Delivery countries",
+    "technologyLabel": "Technology",
+    "verificationStatusLabel": "Verification status",
+    "verificationNotSubmitted": "Not submitted",
+    "verificationPending": "Under review",
+    "verificationApproved": "Verified",
+    "verificationRejected": "Rejected",
+    "demoScreensHeading": "Demo materials",
+    "demoScreensDescription": "These screens show what the rest of the producer journey looks like — still on sample data today, not your own account.",
+    "demoExportReadiness": "Export readiness",
+    "demoCompanyVerification": "Company verification",
+    "demoFulfillment": "Fulfillment",
+    "demoInquiriesOffers": "Inquiries and offers (demo)"
+  },
+  "ProducerProductPhotosStep": {
+    "label": "Photos",
+    "chooseFiles": "Choose files",
+    "hint": "JPEG, PNG or WebP, max 10 MB.",
+    "noPhotos": "No photo uploaded yet.",
+    "requiredError": "Add at least one photo.",
+    "uploadError": "Failed to upload the file.",
+    "coverError": "Failed to set the cover photo.",
+    "deleteError": "Failed to delete the photo.",
+    "coverLabel": "Cover",
+    "setCoverButton": "Set as cover",
+    "removePhoto": "Remove {name}"
+  },
+  "ProducerProductList": {
+    "heading": "Products",
+    "addProduct": "Add product",
+    "addFirstProduct": "Add your first product",
+    "emptyMessage": "You don't have any products in your catalog yet.",
+    "unnamedProduct": "Unnamed product",
+    "addedOn": "Added {date}",
+    "statusPublished": "Published",
+    "statusDraft": "Draft",
+    "editButton": "Edit",
+    "deleteButton": "Delete",
+    "deleteError": "Failed to delete the product."
+  },
+  "DemoScreenNotice": {
+    "message": "Demo version: this screen shows sample data, not your account's real data."
+  },
+  "ProducerPanelZapytaniaPage": {
+    "heading": "Inquiries",
+    "emptyMessage": "You don't have any client inquiries yet.",
+    "columnProducts": "Products",
+    "columnStatus": "Status",
+    "columnDate": "Date",
+    "statusOpen": "Awaiting response",
+    "statusOffered": "Offer received",
+    "statusClosed": "Closed"
   }
 }
