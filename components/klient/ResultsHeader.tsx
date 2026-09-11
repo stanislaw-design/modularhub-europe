@@ -1,10 +1,11 @@
 import { useTranslations } from "next-intl";
 import { Heading, Text } from "@/components/ui";
-import type { CountryCode, ProductFamily } from "@/lib/data/types";
+import type { CountryCode } from "@/lib/data/types";
+import type { FamilyFilterValue } from "@/lib/product-family-groups";
 
 interface ResultsHeaderProps {
   count: number;
-  family: ProductFamily;
+  family: FamilyFilterValue;
   countryCode?: CountryCode;
 }
 

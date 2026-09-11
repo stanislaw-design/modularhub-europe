@@ -6,12 +6,14 @@ import type {
   Project,
   SpaSubcategory,
 } from "./data/types";
+import { resolveFamilies, type FamilyFilterValue } from "./product-family-groups";
 import { ENERGY_CLASSES, HEAT_SOURCES, VENTILATION_TYPES, type EnergyClass, type HeatSource, type VentilationType } from "./product-technical-specs";
 import { SIZE_THRESHOLDS, type SizeThreshold } from "./size-thresholds";
 
 const VALID_COUNTRY_CODES: readonly CountryCode[] = ["PL", "DE", "NL"];
-const VALID_FAMILIES: readonly ProductFamily[] = ["dom", "spa-modulowe", "pergola"];
-const DEFAULT_FAMILY: ProductFamily = "dom";
+// Trzy prawdziwe rodziny plus sentinel grupy "wiecej-niz-dom" (spec 0035 AC-2).
+const VALID_FAMILY_FILTER_VALUES: readonly FamilyFilterValue[] = ["dom", "spa-modulowe", "pergola", "wiecej-niz-dom"];
+const DEFAULT_FAMILY: FamilyFilterValue = "dom";
 
 const VALID_SPA_SUBCATEGORIES: readonly SpaSubcategory[] = ["sauna", "jacuzzi", "wellness-combo"];
 const VALID_PERGOLA_SUBCATEGORIES: readonly PergolaSubcategory[] = [
@@ -42,8 +44,11 @@ export interface ResultsFilter {
   sizeMin?: SizeThreshold;
   sizeMax?: SizeThreshold;
   // Domyślnie "dom" (spec 0023 AC-4): niepodany lub nieprawidłowy parametr URL
-  // pada łagodnie na dom, ten sam wzorzec co country/sizeMin/sizeMax.
-  family: ProductFamily;
+  // pada łagodnie na dom, ten sam wzorzec co country/sizeMin/sizeMax. Poza
+  // trzema prawdziwymi rodzinami dopuszcza sentinel grupy "wiecej-niz-dom"
+  // (spec 0035 AC-2), rozwiązywany przez FAMILY_GROUPS w getProjects()/
+  // matchesResultsFilter.
+  family: FamilyFilterValue;
   // Poniższe cztery są znaczące tylko dla family "dom" (spec 0026 Key invariants);
   // parseResultsSearchParams je zawsze parsuje niezależnie od family — o tym, czy
   // mają zastosowanie, decyduje getProjects() w chwili budowania zapytania.
@@ -105,8 +110,8 @@ export function parseResultsSearchParams(
 
   const rawFamily = searchParams.family;
   const family =
-    typeof rawFamily === "string" && VALID_FAMILIES.includes(rawFamily as ProductFamily)
-      ? (rawFamily as ProductFamily)
+    typeof rawFamily === "string" && VALID_FAMILY_FILTER_VALUES.includes(rawFamily as FamilyFilterValue)
+      ? (rawFamily as FamilyFilterValue)
       : DEFAULT_FAMILY;
 
   const heatSource = parseEnumValue(searchParams.heatSource, VALID_HEAT_SOURCE_FILTER_VALUES);
@@ -190,14 +195,16 @@ export function resolveHeatSourceValues(value: HeatSourceFilterValue): HeatSourc
 // przechodziły dokładnie ten sam test co lista serwerowa, bez duplikowania logiki.
 // Ogranicza się do family/country/size (spec 0023 zakres) — nowe filtry atrybutów,
 // ceny, podkategorii i wyszukiwania (spec 0026) nie sięgają tej ścieżki podglądu
-// lokalnego, poza zakresem build planu tej funkcji.
+// lokalnego, poza zakresem build planu tej funkcji. filter.family rozwiązywany
+// przez FAMILY_GROUPS (spec 0035), więc "wiecej-niz-dom" dopasowuje zarówno
+// spa-modulowe, jak i pergola, tak samo jak getProjects().
 export function matchesResultsFilter(
   floorAreaM2: number,
   eligibilityStatus: EligibilityStatus | undefined,
   filter: ResultsFilter,
-  family: ProductFamily = DEFAULT_FAMILY
+  family: ProductFamily = "dom"
 ): boolean {
-  if (family !== filter.family) return false;
+  if (!resolveFamilies(filter.family).includes(family)) return false;
   if (filter.countryCode && (eligibilityStatus === undefined || eligibilityStatus === "blocked")) return false;
   if (filter.sizeMin !== undefined && floorAreaM2 < filter.sizeMin) return false;
   if (filter.sizeMax !== undefined && floorAreaM2 > filter.sizeMax) return false;

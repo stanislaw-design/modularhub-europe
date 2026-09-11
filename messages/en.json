@@ -128,6 +128,11 @@
       "one": "pergola",
       "few": "pergolas",
       "many": "pergolas"
+    },
+    "wiecej-niz-dom": {
+      "one": "product",
+      "few": "products",
+      "many": "products"
     }
   },
   "CountryLocative": {
@@ -626,8 +631,7 @@
     "budget100to200k": "€100K–200K",
     "budgetOver200k": "over €200K",
     "categoryHome": "Houses",
-    "categoryPergola": "Pergolas",
-    "categorySpa": "Spas",
+    "categoryMore": "More than a house",
     "categoryAriaLabel": "Product category",
     "whereLabel": "Where?",
     "wherePlaceholder": "Country, region, or city",
@@ -702,6 +706,9 @@
   "FamilyTabs": {
     "navAriaLabel": "Product family",
     "home": "Houses",
+    "more": "More than a house",
+    "subNavAriaLabel": "Refine within More than a house",
+    "all": "All",
     "spa": "Modular spas",
     "pergola": "Pergolas"
   },

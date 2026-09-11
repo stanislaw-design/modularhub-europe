@@ -23,7 +23,7 @@ export async function CompareHomesTeaser({ locale, projects }: CompareHomesTease
   const resultsHref = `/${locale}/klient/wyniki`;
 
   return (
-    <section className="py-brand-5">
+    <section className="py-brand-7">
       <div className="flex flex-col gap-brand-4">
         <div className="flex flex-wrap items-end justify-between gap-brand-3">
           <div className="flex flex-col gap-1">
@@ -39,7 +39,7 @@ export async function CompareHomesTeaser({ locale, projects }: CompareHomesTease
           </Link>
         </div>
         <div className="overflow-x-auto rounded-v5-card border border-brand-v5-line">
-          <table className="w-full min-w-[36rem] border-collapse text-left">
+          <table className="w-full min-w-[36rem] table-fixed border-collapse text-left">
             <caption className="sr-only">
               {t("captionCompare", { count: compareProjects.length })}
             </caption>

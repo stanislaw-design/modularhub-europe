@@ -14,7 +14,7 @@ interface ProducerShowcaseProps {
 export async function ProducerShowcase({ producers }: ProducerShowcaseProps) {
   const t = await getTranslations("ProducerShowcase");
   return (
-    <section className="py-brand-5">
+    <section className="py-brand-7">
       <div className="flex flex-col gap-brand-4">
         <div className="flex flex-wrap items-baseline justify-between gap-brand-2">
           <div className="flex flex-col gap-1">

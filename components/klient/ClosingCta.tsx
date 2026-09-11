@@ -40,7 +40,7 @@ export async function ClosingCta() {
           <p className="text-body-l text-brand-v4-mist">{t("body")}</p>
           <a
             href="#search-card"
-            className="focus-ring inline-flex items-center rounded-v4-pill bg-brand-v4-amber px-brand-4 py-brand-2 text-body font-semibold text-brand-v4-amber-foreground hover:bg-brand-v4-amber-strong"
+            className="focus-ring inline-flex items-center rounded-v5-pill bg-brand-v5-amber px-brand-4 py-brand-2 text-body font-semibold text-brand-v5-amber-foreground hover:bg-brand-v5-amber-strong"
           >
             {t("cta")}
           </a>

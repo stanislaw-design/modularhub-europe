@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ElementType, type ReactNode } from "react";
 
 interface ScrollRevealProps {
+  as?: ElementType;
   children: ReactNode;
   className?: string;
   style?: CSSProperties;
@@ -12,7 +13,7 @@ interface ScrollRevealProps {
 // for the actual transition and the prefers-reduced-motion override). Reveals
 // once and disconnects rather than toggling on every scroll direction change,
 // so content doesn't flicker in and out as the user scrolls past it.
-export function ScrollReveal({ children, className, style }: ScrollRevealProps) {
+export function ScrollReveal({ as: As = "div", children, className, style }: ScrollRevealProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [revealed, setRevealed] = useState(false);
 
@@ -39,12 +40,12 @@ export function ScrollReveal({ children, className, style }: ScrollRevealProps) 
   }, []);
 
   return (
-    <div
+    <As
       ref={ref}
       className={`scroll-reveal${revealed ? " is-revealed" : ""}${className ? ` ${className}` : ""}`}
       style={style}
     >
       {children}
-    </div>
+    </As>
   );
 }

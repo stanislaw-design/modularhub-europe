@@ -128,6 +128,11 @@
       "one": "pergola",
       "few": "pergola's",
       "many": "pergola's"
+    },
+    "wiecej-niz-dom": {
+      "one": "product",
+      "few": "producten",
+      "many": "producten"
     }
   },
   "CountryLocative": {
@@ -626,8 +631,7 @@
     "budget100to200k": "€100K–200K",
     "budgetOver200k": "boven €200K",
     "categoryHome": "Woningen",
-    "categoryPergola": "Pergola's",
-    "categorySpa": "Spa's",
+    "categoryMore": "Meer dan een woning",
     "categoryAriaLabel": "Productcategorie",
     "whereLabel": "Waar?",
     "wherePlaceholder": "Land, regio of stad",
@@ -702,6 +706,9 @@
   "FamilyTabs": {
     "navAriaLabel": "Productfamilie",
     "home": "Woningen",
+    "more": "Meer dan een woning",
+    "subNavAriaLabel": "Verfijn binnen Meer dan een woning",
+    "all": "Alles",
     "spa": "Modulaire spa's",
     "pergola": "Pergola's"
   },

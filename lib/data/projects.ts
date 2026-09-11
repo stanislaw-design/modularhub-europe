@@ -3,6 +3,8 @@ import { db } from "@/lib/db/client";
 import { document, favorite, producer, product, productCountryEligibility, productTranslation } from "@/lib/db/schema";
 import type { Locale } from "@/lib/i18n/routing";
 import type { EnergyClass, VentilationType } from "@/lib/product-technical-specs";
+import { captureError } from "@/lib/observability/errors";
+import { resolveFamilies, type FamilyFilterValue } from "@/lib/product-family-groups";
 import { resolveHeatSourceValues, type HeatSourceFilterValue, type PriceThreshold, type StoreysFilter } from "@/lib/results-filters";
 import { buildPublicUrl } from "@/lib/storage/r2-client";
 import type {
@@ -24,8 +26,10 @@ interface GetProjectsFilters {
   sizeMin?: number;
   sizeMax?: number;
   // Domyślnie "dom" (spec 0023 AC-4), tak samo jak getProjects() dawniej
-  // zawsze filtrowało do family "dom" na sztywno.
-  family?: ProductFamily;
+  // zawsze filtrowało do family "dom" na sztywno. Poza trzema prawdziwymi
+  // rodzinami dopuszcza sentinel grupy "wiecej-niz-dom" (spec 0035 AC-2),
+  // rozwiązywany niżej przez FAMILY_GROUPS na WHERE ... IN (...).
+  family?: FamilyFilterValue;
   // Poniższe cztery mają zastosowanie tylko gdy family === "dom" (spec 0026 Key
   // invariants); getProjects() sam pilnuje tej granicy, nie polega na wywołującym.
   heatSource?: HeatSourceFilterValue;
@@ -93,41 +97,50 @@ interface ProductDocumentPhotos {
 // coverImageUrl/_extraImageUrls dopóki produkt nie ma żadnego wiersza document
 // (strangler, spec 0031 Migration plan) — okładka i galeria nigdy się nie psują
 // w trakcie migracji.
+// Wrapped end to end: a broken/missing R2 config (buildPublicUrl throws, see
+// lib/storage/r2-client.ts) must degrade to the mock/legacy cover images
+// applyDocumentPhotos() already falls back to for a product with no entry in
+// the returned map, never take down every screen that lists projects.
 async function resolveProductDocumentPhotos(productIds: string[]): Promise<Map<string, ProductDocumentPhotos>> {
   if (productIds.length === 0) return new Map();
 
-  const rows = await db
-    .select({
-      productId: document.productId,
-      r2Key: document.r2Key,
-      isCover: document.isCover,
-      sortOrder: document.sortOrder,
-    })
-    .from(document)
-    .where(
-      and(inArray(document.productId, productIds), eq(document.purpose, "product_photo"), isNull(document.deletedAt)),
-    );
+  try {
+    const rows = await db
+      .select({
+        productId: document.productId,
+        r2Key: document.r2Key,
+        isCover: document.isCover,
+        sortOrder: document.sortOrder,
+      })
+      .from(document)
+      .where(
+        and(inArray(document.productId, productIds), eq(document.purpose, "product_photo"), isNull(document.deletedAt)),
+      );
 
-  const byProduct = new Map<string, typeof rows>();
-  for (const row of rows) {
-    if (!row.productId) continue;
-    const bucket = byProduct.get(row.productId) ?? [];
-    bucket.push(row);
-    byProduct.set(row.productId, bucket);
-  }
+    const byProduct = new Map<string, typeof rows>();
+    for (const row of rows) {
+      if (!row.productId) continue;
+      const bucket = byProduct.get(row.productId) ?? [];
+      bucket.push(row);
+      byProduct.set(row.productId, bucket);
+    }
 
-  const result = new Map<string, ProductDocumentPhotos>();
-  for (const [productId, docs] of byProduct) {
-    const sorted = [...docs].sort(
-      (a, b) => (a.sortOrder ?? Number.MAX_SAFE_INTEGER) - (b.sortOrder ?? Number.MAX_SAFE_INTEGER),
-    );
-    const cover = sorted.find((doc) => doc.isCover) ?? null;
-    result.set(productId, {
-      coverUrl: cover ? buildPublicUrl(cover.r2Key) : null,
-      galleryUrls: sorted.filter((doc) => !doc.isCover).map((doc) => buildPublicUrl(doc.r2Key)),
-    });
+    const result = new Map<string, ProductDocumentPhotos>();
+    for (const [productId, docs] of byProduct) {
+      const sorted = [...docs].sort(
+        (a, b) => (a.sortOrder ?? Number.MAX_SAFE_INTEGER) - (b.sortOrder ?? Number.MAX_SAFE_INTEGER),
+      );
+      const cover = sorted.find((doc) => doc.isCover) ?? null;
+      result.set(productId, {
+        coverUrl: cover ? buildPublicUrl(cover.r2Key) : null,
+        galleryUrls: sorted.filter((doc) => !doc.isCover).map((doc) => buildPublicUrl(doc.r2Key)),
+      });
+    }
+    return result;
+  } catch (error) {
+    captureError(error, { path: "resolveProductDocumentPhotos" });
+    return new Map();
   }
-  return result;
 }
 
 // Nadpisuje okładkę/galerię danymi z document tylko gdy produkt ma już
@@ -233,7 +246,13 @@ export async function getProjects(filters?: GetProjectsFilters): Promise<Project
     q,
   } = filters ?? {};
 
-  const conditions = [eq(product.status, "published"), eq(product.family, family)];
+  // "wiecej-niz-dom" rozwija się na >1 prawdziwą rodzinę (spec 0035 AC-2, AC-4):
+  // WHERE ... IN (...) zamiast równości, jedyne miejsce, gdzie ta gałąź się rozgałęzia.
+  const filterFamilies = resolveFamilies(family);
+  const conditions = [
+    eq(product.status, "published"),
+    filterFamilies.length > 1 ? inArray(product.family, filterFamilies) : eq(product.family, filterFamilies[0]),
+  ];
 
   if (sizeMin !== undefined) conditions.push(gte(product.floorAreaM2, sizeMin));
   if (sizeMax !== undefined) conditions.push(lte(product.floorAreaM2, sizeMax));

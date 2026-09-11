@@ -1,5 +1,30 @@
 import { and, eq, inArray } from "drizzle-orm";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+
+// @/lib/observability pulls in "server-only"/@sentry/nextjs, which don't
+// resolve under plain Vitest/jsdom — same boundary problem offer-actions.test.ts
+// and product-photo-actions.test.ts already work around. resolveProductDocumentPhotos
+// (./projects) reports a broken R2 config through captureError.
+const captureErrorMock = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/observability/errors", () => ({ captureError: captureErrorMock }));
+
+// r2Mock.shouldThrow lets one test (the R2-outage regression test below)
+// simulate a missing R2_PUBLIC_DOMAIN without touching the real env var
+// vitest.setup.ts loads for every other test in this file; buildPublicUrl
+// otherwise delegates to the real implementation so the document-sourced
+// cover/gallery assertions above keep exercising real URL building.
+const r2Mock = vi.hoisted(() => ({ shouldThrow: false }));
+vi.mock("@/lib/storage/r2-client", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/storage/r2-client")>();
+  return {
+    ...actual,
+    buildPublicUrl: (key: string) => {
+      if (r2Mock.shouldThrow) throw new Error("R2_PUBLIC_DOMAIN nie jest ustawione");
+      return actual.buildPublicUrl(key);
+    },
+  };
+});
+
 import { db } from "@/lib/db/client";
 import { auditLog, document, producer, product, productCountryEligibility, users } from "@/lib/db/schema";
 import {
@@ -189,6 +214,16 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: reads from the da
     const projects = await getProjects({ family: "pergola" });
 
     expect(projects.map((p) => p.id)).toContain(featuredPergolaId);
+    expect(projects.map((p) => p.id)).not.toContain(publishedDomId);
+  });
+
+  // spec 0035 AC-2: the "wiecej-niz-dom" sentinel resolves through FAMILY_GROUPS
+  // to an IN (...) across every family in the group (today spa-modulowe + pergola).
+  it("filters by the wiecej-niz-dom group, combining spa-modulowe and pergola but excluding dom", async () => {
+    const projects = await getProjects({ family: "wiecej-niz-dom" });
+
+    expect(projects.map((p) => p.id)).toContain(featuredPergolaId);
+    expect(projects.map((p) => p.id)).toContain(saunaSpaId);
     expect(projects.map((p) => p.id)).not.toContain(publishedDomId);
   });
 
@@ -448,5 +483,25 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: document-sourced 
     const notYetMigrated = projects.find((p) => p.id === notYetMigratedProductId);
     expect(migrated?.coverImageUrl).toMatch(/doc-photos-cover\.jpg$/);
     expect(notYetMigrated?.coverImageUrl).toBe("/images/houses/still-on-mock-cover.jpg");
+  });
+
+  // Regression test for the 2026-09-11 production outage: a missing
+  // R2_PUBLIC_DOMAIN made buildPublicUrl throw, which crashed every screen
+  // that lists projects (uncaught in the home page's Promise.all). getProjects
+  // must degrade to the legacy mock cover instead of rejecting.
+  it("getProjects falls back to the legacy cover instead of rejecting when R2 is misconfigured", async () => {
+    r2Mock.shouldThrow = true;
+    try {
+      const projects = await getProjects({ family: "dom" });
+
+      const migrated = projects.find((p) => p.id === migratedProductId);
+      expect(migrated?.coverImageUrl).toBe("/images/houses/legacy-mock-cover.jpg");
+      expect(captureErrorMock).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({ path: "resolveProductDocumentPhotos" }),
+      );
+    } finally {
+      r2Mock.shouldThrow = false;
+    }
   });
 });

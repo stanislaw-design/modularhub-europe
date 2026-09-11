@@ -185,7 +185,7 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
               without needing this pill's width too (spec 0030 AC-1). */}
           <Link
             href={cta.href}
-            className="focus-ring hidden shrink-0 items-center gap-1 rounded-v5-pill bg-brand-v5-amber px-brand-3 py-brand-1 text-body font-semibold text-brand-v5-amber-foreground hover:bg-brand-v5-amber-strong sm:inline-flex"
+            className="focus-ring hidden shrink-0 items-center gap-1 rounded-v5-pill bg-brand-v5-amber px-brand-3 py-brand-2 text-body font-semibold text-brand-v5-amber-foreground hover:bg-brand-v5-amber-strong sm:inline-flex"
           >
             {cta.icon && <User className="size-4" aria-hidden="true" />}
             {cta.label}

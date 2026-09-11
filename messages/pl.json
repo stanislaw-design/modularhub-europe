@@ -128,6 +128,11 @@
       "one": "pergola",
       "few": "pergole",
       "many": "pergoli"
+    },
+    "wiecej-niz-dom": {
+      "one": "produkt",
+      "few": "produkty",
+      "many": "produktów"
     }
   },
   "CountryLocative": {
@@ -633,8 +638,7 @@
     "budget100to200k": "100K–200K €",
     "budgetOver200k": "powyżej 200K €",
     "categoryHome": "Domy",
-    "categoryPergola": "Pergole",
-    "categorySpa": "SPA",
+    "categoryMore": "Więcej niż dom",
     "categoryAriaLabel": "Kategoria produktu",
     "whereLabel": "Gdzie?",
     "wherePlaceholder": "Kraj, region lub miasto",
@@ -709,6 +713,9 @@
   "FamilyTabs": {
     "navAriaLabel": "Rodzina produktu",
     "home": "Domy",
+    "more": "Więcej niż dom",
+    "subNavAriaLabel": "Doprecyzuj w grupie Więcej niż dom",
+    "all": "Wszystko",
     "spa": "Spa modułowe",
     "pergola": "Pergole"
   },

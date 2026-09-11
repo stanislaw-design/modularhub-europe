@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import type { CountryCode, EligibilityStatus, ProductFamily, Project } from "@/lib/data/types";
+import type { CountryCode, EligibilityStatus, Project } from "@/lib/data/types";
+import type { FamilyFilterValue } from "@/lib/product-family-groups";
 import type { SizeThreshold } from "@/lib/size-thresholds";
 import { ScrollReveal, Stack } from "@/components/ui";
 import { EmptyResults } from "./EmptyResults";
@@ -25,7 +26,7 @@ interface ResultsSelectionProps {
   countryCode?: CountryCode;
   sizeMin?: SizeThreshold;
   sizeMax?: SizeThreshold;
-  family: ProductFamily;
+  family: FamilyFilterValue;
   /** Sesja istnieje i ma rolę client (spec 0024 Key invariants): serce staje
    * się przyciskiem zamiast linku do logowania. */
   isClientSession: boolean;

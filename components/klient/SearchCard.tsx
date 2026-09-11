@@ -1,13 +1,13 @@
 "use client";
 
-import { Droplets, Home, LayoutGrid, Search } from "lucide-react";
+import { Home, Layers, Search } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { WordRotate } from "@/components/ui";
 import type { Country, CountryCode } from "@/lib/data/types";
-import type { ProductFamily } from "@/lib/product-technical-specs";
+import type { FamilyFilterValue } from "@/lib/product-family-groups";
 import { SIZE_RANGE_OPTIONS } from "@/lib/size-thresholds";
 import { SearchSegment, type SegmentOption } from "./SearchSegment";
 
@@ -32,7 +32,7 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
   const t = useTranslations("SearchCard");
   const router = useRouter();
   const prefersReducedMotion = useReducedMotion();
-  const [activeCategory, setActiveCategory] = useState<ProductFamily>("dom");
+  const [activeCategory, setActiveCategory] = useState<FamilyFilterValue>("dom");
   const [country, setCountry] = useState<CountryCode | null>(null);
   const [budgetRangeValue, setBudgetRangeValue] = useState<string | null>(null);
   const [sizeRangeValue, setSizeRangeValue] = useState<string | null>(null);
@@ -54,7 +54,9 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
 
   const countryOptions: SegmentOption[] = countries.map((c) => ({ value: c.code, label: c.name }));
 
-  // Same three families/order as categoryTabs below and CategoryShowcase.
+  // Illustrative example searches for the rotating teaser prompt, independent
+  // from categoryTabs below (spec 0035 collapsed three flat tabs into two
+  // groups; the teaser keeps naming a specific product per word).
   const teaserWords = [t("teaserWordHome"), t("teaserWordPergola"), t("teaserWordSpa")];
 
   // Mock ranges only — no budget field on Project yet, so unlike country/size
@@ -69,13 +71,14 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
     { value: "over200k", label: t("budgetOver200k") },
   ];
 
-  // Same three families as CategoryShowcase's FAMILY_DISPLAY. Forwarded to
-  // /wyniki as the `family` param on search (spec 0022/0023 wired real
-  // filtering there); "dom" is the default so it's omitted from the URL.
-  const categoryTabs: { family: ProductFamily; icon: typeof Home; label: string }[] = [
+  // Two groups instead of three flat family tabs (spec 0035 AC-1): "Więcej
+  // niż dom" is the same grouping CategoryShowcase already shows lower on
+  // this page. Forwarded to /wyniki as the `family` param on search (spec
+  // 0022/0023/0035 wired real filtering there); "dom" is the default so it's
+  // omitted from the URL.
+  const categoryTabs: { family: FamilyFilterValue; icon: typeof Home; label: string }[] = [
     { family: "dom", icon: Home, label: t("categoryHome") },
-    { family: "pergola", icon: LayoutGrid, label: t("categoryPergola") },
-    { family: "spa-modulowe", icon: Droplets, label: t("categorySpa") },
+    { family: "wiecej-niz-dom", icon: Layers, label: t("categoryMore") },
   ];
 
   function handleSearch() {

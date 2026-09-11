@@ -72,5 +72,12 @@ describe("ResultsHeader", () => {
       expect(screen.getByText(/wybierz kraj/i)).toHaveTextContent("pergole");
       expect(screen.getByText(/wybierz kraj/i)).not.toHaveTextContent("domy");
     });
+
+    // spec 0035 AC-8: the wiecej-niz-dom group sentinel needs its own
+    // ProductFamilyNoun entry, or this throws a missing-message error at runtime.
+    it("uses the wiecej-niz-dom noun for the combined group value", () => {
+      render(<ResultsHeader count={2} family="wiecej-niz-dom" />);
+      expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("2 produkty");
+    });
   });
 });

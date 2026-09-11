@@ -1,11 +1,11 @@
 import { useTranslations } from "next-intl";
 import { Button, Card, Heading, Text } from "@/components/ui";
-import type { ProductFamily } from "@/lib/data/types";
+import type { FamilyFilterValue } from "@/lib/product-family-groups";
 import { buildResultsHref } from "@/lib/results-filters";
 
 interface EmptyResultsProps {
   locale: string;
-  family: ProductFamily;
+  family: FamilyFilterValue;
 }
 
 // Treść świadoma rodziny produktu (spec 0026 AC-11). Only ever rendered from

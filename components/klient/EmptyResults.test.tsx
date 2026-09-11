@@ -29,4 +29,15 @@ describe("EmptyResults", () => {
       "/pl/klient/wyniki?family=pergola"
     );
   });
+
+  // spec 0035 AC-8: the wiecej-niz-dom group sentinel needs its own
+  // ProductFamilyNoun entry, or this throws a missing-message error at runtime.
+  it("uses the wiecej-niz-dom noun and keeps the group in the clear-filters link", () => {
+    render(<EmptyResults locale="pl" family="wiecej-niz-dom" />);
+    expect(screen.getByRole("heading")).toHaveTextContent(/brak produktów/i);
+    expect(screen.getByRole("link", { name: /wyczyść filtry/i })).toHaveAttribute(
+      "href",
+      "/pl/klient/wyniki?family=wiecej-niz-dom"
+    );
+  });
 });

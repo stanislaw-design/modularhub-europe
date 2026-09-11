@@ -300,7 +300,7 @@ function CategorySlide({
           <span className="flex flex-col items-start gap-1">
             <DataText className="text-h1 leading-none font-bold text-brand-v5-ink">{category.offerLabel}</DataText>
             <span className="text-body text-brand-v5-muted">{category.name}</span>
-            <span className="focus-ring mt-brand-2 inline-flex items-center gap-1 rounded-v5-pill bg-brand-v5-amber px-brand-3 py-1.5 text-body font-semibold text-brand-v5-amber-foreground transition-colors group-hover:bg-brand-v5-amber-strong">
+            <span className="focus-ring mt-brand-2 inline-flex items-center gap-1 rounded-v5-pill bg-brand-v5-amber px-brand-3 py-brand-1 text-body font-semibold text-brand-v5-amber-foreground transition-colors group-hover:bg-brand-v5-amber-strong">
               {/* Shorter label on mobile — the button competes for width
                   next to the price/name column in a narrow card there. */}
               <span className="lg:hidden">{viewOffersShortLabel}</span>

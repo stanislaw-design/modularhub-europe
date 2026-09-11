@@ -44,6 +44,7 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 27 | Poprawki nagłówka i nawigacji klienta (SiteHeader) | Slice 2 | in progress |
 | 28 | Panel producenta | Slice 2b | in progress |
 | 29 | Przyklejony pasek wyszukiwania na wynikach (klient) | Slice 2 | in progress |
+| 30 | Grupy wyszukiwania: Domy i Więcej niż dom (klient) | Slice 2 | in progress |
 
 ## Foundations
 
@@ -217,6 +218,18 @@ Na `/wyniki` cały blok wyszukiwania i filtrów (`FamilyTabs`, `ResultsFilterBar
   - [ ] Tłumaczenia nowych etykiet i przejście responsywności/dostępności od 320px, satisfies AC-10
 - [ ] Zweryfikuj: `/check verify przyklejony pasek wyszukiwania na wynikach`
 - [ ] Testuj: `/test przyklejony pasek wyszukiwania na wynikach`
+
+### 30. Grupy wyszukiwania: Domy i Więcej niż dom (klient) · in progress
+Hero na stronie głównej i `FamilyTabs` na `/wyniki` pokazują dziś trzy płaskie, równe zakładki rodziny produktu (Domy, Pergole, SPA), inny podział niż strona główna już dziś prezentuje niżej pod etykietą "Więcej niż dom" (`CategoryShowcase`, funkcja 26). Wyszukiwanie przechodzi na ten sam dwupoziomowy podział: dwa przyciski w hero (Domy / Więcej niż dom), z możliwością doprecyzowania do Spa modułowego albo Pergoli na stronie wyników. Przypisanie rodzin do grup trafia do jednego wspólnego, typowanego miejsca w kodzie, żeby przyszła kolejna rodzina "stylu życia" nie wymagała zmian w kilku komponentach naraz.
+**Done when:** hero pokazuje dwa przyciski rodziny zamiast trzech, wybranie "Więcej niż dom" prowadzi na wyniki z produktami spa modułowymi i pergolą połączonymi, strona wyników pozwala dalej zawęzić do jednej konkretnej podkategorii, a żaden dzisiejszy link `/wyniki?family=...` się nie psuje.
+- [x] Zaprojektuj (spec): [0035](../specs/0035-domy-i-wiecej-niz-dom/index.md) (jedna wartość `family` rozszerzona o sentinel grupy `wiecej-niz-dom`, rozwijany przez nową wspólną mapę `FAMILY_GROUPS`; żadnej zmiany w bazie danych)
+- [x] Zbuduj: `/develop grupy wyszukiwania: domy i więcej niż dom` (code in `lib/product-family-groups.ts`, `lib/results-filters.ts`, `lib/data/projects.ts`, `components/klient/SearchCard.tsx`, `components/klient/FamilyTabs.tsx`; ripple do `ResultsSelection.tsx`/`ResultsHeader.tsx`/`EmptyResults.tsx` (typ `family` szerszy o sentinel) i `ProductFamilyNoun` w `messages/{pl,en,nl}.json`)
+  - [x] Wspólny model grup (`FAMILY_GROUPS`, `FamilyFilterValue`) i warstwa danych (`lib/results-filters.ts`, `getProjects()` z `inArray` dla grupy), satisfies AC-2, AC-4, AC-7
+  - [x] Hero: przebudowa `SearchCard.tsx` na dwa przyciski rodziny, bez zmian w Budżecie/Powierzchni, satisfies AC-1, AC-5
+  - [x] Wyniki: przebudowa `FamilyTabs.tsx` na dwa poziomy (grupa plus doprecyzowanie podkategorii), satisfies AC-3, AC-6
+  - [x] Tłumaczenia `pl`/`en`/`nl` i testy (`SearchCard`, `FamilyTabs`, `results-filters.ts`, `projects.test.ts`), satisfies AC-1, AC-3, AC-8
+- [ ] Zweryfikuj: `/check verify grupy wyszukiwania: domy i więcej niż dom`
+- [ ] Testuj: `/test grupy wyszukiwania: domy i więcej niż dom`
 
 ## Slice 2b: panel producenta
 

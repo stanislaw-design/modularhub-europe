@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createMockProject } from "@/test/fixtures/project";
 import {
   buildResultsHref,
+  matchesResultsFilter,
   parseResultsSearchParams,
   resolveHeatSourceValues,
   sortResults,
@@ -167,6 +168,18 @@ describe("parseResultsSearchParams", () => {
     const filter = parseResultsSearchParams({ q });
     expect(filter.q).toBeUndefined();
   });
+
+  // spec 0035 AC-2, AC-7: the "wiecej-niz-dom" group sentinel is a valid family
+  // value; any other unknown value still falls back to "dom" like today.
+  it("reads the wiecej-niz-dom group sentinel as a valid family (AC-2)", () => {
+    const filter = parseResultsSearchParams({ family: "wiecej-niz-dom" });
+    expect(filter.family).toBe("wiecej-niz-dom");
+  });
+
+  it("falls back to dom for an unknown family value (AC-7)", () => {
+    const filter = parseResultsSearchParams({ family: "nieznana-wartosc" });
+    expect(filter.family).toBe("dom");
+  });
 });
 
 describe("resolveHeatSourceValues", () => {
@@ -251,6 +264,41 @@ describe("buildResultsHref", () => {
 
   it("omits family=dom from the query string (the default, spec 0023 AC-4)", () => {
     expect(buildResultsHref("pl", { family: "dom" })).not.toContain("family=");
+  });
+
+  it("serializes the wiecej-niz-dom group sentinel (spec 0035 AC-2)", () => {
+    expect(buildResultsHref("pl", { family: "wiecej-niz-dom" })).toContain("family=wiecej-niz-dom");
+  });
+});
+
+describe("matchesResultsFilter", () => {
+  // spec 0035 AC-2, AC-4: filter.family is resolved through FAMILY_GROUPS, so
+  // "wiecej-niz-dom" matches every real family in that group, not just itself.
+  it("matches a spa-modulowe product against the wiecej-niz-dom group filter", () => {
+    const filter: ResultsFilter = { family: "wiecej-niz-dom" };
+    expect(matchesResultsFilter(80, undefined, filter, "spa-modulowe")).toBe(true);
+  });
+
+  it("matches a pergola product against the wiecej-niz-dom group filter", () => {
+    const filter: ResultsFilter = { family: "wiecej-niz-dom" };
+    expect(matchesResultsFilter(80, undefined, filter, "pergola")).toBe(true);
+  });
+
+  it("does not match a dom product against the wiecej-niz-dom group filter", () => {
+    const filter: ResultsFilter = { family: "wiecej-niz-dom" };
+    expect(matchesResultsFilter(80, undefined, filter, "dom")).toBe(false);
+  });
+
+  it("still matches a real family against itself, unaffected by the group sentinel", () => {
+    const filter: ResultsFilter = { family: "spa-modulowe" };
+    expect(matchesResultsFilter(80, undefined, filter, "spa-modulowe")).toBe(true);
+    expect(matchesResultsFilter(80, undefined, filter, "pergola")).toBe(false);
+  });
+
+  it("still enforces size bounds within a matching family", () => {
+    const filter: ResultsFilter = { family: "dom", sizeMin: 100 };
+    expect(matchesResultsFilter(80, undefined, filter, "dom")).toBe(false);
+    expect(matchesResultsFilter(120, undefined, filter, "dom")).toBe(true);
   });
 });
 
