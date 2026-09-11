@@ -25,7 +25,7 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 8 | Dopracowanie wyszukiwania i wyników (klient) | Slice 2 | done |
 | 9 | Domknięcie wizualne ścieżki klienta (marka v4) | Slice 2 | in progress |
 | 10 | Treść i luki funkcjonalne klienta | Slice 2 | planned |
-| 11 | Realna oferta i jej przyjęcie | Slice 3 | planned |
+| 11 | Realna oferta i jej przyjęcie | Slice 3 | done |
 | 12 | Realne płatności | Slice 4 | planned |
 | 13 | Realne przechowywanie plików | Slice 5 | done |
 | 14 | Realny silnik zgodności (Polska, pilot) | Slice 6 | planned |
@@ -43,6 +43,7 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 26 | Sekcja "Więcej niż dom": przewijana witryna kategorii | Slice 2 | in progress |
 | 27 | Poprawki nagłówka i nawigacji klienta (SiteHeader) | Slice 2 | in progress |
 | 28 | Panel producenta | Slice 2b | in progress |
+| 29 | Przyklejony pasek wyszukiwania na wynikach (klient) | Slice 2 | in progress |
 
 ## Foundations
 
@@ -205,6 +206,18 @@ Na telefonie przycisk hamburgera w `SiteHeader` wychodzi poza widoczny ekran (po
 - [ ] Zweryfikuj: `/check verify poprawki nagłówka i nawigacji klienta`
 - [ ] Testuj: `/test poprawki nagłówka i nawigacji klienta`
 
+### 29. Przyklejony pasek wyszukiwania na wynikach · in progress
+Na `/wyniki` cały blok wyszukiwania i filtrów (`FamilyTabs`, `ResultsFilterBar`, chipy atrybutów) stoi dziś raz, na samej górze strony; zmiana kryterium w trakcie przeglądania listy wymaga powrotu na górę. Nowy zadokowany pasek zostaje osiągalny przez cały scroll: pełny `ResultsFilterBar` wprost od `sm` w górę, skrócona pigułka (słowo kluczowe + przycisk "Filtruj") poniżej `sm`, a przycisk "Filtruj" na każdej szerokości otwiera panel z pełnym kompletem kryteriów (rodzina, pasek, chipy atrybutów).
+**Done when:** klient na `/wyniki` może zmienić dowolne kryterium wyszukiwania w dowolnym momencie przewijania bez powrotu na górę strony, na desktopie wprost na zadokowanym pasku, na telefonie przez pigułkę i panel "Filtruj", bez skoku układu i bez naruszenia WCAG 2.2 AA.
+- [x] Zaprojektuj (spec): [0034](../specs/0034-przyklejony-pasek-wyszukiwania-wynikow/index.md) (pełny pasek od `sm` w górę, pigułka słowo kluczowe + "Filtruj" poniżej `sm`, wspólny panel Headless UI `Dialog` jako bottom sheet/boczny panel, żadnych zmian w danych)
+- [ ] Zbuduj: `/develop przyklejony pasek wyszukiwania na wynikach`
+  - [ ] Mechanizm dokowania (sentinel + `IntersectionObserver`) i pełny `ResultsFilterBar` zadokowany od `sm` w górę, bez skoku układu, satisfies AC-1, AC-2, AC-8, AC-11
+  - [ ] Skrócona pigułka poniżej `sm` i wspólny panel filtrów (bottom sheet/boczny panel) z `FamilyTabs`/`ResultsFilterBar`/chipami atrybutów, satisfies AC-3, AC-4, AC-5
+  - [ ] Podłączenie przycisku "Filtruj", trwałość stanu panelu przy nawigacji filtra wewnątrz niego, zarządzanie fokusem i warstwy z-index względem `SiteHeader`/`ShortlistActionBar`, satisfies AC-6, AC-7, AC-9
+  - [ ] Tłumaczenia nowych etykiet i przejście responsywności/dostępności od 320px, satisfies AC-10
+- [ ] Zweryfikuj: `/check verify przyklejony pasek wyszukiwania na wynikach`
+- [ ] Testuj: `/test przyklejony pasek wyszukiwania na wynikach`
+
 ## Slice 2b: panel producenta
 
 ### 28. Panel producenta · in progress
@@ -220,10 +233,18 @@ Cofa reprioritization z 2026-09-02 (funkcja 7): producent dostaje prawdziwe kont
 
 ## Slice 3: oferta
 
-### 11. Realna oferta i jej przyjęcie · needs a decision
+### 11. Realna oferta i jej przyjęcie · done
 Producent odpowiada na zapytanie prawdziwą ofertą zapisaną w bazie; klient ją przyjmuje, co tworzy zamówienie o śledzonym statusie zamiast dzisiejszego mocka „oferta wiążąca”.
 **Done when:** oferta złożona przez producenta jest trwale zapisana i widoczna klientowi, a przyjęcie oferty tworzy zamówienie w bazie z pierwszym statusem realizacji.
-- [ ] Zaprojektuj (spec): `/architect realna oferta i jej przyjęcie`
+- [x] Zaprojektuj (spec): [0033](../specs/0033-realna-oferta-i-jej-przyjecie/index.md) (tabele `offer`/`offer_item`/`order`/`order_stage_event` już zaprojektowane w spec 0018, ta funkcja zaczyna do nich realnie pisać; wymiana bezpośrednia dwóch dzisiejszych mocków — formularz producenta na `localStorage` i ekran „wiążącej oferty” klienta z pominięciem zapytania — bez okresu równoległego, bo brak żywego ruchu na obu)
+- [x] Zbuduj: `/develop realna oferta i jej przyjęcie` (code in `lib/offer-actions.ts`, `lib/db/queries.ts`, `lib/db/schema.ts`, `drizzle/0011_dark_gertrude_yorkes.sql`, `drizzle/0012_offer_order_audit_triggers.sql`, `app/[locale]/producent/panel/zapytania/[id]/`, `app/[locale]/klient/panel/zapytania/[id]/`, `components/producent/OfferForm.tsx`, `components/klient/OfferCard.tsx`, `components/{producent,klient}/MarkOffer*Viewed.tsx`)
+  - [x] Migracja i warstwa danych: dwie nowe kolumny na `offer` (sygnał przeczytane/nieprzeczytane) i cztery triggery audytowe, funkcje odczytu ofert per zapytanie dla producenta/klienta, satisfies AC-1, AC-6, AC-13, AC-14, AC-18
+  - [x] Cienki wątek producent → klient → zamówienie: `submitOffer`, `/producent/panel/zapytania/[id]`, `respondToOffer` (przyjęcie), `/klient/panel/zapytania/[id]`, satisfies AC-1, AC-2, AC-6, AC-7, AC-13, AC-14, AC-15
+  - [x] Rewizja, blokady i odrzucenie: kilka produktów na ofertę, rewizja zastępująca aktywną ofertę, blokada po `accepted`, odrzucenie, agregat `inquiry.status`, obsługa wyścigów (AC-4/AC-19) i produktu niedostępnego, satisfies AC-3, AC-4, AC-5, AC-8, AC-9, AC-10, AC-19
+  - [x] Sygnały nieprzeczytane/przeczytane po obu stronach (klient i producent), satisfies AC-11, AC-12
+  - [x] Sprzątanie starych mocków (i trzech dzisiejszych odnośników do nich) i rozwijane szczegóły oferty w panelu administratora, satisfies AC-16, AC-17
+- [x] Zweryfikuj: `/check verify realna oferta i jej przyjęcie`
+- [x] Testuj: `/test realna oferta i jej przyjęcie` (`lib/offer-actions.test.ts`, `lib/db/queries.test.ts`, `components/producent/OfferForm.test.tsx`, `components/klient/OfferCard.test.tsx`, `components/{producent,klient}/MarkOffer*Viewed.test.tsx`)
 
 ## Slice 4: płatności
 

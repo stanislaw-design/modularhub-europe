@@ -63,6 +63,11 @@ export async function Hero({ children }: HeroProps) {
           </ul>
         </div>
       </Container>
+      {/* Sentinel FloatingSearchButton observes to know when the hero has
+          scrolled out of view — a plain marker rather than watching Hero's
+          own root, so its visibility threshold doesn't shift if Hero's
+          height/padding changes later. */}
+      <div id="hero-end" aria-hidden="true" className="absolute right-0 bottom-0 left-0 h-px" />
     </section>
   );
 }

@@ -26,7 +26,8 @@ const sizeRangeOptions: SegmentOption[] = SIZE_RANGE_OPTIONS.map((option) => ({
 // tool, not a second section with its own intro). Gdzie, Budżet and
 // Powierzchnia are all real SearchSegment instances; Budżet's selection is
 // visual only (see budgetRangeOptions below). Navigation contract to /wyniki
-// (country, sizeMin, sizeMax) is unchanged from spec 0003/0004.
+// (country, sizeMin, sizeMax) is unchanged from spec 0003/0004, plus family
+// once the active category tab differs from the "dom" default.
 export function SearchCard({ locale, countries }: SearchCardProps) {
   const t = useTranslations("SearchCard");
   const router = useRouter();
@@ -68,10 +69,9 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
     { value: "over200k", label: t("budgetOver200k") },
   ];
 
-  // Same three families as CategoryShowcase's FAMILY_DISPLAY. Selection is
-  // visual only for now (mirrors CategoryFilterBar's decorative-placeholder
-  // pattern below) — /wyniki has no family filter yet (spec 0022 defers real
-  // filtering to a later feature).
+  // Same three families as CategoryShowcase's FAMILY_DISPLAY. Forwarded to
+  // /wyniki as the `family` param on search (spec 0022/0023 wired real
+  // filtering there); "dom" is the default so it's omitted from the URL.
   const categoryTabs: { family: ProductFamily; icon: typeof Home; label: string }[] = [
     { family: "dom", icon: Home, label: t("categoryHome") },
     { family: "pergola", icon: LayoutGrid, label: t("categoryPergola") },
@@ -81,6 +81,7 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
   function handleSearch() {
     if (!country) return;
     const params = new URLSearchParams({ country });
+    if (activeCategory !== "dom") params.set("family", activeCategory);
     const range = SIZE_RANGE_OPTIONS.find((option) => option.value === sizeRangeValue);
     if (range?.sizeMin !== undefined) params.set("sizeMin", String(range.sizeMin));
     if (range?.sizeMax !== undefined) params.set("sizeMax", String(range.sizeMax));

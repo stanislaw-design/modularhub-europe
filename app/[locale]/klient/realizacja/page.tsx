@@ -49,10 +49,12 @@ export default async function RealizacjaPage({
   }
 
   // No accepted-offer order for this project yet: send the client to accept
-  // one first, never render an empty/broken timeline (spec 0007 AC-2).
+  // one first, never render an empty/broken timeline (spec 0007 AC-2). The
+  // mock /klient/oferta screen was retired for the real offer path (spec
+  // 0033 AC-16): points at the inquiries panel now, not a single project.
   const order = await getFulfillmentOrder(projectId);
   if (!order) {
-    redirect(`/${locale}/klient/oferta?project=${projectId}`);
+    redirect(`/${locale}/klient/panel/zapytania`);
   }
 
   const currentIndex = STAGE_ORDER.indexOf(order.currentStage);
@@ -69,7 +71,7 @@ export default async function RealizacjaPage({
   });
 
   const isComplete = order.currentStage === "gwarancja";
-  const offerHref = `/${locale}/klient/oferta?project=${projectId}`;
+  const offerHref = `/${locale}/klient/panel/zapytania`;
 
   return (
     <Stack gap={4}>

@@ -134,7 +134,7 @@ export function ResultCard({
             </>
           ) : (
             <>
-              <Text variant="label" tone="muted" surface="v5">{t("house")}</Text>
+              <Text variant="label" tone="muted" surface="v5">{t("price")}</Text>
               <DataText as="p" surface="v5" className="mt-1 text-body-l font-semibold">
                 {t("priceFrom", { price: priceFormatter.format(project.commercial.housePriceMinEur) })}
               </DataText>

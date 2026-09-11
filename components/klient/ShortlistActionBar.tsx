@@ -37,7 +37,7 @@ export function ShortlistActionBar({
   }
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-10 border-t border-brand-v5-line bg-brand-v5-surface/95 backdrop-blur">
+    <div className="shortlist-action-bar fixed inset-x-0 bottom-0 z-10 border-t border-brand-v5-line bg-brand-v5-surface/95 backdrop-blur">
       <Container className="flex items-center justify-between gap-brand-3 py-brand-2">
         <Text tone="muted" surface="v5">
           {t("selectedCount", { count: selectedCount, max: maxSelected })}

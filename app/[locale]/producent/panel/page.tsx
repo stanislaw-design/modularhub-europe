@@ -82,6 +82,12 @@ export default async function ProducerPanelPage({
         </Stack>
       </Card>
       <Stack gap={2}>
+        <Button as="a" href={`/${locale}/producent/panel/zapytania`} size="sm" className="w-fit">
+          {t("inquiriesOffers")}
+        </Button>
+      </Stack>
+
+      <Stack gap={2}>
         <Heading level="h2">{t("demoScreensHeading")}</Heading>
         <Text tone="muted">{t("demoScreensDescription")}</Text>
         <Stack direction="row" gap={2} className="flex-wrap">
@@ -93,9 +99,6 @@ export default async function ProducerPanelPage({
           </Button>
           <Button as="a" href={`/${locale}/producent/realizacje`} variant="secondary" size="sm">
             {t("demoFulfillment")}
-          </Button>
-          <Button as="a" href={`/${locale}/producent/zapytania`} variant="secondary" size="sm">
-            {t("demoInquiriesOffers")}
           </Button>
         </Stack>
       </Stack>

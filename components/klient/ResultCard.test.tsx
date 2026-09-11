@@ -53,7 +53,7 @@ describe("ResultCard", () => {
   it("shows only the house price, without transport or assembly, even when countryCode is set", () => {
     render(<ResultCard project={project} countryName="Polska" locale="pl" countryCode="DE" />);
 
-    expect(screen.getByText("Dom")).toBeInTheDocument();
+    expect(screen.getByText("Cena")).toBeInTheDocument();
     expect(screen.getByText(/od 105\s?000\s?€/)).toBeInTheDocument();
     expect(screen.queryByText("Razem")).not.toBeInTheDocument();
     expect(screen.queryByText("Montaż")).not.toBeInTheDocument();

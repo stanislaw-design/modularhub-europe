@@ -9,6 +9,7 @@ import { FavoriteButton } from "@/components/klient/FavoriteButton";
 import { ProducerCard } from "@/components/klient/ProducerCard";
 import { ProjectCertifications } from "@/components/klient/ProjectCertifications";
 import { ProjectGalleryCover, ProjectGalleryThumbnails } from "@/components/klient/ProjectGallery";
+import { GalleryLightboxProvider } from "@/components/klient/ProjectGalleryLightbox";
 import {
   AssemblyTimeIcon,
   BathroomsIcon,
@@ -86,10 +87,11 @@ export default async function ProjektPage({
   params: Promise<PageParams>;
   searchParams: Promise<PageSearchParams>;
 }) {
-  const [{ locale, id }, rawSearchParams, t] = await Promise.all([
+  const [{ locale, id }, rawSearchParams, t, tGallery] = await Promise.all([
     params,
     searchParams,
     getTranslations("KlientProjektPage"),
+    getTranslations("ProjectGallery"),
   ]);
   const project = await getProjectById(id, locale as Locale);
   if (!project) notFound();
@@ -118,8 +120,20 @@ export default async function ProjektPage({
     ? (countryNameByCode.get(countryCode) ?? countryCode)
     : undefined;
   const eligibility = eligibilityRows.find((row) => row.projectId === project.id);
-  const descriptionImageUrl = project.galleryImageUrls?.filter((url) => url.length > 0).at(-1) ?? project.coverImageUrl;
+  const galleryExtraImages = project.galleryImageUrls?.filter((url) => url.length > 0) ?? [];
+  const descriptionImageUrl = galleryExtraImages.at(-1) ?? project.coverImageUrl;
   const isLongDescription = project.description.trim().length > 220;
+  // Ta sama kolejność co okładka (index 0) + miniatury (index 1+) w
+  // ProjectGalleryCover/Thumbnails — GalleryLightboxProvider musi widzieć
+  // dokładnie ten sam zestaw zdjęć w tej samej kolejności, żeby strzałki w
+  // modalu odpowiadały temu, na co kliknięto.
+  const lightboxImages = [
+    { src: project.coverImageUrl, alt: tGallery("coverAlt", { name: project.name }) },
+    ...galleryExtraImages.map((url, index) => ({
+      src: url,
+      alt: tGallery("thumbnailAlt", { name: project.name, index: index + 2 }),
+    })),
+  ];
 
   // Cztery ustalenia handlowe, filtrowane do tych realnie znanych: dane
   // realnych dostawców bywają niepełne (Budman nie podaje gwarancji ani
@@ -191,6 +205,7 @@ export default async function ProjektPage({
       {/* pb-24 rezerwuje miejsce pod sticky pasek CTA na mobile (fixed, więc nie
           zajmuje miejsca w layoucie samodzielnie) — zdejmowane na lg, gdzie pasek
           się nie renderuje i CTA żyje tylko w treści strony. */}
+      <GalleryLightboxProvider images={lightboxImages}>
       <div className="flex flex-col gap-brand-6 pb-24 lg:pb-0">
         {/* Hero: galeria + nazwa + cena + CTA (spec 0020 AC-1) — zdjęcia dostają
             wizualną przewagę (7 z 12 kolumn). Prawa kolumna jest wyrównana do
@@ -203,7 +218,7 @@ export default async function ProjektPage({
           <div className="-mx-[6%] lg:col-span-7 lg:mx-0">
             <ProjectGalleryCover
               coverImageUrl={project.coverImageUrl}
-              totalCount={(project.galleryImageUrls?.filter((url) => url.length > 0).length ?? 0) + 1}
+              totalCount={galleryExtraImages.length + 1}
               projectName={project.name}
               className="max-lg:rounded-none"
             />
@@ -548,6 +563,7 @@ export default async function ProjektPage({
           </Button>
         </div>
       </div>
+      </GalleryLightboxProvider>
 
       {/* Sticky CTA na mobile: cena + "Wyślij zapytanie" pod ręką bez scrollowania
           z powrotem do sekcji hero. Desktop ma tę samą akcję już w treści. */}

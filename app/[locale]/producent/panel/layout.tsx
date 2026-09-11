@@ -1,8 +1,10 @@
 import { LogOut } from "lucide-react";
 import type { ReactNode } from "react";
+import { auth } from "@/auth";
 import { ProducerPanelTabs } from "@/components/producent/ProducerPanelTabs";
 import { Container, Stack } from "@/components/ui";
 import { signOutAction } from "@/lib/auth-session-actions";
+import { getProducerIdForUser, getUnreadDecisionInquiryIds } from "@/lib/db/queries";
 
 // Layout wspólny dla /producent/panel/* (spec 0032 Build plan zadanie 1),
 // mirror app/[locale]/klient/panel/layout.tsx: pasek zakładek. Bramka sesji
@@ -19,11 +21,17 @@ export default async function ProducerPanelLayout({
 }) {
   const { locale } = await params;
 
+  // Zbiorczy sygnał nieprzeczytane przy "Zapytania" (spec 0033 AC-12): odczyt
+  // bez własnego przekierowania, bramka sesji żyje w każdej podstronie osobno.
+  const session = await auth();
+  const producerId = session?.user.role === "producer" ? await getProducerIdForUser(session.user.id) : null;
+  const hasUnreadDecisions = producerId ? (await getUnreadDecisionInquiryIds(producerId)).size > 0 : false;
+
   return (
     <Container className="py-brand-6">
       <Stack gap={4}>
         <div className="flex items-end justify-between gap-brand-2">
-          <ProducerPanelTabs locale={locale} />
+          <ProducerPanelTabs locale={locale} hasUnreadZapytania={hasUnreadDecisions} />
           <form action={signOutAction} className="pb-brand-2">
             <button
               type="submit"

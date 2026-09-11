@@ -17,6 +17,7 @@ export type EventName =
   | "query_sent"
   | "offer_submitted"
   | "offer_accepted"
+  | "offer_rejected"
   | "payment_completed"
   | "order_status_changed"
   | "product_favorited";

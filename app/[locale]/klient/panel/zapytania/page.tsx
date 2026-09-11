@@ -1,7 +1,13 @@
 import { getTranslations } from "next-intl/server";
+import Link from "next/link";
 import { PanelEmptyState } from "@/components/klient/PanelEmptyState";
 import { Heading, Stack, Text } from "@/components/ui";
-import { getClientIdForUser, getInquiriesForClient, type InquiryWithItems } from "@/lib/db/queries";
+import {
+  getClientIdForUser,
+  getInquiriesForClient,
+  getUnreadOfferInquiryIds,
+  type InquiryWithItems,
+} from "@/lib/db/queries";
 import { requirePanelClientSession } from "@/lib/panel-session";
 
 const dateFormatter = new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium", timeStyle: "short" });
@@ -27,7 +33,9 @@ export default async function ZapytaniaPanelPage({
   };
 
   const clientId = await getClientIdForUser(session.user.id);
-  const inquiries = clientId ? await getInquiriesForClient(clientId) : [];
+  const [inquiries, unreadOfferIds] = clientId
+    ? await Promise.all([getInquiriesForClient(clientId), getUnreadOfferInquiryIds(clientId)])
+    : [[], new Set<string>()];
 
   return (
     <Stack gap={4}>
@@ -55,9 +63,21 @@ export default async function ZapytaniaPanelPage({
             <tbody>
               {inquiries.map((row) => (
                 <tr key={row.id} className="border-b border-brand-v5-line/50 align-top last:border-b-0">
-                  <Text as="td" surface="v5" className="p-brand-2">
-                    {row.productNames.join(", ") || "—"}
-                  </Text>
+                  <td className="p-brand-2">
+                    <Link
+                      href={`/${locale}/klient/panel/zapytania/${row.id}`}
+                      className="focus-ring rounded-data font-medium text-brand-v5-amber-strong hover:underline"
+                    >
+                      {row.productNames.join(", ") || "—"}
+                    </Link>
+                    {unreadOfferIds.has(row.id) && (
+                      <span
+                        className="ml-2 inline-block size-2 rounded-full bg-brand-v5-amber-strong align-middle"
+                        role="img"
+                        aria-label={t("unreadOfferLabel")}
+                      />
+                    )}
+                  </td>
                   <Text as="td" surface="v5" className="p-brand-2">
                     {statusLabel[row.status]}
                   </Text>

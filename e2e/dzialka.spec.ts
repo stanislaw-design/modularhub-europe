@@ -55,14 +55,11 @@ test.describe("/pl/klient/dzialka", () => {
     await expect(page.getByText("Dopuszczone")).toBeVisible({ timeout: 3000 });
     await expect(page.getByText(/To nie jest opinia prawna/)).toBeVisible();
 
-    const offerLink = page.getByRole("link", { name: "Przejdź do oferty wiążącej" });
-    await expect(offerLink).toHaveAttribute(
-      "href",
-      `/pl/klient/oferta?project=prj-modulor-family-90&address=${encodeURIComponent("Ul. Polna 5, Warszawa")}`
-    );
+    const offerLink = page.getByRole("link", { name: "Przejdź do zapytań" });
+    await expect(offerLink).toHaveAttribute("href", "/pl/klient/panel/zapytania");
   });
 
-  test("keeps the paid address snapshot in the offer link after the panel's address field is edited later (AC-4, AC-6)", async ({
+  test("keeps pointing to the inquiries panel after the panel's address field is edited later (AC-4, AC-6)", async ({
     page,
   }) => {
     await page.goto("/pl/klient/dzialka?projects=prj-modulor-family-90");
@@ -76,11 +73,8 @@ test.describe("/pl/klient/dzialka", () => {
 
     await addressInput.fill("Ul. Nowa 10");
 
-    const offerLink = page.getByRole("link", { name: "Przejdź do oferty wiążącej" });
-    await expect(offerLink).toHaveAttribute(
-      "href",
-      `/pl/klient/oferta?project=prj-modulor-family-90&address=${encodeURIComponent("Ul. Polna 5")}`
-    );
+    const offerLink = page.getByRole("link", { name: "Przejdź do zapytań" });
+    await expect(offerLink).toHaveAttribute("href", "/pl/klient/panel/zapytania");
   });
 
   test("a blocked result shows status and reason with no button onward, and does not affect the other row in the panel (AC-7, AC-8)", async ({
@@ -97,7 +91,7 @@ test.describe("/pl/klient/dzialka", () => {
     await page.getByRole("button", { name: "Zapłać" }).first().click();
 
     await expect(page.getByText("Niedopuszczone")).toBeVisible({ timeout: 3000 });
-    await expect(page.getByRole("link", { name: "Przejdź do oferty wiążącej" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Przejdź do zapytań" })).toHaveCount(0);
 
     // The second row (Modulor Family 90) is untouched: still idle, area empty, Zapłać disabled.
     await expect(page.getByLabel(/metraż działki/i)).toHaveValue("");

@@ -49,7 +49,7 @@
   "KlientRealizacjaPage": {
     "heading": "Uitvoering — {name}",
     "completionBanner": "Bestelling voltooid — alle fasen zijn afgerond.",
-    "backToOffer": "Terug naar het aanbod"
+    "backToOffer": "Terug naar aanvragen"
   },
   "ProducentRealizacjaPage": {
     "heading": "Uitvoering — {name}",
@@ -110,7 +110,6 @@
     "price": "Prijs",
     "priceOnRequest": "Prijs op aanvraag",
     "priceOnRequestHint": "Rechtstreeks overeengekomen met de producent",
-    "house": "Woning",
     "priceFrom": "vanaf €{price}",
     "leadTime": "{productionMin}–{productionMax} weken productie · {assemblyMin}–{assemblyMax} dagen montage"
   },
@@ -162,7 +161,7 @@
     "plotAreaError": "Voer een oppervlakte in tussen {min}–{max} m².",
     "pay": "Betalen",
     "processingPayment": "Betaling wordt verwerkt…",
-    "goToOffer": "Naar het bindende aanbod"
+    "goToOffer": "Naar aanvragen"
   },
   "PlotDossierPanel": {
     "heading": "Perceelpaneel",
@@ -483,7 +482,8 @@
     "columnDate": "Datum",
     "statusOpen": "Wacht op antwoord",
     "statusOffered": "Aanbod ontvangen",
-    "statusClosed": "Gesloten"
+    "statusClosed": "Gesloten",
+    "unreadOfferLabel": "Nieuw aanbod"
   },
   "KlientPanelUlubionePage": {
     "heading": "Favorieten",
@@ -610,7 +610,10 @@
     "sortAriaLabel": "Resultaten sorteren",
     "keywordLabel": "Trefwoord",
     "keywordPlaceholder": "Naam of beschrijving",
-    "searchAriaLabel": "Zoeken"
+    "searchAriaLabel": "Zoeken",
+    "filterTrigger": "Filteren",
+    "closeFilters": "Filters sluiten",
+    "applyFilters": "Resultaten tonen"
   },
   "SearchCard": {
     "teaserPrompt": "Waarmee kan ik u helpen?",
@@ -634,6 +637,10 @@
     "areaLabel": "Oppervlakte",
     "areaPlaceholder": "Elke",
     "searchButton": "Woningen zoeken"
+  },
+  "FloatingSearchButton": {
+    "prompt": "Waar bent u vandaag naar op zoek?",
+    "buttonAriaLabel": "Ga naar de zoekresultaten"
   },
   "Testimonials": {
     "heading": "Wat onze klanten zeggen",
@@ -705,22 +712,6 @@
     "heatPump": "Warmtepomp",
     "heatRecovery": "Warmteterugwinning",
     "energyClassA": "Klasse A+"
-  },
-  "BindingOfferView": {
-    "heading": "Bindend aanbod — {name}",
-    "intro": "De prijs hieronder is één definitief bedrag voor de woning, transport naar het opgegeven adres en montage — zonder aparte keuze van vervoerder. Het accepteren van het aanbod start de uitvoering.",
-    "bedroomsLabel": {
-      "one": "slaapkamer",
-      "other": "slaapkamers"
-    },
-    "addressLabel": "Montageadres",
-    "finalPriceLabel": "Eindprijs (woning, transport, montage)",
-    "disclaimer": "Dit is een demonstratieaanbod op voorbeelddata. Acceptatie vormt geen echt contract en gaat niet gepaard met een echte betaling — een mockup-fase, zonder inloggen en zonder permanente gegevensopslag.",
-    "acceptOffer": "Aanbod accepteren",
-    "acceptedAt": "Geaccepteerd op {date}",
-    "acceptedThanks": "Bedankt — het bindende aanbod is geaccepteerd. Volg de voortgang van productie, transport, montage en oplevering op de uitvoeringsstatusas.",
-    "trackFulfillment": "Uitvoering volgen",
-    "backToPlot": "Terug naar het perceelpaneel"
   },
   "InquiryFlow": {
     "sentHeading": "Aanvraag verstuurd",
@@ -794,29 +785,29 @@
     "uploadLabel": "Ontbrekende documenten",
     "submitButton": "Versturen"
   },
-  "ProducerInquiryRow": {
-    "messageText": "De klant vraagt om een aanbod voor dit project, inclusief woning, transport en montage.",
-    "statusSubmitted": "Aanbod ingediend",
-    "statusNew": "Nieuwe aanvraag",
-    "viewOffer": "Aanbod bekijken",
-    "prepareOffer": "Aanbod opstellen"
-  },
-  "ProducerOfferForm": {
-    "messageText": "De klant vraagt om een aanbod voor dit project, inclusief woning, transport en montage.",
-    "heading": "Aanbod — {name}",
-    "offerSentMessage": "Aanbod verstuurd naar de klant op {date}.",
-    "housePriceLabel": "Prijs woning",
-    "transportLabel": "Transport",
-    "assemblyLabel": "Montage",
-    "totalLabel": "Totaal",
-    "backToInquiries": "Terug naar aanvragen",
-    "templateHeading": "Aanbodsjabloon",
-    "templateIntro": "Hetzelfde sjabloon geldt voor elke producent op het platform.",
-    "housePriceInputLabel": "Prijs woning (€)",
+  "OfferForm": {
+    "intro": "Prijs elk van uw producten in deze aanvraag apart en vul daarna transport en montage in.",
+    "revisionIntro": "U herziet een eerder ingediend aanbod — de nieuwe versie vervangt de vorige, de klant ziet alleen deze.",
+    "productUnavailable": "Dit product is niet meer gepubliceerd — u kunt het nog steeds prijzen.",
+    "housePriceInputLabel": "Prijs woning — {name} (€)",
     "transportInputLabel": "Transport (€)",
-    "transportHint": "Automatisch berekend voor het leverland ({country}) — alleen-lezen veld.",
     "installationInputLabel": "Montage (€)",
-    "submitOffer": "Aanbod versturen"
+    "totalLabel": "Totaal",
+    "submitOffer": "Aanbod versturen",
+    "submitRevision": "Herzien aanbod versturen",
+    "submitting": "Versturen…",
+    "submittedMessage": "Aanbod verstuurd naar de klant.",
+    "genericError": "Het aanbod kon niet worden opgeslagen. Probeer het opnieuw."
+  },
+  "OfferCard": {
+    "transportLabel": "Transport",
+    "installationLabel": "Montage",
+    "totalLabel": "Totaal",
+    "accept": "Aanbod accepteren",
+    "reject": "Aanbod afwijzen",
+    "accepted": "Geaccepteerd",
+    "rejected": "Afgewezen",
+    "genericError": "De beslissing kon niet worden opgeslagen. Probeer het opnieuw."
   },
   "RegistrationForm": {
     "nipLabel": "BTW/KVK-nummer (NIP)",
@@ -876,7 +867,8 @@
     "navAriaLabel": "Klantenpaneel",
     "zapytania": "Aanvragen",
     "ulubione": "Favorieten",
-    "profil": "Profiel"
+    "profil": "Profiel",
+    "unreadBadgeLabel": "Nieuw aanbod"
   },
   "ProjectGallery": {
     "photoCountBadge": {
@@ -884,7 +876,12 @@
       "many": "{count} foto's"
     },
     "coverAlt": "{name}, modulaire woning",
-    "thumbnailAlt": "{name}, foto {index}"
+    "thumbnailAlt": "{name}, foto {index}",
+    "lightboxOpen": "Afbeelding op volledig formaat openen: {alt}",
+    "lightboxClose": "Fotoweergave sluiten",
+    "lightboxPrev": "Vorige foto",
+    "lightboxNext": "Volgende foto",
+    "lightboxCounter": "{current} / {total}"
   },
   "ShortlistActionBar": {
     "selectedCount": "Geselecteerd: {count}/{max}",
@@ -905,11 +902,6 @@
     "approvedStatus": "Toegestaan",
     "paidMessage": "Pakket betaald — het land is nu toegestaan.",
     "backToMap": "Terug naar de exportgereedheidskaart"
-  },
-  "ProducerInquiryList": {
-    "heading": "Aanvragen en aanbiedingen",
-    "intro": "Inkomende aanvragen van klanten. Elke aanvraag opent een aanbodformulier met hetzelfde sjabloon als bij elke producent — het transportveld wordt automatisch ingevuld en is alleen-lezen.",
-    "emptyMessage": "Nog geen aanvragen — berichten van klanten die geïnteresseerd zijn in uw project verschijnen hier."
   },
   "ProducerRegistrationBar": {
     "registeredBadge": "Geregistreerd",
@@ -972,7 +964,8 @@
     "navAriaLabel": "Fabrikantenpaneel",
     "konto": "Account",
     "produkty": "Producten",
-    "zapytania": "Aanvragen"
+    "zapytania": "Aanvragen",
+    "unreadBadgeLabel": "Klant heeft een beslissing genomen"
   },
   "ProducerPanelPage": {
     "heading": "Account",
@@ -985,12 +978,12 @@
     "verificationPending": "In beoordeling",
     "verificationApproved": "Geverifieerd",
     "verificationRejected": "Afgewezen",
+    "inquiriesOffers": "Aanvragen en aanbiedingen",
     "demoScreensHeading": "Demomateriaal",
     "demoScreensDescription": "Deze schermen tonen hoe de rest van het producententraject eruitziet — vandaag nog met voorbeeldgegevens, niet met uw eigen account.",
     "demoExportReadiness": "Exportgereedheid",
     "demoCompanyVerification": "Bedrijfsverificatie",
-    "demoFulfillment": "Uitvoeringen",
-    "demoInquiriesOffers": "Aanvragen en aanbiedingen (demo)"
+    "demoFulfillment": "Uitvoeringen"
   },
   "ProducerProductPhotosStep": {
     "label": "Foto's",
@@ -1029,6 +1022,33 @@
     "columnDate": "Datum",
     "statusOpen": "Wacht op antwoord",
     "statusOffered": "Aanbieding ontvangen",
-    "statusClosed": "Gesloten"
+    "statusClosed": "Gesloten",
+    "unreadDecisionLabel": "Klant heeft een beslissing genomen"
+  },
+  "ProducerInquiryDetailPage": {
+    "heading": "Aanvraagdetails",
+    "deliveryCountryLabel": "Leveringsland",
+    "statusOpen": "Wacht op antwoord",
+    "statusOffered": "Aanbieding ontvangen",
+    "statusClosed": "Gesloten",
+    "productsHeading": "Uw producten in deze aanvraag",
+    "productUnavailable": "(niet beschikbaar)",
+    "historyHeading": "Aanbodgeschiedenis",
+    "columnStatus": "Status",
+    "columnTotal": "Totaal",
+    "columnDate": "Datum",
+    "offerStatusActive": "Actief",
+    "offerStatusAccepted": "Geaccepteerd",
+    "offerStatusRejected": "Afgewezen",
+    "offerStatusSuperseded": "Vervangen",
+    "lockedMessage": "De klant heeft dit aanbod geaccepteerd — het kan niet meer worden gewijzigd.",
+    "backToInquiries": "Terug naar aanvragen"
+  },
+  "ClientInquiryDetailPage": {
+    "heading": "Aanvraagdetails",
+    "statusOpen": "Wacht op antwoord",
+    "statusOffered": "Aanbieding ontvangen",
+    "statusClosed": "Gesloten",
+    "emptyMessage": "Nog geen producent heeft op deze aanvraag gereageerd."
   }
 }

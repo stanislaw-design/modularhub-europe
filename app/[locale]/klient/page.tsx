@@ -3,6 +3,7 @@ import { ClosingCta } from "@/components/klient/ClosingCta";
 import { CompareHomesTeaser } from "@/components/klient/CompareHomesTeaser";
 import { ComplianceEngineShowcase } from "@/components/klient/ComplianceEngineShowcase";
 import { Faq } from "@/components/klient/Faq";
+import { FloatingSearchButton } from "@/components/klient/FloatingSearchButton";
 import { Hero } from "@/components/klient/Hero";
 import { HowItWorksExplainer } from "@/components/klient/HowItWorksExplainer";
 import { PopularHomes } from "@/components/klient/PopularHomes";
@@ -40,6 +41,7 @@ export default async function KlientHomePage({
       <ClosingCta />
       <Testimonials />
       <Faq />
+      <FloatingSearchButton locale={locale} />
     </div>
   );
 }

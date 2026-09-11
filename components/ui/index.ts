@@ -12,6 +12,7 @@ export { Input } from "./Input";
 export { Label } from "./Label";
 export { LanguageSwitcher } from "./LanguageSwitcher";
 export { Radio } from "./Radio";
+export { ScrollProgressBar } from "./ScrollProgressBar";
 export { ScrollReveal } from "./ScrollReveal";
 export { Select } from "./Select";
 export type { SelectOption } from "./Select";

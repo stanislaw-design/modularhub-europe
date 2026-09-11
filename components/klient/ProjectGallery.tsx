@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import Image from "next/image";
+import { GalleryImageButton } from "@/components/klient/ProjectGalleryLightbox";
 
 interface ProjectGalleryCoverProps {
   coverImageUrl: string;
@@ -21,13 +22,16 @@ function photoCountBucket(count: number): "few" | "many" {
 // z paskiem miniatur pod spodem.
 export async function ProjectGalleryCover({ coverImageUrl, totalCount, projectName, className }: ProjectGalleryCoverProps) {
   const t = await getTranslations("ProjectGallery");
+  const alt = t("coverAlt", { name: projectName });
   return (
-    <div
+    <GalleryImageButton
+      index={0}
+      label={t("lightboxOpen", { alt })}
       className={`group relative aspect-[4/3] overflow-hidden rounded-v5-card sm:aspect-[3/2] ${className ?? ""}`}
     >
       <Image
         src={coverImageUrl}
-        alt={t("coverAlt", { name: projectName })}
+        alt={alt}
         fill
         priority
         sizes="(min-width: 1024px) 66vw, 100vw"
@@ -38,7 +42,7 @@ export async function ProjectGalleryCover({ coverImageUrl, totalCount, projectNa
           {t(`photoCountBadge.${photoCountBucket(totalCount)}`, { count: totalCount })}
         </span>
       )}
-    </div>
+    </GalleryImageButton>
   );
 }
 
@@ -60,20 +64,25 @@ export async function ProjectGalleryThumbnails({ galleryImageUrls, projectName }
     // Poziomy snap-scroll na mobile (przegląda się kciukiem jak karuzelę zdjęć),
     // siatka od sm w górę — ten sam DOM, dwa układy przez warianty responsywne.
     <div className="-mx-[6%] flex snap-x snap-mandatory gap-brand-2 overflow-x-auto px-[6%] pb-1 [scrollbar-width:none] sm:mx-0 sm:grid sm:snap-none sm:grid-cols-4 sm:gap-brand-2 sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden">
-      {extraImages.map((url, index) => (
-        <div
-          key={url}
-          className="group relative aspect-square w-24 shrink-0 snap-start overflow-hidden rounded-v5-card sm:aspect-[4/3] sm:w-auto"
-        >
-          <Image
-            src={url}
-            alt={t("thumbnailAlt", { name: projectName, index: index + 2 })}
-            fill
-            sizes="(min-width: 1024px) 16vw, 25vw"
-            className="object-cover transition-transform duration-300 ease-out motion-safe:group-hover:scale-110"
-          />
-        </div>
-      ))}
+      {extraImages.map((url, index) => {
+        const alt = t("thumbnailAlt", { name: projectName, index: index + 2 });
+        return (
+          <GalleryImageButton
+            key={url}
+            index={index + 1}
+            label={t("lightboxOpen", { alt })}
+            className="group relative aspect-square w-24 shrink-0 snap-start overflow-hidden rounded-v5-card sm:aspect-[4/3] sm:w-auto"
+          >
+            <Image
+              src={url}
+              alt={alt}
+              fill
+              sizes="(min-width: 1024px) 16vw, 25vw"
+              className="object-cover transition-transform duration-300 ease-out motion-safe:group-hover:scale-110"
+            />
+          </GalleryImageButton>
+        );
+      })}
     </div>
   );
 }

@@ -1,0 +1,65 @@
+- generic [active] [ref=f3e1]:
+  - link "Przejdź do treści" [ref=f3e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=f3e3]:
+    - generic [ref=f3e4]:
+      - link "ModularHub Europe" [ref=f3e5] [cursor=pointer]:
+        - /url: /pl/producent
+        - generic [ref=f3e13]:
+          - generic [ref=f3e14]: ModularHub
+          - generic [ref=f3e15]: EUROPE
+      - generic [ref=f3e16]:
+        - link "Jestem klientem" [ref=f3e17] [cursor=pointer]:
+          - /url: /pl/klient
+        - button "Zmień język" [ref=f3e19]: PL
+        - button "Menu" [disabled] [ref=f3e22]
+        - button "Konto" [disabled] [ref=f3e24]
+  - main [ref=f3e28]:
+    - generic [ref=f3e30]:
+      - generic [ref=f3e31]:
+        - heading "Zostań producentem ModularHub Europe" [level=1] [ref=f3e32]
+        - paragraph [ref=f3e33]: Krótka rejestracja, bez logowania — trzy pola i przechodzisz od razu do dodania pierwszego projektu.
+      - generic [ref=f3e34]:
+        - generic [ref=f3e35]:
+          - heading "Dlaczego ModularHub Europe" [level=2] [ref=f3e36]
+          - generic [ref=f3e43]:
+            - heading "Jedna rejestracja, wszystkie kraje" [level=3] [ref=f3e44]
+            - paragraph [ref=f3e45]: Zaznacz kraje dostawy raz — dopuszczalność projektów sprawdzamy dla każdego z nich.
+          - generic [ref=f3e53]:
+            - heading "Zapytania z gotowym kontekstem" [level=3] [ref=f3e54]
+            - paragraph [ref=f3e55]: Klienci wysyłają zapytania od razu z wybranym projektem i danymi kontaktowymi.
+          - generic [ref=f3e61]:
+            - heading "Status realizacji w jednym miejscu" [level=3] [ref=f3e62]
+            - paragraph [ref=f3e63]: Produkcja, transport, montaż i odbiór — jedna oś statusu, ta sama co u klienta.
+          - link "Masz już konto? Sprawdź przychodzące zapytania" [ref=f3e64] [cursor=pointer]:
+            - /url: /pl/producent/zapytania
+          - link "Masz już zamówienie w realizacji? Sprawdź status i wypłatę" [ref=f3e65] [cursor=pointer]:
+            - /url: /pl/producent/realizacje
+        - generic [ref=f3e67]:
+          - heading "Dane firmy" [level=2] [ref=f3e68]
+          - generic [ref=f3e69]:
+            - generic [ref=f3e70]:
+              - generic [ref=f3e71]:
+                - text: NIP
+                - generic [ref=f3e72]: "*"
+              - textbox "NIP" [ref=f3e73]:
+                - /placeholder: 000-000-00-00
+            - group "Kraje dostawy" [ref=f3e74]:
+              - generic [ref=f3e75]: Kraje dostawy *
+              - generic [ref=f3e76]:
+                - generic [ref=f3e77]:
+                  - checkbox "Polska" [ref=f3e78]
+                  - text: Polska
+                - generic [ref=f3e79]:
+                  - checkbox "Niemcy" [ref=f3e80]
+                  - text: Niemcy
+                - generic [ref=f3e81]:
+                  - checkbox "Holandia" [ref=f3e82]
+                  - text: Holandia
+            - generic [ref=f3e83]:
+              - generic [ref=f3e84]:
+                - text: Technologia
+                - generic [ref=f3e85]: "*"
+              - button "Wybierz technologię" [ref=f3e87]
+            - button "Zarejestruj się" [disabled]
+  - button "Open Next.js Dev Tools" [ref=f3e96] [cursor=pointer]

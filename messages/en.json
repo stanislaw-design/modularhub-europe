@@ -49,7 +49,7 @@
   "KlientRealizacjaPage": {
     "heading": "Fulfillment — {name}",
     "completionBanner": "Order complete — every stage has been finished.",
-    "backToOffer": "Back to the offer"
+    "backToOffer": "Back to inquiries"
   },
   "ProducentRealizacjaPage": {
     "heading": "Fulfillment — {name}",
@@ -110,7 +110,6 @@
     "price": "Price",
     "priceOnRequest": "Price on request",
     "priceOnRequestHint": "Agreed directly with the producer",
-    "house": "House",
     "priceFrom": "from €{price}",
     "leadTime": "{productionMin}–{productionMax} weeks production · {assemblyMin}–{assemblyMax} days assembly"
   },
@@ -162,7 +161,7 @@
     "plotAreaError": "Enter an area between {min}–{max} m².",
     "pay": "Pay",
     "processingPayment": "Processing payment…",
-    "goToOffer": "Go to the binding offer"
+    "goToOffer": "Go to inquiries"
   },
   "PlotDossierPanel": {
     "heading": "Plot panel",
@@ -483,7 +482,8 @@
     "columnDate": "Date",
     "statusOpen": "Awaiting response",
     "statusOffered": "Offer received",
-    "statusClosed": "Closed"
+    "statusClosed": "Closed",
+    "unreadOfferLabel": "New offer"
   },
   "KlientPanelUlubionePage": {
     "heading": "Favorites",
@@ -610,7 +610,10 @@
     "sortAriaLabel": "Sort results",
     "keywordLabel": "Keyword",
     "keywordPlaceholder": "Name or description",
-    "searchAriaLabel": "Search"
+    "searchAriaLabel": "Search",
+    "filterTrigger": "Filter",
+    "closeFilters": "Close filters",
+    "applyFilters": "Show results"
   },
   "SearchCard": {
     "teaserPrompt": "What can I help you find?",
@@ -634,6 +637,10 @@
     "areaLabel": "Floor area",
     "areaPlaceholder": "Any",
     "searchButton": "Search houses"
+  },
+  "FloatingSearchButton": {
+    "prompt": "What are you looking for today?",
+    "buttonAriaLabel": "Go to search results"
   },
   "Testimonials": {
     "heading": "What our clients say",
@@ -705,22 +712,6 @@
     "heatPump": "Heat pump",
     "heatRecovery": "Heat recovery",
     "energyClassA": "Class A+"
-  },
-  "BindingOfferView": {
-    "heading": "Binding offer — {name}",
-    "intro": "The price below is one final amount for the house, transport to the given address, and assembly — with no separate carrier choice. Accepting the offer starts fulfillment.",
-    "bedroomsLabel": {
-      "one": "bedroom",
-      "other": "bedrooms"
-    },
-    "addressLabel": "Assembly address",
-    "finalPriceLabel": "Final price (house, transport, assembly)",
-    "disclaimer": "This is a demonstration offer on sample data. Acceptance does not create a real contract or involve a real payment — a mockup stage, with no login and no data persisted.",
-    "acceptOffer": "Accept offer",
-    "acceptedAt": "Accepted {date}",
-    "acceptedThanks": "Thank you — the binding offer has been accepted. Track production, transport, assembly, and handover progress on the fulfillment status axis.",
-    "trackFulfillment": "Track fulfillment",
-    "backToPlot": "Back to the plot panel"
   },
   "InquiryFlow": {
     "sentHeading": "Inquiry sent",
@@ -794,29 +785,29 @@
     "uploadLabel": "Missing documents",
     "submitButton": "Submit"
   },
-  "ProducerInquiryRow": {
-    "messageText": "The client is requesting an offer for this project, covering the house, transport, and assembly.",
-    "statusSubmitted": "Offer submitted",
-    "statusNew": "New inquiry",
-    "viewOffer": "View offer",
-    "prepareOffer": "Prepare offer"
-  },
-  "ProducerOfferForm": {
-    "messageText": "The client is requesting an offer for this project, covering the house, transport, and assembly.",
-    "heading": "Offer — {name}",
-    "offerSentMessage": "Offer sent to the client {date}.",
-    "housePriceLabel": "House price",
-    "transportLabel": "Transport",
-    "assemblyLabel": "Assembly",
-    "totalLabel": "Total",
-    "backToInquiries": "Back to inquiries",
-    "templateHeading": "Offer template",
-    "templateIntro": "The same template applies to every producer on the platform.",
-    "housePriceInputLabel": "House price (€)",
+  "OfferForm": {
+    "intro": "Price each of your products in this inquiry separately, then add transport and assembly.",
+    "revisionIntro": "You're revising an offer you already submitted — the new version replaces the previous one, the client only sees this one.",
+    "productUnavailable": "This product is no longer published — you can still price it.",
+    "housePriceInputLabel": "House price — {name} (€)",
     "transportInputLabel": "Transport (€)",
-    "transportHint": "Calculated automatically for the delivery country ({country}) — read-only field.",
     "installationInputLabel": "Assembly (€)",
-    "submitOffer": "Send offer"
+    "totalLabel": "Total",
+    "submitOffer": "Send offer",
+    "submitRevision": "Send revised offer",
+    "submitting": "Sending…",
+    "submittedMessage": "Offer sent to the client.",
+    "genericError": "Couldn't save the offer. Please try again."
+  },
+  "OfferCard": {
+    "transportLabel": "Transport",
+    "installationLabel": "Assembly",
+    "totalLabel": "Total",
+    "accept": "Accept offer",
+    "reject": "Reject offer",
+    "accepted": "Accepted",
+    "rejected": "Rejected",
+    "genericError": "Couldn't save your decision. Please try again."
   },
   "RegistrationForm": {
     "nipLabel": "Tax ID (NIP)",
@@ -876,7 +867,8 @@
     "navAriaLabel": "Client panel",
     "zapytania": "Inquiries",
     "ulubione": "Favorites",
-    "profil": "Profile"
+    "profil": "Profile",
+    "unreadBadgeLabel": "New offer"
   },
   "ProjectGallery": {
     "photoCountBadge": {
@@ -884,7 +876,12 @@
       "many": "{count} photos"
     },
     "coverAlt": "{name}, modular house",
-    "thumbnailAlt": "{name}, photo {index}"
+    "thumbnailAlt": "{name}, photo {index}",
+    "lightboxOpen": "Open full-size image: {alt}",
+    "lightboxClose": "Close image viewer",
+    "lightboxPrev": "Previous photo",
+    "lightboxNext": "Next photo",
+    "lightboxCounter": "{current} / {total}"
   },
   "ShortlistActionBar": {
     "selectedCount": "Selected: {count}/{max}",
@@ -905,11 +902,6 @@
     "approvedStatus": "Eligible",
     "paidMessage": "Package paid — the country is now eligible.",
     "backToMap": "Back to the export readiness map"
-  },
-  "ProducerInquiryList": {
-    "heading": "Inquiries and offers",
-    "intro": "Incoming inquiries from clients. Each inquiry opens an offer form using the same template as every producer — the transport field is filled in automatically and is read-only.",
-    "emptyMessage": "No inquiries yet — messages from clients interested in your project will appear here."
   },
   "ProducerRegistrationBar": {
     "registeredBadge": "Registered",
@@ -972,7 +964,8 @@
     "navAriaLabel": "Producer panel",
     "konto": "Account",
     "produkty": "Products",
-    "zapytania": "Inquiries"
+    "zapytania": "Inquiries",
+    "unreadBadgeLabel": "Client made a decision"
   },
   "ProducerPanelPage": {
     "heading": "Account",
@@ -985,12 +978,12 @@
     "verificationPending": "Under review",
     "verificationApproved": "Verified",
     "verificationRejected": "Rejected",
+    "inquiriesOffers": "Inquiries and offers",
     "demoScreensHeading": "Demo materials",
     "demoScreensDescription": "These screens show what the rest of the producer journey looks like — still on sample data today, not your own account.",
     "demoExportReadiness": "Export readiness",
     "demoCompanyVerification": "Company verification",
-    "demoFulfillment": "Fulfillment",
-    "demoInquiriesOffers": "Inquiries and offers (demo)"
+    "demoFulfillment": "Fulfillment"
   },
   "ProducerProductPhotosStep": {
     "label": "Photos",
@@ -1029,6 +1022,33 @@
     "columnDate": "Date",
     "statusOpen": "Awaiting response",
     "statusOffered": "Offer received",
-    "statusClosed": "Closed"
+    "statusClosed": "Closed",
+    "unreadDecisionLabel": "Client made a decision"
+  },
+  "ProducerInquiryDetailPage": {
+    "heading": "Inquiry details",
+    "deliveryCountryLabel": "Delivery country",
+    "statusOpen": "Awaiting response",
+    "statusOffered": "Offer received",
+    "statusClosed": "Closed",
+    "productsHeading": "Your products in this inquiry",
+    "productUnavailable": "(unavailable)",
+    "historyHeading": "Offer history",
+    "columnStatus": "Status",
+    "columnTotal": "Total",
+    "columnDate": "Date",
+    "offerStatusActive": "Active",
+    "offerStatusAccepted": "Accepted",
+    "offerStatusRejected": "Rejected",
+    "offerStatusSuperseded": "Superseded",
+    "lockedMessage": "The client accepted this offer — it can no longer be changed.",
+    "backToInquiries": "Back to inquiries"
+  },
+  "ClientInquiryDetailPage": {
+    "heading": "Inquiry details",
+    "statusOpen": "Awaiting response",
+    "statusOffered": "Offer received",
+    "statusClosed": "Closed",
+    "emptyMessage": "No producer has responded to this inquiry yet."
   }
 }

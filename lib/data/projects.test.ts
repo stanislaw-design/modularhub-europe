@@ -2,7 +2,13 @@ import { and, eq, inArray } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { db } from "@/lib/db/client";
 import { auditLog, document, producer, product, productCountryEligibility, users } from "@/lib/db/schema";
-import { getEligibilityByCountry, getFeaturedProjectByFamily, getProjectById, getProjects } from "./projects";
+import {
+  getEligibilityByCountry,
+  getFeaturedProjectByFamily,
+  getProjectById,
+  getProjects,
+  getPublishedProductIds,
+} from "./projects";
 
 // Confirms spec 0023 AC-4/AC-6: getProjects/getProjectById/getEligibilityByCountry
 // read real product+eligibility rows from the database instead of the retired
@@ -162,6 +168,21 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: reads from the da
     expect(ids).toContain(publishedDomId);
     expect(ids).not.toContain(draftDomId);
     expect(ids).not.toContain(featuredPergolaId);
+  });
+
+  // Regression: /klient/zapytanie and /klient/dzialka used to validate the
+  // `projects` URL param against getProjects()'s ids, which default to
+  // family "dom" — a selection from any other family (e.g. a spa-modulowe
+  // sauna) silently failed knownIds.has(id) and got the client bounced back
+  // to results with no error. getPublishedProductIds() must not be family
+  // scoped, so a spa-modulowe id passes the same check a dom id does.
+  it("getPublishedProductIds includes published products from every family, not just dom", async () => {
+    const ids = await getPublishedProductIds();
+
+    expect(ids.has(publishedDomId)).toBe(true);
+    expect(ids.has(featuredPergolaId)).toBe(true);
+    expect(ids.has(saunaSpaId)).toBe(true);
+    expect(ids.has(draftDomId)).toBe(false);
   });
 
   it("filters by an explicit family", async () => {

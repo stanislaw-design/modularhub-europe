@@ -531,6 +531,11 @@ export const offer = pgTable(
     status: offerStatusEnum("status").notNull().default("active"),
     submittedAt: timestamp("submitted_at", { withTimezone: true }).defaultNow().notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    // Sygnał nieprzeczytane/przeczytane, spec 0033 AC-11/AC-12. Ustawiane
+    // wyłącznie w ścieżce faktycznej nawigacji (nigdy w czymś, co Next.js
+    // mógłby prefetchować), zapis idempotentny (patrz lib/offer-actions.ts).
+    clientViewedAt: timestamp("client_viewed_at", { withTimezone: true }),
+    producerDecisionViewedAt: timestamp("producer_decision_viewed_at", { withTimezone: true }),
   },
   (table) => [
     // Najwyżej jedna oferta status='active' na parę (inquiry, producer); nowa

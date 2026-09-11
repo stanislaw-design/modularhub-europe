@@ -103,7 +103,10 @@ export async function CategoryShowcase({ locale }: CategoryShowcaseProps) {
     // it would clip position: sticky in PinnedShowcase (an overflow value
     // other than visible on any ancestor breaks sticky's containing block).
     // Each showcase mode clips its own crossfading/scrolling content itself.
-    <section className="full-bleed relative isolate mt-brand-7 mb-brand-7 bg-brand-v5-ink">
+    <section
+      id="category-showcase"
+      className="full-bleed relative isolate mt-brand-7 mb-brand-7 bg-brand-v5-ink"
+    >
       <CategoryShowcaseCarousel
         headingUnderline={t("headingUnderline")}
         headingRest={t("headingRest")}

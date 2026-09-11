@@ -42,8 +42,17 @@ export default async function WynikiPage({
   const countryNameByCode = new Map(countries.map((country) => [country.code, country.name]));
   const eligibilityByProjectId = new Map(eligibilityRows.map((row) => [row.projectId, row.status]));
 
-  return (
-    <Stack gap={5}>
+  // Rodzina/kategoria/podkategoria (spec 0023, 0026) renderowane dwa razy:
+  // raz w normalnym przepływie strony (widoczne tylko od `sm`, patrz
+  // "hidden sm:contents" poniżej — inline nad siatką jak dotąd), raz jako
+  // `mobileFilters` przekazane w głąb ResultsFilterBar, gdzie na telefonie
+  // trafiają do rozwijanego arkusza filtrów razem z polami kraj/metraż/sortuj
+  // (żądanie: na mobile domy widoczne od samej góry, cała wyszukiwarka
+  // schowana w jednym miejscu). To zwykłe server components sterowane samym
+  // `filter`/URL, bez stanu klienta, więc podwójne wyrenderowanie jest tanie
+  // i bezpieczne — obie kopie zawsze pokazują ten sam, aktualny stan.
+  const familyAndCategoryFilters = (
+    <>
       <FamilyTabs
         locale={locale}
         family={filter.family}
@@ -51,9 +60,20 @@ export default async function WynikiPage({
         sizeMin={filter.sizeMin}
         sizeMax={filter.sizeMax}
       />
-      <ResultsFilterBar locale={locale} countries={countries} filter={filter} />
       {filter.family === "dom" && <CategoryFilterBar locale={locale} filter={filter} />}
       <SubcategoryFilterBar locale={locale} filter={filter} />
+    </>
+  );
+
+  return (
+    <Stack gap={5} className="results-shell">
+      <div className="hidden sm:contents">{familyAndCategoryFilters}</div>
+      <ResultsFilterBar
+        locale={locale}
+        countries={countries}
+        filter={filter}
+        mobileFilters={familyAndCategoryFilters}
+      />
       <ResultsSelection
         locale={locale}
         countryCode={filter.countryCode}

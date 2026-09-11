@@ -1,0 +1,14 @@
+[     461ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_%40sentry_core_build_esm_0rdh97r._.js:2104
+[     504ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_%40sentry_core_build_esm_0rdh97r._.js:2104
+[     695ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_%40sentry_core_build_esm_0rdh97r._.js:2104
+[    5434ms] [LOG] [Fast Refresh] done in 4846ms @ http://localhost:3000/_next/static/chunks/node_modules_%40sentry_core_build_esm_0rdh97r._.js:2104
+[   13642ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_%40sentry_core_build_esm_0rdh97r._.js:2104
+[   17427ms] [LOG] [Fast Refresh] done in 3892ms @ http://localhost:3000/_next/static/chunks/node_modules_%40sentry_core_build_esm_0rdh97r._.js:2104
+[   81098ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_%40sentry_core_build_esm_0rdh97r._.js:2104
+[   84720ms] [LOG] [Fast Refresh] done in 3730ms @ http://localhost:3000/_next/static/chunks/node_modules_%40sentry_core_build_esm_0rdh97r._.js:2104
+[  127275ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_%40sentry_core_build_esm_0rdh97r._.js:2104
+[  131234ms] [LOG] [Fast Refresh] done in 4070ms @ http://localhost:3000/_next/static/chunks/node_modules_%40sentry_core_build_esm_0rdh97r._.js:2104
+[  141425ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_%40sentry_core_build_esm_0rdh97r._.js:2104
+[  145793ms] [LOG] [Fast Refresh] done in 4469ms @ http://localhost:3000/_next/static/chunks/node_modules_%40sentry_core_build_esm_0rdh97r._.js:2104
+[  170825ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_%40sentry_core_build_esm_0rdh97r._.js:2104
+[  174792ms] [LOG] [Fast Refresh] done in 4084ms @ http://localhost:3000/_next/static/chunks/node_modules_%40sentry_core_build_esm_0rdh97r._.js:2104

@@ -11,7 +11,7 @@ test.describe("/pl/klient/realizacja", () => {
     await expect(page).toHaveURL("/pl/klient/wyniki");
   });
 
-  test("known project with no accepted order redirects to the offer page for it, not an error (AC-2)", async ({
+  test("known project with no accepted order redirects to the inquiries panel, not an error (AC-2)", async ({
     request,
   }) => {
     const response = await request.get("/pl/klient/realizacja?project=prj-baltyk-studio-38", {
@@ -19,7 +19,7 @@ test.describe("/pl/klient/realizacja", () => {
     });
 
     expect(response.status()).toBe(307);
-    expect(response.headers()["location"]).toBe("/pl/klient/oferta?project=prj-baltyk-studio-38");
+    expect(response.headers()["location"]).toBe("/pl/klient/panel/zapytania");
   });
 
   test("shows the header and the 5-stage axis in fixed order, exactly one current stage (AC-3, AC-4)", async ({
@@ -61,11 +61,11 @@ test.describe("/pl/klient/realizacja", () => {
     await expect(page.getByText("Aktualny etap")).toBeVisible();
   });
 
-  test("returns to the offer page via the back link (AC-9)", async ({ page }) => {
+  test("returns to the inquiries panel via the back link (AC-9)", async ({ page }) => {
     await page.goto("/pl/klient/realizacja?project=prj-modulor-family-90");
 
-    const backLink = page.getByRole("link", { name: "Wróć do oferty" });
-    await expect(backLink).toHaveAttribute("href", "/pl/klient/oferta?project=prj-modulor-family-90");
+    const backLink = page.getByRole("link", { name: "Wróć do zapytań" });
+    await expect(backLink).toHaveAttribute("href", "/pl/klient/panel/zapytania");
   });
 
   test("keyboard pass: one H1, back link reachable and focus-visible (AC-10)", async ({ page }) => {
@@ -73,21 +73,14 @@ test.describe("/pl/klient/realizacja", () => {
 
     await expect(page.locator("h1")).toHaveCount(1);
 
-    const backLink = page.getByRole("link", { name: "Wróć do oferty" });
+    const backLink = page.getByRole("link", { name: "Wróć do zapytań" });
     await backLink.focus();
     await expect(backLink).toBeFocused();
     await expect(backLink).toHaveClass(/focus-ring/);
   });
 
-  test("is reached end to end from an accepted binding offer's 'Śledź realizację' link (AC-8)", async ({ page }) => {
-    await page.goto("/pl/klient/oferta?project=prj-baltyk-loft-120&address=Ul.%20Polna%205");
-    await page.getByRole("button", { name: "Zaakceptuj ofertę" }).click();
-
-    const trackLink = page.getByRole("link", { name: "Śledź realizację" });
-    await expect(trackLink).toHaveAttribute("href", "/pl/klient/realizacja?project=prj-baltyk-loft-120");
-    await trackLink.click();
-
-    await expect(page).toHaveURL("/pl/klient/realizacja?project=prj-baltyk-loft-120");
-    await expect(page.locator("h1")).toHaveText(/Realizacja.*Baltyk Loft 120/);
-  });
+  // The old "reached end to end from an accepted binding offer's 'Śledź
+  // realizację' link (AC-8)" case was removed with the /klient/oferta mock
+  // it depended on (spec 0033 AC-16, Consequences): no link leads to
+  // /klient/realizacja anymore until feature 16 designs its real entry point.
 });

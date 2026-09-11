@@ -1,25 +1,26 @@
 import { describe, expect, it } from "vitest";
-import { getBindingOfferPriceEur, getMockTransportPriceEur } from "./pricing";
+import { getMockAssemblyPriceEur, PLOT_ANALYSIS_CURRENCY, PLOT_ANALYSIS_PRICE_EUR } from "./pricing";
 
-describe("getMockTransportPriceEur", () => {
+describe("PLOT_ANALYSIS_PRICE_EUR / PLOT_ANALYSIS_CURRENCY", () => {
+  it("exposes the fixed plot analysis price and currency", () => {
+    expect(PLOT_ANALYSIS_PRICE_EUR).toBe(149);
+    expect(PLOT_ANALYSIS_CURRENCY).toBe("EUR");
+  });
+});
+
+describe("getMockAssemblyPriceEur", () => {
   it("returns a distinct flat rate per delivery country", () => {
-    const pl = getMockTransportPriceEur("PL");
-    const de = getMockTransportPriceEur("DE");
-    const nl = getMockTransportPriceEur("NL");
+    const pl = getMockAssemblyPriceEur("PL");
+    const de = getMockAssemblyPriceEur("DE");
+    const nl = getMockAssemblyPriceEur("NL");
 
-    expect(pl).toBe(3200);
-    expect(de).toBe(4600);
-    expect(nl).toBe(5400);
+    expect(pl).toBe(1800);
+    expect(de).toBe(2600);
+    expect(nl).toBe(2900);
     expect(new Set([pl, de, nl]).size).toBe(3);
   });
 
   it("returns the same value on repeated calls for the same country", () => {
-    expect(getMockTransportPriceEur("DE")).toBe(getMockTransportPriceEur("DE"));
-  });
-});
-
-describe("getBindingOfferPriceEur", () => {
-  it("returns the project's top of range price", () => {
-    expect(getBindingOfferPriceEur({ priceMax: 142000 })).toBe(142000);
+    expect(getMockAssemblyPriceEur("DE")).toBe(getMockAssemblyPriceEur("DE"));
   });
 });

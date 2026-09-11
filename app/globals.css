@@ -132,6 +132,20 @@ body {
   overflow-x: hidden;
 }
 
+/* Native scrollbar hidden in favor of ScrollProgressBar (components/ui):
+   scroll itself is untouched (still full keyboard/wheel/touch), only the
+   browser's own visual track/thumb is suppressed. html carries the real
+   viewport scroller (see the .full-bleed comment above), hence hiding it
+   here rather than on body. */
+html {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar {
+  display: none;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
@@ -309,5 +323,17 @@ body {
     animation: none;
     transform: scaleX(1);
   }
+}
+
+/* Wyniki: ResultsFilterBar and ShortlistActionBar (components/klient) both
+   pin themselves to the viewport bottom, independently of each other —
+   ResultsFilterBar doesn't know whether a shortlist selection exists.
+   :has() lets the shift happen without either component tracking the
+   other's state: whenever a `.shortlist-action-bar` shows up anywhere
+   inside the results page shell, its `.results-filter-bar` sibling (the
+   desktop toolbar or the mobile filter pill, whichever is visible) moves up
+   by that bar's own height instead of sitting underneath it. */
+.results-shell:has(.shortlist-action-bar) .results-filter-bar {
+  bottom: 77px;
 }
 

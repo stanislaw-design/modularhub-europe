@@ -114,17 +114,14 @@ describe("PlotAnalysisRow", () => {
         screen.getByText(/To nie jest opinia prawna\. Wynik to szacunkowa ocena/)
       ).toBeInTheDocument();
 
-      const offerLink = screen.getByRole("link", { name: "Przejdź do oferty wiążącej" });
-      expect(offerLink).toHaveAttribute(
-        "href",
-        `/pl/klient/oferta?project=prj-budman-familia-90&address=${encodeURIComponent("Ul. Polna 5")}`
-      );
+      const offerLink = screen.getByRole("link", { name: "Przejdź do zapytań" });
+      expect(offerLink).toHaveAttribute("href", "/pl/klient/panel/zapytania");
     },
     5000
   );
 
   it(
-    "keeps the paid address snapshot in the offer link even after the panel's address field changes later (AC-4, AC-6)",
+    "keeps pointing to the inquiries panel even after the panel's address field changes later (AC-4, AC-6)",
     async () => {
       const user = userEvent.setup();
       render(<Harness project={approvedProject} initialAddress="Ul. Polna 5" />);
@@ -136,11 +133,8 @@ describe("PlotAnalysisRow", () => {
 
       await user.click(screen.getByRole("button", { name: "change address" }));
 
-      const offerLink = screen.getByRole("link", { name: "Przejdź do oferty wiążącej" });
-      expect(offerLink).toHaveAttribute(
-        "href",
-        `/pl/klient/oferta?project=prj-budman-familia-90&address=${encodeURIComponent("Ul. Polna 5")}`
-      );
+      const offerLink = screen.getByRole("link", { name: "Przejdź do zapytań" });
+      expect(offerLink).toHaveAttribute("href", "/pl/klient/panel/zapytania");
     },
     5000
   );
@@ -156,7 +150,7 @@ describe("PlotAnalysisRow", () => {
 
       await screen.findByText("Warunkowo dopuszczone", {}, { timeout: 3000 });
       expect(screen.getByText(/operat geotechniczny/)).toBeInTheDocument();
-      expect(screen.getByRole("link", { name: "Przejdź do oferty wiążącej" })).toBeInTheDocument();
+      expect(screen.getByRole("link", { name: "Przejdź do zapytań" })).toBeInTheDocument();
     },
     5000
   );
@@ -172,7 +166,7 @@ describe("PlotAnalysisRow", () => {
 
       await screen.findByText("Niedopuszczone", {}, { timeout: 3000 });
       expect(screen.getByText(/obciążenie śniegiem/)).toBeInTheDocument();
-      expect(screen.queryByRole("link", { name: "Przejdź do oferty wiążącej" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("link", { name: "Przejdź do zapytań" })).not.toBeInTheDocument();
     },
     5000
   );
@@ -188,7 +182,7 @@ describe("PlotAnalysisRow", () => {
 
       await screen.findByText("Niedopuszczone", {}, { timeout: 3000 });
       expect(screen.getByText(/Brak danych analizy dla tego projektu/)).toBeInTheDocument();
-      expect(screen.queryByRole("link", { name: "Przejdź do oferty wiążącej" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("link", { name: "Przejdź do zapytań" })).not.toBeInTheDocument();
     },
     5000
   );

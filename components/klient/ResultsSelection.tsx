@@ -57,13 +57,20 @@ export function ResultsSelection({
   const limitReached = selectedIds.length >= MAX_SELECTED;
 
   if (items.length === 0) {
-    return <EmptyResults locale={locale} family={family} />;
+    return (
+      <div className="pb-24">
+        <EmptyResults locale={locale} family={family} />
+      </div>
+    );
   }
 
   return (
     <Stack gap={5}>
       <ResultsHeader count={items.length} family={family} countryCode={countryCode} />
-      <div className={selectedIds.length > 0 ? "pb-24" : undefined}>
+      {/* Clearance for ResultsFilterBar, now permanently pinned to the
+          bottom (spec less polish, see components/klient/AGENTS.md); more
+          when ShortlistActionBar stacks above it too (selection made). */}
+      <div className={selectedIds.length > 0 ? "pb-48" : "pb-24"}>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,20rem),1fr))] gap-brand-4">
           {items.map(({ project, countryName, eligibilityStatus, favorited }, index) => (
             <ScrollReveal

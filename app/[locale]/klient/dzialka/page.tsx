@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { PlotDossierPanel } from "@/components/klient/PlotDossierPanel";
 import type { Project } from "@/lib/data/types";
-import { getProjectById, getProjects } from "@/lib/data/projects";
+import { getProjectById, getPublishedProductIds } from "@/lib/data/projects";
 import type { Locale } from "@/lib/i18n/routing";
 import { parseInquiryProjectIds } from "@/lib/inquiry";
 
@@ -28,8 +28,7 @@ export default async function DzialkaPage({
   const [{ locale }, rawSearchParams] = await Promise.all([params, searchParams]);
   const resultsHref = buildResultsHref(locale, rawSearchParams);
 
-  const allProjects = await getProjects({ locale: locale as Locale });
-  const knownIds = new Set(allProjects.map((project) => project.id));
+  const knownIds = await getPublishedProductIds();
   const projectIds = parseInquiryProjectIds(rawSearchParams.projects, knownIds);
 
   if (projectIds === null) {

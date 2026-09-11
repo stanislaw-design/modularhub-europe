@@ -1,0 +1,358 @@
+- generic [active] [ref=e1]:
+  - link "Przejdź do treści" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - link "ModularHub Europe" [ref=e5] [cursor=pointer]:
+        - /url: /pl/klient
+        - generic [ref=e13]:
+          - generic [ref=e14]: ModularHub
+          - generic [ref=e15]: EUROPE
+      - generic [ref=e16]:
+        - button "Zmień język" [ref=e18]: PL
+        - link "Ulubione" [ref=e21] [cursor=pointer]:
+          - /url: /pl/klient/panel/ulubione
+        - link "Zaloguj się" [ref=e24] [cursor=pointer]:
+          - /url: /pl/logowanie
+        - link "Zacznij" [ref=e28] [cursor=pointer]:
+          - /url: /pl/producent
+        - button "Otwórz menu" [ref=e29]
+  - main [ref=e31]:
+    - generic [ref=e33]:
+      - generic [ref=e35]:
+        - heading "Twój dom. Mądrze wybrany." [level=1] [ref=e37]:
+          - text: Twój
+          - generic [ref=e38]: dom.
+          - text: Mądrze
+          - generic [ref=e39]: wybrany.
+        - generic [ref=e41]:
+          - button "W czym mogę pomóc? Dom?" [ref=e42]:
+            - generic [ref=e46]:
+              - text: W czym mogę pomóc?
+              - generic [ref=e47]: Dom?
+          - generic [ref=e49]:
+            - tablist "Kategoria produktu" [ref=e50]:
+              - tab "Domy" [selected] [ref=e51]
+              - tab "Pergole" [ref=e57]
+              - tab "SPA" [ref=e64]
+            - generic [ref=e69]:
+              - button "Kraj docelowy" [ref=e71]:
+                - generic [ref=e72]: Gdzie?
+                - generic [ref=e73]: Kraj, region lub miasto
+              - button "Budżet" [ref=e75]:
+                - generic [ref=e77]: Dowolny budżet
+              - button "Powierzchnia" [ref=e79]:
+                - generic [ref=e81]: Dowolna
+              - button "Szukaj domów" [disabled] [ref=e83]
+        - generic [ref=e87]:
+          - paragraph [ref=e88]: Porównaj sprawdzone domy modułowe z całej Europy.
+          - list [ref=e89]:
+            - listitem [ref=e90]: Zweryfikowani producenci
+            - listitem [ref=e94]: Przejrzyste ceny
+            - listitem [ref=e98]: Compliance Engine™
+      - generic [ref=e104]:
+        - generic [ref=e105]:
+          - heading "Popularne domy" [level=2] [ref=e106]
+          - paragraph [ref=e107]: Wybór ilustracyjny — tak dziś wygląda kilka najczęściej oglądanych projektów.
+        - generic [ref=e108]:
+          - link [ref=e109] [cursor=pointer]:
+            - /url: /pl/klient/projekt/e0812c46-f67e-42ef-b4cd-1f4876d56f82
+            - img "Anka DR-ST, dom modułowy" [ref=e111]
+            - generic [ref=e112]:
+              - heading "Anka DR-ST" [level=3] [ref=e113]
+              - paragraph [ref=e114]: 116 m² · 5 pokoi · 🇵🇱 Polska
+              - paragraph [ref=e115]: od 66 090 €
+          - link [ref=e116] [cursor=pointer]:
+            - /url: /pl/klient/projekt/792bff0a-0848-4581-94cf-034b6dbf2a85
+            - img "Pomerania 40, dom modułowy" [ref=e118]
+            - generic [ref=e119]:
+              - heading "Pomerania 40" [level=3] [ref=e120]
+              - paragraph [ref=e121]: 34.7 m² · 🇵🇱 Polska
+              - paragraph [ref=e122]: Wycena indywidualna
+          - link [ref=e123] [cursor=pointer]:
+            - /url: /pl/klient/projekt/88d5a242-acae-4330-a650-d19a1cba0cae
+            - img "KA78 G1 SZ, dom modułowy" [ref=e125]
+            - generic [ref=e126]:
+              - heading "KA78 G1 SZ" [level=3] [ref=e127]
+              - paragraph [ref=e128]: 140.24 m² · 4 pokoi · 🇵🇱 Polska
+              - paragraph [ref=e129]: od 79 770 €
+          - link [ref=e130] [cursor=pointer]:
+            - /url: /pl/klient/projekt/cb3e9b51-5262-419a-bffb-4b2932a8b2e6
+            - img "Cocomodule CH-140 Premium, dom modułowy" [ref=e132]
+            - generic [ref=e133]:
+              - heading "Cocomodule CH-140 Premium" [level=3] [ref=e134]
+              - paragraph [ref=e135]: 128.8 m² · 6 pokoi · 🇩🇪 Niemcy
+              - paragraph [ref=e136]: od 245 670 €
+      - generic [ref=e138]:
+        - generic [ref=e139]:
+          - generic [ref=e143]:
+            - generic [ref=e144]:
+              - paragraph [ref=e145]: Spa modułowe
+              - paragraph [ref=e146]: Sauny, jacuzzi i strefy wellness do Twojego ogrodu
+            - link "Przykładowa realizacja z kategorii Spa modułowe 0 produktów Spa modułowe Zobacz oferty" [ref=e147] [cursor=pointer]:
+              - /url: /pl/klient/wyniki
+              - img "Przykładowa realizacja z kategorii Spa modułowe" [ref=e149]
+              - generic [ref=e150]:
+                - generic [ref=e151]: 0 produktów
+                - generic [ref=e152]: Spa modułowe
+                - generic [ref=e153]: Zobacz oferty
+          - generic [ref=e160]:
+            - generic [ref=e161]:
+              - paragraph [ref=e162]: Pergole
+              - paragraph [ref=e163]: Aluminiowe i drewniane, z zadaszeniem i przeszkleniami
+            - link "Przykładowa realizacja z kategorii Pergole 0 produktów Pergole Zobacz oferty" [ref=e164] [cursor=pointer]:
+              - /url: /pl/klient/wyniki
+              - img "Przykładowa realizacja z kategorii Pergole" [ref=e166]
+              - generic [ref=e167]:
+                - generic [ref=e168]: 0 produktów
+                - generic [ref=e169]: Pergole
+                - generic [ref=e170]: Zobacz oferty
+        - generic:
+          - heading "Więcej niż dom" [level=2] [ref=e174]:
+            - generic [ref=e175]: Więcej
+            - text: niż dom
+          - generic [ref=e176]:
+            - button "Przejdź do kategorii Spa modułowe" [ref=e177]
+            - button "Przejdź do kategorii Pergole" [ref=e178]
+            - button "Następna kategoria" [ref=e179]
+      - generic [ref=e183]:
+        - generic [ref=e184]:
+          - generic [ref=e185]: Compliance Engine™
+          - heading "Sprawdzamy zgodność z prawem zanim Ty to zrobisz" [level=2] [ref=e190]:
+            - text: Sprawdzamy
+            - generic [ref=e191]: zgodność z prawem
+            - text: zanim Ty to zrobisz
+          - paragraph [ref=e192]: Każdy dom porównujemy z lokalnymi przepisami budowlanymi kraju docelowego — konstrukcją, izolacją, wentylacją i wymaganą dokumentacją — zanim wyślesz zapytanie do producenta.
+          - paragraph [ref=e193]: Wynik to wstępna, orientacyjna weryfikacja — nie stanowi porady prawnej. Dane i logikę Compliance Engine™ na bieżąco aktualizujemy, by jak najwierniej odzwierciedlały przepisy budowlane danego kraju, jednak ostateczną zgodność projektu potwierdza właściwy urząd i wybrany producent.
+        - generic [ref=e195]:
+          - generic [ref=e196]:
+            - generic [ref=e197]:
+              - paragraph [ref=e198]: Nordic 126
+              - paragraph [ref=e199]: "Lokalizacja: Venlo, Holandia"
+            - generic [ref=e200]:
+              - generic [ref=e201]: 92%
+              - paragraph [ref=e202]: zgodności
+          - list [ref=e203]:
+            - listitem [ref=e204]:
+              - generic [ref=e205]: Konstrukcja
+              - generic [ref=e206]: Spełnione
+            - listitem [ref=e210]:
+              - generic [ref=e211]: Izolacja
+              - generic [ref=e212]: Spełnione
+            - listitem [ref=e216]:
+              - generic [ref=e217]: Wentylacja
+              - generic [ref=e218]: Spełnione
+            - listitem [ref=e222]:
+              - generic [ref=e223]: Dokumentacja
+              - generic [ref=e224]: Spełnione
+            - listitem [ref=e228]:
+              - generic [ref=e229]: Lokalne pozwolenie
+              - generic [ref=e230]: Wymaga uwagi
+          - link "Sprawdź dom" [ref=e233] [cursor=pointer]:
+            - /url: /pl/klient/wyniki
+      - generic [ref=e237]:
+        - generic [ref=e238]:
+          - heading "Jak działa ModularHub" [level=2] [ref=e239]
+          - paragraph [ref=e240]: Pięć kroków od pierwszego wyszukiwania do odbioru kluczy.
+        - list [ref=e241]:
+          - listitem [ref=e242]:
+            - generic [ref=e243]: "1"
+            - paragraph [ref=e244]: Szukaj
+            - paragraph [ref=e245]: Wybierz kraj i metraż w wyszukiwarce, przejrzyj dopasowane domy.
+          - listitem [ref=e246]:
+            - generic [ref=e247]: "2"
+            - paragraph [ref=e248]: Porównaj
+            - paragraph [ref=e249]: "Zestaw do trzech projektów obok siebie: cena, metraż, standard."
+          - listitem [ref=e250]:
+            - generic [ref=e251]: "3"
+            - paragraph [ref=e252]: Sprawdź zgodność
+            - paragraph [ref=e253]: Compliance Engine™ sprawdza dom pod kątem prawa Twojego kraju.
+          - listitem [ref=e254]:
+            - generic [ref=e255]: "4"
+            - paragraph [ref=e256]: Zapytaj o oferty
+            - paragraph [ref=e257]: Wyślij jedno zapytanie do wybranych producentów naraz.
+          - listitem [ref=e258]:
+            - generic [ref=e259]: "5"
+            - paragraph [ref=e260]: Odbierz dom
+            - paragraph [ref=e261]: Śledź produkcję, transport i montaż aż po odbiór kluczy.
+      - generic [ref=e263]:
+        - generic [ref=e264]:
+          - generic [ref=e265]:
+            - heading "Porównaj domy obok siebie" [level=2] [ref=e266]
+            - paragraph [ref=e267]: Zestaw do trzech projektów i zobacz różnice w cenie, metrażu i pokojach na jednym ekranie.
+          - link "Porównaj domy" [ref=e268] [cursor=pointer]:
+            - /url: /pl/klient/wyniki
+        - table [ref=e272]:
+          - caption [ref=e273]: "Przykładowe porównanie 3 domów: cena, metraż i liczba pokoi"
+          - rowgroup [ref=e274]:
+            - row [ref=e275]:
+              - columnheader "Cecha" [ref=e276]
+              - columnheader "Anka DR-ST" [ref=e278]
+              - columnheader "Pomerania 40" [ref=e280]
+              - columnheader "KA78 G1 SZ" [ref=e282]
+          - rowgroup [ref=e284]:
+            - row [ref=e285]:
+              - rowheader "Cena od" [ref=e286]
+              - cell "66 090 €" [ref=e287]
+              - cell "0 €" [ref=e289]
+              - cell "79 770 €" [ref=e291]
+            - row [ref=e293]:
+              - rowheader "Metraż" [ref=e294]
+              - cell "116 m²" [ref=e295]
+              - cell "34.7 m²" [ref=e297]
+              - cell "140.24 m²" [ref=e299]
+            - row [ref=e301]:
+              - rowheader "Pokoje" [ref=e302]
+              - cell "5" [ref=e303]
+              - cell "0" [ref=e304]
+              - cell "4" [ref=e305]
+      - generic [ref=e307]:
+        - generic [ref=e308]:
+          - generic [ref=e309]:
+            - heading "Zweryfikowani producenci" [level=2] [ref=e310]
+            - paragraph [ref=e311]: Każdy producent na platformie przechodzi naszą weryfikację.
+          - button "Zobacz wszystkich producentów" [disabled] [ref=e312]
+        - generic [ref=e313]:
+          - article [ref=e314]:
+            - generic [ref=e315]:
+              - img "Realizacja producenta Budman House" [ref=e316]
+              - generic [ref=e317]: Zweryfikowany przez ModularHub
+            - generic [ref=e321]:
+              - generic [ref=e322]:
+                - generic [ref=e323]: Budman House
+                - 'img "Kraj produkcji: Polska" [ref=e324]': 🇵🇱
+              - generic [ref=e325]:
+                - img "Ocena 4.8 na 5 gwiazdek, na podstawie 134 opinii" [ref=e326]
+                - generic [ref=e337]: "4.8"
+                - generic [ref=e338]: (134)
+              - paragraph [ref=e339]: 13 modeli · 27.5–141.57 m²
+              - generic [ref=e340]:
+                - paragraph [ref=e341]: "Dostawa:"
+                - list [ref=e342]:
+                  - img "Polska" [ref=e343]: 🇵🇱
+                  - img "Niemcy" [ref=e344]: 🇩🇪
+          - article [ref=e345]:
+            - generic [ref=e346]:
+              - img "Realizacja producenta Steel House" [ref=e347]
+              - generic [ref=e348]: Zweryfikowany przez ModularHub
+            - generic [ref=e352]:
+              - generic [ref=e353]:
+                - generic [ref=e354]: Steel House
+                - 'img "Kraj produkcji: Polska" [ref=e355]': 🇵🇱
+              - generic [ref=e356]:
+                - img "Ocena 4.7 na 5 gwiazdek, na podstawie 121 opinii" [ref=e357]
+                - generic [ref=e368]: "4.7"
+                - generic [ref=e369]: (121)
+              - paragraph [ref=e370]: 27 modeli · 15.9–55.2 m²
+              - generic [ref=e371]:
+                - paragraph [ref=e372]: "Dostawa:"
+                - list [ref=e373]:
+                  - img "Polska" [ref=e374]: 🇵🇱
+                  - img "Niemcy" [ref=e375]: 🇩🇪
+          - article [ref=e376]:
+            - generic [ref=e377]:
+              - img "Realizacja producenta Cocomodule" [ref=e378]
+              - generic [ref=e379]: Zweryfikowany przez ModularHub
+            - generic [ref=e383]:
+              - generic [ref=e384]:
+                - generic [ref=e385]: Cocomodule
+                - 'img "Kraj produkcji: Niemcy" [ref=e386]': 🇩🇪
+              - generic [ref=e387]:
+                - img "Ocena 4.6 na 5 gwiazdek, na podstawie 87 opinii" [ref=e388]
+                - generic [ref=e399]: "4.6"
+                - generic [ref=e400]: (87)
+              - paragraph [ref=e401]: 11 modeli · 19.4–128.8 m²
+              - generic [ref=e402]:
+                - paragraph [ref=e403]: "Dostawa:"
+                - list [ref=e404]:
+                  - img "Polska" [ref=e405]: 🇵🇱
+                  - img "Niemcy" [ref=e406]: 🇩🇪
+                  - img "Holandia" [ref=e407]: 🇳🇱
+          - article [ref=e408]:
+            - generic [ref=e409]:
+              - img "Realizacja producenta Castor Domy Drewniane" [ref=e410]
+              - generic [ref=e411]: Zweryfikowany przez ModularHub
+            - generic [ref=e415]:
+              - generic [ref=e416]:
+                - generic [ref=e417]: Castor Domy Drewniane
+                - 'img "Kraj produkcji: Polska" [ref=e418]': 🇵🇱
+              - generic [ref=e419]:
+                - img "Ocena 4.7 na 5 gwiazdek, na podstawie 156 opinii" [ref=e420]
+                - generic [ref=e431]: "4.7"
+                - generic [ref=e432]: (156)
+              - paragraph [ref=e433]: 20 modeli · 24.34–116.59 m²
+              - generic [ref=e434]:
+                - paragraph [ref=e435]: "Dostawa:"
+                - list [ref=e436]:
+                  - img "Polska" [ref=e437]: 🇵🇱
+                  - img "Niemcy" [ref=e438]: 🇩🇪
+      - generic [ref=e441]:
+        - generic [ref=e442]:
+          - generic [ref=e443]: Nie wiesz, od czego zacząć?
+          - heading "Otrzymaj 3 dopasowane oferty w 48 godzin" [level=2] [ref=e444]
+          - paragraph [ref=e445]: Powiedz nam, czego potrzebujesz, a my przejrzymy dla Ciebie spersonalizowane oferty od najlepszych producentów.
+          - link "Otrzymaj darmowe oferty" [ref=e446] [cursor=pointer]:
+            - /url: "#search-card"
+        - list [ref=e447]:
+          - listitem [ref=e448]:
+            - generic [ref=e449]: "1"
+            - generic [ref=e450]:
+              - heading "Powiedz nam, czego potrzebujesz" [level=3] [ref=e451]
+              - paragraph [ref=e452]: Odpowiedz na kilka pytań o Twój wymarzony dom.
+          - listitem [ref=e453]:
+            - generic [ref=e454]: "2"
+            - generic [ref=e455]:
+              - heading "Dobieramy najlepszych producentów" [level=3] [ref=e456]
+              - paragraph [ref=e457]: Wybieramy sprawdzonych producentów dopasowanych do Twojego projektu.
+          - listitem [ref=e458]:
+            - generic [ref=e459]: "3"
+            - generic [ref=e460]:
+              - heading "Otrzymujesz oferty" [level=3] [ref=e461]
+              - paragraph [ref=e462]: Otrzymujesz oferty i wybierasz najlepszą opcję dla siebie.
+      - generic [ref=e464]:
+        - generic [ref=e465]:
+          - heading "Co mówią nasi klienci" [level=2] [ref=e466]
+          - paragraph [ref=e467]: Opinie ilustracyjne, w oczekiwaniu na pierwszych klientów.
+        - list [ref=e468]:
+          - listitem [ref=e469]:
+            - generic [ref=e470]:
+              - img "Ocena 5.0 na 5 gwiazdek" [ref=e471]
+              - generic [ref=e482]: "5.0"
+            - paragraph [ref=e483]: “Zapytanie do trzech producentów wysłałam w jeden wieczór, zamiast pisać do każdego osobno. Odpowiedzi przyszły w dwa dni.”
+            - paragraph [ref=e484]: Anna K. · Polska
+          - listitem [ref=e485]:
+            - generic [ref=e486]:
+              - img "Ocena 5.0 na 5 gwiazdek" [ref=e487]
+              - generic [ref=e498]: "5.0"
+            - paragraph [ref=e499]: “Sprawdzenie zgodności z niemieckimi przepisami przed wysłaniem zapytania oszczędziło mi tygodni korespondencji z prawnikiem.”
+            - paragraph [ref=e500]: Michael R. · Niemcy
+          - listitem [ref=e501]:
+            - generic [ref=e502]:
+              - img "Ocena 4.0 na 5 gwiazdek" [ref=e503]
+              - generic [ref=e514]: "4.0"
+            - paragraph [ref=e515]: “Podobało mi się, że od razu widziałam rozbitą cenę — dom, transport, montaż — a nie jeden tajemniczy zakres.”
+            - paragraph [ref=e516]: Lotte V. · Holandia
+          - listitem [ref=e517]:
+            - generic [ref=e518]:
+              - img "Ocena 5.0 na 5 gwiazdek" [ref=e519]
+              - generic [ref=e530]: "5.0"
+            - paragraph [ref=e531]: “Porównanie trzech projektów obok siebie pokazało mi, że dopłacałem za metry, których nie potrzebowałem.”
+            - paragraph [ref=e532]: Piotr S. · Polska
+          - listitem [ref=e533]:
+            - generic [ref=e534]:
+              - img "Ocena 4.0 na 5 gwiazdek" [ref=e535]
+              - generic [ref=e546]: "4.0"
+            - paragraph [ref=e547]: “Platforma niezależna od producentów, więc czułam, że doradzają mi, a nie sprzedają.”
+            - paragraph [ref=e548]: Sophie B. · Niemcy
+      - generic [ref=e550]:
+        - generic [ref=e551]:
+          - heading "Najczęstsze pytania" [level=2] [ref=e552]
+          - paragraph [ref=e553]: Nie znalazłeś odpowiedzi? Napisz do nas przez formularz kontaktowy.
+        - generic [ref=e554]:
+          - button "Jak dokładnie działa ModularHub?" [ref=e556]
+          - button "Czy korzystanie z platformy jest płatne?" [ref=e561]
+          - button "Dlaczego cena to widełki, a nie jedna kwota?" [ref=e566]
+          - button "Co sprawdza Compliance Engine™?" [ref=e571]
+          - button "Skąd wiadomo, że producenci są sprawdzeni?" [ref=e576]
+          - button "Ile czasu zajmuje otrzymanie ofert?" [ref=e581]
+  - button "Open Next.js Dev Tools" [ref=e590] [cursor=pointer]

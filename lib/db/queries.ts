@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "./client";
 import { buildPublicUrl } from "@/lib/storage/r2-client";
 import {
@@ -8,6 +8,8 @@ import {
   favorite,
   inquiry,
   inquiryItem,
+  offer,
+  offerItem,
   producer,
   producerDeliveryCountry,
   product,
@@ -398,4 +400,258 @@ export async function getProductPhotosForAdmin(productId: string): Promise<Produ
       sortOrder: row.sortOrder,
     }))
     .sort((a, b) => (a.sortOrder ?? Number.MAX_SAFE_INTEGER) - (b.sortOrder ?? Number.MAX_SAFE_INTEGER));
+}
+
+// ---------------------------------------------------------------------------
+// Zapytanie -> oferta -> zamówienie (spec 0033)
+// ---------------------------------------------------------------------------
+
+export interface OfferSummary {
+  id: string;
+  status: (typeof offer.$inferSelect)["status"];
+  transportPriceCents: number;
+  installationPriceCents: number;
+  submittedAt: Date;
+  items: { productId: string; productName: string; housePriceCents: number }[];
+}
+
+// Zbiera offer_item per offerId dla podanego zestawu ofert w jednym
+// zapytaniu, żeby getInquiryDetailForProducer/Client nie wykonywały N+1
+// dodatkowych zapytań przy kilku ofertach naraz.
+async function attachOfferItems(
+  offerRows: Omit<OfferSummary, "items">[],
+): Promise<OfferSummary[]> {
+  if (offerRows.length === 0) return [];
+  const offerIds = offerRows.map((row) => row.id);
+  const itemRows = await db
+    .select({ offerId: offerItem.offerId, productId: offerItem.productId, productName: product.name, housePriceCents: offerItem.housePriceCents })
+    .from(offerItem)
+    .innerJoin(product, eq(product.id, offerItem.productId))
+    .where(inArray(offerItem.offerId, offerIds));
+
+  const itemsByOfferId = new Map<string, OfferSummary["items"]>();
+  for (const row of itemRows) {
+    const entry = itemsByOfferId.get(row.offerId) ?? [];
+    entry.push({ productId: row.productId, productName: row.productName ?? "", housePriceCents: row.housePriceCents });
+    itemsByOfferId.set(row.offerId, entry);
+  }
+
+  return offerRows.map((row) => ({ ...row, items: itemsByOfferId.get(row.id) ?? [] }));
+}
+
+export interface ProducerInquiryDetail {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  deliveryCountryCode: string;
+  status: (typeof inquiry.$inferSelect)["status"];
+  receivedAt: Date;
+  // Wyłącznie własne produkty producenta w tym zapytaniu (spec 0033 AC-13).
+  items: { productId: string; productName: string; available: boolean }[];
+  // Własne oferty producenta na to zapytanie, najnowsza pierwsza (spec 0033
+  // Build plan zadanie 2: "aktualna/poprzednie oferty").
+  offers: OfferSummary[];
+}
+
+// Zasila /producent/panel/zapytania/[id] (spec 0033 AC-1, AC-13): zwraca null
+// zarówno gdy zapytania nie ma, jak i gdy producent nie ma w nim żadnego
+// własnego produktu — wywołujący nie rozróżnia tych dwóch przypadków, ten sam
+// przekaz co getProducerProductForEdit (spec 0032 AC-13).
+export async function getInquiryDetailForProducer(
+  inquiryId: string,
+  producerId: string,
+): Promise<ProducerInquiryDetail | null> {
+  const [inquiryRow] = await db
+    .select({
+      id: inquiry.id,
+      name: inquiry.name,
+      email: inquiry.email,
+      phone: inquiry.phone,
+      deliveryCountryCode: inquiry.deliveryCountryCode,
+      status: inquiry.status,
+      receivedAt: inquiry.receivedAt,
+    })
+    .from(inquiry)
+    .where(eq(inquiry.id, inquiryId));
+  if (!inquiryRow) return null;
+
+  const itemRows = await db
+    .select({ productId: product.id, productName: product.name, status: product.status, deletedAt: product.deletedAt })
+    .from(inquiryItem)
+    .innerJoin(product, and(eq(product.id, inquiryItem.productId), eq(product.producerId, producerId)))
+    .where(eq(inquiryItem.inquiryId, inquiryId));
+  if (itemRows.length === 0) return null;
+
+  const offerRows = await db
+    .select({
+      id: offer.id,
+      status: offer.status,
+      transportPriceCents: offer.transportPriceCents,
+      installationPriceCents: offer.installationPriceCents,
+      submittedAt: offer.submittedAt,
+    })
+    .from(offer)
+    .where(and(eq(offer.inquiryId, inquiryId), eq(offer.producerId, producerId)))
+    .orderBy(desc(offer.submittedAt));
+
+  return {
+    id: inquiryRow.id,
+    name: inquiryRow.name,
+    email: inquiryRow.email,
+    phone: inquiryRow.phone,
+    deliveryCountryCode: inquiryRow.deliveryCountryCode,
+    status: inquiryRow.status,
+    receivedAt: inquiryRow.receivedAt,
+    items: itemRows.map((row) => ({
+      productId: row.productId,
+      productName: row.productName ?? "",
+      available: row.status === "published" && row.deletedAt === null,
+    })),
+    offers: await attachOfferItems(offerRows),
+  };
+}
+
+export interface ClientOfferSummary extends OfferSummary {
+  producerId: string;
+  producerName: string;
+  clientViewedAt: Date | null;
+}
+
+export interface ClientInquiryDetail {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  deliveryCountryCode: string;
+  status: (typeof inquiry.$inferSelect)["status"];
+  receivedAt: Date;
+  productNames: string[];
+  offers: ClientOfferSummary[];
+}
+
+// Zasila /klient/panel/zapytania/[id] (spec 0033 AC-6, AC-14): wszystkie
+// oferty złożone na to zapytanie, od dowolnego producenta. null zarówno gdy
+// zapytania nie ma, jak i gdy nie należy do tego klienta (AC-14).
+export async function getInquiryDetailForClient(
+  inquiryId: string,
+  clientId: string,
+): Promise<ClientInquiryDetail | null> {
+  const [inquiryRow] = await db
+    .select({
+      id: inquiry.id,
+      name: inquiry.name,
+      email: inquiry.email,
+      phone: inquiry.phone,
+      deliveryCountryCode: inquiry.deliveryCountryCode,
+      status: inquiry.status,
+      receivedAt: inquiry.receivedAt,
+    })
+    .from(inquiry)
+    .where(and(eq(inquiry.id, inquiryId), eq(inquiry.clientId, clientId)));
+  if (!inquiryRow) return null;
+
+  const productRows = await db
+    .select({ productName: product.name })
+    .from(inquiryItem)
+    .innerJoin(product, eq(product.id, inquiryItem.productId))
+    .where(eq(inquiryItem.inquiryId, inquiryId));
+
+  const offerRows = await db
+    .select({
+      id: offer.id,
+      producerId: offer.producerId,
+      producerName: producer.name,
+      status: offer.status,
+      transportPriceCents: offer.transportPriceCents,
+      installationPriceCents: offer.installationPriceCents,
+      submittedAt: offer.submittedAt,
+      clientViewedAt: offer.clientViewedAt,
+    })
+    .from(offer)
+    .innerJoin(producer, eq(producer.id, offer.producerId))
+    .where(eq(offer.inquiryId, inquiryId))
+    .orderBy(desc(offer.submittedAt));
+
+  const offersWithItems = await attachOfferItems(offerRows);
+  const offers: ClientOfferSummary[] = offersWithItems.map((offerWithItems, index) => ({
+    ...offerWithItems,
+    producerId: offerRows[index].producerId,
+    producerName: offerRows[index].producerName,
+    clientViewedAt: offerRows[index].clientViewedAt,
+  }));
+
+  return {
+    id: inquiryRow.id,
+    name: inquiryRow.name,
+    email: inquiryRow.email,
+    phone: inquiryRow.phone,
+    deliveryCountryCode: inquiryRow.deliveryCountryCode,
+    status: inquiryRow.status,
+    receivedAt: inquiryRow.receivedAt,
+    productNames: productRows.map((row) => row.productName ?? ""),
+    offers,
+  };
+}
+
+// Zbiorczy sygnał nieprzeczytane przy odnośniku "Zapytania" (spec 0033
+// AC-11): zbiór id zapytań z co najmniej jedną aktywną, jeszcze nieobejrzaną
+// ofertą tego klienta.
+export async function getUnreadOfferInquiryIds(clientId: string): Promise<Set<string>> {
+  const rows = await db
+    .select({ inquiryId: offer.inquiryId })
+    .from(offer)
+    .innerJoin(inquiry, eq(inquiry.id, offer.inquiryId))
+    .where(and(eq(inquiry.clientId, clientId), eq(offer.status, "active"), isNull(offer.clientViewedAt)));
+  return new Set(rows.map((row) => row.inquiryId));
+}
+
+// Symetryczny sygnał po stronie producenta (spec 0033 AC-12): zbiór id
+// zapytań, na których klient podjął decyzję (accepted/rejected), jeszcze
+// nieobejrzaną przez tego producenta.
+export async function getUnreadDecisionInquiryIds(producerId: string): Promise<Set<string>> {
+  const rows = await db
+    .select({ inquiryId: offer.inquiryId })
+    .from(offer)
+    .where(
+      and(
+        eq(offer.producerId, producerId),
+        inArray(offer.status, ["accepted", "rejected"]),
+        isNull(offer.producerDecisionViewedAt),
+      ),
+    );
+  return new Set(rows.map((row) => row.inquiryId));
+}
+
+export interface AdminOfferSummary extends OfferSummary {
+  producerName: string;
+}
+
+// Zasila szczegóły ofert rozwijane przy wierszu na /internal/zapytania (spec
+// 0033 AC-17): wszystkie oferty (dowolny status) pogrupowane po inquiryId, w
+// jednym zapytaniu zamiast osobnego na każdy wiersz listy.
+export async function getOffersByInquiryIdForAdmin(): Promise<Map<string, AdminOfferSummary[]>> {
+  const offerRows = await db
+    .select({
+      id: offer.id,
+      inquiryId: offer.inquiryId,
+      producerName: producer.name,
+      status: offer.status,
+      transportPriceCents: offer.transportPriceCents,
+      installationPriceCents: offer.installationPriceCents,
+      submittedAt: offer.submittedAt,
+    })
+    .from(offer)
+    .innerJoin(producer, eq(producer.id, offer.producerId))
+    .orderBy(desc(offer.submittedAt));
+
+  const offersWithItems = await attachOfferItems(offerRows);
+  const byInquiryId = new Map<string, AdminOfferSummary[]>();
+  offersWithItems.forEach((offerWithItems, index) => {
+    const inquiryId = offerRows[index].inquiryId;
+    const entry = byInquiryId.get(inquiryId) ?? [];
+    entry.push({ ...offerWithItems, producerName: offerRows[index].producerName });
+    byInquiryId.set(inquiryId, entry);
+  });
+  return byInquiryId;
 }

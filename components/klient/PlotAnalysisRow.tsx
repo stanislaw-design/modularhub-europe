@@ -69,7 +69,11 @@ export function PlotAnalysisRow({ locale, project, address, request, onChangeReq
 
   const areaValid = isAreaValid(request.plotAreaM2);
   const canPay = address.trim().length > 0 && areaValid && request.phase === "idle";
-  const offerHref = `/${locale}/klient/oferta?project=${project.id}&address=${encodeURIComponent(request.paidAddress ?? "")}`;
+  // Realna ścieżka oferty zastąpiła mockowy ekran /klient/oferta (spec 0033
+  // AC-16): odnośnik prowadzi teraz do panelu zapytań, nie do jednego
+  // wyliczonego z góry "project"/"address" — oferty żyją teraz per zapytanie
+  // w bazie, nie per pojedynczy produkt z tego ekranu.
+  const offerHref = `/${locale}/klient/panel/zapytania`;
 
   function handlePay() {
     if (!canPay) return;

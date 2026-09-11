@@ -328,6 +328,18 @@ export async function getProjects(filters?: GetProjectsFilters): Promise<Project
   return projects.map((project) => applyDocumentPhotos(project, documentPhotos.get(project.id)));
 }
 
+// Id existence check for the zapytanie/dzialka flows (spec 0023 AC-... /
+// spec 0006): those flows accept a product id picked from *any* family
+// (`/wyniki?family=spa-modulowe` selection included, not just the dom
+// default), so validation must not filter by family the way getProjects()
+// does. Was a bug: both pages used to build knownIds from getProjects({ locale })
+// alone, which defaults to family "dom" and silently dropped every non-dom
+// selection, bouncing the client back to results with no error.
+export async function getPublishedProductIds(): Promise<Set<string>> {
+  const rows = await db.select({ id: product.id }).from(product).where(eq(product.status, "published"));
+  return new Set(rows.map((row) => row.id));
+}
+
 export async function getProjectById(id: string, locale: Locale = "pl"): Promise<Project | null> {
   if (locale === "en" || locale === "nl") {
     const [row] = await db

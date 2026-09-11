@@ -49,7 +49,7 @@
   "KlientRealizacjaPage": {
     "heading": "Realizacja — {name}",
     "completionBanner": "Zamówienie zrealizowane — wszystkie etapy zostały ukończone.",
-    "backToOffer": "Wróć do oferty"
+    "backToOffer": "Wróć do zapytań"
   },
   "ProducentRealizacjaPage": {
     "heading": "Realizacja — {name}",
@@ -110,7 +110,6 @@
     "price": "Cena",
     "priceOnRequest": "Wycena indywidualna",
     "priceOnRequestHint": "Ustalana bezpośrednio z producentem",
-    "house": "Dom",
     "priceFrom": "od {price} €",
     "leadTime": "{productionMin}–{productionMax} tyg. produkcji · {assemblyMin}–{assemblyMax} dni montażu"
   },
@@ -162,7 +161,7 @@
     "plotAreaError": "Podaj metraż w zakresie {min}–{max} m².",
     "pay": "Zapłać",
     "processingPayment": "Przetwarzanie płatności…",
-    "goToOffer": "Przejdź do oferty wiążącej"
+    "goToOffer": "Przejdź do zapytań"
   },
   "PlotDossierPanel": {
     "heading": "Panel działki",
@@ -483,7 +482,15 @@
     "columnDate": "Data",
     "statusOpen": "Oczekuje na odpowiedź",
     "statusOffered": "Otrzymano ofertę",
-    "statusClosed": "Zamknięte"
+    "statusClosed": "Zamknięte",
+    "unreadOfferLabel": "Nowa oferta"
+  },
+  "ClientInquiryDetailPage": {
+    "heading": "Szczegóły zapytania",
+    "statusOpen": "Oczekuje na odpowiedź",
+    "statusOffered": "Otrzymano ofertę",
+    "statusClosed": "Zamknięte",
+    "emptyMessage": "Żaden producent jeszcze nie odpowiedział na to zapytanie."
   },
   "KlientPanelUlubionePage": {
     "heading": "Ulubione",
@@ -610,7 +617,10 @@
     "sortAriaLabel": "Sortowanie wyników",
     "keywordLabel": "Słowo kluczowe",
     "keywordPlaceholder": "Nazwa lub opis",
-    "searchAriaLabel": "Szukaj"
+    "searchAriaLabel": "Szukaj",
+    "filterTrigger": "Filtruj",
+    "closeFilters": "Zamknij filtry",
+    "applyFilters": "Pokaż wyniki"
   },
   "SearchCard": {
     "teaserPrompt": "W czym mogę pomóc?",
@@ -634,6 +644,10 @@
     "areaLabel": "Powierzchnia",
     "areaPlaceholder": "Dowolna",
     "searchButton": "Szukaj domów"
+  },
+  "FloatingSearchButton": {
+    "prompt": "Czego dziś szukasz?",
+    "buttonAriaLabel": "Przejdź do wyników wyszukiwania"
   },
   "Testimonials": {
     "heading": "Co mówią nasi klienci",
@@ -705,22 +719,6 @@
     "heatPump": "Pompa ciepła",
     "heatRecovery": "Rekuperacja",
     "energyClassA": "Klasa A+"
-  },
-  "BindingOfferView": {
-    "heading": "Oferta wiążąca — {name}",
-    "intro": "Cena poniżej to jedna, ostateczna kwota za dom, transport na wskazany adres i montaż — bez osobnego wyboru przewoźnika. Zaakceptowanie oferty rozpoczyna realizację.",
-    "bedroomsLabel": {
-      "one": "sypialnia",
-      "other": "sypialnie"
-    },
-    "addressLabel": "Adres montażu",
-    "finalPriceLabel": "Cena końcowa (dom, transport, montaż)",
-    "disclaimer": "To demonstracyjna oferta na danych przykładowych. Akceptacja nie zawiera prawdziwej umowy ani nie wiąże się z realną płatnością — etap makiety, bez logowania i bez trwałego zapisu danych.",
-    "acceptOffer": "Zaakceptuj ofertę",
-    "acceptedAt": "Zaakceptowano {date}",
-    "acceptedThanks": "Dziękujemy — oferta wiążąca została zaakceptowana. Śledź postęp produkcji, transportu, montażu i odbioru na osi statusów realizacji.",
-    "trackFulfillment": "Śledź realizację",
-    "backToPlot": "Wróć do panelu działki"
   },
   "InquiryFlow": {
     "sentHeading": "Zapytanie wysłane",
@@ -794,29 +792,29 @@
     "uploadLabel": "Brakujące dokumenty",
     "submitButton": "Wyślij"
   },
-  "ProducerInquiryRow": {
-    "messageText": "Klient prosi o przygotowanie oferty na ten projekt, uwzględniającej dom, transport i montaż.",
-    "statusSubmitted": "Oferta złożona",
-    "statusNew": "Nowe zapytanie",
-    "viewOffer": "Zobacz ofertę",
-    "prepareOffer": "Przygotuj ofertę"
-  },
-  "ProducerOfferForm": {
-    "messageText": "Klient prosi o przygotowanie oferty na ten projekt, uwzględniającej dom, transport i montaż.",
-    "heading": "Oferta — {name}",
-    "offerSentMessage": "Oferta wysłana do klienta {date}.",
-    "housePriceLabel": "Cena domu",
-    "transportLabel": "Transport",
-    "assemblyLabel": "Montaż",
-    "totalLabel": "Razem",
-    "backToInquiries": "Wróć do zapytań",
-    "templateHeading": "Szablon oferty",
-    "templateIntro": "Ten sam szablon obowiązuje każdego producenta na platformie.",
-    "housePriceInputLabel": "Cena domu (€)",
+  "OfferForm": {
+    "intro": "Wyceń każdy z Twoich produktów w tym zapytaniu osobno, a następnie podaj transport i montaż.",
+    "revisionIntro": "Poprawiasz wcześniej złożoną ofertę — nowa wersja zastąpi poprzednią, klient zobaczy tylko tę.",
+    "productUnavailable": "Produkt nie jest już opublikowany — nadal możesz go wycenić.",
+    "housePriceInputLabel": "Cena domu — {name} (€)",
     "transportInputLabel": "Transport (€)",
-    "transportHint": "Wyliczone automatycznie dla kraju dostawy ({country}) — pole tylko do odczytu.",
     "installationInputLabel": "Montaż (€)",
-    "submitOffer": "Wyślij ofertę"
+    "totalLabel": "Razem",
+    "submitOffer": "Wyślij ofertę",
+    "submitRevision": "Wyślij poprawioną ofertę",
+    "submitting": "Wysyłanie…",
+    "submittedMessage": "Oferta wysłana do klienta.",
+    "genericError": "Nie udało się zapisać oferty. Spróbuj ponownie."
+  },
+  "OfferCard": {
+    "transportLabel": "Transport",
+    "installationLabel": "Montaż",
+    "totalLabel": "Razem",
+    "accept": "Przyjmij ofertę",
+    "reject": "Odrzuć ofertę",
+    "accepted": "Przyjęta",
+    "rejected": "Odrzucona",
+    "genericError": "Nie udało się zapisać decyzji. Spróbuj ponownie."
   },
   "RegistrationForm": {
     "nipLabel": "NIP",
@@ -876,7 +874,8 @@
     "navAriaLabel": "Panel klienta",
     "zapytania": "Zapytania",
     "ulubione": "Ulubione",
-    "profil": "Profil"
+    "profil": "Profil",
+    "unreadBadgeLabel": "Nowa oferta"
   },
   "ProjectGallery": {
     "photoCountBadge": {
@@ -884,7 +883,12 @@
       "many": "{count} zdjęć"
     },
     "coverAlt": "{name}, dom modułowy",
-    "thumbnailAlt": "{name}, zdjęcie {index}"
+    "thumbnailAlt": "{name}, zdjęcie {index}",
+    "lightboxOpen": "Otwórz zdjęcie w pełnym rozmiarze: {alt}",
+    "lightboxClose": "Zamknij podgląd zdjęcia",
+    "lightboxPrev": "Poprzednie zdjęcie",
+    "lightboxNext": "Następne zdjęcie",
+    "lightboxCounter": "{current} / {total}"
   },
   "ShortlistActionBar": {
     "selectedCount": "Zaznaczono: {count}/{max}",
@@ -905,11 +909,6 @@
     "approvedStatus": "Dopuszczone",
     "paidMessage": "Pakiet opłacony — kraj jest teraz dopuszczony.",
     "backToMap": "Wróć do mapy gotowości eksportowej"
-  },
-  "ProducerInquiryList": {
-    "heading": "Zapytania i oferty",
-    "intro": "Przychodzące zapytania od klientów. Każde zapytanie otwiera formularz oferty w tym samym szablonie co u wszystkich producentów — pole transportu jest wypełnione automatycznie i tylko do odczytu.",
-    "emptyMessage": "Brak zapytań — pojawią się tu wiadomości od klientów zainteresowanych projektem."
   },
   "ProducerRegistrationBar": {
     "registeredBadge": "Zarejestrowano",
@@ -972,7 +971,8 @@
     "navAriaLabel": "Panel producenta",
     "konto": "Konto",
     "produkty": "Produkty",
-    "zapytania": "Zapytania"
+    "zapytania": "Zapytania",
+    "unreadBadgeLabel": "Klient podjął decyzję"
   },
   "ProducerPanelPage": {
     "heading": "Konto",
@@ -985,12 +985,12 @@
     "verificationPending": "W trakcie weryfikacji",
     "verificationApproved": "Zweryfikowana",
     "verificationRejected": "Odrzucona",
+    "inquiriesOffers": "Zapytania i oferty",
     "demoScreensHeading": "Materiały demonstracyjne",
     "demoScreensDescription": "Te ekrany pokazują, jak wygląda dalsza część ścieżki producenta — dziś jeszcze na danych przykładowych, nie na Twoim koncie.",
     "demoExportReadiness": "Gotowość eksportowa",
     "demoCompanyVerification": "Weryfikacja firmy",
-    "demoFulfillment": "Realizacje",
-    "demoInquiriesOffers": "Zapytania i oferty (demo)"
+    "demoFulfillment": "Realizacje"
   },
   "ProducerProductPhotosStep": {
     "label": "Zdjęcia",
@@ -1029,6 +1029,26 @@
     "columnDate": "Data",
     "statusOpen": "Oczekuje na odpowiedź",
     "statusOffered": "Otrzymano ofertę",
-    "statusClosed": "Zamknięte"
+    "statusClosed": "Zamknięte",
+    "unreadDecisionLabel": "Klient podjął decyzję"
+  },
+  "ProducerInquiryDetailPage": {
+    "heading": "Szczegóły zapytania",
+    "deliveryCountryLabel": "Kraj dostawy",
+    "statusOpen": "Oczekuje na odpowiedź",
+    "statusOffered": "Otrzymano ofertę",
+    "statusClosed": "Zamknięte",
+    "productsHeading": "Twoje produkty w tym zapytaniu",
+    "productUnavailable": "(niedostępny)",
+    "historyHeading": "Historia ofert",
+    "columnStatus": "Status",
+    "columnTotal": "Razem",
+    "columnDate": "Data",
+    "offerStatusActive": "Aktywna",
+    "offerStatusAccepted": "Przyjęta",
+    "offerStatusRejected": "Odrzucona",
+    "offerStatusSuperseded": "Zastąpiona",
+    "lockedMessage": "Klient przyjął tę ofertę — nie można jej już zmienić.",
+    "backToInquiries": "Wróć do zapytań"
   }
 }

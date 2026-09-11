@@ -3,7 +3,7 @@ import { auth } from "@/auth";
 import { InquiryFlow } from "@/components/klient/InquiryFlow";
 import type { CountryCode, Project } from "@/lib/data/types";
 import { getCountries } from "@/lib/data/countries";
-import { getProjectById, getProjects } from "@/lib/data/projects";
+import { getProjectById, getPublishedProductIds } from "@/lib/data/projects";
 import type { Locale } from "@/lib/i18n/routing";
 import { parseInquiryProjectIds } from "@/lib/inquiry";
 
@@ -71,11 +71,7 @@ export default async function ZapytaniePage({
     redirect(`/${locale}/internal/zapytania`);
   }
 
-  const [allProjects, countries] = await Promise.all([
-    getProjects({ locale: locale as Locale }),
-    getCountries(),
-  ]);
-  const knownIds = new Set(allProjects.map((project) => project.id));
+  const [knownIds, countries] = await Promise.all([getPublishedProductIds(), getCountries()]);
   const projectIds = parseInquiryProjectIds(rawSearchParams.projects, knownIds);
 
   if (projectIds === null) {

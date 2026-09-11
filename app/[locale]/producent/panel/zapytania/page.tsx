@@ -1,6 +1,12 @@
 import { getTranslations } from "next-intl/server";
+import Link from "next/link";
 import { Card, Heading, Stack, Text } from "@/components/ui";
-import { getInquiriesForProducer, getProducerIdForUser, type InquiryWithItems } from "@/lib/db/queries";
+import {
+  getInquiriesForProducer,
+  getProducerIdForUser,
+  getUnreadDecisionInquiryIds,
+  type InquiryWithItems,
+} from "@/lib/db/queries";
 import { requirePanelProducerSession } from "@/lib/panel-session";
 
 const dateFormatter = new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium", timeStyle: "short" });
@@ -27,7 +33,9 @@ export default async function ProducerPanelZapytaniaPage({
   };
 
   const producerId = await getProducerIdForUser(session.user.id);
-  const inquiries = producerId ? await getInquiriesForProducer(producerId) : [];
+  const [inquiries, unreadDecisionIds] = producerId
+    ? await Promise.all([getInquiriesForProducer(producerId), getUnreadDecisionInquiryIds(producerId)])
+    : [[], new Set<string>()];
 
   return (
     <Stack gap={4}>
@@ -55,9 +63,18 @@ export default async function ProducerPanelZapytaniaPage({
             <tbody>
               {inquiries.map((row) => (
                 <tr key={row.id} className="border-b border-brand-steel/50 align-top last:border-b-0">
-                  <Text as="td" className="p-brand-2">
-                    {row.productNames.join(", ") || "—"}
-                  </Text>
+                  <td className="p-brand-2">
+                    <Link href={`/${locale}/producent/panel/zapytania/${row.id}`} className="focus-ring rounded-data font-medium text-brand-passage-blue hover:underline">
+                      {row.productNames.join(", ") || "—"}
+                    </Link>
+                    {unreadDecisionIds.has(row.id) && (
+                      <span
+                        className="ml-2 inline-block size-2 rounded-full bg-brand-passage-blue align-middle"
+                        role="img"
+                        aria-label={t("unreadDecisionLabel")}
+                      />
+                    )}
+                  </td>
                   <Text as="td" className="p-brand-2">
                     {statusLabel[row.status]}
                   </Text>
