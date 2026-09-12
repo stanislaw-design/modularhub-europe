@@ -7,7 +7,7 @@ import { signOutAction } from "@/lib/auth-session-actions";
 // wylogowanie, bez nawigacji — admin nie ma jeszcze wspólnego menu między
 // ekranami (pełny panel to późniejsza funkcja, scope feature 18). Sesja/rola
 // są nadal sprawdzane w każdej stronie z osobna (patrz AGENTS.md w
-// internal/produkty/), ten layout tylko dokłada UI. Ten sam wzorzec przycisku
+// internal/products/), ten layout tylko dokłada UI. Ten sam wzorzec przycisku
 // co /klient/panel — patrz app/[locale]/klient/panel/layout.tsx.
 export default function InternalLayout({ children }: { children: ReactNode }) {
   return (

@@ -7,7 +7,7 @@ const replace = vi.fn();
 
 vi.mock("next/navigation", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/navigation")>()),
-  usePathname: () => "/pl/klient/wyniki",
+  usePathname: () => "/pl/results",
   useSearchParams: () => new URLSearchParams(),
 }));
 
@@ -44,11 +44,11 @@ describe("SiteHeader (spec 0030)", () => {
     await openMenu();
 
     const nav = screen.getByRole("navigation", { name: "Nawigacja" });
-    expect(within(nav).getByRole("link", { name: "Domy" })).toHaveAttribute("href", "/pl/klient");
-    expect(within(nav).getByRole("link", { name: "Projekty" })).toHaveAttribute("href", "/pl/klient/wyniki");
+    expect(within(nav).getByRole("link", { name: "Domy" })).toHaveAttribute("href", "/pl");
+    expect(within(nav).getByRole("link", { name: "Projekty" })).toHaveAttribute("href", "/pl/results");
     expect(within(nav).getByRole("link", { name: "Jak to działa" })).toHaveAttribute(
       "href",
-      "/pl/klient#jak-to-dziala"
+      "/pl#jak-to-dziala"
     );
     expect(screen.queryByText("Producenci")).not.toBeInTheDocument();
     expect(screen.queryByText("Inspiracje")).not.toBeInTheDocument();
@@ -69,7 +69,7 @@ describe("SiteHeader (spec 0030)", () => {
   it("shows 'Zacznij' as the header CTA, linking to the producer signup, when there is no session", () => {
     render(<SiteHeader locale="pl" session={null} />);
 
-    expect(screen.getByRole("link", { name: "Zacznij" })).toHaveAttribute("href", "/pl/producent");
+    expect(screen.getByRole("link", { name: "Zacznij" })).toHaveAttribute("href", "/pl/producer");
   });
 
   it("hides the header CTA below `sm` and shows a matching CTA inside the slide out menu instead, hidden from `sm` up", async () => {
@@ -104,7 +104,7 @@ describe("SiteHeader (spec 0030)", () => {
   it("replaces the 'Zacznij' CTA with 'Mój profil' for a client session, and drops it from the menu's Account group so it is never shown twice", async () => {
     render(<SiteHeader locale="pl" session={{ user: { role: "client" } }} />);
 
-    expect(screen.getByRole("link", { name: "Mój profil" })).toHaveAttribute("href", "/pl/klient/panel/zapytania");
+    expect(screen.getByRole("link", { name: "Mój profil" })).toHaveAttribute("href", "/pl/panel/inquiries");
     expect(screen.queryByRole("link", { name: "Zacznij" })).not.toBeInTheDocument();
 
     await openMenu();
@@ -116,7 +116,7 @@ describe("SiteHeader (spec 0030)", () => {
   it("replaces the 'Zacznij' CTA with 'Panel administratora' for an admin session, and drops it from the menu's Account group", async () => {
     render(<SiteHeader locale="pl" session={{ user: { role: "admin" } }} />);
 
-    expect(screen.getByRole("link", { name: "Panel administratora" })).toHaveAttribute("href", "/pl/internal/zapytania");
+    expect(screen.getByRole("link", { name: "Panel administratora" })).toHaveAttribute("href", "/pl/internal/inquiries");
     expect(screen.queryByRole("link", { name: "Zacznij" })).not.toBeInTheDocument();
 
     await openMenu();

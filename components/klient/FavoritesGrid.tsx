@@ -51,7 +51,7 @@ export function FavoritesGrid({ locale, favorites, selectedIds: initialSelectedI
     // replace, nie push: każde zaznaczenie/odznaczenie nie powinno dokładać
     // wpisu do historii przeglądarki (przycisk wstecz wracałby po jednym
     // checkboxie naraz).
-    router.replace(`/${locale}/klient/panel/ulubione${query ? `?${query}` : ""}`, { scroll: false });
+    router.replace(`/${locale}/panel/favorites${query ? `?${query}` : ""}`, { scroll: false });
   }
 
   const limitReached = selectedIds.length >= maxSelected;

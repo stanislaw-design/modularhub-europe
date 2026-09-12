@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 
 const replace = vi.fn();
-const usePathnameMock = vi.fn(() => "/klient/wyniki");
+const usePathnameMock = vi.fn(() => "/results");
 const searchParamsMock = vi.fn(() => new URLSearchParams("sizeMin=80"));
 
 vi.mock("@/lib/i18n/navigation", () => ({
@@ -42,7 +42,7 @@ describe("LanguageSwitcher (spec 0028 AC-4)", () => {
     await user.click(screen.getByRole("button", { name: "Zmień język" }));
     await user.click(screen.getByRole("menuitem", { name: "English" }));
 
-    expect(replace).toHaveBeenCalledWith("/klient/wyniki?sizeMin=80", { locale: "en" });
+    expect(replace).toHaveBeenCalledWith("/results?sizeMin=80", { locale: "en" });
   });
 
   it("omits the query string entirely when there are no search params", async () => {
@@ -53,7 +53,7 @@ describe("LanguageSwitcher (spec 0028 AC-4)", () => {
     await user.click(screen.getByRole("button", { name: "Zmień język" }));
     await user.click(screen.getByRole("menuitem", { name: "Nederlands" }));
 
-    expect(replace).toHaveBeenCalledWith("/klient/wyniki", { locale: "nl" });
+    expect(replace).toHaveBeenCalledWith("/results", { locale: "nl" });
   });
 
   it("does not navigate when the already active locale is picked again", async () => {

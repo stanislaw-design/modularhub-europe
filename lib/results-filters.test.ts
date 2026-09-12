@@ -180,6 +180,11 @@ describe("parseResultsSearchParams", () => {
     const filter = parseResultsSearchParams({ family: "nieznana-wartosc" });
     expect(filter.family).toBe("dom");
   });
+
+  it("falls back to dom when family is given as an array (repeated query param) (AC-7)", () => {
+    const filter = parseResultsSearchParams({ family: ["dom", "wiecej-niz-dom"] });
+    expect(filter.family).toBe("dom");
+  });
 });
 
 describe("resolveHeatSourceValues", () => {
@@ -224,7 +229,7 @@ describe("toggleFilterValue", () => {
 
 describe("buildResultsHref", () => {
   it("builds a bare URL when no filter is active", () => {
-    expect(buildResultsHref("pl", { family: "dom" })).toBe("/pl/klient/wyniki");
+    expect(buildResultsHref("pl", { family: "dom" })).toBe("/pl/results");
   });
 
   it("serializes every filter field onto the query string (spec 0026 AC-1, AC-10)", () => {
@@ -244,7 +249,7 @@ describe("buildResultsHref", () => {
       q: "Baltyk",
     });
     const url = new URL(href, "http://example.test");
-    expect(url.pathname).toBe("/pl/klient/wyniki");
+    expect(url.pathname).toBe("/pl/results");
     expect(Object.fromEntries(url.searchParams)).toEqual({
       family: "spa-modulowe",
       country: "DE",

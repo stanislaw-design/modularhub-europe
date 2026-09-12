@@ -41,19 +41,19 @@ describe("CategoryFilterBar", () => {
 
     expect(screen.getByRole("link", { name: "Parterowy" })).toHaveAttribute(
       "href",
-      "/pl/klient/wyniki?storeys=parterowy"
+      "/pl/results?storeys=parterowy"
     );
     expect(screen.getByRole("link", { name: "Pompa ciepła" })).toHaveAttribute(
       "href",
-      "/pl/klient/wyniki?heatSource=pompa-ciepla"
+      "/pl/results?heatSource=pompa-ciepla"
     );
     expect(screen.getByRole("link", { name: "Rekuperacja" })).toHaveAttribute(
       "href",
-      "/pl/klient/wyniki?ventilation=rekuperacja"
+      "/pl/results?ventilation=rekuperacja"
     );
     expect(screen.getByRole("link", { name: "Klasa A+" })).toHaveAttribute(
       "href",
-      "/pl/klient/wyniki?energyClass=A%2B"
+      "/pl/results?energyClass=A%2B"
     );
   });
 
@@ -64,7 +64,7 @@ describe("CategoryFilterBar", () => {
 
     const activeChip = screen.getByRole("link", { name: "Pompa ciepła" });
     expect(activeChip).toHaveAttribute("aria-current", "true");
-    expect(activeChip).toHaveAttribute("href", "/pl/klient/wyniki");
+    expect(activeChip).toHaveAttribute("href", "/pl/results");
 
     const inactiveChip = screen.getByRole("link", { name: "Rekuperacja" });
     expect(inactiveChip).not.toHaveAttribute("aria-current");
@@ -82,7 +82,7 @@ describe("CategoryFilterBar", () => {
 
     expect(screen.getByRole("link", { name: "Rekuperacja" })).toHaveAttribute(
       "href",
-      "/pl/klient/wyniki?sizeMin=50&sizeMax=100&ventilation=rekuperacja&sort=price-asc&q=Baltyk"
+      "/pl/results?sizeMin=50&sizeMax=100&ventilation=rekuperacja&sort=price-asc&q=Baltyk"
     );
   });
 
@@ -93,7 +93,7 @@ describe("CategoryFilterBar", () => {
     // Clicking Piętrowy while Parterowy is active must switch, not add to, the storeys value.
     expect(screen.getByRole("link", { name: "Piętrowy" })).toHaveAttribute(
       "href",
-      "/pl/klient/wyniki?storeys=pietrowy"
+      "/pl/results?storeys=pietrowy"
     );
   });
 });

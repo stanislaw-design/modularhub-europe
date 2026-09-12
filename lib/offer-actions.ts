@@ -257,7 +257,7 @@ export async function markOfferViewedByClient(inquiryId: string): Promise<void> 
 }
 
 // AC-12: symetryczny sygnał po stronie producenta, znika po wejściu na
-// /producent/panel/zapytania/[id] po decyzji klienta.
+// /producer/panel/inquiries/[id] po decyzji klienta.
 export async function markOfferDecisionViewedByProducer(inquiryId: string): Promise<void> {
   const session = await auth();
   if (!session || session.user.role !== "producer") return;

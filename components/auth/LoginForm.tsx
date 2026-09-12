@@ -50,13 +50,13 @@ export function LoginForm({ locale, callbackUrl }: LoginFormProps) {
             </p>
             <Stack direction="row" gap={2}>
               <Link
-                href={`/${locale}/klient/rejestracja?callbackUrl=${encodeURIComponent(callbackUrl)}`}
+                href={`/${locale}/registration?callbackUrl=${encodeURIComponent(callbackUrl)}`}
                 className="focus-ring rounded-data text-body font-medium text-brand-v5-amber-strong underline"
               >
                 {t("registerAsClient")}
               </Link>
               <Link
-                href={`/${locale}/producent/rejestracja?callbackUrl=${encodeURIComponent(callbackUrl)}`}
+                href={`/${locale}/producer/registration?callbackUrl=${encodeURIComponent(callbackUrl)}`}
                 className="focus-ring rounded-data text-body font-medium text-brand-v5-amber-strong underline"
               >
                 {t("registerAsProducer")}

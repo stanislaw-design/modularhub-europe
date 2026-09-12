@@ -8,7 +8,7 @@ interface MarkOfferDecisionViewedProps {
 }
 
 // Zeruje sygnał nieprzeczytane (spec 0033 AC-12) po faktycznym wejściu na
-// /producent/panel/zapytania/[id] po decyzji klienta: efekt komponentu
+// /producer/panel/inquiries/[id] po decyzji klienta: efekt komponentu
 // klienckiego uruchamia się wyłącznie po hydracji w przeglądarce, nigdy
 // podczas prefetchu Next.js linku (Key invariants). Nic nie renderuje.
 export function MarkOfferDecisionViewed({ inquiryId }: MarkOfferDecisionViewedProps) {

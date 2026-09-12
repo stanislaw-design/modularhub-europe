@@ -87,7 +87,7 @@ describe("ProducerFulfillmentList", () => {
 
     expect(screen.getByRole("link", { name: "Zobacz oś statusu" })).toHaveAttribute(
       "href",
-      "/pl/producent/realizacja?project=prj-modulor-family-90"
+      "/pl/producer/fulfillment?project=prj-modulor-family-90"
     );
   });
 

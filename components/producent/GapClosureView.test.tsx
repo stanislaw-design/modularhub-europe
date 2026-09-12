@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 import { GapClosureView } from "./GapClosureView";
 
-const MAP_HREF = "/pl/producent/gotowosc-eksportowa";
+const MAP_HREF = "/pl/producer/export-readiness";
 
 beforeEach(() => {
   window.localStorage.clear();

@@ -63,7 +63,7 @@ export function FloatingSearchButton({ locale }: FloatingSearchButtonProps) {
       </div>
       <button
         type="button"
-        onClick={() => router.push(`/${locale}/klient/wyniki`)}
+        onClick={() => router.push(`/${locale}/results`)}
         aria-label={t("buttonAriaLabel")}
         className="focus-ring flex size-14 items-center justify-center rounded-full bg-brand-v5-amber text-brand-v5-amber-foreground shadow-xl transition-colors hover:bg-brand-v5-amber-strong"
       >

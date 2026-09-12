@@ -61,11 +61,11 @@ describe("CategoryShowcase", () => {
 
     expect(offerLinkForCategory("Przykładowa realizacja z kategorii Spa modułowe")).toHaveAttribute(
       "href",
-      "/pl/klient/wyniki"
+      "/pl/results"
     );
     expect(offerLinkForCategory("Przykładowa realizacja z kategorii Pergole")).toHaveAttribute(
       "href",
-      "/pl/klient/wyniki"
+      "/pl/results"
     );
   });
 
@@ -122,11 +122,11 @@ describe("CategoryShowcase", () => {
 
     expect(offerLinkForCategory("Przykładowa realizacja z kategorii Spa modułowe")).toHaveAttribute(
       "href",
-      "/pl/klient/projekt/prj-spa-modulowe-example"
+      "/pl/project/prj-spa-modulowe-example"
     );
     expect(offerLinkForCategory("Przykładowa realizacja z kategorii Pergole")).toHaveAttribute(
       "href",
-      "/pl/klient/projekt/prj-pergola-example"
+      "/pl/project/prj-pergola-example"
     );
     expect(screen.getAllByText("od 42 000 €")).toHaveLength(2);
   });
@@ -179,7 +179,7 @@ describe("CategoryShowcase", () => {
     const links = screen.getAllByRole("link");
     expect(links).toHaveLength(2);
     for (const link of links) {
-      expect(link).toHaveAttribute("href", "/pl/klient/wyniki");
+      expect(link).toHaveAttribute("href", "/pl/results");
       expect(link).not.toHaveAttribute("tabindex", "-1");
       expect(link).not.toHaveAttribute("inert");
     }

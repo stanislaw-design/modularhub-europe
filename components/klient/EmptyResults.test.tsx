@@ -8,7 +8,7 @@ describe("EmptyResults", () => {
     expect(screen.getByRole("heading")).toHaveTextContent(/brak domów/i);
     const action = screen.getByRole("link", { name: /wyczyść filtry/i });
     expect(action).toBeInTheDocument();
-    expect(action).toHaveAttribute("href", "/pl/klient/wyniki");
+    expect(action).toHaveAttribute("href", "/pl/results");
   });
 
   // spec 0026 AC-11: the empty state must not say "domów" for the other two families.
@@ -17,7 +17,7 @@ describe("EmptyResults", () => {
     expect(screen.getByRole("heading")).toHaveTextContent(/brak spa modułowych/i);
     expect(screen.getByRole("link", { name: /wyczyść filtry/i })).toHaveAttribute(
       "href",
-      "/pl/klient/wyniki?family=spa-modulowe"
+      "/pl/results?family=spa-modulowe"
     );
   });
 
@@ -26,7 +26,7 @@ describe("EmptyResults", () => {
     expect(screen.getByRole("heading")).toHaveTextContent(/brak pergoli/i);
     expect(screen.getByRole("link", { name: /wyczyść filtry/i })).toHaveAttribute(
       "href",
-      "/pl/klient/wyniki?family=pergola"
+      "/pl/results?family=pergola"
     );
   });
 
@@ -37,7 +37,7 @@ describe("EmptyResults", () => {
     expect(screen.getByRole("heading")).toHaveTextContent(/brak produktów/i);
     expect(screen.getByRole("link", { name: /wyczyść filtry/i })).toHaveAttribute(
       "href",
-      "/pl/klient/wyniki?family=wiecej-niz-dom"
+      "/pl/results?family=wiecej-niz-dom"
     );
   });
 });

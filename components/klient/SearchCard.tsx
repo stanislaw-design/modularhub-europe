@@ -88,7 +88,7 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
     const range = SIZE_RANGE_OPTIONS.find((option) => option.value === sizeRangeValue);
     if (range?.sizeMin !== undefined) params.set("sizeMin", String(range.sizeMin));
     if (range?.sizeMax !== undefined) params.set("sizeMax", String(range.sizeMax));
-    router.push(`/${locale}/klient/wyniki?${params.toString()}`);
+    router.push(`/${locale}/results?${params.toString()}`);
   }
 
   return (

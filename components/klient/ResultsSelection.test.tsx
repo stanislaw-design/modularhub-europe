@@ -10,7 +10,7 @@ const push = vi.fn();
 vi.mock("next/navigation", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/navigation")>()),
   useRouter: () => ({ push }),
-  usePathname: () => "/pl/klient/wyniki",
+  usePathname: () => "/pl/results",
   useSearchParams: () => new URLSearchParams(),
 }));
 
@@ -117,7 +117,7 @@ describe("ResultsSelection", () => {
     await user.click(screen.getByRole("button", { name: "Wyślij zapytanie" }));
 
     expect(push).toHaveBeenCalledWith(
-      "/pl/klient/zapytanie?projects=id1%2Cid2&country=DE&sizeMin=50&sizeMax=100"
+      "/pl/inquiry?projects=id1%2Cid2&country=DE&sizeMin=50&sizeMax=100"
     );
   });
 });

@@ -350,6 +350,11 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: reads from the da
     expect(await getProjectById("00000000-0000-0000-0000-000000000000")).toBeNull();
   });
 
+  it("getProjectById returns null for a malformed (non-uuid) id instead of the database rejecting the query", async () => {
+    expect(await getProjectById("prj-modulor-family-90")).toBeNull();
+    expect(await getProjectById("nieistniejace-id")).toBeNull();
+  });
+
   it("getProjectById maps a known row, including its producer name", async () => {
     const project = await getProjectById(publishedDomId);
 

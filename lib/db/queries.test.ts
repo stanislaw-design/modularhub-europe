@@ -178,7 +178,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: getProductFamilyCoun
   });
 });
 
-// Confirms spec 0031 AC-2/AC-9: /internal/produkty's data layer. Real DB, same
+// Confirms spec 0031 AC-2/AC-9: /internal/products's data layer. Real DB, same
 // convention as the describe blocks above.
 describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: admin product-photo queries", () => {
   const userId = crypto.randomUUID();

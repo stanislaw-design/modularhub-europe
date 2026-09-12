@@ -51,7 +51,7 @@ export function FavoriteButton({
     const returnHref = `${pathname}${query ? `?${query}` : ""}`;
     return (
       <Link
-        href={`/${locale}/logowanie?callbackUrl=${encodeURIComponent(returnHref)}`}
+        href={`/${locale}/login?callbackUrl=${encodeURIComponent(returnHref)}`}
         aria-label={t("signInToFavorite", { name: productName })}
         className={`${baseClassName} ${className ?? ""}`}
       >

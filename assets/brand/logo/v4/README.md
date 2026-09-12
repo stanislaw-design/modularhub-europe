@@ -1,4 +1,4 @@
-# ModularHub Europe — logo v4 „Passage”
+# ModularHub Europe — logo v4 „MH House”
 
 Status: wybrany kierunek dla prototypu. Przed rejestracją i produkcją wielkoformatową nadal wymagany jest screening znaków towarowych.
 
@@ -15,11 +15,11 @@ Status: wybrany kierunek dla prototypu. Przed rejestracją i produkcją wielkofo
 | `symbol/logo-symbol-mono-light-v4.svg` | druk jednokolorowy na ciemnym tle |
 | `app/logo-app-icon-v4.svg` | favicon, ikona aplikacji i avatar |
 
-Podstawowe warianty mają także eksporty PNG w tych samych folderach i pod tymi samymi nazwami. PNG są dwukrotnie większe od docelowej przestrzeni roboczej oraz zachowują przezroczyste tło; wyjątkiem jest ikona aplikacji, która ma własne pomarańczowe pole.
+Podstawowe warianty mają także eksporty PNG w tych samych folderach i pod tymi samymi nazwami. PNG są dwukrotnie większe od docelowej przestrzeni roboczej oraz zachowują przezroczyste tło; wyjątkiem jest ikona aplikacji, która ma własne białe pole.
 
 ## Minimum
 
 - Pełny lockup: 120 px szerokości cyfrowo.
 - Symbol: 24 px cyfrowo.
 - Pole ochronne: co najmniej szerokość jednego pionowego modułu znaku.
-- Pomarańcz `#FCA311` jest stałym akcentem; pozostałe elementy są czarne albo białe zależnie od tła.
+- Pomarańcz `#FCA311` jest stałym akcentem; pozostałe elementy używają czerni, grafitu `#4D5562` albo bieli zależnie od tła.

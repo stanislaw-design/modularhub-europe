@@ -9,14 +9,14 @@ import type { CountryCode, EligibilityStatus, Project } from "@/lib/data/types";
 interface ResultCardProps {
   project: Project;
   countryName: string;
-  /** Do budowy linku do /klient/projekt/[id] (spec 0020 AC-2). */
+  /** Do budowy linku do /project/[id] (spec 0020 AC-2). */
   locale: string;
   eligibilityStatus?: EligibilityStatus;
   selected?: boolean;
   selectionDisabled?: boolean;
   onToggleSelect?: () => void;
-  /** Target delivery country from /wyniki's `country` URL param, carried into
-   * the /klient/projekt/[id] link so the legal compliance section there can
+  /** Target delivery country from /results's `country` URL param, carried into
+   * the /project/[id] link so the legal compliance section there can
    * resolve it (spec 0015 AC-14). */
   countryCode?: CountryCode;
   /** Serce "dodaj do ulubionych" (spec 0024 AC-2, AC-4). */
@@ -50,7 +50,7 @@ export function ResultCard({
     "pod-klucz": t("completionStandard.pod-klucz"),
   } as const;
   const roomsLabel = t(`rooms.${roomsCountBucket(project.rooms)}`);
-  const href = `/${locale}/klient/projekt/${project.id}${countryCode ? `?country=${countryCode}` : ""}`;
+  const href = `/${locale}/project/${project.id}${countryCode ? `?country=${countryCode}` : ""}`;
 
   return (
     <Card

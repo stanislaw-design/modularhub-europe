@@ -63,7 +63,7 @@ export async function CategoryShowcase({ locale }: CategoryShowcaseProps) {
     pergola: t("pergolaDescription"),
   };
 
-  const allResultsHref = `/${locale}/klient/wyniki`;
+  const allResultsHref = `/${locale}/results`;
   const families = Object.keys(FAMILY_IMAGES) as OutdoorFamily[];
   const [familyCounts, featuredProjects] = await Promise.all([
     getProductFamilyCounts(),
@@ -92,7 +92,7 @@ export async function CategoryShowcase({ locale }: CategoryShowcaseProps) {
       description: familyDescriptions[family],
       image: project?.coverImageUrl ?? FAMILY_IMAGES[family],
       imageAlt: t("imageAlt", { category: name }),
-      href: project ? `/${locale}/klient/projekt/${project.id}` : allResultsHref,
+      href: project ? `/${locale}/project/${project.id}` : allResultsHref,
       offerLabel,
       dotLabel: t("dotLabel", { category: name }),
     };

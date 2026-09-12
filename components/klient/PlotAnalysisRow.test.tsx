@@ -115,7 +115,7 @@ describe("PlotAnalysisRow", () => {
       ).toBeInTheDocument();
 
       const offerLink = screen.getByRole("link", { name: "Przejdź do zapytań" });
-      expect(offerLink).toHaveAttribute("href", "/pl/klient/panel/zapytania");
+      expect(offerLink).toHaveAttribute("href", "/pl/panel/inquiries");
     },
     5000
   );
@@ -134,7 +134,7 @@ describe("PlotAnalysisRow", () => {
       await user.click(screen.getByRole("button", { name: "change address" }));
 
       const offerLink = screen.getByRole("link", { name: "Przejdź do zapytań" });
-      expect(offerLink).toHaveAttribute("href", "/pl/klient/panel/zapytania");
+      expect(offerLink).toHaveAttribute("href", "/pl/panel/inquiries");
     },
     5000
   );

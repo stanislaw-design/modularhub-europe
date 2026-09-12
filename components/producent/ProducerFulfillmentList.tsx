@@ -44,7 +44,7 @@ export async function ProducerFulfillmentList({ locale, orders, projects }: Prod
             if (!project) return null;
 
             const isDelivered = STAGE_ORDER.indexOf(order.currentStage) >= DELIVERED_INDEX;
-            const detailHref = `/${locale}/producent/realizacja?project=${project.id}`;
+            const detailHref = `/${locale}/producer/fulfillment?project=${project.id}`;
 
             return (
               <Card key={order.projectId} as="div" padding="md">

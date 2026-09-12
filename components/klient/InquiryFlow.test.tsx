@@ -46,8 +46,8 @@ describe("InquiryFlow", () => {
     render(
       <InquiryFlow
         projects={oneProject}
-        resultsHref="/pl/klient/wyniki"
-        dzialkaHref="/pl/klient/dzialka?projects=id1"
+        resultsHref="/pl/results"
+        dzialkaHref="/pl/plot?projects=id1"
         countries={countries}
         initialContact={emptyContact}
         initialCountryCode={null}
@@ -64,8 +64,8 @@ describe("InquiryFlow", () => {
     render(
       <InquiryFlow
         projects={oneProject}
-        resultsHref="/pl/klient/wyniki"
-        dzialkaHref="/pl/klient/dzialka?projects=id1"
+        resultsHref="/pl/results"
+        dzialkaHref="/pl/plot?projects=id1"
         countries={countries}
         initialContact={{ name: "Jan Kowalski", email: "jan@example.com", phone: "600123456" }}
         initialCountryCode="DE"
@@ -83,8 +83,8 @@ describe("InquiryFlow", () => {
     render(
       <InquiryFlow
         projects={oneProject}
-        resultsHref="/pl/klient/wyniki"
-        dzialkaHref="/pl/klient/dzialka?projects=id1"
+        resultsHref="/pl/results"
+        dzialkaHref="/pl/plot?projects=id1"
         countries={countries}
         initialContact={emptyContact}
         initialCountryCode={null}
@@ -109,8 +109,8 @@ describe("InquiryFlow", () => {
     render(
       <InquiryFlow
         projects={oneProject}
-        resultsHref="/pl/klient/wyniki"
-        dzialkaHref="/pl/klient/dzialka?projects=id1"
+        resultsHref="/pl/results"
+        dzialkaHref="/pl/plot?projects=id1"
         countries={countries}
         initialContact={emptyContact}
         initialCountryCode="PL"
@@ -130,8 +130,8 @@ describe("InquiryFlow", () => {
     render(
       <InquiryFlow
         projects={twoProjects}
-        resultsHref="/pl/klient/wyniki"
-        dzialkaHref="/pl/klient/dzialka?projects=id1"
+        resultsHref="/pl/results"
+        dzialkaHref="/pl/plot?projects=id1"
         countries={countries}
         initialContact={emptyContact}
         initialCountryCode={null}
@@ -163,8 +163,8 @@ describe("InquiryFlow", () => {
     render(
       <InquiryFlow
         projects={oneProject}
-        resultsHref="/pl/klient/wyniki"
-        dzialkaHref="/pl/klient/dzialka?projects=id1"
+        resultsHref="/pl/results"
+        dzialkaHref="/pl/plot?projects=id1"
         countries={countries}
         initialContact={emptyContact}
         initialCountryCode={null}
@@ -196,8 +196,8 @@ describe("InquiryFlow", () => {
     render(
       <InquiryFlow
         projects={oneProject}
-        resultsHref="/pl/klient/wyniki"
-        dzialkaHref="/pl/klient/dzialka?projects=id1"
+        resultsHref="/pl/results"
+        dzialkaHref="/pl/plot?projects=id1"
         countries={countries}
         initialContact={emptyContact}
         initialCountryCode={null}
@@ -217,8 +217,8 @@ describe("InquiryFlow", () => {
     render(
       <InquiryFlow
         projects={oneProject}
-        resultsHref="/pl/klient/wyniki?country=DE&sizeMin=50"
-        dzialkaHref="/pl/klient/dzialka?projects=id1&country=DE&sizeMin=50"
+        resultsHref="/pl/results?country=DE&sizeMin=50"
+        dzialkaHref="/pl/plot?projects=id1&country=DE&sizeMin=50"
         countries={countries}
         initialContact={emptyContact}
         initialCountryCode={null}
@@ -229,7 +229,7 @@ describe("InquiryFlow", () => {
     await user.click(screen.getByRole("button", { name: "Wyślij zapytanie" }));
 
     const dzialkaLink = await screen.findByRole("link", { name: "Sprawdź działkę" });
-    expect(dzialkaLink).toHaveAttribute("href", "/pl/klient/dzialka?projects=id1&country=DE&sizeMin=50");
+    expect(dzialkaLink).toHaveAttribute("href", "/pl/plot?projects=id1&country=DE&sizeMin=50");
   });
 
   it("shows a single secondary 'Wróć do wyników' link to resultsHref after sending, with no way back to the form (AC-8)", async () => {
@@ -238,8 +238,8 @@ describe("InquiryFlow", () => {
     render(
       <InquiryFlow
         projects={oneProject}
-        resultsHref="/pl/klient/wyniki?country=DE&sizeMin=50"
-        dzialkaHref="/pl/klient/dzialka?projects=id1&country=DE&sizeMin=50"
+        resultsHref="/pl/results?country=DE&sizeMin=50"
+        dzialkaHref="/pl/plot?projects=id1&country=DE&sizeMin=50"
         countries={countries}
         initialContact={emptyContact}
         initialCountryCode={null}
@@ -251,7 +251,7 @@ describe("InquiryFlow", () => {
 
     const backLinks = await screen.findAllByRole("link", { name: "Wróć do wyników" });
     expect(backLinks).toHaveLength(1);
-    expect(backLinks[0]).toHaveAttribute("href", "/pl/klient/wyniki?country=DE&sizeMin=50");
+    expect(backLinks[0]).toHaveAttribute("href", "/pl/results?country=DE&sizeMin=50");
     expect(screen.queryByLabelText(/imię i nazwisko/i)).not.toBeInTheDocument();
   });
 
@@ -259,8 +259,8 @@ describe("InquiryFlow", () => {
     render(
       <InquiryFlow
         projects={oneProject}
-        resultsHref="/pl/klient/wyniki"
-        dzialkaHref="/pl/klient/dzialka?projects=id1"
+        resultsHref="/pl/results"
+        dzialkaHref="/pl/plot?projects=id1"
         countries={countries}
         initialContact={emptyContact}
         initialCountryCode={null}

@@ -31,7 +31,7 @@ describe("PopularHomes", () => {
     const projects = [createMockProject({ id: "prj-modulor-family-90", featured: true })];
     render(await resolveAsyncTree(<PopularHomes locale="pl" projects={projects} countries={countries} />));
 
-    expect(screen.getByRole("link")).toHaveAttribute("href", "/pl/klient/projekt/prj-modulor-family-90");
+    expect(screen.getByRole("link")).toHaveAttribute("href", "/pl/project/prj-modulor-family-90");
   });
 
   it("renders nothing in the grid when no project is featured", async () => {

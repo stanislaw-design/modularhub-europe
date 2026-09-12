@@ -20,7 +20,7 @@ const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0
 export async function CompareHomesTeaser({ locale, projects }: CompareHomesTeaserProps) {
   const t = await getTranslations("CompareHomesTeaser");
   const compareProjects = projects.filter((project) => project.featured).slice(0, 3);
-  const resultsHref = `/${locale}/klient/wyniki`;
+  const resultsHref = `/${locale}/results`;
 
   return (
     <section className="py-brand-7">

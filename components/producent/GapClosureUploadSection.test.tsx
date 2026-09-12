@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { GapClosureUploadSection } from "./GapClosureUploadSection";
 
-const MAP_HREF = "/pl/producent/gotowosc-eksportowa";
+const MAP_HREF = "/pl/producer/export-readiness";
 
 describe("GapClosureUploadSection", () => {
   it("shows the file picker and a disabled 'Wyślij' button with zero files (AC-4)", () => {

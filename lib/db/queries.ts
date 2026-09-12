@@ -99,7 +99,7 @@ export interface ProducerProductForEdit {
   descriptionNl: string | null;
 }
 
-// Zasila /producent/panel/produkty/[id]/edytuj (spec 0032 AC-5, AC-13): null
+// Zasila /producer/panel/products/[id]/edytuj (spec 0032 AC-5, AC-13): null
 // zarówno gdy produktu nie ma, jak i gdy istnieje ale należy do innego
 // producenta — wywołujący nie rozróżnia tych dwóch przypadków (ten sam
 // przekaz co "cudzy/nieistniejący id -> przekierowanie do listy").
@@ -231,7 +231,7 @@ function groupInquiryRows(rows: InquiryWithItemsRow[]): InquiryWithItems[] {
   return [...byId.values()];
 }
 
-// Zasila prosty widok wewnętrzny /internal/zapytania (spec 0023 AC-9), tylko
+// Zasila prosty widok wewnętrzny /internal/inquiries (spec 0023 AC-9), tylko
 // dla roli admin. Najnowsze zapytania pierwsze; produkty per zapytanie
 // zebrane w jedną tablicę zamiast osobnego wiersza na pozycję.
 export async function getAllInquiriesWithItems(): Promise<InquiryWithItems[]> {
@@ -278,7 +278,7 @@ export async function getInquiriesForClient(clientId: string): Promise<InquiryWi
   return groupInquiryRows(rows);
 }
 
-// Zasila /producent/panel/zapytania (spec 0032 AC-8): innerJoin na product z
+// Zasila /producer/panel/inquiries (spec 0032 AC-8): innerJoin na product z
 // producerId w warunku złączenia (nie w WHERE zewnętrznym) filtruje w samej
 // bazie, więc odpowiedź nigdy nie niesie nazw cudzych produktów z tego samego
 // zapytania (prywatność konkurencyjna) — inne producenci przy tym samym
@@ -328,7 +328,7 @@ export interface ProductForAdmin {
   photoCount: number;
 }
 
-// Zasila /internal/produkty (spec 0031 AC-2, AC-9): każdy produkt razem z
+// Zasila /internal/products (spec 0031 AC-2, AC-9): każdy produkt razem z
 // liczbą aktywnych wierszy document (purpose product_photo), żeby administrator
 // widział od razu, który produkt nadal jest wyłącznie na fallbacku
 // coverImageUrl (photoCount 0, AC-8).
@@ -356,7 +356,7 @@ export async function getAllProductsForAdmin(): Promise<ProductForAdmin[]> {
   }));
 }
 
-// Zasila nagłówek /internal/produkty/[id]: nazwa produktu i producenta, bez
+// Zasila nagłówek /internal/products/[id]: nazwa produktu i producenta, bez
 // reszty pól Project (getProjectById niesie więcej, niż ten ekran potrzebuje).
 export async function getProductForAdmin(productId: string): Promise<{ id: string; name: string; producerName: string } | null> {
   const [row] = await db
@@ -375,7 +375,7 @@ export interface ProductPhotoForAdmin {
   sortOrder: number | null;
 }
 
-// Zasila /internal/produkty/[id] (spec 0031 AC-2, AC-4, AC-5, AC-6): galeria
+// Zasila /internal/products/[id] (spec 0031 AC-2, AC-4, AC-5, AC-6): galeria
 // posortowana tak samo jak strona klienta (sortOrder rosnąco, brak na końcu).
 export async function getProductPhotosForAdmin(productId: string): Promise<ProductPhotoForAdmin[]> {
   const rows = await db
@@ -454,7 +454,7 @@ export interface ProducerInquiryDetail {
   offers: OfferSummary[];
 }
 
-// Zasila /producent/panel/zapytania/[id] (spec 0033 AC-1, AC-13): zwraca null
+// Zasila /producer/panel/inquiries/[id] (spec 0033 AC-1, AC-13): zwraca null
 // zarówno gdy zapytania nie ma, jak i gdy producent nie ma w nim żadnego
 // własnego produktu — wywołujący nie rozróżnia tych dwóch przypadków, ten sam
 // przekaz co getProducerProductForEdit (spec 0032 AC-13).
@@ -627,7 +627,7 @@ export interface AdminOfferSummary extends OfferSummary {
   producerName: string;
 }
 
-// Zasila szczegóły ofert rozwijane przy wierszu na /internal/zapytania (spec
+// Zasila szczegóły ofert rozwijane przy wierszu na /internal/inquiries (spec
 // 0033 AC-17): wszystkie oferty (dowolny status) pogrupowane po inquiryId, w
 // jednym zapytaniu zamiast osobnego na każdy wiersz listy.
 export async function getOffersByInquiryIdForAdmin(): Promise<Map<string, AdminOfferSummary[]>> {

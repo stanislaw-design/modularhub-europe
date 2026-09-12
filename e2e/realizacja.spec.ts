@@ -1,31 +1,31 @@
 import { expect, test } from "@playwright/test";
 
-test.describe("/pl/klient/realizacja", () => {
+test.describe("/pl/fulfillment", () => {
   test("redirects to results when the project param is missing (AC-1)", async ({ page }) => {
-    await page.goto("/pl/klient/realizacja");
-    await expect(page).toHaveURL("/pl/klient/wyniki");
+    await page.goto("/pl/fulfillment");
+    await expect(page).toHaveURL("/pl/results");
   });
 
   test("redirects to results when the project id is unknown (AC-1)", async ({ page }) => {
-    await page.goto("/pl/klient/realizacja?project=nieznane-id");
-    await expect(page).toHaveURL("/pl/klient/wyniki");
+    await page.goto("/pl/fulfillment?project=nieznane-id");
+    await expect(page).toHaveURL("/pl/results");
   });
 
   test("known project with no accepted order redirects to the inquiries panel, not an error (AC-2)", async ({
     request,
   }) => {
-    const response = await request.get("/pl/klient/realizacja?project=prj-baltyk-studio-38", {
+    const response = await request.get("/pl/fulfillment?project=prj-baltyk-studio-38", {
       maxRedirects: 0,
     });
 
     expect(response.status()).toBe(307);
-    expect(response.headers()["location"]).toBe("/pl/klient/panel/zapytania");
+    expect(response.headers()["location"]).toBe("/pl/panel/inquiries");
   });
 
   test("shows the header and the 5-stage axis in fixed order, exactly one current stage (AC-3, AC-4)", async ({
     page,
   }) => {
-    await page.goto("/pl/klient/realizacja?project=prj-modulor-family-90");
+    await page.goto("/pl/fulfillment?project=prj-modulor-family-90");
 
     await expect(page.locator("h1")).toHaveText(/Realizacja.*Modulor Family 90/);
     await expect(page.getByText(/Modulor Systems.*90 m²/)).toBeVisible();
@@ -44,7 +44,7 @@ test.describe("/pl/klient/realizacja", () => {
   test("shows the reached date and documents for completed/current stages, none for upcoming ones (AC-5, AC-6)", async ({
     page,
   }) => {
-    await page.goto("/pl/klient/realizacja?project=prj-modulor-family-90");
+    await page.goto("/pl/fulfillment?project=prj-modulor-family-90");
 
     await expect(page.getByText("4 maj 2026")).toBeVisible();
     await expect(page.getByText("Harmonogram prac montażowych.pdf")).toBeVisible();
@@ -55,21 +55,21 @@ test.describe("/pl/klient/realizacja", () => {
   });
 
   test("shows a separate completion banner when the last stage (gwarancja) is current (AC-7)", async ({ page }) => {
-    await page.goto("/pl/klient/realizacja?project=prj-karpaty-alpine-104");
+    await page.goto("/pl/fulfillment?project=prj-karpaty-alpine-104");
 
     await expect(page.getByText("Zamówienie zrealizowane")).toBeVisible();
     await expect(page.getByText("Aktualny etap")).toBeVisible();
   });
 
   test("returns to the inquiries panel via the back link (AC-9)", async ({ page }) => {
-    await page.goto("/pl/klient/realizacja?project=prj-modulor-family-90");
+    await page.goto("/pl/fulfillment?project=prj-modulor-family-90");
 
     const backLink = page.getByRole("link", { name: "Wróć do zapytań" });
-    await expect(backLink).toHaveAttribute("href", "/pl/klient/panel/zapytania");
+    await expect(backLink).toHaveAttribute("href", "/pl/panel/inquiries");
   });
 
   test("keyboard pass: one H1, back link reachable and focus-visible (AC-10)", async ({ page }) => {
-    await page.goto("/pl/klient/realizacja?project=prj-modulor-family-90");
+    await page.goto("/pl/fulfillment?project=prj-modulor-family-90");
 
     await expect(page.locator("h1")).toHaveCount(1);
 
@@ -80,7 +80,7 @@ test.describe("/pl/klient/realizacja", () => {
   });
 
   // The old "reached end to end from an accepted binding offer's 'Śledź
-  // realizację' link (AC-8)" case was removed with the /klient/oferta mock
+  // realizację' link (AC-8)" case was removed with the /oferta mock
   // it depended on (spec 0033 AC-16, Consequences): no link leads to
-  // /klient/realizacja anymore until feature 16 designs its real entry point.
+  // /fulfillment anymore until feature 16 designs its real entry point.
 });

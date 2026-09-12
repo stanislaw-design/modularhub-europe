@@ -359,7 +359,16 @@ export async function getPublishedProductIds(): Promise<Set<string>> {
   return new Set(rows.map((row) => row.id));
 }
 
+// product.id jest kolumną uuid w Postgresie: porównanie z niepoprawnym uuid
+// (np. starym mockowym slugiem "prj-xxx" albo dowolnym literałem z adresu)
+// rzuca błędem bazy zamiast zwrócić brak wiersza, więc strona kończyła się
+// 500 zamiast standardowego notFound() (spec 0020 AC-6). Wczesny return na
+// kształt id, przed zapytaniem do bazy, naprawia to bez zmiany reszty funkcji.
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function getProjectById(id: string, locale: Locale = "pl"): Promise<Project | null> {
+  if (!UUID_PATTERN.test(id)) return null;
+
   if (locale === "en" || locale === "nl") {
     const [row] = await db
       .select({

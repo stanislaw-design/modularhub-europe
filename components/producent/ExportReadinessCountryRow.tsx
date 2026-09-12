@@ -62,7 +62,7 @@ export function ExportReadinessCountryRow({
     );
   }
 
-  const gapClosureHref = `/${locale}/producent/domykanie-luk?kraj=${entry.countryCode}${
+  const gapClosureHref = `/${locale}/producer/gap-closure?kraj=${entry.countryCode}${
     projectName ? `&nazwa=${encodeURIComponent(projectName)}` : ""
   }`;
 

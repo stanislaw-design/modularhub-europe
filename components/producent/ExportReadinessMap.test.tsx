@@ -120,13 +120,13 @@ describe("ExportReadinessMap", () => {
           projectName="Modulor 28"
           countries={countries}
           entries={entries}
-          catalogHref="/pl/producent/produkty?nip=1234567890"
+          catalogHref="/pl/producer/products?nip=1234567890"
         />
       )
     );
     expect(screen.getByRole("link", { name: "Zobacz swoje produkty" })).toHaveAttribute(
       "href",
-      "/pl/producent/produkty?nip=1234567890"
+      "/pl/producer/products?nip=1234567890"
     );
   });
 });

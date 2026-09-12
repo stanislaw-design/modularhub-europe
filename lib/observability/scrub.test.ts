@@ -50,7 +50,7 @@ describe("scrubSentryEvent", () => {
   });
 
   it("scrubs forbidden keys out of the extra bag (AC-1)", () => {
-    const event = scrubSentryEvent({ extra: { email: "a@b.com", path: "/pl/klient" } });
-    expect(event.extra).toEqual({ path: "/pl/klient" });
+    const event = scrubSentryEvent({ extra: { email: "a@b.com", path: "/pl" } });
+    expect(event.extra).toEqual({ path: "/pl" });
   });
 });

@@ -14,7 +14,7 @@ interface OfferCardProps {
 const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0 });
 const dateFormatter = new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium", timeStyle: "short" });
 
-// Jedna oferta na /klient/panel/zapytania/[id] (spec 0033 AC-6, AC-7, AC-8):
+// Jedna oferta na /panel/inquiries/[id] (spec 0033 AC-6, AC-7, AC-8):
 // rozbicie ceny (dom per produkt, transport, montaż, razem) i przyciski
 // przyjmij/odrzuć wyłącznie dla ofert status='active'. Przyjęcie/odrzucenie
 // są ostateczne (AC-9) — po sukcesie karta przechodzi w tryb tylko do

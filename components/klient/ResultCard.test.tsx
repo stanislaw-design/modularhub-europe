@@ -30,7 +30,7 @@ describe("ResultCard", () => {
 
   it("links to the project details page for a catalog project (spec 0020 AC-2)", () => {
     render(<ResultCard project={project} countryName="Polska" locale="pl" />);
-    expect(screen.getByRole("link")).toHaveAttribute("href", `/pl/klient/projekt/${project.id}`);
+    expect(screen.getByRole("link")).toHaveAttribute("href", `/pl/project/${project.id}`);
   });
 
   it("shows Wycena indywidualna instead of a price range when priceOnRequest is true (spec 0020 AC-5)", () => {

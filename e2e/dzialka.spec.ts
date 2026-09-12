@@ -1,29 +1,29 @@
 import { expect, test } from "@playwright/test";
 
-test.describe("/pl/klient/dzialka", () => {
+test.describe("/pl/plot", () => {
   test("redirects to results, keeping country/sizeMin/sizeMax, when projects is an unknown id (AC-1)", async ({
     page,
   }) => {
-    await page.goto("/pl/klient/dzialka?projects=unknown-id&country=DE&sizeMin=50");
-    await expect(page).toHaveURL("/pl/klient/wyniki?country=DE&sizeMin=50");
+    await page.goto("/pl/plot?projects=unknown-id&country=DE&sizeMin=50");
+    await expect(page).toHaveURL("/pl/results?country=DE&sizeMin=50");
   });
 
   test("redirects to bare results when projects is missing entirely (AC-1)", async ({ page }) => {
-    await page.goto("/pl/klient/dzialka");
-    await expect(page).toHaveURL("/pl/klient/wyniki");
+    await page.goto("/pl/plot");
+    await expect(page).toHaveURL("/pl/results");
   });
 
   test("'Sprawdź działkę' on the confirmation screen opens the panel with the same projects, one row per home (AC-1, AC-2)", async ({
     page,
   }) => {
-    await page.goto("/pl/klient/zapytanie?projects=prj-modulor-family-90,prj-baltyk-loft-120&country=DE&sizeMin=50");
+    await page.goto("/pl/inquiry?projects=prj-modulor-family-90,prj-baltyk-loft-120&country=DE&sizeMin=50");
     await page.getByLabel(/imię i nazwisko/i).fill("Jan Kowalski");
     await page.getByLabel(/e-mail/i).fill("jan@example.com");
     await page.getByLabel(/telefon/i).fill("600123456");
     await page.getByRole("button", { name: "Wyślij zapytanie" }).click();
 
     await page.getByRole("link", { name: "Sprawdź działkę" }).click();
-    await expect(page).toHaveURL(/\/pl\/klient\/dzialka\?projects=.+&country=DE&sizeMin=50/);
+    await expect(page).toHaveURL(/\/pl\/plot\?projects=.+&country=DE&sizeMin=50/);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Panel działki");
     await expect(page.getByLabel(/adres działki/i)).toBeVisible();
     await expect(page.getByRole("button", { name: /Modulor Family 90/ })).toBeVisible();
@@ -33,7 +33,7 @@ test.describe("/pl/klient/dzialka", () => {
   test("Zapłać stays disabled until address and a 100-100000 area are both valid, then pays through to an approved result with the offer link (AC-3, AC-4, AC-5, AC-6)", async ({
     page,
   }) => {
-    await page.goto("/pl/klient/dzialka?projects=prj-modulor-family-90");
+    await page.goto("/pl/plot?projects=prj-modulor-family-90");
     await page.getByLabel(/adres działki/i).fill("Ul. Polna 5, Warszawa");
 
     await page.getByRole("button", { name: /Modulor Family 90/ }).click();
@@ -56,13 +56,13 @@ test.describe("/pl/klient/dzialka", () => {
     await expect(page.getByText(/To nie jest opinia prawna/)).toBeVisible();
 
     const offerLink = page.getByRole("link", { name: "Przejdź do zapytań" });
-    await expect(offerLink).toHaveAttribute("href", "/pl/klient/panel/zapytania");
+    await expect(offerLink).toHaveAttribute("href", "/pl/panel/inquiries");
   });
 
   test("keeps pointing to the inquiries panel after the panel's address field is edited later (AC-4, AC-6)", async ({
     page,
   }) => {
-    await page.goto("/pl/klient/dzialka?projects=prj-modulor-family-90");
+    await page.goto("/pl/plot?projects=prj-modulor-family-90");
     const addressInput = page.getByLabel(/adres działki/i);
     await addressInput.fill("Ul. Polna 5");
 
@@ -74,13 +74,13 @@ test.describe("/pl/klient/dzialka", () => {
     await addressInput.fill("Ul. Nowa 10");
 
     const offerLink = page.getByRole("link", { name: "Przejdź do zapytań" });
-    await expect(offerLink).toHaveAttribute("href", "/pl/klient/panel/zapytania");
+    await expect(offerLink).toHaveAttribute("href", "/pl/panel/inquiries");
   });
 
   test("a blocked result shows status and reason with no button onward, and does not affect the other row in the panel (AC-7, AC-8)", async ({
     page,
   }) => {
-    await page.goto("/pl/klient/dzialka?projects=prj-karpaty-alpine-104,prj-modulor-family-90");
+    await page.goto("/pl/plot?projects=prj-karpaty-alpine-104,prj-modulor-family-90");
     await page.getByLabel(/adres działki/i).fill("Ul. Polna 5");
 
     await page.getByRole("button", { name: /Karpaty Alpine 104/ }).click();
@@ -99,7 +99,7 @@ test.describe("/pl/klient/dzialka", () => {
   });
 
   test("reloading the page clears the address, area and paid results (AC-9)", async ({ page }) => {
-    await page.goto("/pl/klient/dzialka?projects=prj-modulor-family-90");
+    await page.goto("/pl/plot?projects=prj-modulor-family-90");
     await page.getByLabel(/adres działki/i).fill("Ul. Polna 5");
     await page.getByRole("button", { name: /Modulor Family 90/ }).click();
     await page.getByLabel(/metraż działki/i).fill("250");
@@ -116,7 +116,7 @@ test.describe("/pl/klient/dzialka", () => {
   test("keyboard pass: one H1, aria-expanded/controls on the row trigger, aria-live on the result area, visible focus rings (AC-10)", async ({
     page,
   }) => {
-    await page.goto("/pl/klient/dzialka?projects=prj-modulor-family-90");
+    await page.goto("/pl/plot?projects=prj-modulor-family-90");
 
     await expect(page.locator("h1")).toHaveCount(1);
 

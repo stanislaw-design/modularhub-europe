@@ -109,7 +109,7 @@ export function ProjectWizard({ locale, countries }: ProjectWizardProps) {
       setSaveError(result.error ?? t("saveError"));
       return;
     }
-    router.push(`/${locale}/producent/panel/produkty`);
+    router.push(`/${locale}/producer/panel/products`);
   }
 
   const currentStep = WIZARD_STEPS[stepIndex];

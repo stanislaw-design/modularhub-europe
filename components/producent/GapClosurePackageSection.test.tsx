@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { isCountryResolved } from "@/lib/gap-closure";
 import { GapClosurePackageSection } from "./GapClosurePackageSection";
 
-const MAP_HREF = "/pl/producent/gotowosc-eksportowa";
+const MAP_HREF = "/pl/producer/export-readiness";
 
 beforeEach(() => {
   window.localStorage.clear();

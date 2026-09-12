@@ -99,7 +99,7 @@ export function ProducerRegistrationForm({ locale, callbackUrl, countries }: Pro
       <Text tone="muted">
         {t("alreadyHaveAccount")}{" "}
         <Link
-          href={`/${locale}/logowanie?callbackUrl=${encodeURIComponent(callbackUrl)}`}
+          href={`/${locale}/login?callbackUrl=${encodeURIComponent(callbackUrl)}`}
           className="focus-ring rounded-data font-medium text-brand-v5-amber-strong underline"
         >
           {t("loginLink")}

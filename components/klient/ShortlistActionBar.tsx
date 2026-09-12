@@ -33,7 +33,7 @@ export function ShortlistActionBar({
     if (countryCode) params.set("country", countryCode);
     if (sizeMin !== undefined) params.set("sizeMin", String(sizeMin));
     if (sizeMax !== undefined) params.set("sizeMax", String(sizeMax));
-    router.push(`/${locale}/klient/zapytanie?${params.toString()}`);
+    router.push(`/${locale}/inquiry?${params.toString()}`);
   }
 
   return (

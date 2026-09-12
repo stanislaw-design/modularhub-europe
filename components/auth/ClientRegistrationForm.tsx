@@ -70,7 +70,7 @@ export function ClientRegistrationForm({ locale, callbackUrl }: ClientRegistrati
       <Text tone="muted" surface="v5">
         {t("alreadyHaveAccount")}{" "}
         <Link
-          href={`/${locale}/logowanie?callbackUrl=${encodeURIComponent(callbackUrl)}`}
+          href={`/${locale}/login?callbackUrl=${encodeURIComponent(callbackUrl)}`}
           className="focus-ring rounded-data font-medium text-brand-v5-ink underline"
         >
           {t("loginLink")}

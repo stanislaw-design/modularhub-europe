@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 import { CompanyVerificationView } from "./CompanyVerificationView";
 
-const REALIZACJA_HREF = "/pl/producent/realizacja?project=prj-karpaty-alpine-104";
+const REALIZACJA_HREF = "/pl/producer/fulfillment?project=prj-karpaty-alpine-104";
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -94,7 +94,7 @@ describe("CompanyVerificationView", () => {
       <CompanyVerificationView
         projectId="prj-other-project"
         projectName="Other Project"
-        realizacjaHref="/pl/producent/realizacja?project=prj-other-project"
+        realizacjaHref="/pl/producer/fulfillment?project=prj-other-project"
       />
     );
 

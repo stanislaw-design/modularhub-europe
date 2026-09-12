@@ -40,10 +40,10 @@ describe("FamilyTabs", () => {
   it("links the wiecej-niz-dom tab to family=wiecej-niz-dom and dom to a bare href (AC-2)", async () => {
     render(await resolveAsyncTree(<FamilyTabs locale="pl" family="dom" />));
 
-    expect(screen.getByRole("link", { name: "Domy" })).toHaveAttribute("href", "/pl/klient/wyniki");
+    expect(screen.getByRole("link", { name: "Domy" })).toHaveAttribute("href", "/pl/results");
     expect(screen.getByRole("link", { name: "Więcej niż dom" })).toHaveAttribute(
       "href",
-      "/pl/klient/wyniki?family=wiecej-niz-dom"
+      "/pl/results?family=wiecej-niz-dom"
     );
   });
 
@@ -52,11 +52,11 @@ describe("FamilyTabs", () => {
 
     expect(screen.getByRole("link", { name: "Domy" })).toHaveAttribute(
       "href",
-      "/pl/klient/wyniki?country=DE&sizeMin=50&sizeMax=100"
+      "/pl/results?country=DE&sizeMin=50&sizeMax=100"
     );
     expect(screen.getByRole("link", { name: "Spa modułowe" })).toHaveAttribute(
       "href",
-      "/pl/klient/wyniki?family=spa-modulowe&country=DE&sizeMin=50&sizeMax=100"
+      "/pl/results?family=spa-modulowe&country=DE&sizeMin=50&sizeMax=100"
     );
   });
 });

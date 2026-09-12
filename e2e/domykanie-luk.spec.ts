@@ -2,9 +2,9 @@ import { expect, test } from "@playwright/test";
 
 const STORAGE_KEY = "producent:domykanie-luk:rozwiazane";
 
-test.describe("/pl/producent/domykanie-luk (spec 0010)", () => {
+test.describe("/pl/producer/gap-closure (spec 0010)", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/pl/producent/gotowosc-eksportowa");
+    await page.goto("/pl/producer/export-readiness");
     await page.evaluate((key) => window.localStorage.removeItem(key), STORAGE_KEY);
   });
 
@@ -20,24 +20,24 @@ test.describe("/pl/producent/domykanie-luk (spec 0010)", () => {
     await page.getByRole("button", { name: /Niemcy/ }).click();
     const link = page.getByRole("link", { name: "Domknij luki" });
     await expect(link).toBeVisible();
-    await expect(link).toHaveAttribute("href", "/pl/producent/domykanie-luk?kraj=DE");
+    await expect(link).toHaveAttribute("href", "/pl/producer/gap-closure?kraj=DE");
   });
 
   test("redirects missing, unknown, and non-conditional kraj back to the map without an error (AC-3)", async ({
     page,
   }) => {
-    await page.goto("/pl/producent/domykanie-luk");
-    await expect(page).toHaveURL("/pl/producent/gotowosc-eksportowa");
+    await page.goto("/pl/producer/gap-closure");
+    await expect(page).toHaveURL("/pl/producer/export-readiness");
 
-    await page.goto("/pl/producent/domykanie-luk?kraj=XX");
-    await expect(page).toHaveURL("/pl/producent/gotowosc-eksportowa");
+    await page.goto("/pl/producer/gap-closure?kraj=XX");
+    await expect(page).toHaveURL("/pl/producer/export-readiness");
 
-    await page.goto("/pl/producent/domykanie-luk?kraj=PL&nazwa=Modulor%2028");
-    await expect(page).toHaveURL("/pl/producent/gotowosc-eksportowa?nazwa=Modulor%2028");
+    await page.goto("/pl/producer/gap-closure?kraj=PL&nazwa=Modulor%2028");
+    await expect(page).toHaveURL("/pl/producer/export-readiness?nazwa=Modulor%2028");
   });
 
   test("uploading a document confirms without changing the map status (AC-2, AC-4, AC-5)", async ({ page }) => {
-    await page.goto("/pl/producent/domykanie-luk?kraj=DE&nazwa=Modulor%2028");
+    await page.goto("/pl/producer/gap-closure?kraj=DE&nazwa=Modulor%2028");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText('Domknij luki: Niemcy — „Modulor 28”');
 
     const submit = page.getByRole("button", { name: "Wyślij" });
@@ -53,14 +53,14 @@ test.describe("/pl/producent/domykanie-luk (spec 0010)", () => {
     await expect(page.getByText("Dokumenty przesłane do weryfikacji.")).toBeVisible();
     await page.getByRole("link", { name: "Wróć do mapy gotowości eksportowej" }).click();
 
-    await expect(page).toHaveURL(/gotowosc-eksportowa/);
+    await expect(page).toHaveURL(/export-readiness/);
     await expect(page.getByRole("button", { name: /Niemcy/ })).toContainText("Warunkowo dopuszczone");
   });
 
   test("buying the package announces the paying phase, then resolves the country everywhere (AC-6, AC-7, AC-8, AC-9, AC-11)", async ({
     page,
   }) => {
-    await page.goto("/pl/producent/domykanie-luk?kraj=DE");
+    await page.goto("/pl/producer/gap-closure?kraj=DE");
     await expect(page.getByText("149 €")).toBeVisible();
 
     await page.getByRole("button", { name: "Zapłać" }).click();
@@ -72,12 +72,12 @@ test.describe("/pl/producent/domykanie-luk (spec 0010)", () => {
     const stored = await page.evaluate((key) => window.localStorage.getItem(key), STORAGE_KEY);
     expect(stored).toBe('["DE"]');
 
-    await page.goto("/pl/producent/gotowosc-eksportowa");
+    await page.goto("/pl/producer/export-readiness");
     await expect(page.getByText("Niemcy")).toBeVisible();
     await expect(page.getByText("Luki domknięte poprzez zakup pakietu domykania luk")).toBeVisible();
     await expect(page.getByRole("button", { name: /Niemcy/ })).toHaveCount(0);
 
-    await page.goto("/pl/producent/domykanie-luk?kraj=DE");
+    await page.goto("/pl/producer/gap-closure?kraj=DE");
     await expect(page.getByText("Ten kraj jest już domknięty")).toBeVisible();
     await expect(page.getByRole("button", { name: "Zapłać" })).toHaveCount(0);
   });
@@ -103,7 +103,7 @@ test.describe("/pl/producent/domykanie-luk (spec 0010)", () => {
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
 
-    await page.goto("/pl/producent/domykanie-luk?kraj=DE");
+    await page.goto("/pl/producer/gap-closure?kraj=DE");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Domknij luki: Niemcy");
     await expect(page.getByRole("button", { name: "Zapłać" })).toBeVisible();
 
@@ -114,7 +114,7 @@ test.describe("/pl/producent/domykanie-luk (spec 0010)", () => {
   });
 
   test("keyboard pass: one H1, and Zapłać is reachable and activatable by keyboard (AC-11)", async ({ page }) => {
-    await page.goto("/pl/producent/domykanie-luk?kraj=DE");
+    await page.goto("/pl/producer/gap-closure?kraj=DE");
 
     await expect(page.locator("h1")).toHaveCount(1);
 

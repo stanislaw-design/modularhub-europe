@@ -169,7 +169,7 @@ function resultsFilterToSearchParams(filter: ResultsFilter): URLSearchParams {
 
 export function buildResultsHref(locale: string, filter: ResultsFilter): string {
   const query = resultsFilterToSearchParams(filter).toString();
-  return `/${locale}/klient/wyniki${query ? `?${query}` : ""}`;
+  return `/${locale}/results${query ? `?${query}` : ""}`;
 }
 
 // Toggle jednego wymiaru filtra, zachowując resztę bez zmian: ponowne kliknięcie

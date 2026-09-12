@@ -31,7 +31,7 @@ interface NavItem {
 
 // How far (px) the visitor scrolls past the top of the home hero before its
 // transparent overlay header (see isHomeRoute below) switches to the same
-// solid header every other klient/ route always uses.
+// solid header every other customer route always uses.
 const HOME_HERO_SCROLL_THRESHOLD = 96;
 
 // The inline language picker in the slide out menu needs `useSearchParams`,
@@ -98,19 +98,19 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
   // "Jak to działa" (an anchor into the closing CTA's explainer, spec 0014
   // AC-1, AC-9) are the other two real destinations, each using an absolute
   // path rather than a bare "#…" fragment, because SiteHeader renders on
-  // every klient/ route, not just the home page it's targeting.
+  // every customer route, not just the home page it's targeting.
   // "Producenci"/"Inspiracje"/"O nas" were dropped (spec 0030 AC-3): no page
   // exists behind them yet.
   const navItems: NavItem[] = [
-    { label: t("nav.homes"), href: `/${locale}/klient` },
-    { label: t("nav.projects"), href: `/${locale}/klient/wyniki` },
-    { label: t("nav.howItWorks"), href: `/${locale}/klient#jak-to-dziala` },
+    { label: t("nav.homes"), href: `/${locale}` },
+    { label: t("nav.projects"), href: `/${locale}/results` },
+    { label: t("nav.howItWorks"), href: `/${locale}#jak-to-dziala` },
   ];
   const pathname = usePathname();
   // Only the home route renders Hero's full-bleed photo directly under the
-  // header (see Hero.tsx) — every other klient/ route keeps the always-solid
+  // header (see Hero.tsx) — every other customer route keeps the always-solid
   // sticky header unchanged.
-  const isHomeRoute = pathname === `/${locale}/klient`;
+  const isHomeRoute = pathname === `/${locale}`;
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -129,10 +129,10 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
   // spot for it here yet, same known gap as everywhere else in this file).
   const cta =
     session?.user.role === "admin"
-      ? { label: t("adminPanel"), href: `/${locale}/internal/zapytania`, icon: false }
+      ? { label: t("adminPanel"), href: `/${locale}/internal/inquiries`, icon: false }
       : session?.user.role === "client"
-        ? { label: t("myProfile"), href: `/${locale}/klient/panel/zapytania`, icon: true }
-        : { label: t("start"), href: `/${locale}/producent`, icon: false };
+        ? { label: t("myProfile"), href: `/${locale}/panel/inquiries`, icon: true }
+        : { label: t("start"), href: `/${locale}/producer`, icon: false };
 
   const isOverlay = isHomeRoute && !isScrolled;
   const navTextClass = isOverlay
@@ -148,7 +148,7 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
     >
       <Container className="flex items-center justify-between gap-brand-1 py-brand-2 sm:gap-brand-4">
         <Link
-          href={`/${locale}/klient`}
+          href={`/${locale}`}
           aria-label="ModularHub Europe"
           className="focus-ring shrink-0 rounded-data"
         >
@@ -164,7 +164,7 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
             triggerClassName={`hidden disabled:cursor-default disabled:opacity-50 sm:flex ${navTextClass}`}
           />
           <Link
-            href={`/${locale}/klient/panel/ulubione`}
+            href={`/${locale}/panel/favorites`}
             className={`focus-ring hidden items-center gap-1 rounded-data text-body font-medium sm:flex ${navTextClass}`}
           >
             <Heart className="size-4" aria-hidden="true" />
@@ -172,7 +172,7 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
           </Link>
           {!session && (
             <Link
-              href={`/${locale}/logowanie`}
+              href={`/${locale}/login`}
               className={`focus-ring hidden items-center gap-1 rounded-data text-body font-medium md:flex ${navTextClass}`}
             >
               <User className="size-4" aria-hidden="true" />
@@ -280,7 +280,7 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
               <ul className="flex flex-col gap-brand-3">
                 <li className="sm:hidden">
                   <Link
-                    href={`/${locale}/klient/panel/ulubione`}
+                    href={`/${locale}/panel/favorites`}
                     onClick={() => setIsMenuOpen(false)}
                     className="focus-ring flex items-center gap-1 rounded-data text-body font-medium text-brand-v5-ink hover:text-brand-v5-amber-strong"
                   >
@@ -298,7 +298,7 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
                 {!session && (
                   <li>
                     <Link
-                      href={`/${locale}/logowanie`}
+                      href={`/${locale}/login`}
                       onClick={() => setIsMenuOpen(false)}
                       className="focus-ring flex items-center gap-1 rounded-data text-body font-medium text-brand-v5-ink hover:text-brand-v5-amber-strong"
                     >

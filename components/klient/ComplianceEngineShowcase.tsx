@@ -82,7 +82,7 @@ export async function ComplianceEngineShowcase({ locale }: ComplianceEngineShowc
               ))}
             </ul>
             <Link
-              href={`/${locale}/klient/wyniki`}
+              href={`/${locale}/results`}
               className="focus-ring inline-flex w-fit items-center gap-1 rounded-v5-pill bg-brand-v5-amber px-brand-4 py-brand-2 text-body font-semibold text-brand-v5-amber-foreground hover:bg-brand-v5-amber-strong"
             >
               {t("checkHouse")}

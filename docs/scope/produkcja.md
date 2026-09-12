@@ -45,6 +45,7 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 28 | Panel producenta | Slice 2b | in progress |
 | 29 | Przyklejony pasek wyszukiwania na wynikach (klient) | Slice 2 | in progress |
 | 30 | Grupy wyszukiwania: Domy i Więcej niż dom (klient) | Slice 2 | in progress |
+| 31 | Anglojęzyczne adresy URL i strona główna klienta bez segmentu klient | Foundation | in progress |
 
 ## Foundations
 
@@ -103,6 +104,18 @@ Dziś `Project`/`ProjectCategory` zakłada wyłącznie jedną rodzinę produktu 
   - [x] `lib/data/types.ts` i fixture'y testowe zaktualizowane o `family`
 - [x] Zweryfikuj: `/check verify rodziny produktów i kategorie`
 - [x] Testuj: `/test rodziny produktów i kategorie` (kod w `lib/product-technical-specs.test.ts`, `lib/producer-products.test.ts`, `lib/local-client-projects.test.ts`, `components/klient/CategoryShowcase.test.tsx`, `components/producent/ProductEditWizard.test.tsx`, `components/producent/ProjectWizardTechnicalStep.test.tsx`, `components/producent/ProjectWizardPricingStep.test.tsx`, plus extensions to `ProjectWizardTechnicalField.test.tsx` i `lib/db/queries.test.ts` (real Neon integration test for `getProductFamilyCounts()`); 476/476 tests pass)
+
+### 31. Anglojęzyczne adresy URL i strona główna klienta bez segmentu klient · full · in progress
+Adresy platformy pod segmentami next intl (spec 0028: `/pl`, `/en`, `/nl`) są dziś w całości po polsku (`klient`, `producent`, `wyniki` i tak dalej), mimo że treść jest już przetłumaczona. Ta funkcja zmienia wszystkie segmenty adresów na angielskie i przenosi całą ścieżkę klienta, razem ze stroną główną, z `/klient` na sam adres główny danego języka, bo klient jest głównym odbiorcą tej międzynarodowej platformy; producent i panel administracyjny zachowują własny, rozróżniający prefiks. Każdy stary adres trwale przekierowuje na nowy.
+**Done when:** każda trasa klienta, producenta i panelu administracyjnego jest dostępna pod nowym, angielskim adresem zgodnie ze spec 0036 (klient bez segmentu na poziomie głównym locale, producent pod `/producer`, panel administracyjny pod nowymi angielskimi segmentami zapytań i produktów), każdy stary polski adres trwale przekierowuje (kod 308) na nowy z zachowanym ciągiem zapytania, a strona szczegółów projektu niesie poprawne tagi hreflang na nowych adresach.
+- [x] Zaprojektuj (spec): [0036](../specs/0036-anglojezyczne-adresy-url/index.md)
+- [x] Zbuduj: `/develop anglojęzyczne adresy URL i strona główna klienta bez segmentu klient` (kod w `app/[locale]/(customer)/**` (nowa grupa tras, przeniesiona z `klient/`, strona główna renderuje się wprost bez przekierowania), `app/[locale]/producer/**` (przeniesione z `producent/`), `app/[locale]/internal/{inquiries,products}/**` (przeniesione z `zapytania`/`produkty`), `proxy.ts` (pełna tabela przekierowań 308, zakotwiczona i posortowana od najdłuższego prefiksu, plus specjalna reguła dla `producent/panel/produkty/[id]/edytuj` gdzie zmieniany segment leży po dynamicznym id, i scalenie blokady języka panelu administracyjnego z przekierowaniem segmentu w jeden skok), `components/klient/{SiteHeader,PanelTabs,...}.tsx`, `components/producent/{ProducerHeader,ProducerPanelTabs,...}.tsx`, `lib/panel-session.ts`, `lib/results-filters.ts`; ok. 90 plików zaktualizowanych łącznie (strony, komponenty, testy jednostkowe i end to end); build/typecheck/lint czyste, 671/672 testów przechodzi (jedyny fail, `lib/product-family-groups.test.ts`, niezwiązany z tą funkcją), zweryfikowane też na żywo w przeglądarce/curl (strona główna bez przekierowania, przekierowania 308 ze starych adresów klienta/producenta/panelu administracyjnego z zachowanym ciągiem zapytania)
+  - [x] Cała ścieżka klienta (strona główna, wyniki, zapytanie, działka, projekt, realizacja, rejestracja, panel, logowanie) przeniesiona do grupy tras `(customer)` na poziom główny locale, z pełną mapą przekierowań w `proxy.ts`, satisfies AC-1, AC-2, AC-5, AC-6, AC-9
+  - [x] Trasy producenta przeniesione pod `/producer` z nowymi angielskimi segmentami, satisfies AC-3, AC-5, AC-6
+  - [x] Panel administracyjny przeniesiony na `internal/inquiries` i `internal/products`, przekierowania scalone z dzisiejszą blokadą języka, satisfies AC-4, AC-5, AC-6
+  - [x] Hreflang strony szczegółów projektu i testy end to end zaktualizowane na nowe adresy, satisfies AC-7, AC-8
+- [ ] Zweryfikuj: `/check verify anglojęzyczne adresy URL i strona główna klienta bez segmentu klient`
+- [ ] Testuj: `/test anglojęzyczne adresy URL i strona główna klienta bez segmentu klient`
 
 ## Slice 0: Wersje językowe (EN/NL)
 
@@ -228,7 +241,7 @@ Hero na stronie głównej i `FamilyTabs` na `/wyniki` pokazują dziś trzy płas
   - [x] Hero: przebudowa `SearchCard.tsx` na dwa przyciski rodziny, bez zmian w Budżecie/Powierzchni, satisfies AC-1, AC-5
   - [x] Wyniki: przebudowa `FamilyTabs.tsx` na dwa poziomy (grupa plus doprecyzowanie podkategorii), satisfies AC-3, AC-6
   - [x] Tłumaczenia `pl`/`en`/`nl` i testy (`SearchCard`, `FamilyTabs`, `results-filters.ts`, `projects.test.ts`), satisfies AC-1, AC-3, AC-8
-- [ ] Zweryfikuj: `/check verify grupy wyszukiwania: domy i więcej niż dom`
+- [x] Zweryfikuj: `/check verify grupy wyszukiwania: domy i więcej niż dom` (PASS, patrz raport builda 2026-09-12)
 - [ ] Testuj: `/test grupy wyszukiwania: domy i więcej niż dom`
 
 ## Slice 2b: panel producenta

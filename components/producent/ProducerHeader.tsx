@@ -21,7 +21,7 @@ export async function ProducerHeader({ locale }: ProducerHeaderProps) {
     <header className="border-b border-brand-steel">
       <Container className="flex items-center justify-between py-brand-2">
         <Link
-          href={`/${locale}/producent`}
+          href={`/${locale}/producer`}
           aria-label="ModularHub Europe"
           className="focus-ring rounded-data"
         >
@@ -29,7 +29,7 @@ export async function ProducerHeader({ locale }: ProducerHeaderProps) {
         </Link>
         <div className="flex items-center gap-brand-3">
           <Link
-            href={`/${locale}/klient`}
+            href={`/${locale}`}
             className="focus-ring rounded-data text-body font-medium text-brand-foundation-navy hover:underline"
           >
             {t("imClient")}
@@ -38,7 +38,7 @@ export async function ProducerHeader({ locale }: ProducerHeaderProps) {
           {isProducerSession ? (
             <>
               <Link
-                href={`/${locale}/producent/panel`}
+                href={`/${locale}/producer/panel`}
                 aria-label={t("account")}
                 className="focus-ring flex size-10 items-center justify-center rounded-full bg-brand-foundation-navy text-brand-warm-white"
               >
@@ -56,7 +56,7 @@ export async function ProducerHeader({ locale }: ProducerHeaderProps) {
             </>
           ) : (
             <Link
-              href={`/${locale}/logowanie?callbackUrl=${encodeURIComponent(`/${locale}/producent/panel`)}`}
+              href={`/${locale}/login?callbackUrl=${encodeURIComponent(`/${locale}/producer/panel`)}`}
               className="focus-ring rounded-data text-body font-medium text-brand-foundation-navy hover:underline"
             >
               {t("signIn")}

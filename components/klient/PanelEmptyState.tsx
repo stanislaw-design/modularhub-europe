@@ -7,7 +7,7 @@ interface PanelEmptyStateProps {
   description: string;
 }
 
-// Pusta lista, wspólna dla /klient/panel/ulubione i /klient/panel/zapytania
+// Pusta lista, wspólna dla /panel/favorites i /panel/inquiries
 // (spec 0024 AC-11): przyjazny komunikat z linkiem powrotnym do /wyniki,
 // nigdy błąd ani pusta strona. title/description are already resolved strings
 // from the owning page (their copy differs per screen), so only the shared
@@ -22,7 +22,7 @@ export async function PanelEmptyState({ locale, title, description }: PanelEmpty
       <Text tone="muted" surface="v5" measure className="mx-auto">
         {description}
       </Text>
-      <Button as="a" href={`/${locale}/klient/wyniki`} variant="secondary" surface="v5">
+      <Button as="a" href={`/${locale}/results`} variant="secondary" surface="v5">
         {t("browseHomes")}
       </Button>
     </Card>

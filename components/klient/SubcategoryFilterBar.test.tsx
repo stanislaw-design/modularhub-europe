@@ -35,7 +35,7 @@ describe("SubcategoryFilterBar", () => {
 
     expect(screen.getByRole("link", { name: "Jacuzzi" })).toHaveAttribute(
       "href",
-      "/pl/klient/wyniki?family=spa-modulowe&spaSubcategory=jacuzzi"
+      "/pl/results?family=spa-modulowe&spaSubcategory=jacuzzi"
     );
   });
 
@@ -48,7 +48,7 @@ describe("SubcategoryFilterBar", () => {
 
     const active = screen.getByRole("link", { name: "Jacuzzi" });
     expect(active).toHaveAttribute("aria-current", "true");
-    expect(active).toHaveAttribute("href", "/pl/klient/wyniki?family=spa-modulowe");
+    expect(active).toHaveAttribute("href", "/pl/results?family=spa-modulowe");
 
     expect(screen.getByRole("link", { name: "Sauna" })).not.toHaveAttribute("aria-current");
   });
@@ -63,7 +63,7 @@ describe("SubcategoryFilterBar", () => {
     expect(screen.getByRole("link", { name: "Drewniana" })).toHaveAttribute("aria-current", "true");
     expect(screen.getByRole("link", { name: "Bioklimatyczna" })).toHaveAttribute(
       "href",
-      "/pl/klient/wyniki?family=pergola&pergolaSubcategory=bioklimatyczna"
+      "/pl/results?family=pergola&pergolaSubcategory=bioklimatyczna"
     );
   });
 
@@ -73,7 +73,7 @@ describe("SubcategoryFilterBar", () => {
 
     expect(screen.getByRole("link", { name: "Sauna" })).toHaveAttribute(
       "href",
-      "/pl/klient/wyniki?family=spa-modulowe&spaSubcategory=sauna&sort=price-asc&q=spa"
+      "/pl/results?family=spa-modulowe&spaSubcategory=sauna&sort=price-asc&q=spa"
     );
   });
 });

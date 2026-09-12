@@ -6,7 +6,7 @@ test.describe("SiteHeader mobile hamburger and menu (spec 0030)", () => {
   }) => {
     for (const width of [320, 360, 375, 414, 428]) {
       await page.setViewportSize({ width, height: 700 });
-      await page.goto("/pl/klient");
+      await page.goto("/pl");
 
       const hamburger = page.getByRole("button", { name: "Otwórz menu" });
       await expect(hamburger).toBeVisible();
@@ -24,13 +24,13 @@ test.describe("SiteHeader mobile hamburger and menu (spec 0030)", () => {
     await expect(page.getByRole("link", { name: "Producenci" })).toHaveCount(0);
   });
 
-  test("Projekty link in the menu navigates to /wyniki (AC-3)", async ({ page }) => {
+  test("Projekty link in the menu navigates to /results (AC-3)", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 700 });
-    await page.goto("/pl/klient");
+    await page.goto("/pl");
 
     await page.getByRole("button", { name: "Otwórz menu" }).click();
     await page.getByRole("navigation", { name: "Nawigacja" }).getByRole("link", { name: "Projekty" }).click();
 
-    await expect(page).toHaveURL(/\/pl\/klient\/wyniki$/);
+    await expect(page).toHaveURL(/\/pl\/results$/);
   });
 });

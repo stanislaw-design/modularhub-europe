@@ -15,9 +15,9 @@ ModularHub Europe ma wyglądać precyzyjnie, nowocześnie i pewnie. Czerń buduj
 - techniczny, ale ludzki,
 - wyrazisty, nie krzykliwy.
 
-## Logo — v4 „Passage”
+## Logo — v4 „MH House”
 
-Wybranym znakiem prototypu jest płaski system `assets/brand/logo/v4/`. Dwie stabilne podpory i ukośny łącznik tworzą abstrakcyjny hub, a pomarańczowe przejście komunikuje kierunek procesu. Pełny lockup jest używany w nagłówkach klienta i producenta, wariant odwrócony nad fotograficznym hero, a znak na pomarańczowym polu jako favicon i ikona aplikacji.
+Wybrany znak łączy litery `M` i `H` w modułową bryłę domu zgodną z dostarczonym wzorem. Czarna część `M` buduje konstrukcję, grafitowe `H` domyka elewację, a pomarańczowy dach i drzwi prowadzą wzrok. Pełny lockup jest używany w nagłówkach klienta i producenta, wariant odwrócony nad fotograficznym hero, a sam symbol jako favicon i ikona aplikacji.
 
 - podstawowy lockup: `v4/horizontal/logo-horizontal-primary-v4.svg`,
 - ciemne lub fotograficzne tło: `v4/horizontal/logo-horizontal-reversed-v4.svg`,

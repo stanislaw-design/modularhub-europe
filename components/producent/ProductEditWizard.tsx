@@ -94,7 +94,7 @@ export function ProductEditWizard({ locale, productId, initialDraft, initialPhot
       setSaveError(result.error ?? t("saveError"));
       return;
     }
-    router.push(`/${locale}/producent/panel/produkty`);
+    router.push(`/${locale}/producer/panel/products`);
   }
 
   const currentStep = WIZARD_STEPS[stepIndex];

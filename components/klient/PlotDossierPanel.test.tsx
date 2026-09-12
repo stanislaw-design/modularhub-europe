@@ -16,7 +16,7 @@ const projectB = makeProject("prj-steelhouse-alpine-104", "Steel House Alpine 10
 
 describe("PlotDossierPanel", () => {
   it("renders exactly one H1 and one collapsed row per selected project (AC-2)", () => {
-    render(<PlotDossierPanel locale="pl" projects={[projectA, projectB]} resultsHref="/pl/klient/wyniki" />);
+    render(<PlotDossierPanel locale="pl" projects={[projectA, projectB]} resultsHref="/pl/results" />);
 
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Panel działki");
@@ -29,7 +29,7 @@ describe("PlotDossierPanel", () => {
 
   it("shares one address field across every row, required before any row's Zapłać is enabled (AC-2, AC-3)", async () => {
     const user = userEvent.setup();
-    render(<PlotDossierPanel locale="pl" projects={[projectA]} resultsHref="/pl/klient/wyniki" />);
+    render(<PlotDossierPanel locale="pl" projects={[projectA]} resultsHref="/pl/results" />);
 
     await user.click(screen.getByRole("button", { name: /Budman Familia 90/ }));
     await user.type(screen.getByLabelText(/metraż działki/i), "250");
@@ -43,7 +43,7 @@ describe("PlotDossierPanel", () => {
     "keeps one row's payment and result independent from another row in the same panel (AC-8)",
     async () => {
       const user = userEvent.setup();
-      render(<PlotDossierPanel locale="pl" projects={[projectA, projectB]} resultsHref="/pl/klient/wyniki" />);
+      render(<PlotDossierPanel locale="pl" projects={[projectA, projectB]} resultsHref="/pl/results" />);
 
       await user.type(screen.getByLabelText(/adres działki/i), "Ul. Testowa 10");
       await user.click(screen.getByRole("button", { name: /Budman Familia 90/ }));
@@ -77,11 +77,11 @@ describe("PlotDossierPanel", () => {
       <PlotDossierPanel
         locale="pl"
         projects={[projectA]}
-        resultsHref="/pl/klient/wyniki?country=DE&sizeMin=50"
+        resultsHref="/pl/results?country=DE&sizeMin=50"
       />
     );
 
     const link = screen.getByRole("link", { name: "Wróć do wyników" });
-    expect(link).toHaveAttribute("href", "/pl/klient/wyniki?country=DE&sizeMin=50");
+    expect(link).toHaveAttribute("href", "/pl/results?country=DE&sizeMin=50");
   });
 });

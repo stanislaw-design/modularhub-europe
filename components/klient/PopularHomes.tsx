@@ -31,7 +31,7 @@ export async function PopularHomes({ locale, projects, countries }: PopularHomes
               key={project.id}
               project={project}
               countryName={countryNameByCode.get(project.countryOfProduction) ?? project.countryOfProduction}
-              href={`/${locale}/klient/projekt/${project.id}`}
+              href={`/${locale}/project/${project.id}`}
             />
           ))}
         </div>

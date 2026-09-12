@@ -73,7 +73,7 @@ export function PlotAnalysisRow({ locale, project, address, request, onChangeReq
   // AC-16): odnośnik prowadzi teraz do panelu zapytań, nie do jednego
   // wyliczonego z góry "project"/"address" — oferty żyją teraz per zapytanie
   // w bazie, nie per pojedynczy produkt z tego ekranu.
-  const offerHref = `/${locale}/klient/panel/zapytania`;
+  const offerHref = `/${locale}/panel/inquiries`;
 
   function handlePay() {
     if (!canPay) return;

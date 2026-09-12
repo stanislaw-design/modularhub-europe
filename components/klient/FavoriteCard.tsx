@@ -16,7 +16,7 @@ interface FavoriteCardProps {
 
 const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0 });
 
-// Karta na /klient/panel/ulubione (spec 0024 AC-2, AC-3, AC-6): serce cofa
+// Karta na /panel/favorites (spec 0024 AC-2, AC-3, AC-6): serce cofa
 // ulubienie (zawsze sesja klienta, zawsze favorited na tej stronie), checkbox
 // zaznacza do porównania (maksymalnie 3, stan w URL, patrz FavoritesGrid).
 // Produkt niedostępny zostaje na liście, tylko oznaczony, nie znika po cichu.
@@ -25,7 +25,7 @@ const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0
 export function FavoriteCard({ entry, locale, selected, selectionDisabled, onToggleSelect }: FavoriteCardProps) {
   const t = useTranslations("FavoriteCard");
   const { project, available } = entry;
-  const href = `/${locale}/klient/projekt/${project.id}`;
+  const href = `/${locale}/project/${project.id}`;
 
   return (
     <Card

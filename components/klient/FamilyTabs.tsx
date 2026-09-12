@@ -40,7 +40,7 @@ export async function FamilyTabs({ locale, family, countryCode, sizeMin, sizeMax
     if (sizeMin !== undefined) params.set("sizeMin", String(sizeMin));
     if (sizeMax !== undefined) params.set("sizeMax", String(sizeMax));
     const query = params.toString();
-    return `/${locale}/klient/wyniki${query ? `?${query}` : ""}`;
+    return `/${locale}/results${query ? `?${query}` : ""}`;
   }
 
   return (

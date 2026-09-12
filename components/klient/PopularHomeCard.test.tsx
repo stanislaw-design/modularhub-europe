@@ -7,8 +7,8 @@ const project = createMockProject({ name: "Modulor Family 90" });
 
 describe("PopularHomeCard", () => {
   it("links to the href it is given (spec 0020 AC-2)", async () => {
-    render(await PopularHomeCard({ project, countryName: "Polska", href: "/pl/klient/projekt/prj-modulor-family-90" }));
-    expect(screen.getByRole("link")).toHaveAttribute("href", "/pl/klient/projekt/prj-modulor-family-90");
+    render(await PopularHomeCard({ project, countryName: "Polska", href: "/pl/project/prj-modulor-family-90" }));
+    expect(screen.getByRole("link")).toHaveAttribute("href", "/pl/project/prj-modulor-family-90");
   });
 
   it("shows the house price, excluding transport and assembly, when priceOnRequest is not set", async () => {

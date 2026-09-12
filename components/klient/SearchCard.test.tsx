@@ -64,7 +64,7 @@ describe("SearchCard", () => {
     await user.click(screen.getByRole("option", { name: "Polska" }));
     await user.click(screen.getByRole("button", { name: /szukaj/i }));
 
-    expect(push).toHaveBeenCalledWith("/pl/klient/wyniki?country=PL&family=wiecej-niz-dom");
+    expect(push).toHaveBeenCalledWith("/pl/results?country=PL&family=wiecej-niz-dom");
   });
 
   it("omits family from the URL when Domy (the default) is active on search (AC-1)", async () => {
@@ -76,7 +76,7 @@ describe("SearchCard", () => {
     await user.click(screen.getByRole("option", { name: "Polska" }));
     await user.click(screen.getByRole("button", { name: /szukaj/i }));
 
-    expect(push).toHaveBeenCalledWith("/pl/klient/wyniki?country=PL");
+    expect(push).toHaveBeenCalledWith("/pl/results?country=PL");
   });
 
   it("keeps Budżet and Powierzchnia unchanged regardless of the active family tab (AC-5)", async () => {

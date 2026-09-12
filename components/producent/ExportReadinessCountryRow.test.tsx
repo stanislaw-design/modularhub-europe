@@ -109,7 +109,7 @@ describe("ExportReadinessCountryRow", () => {
     await user.click(screen.getByRole("button", { name: /Niemcy/ }));
 
     const link = screen.getByRole("link", { name: "Domknij luki" });
-    expect(link).toHaveAttribute("href", "/pl/producent/domykanie-luk?kraj=DE");
+    expect(link).toHaveAttribute("href", "/pl/producer/gap-closure?kraj=DE");
   });
 
   it("carries the project name through to the gap closure link when present (AC-1)", async () => {
@@ -121,7 +121,7 @@ describe("ExportReadinessCountryRow", () => {
     await user.click(screen.getByRole("button", { name: /Niemcy/ }));
 
     const link = screen.getByRole("link", { name: "Domknij luki" });
-    expect(link).toHaveAttribute("href", "/pl/producent/domykanie-luk?kraj=DE&nazwa=Modulor%2028");
+    expect(link).toHaveAttribute("href", "/pl/producer/gap-closure?kraj=DE&nazwa=Modulor%2028");
   });
 
   it("never shows the 'Domknij luki' link for an approved or blocked row", () => {

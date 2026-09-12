@@ -40,7 +40,7 @@ describe("ShortlistActionBar", () => {
 
     await user.click(screen.getByRole("button", { name: "Wyślij zapytanie" }));
 
-    expect(push).toHaveBeenCalledWith("/pl/klient/zapytanie?projects=id1%2Cid2");
+    expect(push).toHaveBeenCalledWith("/pl/inquiry?projects=id1%2Cid2");
   });
 
   it("carries the current country/sizeMin/sizeMax filters into the zapytanie URL (AC-4)", async () => {
@@ -60,7 +60,7 @@ describe("ShortlistActionBar", () => {
     await user.click(screen.getByRole("button", { name: "Wyślij zapytanie" }));
 
     expect(push).toHaveBeenCalledWith(
-      "/pl/klient/zapytanie?projects=id1&country=DE&sizeMin=50&sizeMax=100"
+      "/pl/inquiry?projects=id1&country=DE&sizeMin=50&sizeMax=100"
     );
   });
 
