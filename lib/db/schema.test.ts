@@ -2,7 +2,18 @@ import { createHash } from "node:crypto";
 import { and, eq, inArray } from "drizzle-orm";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { db } from "./client";
-import { auditLog, client, document, producer, product, users } from "./schema";
+import {
+  auditLog,
+  bulkProductInquiry,
+  client,
+  document,
+  favorite,
+  producer,
+  product,
+  projectQuote,
+  projectRequest,
+  users,
+} from "./schema";
 
 // Confirms AC-2 (spec 0018): every mutation of a personal-data table is
 // captured by the Postgres trigger (drizzle/0002_audit_log_trigger.sql), not
@@ -13,6 +24,22 @@ import { auditLog, client, document, producer, product, users } from "./schema";
 // against the real dev database.
 function md5(value: string): string {
   return createHash("md5").update(value).digest("hex");
+}
+
+// drizzle-orm wraps the raw Postgres error in a DrizzleQueryError; the
+// constraint/trigger detail lives on `.cause.message`, not the top-level
+// message (same pattern as the existing FK and document_one_cover_per_product
+// tests below, factored out here for the spec 0037 constraints that reuse it).
+async function expectRejectionToMatch(promise: Promise<unknown>, pattern: RegExp): Promise<void> {
+  let caught: unknown;
+  try {
+    await promise;
+  } catch (error) {
+    caught = error;
+  }
+  const topMessage = caught instanceof Error ? caught.message : String(caught);
+  const causeMessage = caught instanceof Error && caught.cause instanceof Error ? caught.cause.message : "";
+  expect(`${topMessage} ${causeMessage}`).toMatch(pattern);
 }
 
 describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: audit trail on create/update", () => {
@@ -143,6 +170,60 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: audit trail on delete
     expect(rows).toHaveLength(1);
     expect(rows[0]?.tableName).toBe("client");
     expect(rows[0]?.oldValues?.user_id).toBe(userId);
+  });
+});
+
+// /debug (2026-09-13): audit_log_capture() must fall back to an md5 hash of
+// the whole row for a table with no single `id` column (composite primary
+// key), not write NULL into audit_log.record_id (a NOT NULL column) and roll
+// back the write on the audited table itself. This regressed once already
+// (drizzle/0014_bulk_request_limit_and_audit.sql's CREATE OR REPLACE
+// accidentally reverted the drizzle/0007_fix_favorite_audit_trigger.sql fix on
+// the live database, breaking every favorite/offer_item write) — this test
+// locks the fallback in directly against `favorite` (client_id, product_id),
+// rather than relying on it being incidentally exercised elsewhere.
+describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: audit trail falls back to a row hash for tables with no single id column", () => {
+  const userId = crypto.randomUUID();
+  const clientId = crypto.randomUUID();
+  const producerId = crypto.randomUUID();
+  const producerUserId = crypto.randomUUID();
+  const productId = crypto.randomUUID();
+
+  beforeAll(async () => {
+    await db.insert(users).values([
+      { id: userId, email: `audit-fallback-client-${userId}@example.test`, phone: "+48000000000", role: "client" },
+      { id: producerUserId, email: `audit-fallback-producer-${producerUserId}@example.test`, phone: "+48000000000", role: "producer" },
+    ]);
+    await db.insert(client).values({ id: clientId, userId });
+    await db.insert(producer).values({ id: producerId, userId: producerUserId, nip: `AFB${producerId.slice(0, 9)}`, name: "Audit Fallback Producer", countryCode: "PL", technology: "szkielet-drewniany" });
+    await db.insert(product).values({ id: productId, producerId, family: "dom", name: "Audit Fallback Product" });
+  });
+
+  afterAll(async () => {
+    await db.delete(favorite).where(and(eq(favorite.clientId, clientId), eq(favorite.productId, productId)));
+    await db.delete(product).where(eq(product.id, productId));
+    await db.delete(producer).where(eq(producer.id, producerId));
+    await db.delete(client).where(eq(client.id, clientId));
+    await db.delete(users).where(inArray(users.id, [userId, producerUserId]));
+    await db.delete(auditLog).where(inArray(auditLog.recordId, [userId, producerUserId, clientId, producerId, productId]));
+  });
+
+  it("succeeds inserting into favorite (composite key, no id column) and audits it with an md5 row hash, not NULL", async () => {
+    await expect(db.insert(favorite).values({ clientId, productId })).resolves.not.toThrow();
+
+    const rows = await db.select().from(auditLog).where(eq(auditLog.tableName, "favorite"));
+    const row = rows.find((candidate) => {
+      const values = candidate.newValues as Record<string, unknown> | null;
+      return values?.client_id === clientId && values?.product_id === productId;
+    });
+    expect(row).toBeDefined();
+    expect(row?.recordId).not.toBeNull();
+    // The exact hash depends on created_at (part of the row), so just assert
+    // it is a well formed md5 hex digest, not the primary key concatenation.
+    expect(row?.recordId).toMatch(/^[0-9a-f]{32}$/);
+    expect(row?.recordId).not.toBe(`${clientId}${productId}`);
+
+    await db.delete(auditLog).where(eq(auditLog.id, row!.id));
   });
 });
 
@@ -339,5 +420,188 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: document_one_cover_pe
         productId,
       }),
     ).resolves.not.toThrow();
+  });
+});
+
+// spec 0037: CHECK constraints and the exactly-one-link/mutual-exclusion
+// invariants must hold even for a manual insert bypassing the application
+// layer (same rationale as document_one_cover_per_product above).
+describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: project_request / bulk_product_inquiry / project_quote CHECK constraints", () => {
+  afterEach(async () => {
+    await db.delete(projectRequest).where(eq(projectRequest.contactEmail, "schema-check@example.test"));
+  });
+
+  it("rejects a project_request with an empty families array", async () => {
+    await expectRejectionToMatch(
+      db.insert(projectRequest).values({
+        contactName: "Schema Check",
+        contactEmail: "schema-check@example.test",
+        countryCode: "PL",
+        projectType: "resort",
+        families: [],
+        unitCountMin: 12,
+      }),
+      /project_request_families_not_empty/,
+    );
+  });
+
+  it("rejects a project_request with unitCountMin below 10", async () => {
+    await expectRejectionToMatch(
+      db.insert(projectRequest).values({
+        contactName: "Schema Check",
+        contactEmail: "schema-check@example.test",
+        countryCode: "PL",
+        projectType: "resort",
+        families: ["dom"],
+        unitCountMin: 9,
+      }),
+      /project_request_unit_count_min/,
+    );
+  });
+
+  it("rejects a project_request where unitCountMax is below unitCountMin", async () => {
+    await expectRejectionToMatch(
+      db.insert(projectRequest).values({
+        contactName: "Schema Check",
+        contactEmail: "schema-check@example.test",
+        countryCode: "PL",
+        projectType: "resort",
+        families: ["dom"],
+        unitCountMin: 20,
+        unitCountMax: 10,
+      }),
+      /project_request_unit_count_max/,
+    );
+  });
+
+  it("rejects a project_quote with neither projectRequestId nor bulkProductInquiryId set", async () => {
+    const producerId = crypto.randomUUID();
+    const userId = crypto.randomUUID();
+    await db.insert(users).values({ id: userId, email: `pq-check-${userId}@example.test`, phone: "+48000000000", role: "producer" });
+    await db.insert(producer).values({ id: producerId, userId, nip: `PQC${producerId.slice(0, 9)}`, name: "Schema Check Producer", countryCode: "PL", technology: "szkielet-drewniany" });
+
+    await expectRejectionToMatch(
+      db.insert(projectQuote).values({ producerId, totalPriceCents: 500000 }),
+      /project_quote_exactly_one_link/,
+    );
+
+    await db.delete(producer).where(eq(producer.id, producerId));
+    await db.delete(users).where(eq(users.id, userId));
+    await db.delete(auditLog).where(inArray(auditLog.recordId, [userId, producerId]));
+  });
+});
+
+// spec 0037, AC-9: at most one accepted project_quote per project_request,
+// regardless of producer -- enforced by project_quote_accepted_per_request,
+// not just by application logic (lib/project-quote-actions.ts's acceptProjectQuote).
+describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: project_quote_accepted_per_request partial unique index", () => {
+  const producerAId = crypto.randomUUID();
+  const producerAUserId = crypto.randomUUID();
+  const producerBId = crypto.randomUUID();
+  const producerBUserId = crypto.randomUUID();
+  const projectRequestId = crypto.randomUUID();
+
+  beforeAll(async () => {
+    await db.insert(users).values([
+      { id: producerAUserId, email: `pq-idx-a-${producerAUserId}@example.test`, phone: "+48000000000", role: "producer" },
+      { id: producerBUserId, email: `pq-idx-b-${producerBUserId}@example.test`, phone: "+48000000000", role: "producer" },
+    ]);
+    await db.insert(producer).values([
+      { id: producerAId, userId: producerAUserId, nip: `PQIA${producerAId.slice(0, 8)}`, name: "Index Test Producer A", countryCode: "PL", technology: "szkielet-drewniany" },
+      { id: producerBId, userId: producerBUserId, nip: `PQIB${producerBId.slice(0, 8)}`, name: "Index Test Producer B", countryCode: "PL", technology: "szkielet-drewniany" },
+    ]);
+    await db.insert(projectRequest).values({
+      id: projectRequestId,
+      contactName: "Index Test Investor",
+      contactEmail: `pq-idx-${projectRequestId}@example.test`,
+      countryCode: "PL",
+      projectType: "resort",
+      families: ["dom"],
+      unitCountMin: 12,
+    });
+  });
+
+  afterAll(async () => {
+    await db.delete(projectQuote).where(eq(projectQuote.projectRequestId, projectRequestId));
+    await db.delete(projectRequest).where(eq(projectRequest.id, projectRequestId));
+    await db.delete(producer).where(inArray(producer.id, [producerAId, producerBId]));
+    await db.delete(users).where(inArray(users.id, [producerAUserId, producerBUserId]));
+    await db.delete(auditLog).where(inArray(auditLog.recordId, [producerAUserId, producerBUserId, producerAId, producerBId]));
+  });
+
+  it("allows only one accepted quote per project_request, across different producers", async () => {
+    await db.insert(projectQuote).values({ projectRequestId, producerId: producerAId, totalPriceCents: 500000, status: "accepted" });
+
+    await expectRejectionToMatch(
+      db.insert(projectQuote).values({ projectRequestId, producerId: producerBId, totalPriceCents: 600000, status: "accepted" }),
+      /project_quote_accepted_per_request|unique constraint/i,
+    );
+  });
+});
+
+// spec 0037: project_request/bulk_product_inquiry carry personal data from a
+// person without an account, same as inquiry (spec 0018 Key invariants) --
+// the audit trigger's redaction list (drizzle/0014_bulk_request_limit_and_audit.sql)
+// was extended to cover their contact_name/contact_email/contact_phone columns.
+describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: audit trail redacts project_request / bulk_product_inquiry contact fields", () => {
+  it("redacts contact_name/contact_email/contact_phone on project_request to their md5 hash", async () => {
+    const contactEmail = `audit-pr-${crypto.randomUUID()}@example.test`;
+    const [inserted] = await db
+      .insert(projectRequest)
+      .values({ contactName: "Audit Investor", contactEmail, contactPhone: "+48111222333", countryCode: "PL", projectType: "resort", families: ["dom"], unitCountMin: 12 })
+      .returning({ id: projectRequest.id });
+
+    const [auditRow] = await db.select().from(auditLog).where(and(eq(auditLog.recordId, inserted.id), eq(auditLog.action, "create")));
+
+    expect(auditRow?.newValues?.contact_name).toBe(md5("Audit Investor"));
+    expect(auditRow?.newValues?.contact_email).toBe(md5(contactEmail));
+    expect(auditRow?.newValues?.contact_phone).toBe(md5("+48111222333"));
+
+    await db.delete(projectRequest).where(eq(projectRequest.id, inserted.id));
+    await db.delete(auditLog).where(eq(auditLog.recordId, inserted.id));
+  });
+
+  it("redacts contact fields on bulk_product_inquiry the same way", async () => {
+    const producerId = crypto.randomUUID();
+    const producerUserId = crypto.randomUUID();
+    const productId = crypto.randomUUID();
+    await db.insert(users).values({ id: producerUserId, email: `audit-bpi-producer-${producerUserId}@example.test`, phone: "+48000000000", role: "producer" });
+    await db.insert(producer).values({ id: producerId, userId: producerUserId, nip: `ABP${producerId.slice(0, 9)}`, name: "Audit BPI Producer", countryCode: "PL", technology: "szkielet-drewniany" });
+    await db.insert(product).values({ id: productId, producerId, family: "dom", status: "published", name: "Audit BPI Product" });
+
+    const contactEmail = `audit-bpi-${crypto.randomUUID()}@example.test`;
+    const [inserted] = await db
+      .insert(bulkProductInquiry)
+      .values({ productId, contactName: "Audit Bulk Buyer", contactEmail, unitCountMin: 20, deliveryCountryCode: "PL" })
+      .returning({ id: bulkProductInquiry.id });
+
+    const [auditRow] = await db.select().from(auditLog).where(and(eq(auditLog.recordId, inserted.id), eq(auditLog.action, "create")));
+    expect(auditRow?.newValues?.contact_name).toBe(md5("Audit Bulk Buyer"));
+    expect(auditRow?.newValues?.contact_email).toBe(md5(contactEmail));
+
+    await db.delete(bulkProductInquiry).where(eq(bulkProductInquiry.id, inserted.id));
+    await db.delete(product).where(eq(product.id, productId));
+    await db.delete(producer).where(eq(producer.id, producerId));
+    await db.delete(users).where(eq(users.id, producerUserId));
+    await db.delete(auditLog).where(inArray(auditLog.recordId, [inserted.id, producerUserId, producerId]));
+  });
+});
+
+// spec 0037, AC-10: enforced atomically by an advisory-lock trigger
+// (drizzle/0014_bulk_request_limit_and_audit.sql), not by application code --
+// a manual insert bypassing lib/project-request-actions.ts must trip it too.
+describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: enforce_bulk_request_email_limit trigger", () => {
+  it("rejects a 4th unresolved project_request for the same email, inserted directly", async () => {
+    const email = `schema-limit-${crypto.randomUUID()}@example.test`;
+    for (let index = 0; index < 3; index += 1) {
+      await db.insert(projectRequest).values({ contactName: `Direct ${index}`, contactEmail: email, countryCode: "PL", projectType: "resort", families: ["dom"], unitCountMin: 10 + index });
+    }
+
+    await expectRejectionToMatch(
+      db.insert(projectRequest).values({ contactName: "Direct 4", contactEmail: email, countryCode: "PL", projectType: "resort", families: ["dom"], unitCountMin: 20 }),
+      /bulk_request_email_limit_exceeded/,
+    );
+
+    await db.delete(projectRequest).where(eq(projectRequest.contactEmail, email));
   });
 });

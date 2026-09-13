@@ -1,5 +1,6 @@
 // Tymczasowo wyłączone — sekcja "Więcej niż dom" (spec 0029), patrz użycie niżej.
 // import { CategoryShowcase } from "@/components/klient/CategoryShowcase";
+import { BulkOrdersShowcase } from "@/components/klient/BulkOrdersShowcase";
 import { ClosingCta } from "@/components/klient/ClosingCta";
 import { CompareHomesTeaser } from "@/components/klient/CompareHomesTeaser";
 import { ComplianceEngineShowcase } from "@/components/klient/ComplianceEngineShowcase";
@@ -34,6 +35,7 @@ export default async function KlientHomePage({
       <Hero>
         <SearchCard locale={locale} countries={countries} />
       </Hero>
+      <BulkOrdersShowcase locale={locale} />
       <PopularHomes locale={locale} projects={projects} countries={countries} />
       {/* Tymczasowo wyłączone — sekcja "Więcej niż dom" (spec 0029). Przywrócić: <CategoryShowcase locale={locale} /> */}
       <ComplianceEngineShowcase locale={locale} />

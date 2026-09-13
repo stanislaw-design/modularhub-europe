@@ -1,6 +1,15 @@
 import { and, desc, eq, gte, inArray, isNull, lte, ne, or, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { document, favorite, producer, product, productCountryEligibility, productTranslation } from "@/lib/db/schema";
+import {
+  document,
+  favorite,
+  producer,
+  producerCapacityProfile,
+  producerDeliveryCountry,
+  product,
+  productCountryEligibility,
+  productTranslation,
+} from "@/lib/db/schema";
 import type { Locale } from "@/lib/i18n/routing";
 import type { EnergyClass, VentilationType } from "@/lib/product-technical-specs";
 import { captureError } from "@/lib/observability/errors";
@@ -101,7 +110,7 @@ interface ProductDocumentPhotos {
 // lib/storage/r2-client.ts) must degrade to the mock/legacy cover images
 // applyDocumentPhotos() already falls back to for a product with no entry in
 // the returned map, never take down every screen that lists projects.
-async function resolveProductDocumentPhotos(productIds: string[]): Promise<Map<string, ProductDocumentPhotos>> {
+export async function resolveProductDocumentPhotos(productIds: string[]): Promise<Map<string, ProductDocumentPhotos>> {
   if (productIds.length === 0) return new Map();
 
   try {
@@ -493,4 +502,146 @@ export async function getFavoritesForClient(clientId: string): Promise<FavoriteL
     project: applyDocumentPhotos(mapRowToProject(row.product, row.producerName), documentPhotos.get(row.product.id)),
     available: row.product.status === "published" && row.product.deletedAt === null,
   }));
+}
+
+export interface VerifiedVolumeManufacturer {
+  producerId: string;
+  producerName: string;
+  unitsPerMonth: number | null;
+  certifications: string[];
+  deliveryCountries: CountryCode[];
+  projects: Project[];
+}
+
+async function loadDeliveryCountriesByProducer(producerIds: string[]): Promise<Map<string, CountryCode[]>> {
+  if (producerIds.length === 0) return new Map();
+  const rows = await db
+    .select({ producerId: producerDeliveryCountry.producerId, countryCode: producerDeliveryCountry.countryCode })
+    .from(producerDeliveryCountry)
+    .where(inArray(producerDeliveryCountry.producerId, producerIds));
+  const map = new Map<string, CountryCode[]>();
+  for (const row of rows) {
+    const list = map.get(row.producerId) ?? [];
+    list.push(row.countryCode as CountryCode);
+    map.set(row.producerId, list);
+  }
+  return map;
+}
+
+// Feeds /verified-manufacturers (spec 0038 AC-13): "who qualifies" is the
+// exact same condition autoTargetProducers already uses in
+// lib/project-request-actions.ts (volumeVerificationStatus = 'approved'),
+// so this screen and the auto-matching engine never disagree on the list.
+export async function getVerifiedVolumeManufacturerProjects(locale: Locale = "pl"): Promise<VerifiedVolumeManufacturer[]> {
+  const approvedProducers = await db
+    .select({
+      producerId: producer.id,
+      producerName: producer.name,
+      unitsPerMonth: producerCapacityProfile.unitsPerMonth,
+      certifications: producerCapacityProfile.certifications,
+    })
+    .from(producer)
+    .innerJoin(producerCapacityProfile, eq(producerCapacityProfile.producerId, producer.id))
+    .where(and(eq(producerCapacityProfile.volumeVerificationStatus, "approved"), isNull(producer.deletedAt)));
+
+  if (approvedProducers.length === 0) return [];
+
+  const producerIds = approvedProducers.map((row) => row.producerId);
+  const productConditions = [eq(product.status, "published"), inArray(product.producerId, producerIds)];
+
+  const projectsByProducer = new Map<string, Project[]>();
+  if (locale === "en" || locale === "nl") {
+    const rows = await db
+      .select({
+        product,
+        producerName: producer.name,
+        translationName: productTranslation.name,
+        translationDescription: productTranslation.description,
+      })
+      .from(product)
+      .innerJoin(producer, eq(product.producerId, producer.id))
+      .leftJoin(
+        productTranslation,
+        and(eq(productTranslation.productId, product.id), eq(productTranslation.locale, locale)),
+      )
+      .where(and(...productConditions));
+    for (const row of rows) {
+      const list = projectsByProducer.get(row.product.producerId) ?? [];
+      list.push(
+        mapRowToProject(row.product, row.producerName, {
+          name: row.translationName,
+          description: row.translationDescription,
+        }),
+      );
+      projectsByProducer.set(row.product.producerId, list);
+    }
+  } else {
+    const rows = await db
+      .select({ product, producerName: producer.name })
+      .from(product)
+      .innerJoin(producer, eq(product.producerId, producer.id))
+      .where(and(...productConditions));
+    for (const row of rows) {
+      const list = projectsByProducer.get(row.product.producerId) ?? [];
+      list.push(mapRowToProject(row.product, row.producerName));
+      projectsByProducer.set(row.product.producerId, list);
+    }
+  }
+
+  const allProjectIds = [...projectsByProducer.values()].flat().map((project) => project.id);
+  const documentPhotos = await resolveProductDocumentPhotos(allProjectIds);
+  for (const [producerId, list] of projectsByProducer) {
+    projectsByProducer.set(
+      producerId,
+      list.map((project) => applyDocumentPhotos(project, documentPhotos.get(project.id))),
+    );
+  }
+
+  const deliveryMap = await loadDeliveryCountriesByProducer(producerIds);
+
+  return approvedProducers.map((row) => ({
+    producerId: row.producerId,
+    producerName: row.producerName,
+    unitsPerMonth: row.unitsPerMonth,
+    certifications: row.certifications ?? [],
+    deliveryCountries: deliveryMap.get(row.producerId) ?? [],
+    projects: projectsByProducer.get(row.producerId) ?? [],
+  }));
+}
+
+// Gates the "Zapytaj o większą ilość" block on /project/[id] (spec 0038
+// AC-15): null unless this producer has an approved capacity profile, same
+// 'approved' condition as getVerifiedVolumeManufacturerProjects above.
+export async function getProducerVolumeProfile(
+  producerId: string,
+): Promise<Omit<VerifiedVolumeManufacturer, "projects"> | null> {
+  if (!UUID_PATTERN.test(producerId)) return null;
+
+  const [row] = await db
+    .select({
+      producerId: producer.id,
+      producerName: producer.name,
+      unitsPerMonth: producerCapacityProfile.unitsPerMonth,
+      certifications: producerCapacityProfile.certifications,
+    })
+    .from(producer)
+    .innerJoin(producerCapacityProfile, eq(producerCapacityProfile.producerId, producer.id))
+    .where(
+      and(
+        eq(producer.id, producerId),
+        eq(producerCapacityProfile.volumeVerificationStatus, "approved"),
+        isNull(producer.deletedAt),
+      ),
+    );
+  if (!row) return null;
+
+  const deliveryMap = await loadDeliveryCountriesByProducer([producerId]);
+
+  return {
+    producerId: row.producerId,
+    producerName: row.producerName,
+    unitsPerMonth: row.unitsPerMonth,
+    certifications: row.certifications ?? [],
+    deliveryCountries: deliveryMap.get(producerId) ?? [],
+  };
 }

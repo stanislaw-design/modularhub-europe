@@ -1,0 +1,159 @@
+# 0038. Ekrany wejściowe dla dużych zamówień B2B
+
+**Date**: 2026-09-13
+**Status**: In Progress
+
+## Summary
+
+Ta decyzja dodaje pierwsze widoczne wejście do dużych zamówień B2B (fundament danych z spec 0037): nową sekcję na stronie głównej z dwoma kaflami (dla inwestora "10+ domów" i dla producenta "Duże moce produkcyjne"), oraz pełną, publiczną stronę formularza wolnego zapytania pod `/project-request`. Formularz zapisuje wprost do istniejącego już modelu danych i istniejącej funkcji serwerowej `submitProjectRequest`, więc ta decyzja nie zmienia bazy danych, tylko dodaje interfejs na to, co już istnieje. Kafel producenta prowadzi dziś do zwykłej rejestracji producenta, bo prawdziwy ekran zgłaszania zdolności produkcyjnej to osobna, przyszła decyzja.
+
+**Aktualizacja (ten sam dzień)**: kafel inwestora nie prowadzi już wprost do pustego formularza. Zamiast tego prowadzi na nowy ekran `/verified-manufacturers`, gdzie inwestor przegląda realne projekty producentów zweryfikowanych wolumenowo, zanim poda jakiekolwiek dane kontaktowe. Dziś jedynym takim producentem jest Budman House, zasiany ręcznie jako część tej aktualizacji. Ekran pokazuje jeden, wspólny duży przycisk "Zgłoś zapytanie" prowadzący dalej do już zbudowanego `/project-request`, a każdy projekt linkuje do swojej istniejącej strony szczegółów `/project/[id]`, gdzie nowy blok pozwala zapytać o dany model w większej ilości przez prosty modal (pierwsza wersja; prawdziwy konfigurator to osobna, przyszła decyzja). Przy okazji ta aktualizacja naprawia odkryty defekt: karta producenta na stronie szczegółów i sekcja producentów na stronie głównej czytały dane z fixture'ów, które nigdy nie pasowały do prawdziwych identyfikatorów w bazie, więc w praktyce nigdy się nie renderowały; teraz czytają realne dane.
+
+## Requirements
+
+**User stories**:
+- Jako inwestor odwiedzający stronę główną, chcę od razu zobaczyć, że platforma obsługuje duże zamówienia (10 i więcej domów), żeby wiedzieć, że to miejsce dla mojego projektu.
+- Jako inwestor, chcę wypełnić jeden formularz opisujący mój projekt i wysłać go bez zakładania konta, żeby szybko dostać wyceny od sprawdzonych producentów.
+- Jako inwestor wysyłający zapytanie, chcę wiedzieć, co się dzieje dalej i że moje dane trafią do producentów, zanim je wyślę.
+- Jako producent odwiedzający stronę główną, chcę zobaczyć, że platforma szuka producentów o dużych mocach produkcyjnych, nawet jeśli dziś prowadzi mnie to tylko do zwykłej rejestracji.
+- Jako inwestor odwiedzający ekran `/verified-manufacturers`, chcę zobaczyć realne projekty sprawdzonych, dużych producentów, żeby nabrać zaufania, zanim wyślę jakiekolwiek dane kontaktowe.
+- Jako inwestor przeglądający konkretny model domu, chcę móc od razu zapytać o niego w większej ilości, żeby nie musieć osobno opisywać, o który model mi chodzi.
+
+**Acceptance criteria** (kontrakt, każde kryterium osobno sprawdzalne):
+- **AC-1**: Strona główna pokazuje nową sekcję "Projekty inwestycyjne i produkcja seryjna" zaraz po Hero, z odznaką "NOWOŚĆ B2B", krótkim podtytułem, i dwoma kaflami z tłem fotograficznym (`public/images/b2b/investor-background.png` dla inwestora, `public/images/b2b/manufacturer-background-2x1.png` dla producenta), każdy z nagłówkiem, trzema punktami z ikoną, przyciskiem CTA i podpisem w rogu, zgodnie z dostarczonym obrazem referencyjnym.
+- **AC-2**: Przycisk CTA kafla inwestora ("Przeglądaj") prowadzi do nowej, publicznej strony `/verified-manufacturers`, dostępnej pod `/pl`, `/en`, `/nl` (zmiana celu, patrz Aktualizacja w Summary).
+- **AC-3**: Przycisk CTA kafla producenta ("Dołącz jako producent B2B") prowadzi do istniejącej strony rejestracji producenta (`/producer/registration`); ta decyzja nie buduje żadnego nowego ekranu dla producenta.
+- **AC-4**: `/project-request` renderuje jednostronicowy formularz obejmujący wszystkie pola `project_request` z AC-1 spec 0037 (kraj, typ przedsięwzięcia, rodziny produktu, liczba sztuk min/maks, zakres powierzchni, standard wykończenia, okna startu i dostawy, dane kontaktowe), pogrupowane w trzy podpisane sekcje: "O projekcie", "Szczegóły", "Dane kontaktowe".
+- **AC-5**: Wymagane do wysłania są wyłącznie pola już wymagane przez `submitProjectRequest` (kraj, typ przedsięwzięcia, przynajmniej jedna rodzina produktu, minimalna liczba sztuk, co najmniej 10, imię i nazwisko, e mail); każde inne pole jest opcjonalne.
+- **AC-6**: Wysłanie formularza wywołuje wprost istniejącą funkcję `submitProjectRequest` (`lib/project-request-actions.ts`), bez nowego endpointu API. Po sukcesie formularz zostaje zastąpiony kartą potwierdzenia, która informuje, że dopasowani, zweryfikowani producenci zostali powiadomieni i że odpowiedzi (wyceny) przyjdą e mailem.
+- **AC-7**: Tuż nad przyciskiem wysyłania widnieje zdanie informujące, że dane kontaktowe zostaną udostępnione dopasowanym, zweryfikowanym producentom (domyka lukę jawnie zostawioną w Security model spec 0037).
+- **AC-8**: Gdy `submitProjectRequest` zwróci istniejący błąd limitu zgłoszeń (3 nierozstrzygnięte zgłoszenia na ten sam e mail), formularz pokazuje ten komunikat jako błąd w obrębie formularza, zachowując wpisane dane.
+- **AC-9**: Przycisk wysyłania jest wyłączony w trakcie żądania (ten sam wzorzec `useTransition`/`isPending` co `InquiryFlow`), co zapobiega podwójnemu kliknięciu; ta decyzja nie dodaje klucza idempotencji do `submitProjectRequest`.
+- **AC-10**: `/project-request` ma pełne metadane strony (tytuł, opis, adres kanoniczny) i tagi hreflang dla `/pl`, `/en`, `/nl`, tym samym wzorcem co strona szczegółów projektu (spec 0036).
+- **AC-11**: Nowa sekcja strony głównej oraz strony `/project-request`, `/verified-manufacturers` i nowy blok zapytania o model na `/project/[id]` mają prawdziwe tłumaczenia pl/en/nl (nie kopię polskiego tekstu), zgodnie z konwencją next intl już stosowaną w projekcie.
+- **AC-12**: Wszystkie nowe i zmienione ekrany (`/project-request`, `/verified-manufacturers`, nowy blok i modal na `/project/[id]`) spełniają WCAG 2.2 AA zgodnie z konwencją tego obszaru: jeden prawdziwy `<h1>` na każdej pełnej stronie, logiczna kolejność fokusu (w tym pułapka fokusu w modalu), stan komunikowany ikoną plus tekstem, nie samym kolorem.
+- **AC-13**: `/verified-manufacturers` pokazuje siatkę opublikowanych produktów każdego producenta, którego `producer_capacity_profile.volumeVerificationStatus` ma wartość `approved` (dziś wyłącznie Budman House), pogrupowanych pod nagłówkiem tego producenta z odznaką "Zweryfikowany producent wolumenowy", miesięczną zdolnością produkcyjną, listą certyfikatów i krajami dostawy. Każda karta projektu linkuje do jego istniejącej strony szczegółów `/project/[id]`.
+- **AC-14**: Na `/verified-manufacturers` widnieje jeden, wspólny duży przycisk "Zgłoś zapytanie" prowadzący do `/project-request`. Gdy żaden producent nie jest dziś zweryfikowany wolumenowo, strona pokazuje krótki stan pusty zamiast pustej siatki, a ten sam przycisk zostaje widoczny (ekran nigdy nie jest ślepą uliczką).
+- **AC-15**: Na istniejącej stronie `/project/[id]`, gdy produkt należy do producenta z zatwierdzonym profilem zdolności, pojawia się dodatkowy blok z przyciskiem "Zapytaj o większą ilość", otwierającym okno modalne (Headless UI Dialog) z formularzem (imię i nazwisko oraz e mail wymagane, telefon opcjonalny, minimalna liczba sztuk wymagana i co najmniej 10, maksymalna liczba sztuk opcjonalna, kraj dostawy wymagany, notatka opcjonalna). Wysłanie formularza wywołuje wprost istniejącą funkcję `submitBulkProductInquiry` (`lib/project-request-actions.ts`, spec 0037), bez zmian w jej sygnaturze i bez nowego punktu zapisu.
+- **AC-16**: Modal z AC-15 pokazuje ten sam wzorzec co `ProjectRequestFlow`: przycisk wyłączony w trakcie żądania, istniejący komunikat limitu zgłoszeń (`BULK_REQUEST_EMAIL_LIMIT_ERROR`) pokazany w obrębie modala przy przekroczeniu limitu, oraz stan potwierdzenia po sukcesie bez opuszczania strony `/project/[id]`.
+- **AC-17**: `getProducerById` i `getProducers` (`lib/data/producers.ts`) czytają producenta z realnych tabel `producer`, `product` i `producerDeliveryCountry` zamiast z fixture'ów. Kształt typu `Producer` (nazwy i typy pól) się nie zmienia, ale wartości muszą być bezpiecznie policzone, nie wprost przepisane z nullable kolumn bazy (real defekt znaleziony w cross checku tej aktualizacji): `rating` z bazy jest `null` do czasu pierwszej recenzji, więc funkcja mapuje go na `0` zamiast przekazać `null` do `StarRating`, który dziś zakłada liczbę i wywołuje `toFixed` bez zabezpieczenia; `getProducers()` pomija producentów bez ani jednego opublikowanego produktu (bez tego `featuredPhotoUrl`/`sizeRangeM2Min`/`sizeRangeM2Max` nie miałyby z czego się policzyć), a `getProducerById(id)` jest wołane wyłącznie z id producenta, który ma już opublikowany produkt (dzisiejszy `/project/[id]`), więc ten przypadek tam nie występuje.
+- **AC-18**: `/verified-manufacturers` ma pełne metadane SEO (tytuł, opis, adres kanoniczny) i tagi hreflang dla `/pl`, `/en`, `/nl`, tym samym wzorcem co `/project-request` (AC-10).
+
+## Decision
+
+**Chosen option**: Option 1: Dedykowana strona `/project-request`, wołająca wprost `submitProjectRequest`, plus nowa sekcja na stronie głównej z dwoma kaflami fotograficznymi zgodnie z dostarczonym obrazem referencyjnym.
+
+**Aktualizacja**: dodatkowo Option 4 (patrz rationale.md): osobny ekran przeglądania `/verified-manufacturers` jako nowy krok pośredni między kaflem inwestora a formularzem, karty produktów linkujące do istniejącej `/project/[id]`, oraz prosty modal na tej stronie wołający już istniejącą, ale dotąd niepodłączoną funkcję `submitBulkProductInquiry` (spec 0037). Przy okazji: `getProducerById`/`getProducers` przechodzą z fixture'ów na realną bazę (odkryty defekt, patrz rationale.md).
+
+**Implementation skills**: `lucide-icons` (`aksuharun/skills`, `.agents/skills/lucide-icons/`) · `headlessui` (`bobmatnyc/claude-mpm-skills`, `.agents/skills/headlessui/`) · `tailwindcss-advanced-layouts` (`josiahsiegel/claude-plugin-marketplace`, `.agents/skills/tailwindcss-advanced-layouts/`) · `drizzle` (`bobmatnyc/claude-mpm-skills`, `.agents/skills/drizzle/`) · `neon-postgres` (`neondatabase/agent-skills`, `.agents/skills/neon-postgres/`)
+
+## Rationale
+
+Pełne uzasadnienie, rozważane opcje i kontekst decyzji: patrz [rationale.md](rationale.md).
+
+## Feature design
+
+**Data model sketch**:
+
+Bez zmian w bazie danych. Formularz zapisuje wprost do istniejącej tabeli `project_request` (spec 0037, `lib/db/schema.ts`) przez istniejącą funkcję `submitProjectRequest`. Żadna nowa encja, kolumna ani migracja nie jest częścią tej decyzji.
+
+**Aktualizacja, dane do ekranu przeglądania**: też zero nowych tabel, kolumn czy migracji. Sprawdzone w realnej bazie (Neon MCP) przed napisaniem tej aktualizacji: dziś żaden producent nie ma wiersza `producer_capacity_profile` z `volumeVerificationStatus = approved`, a tabela `producerDeliveryCountry` jest całkowicie pusta dla wszystkich siedmiu producentów w bazie, nie tylko dla Budmana. Bez ręcznego zasiania danych automatyczne dopasowanie z AC-2 spec 0037 nie zadziałałoby dziś dla nikogo, a ten nowy ekran nie miałby czego pokazać. Część Build planu (zadanie 10) to jednorazowe, ręczne zasianie przez Neon MCP:
+- Nowy wiersz `producer_capacity_profile` dla Budman House: `unitsPerMonth = 15`, `certifications = ["Zgodność z Bbl (holenderskie przepisy budowlane)"]`, `canHandleTransport = true`, `canHandleAssembly = true`, `capabilityNote` opisujący dostawę i montaż w Holandii, `volumeVerificationStatus = approved` (wpisany od razu jako zatwierdzony, bo ekran producenta do samodzielnego zgłoszenia i ekran administratora do zatwierdzenia wciąż nie istnieją, patrz Follow-up spec 0037/0038). `leadTimeTiers`, `productionLines`, `maxModuleSizeM2`, `pastProjectReferences` zostają na wartościach domyślnych (puste/`null`); to dane poglądowe do podmiany, gdy Budman poda realne liczby.
+- Nowe wiersze `producerDeliveryCountry` dla Budman House: `PL`, `DE`, `NL` (dziś zero wierszy; `NL` dokładany świadomie, bo inwestor Lammert z Holandii jest przykładem prowadzącym przez cały spec 0037, i bez tego automatyczne dopasowanie zapytania z Holandii i tak pominęłoby Budmana).
+
+**State transitions**: brak nowych; `project_request.status` (`open` → `quoted` → `accepted`/`closed`) jest w całości własnością spec 0037 i nie zmienia się tutaj.
+
+**API surface**:
+
+| Powierzchnia | Typ | Kluczowe dane wejściowe | Kluczowe dane wyjściowe | Autoryzacja | Kluczowe błędy |
+|---|---|---|---|---|---|
+| `submitProjectRequest` (`lib/project-request-actions.ts`) | Istniejąca funkcja serwerowa (spec 0037), wołana wprost z nowego formularza, bez zmian w sygnaturze | `contactName`, `contactEmail`, `countryCode`, `projectType`, `families`, `unitCountMin` (wymagane) plus pola opcjonalne | `{ ok, id, error }` | brak (publiczne) | błąd walidacji wyświetlony przy polu, `BULK_REQUEST_EMAIL_LIMIT_ERROR` wyświetlony nad przyciskiem, ogólny błąd sieci/serwera |
+| `getCountries()` (`lib/data/countries.ts`) | Istniejąca funkcja odczytu, reużyta do listy krajów w formularzu | brak | lista `Country` | brak (publiczne) | brak (dane statyczne) |
+| `getVerifiedVolumeManufacturerProjects(locale)` (nowa, `lib/data/projects.ts`) | Nowa funkcja odczytu, real DB: `producer` JOIN `producerCapacityProfile` (`approved`) JOIN `product` (opublikowane) plus `producerDeliveryCountry` | `locale` | lista producentów, każdy z podsumowaniem zdolności (miesięczna zdolność, certyfikaty, kraje dostawy) i listą jego projektów w tym samym kształcie `Project` co reszta katalogu | brak (publiczne) | brak (pusta lista, nie błąd, gdy zero producentów zatwierdzonych) |
+| `getProducerVolumeProfile(producerId)` (nowa, obok powyższej) | Nowa funkcja odczytu, real DB, bramkuje blok B2B na `/project/[id]` | `producerId` | `null` gdy brak zatwierdzonego profilu, inaczej podsumowanie zdolności jak wyżej | brak (publiczne) | brak |
+| `submitBulkProductInquiry` (`lib/project-request-actions.ts`) | Istniejąca, już przetestowana funkcja serwerowa (spec 0037), dziś bez żadnego wywołującego UI; ta decyzja dopiero ją podłącza | `productId`, `contactName`, `contactEmail`, `unitCountMin` (wymagane) plus pola opcjonalne | `{ ok, id, error }` | brak (publiczne) | `404`/błąd gdy produkt nieopublikowany, `BULK_REQUEST_EMAIL_LIMIT_ERROR`, błąd walidacji, ogólny błąd |
+| `getProducerById` / `getProducers` (`lib/data/producers.ts`, przepisane) | Dziś czytają z fixture'ów po id typu `"prod-budman"`, które nigdy nie pasuje do prawdziwego UUID producenta w bazie (odkryty defekt); ta decyzja przepisuje obie funkcje na realne zapytanie do `producer`/`product`/`producerDeliveryCountry`, zachowując dokładnie ten sam kształt typu `Producer` | id producenta (dla `getProducerById`) | `Producer` (`rating` z bazy zmapowany na `0`, gdy `null`, zamiast przekazywać `null` dalej; `reviewCount` wprost z bazy; `modelsCount`/`sizeRangeM2Min`/`sizeRangeM2Max` policzone z jego opublikowanych produktów; `featuredPhotoUrl` ze zdjęcia okładkowego jednego z nich; `verified` z `producer.verificationStatus === "approved"`; `getProducers()` pomija producentów bez ani jednego opublikowanego produktu) | brak (publiczne) | `null` gdy nie znaleziono |
+
+**Key invariants**:
+- Formularz nigdy nie wysyła danych, które nie przejdą przez `submitProjectRequestSchema` bez zmian; żadna walidacja po stronie klienta nie zastępuje walidacji serwerowej, tylko ją wyprzedza dla lepszego UX.
+- Karta potwierdzenia pokazuje ten sam, ogólny komunikat niezależnie od tego, ilu producentów faktycznie zostało dopasowanych (AC-2 spec 0037 dopuszcza zero dopasowań bez błędu); ta decyzja nie rozszerza zwracanego kształtu `submitProjectRequest` o liczbę dopasowań, żeby nie ujawniać wewnętrznego stanu dopasowania inwestorowi.
+- Link kafla producenta nie niesie żadnego parametru zapytania w stronę `/producer/registration`; to zwykłe, płaskie przekierowanie do istniejącego ekranu.
+- `/verified-manufacturers` pokazuje wyłącznie producentów z `volumeVerificationStatus = approved`; ten sam warunek, którego już używa `autoTargetProducers` w `submitProjectRequest` (AC-2 spec 0037), więc "kto się kwalifikuje" ma jedno źródło prawdy w całej aplikacji, nie osobną, tymczasową listę.
+- `/verified-manufacturers` nigdy nie jest ślepą uliczką: przy zero zatwierdzonych producentów pokazuje stan pusty plus ten sam ogólny przycisk do `/project-request`, które i tak obsługuje zero dopasowanych producentów bez błędu (spec 0037 AC-2).
+- Blok "Zapytaj o większą ilość" na `/project/[id]` renderuje się wyłącznie, gdy `getProducerVolumeProfile` zwróci wynik inny niż `null`; zwykły, detaliczny kupujący domu od niezweryfikowanego wolumenowo producenta nigdy go nie widzi.
+- Kształt typu `Producer` (`lib/data/types.ts`) się nie zmienia mimo przepisania jego źródła danych na realną bazę; `ProducerCard` i `ProducerShowcase` nie wymagają żadnej zmiany we własnym kodzie, bo `getProducerById`/`getProducers` mapują nullable dane bazy (`rating`, brak opublikowanych produktów) na bezpieczne wartości zamiast przekazywać `null`/`undefined` dalej (patrz AC-17).
+- Limit 3 nierozstrzygniętych zgłoszeń na e mail (spec 0037 AC-10) liczy `project_request` i `bulk_product_inquiry` razem, nie osobno. Modal z AC-15/AC-16 dokłada nową, łatwą drogę do wypełnienia tego limitu (jedno zapytanie na model); ta aktualizacja świadomie nie dodaje żadnego nowego mechanizmu ochrony przed tym, tylko pokazuje ten sam istniejący komunikat błędu (patrz Consequences, negative).
+
+**Security model**:
+- Bez zmian względem spec 0037: wysłanie formularza jest w pełni publiczne, bez logowania, na tej samej podstawie prawnej (art. 6 ust. 1 lit. b RODO, czynności przed zawarciem umowy). Ta decyzja domyka jedynie brakującą informację w treści UI (AC-7), nie zmienia samej podstawy prawnej ani zakresu udostępniania danych.
+- Brak nowych ról, brak nowej autoryzacji: strona `/project-request` jest w całości publiczna, tak jak `submitProjectRequest` już dziś zakłada.
+- Bez zmian dla `/verified-manufacturers` i nowego bloku na `/project/[id]`: oba w całości publiczne, bez logowania, tą samą podstawą prawną co spec 0037 (art. 6 ust. 1 lit. b RODO); `submitBulkProductInquiry` jest już publiczną funkcją, tylko dziś bez wywołującego UI.
+
+**Configuration required**: brak nowych zmiennych środowiskowych ani poświadczeń.
+
+**Critical test scenarios**:
+- Happy path: inwestor otwiera `/project-request` (np. przez duży przycisk na `/verified-manufacturers`), wypełnia tylko wymagane pola, wysyła formularz, widzi kartę potwierdzenia z informacją o powiadomionych producentach, weryfikuje **AC-4, AC-5, AC-6**.
+- Failure case: ten sam e mail wysyła czwarte nierozstrzygnięte zapytanie; formularz pokazuje istniejący komunikat limitu jako błąd w obrębie formularza, wpisane dane zostają, weryfikuje **AC-8**.
+- Edge case: inwestor klika przycisk wysyłania dwa razy szybko; przycisk jest wyłączony po pierwszym kliknięciu, powstaje dokładnie jeden wiersz `project_request`, weryfikuje **AC-9**.
+- Happy path (aktualizacja): inwestor klika "Przeglądaj" na stronie głównej, trafia na `/verified-manufacturers`, widzi projekty Budman House pod odznaką "Zweryfikowany producent wolumenowy", klika kartę projektu, trafia na jego `/project/[id]`, klika "Zapytaj o większą ilość", wypełnia modal, wysyła, widzi potwierdzenie bez opuszczenia strony, weryfikuje **AC-13, AC-15, AC-16**.
+- Edge case (aktualizacja): `/verified-manufacturers` odwiedzone w chwili, gdy zero producentów ma zatwierdzony profil (np. na środowisku testowym bez zasianych danych); strona pokazuje stan pusty i ten sam ogólny przycisk do `/project-request`, weryfikuje **AC-14**.
+- Regresja (aktualizacja): dowolna strona `/project/[id]` istniejącego, realnego produktu po przepisaniu `getProducerById`/`getProducers` na realną bazę nadal renderuje sekcję producenta (dziś pusta z powodu odkrytego defektu), weryfikuje **AC-17**.
+
+## Build plan
+
+Zaplecze i model danych są już w pełni zbudowane (spec 0037); ta funkcja dokłada wyłącznie warstwę interfejsu na już istniejący, prawdziwy wątek od formularza do bazy danych (kontynuacja podejścia Tracer Bullet epiki Produkcja). Kolejność: najpierw sama, samodzielnie działająca strona formularza (wartość funkcjonalna), potem wejście z niej ze strony głównej (odkrywalność), na końcu tłumaczenia i dostępność w poprzek obu ekranów.
+
+1. Szkielet strony `/project-request` (`app/[locale]/(customer)/project-request/page.tsx`): trasa, `generateMetadata` z tytułem, opisem, adresem kanonicznym i `alternates.languages` dla `pl`/`en`/`nl`, satisfies **AC-10**
+2. Komponent `ProjectRequestFlow` (`components/klient/ProjectRequestFlow.tsx`, `"use client"`): formularz pogrupowany w trzy sekcje z prymitywów `components/ui` (Input, Select, Checkbox dla rodzin produktu, Label, Button, Stack), bramka wymaganych pól po stronie klienta lustrząca `submitProjectRequestSchema`, wywołanie `submitProjectRequest` przez `useTransition`, przycisk wyłączony w trakcie żądania, satisfies **AC-4, AC-5, AC-6, AC-9**
+3. Obsługa błędów w formularzu (walidacja, limit zgłoszeń, błąd ogólny) i zdanie o udostępnieniu danych producentom tuż nad przyciskiem wysyłania, satisfies **AC-7, AC-8**
+4. Komponent `ProjectRequestConfirmationCard` (`components/klient/ProjectRequestConfirmationCard.tsx`), zastępujący formularz po sukcesie, tym samym wzorcem co `InquiryConfirmationCard`, satisfies **AC-6**
+5. Komponent `BulkOrdersShowcase` (`components/klient/BulkOrdersShowcase.tsx`): nowa sekcja strony głównej z odznaką "NOWOŚĆ B2B", podtytułem, i dwoma kaflami z tłem `investor-background.png`/`manufacturer-background-2x1.png`, nagłówkiem, trzema punktami, CTA i podpisem, zgodnie z obrazem referencyjnym, satisfies **AC-1**
+6. Podłączenie CTA kafla inwestora do `/project-request`, CTA kafla producenta do `/producer/registration`, wstawienie `BulkOrdersShowcase` do `app/[locale]/(customer)/page.tsx` zaraz po `Hero`, satisfies **AC-3** (cel kafla inwestora zmieniony w zadaniu 15 tej aktualizacji, patrz AC-2)
+7. Tłumaczenia pl/en/nl dla całej nowej treści (sekcja strony głównej, formularz, potwierdzenie, błędy) przez next intl, prawdziwe teksty od razu, nie kopia polskiego, satisfies **AC-11**
+8. Przegląd dostępności: jeden `<h1>` na `/project-request`, kolejność fokusu, stan błędu/potwierdzenia ikoną plus tekstem, satisfies **AC-12**
+9. Testy: `ProjectRequestFlow.test.tsx` (bramka wymaganych pól, stan błędu limitu, wyłączenie przycisku w trakcie żądania), `BulkOrdersShowcase.test.tsx` (oba CTA prowadzą pod właściwe adresy), test end to end kafel → formularz → potwierdzenie, satisfies wszystkie powyższe AC
+
+**Aktualizacja, dalsze zadania (ten sam dzień, kontynuacja Tracer Bullet: najpierw dane widoczne w bazie, potem odczyt, potem interfejs)**:
+
+10. Utwardzenie `submitBulkProductInquiry` (`lib/project-request-actions.ts`): odczyt produktu (`productRow`) dziś stoi poza `try/catch`, więc błąd bazy przy tym sprawdzeniu wyrzuca wyjątek zamiast zwrócić `{ ok: false, error }`; bez wywołującego UI ten defekt był nieszkodliwy, ale to zadanie go podłącza pod prawdziwy formularz. Przenieś sprawdzenie do wewnątrz istniejącego bloku `try`, satisfies warunek wstępny **AC-16**
+11. Ręczne zasianie danych przez Neon MCP (za zgodą inżyniera przed wykonaniem, bo to zapis na prawdziwej bazie): wiersz `producer_capacity_profile` dla Budman House (`approved`, 15 domów/mies., certyfikat Bbl, transport i montaż tak) oraz wiersze `producerDeliveryCountry` (`PL`, `DE`, `NL`). Ręczne, bez skryptu ani migracji, tym samym, już przyjętym w tym projekcie wzorcem co pierwsze ręczne zasianie producenta i produktu w funkcji 7 (`docs/scope/produkcja.md`); testy zadania 19 nie zależą od tego zasiania, tworzą własnego, tymczasowego producenta testowego z zatwierdzonym profilem (ten sam wzorzec co `lib/project-request-actions.test.ts`), satisfies warunek wstępny **AC-13, AC-14**
+12. Przepisanie `getProducerById`/`getProducers` (`lib/data/producers.ts`) z fixture'ów na realne zapytanie do `producer`/`product`/`producerDeliveryCountry`, z bezpiecznym mapowaniem nullable danych (patrz AC-17), bez zmiany kształtu typu `Producer`; aktualizacja `lib/data/producers.test.ts`, który dziś asertuje fixture'owe id (np. `"prod-cocomodule"`) i po tym przepisaniu przestanie się zgadzać, satisfies **AC-17**
+13. Nowe funkcje odczytu `getVerifiedVolumeManufacturerProjects` i `getProducerVolumeProfile` (`lib/data/projects.ts`), satisfies **AC-13**, warunek wstępny **AC-15**
+14. Nowa strona `app/[locale]/(customer)/verified-manufacturers/page.tsx`: metadane SEO i hreflang, nagłówek producenta z odznaką/zdolnością/certyfikatami/krajami dostawy, siatka kart projektów linkujących do `/project/[id]`, jeden wspólny przycisk "Zgłoś zapytanie" do `/project-request`, stan pusty, satisfies **AC-13, AC-14, AC-18**
+15. Nowy komponent kliencki modala zapytania o model (Headless UI Dialog) na `/project/[id]`, renderowany tylko gdy `getProducerVolumeProfile` zwróci wynik; formularz woła wprost `submitBulkProductInquiry`, ten sam wzorzec błędu limitu i stanu wysyłania co `ProjectRequestFlow`, satisfies **AC-15, AC-16**
+16. Aktualizacja `BulkOrdersShowcase`: etykieta kafla inwestora na "Przeglądaj", cel na `/verified-manufacturers`, satisfies zmienione **AC-2**
+17. Tłumaczenia pl/en/nl dla całej nowej treści (ekran przeglądania, nagłówek producenta, modal, stan pusty), satisfies rozszerzone **AC-11**
+18. Przegląd dostępności nowych i zmienionych ekranów, w tym pułapka fokusu w modalu, satisfies rozszerzone **AC-12**
+19. Testy: nowa funkcja odczytu producentów zweryfikowanych wolumenowo (z własnym, tymczasowym producentem testowym), nowy ekran (siatka, stan pusty, oba CTA), nowy modal (bramka pól, błąd limitu, potwierdzenie), regresja `ProducerCard`/`ProducerShowcase` na realnych danych (`producers.test.ts` już zaktualizowany w zadaniu 12), satisfies **AC-13** do **AC-18**
+
+## Consequences
+
+**Positive**:
+- Inwestorzy dostają pierwszy, realny, odkrywalny sposób skorzystania z modelu danych zbudowanego w spec 0037, zamiast funkcji dostępnej wyłącznie programistycznie.
+- Domyka jawnie zostawioną w spec 0037 lukę informacyjną (RODO) o udostępnianiu danych kontaktowych producentom.
+- Zero nowego zaplecza: cała funkcja to interfejs na już przetestowaną, działającą funkcję serwerową, więc ryzyko regresji backendu jest minimalne.
+
+**Negative / tradeoffs**:
+- Kafel producenta obiecuje "Dołącz jako producent B2B", ale dziś prowadzi do zwykłej rejestracji, nie do ekranu zgłaszania zdolności produkcyjnej; to świadomy, tymczasowy dług UX do domknięcia przyszłą decyzją (patrz Follow-up).
+- Strona główna zyskuje kolejną, pełnowymiarową sekcję, mimo że jest już długa; większość odwiedzających (klienci detaliczni) nigdy jej nie użyje.
+- Formularz publiczny bez logowania nie ma dziś żadnej ochrony przed spamem poza istniejącym limitem 3 zgłoszeń na ten sam e mail (spec 0037 AC-10); różne, fałszywe adresy e mail nie są tym ograniczone.
+- Kliknięcie kafla inwestora wymaga teraz jednego dodatkowego kroku (kafel → przeglądanie → formularz albo modal) zamiast trafienia od razu do formularza; świadomy koszt w zamian za zaufanie budowane realnymi projektami przed poproszeniem o dane kontaktowe.
+- Dane zdolności Budmana (15 domów/mies., certyfikat Bbl) są zasiane ręcznie na podstawie krótkiej notatki, nie przez samego Budmana przez żaden prawdziwy formularz; wymaga potwierdzenia z prawdziwym zespołem Budmana później, a `leadTimeTiers` i referencje z projektów zostają puste do tego czasu.
+- Przepisanie `getProducerById`/`getProducers` na realną bazę ujawnia uczciwie wczesny stan platformy: dziś każdy producent ma `rating = null` i `verificationStatus = not_submitted` w bazie (zero recenzji, zero zatwierdzonych weryfikacji firmy), więc karta producenta na `/project/[id]` i sekcja na stronie głównej pokażą brak oceny i brak odznaki "zweryfikowany" dla wszystkich producentów poza Budmanem (który dostaje odznakę zweryfikowanego wolumenowo, ale nie firmowego), zamiast fikcyjnych, poglądowych liczb z fixture'ów, które i tak nigdy się wcześniej nie renderowały.
+- Modal "Zapytaj o większą ilość" to świadomie uproszczona pierwsza wersja, nie prawdziwy konfigurator; klient dostaje mniej prowadzenia niż docelowo.
+- Limit 3 nierozstrzygniętych zgłoszeń na e mail (spec 0037 AC-10) liczy `project_request` i `bulk_product_inquiry` razem; inwestor, który zapyta o trzy różne modele przez nowy modal, traci możliwość wysłania też wolnego zapytania, dopóki jedno z nich nie zostanie rozstrzygnięte. Ta aktualizacja świadomie nie dodaje żadnej nowej ochrony ani ostrzeżenia dla tego przypadku (patrz Follow-up).
+- Ręczne zasianie danych Budmana (zadanie 11 Build planu) istnieje wyłącznie na produkcyjnej bazie; każde inne środowisko (nowa gałąź Neon, lokalna baza deweloperska) pokaże pusty stan na `/verified-manufacturers`, dopóki ktoś nie powtórzy tego samego, ręcznego zasiania tam. To ten sam, już przyjęty w projekcie sposób pracy co pierwsze ręczne zasianie producenta w funkcji 7, nie nowy dług.
+
+**Neutral**:
+- Brak wpisu w sitemapie XML dla `/project-request`, bo w repozytorium nie ma dziś żadnej infrastruktury sitemap (funkcja 20 epiki Produkcja, wciąż `planned`); metadane strony (tytuł, opis, kanoniczny adres, hreflang) i tak powstają teraz, żeby nie budować ich dwa razy. To samo dotyczy nowego `/verified-manufacturers`.
+- Pozostali producenci (Steel House, Cocomodule, Castor Domy Drewniane) po przepisaniu na realną bazę pokażą pusty rząd flag krajów dostawy (dziś zero wierszy `producerDeliveryCountry` dla każdego z nich) i brak oceny, dopóki ktoś ręcznie nie zasieje ich danych tym samym sposobem co dla Budmana.
+
+## Follow-up
+
+- [ ] Zaprojektuj prawdziwy ekran "Dołącz jako producent B2B" (formularz `producer_capacity_profile`: zdolność miesięczna, liczba linii produkcyjnych, `leadTimeTiers`, certyfikaty, referencje z projektów) plus ekran administratora do zatwierdzania `volumeVerificationStatus`, jako osobna, przyszła decyzja `/architect`; do tego czasu kafel producenta świadomie prowadzi do zwykłej rejestracji (AC-3), a Budman jest zasiany ręcznie od razu jako `approved` (patrz Feature design, ta aktualizacja). Sprostowanie: funkcje zapisu `updateProducerCapacityProfile` i `setProducerVolumeVerification` (`lib/project-quote-actions.ts`) już istnieją od spec 0037; brakuje wyłącznie interfejsu, nie zaplecza.
+- [ ] Prawdziwy "konfigurator" w miejscu dzisiejszego prostego modala zapytania o model na `/project/[id]` (świadomie odłożone w tej aktualizacji) jako osobna, przyszła decyzja `/architect`.
+- [ ] Zasiej realne dane `producerDeliveryCountry`, `rating`, `reviewCount` i `verificationStatus` dla pozostałych producentów (Steel House, Cocomodule, Castor Domy Drewniane), teraz gdy `getProducerById`/`getProducers` czytają z bazy; dziś ich karty pokażą puste kraje dostawy i brak oceny.
+- [ ] Prawdziwy silnik dopasowania producentów i wygląd odznaki "Verified Volume Manufacturer" (już otwarty Follow-up spec 0037) pozostają osobną decyzją; ta aktualizacja tylko konsumuje istniejące pole `volumeVerificationStatus`, nie projektuje wyglądu odznaki poza prostą etykietą tekstową.
+- [ ] Rozważ ochronę przed nadużyciem (honeypot albo limit po adresie IP) dla publicznego formularza bez logowania; dzisiejszy limit (spec 0037 AC-10) chroni tylko przed powtórkami z tego samego e maila.
+- [ ] Zaprojektuj, jak ostrzec inwestora, że modal "Zapytaj o większą ilość" na `/project/[id]` dzieli ten sam limit 3 nierozstrzygniętych zgłoszeń co `/project-request` (odkryte w cross checku tej aktualizacji, patrz Consequences); dziś świadomie bez żadnej dodatkowej ochrony poza istniejącym komunikatem błędu.
+- [ ] Formalny wpis w sitemap.xml dla `/project-request` czeka na funkcję 20 epiki Produkcja ("SEO podstawowe stron publicznych"), która dziś nie ma jeszcze żadnej infrastruktury sitemap w repozytorium.

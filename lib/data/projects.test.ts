@@ -26,13 +26,24 @@ vi.mock("@/lib/storage/r2-client", async (importOriginal) => {
 });
 
 import { db } from "@/lib/db/client";
-import { auditLog, document, producer, product, productCountryEligibility, users } from "@/lib/db/schema";
+import {
+  auditLog,
+  document,
+  producer,
+  producerCapacityProfile,
+  producerDeliveryCountry,
+  product,
+  productCountryEligibility,
+  users,
+} from "@/lib/db/schema";
 import {
   getEligibilityByCountry,
   getFeaturedProjectByFamily,
+  getProducerVolumeProfile,
   getProjectById,
   getProjects,
   getPublishedProductIds,
+  getVerifiedVolumeManufacturerProjects,
 } from "./projects";
 
 // Confirms spec 0023 AC-4/AC-6: getProjects/getProjectById/getEligibilityByCountry
@@ -508,5 +519,98 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: document-sourced 
     } finally {
       r2Mock.shouldThrow = false;
     }
+  });
+});
+
+// spec 0038 AC-13/AC-15: own producer, own products, own capacity profile —
+// deliberately not the shared fixture above, so this suite never depends on
+// the manual Budman seed (Build plan task 11) existing on any given
+// environment.
+describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: verified volume manufacturers", () => {
+  const userId = crypto.randomUUID();
+  const approvedProducerId = crypto.randomUUID();
+  const publishedProductId = crypto.randomUUID();
+  const draftProductId = crypto.randomUUID();
+
+  const unapprovedUserId = crypto.randomUUID();
+  const unapprovedProducerId = crypto.randomUUID();
+  const unapprovedProductId = crypto.randomUUID();
+
+  beforeAll(async () => {
+    await db.insert(users).values([
+      { id: userId, email: `vvm-${userId}@example.test`, phone: "+48000000030", role: "producer" },
+      { id: unapprovedUserId, email: `vvm-${unapprovedUserId}@example.test`, phone: "+48000000031", role: "producer" },
+    ]);
+    await db.insert(producer).values([
+      {
+        id: approvedProducerId,
+        userId,
+        nip: `VVM${approvedProducerId.slice(0, 9)}`,
+        name: "Verified Volume Test Producer",
+        countryCode: "PL",
+        technology: "szkielet-drewniany",
+      },
+      {
+        id: unapprovedProducerId,
+        userId: unapprovedUserId,
+        nip: `VVM${unapprovedProducerId.slice(0, 9)}`,
+        name: "Unapproved Test Producer",
+        countryCode: "PL",
+        technology: "szkielet-drewniany",
+      },
+    ]);
+    await db.insert(product).values([
+      { id: publishedProductId, producerId: approvedProducerId, family: "dom", status: "published", name: "VVM Published Product" },
+      { id: draftProductId, producerId: approvedProducerId, family: "dom", status: "draft", name: "VVM Draft Product" },
+      { id: unapprovedProductId, producerId: unapprovedProducerId, family: "dom", status: "published", name: "Unapproved Producer Product" },
+    ]);
+    await db.insert(producerCapacityProfile).values({
+      producerId: approvedProducerId,
+      unitsPerMonth: 15,
+      certifications: ["Test certification"],
+      volumeVerificationStatus: "approved",
+    });
+    await db.insert(producerDeliveryCountry).values([
+      { producerId: approvedProducerId, countryCode: "PL" },
+      { producerId: approvedProducerId, countryCode: "NL" },
+    ]);
+  });
+
+  afterAll(async () => {
+    await db.delete(product).where(inArray(product.id, [publishedProductId, draftProductId, unapprovedProductId]));
+    await db.delete(producerDeliveryCountry).where(eq(producerDeliveryCountry.producerId, approvedProducerId));
+    await db.delete(producerCapacityProfile).where(eq(producerCapacityProfile.producerId, approvedProducerId));
+    await db.delete(producer).where(inArray(producer.id, [approvedProducerId, unapprovedProducerId]));
+    await db.delete(users).where(inArray(users.id, [userId, unapprovedUserId]));
+  });
+
+  describe("getVerifiedVolumeManufacturerProjects", () => {
+    it("returns only the approved producer, with its published products and delivery countries (AC-13)", async () => {
+      const results = await getVerifiedVolumeManufacturerProjects("pl");
+      const match = results.find((item) => item.producerId === approvedProducerId);
+
+      expect(match).toBeDefined();
+      expect(match?.unitsPerMonth).toBe(15);
+      expect(match?.certifications).toEqual(["Test certification"]);
+      expect(match?.deliveryCountries.sort()).toEqual(["NL", "PL"]);
+      expect(match?.projects.map((project) => project.id)).toEqual([publishedProductId]);
+      expect(results.some((item) => item.producerId === unapprovedProducerId)).toBe(false);
+    });
+  });
+
+  describe("getProducerVolumeProfile", () => {
+    it("returns the capacity profile for an approved producer (AC-15 gate)", async () => {
+      const profile = await getProducerVolumeProfile(approvedProducerId);
+      expect(profile?.unitsPerMonth).toBe(15);
+      expect(profile?.deliveryCountries.sort()).toEqual(["NL", "PL"]);
+    });
+
+    it("returns null for a producer without an approved capacity profile", async () => {
+      expect(await getProducerVolumeProfile(unapprovedProducerId)).toBeNull();
+    });
+
+    it("returns null for a non-uuid id instead of throwing", async () => {
+      expect(await getProducerVolumeProfile("not-a-uuid")).toBeNull();
+    });
   });
 });

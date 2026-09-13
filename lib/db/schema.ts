@@ -5,9 +5,11 @@
 import { sql } from "drizzle-orm";
 import type { PendingRegistrationPayload } from "@/lib/auth-shared";
 import {
+  bigint,
   boolean,
   check,
   customType,
+  date,
   index,
   integer,
   jsonb,
@@ -130,6 +132,38 @@ export const documentPurposeEnum = pgEnum("document_purpose", [
 ]);
 
 export const auditActionEnum = pgEnum("audit_action", ["create", "update", "delete"]);
+
+// Duże zamówienia B2B (spec 0037).
+export const bulkRequestStatusEnum = pgEnum("bulk_request_status", [
+  "open",
+  "quoted",
+  "accepted",
+  "closed",
+]);
+
+export const targetProducerStatusEnum = pgEnum("target_producer_status", [
+  "invited",
+  "viewed",
+  "quoted",
+  "declined",
+]);
+
+export const clientVerificationStatusEnum = pgEnum("client_verification_status", [
+  "not_submitted",
+  "pending",
+  "approved",
+  "rejected",
+]);
+
+export const projectTypeEnum = pgEnum("project_type", [
+  "resort",
+  "holiday-park",
+  "housing-development",
+  "student-housing",
+  "senior-living",
+  "workforce-accommodation",
+  "other",
+]);
 
 // ---------------------------------------------------------------------------
 // Dictionary: country
@@ -262,6 +296,15 @@ export const client = pgTable("client", {
     .notNull()
     .unique()
     .references(() => users.id),
+  // Duże zamówienia B2B (spec 0037 AC-8): uzupełnienie obu pól przenosi
+  // b2bVerificationStatus na 'pending', zatwierdzane/odrzucane przez admina.
+  // Nullable, bez wpływu na dzisiejszych klientów detalicznych (spec 0037
+  // Consequences, Neutral).
+  nip: text("nip"),
+  companyName: text("company_name"),
+  b2bVerificationStatus: clientVerificationStatusEnum("b2b_verification_status")
+    .notNull()
+    .default("not_submitted"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
@@ -588,6 +631,217 @@ export const orderStageEvent = pgTable("order_stage_event", {
   changedByUserId: text("changed_by_user_id").references(() => users.id),
   note: text("note"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// ---------------------------------------------------------------------------
+// Duże zamówienia B2B (spec 0037): dwa osobne wejścia bez logowania
+// (projectRequest — wolne zapytanie, bulkProductInquiry — konkretny produkt),
+// jedna współdzielona wycena (projectQuote), profil zdolności producenta jeden
+// do jednego. Żyje obok inquiry/offer powyżej (zakłada klienta zalogowanego i
+// 1-3 konkretne produkty), który zostaje nietknięty dla zwykłych zapytań.
+// ---------------------------------------------------------------------------
+
+export const projectRequest = pgTable(
+  "project_request",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    // Uzupełniane dopiero przy pierwszym logowaniu z pasującym e mailem (AC-7),
+    // nigdy przy samym wysłaniu formularza (spec 0037 Key invariants).
+    clientId: uuid("client_id").references(() => client.id),
+    contactName: text("contact_name").notNull(),
+    // Znormalizowany (małe litery, przycięty) przed zapisem, żeby dopasowanie
+    // przy logowaniu (AC-7) i limit zgłoszeń (AC-10) nie ominęły wariantów
+    // wielkości liter tego samego adresu.
+    contactEmail: text("contact_email").notNull(),
+    contactPhone: text("contact_phone"),
+    countryCode: text("country_code")
+      .notNull()
+      .references(() => country.code),
+    locationDetail: text("location_detail"),
+    projectType: projectTypeEnum("project_type").notNull(),
+    families: jsonb("families").$type<(typeof productFamilyEnum.enumValues)[number][]>().notNull(),
+    unitCountMin: integer("unit_count_min").notNull(),
+    unitCountMax: integer("unit_count_max"),
+    floorAreaM2Min: real("floor_area_m2_min"),
+    floorAreaM2Max: real("floor_area_m2_max"),
+    completionStandard: completionStandardEnum("completion_standard"),
+    startWindowFrom: date("start_window_from"),
+    startWindowTo: date("start_window_to"),
+    deliveryWindowFrom: date("delivery_window_from"),
+    deliveryWindowTo: date("delivery_window_to"),
+    extrasNote: text("extras_note"),
+    status: bulkRequestStatusEnum("status").notNull().default("open"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    check("project_request_families_not_empty", sql`jsonb_array_length(${table.families}) > 0`),
+    check("project_request_unit_count_min", sql`${table.unitCountMin} >= 10`),
+    check(
+      "project_request_unit_count_max",
+      sql`${table.unitCountMax} IS NULL OR ${table.unitCountMax} >= ${table.unitCountMin}`,
+    ),
+    check(
+      "project_request_start_window_order",
+      sql`${table.startWindowFrom} IS NULL OR ${table.startWindowTo} IS NULL OR ${table.startWindowTo} >= ${table.startWindowFrom}`,
+    ),
+    check(
+      "project_request_delivery_window_order",
+      sql`${table.deliveryWindowFrom} IS NULL OR ${table.deliveryWindowTo} IS NULL OR ${table.deliveryWindowTo} >= ${table.deliveryWindowFrom}`,
+    ),
+    index("project_request_contact_email_idx").on(table.contactEmail),
+    index("project_request_client_id_idx").on(table.clientId),
+  ],
+);
+
+// Kto został automatycznie powiadomiony o project_request (AC-2): tylko
+// producenci z volumeVerificationStatus = 'approved' dostarczający do kraju
+// zapytania w chwili wysłania; brak dopasowanych producentów nie jest błędem
+// (zero wierszy, spec 0037 Key invariants).
+export const projectRequestTargetProducer = pgTable(
+  "project_request_target_producer",
+  {
+    projectRequestId: uuid("project_request_id")
+      .notNull()
+      .references(() => projectRequest.id),
+    producerId: uuid("producer_id")
+      .notNull()
+      .references(() => producer.id),
+    status: targetProducerStatusEnum("status").notNull().default("invited"),
+    notifiedAt: timestamp("notified_at", { withTimezone: true }).defaultNow().notNull(),
+    viewedAt: timestamp("viewed_at", { withTimezone: true }),
+  },
+  (table) => [primaryKey({ columns: [table.projectRequestId, table.producerId] })],
+);
+
+// Zapytanie o konkretny, opublikowany produkt w dużej ilości (AC-4): odbiorca
+// to bezpośrednio product.producerId, bez osobnej tabeli łączącej.
+export const bulkProductInquiry = pgTable(
+  "bulk_product_inquiry",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clientId: uuid("client_id").references(() => client.id),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => product.id),
+    contactName: text("contact_name").notNull(),
+    contactEmail: text("contact_email").notNull(),
+    contactPhone: text("contact_phone"),
+    unitCountMin: integer("unit_count_min").notNull(),
+    unitCountMax: integer("unit_count_max"),
+    deliveryCountryCode: text("delivery_country_code")
+      .notNull()
+      .references(() => country.code),
+    startWindowFrom: date("start_window_from"),
+    startWindowTo: date("start_window_to"),
+    deliveryWindowFrom: date("delivery_window_from"),
+    deliveryWindowTo: date("delivery_window_to"),
+    note: text("note"),
+    status: bulkRequestStatusEnum("status").notNull().default("open"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    check("bulk_product_inquiry_unit_count_min", sql`${table.unitCountMin} >= 10`),
+    check(
+      "bulk_product_inquiry_unit_count_max",
+      sql`${table.unitCountMax} IS NULL OR ${table.unitCountMax} >= ${table.unitCountMin}`,
+    ),
+    check(
+      "bulk_product_inquiry_start_window_order",
+      sql`${table.startWindowFrom} IS NULL OR ${table.startWindowTo} IS NULL OR ${table.startWindowTo} >= ${table.startWindowFrom}`,
+    ),
+    check(
+      "bulk_product_inquiry_delivery_window_order",
+      sql`${table.deliveryWindowFrom} IS NULL OR ${table.deliveryWindowTo} IS NULL OR ${table.deliveryWindowTo} >= ${table.deliveryWindowFrom}`,
+    ),
+    index("bulk_product_inquiry_contact_email_idx").on(table.contactEmail),
+    index("bulk_product_inquiry_client_id_idx").on(table.clientId),
+    index("bulk_product_inquiry_product_id_idx").on(table.productId),
+  ],
+);
+
+// Odpowiedź producenta, współdzielona przez obie ścieżki (AC-3, AC-5):
+// dokładnie jedno z projectRequestId/bulkProductInquiryId jest ustawione.
+// bigint zamiast integer na cenach (spec 0037 Feature design): integer starcza
+// do ok. 21,4 mln EUR w groszach, zbyt ciasne dla projektu 100+ domów.
+export const projectQuote = pgTable(
+  "project_quote",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    projectRequestId: uuid("project_request_id").references(() => projectRequest.id),
+    bulkProductInquiryId: uuid("bulk_product_inquiry_id").references(() => bulkProductInquiry.id),
+    producerId: uuid("producer_id")
+      .notNull()
+      .references(() => producer.id),
+    currency: text("currency").notNull().default("EUR"),
+    unitPriceCents: bigint("unit_price_cents", { mode: "number" }),
+    totalPriceCents: bigint("total_price_cents", { mode: "number" }).notNull(),
+    proposedLeadTimeWeeks: integer("proposed_lead_time_weeks"),
+    notes: text("notes"),
+    status: offerStatusEnum("status").notNull().default("active"),
+    submittedAt: timestamp("submitted_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    check(
+      "project_quote_exactly_one_link",
+      sql`((${table.projectRequestId} IS NOT NULL)::int + (${table.bulkProductInquiryId} IS NOT NULL)::int) = 1`,
+    ),
+    check("project_quote_unit_price_positive", sql`${table.unitPriceCents} IS NULL OR ${table.unitPriceCents} > 0`),
+    check("project_quote_total_price_positive", sql`${table.totalPriceCents} > 0`),
+    // Najwyżej jedna wycena 'active' na parę (zapytanie, producent), osobny
+    // indeks na każdy opcjonalny klucz obcy (NULL nigdy nie koliduje z NULL,
+    // patrz lib/db/AGENTS.md, document_one_cover_per_product, więc rząd z
+    // przeciwnej ścieżki po prostu nigdy nie trafia w ten indeks) — ten sam
+    // wzorzec co offer_active_per_inquiry_producer (spec 0018).
+    uniqueIndex("project_quote_active_per_request_producer")
+      .on(table.projectRequestId, table.producerId)
+      .where(sql`${table.status} = 'active'`),
+    uniqueIndex("project_quote_active_per_bulk_inquiry_producer")
+      .on(table.bulkProductInquiryId, table.producerId)
+      .where(sql`${table.status} = 'active'`),
+    // Najwyżej jedna wycena 'accepted' na całe zapytanie, niezależnie od
+    // producenta (AC-9): dwie równoległe akceptacje nie mogą obie się powieść.
+    uniqueIndex("project_quote_accepted_per_request")
+      .on(table.projectRequestId)
+      .where(sql`${table.status} = 'accepted'`),
+    uniqueIndex("project_quote_accepted_per_bulk_inquiry")
+      .on(table.bulkProductInquiryId)
+      .where(sql`${table.status} = 'accepted'`),
+  ],
+);
+
+// Rozszerzenie producenta jeden do jednego (AC-6): brak osobnego id, PK = FK.
+export const producerCapacityProfile = pgTable("producer_capacity_profile", {
+  producerId: uuid("producer_id")
+    .primaryKey()
+    .references(() => producer.id),
+  unitsPerMonth: integer("units_per_month"),
+  productionLines: integer("production_lines"),
+  // Lista {units, weeks}, walidowana schematem Zod (lib/producer-capacity-profile-specs.ts),
+  // ten sam wzorzec co product.technicalSpecs (spec 0022).
+  leadTimeTiers: jsonb("lead_time_tiers")
+    .$type<{ units: number; weeks: number }[]>()
+    .notNull()
+    .default(sql`'[]'::jsonb`),
+  maxModuleSizeM2: real("max_module_size_m2"),
+  completionStandardsSupported: jsonb("completion_standards_supported")
+    .$type<(typeof completionStandardEnum.enumValues)[number][]>()
+    .notNull()
+    .default(sql`'[]'::jsonb`),
+  certifications: jsonb("certifications").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+  canCustomizeClientDesign: boolean("can_customize_client_design").notNull().default(false),
+  customizationNote: text("customization_note"),
+  canHandleTransport: boolean("can_handle_transport").notNull().default(false),
+  canHandleAssembly: boolean("can_handle_assembly").notNull().default(false),
+  capabilityNote: text("capability_note"),
+  pastProjectReferences: jsonb("past_project_references").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+  volumeVerificationStatus: producerVerificationStatusEnum("volume_verification_status")
+    .notNull()
+    .default("not_submitted"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
 // ---------------------------------------------------------------------------

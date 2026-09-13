@@ -7,17 +7,32 @@ const textarea = tv({
     invalid: {
       true: "border-status-blocked",
     },
+    surface: {
+      v3: "",
+      v5: "border-brand-v5-line bg-brand-v5-surface text-brand-v5-ink placeholder:text-brand-v5-muted/70",
+    },
+  },
+  compoundVariants: [
+    {
+      invalid: true,
+      surface: "v5",
+      class: "border-status-blocked",
+    },
+  ],
+  defaultVariants: {
+    surface: "v3",
   },
 });
 
 interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   invalid?: boolean;
+  surface?: "v3" | "v5";
 }
 
-export function Textarea({ className, invalid, ...props }: TextareaProps) {
+export function Textarea({ className, invalid, surface, ...props }: TextareaProps) {
   return (
     <textarea
-      className={textarea({ invalid, className })}
+      className={textarea({ invalid, surface, className })}
       aria-invalid={invalid || undefined}
       {...props}
     />

@@ -20,4 +20,8 @@ export type EventName =
   | "offer_rejected"
   | "payment_completed"
   | "order_status_changed"
-  | "product_favorited";
+  | "product_favorited"
+  | "project_request_submitted"
+  | "bulk_product_inquiry_submitted"
+  | "project_quote_submitted"
+  | "project_quote_accepted";

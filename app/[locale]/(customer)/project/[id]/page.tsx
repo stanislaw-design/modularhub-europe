@@ -5,6 +5,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { Button, Card, DataText, Heading, StatusPill, Text } from "@/components/ui";
+import { BulkProductInquiryModal } from "@/components/klient/BulkProductInquiryModal";
 import { FavoriteButton } from "@/components/klient/FavoriteButton";
 import { ProducerCard } from "@/components/klient/ProducerCard";
 import { ProjectCertifications } from "@/components/klient/ProjectCertifications";
@@ -24,7 +25,7 @@ import {
 import { ProjectTechnicalSpecs } from "@/components/klient/ProjectTechnicalSpecs";
 import { getCountries } from "@/lib/data/countries";
 import { getProducerById } from "@/lib/data/producers";
-import { getEligibilityByCountry, getProjectById } from "@/lib/data/projects";
+import { getEligibilityByCountry, getProducerVolumeProfile, getProjectById } from "@/lib/data/projects";
 import type { EligibilityByCountry } from "@/lib/data/types";
 import { getClientIdForUser, getFavoritedProductIds } from "@/lib/db/queries";
 import { routing, type Locale } from "@/lib/i18n/routing";
@@ -98,13 +99,14 @@ export default async function ProjektPage({
 
   const { countryCode } = parseResultsSearchParams(rawSearchParams);
 
-  const [countries, producer, eligibilityRows, session] = await Promise.all([
+  const [countries, producer, eligibilityRows, session, volumeProfile] = await Promise.all([
     getCountries(),
     getProducerById(project.producerId),
     countryCode
       ? getEligibilityByCountry(countryCode)
       : Promise.resolve<EligibilityByCountry[]>([]),
     auth(),
+    getProducerVolumeProfile(project.producerId),
   ]);
 
   const isClientSession = session?.user.role === "client";
@@ -548,6 +550,18 @@ export default async function ProjektPage({
               {t("producerHeading")}
             </Heading>
             <ProducerCard producer={producer} />
+          </div>
+        )}
+
+        {volumeProfile && (
+          <div className="flex flex-col gap-brand-2 rounded-v5-card border border-brand-v5-amber-strong/30 bg-brand-v5-amber/5 p-brand-4">
+            <Heading level="h2" surface="v5" className="text-h3">
+              {t("bulkInquiryHeading")}
+            </Heading>
+            <Text tone="muted" surface="v5">
+              {t("bulkInquiryBody")}
+            </Text>
+            <BulkProductInquiryModal productId={project.id} countries={countries} />
           </div>
         )}
 

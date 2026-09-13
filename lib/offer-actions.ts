@@ -3,6 +3,7 @@
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db/client";
+import { getPgErrorCode } from "@/lib/db/pg-error";
 import { getClientIdForUser, getProducerIdForUser } from "@/lib/db/queries";
 import { inquiry, inquiryItem, offer, offerItem, order, orderStageEvent, product } from "@/lib/db/schema";
 import { captureError } from "@/lib/observability/errors";
@@ -21,8 +22,11 @@ function toPriceCents(value: number): number {
   return Math.round(value * 100);
 }
 
+// getPgErrorCode (nie samo error.code) odpakowuje kod spod DrizzleQueryError.cause
+// -- drizzle-orm/neon-http opakowuje każdy błąd sterownika, patrz lib/db/pg-error.ts
+// (/debug, spec 0037 /check verify: ten sam bliźniaczy błąd co isBulkRequestEmailLimitError).
 function isUniqueViolation(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error && (error as { code: unknown }).code === "23505";
+  return getPgErrorCode(error) === "23505";
 }
 
 // Przelicza inquiry.status po każdym zapisie offer (spec 0033 AC-10, Key

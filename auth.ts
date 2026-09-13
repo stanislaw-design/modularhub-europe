@@ -109,4 +109,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
   },
+  events: {
+    // AC-7 (spec 0037): powiązanie project_request/bulk_product_inquiry z
+    // kontem po e mailu, na każdym udanym logowaniu klienta (idempotentne,
+    // patrz lib/project-quote-actions.ts linkRequestsToClientOnLogin).
+    // Import wewnątrz handlera, nie na górze pliku: unika cyklu
+    // auth.ts -> project-quote-actions.ts -> auth.ts (signIn).
+    async signIn({ user }) {
+      const dbUser = user as unknown as typeof users.$inferSelect;
+      if (dbUser.role !== "client" || !dbUser.email) return;
+      const { getClientIdForUser } = await import("@/lib/db/queries");
+      const { linkRequestsToClientOnLogin } = await import("@/lib/project-quote-actions");
+      const clientId = await getClientIdForUser(dbUser.id);
+      if (clientId) await linkRequestsToClientOnLogin(dbUser.email, clientId);
+    },
+  },
 });

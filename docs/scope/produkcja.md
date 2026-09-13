@@ -46,6 +46,8 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 29 | Przyklejony pasek wyszukiwania na wynikach (klient) | Slice 2 | in progress |
 | 30 | Grupy wyszukiwania: Domy i Więcej niż dom (klient) | Slice 2 | in progress |
 | 31 | Anglojęzyczne adresy URL i strona główna klienta bez segmentu klient | Foundation | in progress |
+| 32 | Model danych dla dużych zamówień B2B | Slice 12 | in progress |
+| 33 | Ekrany wejściowe dla dużych zamówień B2B | Slice 12 | in progress |
 
 ## Foundations
 
@@ -335,6 +337,35 @@ Rzeczywista weryfikacja dokumentów firmy producenta przed pierwszą wypłatą p
 **Done when:** producent wgrywa wymagane dokumenty firmowe, status weryfikacji zmienia się na podstawie rzeczywistego sprawdzenia, a wypłata jest zablokowana do czasu pozytywnej weryfikacji.
 - [ ] Zaprojektuj (spec): `/architect weryfikacja firmy producenta`
 
+## Slice 12: duże zamówienia B2B
+
+### 32. Model danych dla dużych zamówień B2B · full · in progress
+Fundament danych pod nową, dużą funkcję platformy: inwestorzy tacy jak Lammert (10 i więcej domów naraz, np. pod resort czy osiedle) mogą wysłać wolne zapytanie do wszystkich sprawdzonych, dużych producentów naraz albo zapytać o konkretny model w większej ilości sztuk, bez zakładania konta; producenci deklarują realną zdolność produkcyjną i odpowiadają wycenami. Sam model danych (tabele, pola, reguły) jest pierwszą z kilku zaplanowanych decyzji tej dużej inicjatywy; ekrany wejściowe, odznaka "Verified Volume Manufacturer" i inteligentne dopasowywanie producentów to osobne, przyszłe funkcje, patrz spec 0037 Follow-up.
+**Done when:** inwestor może wysłać oba typy zapytań bez logowania, zweryfikowani wolumenowo producenci zostają automatycznie powiązani z wolnym zapytaniem w swoim kraju i mogą na nie odpowiedzieć wyceną, klient widzi odpowiedzi po zalogowaniu tym samym e mailem, a zaakceptowanie wyceny wymaga zatwierdzonej weryfikacji B2B klienta.
+- [x] Zaprojektuj (spec): [0037](../specs/0037-model-danych-duzych-zamowien-b2b/index.md)
+- [x] Zbuduj: `/develop model danych dla dużych zamówień B2B` (code in `lib/db/schema.ts`, `drizzle/0013_cynical_vance_astro.sql`, `drizzle/0014_bulk_request_limit_and_audit.sql`, `lib/project-request-specs.ts`, `lib/producer-capacity-profile-specs.ts`, `lib/project-request-actions.ts`, `lib/project-quote-actions.ts`, `auth.ts`, `lib/observability/types.ts`, `lib/db/pg-error.ts`; `/check verify` + `/debug` po pierwszym buildzie dorzuciły `submitClientB2bDetails` (brakująca połowa AC-8) i naprawiły błędną klasyfikację błędu bazy danych, patrz spec 0037 verify.md)
+  - [x] Migracja i walidacja: nowe tabele, enumy i CHECK (progi liczby sztuk, ceny jako `bigint`, dwa częściowe unikalne indeksy na wycenie), schematy Zod dla pól jsonb, satisfies AC-1, AC-4, AC-6, AC-8, AC-9, AC-12
+  - [x] Zapisywanie zapytań: wysłanie obu typów zapytań bez logowania, automatyczne powiązanie zweryfikowanych producentów, limit zgłoszeń na e mail, satisfies AC-1, AC-2, AC-4, AC-10
+  - [x] Odpowiedzi i cykl życia: złożenie wyceny (i e mail z linkiem logującym), akceptacja z bramką weryfikacji B2B, powiązanie zapytań z kontem klienta przy logowaniu, ustawienia weryfikacji przez administratora, satisfies AC-3, AC-5, AC-7, AC-9, AC-11
+- [ ] Zweryfikuj: `/check verify model danych dla dużych zamówień B2B`
+- [x] Testuj: `/test model danych dla dużych zamówień B2B` (`lib/db/pg-error.test.ts`, `lib/producer-capacity-profile-specs.test.ts`, `lib/project-request-specs.test.ts`, `lib/project-request-actions.test.ts`, `lib/project-quote-actions.test.ts`, `lib/db/schema.test.ts`)
+
+### 33. Ekrany wejściowe dla dużych zamówień B2B · full · in progress
+Pierwsze widoczne wejście do modelu danych z funkcji 32: nowa sekcja na stronie głównej z dwoma kaflami (dla inwestora "10+ domów", dla producenta "Duże moce produkcyjne", zgodnie z dostarczonym obrazem referencyjnym), oraz pełna, publiczna strona formularza wolnego zapytania pod `/project-request`, wołająca wprost już istniejącą funkcję `submitProjectRequest`. Kafel producenta prowadzi dziś do zwykłej rejestracji; prawdziwy ekran zgłaszania zdolności produkcyjnej to osobna, przyszła decyzja (patrz spec 0038 Follow-up).
+**Done when:** strona główna pokazuje sekcję z obydwoma kaflami zaraz po Hero, kafel inwestora prowadzi do `/project-request` z pełnym formularzem wysyłającym do istniejącego modelu danych, kafel producenta prowadzi do rejestracji producenta, formularz zawiera zdanie o udostępnieniu danych producentom, a oba ekrany mają prawdziwe tłumaczenia pl/en/nl i metadane SEO.
+- [x] Zaprojektuj (spec): [0038](../specs/0038-ekrany-wejsciowe-duze-zamowienia-b2b/index.md)
+- [x] Zbuduj: `/develop ekrany wejściowe dla dużych zamówień B2B` — code in `app/[locale]/(customer)/project-request/page.tsx`, `components/klient/{ProjectRequestFlow,ProjectRequestConfirmationCard,BulkOrdersShowcase}.tsx`, `app/[locale]/(customer)/page.tsx`, `components/ui/Textarea.tsx` (dodany wariant `surface="v5"`), `messages/{pl,en,nl}.json`
+  - [x] Strona `/project-request` i formularz: trasa z metadanymi SEO/hreflang, `ProjectRequestFlow` (pola pogrupowane w trzy sekcje, bramka wymaganych pól, wywołanie `submitProjectRequest`, obsługa błędu limitu/walidacji/ogólnego, zdanie RODO nad przyciskiem, przycisk wyłączony w trakcie żądania), `ProjectRequestConfirmationCard`, satisfies AC-4, AC-5, AC-6, AC-7, AC-8, AC-9, AC-10
+  - [x] Sekcja strony głównej z dwoma kaflami: `BulkOrdersShowcase` (odznaka, podtytuł, dwa kafle fotograficzne z `public/images/b2b/`), CTA inwestora do `/project-request`, CTA producenta do `/producer/registration`, wstawiona zaraz po Hero, satisfies AC-1, AC-2, AC-3
+  - [x] Tłumaczenia pl/en/nl i przegląd dostępności (WCAG 2.2 AA) na obu nowych ekranach, satisfies AC-11, AC-12
+- [x] Zbuduj (aktualizacja spec 0038, kafel inwestora teraz prowadzi na ekran przeglądania producentów zamiast wprost do formularza): `/develop ekrany wejściowe dla dużych zamówień B2B` — code in `lib/project-request-actions.ts`, `lib/data/producers.ts`, `lib/data/projects.ts`, `app/[locale]/(customer)/verified-manufacturers/page.tsx`, `app/[locale]/(customer)/project/[id]/page.tsx`, `components/klient/{BulkProductInquiryModal,BulkOrdersShowcase}.tsx`, `messages/{pl,en,nl}.json`; Budman House zasiany jako zweryfikowany wolumenowo przez Neon MCP (za zgodą inżyniera)
+  - [x] Zaplecze i dane: utwardzenie `submitBulkProductInquiry`, ręczne zasianie Budman House jako zweryfikowanego wolumenowo (Neon MCP, za zgodą inżyniera), przepisanie `getProducerById`/`getProducers` na realną bazę, satisfies AC-13, AC-14, AC-16, AC-17
+  - [x] Ekran przeglądania: nowe funkcje odczytu producentów zweryfikowanych wolumenowo, nowa strona `/verified-manufacturers` (siatka projektów, nagłówek producenta, stan pusty, jeden duży przycisk "Zgłoś zapytanie"), satisfies AC-13, AC-14, AC-18
+  - [x] Zapytanie o model i kafel: nowy modal "Zapytaj o większą ilość" na `/project/[id]`, zmiana celu kafla inwestora na `/verified-manufacturers`, satisfies AC-2, AC-15, AC-16
+  - [x] Tłumaczenia, dostępność i testy dla wszystkich nowych/zmienionych ekranów, satisfies AC-11, AC-12
+- [ ] Zweryfikuj: `/check verify ekrany wejściowe dla dużych zamówień B2B`
+- [ ] Testuj: `/test ekrany wejściowe dla dużych zamówień B2B`
+
 ## Utwardzenie przed startem
 
 ### 20. SEO podstawowe stron publicznych · needs a decision
@@ -374,6 +405,7 @@ Poza zakresem tej epiki, świadomie odłożone.
 - **Podłączenie konta do już istniejącego, ręcznie zasianego producenta** (Castro, Steel House, Budman, Cocomodule…): dziś bez konta do zalogowania; świadomie odłożone, testowanie idzie na nowym, samodzielnie zarejestrowanym koncie (from spec 0032) · needs a decision
 - **Statystyki/analityka dla producenta** w panelu (np. liczba zapytań w czasie, popularność produktów) (from spec 0032) · needs a decision
 - **Edycja profilu firmy przez producenta** (nazwa, telefon, kraje dostawy): panel producenta dziś pokazuje wyłącznie podgląd (from spec 0032) · needs a decision
+- **Prawdziwy "konfigurator" zapytania o model w większej ilości**: ekran przeglądania producentów (spec 0038, funkcja 33) dostaje na razie prosty modal na `/project/[id]`; docelowy, bardziej prowadzący konfigurator to osobna decyzja (from spec 0038) · needs a decision
 
 ## References
 

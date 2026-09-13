@@ -1,0 +1,728 @@
+[
+  {
+    "sheet": "Projekty",
+    "rows": [
+      {
+        "row": 1,
+        "cells": [
+          "Lp.",
+          "Projekt",
+          "Powierzchnia [m²]",
+          "Typ",
+          "Piętra",
+          "Pokoje",
+          "Łazienki",
+          "Kąt dachu",
+          "Garaż",
+          "Cena od [PLN]",
+          "Opis do katalogu",
+          "Strona źródłowa",
+          "Folder"
+        ]
+      },
+      {
+        "row": 2,
+        "cells": [
+          1,
+          "Awokado",
+          111.65,
+          "dom parterowy",
+          1,
+          4,
+          2,
+          "30°",
+          "Nie",
+          273540,
+          "Parterowy dom jednorodzinny o powierzchni 111,65 m² z dachem dwuspadowym. Funkcjonalny układ 4 pokoi i 2 łazienek; projekt bez garażu.",
+          "https://budman.house/projekty/awokado-11165m%C2%B2-cennik-od-273-540-zl/",
+          "01_Awokado"
+        ]
+      },
+      {
+        "row": 3,
+        "cells": [
+          2,
+          "Monica I",
+          141.36,
+          "dom parterowy",
+          1,
+          4,
+          2,
+          "30°",
+          "Tak",
+          356335,
+          "Duży dom parterowy z dachem dwuspadowym, salonem z aneksem kuchennym, 3 sypialniami, 2 łazienkami, pomieszczeniem gospodarczym i garażem dwustanowiskowym.",
+          "https://budman.house/projekty/dom-parterowy-monica-i-142m%C2%B2/",
+          "02_Monica_I"
+        ]
+      },
+      {
+        "row": 4,
+        "cells": [
+          3,
+          "Dom Pani Darii",
+          85.06,
+          "dom parterowy",
+          1,
+          4,
+          2,
+          "35°",
+          "Nie",
+          208250,
+          "Kompaktowy dom parterowy o powierzchni 85,06 m². Oferuje 4 pokoje i 2 łazienki, bez garażu.",
+          "https://budman.house/projekty/dom-pani-darii-85m2/",
+          "03_Pani_Darii"
+        ]
+      },
+      {
+        "row": 5,
+        "cells": [
+          4,
+          "Anka DR-ST",
+          116,
+          "dom piętrowy",
+          2,
+          5,
+          2,
+          "40°",
+          "Nie",
+          284200,
+          "Piętrowy dom o powierzchni 116 m² z salonem i kuchnią, 4 sypialniami, 2 łazienkami oraz pomieszczeniem gospodarczym.",
+          "https://budman.house/projekty/dom-pietrowy-anka-dr-st-116m%C2%B2/",
+          "04_Anka_DR-ST"
+        ]
+      },
+      {
+        "row": 6,
+        "cells": [
+          5,
+          "Malutki DR-S",
+          79,
+          "dom piętrowy",
+          2,
+          4,
+          2,
+          "45°",
+          "Nie",
+          220500,
+          "Piętrowy dom 79 m² z oddzielnym salonem i kuchnią, 3 sypialniami, 2 łazienkami, garderobą oraz pomieszczeniem gospodarczym.",
+          "https://budman.house/projekty/dom-pietrowy-malutki-dr-s-79m%C2%B2/",
+          "05_Malutki_DR-S"
+        ]
+      },
+      {
+        "row": 7,
+        "cells": [
+          6,
+          "Kenza",
+          27.5,
+          "dom mobilny premium",
+          1,
+          2,
+          1,
+          null,
+          "Nie",
+          168000,
+          "Mobilny dom premium o powierzchni 27,5 m² z salonem i aneksem kuchennym, łazienką, sypialnią z panoramicznym przeszkleniem oraz bocznym tarasem. Możliwy montaż na przyczepie lub bloczkach.",
+          "https://budman.house/projekty/nowoczesny-dom-mobilny-kenza/",
+          "06_Kenza"
+        ]
+      },
+      {
+        "row": 8,
+        "cells": [
+          7,
+          "Kazik",
+          27.5,
+          "houseboat / dom na wodzie",
+          1,
+          2,
+          1,
+          null,
+          "Nie",
+          370000,
+          "Houseboat premium o powierzchni 27,5 m² z salonem i aneksem kuchennym, łazienką, sypialnią z panoramicznym przeszkleniem oraz dolnym i górnym tarasem.",
+          "https://budman.house/projekty/nowoczesny-houseboat-kazik/",
+          "07_Kazik"
+        ]
+      },
+      {
+        "row": 9,
+        "cells": [
+          8,
+          "KA220 SZ",
+          87.67,
+          "dom parterowy",
+          1,
+          3,
+          2,
+          "35°",
+          "Nie",
+          215600,
+          "Funkcjonalny dom parterowy o powierzchni 87,67 m², z 3 pokojami oraz 2 łazienkami. Projekt bez garażu.",
+          "https://budman.house/projekty/ka220-sz-dom-parterowy-87m2/",
+          "08_KA220_SZ"
+        ]
+      },
+      {
+        "row": 10,
+        "cells": [
+          9,
+          "KA78 G1 SZ",
+          140.24,
+          "dom parterowy",
+          1,
+          4,
+          2,
+          "30°",
+          "Tak",
+          343000,
+          "Przestronny dom parterowy o powierzchni 140,24 m² z 4 pokojami, 2 łazienkami i garażem.",
+          "https://budman.house/projekty/ka78-g1-sz-dom-parterowy-140m2/",
+          "09_KA78_G1_SZ"
+        ]
+      },
+      {
+        "row": 11,
+        "cells": [
+          10,
+          "Mary antresola",
+          51.65,
+          "dom całoroczny z antresolą",
+          1,
+          3,
+          1,
+          "40°",
+          "Nie",
+          171500,
+          "Całoroczny mały dom o powierzchni zabudowy 35 m² i 51,65 m² powierzchni podłóg. Antresola zwiększa przestrzeń użytkową; salon z aneksem, sypialnia i łazienka.",
+          "https://budman.house/projekty/mary-z-antresola-35m2/",
+          "10_Mary_antresola"
+        ]
+      },
+      {
+        "row": 12,
+        "cells": [
+          11,
+          "Mary parterowa",
+          28.14,
+          "mały dom parterowy",
+          1,
+          2,
+          1,
+          "35°",
+          "Nie",
+          85750,
+          "Niewielki całoroczny dom o powierzchni zabudowy 35 m². Salon z aneksem kuchennym, sypialnia, łazienka i opcjonalny taras z pergolą.",
+          "https://budman.house/projekty/mary-dom-parterowy-35m2/",
+          "11_Mary_parterowa"
+        ]
+      },
+      {
+        "row": 13,
+        "cells": [
+          12,
+          "Monica II",
+          141.57,
+          "dom parterowy",
+          1,
+          4,
+          2,
+          "30°",
+          "Tak",
+          null,
+          "Parterowy dom 141,57 m² z salonem i aneksem kuchennym, 3 sypialniami, 2 łazienkami, pomieszczeniem gospodarczym i garażem dwustanowiskowym.",
+          "https://budman.house/projekty/monica-ii-dom-parterowy-142m2/",
+          "12_Monica_II"
+        ]
+      },
+      {
+        "row": 14,
+        "cells": [
+          13,
+          "Monica III",
+          141.57,
+          "dom parterowy",
+          1,
+          4,
+          2,
+          "30°",
+          "Tak",
+          null,
+          "Wariant domu parterowego 141,57 m² z 3 sypialniami, 2 łazienkami, częścią dzienną z aneksem, pomieszczeniem gospodarczym i garażem dwustanowiskowym.",
+          "https://budman.house/projekty/monica-iii-dom-parterowy-142m2/",
+          "13_Monica_III"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Zdjęcia",
+    "rows": [
+      {
+        "row": 1,
+        "cells": [
+          "Lp.",
+          "Projekt",
+          "Typ zdjęcia",
+          "Bezpośredni URL zdjęcia"
+        ]
+      },
+      {
+        "row": 2,
+        "cells": [
+          1,
+          "Awokado",
+          "elewacja tylna",
+          "https://budman.house/wp-content/uploads/2022/08/Elewacja-tylna-1-1200x700.jpg"
+        ]
+      },
+      {
+        "row": 3,
+        "cells": [
+          2,
+          "Awokado",
+          "realizacja / elewacja",
+          "https://budman.house/wp-content/uploads/2022/07/2308D3B0-5E3B-4A7A-89F6-41B925E7712A-scaled-460x270.jpg"
+        ]
+      },
+      {
+        "row": 4,
+        "cells": [
+          3,
+          "Awokado",
+          "realizacja / elewacja",
+          "https://budman.house/wp-content/uploads/2022/07/wyr%C3%B3%C5%BCniaj%C4%85cy-scaled-e1658694375416-460x270.jpg"
+        ]
+      },
+      {
+        "row": 5,
+        "cells": [
+          4,
+          "Monica I",
+          "wizualizacja 1",
+          "https://budman.house/wp-content/uploads/2020/04/3.-WERSJA-1-1200x700.jpg"
+        ]
+      },
+      {
+        "row": 6,
+        "cells": [
+          5,
+          "Monica I",
+          "wizualizacja 2",
+          "https://budman.house/wp-content/uploads/2020/04/89518736_289725902003677_5460874969233752064_n%402x-460x270.png"
+        ]
+      },
+      {
+        "row": 7,
+        "cells": [
+          6,
+          "Monica I",
+          "wizualizacja 3",
+          "https://budman.house/wp-content/uploads/2020/04/89425385_489640301707110_2078661920977584128_n-460x270.png"
+        ]
+      },
+      {
+        "row": 8,
+        "cells": [
+          7,
+          "Monica I",
+          "rzut 3D",
+          "https://budman.house/wp-content/uploads/2020/04/7.-RZUT-460x270.jpg"
+        ]
+      },
+      {
+        "row": 9,
+        "cells": [
+          8,
+          "Dom Pani Darii",
+          "elewacja frontowa",
+          "https://budman.house/wp-content/uploads/2022/12/Elewacja-frontowa-1200x700.jpg"
+        ]
+      },
+      {
+        "row": 10,
+        "cells": [
+          9,
+          "Dom Pani Darii",
+          "elewacja tylna",
+          "https://budman.house/wp-content/uploads/2022/12/Elewacja-tylna-460x270.jpg"
+        ]
+      },
+      {
+        "row": 11,
+        "cells": [
+          10,
+          "Dom Pani Darii",
+          "rzut",
+          "https://budman.house/wp-content/uploads/2022/12/Rzut-460x270.jpg"
+        ]
+      },
+      {
+        "row": 12,
+        "cells": [
+          11,
+          "Anka DR-ST",
+          "wizualizacja tylna",
+          "https://budman.house/wp-content/uploads/2024/11/tyl-1-1200x700.jpg"
+        ]
+      },
+      {
+        "row": 13,
+        "cells": [
+          12,
+          "Anka DR-ST",
+          "wizualizacja front 1",
+          "https://budman.house/wp-content/uploads/2024/11/front-2-460x270.jpg"
+        ]
+      },
+      {
+        "row": 14,
+        "cells": [
+          13,
+          "Anka DR-ST",
+          "wizualizacja front 2",
+          "https://budman.house/wp-content/uploads/2024/11/front-3-460x270.jpg"
+        ]
+      },
+      {
+        "row": 15,
+        "cells": [
+          14,
+          "Malutki DR-S",
+          "wizualizacja frontowa",
+          "https://budman.house/wp-content/uploads/2024/11/front-1200x700.jpg"
+        ]
+      },
+      {
+        "row": 16,
+        "cells": [
+          15,
+          "Malutki DR-S",
+          "wizualizacja tylna",
+          "https://budman.house/wp-content/uploads/2024/11/tyl-460x270.jpg"
+        ]
+      },
+      {
+        "row": 17,
+        "cells": [
+          16,
+          "Malutki DR-S",
+          "rzut 3D parteru",
+          "https://budman.house/wp-content/uploads/2024/11/parter-wiz-460x270.jpg"
+        ]
+      },
+      {
+        "row": 18,
+        "cells": [
+          17,
+          "Kenza",
+          "wizualizacja 1",
+          "https://budman.house/wp-content/uploads/2023/09/r1-1-1024x644.jpg"
+        ]
+      },
+      {
+        "row": 19,
+        "cells": [
+          18,
+          "Kenza",
+          "wizualizacja 2",
+          "https://budman.house/wp-content/uploads/2023/09/r2-1-1024x573.jpg"
+        ]
+      },
+      {
+        "row": 20,
+        "cells": [
+          19,
+          "Kenza",
+          "rzut",
+          "https://budman.house/wp-content/uploads/2023/09/mobilny_rzut-1024x562.jpg"
+        ]
+      },
+      {
+        "row": 21,
+        "cells": [
+          20,
+          "Kazik",
+          "wizualizacja 1",
+          "https://budman.house/wp-content/uploads/2023/04/Dom-na-wod%C4%99-wizualizacja-1-1024x573.jpg"
+        ]
+      },
+      {
+        "row": 22,
+        "cells": [
+          21,
+          "Kazik",
+          "wizualizacja 2",
+          "https://budman.house/wp-content/uploads/2023/04/Dom-na-wod%C4%99-wizualizacja-2-1-1024x573.jpg"
+        ]
+      },
+      {
+        "row": 23,
+        "cells": [
+          22,
+          "Kazik",
+          "rzut",
+          "https://budman.house/wp-content/uploads/2023/04/Dom-na-wod%C4%99-rzut.jpg"
+        ]
+      },
+      {
+        "row": 24,
+        "cells": [
+          23,
+          "KA220 SZ",
+          "elewacja frontowa",
+          "https://budman.house/wp-content/uploads/2022/08/Elewacja-frontowa-1200x700.jpg"
+        ]
+      },
+      {
+        "row": 25,
+        "cells": [
+          24,
+          "KA220 SZ",
+          "elewacja tylna",
+          "https://budman.house/wp-content/uploads/2022/08/Elewacja-tylna-460x270.jpg"
+        ]
+      },
+      {
+        "row": 26,
+        "cells": [
+          25,
+          "KA220 SZ",
+          "rzut",
+          "https://budman.house/wp-content/uploads/2022/08/Rzut-budynku-460x270.jpg"
+        ]
+      },
+      {
+        "row": 27,
+        "cells": [
+          26,
+          "KA78 G1 SZ",
+          "elewacja frontowa",
+          "https://budman.house/wp-content/uploads/2022/08/Elewacja-frontowa-2-1200x700.jpg"
+        ]
+      },
+      {
+        "row": 28,
+        "cells": [
+          27,
+          "KA78 G1 SZ",
+          "elewacja tylna",
+          "https://budman.house/wp-content/uploads/2022/08/Elewacja-tylna-2-460x270.jpg"
+        ]
+      },
+      {
+        "row": 29,
+        "cells": [
+          28,
+          "KA78 G1 SZ",
+          "rzut",
+          "https://budman.house/wp-content/uploads/2022/08/Rzut-budynku-2-460x270.jpg"
+        ]
+      },
+      {
+        "row": 30,
+        "cells": [
+          29,
+          "Mary antresola",
+          "wizualizacja frontowa",
+          "https://budman.house/wp-content/uploads/2021/02/1-e1612179063136-1200x700.jpg"
+        ]
+      },
+      {
+        "row": 31,
+        "cells": [
+          30,
+          "Mary antresola",
+          "wizualizacja tylna",
+          "https://budman.house/wp-content/uploads/2021/02/2-460x270.jpg"
+        ]
+      },
+      {
+        "row": 32,
+        "cells": [
+          31,
+          "Mary antresola",
+          "rzut antresoli",
+          "https://budman.house/wp-content/uploads/2021/02/Antresola-1-460x270.jpg"
+        ]
+      },
+      {
+        "row": 33,
+        "cells": [
+          32,
+          "Mary antresola",
+          "rzut parteru",
+          "https://budman.house/wp-content/uploads/2021/02/Parter-1-460x270.jpg"
+        ]
+      },
+      {
+        "row": 34,
+        "cells": [
+          33,
+          "Mary parterowa",
+          "wizualizacja frontowa",
+          "https://budman.house/wp-content/uploads/2020/11/3-1200x700.jpg"
+        ]
+      },
+      {
+        "row": 35,
+        "cells": [
+          34,
+          "Mary parterowa",
+          "wizualizacja tylna",
+          "https://budman.house/wp-content/uploads/2020/11/4-460x270.jpg"
+        ]
+      },
+      {
+        "row": 36,
+        "cells": [
+          35,
+          "Mary parterowa",
+          "wariant elewacji",
+          "https://budman.house/wp-content/uploads/2020/11/1-460x270.jpg"
+        ]
+      },
+      {
+        "row": 37,
+        "cells": [
+          36,
+          "Mary parterowa",
+          "wariant elewacji 2",
+          "https://budman.house/wp-content/uploads/2020/11/2-e1605566739529-460x270.jpg"
+        ]
+      },
+      {
+        "row": 38,
+        "cells": [
+          37,
+          "Monica II",
+          "wizualizacja 1",
+          "https://budman.house/wp-content/uploads/2020/04/5.-WERSJA-2-1200x700.jpg"
+        ]
+      },
+      {
+        "row": 39,
+        "cells": [
+          38,
+          "Monica II",
+          "wizualizacja 2",
+          "https://budman.house/wp-content/uploads/2020/04/6.-WERSJA-2-460x270.jpg"
+        ]
+      },
+      {
+        "row": 40,
+        "cells": [
+          39,
+          "Monica II",
+          "wizualizacja 3",
+          "https://budman.house/wp-content/uploads/2020/04/4.-WERSJA-2-460x270.jpg"
+        ]
+      },
+      {
+        "row": 41,
+        "cells": [
+          40,
+          "Monica II",
+          "rzut 3D",
+          "https://budman.house/wp-content/uploads/2020/04/7.-RZUT-460x270.jpg"
+        ]
+      },
+      {
+        "row": 42,
+        "cells": [
+          41,
+          "Monica III",
+          "wizualizacja 1",
+          "https://budman.house/wp-content/uploads/2020/06/3-1200x700.jpg"
+        ]
+      },
+      {
+        "row": 43,
+        "cells": [
+          42,
+          "Monica III",
+          "wizualizacja 2",
+          "https://budman.house/wp-content/uploads/2020/06/2-460x270.jpg"
+        ]
+      },
+      {
+        "row": 44,
+        "cells": [
+          43,
+          "Monica III",
+          "wizualizacja 3",
+          "https://budman.house/wp-content/uploads/2020/06/1-460x270.jpg"
+        ]
+      },
+      {
+        "row": 45,
+        "cells": [
+          44,
+          "Monica III",
+          "rzut 3D",
+          "https://budman.house/wp-content/uploads/2020/04/7.-RZUT-460x270.jpg"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Instrukcja",
+    "rows": [
+      {
+        "row": 1,
+        "cells": [
+          "Budman House – pakiet projektów dla ModularHub",
+          null,
+          null,
+          null
+        ]
+      },
+      {
+        "row": 3,
+        "cells": [
+          "Co zawiera plik",
+          "13 projektów widocznych obecnie na stronie Budman House, skrócone opisy, parametry, ceny oraz bezpośrednie URL-e do zdjęć i rzutów.",
+          null,
+          null
+        ]
+      },
+      {
+        "row": 4,
+        "cells": [
+          "Arkusz Projekty",
+          "Dane gotowe do przekazania programistom lub przygotowania kart produktów w ModularHub.",
+          null,
+          null
+        ]
+      },
+      {
+        "row": 5,
+        "cells": [
+          "Arkusz Zdjęcia",
+          "Każdy adres prowadzi bezpośrednio do pliku graficznego opublikowanego na serwerze Budman House.",
+          null,
+          null
+        ]
+      },
+      {
+        "row": 6,
+        "cells": [
+          "Ważne",
+          "Przed ponowną publikacją zdjęć i rzutów na ModularHub warto mieć zgodę Budman House na wykorzystanie materiałów graficznych i projektowych.",
+          null,
+          null
+        ]
+      },
+      {
+        "row": 7,
+        "cells": [
+          "Ceny",
+          "Ceny są wartościami „od” widocznymi na stronie w chwili zebrania danych. Monica II i Monica III nie mają obecnie ceny w karcie projektu.",
+          null,
+          null
+        ]
+      }
+    ]
+  }
+]
