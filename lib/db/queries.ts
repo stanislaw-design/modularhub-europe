@@ -79,7 +79,7 @@ export interface ProducerProductForEdit {
   family: (typeof product.$inferSelect)["family"];
   category: (typeof product.$inferSelect)["category"];
   spaSubcategory: (typeof product.$inferSelect)["spaSubcategory"];
-  pergolaSubcategory: (typeof product.$inferSelect)["pergolaSubcategory"];
+  containerSubcategory: (typeof product.$inferSelect)["containerSubcategory"];
   floorAreaM2: number | null;
   bedrooms: number | null;
   countryOfProduction: string | null;
@@ -128,7 +128,7 @@ export async function getProducerProductForEdit(
     family: row.family,
     category: row.category,
     spaSubcategory: row.spaSubcategory,
-    pergolaSubcategory: row.pergolaSubcategory,
+    containerSubcategory: row.containerSubcategory,
     floorAreaM2: row.floorAreaM2,
     bedrooms: row.bedrooms,
     countryOfProduction: row.countryOfProduction,
@@ -163,7 +163,7 @@ export async function getProductFamilyCounts(): Promise<ProductFamilyCount[]> {
   // (egzekwowane przez product_family_subcategory_match), więc coalesce daje
   // "tę właściwą dla family tego wiersza". Rzutowanie na text jest konieczne:
   // to trzy różne typy enum w Postgresie, COALESCE wymaga wspólnego typu.
-  const subcategory = sql<string | null>`coalesce(${product.category}::text, ${product.spaSubcategory}::text, ${product.pergolaSubcategory}::text)`;
+  const subcategory = sql<string | null>`coalesce(${product.category}::text, ${product.spaSubcategory}::text, ${product.containerSubcategory}::text)`;
 
   const rows = await db
     .select({

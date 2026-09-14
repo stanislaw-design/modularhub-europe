@@ -5,7 +5,7 @@ import { resolveAsyncTree } from "@/test/resolve-async-tree";
 import { SubcategoryFilterBar } from "./SubcategoryFilterBar";
 
 describe("SubcategoryFilterBar", () => {
-  it("renders nothing for family dom (AC-8: subcategories are spa/pergola only)", async () => {
+  it("renders nothing for family dom (AC-8: subcategories are spa/kontenery-modulowe only)", async () => {
     const { container } = render(await resolveAsyncTree(<SubcategoryFilterBar locale="pl" filter={{ family: "dom" }} />));
     expect(container).toBeEmptyDOMElement();
   });
@@ -20,12 +20,12 @@ describe("SubcategoryFilterBar", () => {
     }
   });
 
-  it("renders the four pergola subcategory chips for family pergola (AC-8)", async () => {
-    render(await resolveAsyncTree(<SubcategoryFilterBar locale="pl" filter={{ family: "pergola" }} />));
+  it("renders the three container subcategory chips for family kontenery-modulowe (AC-8, spec 0039)", async () => {
+    render(await resolveAsyncTree(<SubcategoryFilterBar locale="pl" filter={{ family: "kontenery-modulowe" }} />));
 
-    const nav = screen.getByRole("navigation", { name: "Podkategoria pergoli" });
+    const nav = screen.getByRole("navigation", { name: "Podkategoria kontenera modułowego" });
     expect(nav).toBeInTheDocument();
-    for (const label of ["Bioklimatyczna", "Aluminiowa stała", "Drewniana", "Wolnostojąca / przyścienna"]) {
+    for (const label of ["Gastronomiczny", "Usługowy", "Mieszkalny"]) {
       expect(screen.getByRole("link", { name: label })).toBeInTheDocument();
     }
   });
@@ -53,17 +53,20 @@ describe("SubcategoryFilterBar", () => {
     expect(screen.getByRole("link", { name: "Sauna" })).not.toHaveAttribute("aria-current");
   });
 
-  it("uses pergolaSubcategory, not spaSubcategory, when family is pergola", async () => {
+  it("uses containerSubcategory, not spaSubcategory, when family is kontenery-modulowe (spec 0039)", async () => {
     render(
       await resolveAsyncTree(
-        <SubcategoryFilterBar locale="pl" filter={{ family: "pergola", pergolaSubcategory: "drewniana" }} />
+        <SubcategoryFilterBar
+          locale="pl"
+          filter={{ family: "kontenery-modulowe", containerSubcategory: "mieszkalne" }}
+        />
       )
     );
 
-    expect(screen.getByRole("link", { name: "Drewniana" })).toHaveAttribute("aria-current", "true");
-    expect(screen.getByRole("link", { name: "Bioklimatyczna" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Mieszkalny" })).toHaveAttribute("aria-current", "true");
+    expect(screen.getByRole("link", { name: "Gastronomiczny" })).toHaveAttribute(
       "href",
-      "/pl/results?family=pergola&pergolaSubcategory=bioklimatyczna"
+      "/pl/results?family=kontenery-modulowe&containerSubcategory=gastronomiczne"
     );
   });
 

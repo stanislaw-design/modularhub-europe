@@ -3,7 +3,9 @@
     "nav": {
       "homes": "Woningen",
       "projects": "Projecten",
-      "howItWorks": "Hoe het werkt"
+      "howItWorks": "Hoe het werkt",
+      "verifiedManufacturers": "Geverifieerde producenten",
+      "producerB2b": "Word B2B producent"
     },
     "favorites": "Favorieten",
     "adminPanel": "Beheerderspaneel",
@@ -124,10 +126,10 @@
       "few": "modulaire spa's",
       "many": "modulaire spa's"
     },
-    "pergola": {
-      "one": "pergola",
-      "few": "pergola's",
-      "many": "pergola's"
+    "kontenery-modulowe": {
+      "one": "modulaire container",
+      "few": "modulaire containers",
+      "many": "modulaire containers"
     },
     "wiecej-niz-dom": {
       "one": "product",
@@ -213,7 +215,7 @@
     "family": {
       "dom": "Huis",
       "spa-modulowe": "Modulaire spa",
-      "pergola": "Pergola"
+      "kontenery-modulowe": "Modulaire containers"
     },
     "category": {
       "caloroczny": "Het hele jaar bewoonbaar",
@@ -225,11 +227,10 @@
       "jacuzzi": "Jacuzzi",
       "wellness-combo": "Wellnesscabine (sauna + jacuzzi)"
     },
-    "pergolaSubcategory": {
-      "bioklimatyczna": "Bioklimatisch",
-      "aluminiowa-stala": "Vaste aluminium",
-      "drewniana": "Houten",
-      "wolnostojaca-przyscienna": "Vrijstaand / wandgemonteerd"
+    "containerSubcategory": {
+      "gastronomiczne": "Horeca",
+      "uslugowe": "Dienstverlening",
+      "mieszkalne": "Wonen"
     },
     "completionStandard": {
       "surowy-zamkniety": "Casco",
@@ -321,39 +322,38 @@
           "hint": "Funderingsmethode, bijv. betonplaat"
         }
       },
-      "pergola": {
-        "roofType": {
-          "label": "Type dak",
-          "hint": "Type pergoladak",
-          "options": {
-            "bioklimatyczny": "Bioklimatisch (verstelbare lamellen)",
-            "staly": "Vast",
-            "rozsuwany": "Uitschuifbaar"
-          }
+      "kontenery-modulowe": {
+        "gastronomiczne": {
+          "dimensions": { "label": "Afmetingen", "hint": "Breedte × diepte × hoogte" },
+          "structureMaterial": { "label": "Constructiemateriaal", "hint": "Materiaal van het frame/de constructie van de container" },
+          "insulationType": { "label": "Type isolatie", "hint": "Type thermische isolatie" },
+          "foundationType": { "label": "Funderingstype", "hint": "Funderingsmethode" },
+          "kitchenEquipmentType": { "label": "Keukenapparatuur", "hint": "Type geïnstalleerde keukenapparatuur" },
+          "extractionVentilation": { "label": "Afzuiging", "hint": "Type afzuig-/ventilatie-installatie" },
+          "electricalPower": { "label": "Vermogen elektrische aansluiting", "hint": "Vereiste stroomvoorziening" },
+          "waterSupplyType": { "label": "Watervoorziening", "hint": "Wijze van watertoevoer" },
+          "wasteWaterHandling": { "label": "Afvalwaterverwerking", "hint": "Wijze van afvoer van afvalwater" }
         },
-        "roofMaterial": {
-          "label": "Dakmateriaal",
-          "hint": "Materiaal van de dakbedekking"
+        "uslugowe": {
+          "dimensions": { "label": "Afmetingen", "hint": "Breedte × diepte × hoogte" },
+          "structureMaterial": { "label": "Constructiemateriaal", "hint": "Materiaal van het frame/de constructie van de container" },
+          "insulationType": { "label": "Type isolatie", "hint": "Type thermische isolatie" },
+          "foundationType": { "label": "Funderingstype", "hint": "Funderingsmethode" },
+          "intendedUse": { "label": "Beoogd gebruik", "hint": "Gepland gebruik van de module, bijv. kantoor, winkel" },
+          "electricalInstallation": { "label": "Elektrische installatie", "hint": "Omvang van de elektrische installatie" },
+          "spaceHeatingType": { "label": "Type verwarming", "hint": "Wijze van ruimteverwarming" }
         },
-        "dimensions": {
-          "label": "Afmetingen",
-          "hint": "Breedte × diepte × hoogte"
-        },
-        "windLoadRating": {
-          "label": "Windbelastingsklasse",
-          "hint": "Maximaal toegestane windsnelheid"
-        },
-        "snowLoadRating": {
-          "label": "Sneeuwbelastingsklasse",
-          "hint": "Maximale sneeuwbelasting (kN/m²)"
-        },
-        "glazingType": {
-          "label": "Type beglazing",
-          "hint": "Zijpanelen of beglazing, indien van toepassing"
-        },
-        "foundationType": {
-          "label": "Funderingstype",
-          "hint": "Funderingsmethode van de palen"
+        "mieszkalne": {
+          "dimensions": { "label": "Afmetingen", "hint": "Breedte × diepte × hoogte" },
+          "structureMaterial": { "label": "Constructiemateriaal", "hint": "Materiaal van het frame/de constructie van de container" },
+          "insulationType": { "label": "Type isolatie", "hint": "Type thermische isolatie" },
+          "foundationType": { "label": "Funderingstype", "hint": "Funderingsmethode" },
+          "sleepingCapacity": { "label": "Aantal slaapplaatsen", "hint": "Maximaal aantal personen" },
+          "bathroomIncluded": { "label": "Badkamer", "hint": "Of de module een badkamer bevat" },
+          "spaceHeatingType": { "label": "Type verwarming", "hint": "Wijze van ruimteverwarming" },
+          "waterSupplyType": { "label": "Watervoorziening", "hint": "Wijze van watertoevoer" },
+          "wasteWaterHandling": { "label": "Afvalwaterverwerking", "hint": "Wijze van afvoer van afvalwater" },
+          "electricalInstallation": { "label": "Elektrische installatie", "hint": "Omvang van de elektrische installatie" }
         }
       }
     }
@@ -382,7 +382,7 @@
     "categoryLabel": "Categorie",
     "categoryRequiredError": "Kies een categorie.",
     "spaSubcategoryLabel": "Subcategorie",
-    "pergolaSubcategoryLabel": "Subcategorie",
+    "containerSubcategoryLabel": "Subcategorie",
     "subcategoryRequiredError": "Kies een subcategorie.",
     "nameLabel": "Projectnaam",
     "nameRequiredError": "Voer een projectnaam in.",
@@ -457,11 +457,13 @@
     "groupFiles": "Bestanden",
     "floorPlanCount": "Plattegronden ({count})",
     "photoCount": "Foto's ({count})",
-    "empty": "—"
+    "empty": "—",
+    "booleanYes": "Ja",
+    "booleanNo": "Nee"
   },
   "SubcategoryFilterBar": {
     "spaAriaLabel": "Subcategorie modulaire spa",
-    "pergolaAriaLabel": "Subcategorie pergola"
+    "containerAriaLabel": "Subcategorie modulaire container"
   },
   "ProducentPage": {
     "heading": "Word producent bij ModularHub Europe",
@@ -625,7 +627,7 @@
   "SearchCard": {
     "teaserPrompt": "Waarmee kan ik u helpen?",
     "teaserWordHome": "Een woning?",
-    "teaserWordPergola": "Een pergola?",
+    "teaserWordContainers": "Modulaire containers?",
     "teaserWordSpa": "Een spa?",
     "budgetAny": "Elk budget",
     "budgetUpTo50k": "tot €50K",
@@ -691,8 +693,8 @@
     "headingRest": "dan een woning",
     "spaName": "Modulaire spa's",
     "spaDescription": "Sauna's, jacuzzi's en wellnesszones voor uw tuin",
-    "pergolaName": "Pergola's",
-    "pergolaDescription": "Aluminium en hout, met overkapping en beglazing",
+    "containersName": "Modulaire containers",
+    "containersDescription": "Horeca, dienstverlening en wonen, kant-en-klaar te plaatsen",
     "imageAlt": "Voorbeeldproject uit de categorie {category}",
     "viewOffers": "Bekijk aanbiedingen",
     "viewOffersShort": "Bekijk",
@@ -712,7 +714,7 @@
     "subNavAriaLabel": "Verfijn binnen Meer dan een woning",
     "all": "Alles",
     "spa": "Modulaire spa's",
-    "pergola": "Pergola's"
+    "containers": "Modulaire containers"
   },
   "CategoryFilterBar": {
     "navAriaLabel": "Woningkenmerkfilters",
@@ -1143,14 +1145,28 @@
     "metaTitle": "Geverifieerde volumeproducenten | ModularHub Europe",
     "metaDescription": "Bekijk echte projecten van volume-geverifieerde producenten voordat u een aanvraag voor een grote bestelling verstuurt.",
     "heading": "Geverifieerde volumeproducenten",
-    "intro": "Bewezen bij groot volume, echte projecten van producenten die klaar zijn voor 10 of meer woningen tegelijk.",
     "ctaLabel": "Aanvraag indienen",
+    "requestPromoHeading": "Weet u precies wat u zoekt?",
     "verifiedBadge": "Volume-geverifieerde producent",
     "capacityLabel": "{units} woningen/maand",
     "certificationsLabel": "Certificaten: {list}",
     "deliveryLabel": "Levering: {list}",
     "emptyStateHeading": "Vandaag is geen enkele producent volume-geverifieerd",
-    "emptyStateBody": "Dien een aanvraag in voor uw grote project — we laten het u weten zodra een geverifieerde producent in uw land verschijnt."
+    "emptyStateBody": "Dien een aanvraag in voor uw grote project — we laten het u weten zodra een geverifieerde producent in uw land verschijnt.",
+    "noMatchHeading": "Geen projecten voor de gekozen filters",
+    "noMatchBody": "Geen enkele volume-geverifieerde producent heeft een project dat past bij de gekozen filters. Wis de filters, of dien direct een aanvraag in voor uw project.",
+    "clearFiltersLabel": "Filters wissen"
+  },
+  "VerifiedManufacturersFilterBar": {
+    "countryLabel": "Leveringsland",
+    "countryPlaceholder": "Kies een land",
+    "countryAriaLabel": "Leveringsland",
+    "sizeMinLabel": "Oppervlakte vanaf",
+    "sizeMaxLabel": "Oppervlakte tot",
+    "anyPlaceholder": "Elke",
+    "keywordLabel": "Trefwoord",
+    "keywordPlaceholder": "Modelnaam",
+    "searchAriaLabel": "Zoeken"
   },
   "BulkProductInquiryModal": {
     "triggerLabel": "Vraag naar een grotere hoeveelheid",

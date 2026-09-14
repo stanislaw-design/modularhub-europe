@@ -56,7 +56,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: reads from the da
   const producerId = crypto.randomUUID();
   const publishedDomId = crypto.randomUUID();
   const draftDomId = crypto.randomUUID();
-  const featuredPergolaId = crypto.randomUUID();
+  const featuredContainerId = crypto.randomUUID();
   // spec 0026: extra rows covering the new attribute/price/subcategory/search filters.
   const heatPumpDomId = crypto.randomUUID();
   const gasHeatedDomId = crypto.randomUUID();
@@ -65,19 +65,19 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: reads from the da
   const searchableDomId = crypto.randomUUID();
   // getFeaturedProjectByFamily has no ORDER BY/LIMIT, so it assumes at most
   // one published+featured row per family (lib/data/projects.ts). The dev DB
-  // already seeds a real featured pergola; neutralize it for this test's
+  // already seeds a real featured kontenery-modulowe product; neutralize it for this test's
   // duration so the assertion below isn't racing real seed data, then
   // restore it in afterAll regardless of pass/fail.
-  let otherFeaturedPergolaIds: string[] = [];
+  let otherFeaturedContainerIds: string[] = [];
 
   beforeAll(async () => {
     const conflicting = await db
       .select({ id: product.id })
       .from(product)
-      .where(and(eq(product.family, "pergola"), eq(product.featured, true), eq(product.status, "published")));
-    otherFeaturedPergolaIds = conflicting.map((row) => row.id);
-    if (otherFeaturedPergolaIds.length > 0) {
-      await db.update(product).set({ featured: false }).where(inArray(product.id, otherFeaturedPergolaIds));
+      .where(and(eq(product.family, "kontenery-modulowe"), eq(product.featured, true), eq(product.status, "published")));
+    otherFeaturedContainerIds = conflicting.map((row) => row.id);
+    if (otherFeaturedContainerIds.length > 0) {
+      await db.update(product).set({ featured: false }).where(inArray(product.id, otherFeaturedContainerIds));
     }
 
     await db.insert(users).values({
@@ -114,12 +114,12 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: reads from the da
         countryOfProduction: "PL",
       },
       {
-        id: featuredPergolaId,
+        id: featuredContainerId,
         producerId,
-        family: "pergola",
+        family: "kontenery-modulowe",
         status: "published",
         featured: true,
-        name: "Featured Test Pergola",
+        name: "Featured Test Container",
         countryOfProduction: "PL",
       },
       {
@@ -187,13 +187,13 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: reads from the da
   afterAll(async () => {
     await db
       .delete(productCountryEligibility)
-      .where(inArray(productCountryEligibility.productId, [publishedDomId, draftDomId, featuredPergolaId]));
+      .where(inArray(productCountryEligibility.productId, [publishedDomId, draftDomId, featuredContainerId]));
     await db.delete(product).where(eq(product.producerId, producerId));
     await db.delete(producer).where(eq(producer.id, producerId));
     await db.delete(users).where(eq(users.id, userId));
     await db.delete(auditLog).where(inArray(auditLog.recordId, [userId, producerId]));
-    if (otherFeaturedPergolaIds.length > 0) {
-      await db.update(product).set({ featured: true }).where(inArray(product.id, otherFeaturedPergolaIds));
+    if (otherFeaturedContainerIds.length > 0) {
+      await db.update(product).set({ featured: true }).where(inArray(product.id, otherFeaturedContainerIds));
     }
   });
 
@@ -203,7 +203,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: reads from the da
 
     expect(ids).toContain(publishedDomId);
     expect(ids).not.toContain(draftDomId);
-    expect(ids).not.toContain(featuredPergolaId);
+    expect(ids).not.toContain(featuredContainerId);
   });
 
   // Regression: /klient/zapytanie and /klient/dzialka used to validate the
@@ -216,24 +216,24 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: reads from the da
     const ids = await getPublishedProductIds();
 
     expect(ids.has(publishedDomId)).toBe(true);
-    expect(ids.has(featuredPergolaId)).toBe(true);
+    expect(ids.has(featuredContainerId)).toBe(true);
     expect(ids.has(saunaSpaId)).toBe(true);
     expect(ids.has(draftDomId)).toBe(false);
   });
 
   it("filters by an explicit family", async () => {
-    const projects = await getProjects({ family: "pergola" });
+    const projects = await getProjects({ family: "kontenery-modulowe" });
 
-    expect(projects.map((p) => p.id)).toContain(featuredPergolaId);
+    expect(projects.map((p) => p.id)).toContain(featuredContainerId);
     expect(projects.map((p) => p.id)).not.toContain(publishedDomId);
   });
 
   // spec 0035 AC-2: the "wiecej-niz-dom" sentinel resolves through FAMILY_GROUPS
-  // to an IN (...) across every family in the group (today spa-modulowe + pergola).
-  it("filters by the wiecej-niz-dom group, combining spa-modulowe and pergola but excluding dom", async () => {
+  // to an IN (...) across every family in the group (today spa-modulowe + kontenery-modulowe).
+  it("filters by the wiecej-niz-dom group, combining spa-modulowe and kontenery-modulowe but excluding dom", async () => {
     const projects = await getProjects({ family: "wiecej-niz-dom" });
 
-    expect(projects.map((p) => p.id)).toContain(featuredPergolaId);
+    expect(projects.map((p) => p.id)).toContain(featuredContainerId);
     expect(projects.map((p) => p.id)).toContain(saunaSpaId);
     expect(projects.map((p) => p.id)).not.toContain(publishedDomId);
   });
@@ -374,9 +374,9 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: reads from the da
   });
 
   it("getFeaturedProjectByFamily returns the one published, featured row for that family", async () => {
-    const featured = await getFeaturedProjectByFamily("pergola");
+    const featured = await getFeaturedProjectByFamily("kontenery-modulowe");
 
-    expect(featured?.id).toBe(featuredPergolaId);
+    expect(featured?.id).toBe(featuredContainerId);
   });
 
   it("getEligibilityByCountry returns only the rows for the requested country", async () => {
@@ -531,15 +531,27 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: verified volume m
   const approvedProducerId = crypto.randomUUID();
   const publishedProductId = crypto.randomUUID();
   const draftProductId = crypto.randomUUID();
+  // spec 0038 aktualizacja (pasek wyszukiwania): drugi, wyszukiwalny produkt tego
+  // samego producenta z odrębnym metrażem, żeby testy sizeMin/sizeMax i słowa
+  // kluczowego mogły odróżnić "producent zniknął" od "jeden z jego projektów zniknął".
+  const largeProductId = crypto.randomUUID();
 
   const unapprovedUserId = crypto.randomUUID();
   const unapprovedProducerId = crypto.randomUUID();
   const unapprovedProductId = crypto.randomUUID();
 
+  // Drugi zatwierdzony producent, dostarczający wyłącznie do DE (spec 0038
+  // AC-20): pozwala odróżnić "kraj zawęża listę producentów" od "kraj zawęża
+  // tylko projekty w obrębie jednego producenta".
+  const secondUserId = crypto.randomUUID();
+  const secondApprovedProducerId = crypto.randomUUID();
+  const secondProductId = crypto.randomUUID();
+
   beforeAll(async () => {
     await db.insert(users).values([
       { id: userId, email: `vvm-${userId}@example.test`, phone: "+48000000030", role: "producer" },
       { id: unapprovedUserId, email: `vvm-${unapprovedUserId}@example.test`, phone: "+48000000031", role: "producer" },
+      { id: secondUserId, email: `vvm-${secondUserId}@example.test`, phone: "+48000000032", role: "producer" },
     ]);
     await db.insert(producer).values([
       {
@@ -558,30 +570,77 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: verified volume m
         countryCode: "PL",
         technology: "szkielet-drewniany",
       },
+      {
+        id: secondApprovedProducerId,
+        userId: secondUserId,
+        nip: `VVM${secondApprovedProducerId.slice(0, 9)}`,
+        name: "Second Verified Volume Test Producer",
+        countryCode: "DE",
+        technology: "szkielet-drewniany",
+      },
     ]);
     await db.insert(product).values([
-      { id: publishedProductId, producerId: approvedProducerId, family: "dom", status: "published", name: "VVM Published Product" },
+      {
+        id: publishedProductId,
+        producerId: approvedProducerId,
+        family: "dom",
+        status: "published",
+        name: "VVM Published Product",
+        floorAreaM2: 80,
+      },
       { id: draftProductId, producerId: approvedProducerId, family: "dom", status: "draft", name: "VVM Draft Product" },
+      {
+        id: largeProductId,
+        producerId: approvedProducerId,
+        family: "dom",
+        status: "published",
+        name: "Vvmsearchtoken Product",
+        description: "Duzy dom testowy do wyszukiwania.",
+        floorAreaM2: 150,
+      },
       { id: unapprovedProductId, producerId: unapprovedProducerId, family: "dom", status: "published", name: "Unapproved Producer Product" },
+      {
+        id: secondProductId,
+        producerId: secondApprovedProducerId,
+        family: "dom",
+        status: "published",
+        name: "Second VVM Product",
+        floorAreaM2: 200,
+      },
     ]);
-    await db.insert(producerCapacityProfile).values({
-      producerId: approvedProducerId,
-      unitsPerMonth: 15,
-      certifications: ["Test certification"],
-      volumeVerificationStatus: "approved",
-    });
+    await db.insert(producerCapacityProfile).values([
+      {
+        producerId: approvedProducerId,
+        unitsPerMonth: 15,
+        certifications: ["Test certification"],
+        volumeVerificationStatus: "approved",
+      },
+      {
+        producerId: secondApprovedProducerId,
+        unitsPerMonth: 20,
+        certifications: ["Second test certification"],
+        volumeVerificationStatus: "approved",
+      },
+    ]);
     await db.insert(producerDeliveryCountry).values([
       { producerId: approvedProducerId, countryCode: "PL" },
       { producerId: approvedProducerId, countryCode: "NL" },
+      { producerId: secondApprovedProducerId, countryCode: "DE" },
     ]);
   });
 
   afterAll(async () => {
-    await db.delete(product).where(inArray(product.id, [publishedProductId, draftProductId, unapprovedProductId]));
-    await db.delete(producerDeliveryCountry).where(eq(producerDeliveryCountry.producerId, approvedProducerId));
-    await db.delete(producerCapacityProfile).where(eq(producerCapacityProfile.producerId, approvedProducerId));
-    await db.delete(producer).where(inArray(producer.id, [approvedProducerId, unapprovedProducerId]));
-    await db.delete(users).where(inArray(users.id, [userId, unapprovedUserId]));
+    await db
+      .delete(product)
+      .where(inArray(product.id, [publishedProductId, draftProductId, largeProductId, unapprovedProductId, secondProductId]));
+    await db
+      .delete(producerDeliveryCountry)
+      .where(inArray(producerDeliveryCountry.producerId, [approvedProducerId, secondApprovedProducerId]));
+    await db
+      .delete(producerCapacityProfile)
+      .where(inArray(producerCapacityProfile.producerId, [approvedProducerId, secondApprovedProducerId]));
+    await db.delete(producer).where(inArray(producer.id, [approvedProducerId, unapprovedProducerId, secondApprovedProducerId]));
+    await db.delete(users).where(inArray(users.id, [userId, unapprovedUserId, secondUserId]));
   });
 
   describe("getVerifiedVolumeManufacturerProjects", () => {
@@ -593,8 +652,46 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: verified volume m
       expect(match?.unitsPerMonth).toBe(15);
       expect(match?.certifications).toEqual(["Test certification"]);
       expect(match?.deliveryCountries.sort()).toEqual(["NL", "PL"]);
-      expect(match?.projects.map((project) => project.id)).toEqual([publishedProductId]);
+      expect(match?.projects.map((project) => project.id).sort()).toEqual([largeProductId, publishedProductId].sort());
       expect(results.some((item) => item.producerId === unapprovedProducerId)).toBe(false);
+    });
+  });
+
+  describe("getVerifiedVolumeManufacturerProjects with filter (spec 0038 AC-19 to AC-23)", () => {
+    it("narrows the producer list by delivery country before querying products (AC-20)", async () => {
+      const results = await getVerifiedVolumeManufacturerProjects("pl", { countryCode: "DE" });
+
+      expect(results.some((item) => item.producerId === secondApprovedProducerId)).toBe(true);
+      // approvedProducerId delivers only to PL/NL, not DE, so it disappears
+      // entirely even though it has published products (AC-20).
+      expect(results.some((item) => item.producerId === approvedProducerId)).toBe(false);
+    });
+
+    it("filters a producer's projects by floor area without dropping the producer (AC-21)", async () => {
+      const results = await getVerifiedVolumeManufacturerProjects("pl", { sizeMin: 100 });
+      const match = results.find((item) => item.producerId === approvedProducerId);
+
+      expect(match).toBeDefined();
+      expect(match?.projects.map((project) => project.id)).toEqual([largeProductId]);
+      expect(results.some((item) => item.producerId === secondApprovedProducerId)).toBe(true);
+    });
+
+    it("drops a producer entirely once none of its projects match the filter (AC-23)", async () => {
+      const results = await getVerifiedVolumeManufacturerProjects("pl", { sizeMin: 180 });
+
+      // approvedProducerId's two products (80/150 m²) both fall below 180.
+      expect(results.some((item) => item.producerId === approvedProducerId)).toBe(false);
+      expect(results.some((item) => item.producerId === secondApprovedProducerId)).toBe(true);
+    });
+
+    it("filters projects by keyword using the same full-text search as getProjects (AC-22)", async () => {
+      const results = await getVerifiedVolumeManufacturerProjects("pl", { q: "Vvmsearchtok" });
+      const match = results.find((item) => item.producerId === approvedProducerId);
+
+      expect(match).toBeDefined();
+      expect(match?.projects.map((project) => project.id)).toEqual([largeProductId]);
+      // Zero matching projects for the second producer means it disappears too.
+      expect(results.some((item) => item.producerId === secondApprovedProducerId)).toBe(false);
     });
   });
 

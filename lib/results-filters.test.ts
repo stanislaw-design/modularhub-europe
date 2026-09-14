@@ -134,12 +134,12 @@ describe("parseResultsSearchParams", () => {
     expect(filter.priceMax).toBe(100000);
   });
 
-  // spec 0026: spaSubcategory/pergolaSubcategory are parsed independently of family (AC-8);
+  // spec 0026/0039: spaSubcategory/containerSubcategory are parsed independently of family (AC-8);
   // getProjects() decides whether they apply, not the parser (see lib/data/projects.ts).
-  it("reads a valid spaSubcategory and pergolaSubcategory", () => {
-    const filter = parseResultsSearchParams({ spaSubcategory: "jacuzzi", pergolaSubcategory: "drewniana" });
+  it("reads a valid spaSubcategory and containerSubcategory", () => {
+    const filter = parseResultsSearchParams({ spaSubcategory: "jacuzzi", containerSubcategory: "mieszkalne" });
     expect(filter.spaSubcategory).toBe("jacuzzi");
-    expect(filter.pergolaSubcategory).toBe("drewniana");
+    expect(filter.containerSubcategory).toBe("mieszkalne");
   });
 
   it("ignores an invalid spaSubcategory", () => {
@@ -284,9 +284,9 @@ describe("matchesResultsFilter", () => {
     expect(matchesResultsFilter(80, undefined, filter, "spa-modulowe")).toBe(true);
   });
 
-  it("matches a pergola product against the wiecej-niz-dom group filter", () => {
+  it("matches a kontenery-modulowe product against the wiecej-niz-dom group filter", () => {
     const filter: ResultsFilter = { family: "wiecej-niz-dom" };
-    expect(matchesResultsFilter(80, undefined, filter, "pergola")).toBe(true);
+    expect(matchesResultsFilter(80, undefined, filter, "kontenery-modulowe")).toBe(true);
   });
 
   it("does not match a dom product against the wiecej-niz-dom group filter", () => {
@@ -297,7 +297,7 @@ describe("matchesResultsFilter", () => {
   it("still matches a real family against itself, unaffected by the group sentinel", () => {
     const filter: ResultsFilter = { family: "spa-modulowe" };
     expect(matchesResultsFilter(80, undefined, filter, "spa-modulowe")).toBe(true);
-    expect(matchesResultsFilter(80, undefined, filter, "pergola")).toBe(false);
+    expect(matchesResultsFilter(80, undefined, filter, "kontenery-modulowe")).toBe(false);
   });
 
   it("still enforces size bounds within a matching family", () => {

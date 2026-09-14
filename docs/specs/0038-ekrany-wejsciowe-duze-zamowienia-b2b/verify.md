@@ -67,3 +67,28 @@ _Steps derived from spec 0038 acceptance criteria. `/check verify` runs these; `
 - AC-16 … wzorzec błędu/wysyłki modala · covered by UI steps 8–9
 - AC-17 … `getProducerById`/`getProducers` na realnej bazie, bez crasha na `rating = null` · covered by UI step 10, Commands step 1
 - AC-18 … metadane SEO i hreflang `/verified-manufacturers` · covered by UI step 5, Commands step 2
+
+## Update (aktualizacja spec 0038, pasek wyszukiwania i filtrów, zadania 20–28) · updated 2026-09-14
+
+### UI / manual
+
+- [ ] Wejdź na `/pl/verified-manufacturers`, gdy istnieje co najmniej jeden zweryfikowany wolumenowo producent → pasek (kraj dostawy, metraż od, metraż do, słowo kluczowe, przycisk szukaj) renderuje się zaraz pod nagłówkiem/przyciskiem "Zgłoś zapytanie", nad siatką producentów; statyczny, bez dokowania przy przewijaniu → AC-19
+- [ ] Wybierz kraj dostawy, do którego producent (np. Budman House) NIE dostarcza → kliknij Szukaj → cała sekcja tego producenta (nagłówek + karty) znika z listy → AC-20
+- [ ] Ustaw zakres metrażu od/do wykluczający wszystkie projekty jednego producenta, ale nie inne → kliknij Szukaj → ten producent znika całkowicie, pozostali (z dopasowanym projektem) zostają, tylko z pasującymi kartami → AC-21
+- [ ] Wpisz słowo kluczowe pasujące do nazwy jednego modelu → kliknij Szukaj → widoczne wyłącznie pasujące projekty pod nagłówkiem właściwego producenta, tym samym pełnotekstowym wyszukiwaniem co `/wyniki` → AC-22
+- [ ] Zastosuj kombinację filtrów niepasującą do żadnego projektu żadnego zweryfikowanego producenta → osobny stan pusty "brak projektów dla wybranych filtrów" (inny niż stan pusty AC-14), z linkiem czyszczącym filtry i tym samym przyciskiem "Zgłoś zapytanie" → AC-23
+- [ ] Kliknij link czyszczący filtry w tym stanie pustym → wraca na `/verified-manufacturers` bez parametrów, pełna lista wraca → AC-23
+- [ ] Na środowisku/gałęzi bez ani jednego zatwierdzonego producenta → pasek NIE renderuje się, widoczny tylko stan pusty AC-14 → AC-19
+
+### Commands
+
+- [ ] `npm run test -- lib/verified-manufacturers-filters.test.ts lib/data/projects.test.ts components/klient/VerifiedManufacturersFilterBar.test.tsx` → wszystkie testy przechodzą → AC-19 do AC-23
+- [ ] `npm run build` → kompilacja bez błędów → AC-19
+
+### Acceptance-criteria coverage (aktualizacja)
+
+- AC-19 … pasek renderuje się warunkowo, trzy pola plus słowo kluczowe i szukaj, statyczny bez dokowania · covered by UI steps 1, 7, Commands
+- AC-20 … kraj dostawy zawęża listę producentów przed zapytaniem o produkty · covered by UI step 2
+- AC-21 … metraż zawęża projekty tymi samymi progami `SIZE_THRESHOLDS` co `/wyniki` · covered by UI step 3
+- AC-22 … słowo kluczowe przez to samo pełnotekstowe wyszukiwanie (`product.searchVector`) co `/wyniki` · covered by UI step 4
+- AC-23 … producent bez ani jednego pasującego projektu znika, osobny stan pusty z linkiem czyszczącym filtry · covered by UI steps 5–6

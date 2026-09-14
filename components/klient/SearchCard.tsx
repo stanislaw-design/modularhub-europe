@@ -57,7 +57,7 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
   // Illustrative example searches for the rotating teaser prompt, independent
   // from categoryTabs below (spec 0035 collapsed three flat tabs into two
   // groups; the teaser keeps naming a specific product per word).
-  const teaserWords = [t("teaserWordHome"), t("teaserWordPergola"), t("teaserWordSpa")];
+  const teaserWords = [t("teaserWordHome"), t("teaserWordContainers"), t("teaserWordSpa")];
 
   // Mock ranges only — no budget field on Project yet, so unlike country/size
   // this selection never reaches handleSearch's params (spec 0014/0015 AC-3

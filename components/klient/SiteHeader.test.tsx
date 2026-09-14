@@ -50,6 +50,14 @@ describe("SiteHeader (spec 0030)", () => {
       "href",
       "/pl#jak-to-dziala"
     );
+    expect(within(nav).getByRole("link", { name: "Zweryfikowani producenci" })).toHaveAttribute(
+      "href",
+      "/pl/verified-manufacturers"
+    );
+    expect(within(nav).getByRole("link", { name: "Dołącz jako producent B2B" })).toHaveAttribute(
+      "href",
+      "/pl/producer/registration"
+    );
     expect(screen.queryByText("Producenci")).not.toBeInTheDocument();
     expect(screen.queryByText("Inspiracje")).not.toBeInTheDocument();
     expect(screen.queryByText("O nas")).not.toBeInTheDocument();

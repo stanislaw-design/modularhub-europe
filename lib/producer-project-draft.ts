@@ -2,7 +2,7 @@ import type { useTranslations } from "next-intl";
 import { ENERGY_CLASSES, HEAT_SOURCES, VENTILATION_TYPES } from "./product-technical-specs";
 import type {
   CompletionStandard,
-  PergolaSubcategory,
+  ContainerSubcategory,
   ProductFamily,
   ProjectCategory,
   ProjectDraft,
@@ -53,7 +53,7 @@ export function getProductFamilyOptions(t: Translate): { value: ProductFamily; l
   return [
     { value: "dom", label: t("family.dom") },
     { value: "spa-modulowe", label: t("family.spa-modulowe") },
-    { value: "pergola", label: t("family.pergola") },
+    { value: "kontenery-modulowe", label: t("family.kontenery-modulowe") },
   ];
 }
 
@@ -73,12 +73,11 @@ export function getSpaSubcategoryOptions(t: Translate): { value: SpaSubcategory;
   ];
 }
 
-export function getPergolaSubcategoryOptions(t: Translate): { value: PergolaSubcategory; label: string }[] {
+export function getContainerSubcategoryOptions(t: Translate): { value: ContainerSubcategory; label: string }[] {
   return [
-    { value: "bioklimatyczna", label: t("pergolaSubcategory.bioklimatyczna") },
-    { value: "aluminiowa-stala", label: t("pergolaSubcategory.aluminiowa-stala") },
-    { value: "drewniana", label: t("pergolaSubcategory.drewniana") },
-    { value: "wolnostojaca-przyscienna", label: t("pergolaSubcategory.wolnostojaca-przyscienna") },
+    { value: "gastronomiczne", label: t("containerSubcategory.gastronomiczne") },
+    { value: "uslugowe", label: t("containerSubcategory.uslugowe") },
+    { value: "mieszkalne", label: t("containerSubcategory.mieszkalne") },
   ];
 }
 
@@ -118,14 +117,20 @@ export interface TechnicalFieldConfig {
   key: keyof import("./data/types").ProductTechnicalSpecsDraft;
   label: string;
   hint: string;
-  type: "text" | "number" | "select";
+  // "boolean" (spec 0039): pole wyboru tak/nie w kreatorze, dziś tylko
+  // kontenery-modulowe/mieszkalne (bathroomIncluded) — patrz
+  // CONTAINER_TECHNICAL_FIELDS_BY_SUBCATEGORY i isTechnicalSpecsComplete niżej.
+  type: "text" | "number" | "select" | "boolean";
   options?: { value: string; label: string }[];
 }
 
 // Pola techniczne per rodzina (spec 0022 Feature design, technicalSpecs).
 // Napędza zarówno jeden skonsolidowany krok "techniczne" kreatora, jak i jego
-// walidację (isTechnicalSpecsComplete niżej) oraz podsumowanie.
-export const TECHNICAL_FIELDS_BY_FAMILY: Record<ProductFamily, TechnicalFieldConfig[]> = {
+// walidację (isTechnicalSpecsComplete niżej) oraz podsumowanie. Nie niesie już
+// "kontenery-modulowe" (spec 0039): jej pola zależą od containerSubcategory,
+// nie samej family — patrz CONTAINER_TECHNICAL_FIELDS_BY_SUBCATEGORY i
+// getTechnicalFieldsFor niżej.
+export const TECHNICAL_FIELDS_BY_FAMILY: Record<Exclude<ProductFamily, "kontenery-modulowe">, TechnicalFieldConfig[]> = {
   dom: [
     {
       key: "wallBuildUp",
@@ -213,42 +218,92 @@ export const TECHNICAL_FIELDS_BY_FAMILY: Record<ProductFamily, TechnicalFieldCon
       type: "text",
     },
   ],
-  pergola: [
+};
+
+// Pola dzielone przez wszystkie trzy podkategorie kontenera modułowego (spec
+// 0039 Follow-up: wspólny bazowy zestaw rozszerzany per podkategoria).
+const CONTAINER_BASE_FIELDS: TechnicalFieldConfig[] = [
+  { key: "dimensions", label: "Wymiary", hint: "Szerokość × głębokość × wysokość", type: "text" },
+  {
+    key: "structureMaterial",
+    label: "Materiał konstrukcji",
+    hint: "Materiał szkieletu/konstrukcji kontenera",
+    type: "text",
+  },
+  { key: "insulationType", label: "Typ izolacji", hint: "Rodzaj izolacji termicznej", type: "text" },
+  { key: "foundationType", label: "Typ fundamentu", hint: "Sposób posadowienia", type: "text" },
+];
+
+// Zastępuje pole techniczne pergoli w TECHNICAL_FIELDS_BY_FAMILY (spec 0039):
+// każda podkategoria kontenera ma własny, rozłączny zestaw pól, zgodny 1:1 z
+// kształtem Zod w lib/product-technical-specs.ts (AC-4). Napędza krok
+// "techniczne" kreatora przez getTechnicalFieldsFor, nie bezpośrednio.
+export const CONTAINER_TECHNICAL_FIELDS_BY_SUBCATEGORY: Record<ContainerSubcategory, TechnicalFieldConfig[]> = {
+  gastronomiczne: [
+    ...CONTAINER_BASE_FIELDS,
     {
-      key: "roofType",
-      label: "Typ dachu",
-      hint: "Rodzaj dachu pergoli",
-      type: "select",
-      options: [
-        { value: "bioklimatyczny", label: "Bioklimatyczny (regulowane lamele)" },
-        { value: "staly", label: "Stały" },
-        { value: "rozsuwany", label: "Rozsuwany" },
-      ],
-    },
-    { key: "roofMaterial", label: "Materiał dachu", hint: "Materiał pokrycia dachu", type: "text" },
-    { key: "dimensions", label: "Wymiary", hint: "Szerokość × głębokość × wysokość", type: "text" },
-    {
-      key: "windLoadRating",
-      label: "Klasa obciążenia wiatrem",
-      hint: "Maksymalna dopuszczalna prędkość wiatru",
+      key: "kitchenEquipmentType",
+      label: "Wyposażenie kuchenne",
+      hint: "Rodzaj zainstalowanego wyposażenia kuchennego",
       type: "text",
     },
     {
-      key: "snowLoadRating",
-      label: "Klasa obciążenia śniegiem",
-      hint: "Maksymalne obciążenie śniegiem (kN/m²)",
+      key: "extractionVentilation",
+      label: "Wyciąg",
+      hint: "Typ instalacji wyciągowej/wentylacyjnej",
       type: "text",
     },
     {
-      key: "glazingType",
-      label: "Typ przeszklenia",
-      hint: "Panele boczne lub przeszklenie, jeśli dotyczy",
+      key: "electricalPower",
+      label: "Moc przyłącza elektrycznego",
+      hint: "Wymagana moc zasilania",
+      type: "text",
+    },
+    { key: "waterSupplyType", label: "Zasilanie w wodę", hint: "Sposób doprowadzenia wody", type: "text" },
+    {
+      key: "wasteWaterHandling",
+      label: "Odprowadzanie ścieków",
+      hint: "Sposób odprowadzania ścieków",
+      type: "text",
+    },
+  ],
+  uslugowe: [
+    ...CONTAINER_BASE_FIELDS,
+    {
+      key: "intendedUse",
+      label: "Przeznaczenie",
+      hint: "Planowane wykorzystanie modułu, np. biuro, sklep",
       type: "text",
     },
     {
-      key: "foundationType",
-      label: "Typ fundamentu",
-      hint: "Sposób posadowienia słupów",
+      key: "electricalInstallation",
+      label: "Instalacja elektryczna",
+      hint: "Zakres instalacji elektrycznej",
+      type: "text",
+    },
+    { key: "spaceHeatingType", label: "Typ ogrzewania", hint: "Sposób ogrzewania pomieszczenia", type: "text" },
+  ],
+  mieszkalne: [
+    ...CONTAINER_BASE_FIELDS,
+    {
+      key: "sleepingCapacity",
+      label: "Liczba miejsc do spania",
+      hint: "Maksymalna liczba osób",
+      type: "number",
+    },
+    { key: "bathroomIncluded", label: "Łazienka", hint: "Czy moduł zawiera łazienkę", type: "boolean" },
+    { key: "spaceHeatingType", label: "Typ ogrzewania", hint: "Sposób ogrzewania pomieszczenia", type: "text" },
+    { key: "waterSupplyType", label: "Zasilanie w wodę", hint: "Sposób doprowadzenia wody", type: "text" },
+    {
+      key: "wasteWaterHandling",
+      label: "Odprowadzanie ścieków",
+      hint: "Sposób odprowadzania ścieków",
+      type: "text",
+    },
+    {
+      key: "electricalInstallation",
+      label: "Instalacja elektryczna",
+      hint: "Zakres instalacji elektrycznej",
       type: "text",
     },
   ],
@@ -261,12 +316,28 @@ export function getWizardSteps(t: Translate): WizardStep[] {
   return WIZARD_STEPS.map((step) => ({ id: step.id, label: t(`wizardSteps.${step.id}`) }));
 }
 
-// Wersja TECHNICAL_FIELDS_BY_FAMILY z etykietą/hintem/opcjami przetłumaczonymi przez
-// t() (namespace "ProjectOptions", klucz per field.key — "foundationType" occurs w
-// dwóch rodzinach z innym hintem, stąd family w ścieżce klucza). Struktura (key, type,
-// value listy opcji) zostaje z TECHNICAL_FIELDS_BY_FAMILY — ten getter tylko nakłada
-// tekst do wyświetlenia, walidacja (isTechnicalSpecsComplete) niżej go nie potrzebuje.
-export function getTechnicalFieldsByFamily(family: ProductFamily, t: Translate): TechnicalFieldConfig[] {
+// Wersja TECHNICAL_FIELDS_BY_FAMILY/CONTAINER_TECHNICAL_FIELDS_BY_SUBCATEGORY
+// z etykietą/hintem/opcjami przetłumaczonymi przez t() (namespace
+// "ProjectOptions"). Zastępuje dawne getTechnicalFieldsByFamily (spec 0039):
+// dla "kontenery-modulowe" o kształcie decyduje containerSubcategory, nie
+// samo family (patrz lib/product-technical-specs.ts), stąd zagnieżdżenie
+// `technicalFields.kontenery-modulowe.<subcategory>.<pole>` o jeden poziom
+// głębiej niż dom/spa-modulowe; brak wybranej podkategorii → pusta lista
+// (krok techniczny kreatora nie ma czego pokazać, spec 0039 Kluczowe
+// niezmienniki). Dla pozostałych rodzin zachowuje się jak dawny getter.
+export function getTechnicalFieldsFor(
+  family: ProductFamily,
+  containerSubcategory: ContainerSubcategory | null,
+  t: Translate,
+): TechnicalFieldConfig[] {
+  if (family === "kontenery-modulowe") {
+    if (containerSubcategory === null) return [];
+    return CONTAINER_TECHNICAL_FIELDS_BY_SUBCATEGORY[containerSubcategory].map((field) => ({
+      ...field,
+      label: t(`technicalFields.kontenery-modulowe.${containerSubcategory}.${field.key}.label`),
+      hint: t(`technicalFields.kontenery-modulowe.${containerSubcategory}.${field.key}.hint`),
+    }));
+  }
   return TECHNICAL_FIELDS_BY_FAMILY[family].map((field) => ({
     ...field,
     label: t(`technicalFields.${family}.${field.key}.label`),
@@ -295,7 +366,7 @@ export function createEmptyDraft(): ProjectDraft {
     family: null,
     category: null,
     spaSubcategory: null,
-    pergolaSubcategory: null,
+    containerSubcategory: null,
     technicalSpecs: {},
     floorPlanFiles: [],
     photoFiles: [],
@@ -323,18 +394,36 @@ function isSubcategoryComplete(draft: ProjectDraft): boolean {
       return draft.category !== null;
     case "spa-modulowe":
       return draft.spaSubcategory !== null;
-    case "pergola":
-      return draft.pergolaSubcategory !== null;
+    case "kontenery-modulowe":
+      return draft.containerSubcategory !== null;
     case null:
       return false;
   }
 }
 
+// Struktura sama (bez tekstu wyświetlanego) wystarcza tu do walidacji — patrz
+// komentarz przy getTechnicalFieldsFor. Dla "kontenery-modulowe" bez wybranej
+// containerSubcategory zwraca pustą listę: krok techniczny nie jest kompletny
+// dopóki podkategoria nie jest wybrana (spec 0039 Kluczowe niezmienniki).
+function getStructuralTechnicalFields(draft: ProjectDraft): TechnicalFieldConfig[] {
+  if (draft.family === "kontenery-modulowe") {
+    return draft.containerSubcategory === null
+      ? []
+      : CONTAINER_TECHNICAL_FIELDS_BY_SUBCATEGORY[draft.containerSubcategory];
+  }
+  return draft.family === null ? [] : TECHNICAL_FIELDS_BY_FAMILY[draft.family];
+}
+
 function isTechnicalSpecsComplete(draft: ProjectDraft): boolean {
   if (draft.family === null) return false;
-  return TECHNICAL_FIELDS_BY_FAMILY[draft.family].every((field) => {
+  const fields = getStructuralTechnicalFields(draft);
+  if (fields.length === 0) return false;
+  return fields.every((field) => {
     const value = draft.technicalSpecs[field.key];
     if (field.type === "number") return typeof value === "number";
+    // "boolean" (spec 0039): kompletne tylko przy dokładnie true/false, nigdy
+    // undefined — analogicznie do reguły dla "number" powyżej.
+    if (field.type === "boolean") return value === true || value === false;
     return typeof value === "string" && isNonEmpty(value);
   });
 }

@@ -21,12 +21,12 @@ describe("EmptyResults", () => {
     );
   });
 
-  it("uses the pergola noun, not 'domów'", () => {
-    render(<EmptyResults locale="pl" family="pergola" />);
-    expect(screen.getByRole("heading")).toHaveTextContent(/brak pergoli/i);
+  it("uses the kontenery-modulowe noun, not 'domów' (spec 0039)", () => {
+    render(<EmptyResults locale="pl" family="kontenery-modulowe" />);
+    expect(screen.getByRole("heading")).toHaveTextContent(/brak kontenerów modułowych/i);
     expect(screen.getByRole("link", { name: /wyczyść filtry/i })).toHaveAttribute(
       "href",
-      "/pl/results?family=pergola"
+      "/pl/results?family=kontenery-modulowe"
     );
   });
 

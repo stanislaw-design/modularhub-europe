@@ -17,9 +17,9 @@ import { resolveFamilies, type FamilyFilterValue } from "@/lib/product-family-gr
 import { resolveHeatSourceValues, type HeatSourceFilterValue, type PriceThreshold, type StoreysFilter } from "@/lib/results-filters";
 import { buildPublicUrl } from "@/lib/storage/r2-client";
 import type {
+  ContainerSubcategory,
   CountryCode,
   EligibilityByCountry,
-  PergolaSubcategory,
   Project,
   ProductFamily,
   ProductTechnicalSpecsDraft,
@@ -49,7 +49,7 @@ interface GetProjectsFilters {
   priceMax?: PriceThreshold;
   // Znaczące tylko dla family dopasowanej do ich nazwy (ta sama granica co category, spec 0022).
   spaSubcategory?: SpaSubcategory;
-  pergolaSubcategory?: PergolaSubcategory;
+  containerSubcategory?: ContainerSubcategory;
   q?: string;
 }
 
@@ -59,7 +59,7 @@ interface GetProjectsFilters {
 // znaczenia zapytania) i dostaje sufiks `:*` dla dopasowania prefiksowego.
 // Pusta lista tokenów po sanityzacji (np. q złożone z samej interpunkcji)
 // zwraca null — wywołujący wtedy pomija filtr wyszukiwania całkowicie.
-function buildPrefixTsQuery(q: string): string | null {
+export function buildPrefixTsQuery(q: string): string | null {
   const tokens = q
     .split(/\s+/)
     .map((token) => token.replace(/[^\p{L}\p{N}]/gu, ""))
@@ -71,7 +71,7 @@ function buildPrefixTsQuery(q: string): string | null {
 // Key invariants): sprawdzone tylko dla family "dom" — jedyne realne, zasiane
 // dane. Pola specyficzne dla domu bez odpowiednika w technicalSpecs innej
 // rodziny zostają puste, nie rzucają błędu (Follow-up: pełne mapowanie
-// spa/pergola, gdy realne dane tych rodzin powstaną).
+// spa/kontenery-modulowe, gdy realne dane tych rodzin powstaną).
 // Bridge fields for spec 0020's Project.priceOnRequest/galleryImageUrls: the real
 // `product` table has no column for either yet (0023 never wired them — every
 // DB-seeded product until now always had a fixed price and only a cover photo).
@@ -251,7 +251,7 @@ export async function getProjects(filters?: GetProjectsFilters): Promise<Project
     priceMin,
     priceMax,
     spaSubcategory,
-    pergolaSubcategory,
+    containerSubcategory,
     q,
   } = filters ?? {};
 
@@ -285,13 +285,13 @@ export async function getProjects(filters?: GetProjectsFilters): Promise<Project
     if (storeys === "pietrowy") conditions.push(gte(product.storeys, 2));
   }
 
-  // spaSubcategory/pergolaSubcategory are each scoped to their own family (same
-  // boundary as `category`, spec 0022).
+  // spaSubcategory/containerSubcategory are each scoped to their own family
+  // (same boundary as `category`, spec 0022).
   if (family === "spa-modulowe" && spaSubcategory !== undefined) {
     conditions.push(eq(product.spaSubcategory, spaSubcategory));
   }
-  if (family === "pergola" && pergolaSubcategory !== undefined) {
-    conditions.push(eq(product.pergolaSubcategory, pergolaSubcategory));
+  if (family === "kontenery-modulowe" && containerSubcategory !== undefined) {
+    conditions.push(eq(product.containerSubcategory, containerSubcategory));
   }
 
   // Compares against the product's priceMin ("od"), never a range (spec 0026 AC-4);
@@ -528,11 +528,28 @@ async function loadDeliveryCountriesByProducer(producerIds: string[]): Promise<M
   return map;
 }
 
+// Rozszerzenie paskiem wyszukiwania (spec 0038 AC-19 do AC-23, aktualizacja
+// 2026-09-14): kraj dostawy zawęża listę PRODUCENTÓW (nie tylko ich
+// projektów) przed zapytaniem o produkty, bo producent bez wiersza
+// producerDeliveryCountry dla tego kraju ma zniknąć ze strony całkowicie,
+// nawet jeśli ma opublikowane produkty (AC-20). Metraż i słowo kluczowe
+// zawężają samo zapytanie o produkty, tymi samymi warunkami co getProjects()
+// (AC-21, AC-22).
+export interface VerifiedVolumeManufacturerFilter {
+  countryCode?: CountryCode;
+  sizeMin?: number;
+  sizeMax?: number;
+  q?: string;
+}
+
 // Feeds /verified-manufacturers (spec 0038 AC-13): "who qualifies" is the
 // exact same condition autoTargetProducers already uses in
 // lib/project-request-actions.ts (volumeVerificationStatus = 'approved'),
 // so this screen and the auto-matching engine never disagree on the list.
-export async function getVerifiedVolumeManufacturerProjects(locale: Locale = "pl"): Promise<VerifiedVolumeManufacturer[]> {
+export async function getVerifiedVolumeManufacturerProjects(
+  locale: Locale = "pl",
+  filter?: VerifiedVolumeManufacturerFilter,
+): Promise<VerifiedVolumeManufacturer[]> {
   const approvedProducers = await db
     .select({
       producerId: producer.id,
@@ -546,8 +563,31 @@ export async function getVerifiedVolumeManufacturerProjects(locale: Locale = "pl
 
   if (approvedProducers.length === 0) return [];
 
-  const producerIds = approvedProducers.map((row) => row.producerId);
+  let producerIds = approvedProducers.map((row) => row.producerId);
+
+  if (filter?.countryCode) {
+    const deliveryRows = await db
+      .select({ producerId: producerDeliveryCountry.producerId })
+      .from(producerDeliveryCountry)
+      .where(
+        and(
+          inArray(producerDeliveryCountry.producerId, producerIds),
+          eq(producerDeliveryCountry.countryCode, filter.countryCode),
+        ),
+      );
+    const deliveringIds = new Set(deliveryRows.map((row) => row.producerId));
+    producerIds = producerIds.filter((id) => deliveringIds.has(id));
+  }
+
+  if (producerIds.length === 0) return [];
+
   const productConditions = [eq(product.status, "published"), inArray(product.producerId, producerIds)];
+  if (filter?.sizeMin !== undefined) productConditions.push(gte(product.floorAreaM2, filter.sizeMin));
+  if (filter?.sizeMax !== undefined) productConditions.push(lte(product.floorAreaM2, filter.sizeMax));
+  if (filter?.q !== undefined) {
+    const tsQuery = buildPrefixTsQuery(filter.q);
+    if (tsQuery !== null) productConditions.push(sql`${product.searchVector} @@ to_tsquery('simple', ${tsQuery})`);
+  }
 
   const projectsByProducer = new Map<string, Project[]>();
   if (locale === "en" || locale === "nl") {
@@ -598,15 +638,23 @@ export async function getVerifiedVolumeManufacturerProjects(locale: Locale = "pl
   }
 
   const deliveryMap = await loadDeliveryCountriesByProducer(producerIds);
+  const eligibleProducerIds = new Set(producerIds);
 
-  return approvedProducers.map((row) => ({
-    producerId: row.producerId,
-    producerName: row.producerName,
-    unitsPerMonth: row.unitsPerMonth,
-    certifications: row.certifications ?? [],
-    deliveryCountries: deliveryMap.get(row.producerId) ?? [],
-    projects: projectsByProducer.get(row.producerId) ?? [],
-  }));
+  // Producent bez ani jednego pasującego projektu znika z listy razem z
+  // nagłówkiem (AC-23): dotyczy zarówno wykluczenia po kraju wyżej, jak i
+  // zera dopasowań po metrażu/słowie kluczowym poniżej — żadna sekcja
+  // producenta nie renderuje się pusta.
+  return approvedProducers
+    .filter((row) => eligibleProducerIds.has(row.producerId))
+    .map((row) => ({
+      producerId: row.producerId,
+      producerName: row.producerName,
+      unitsPerMonth: row.unitsPerMonth,
+      certifications: row.certifications ?? [],
+      deliveryCountries: deliveryMap.get(row.producerId) ?? [],
+      projects: projectsByProducer.get(row.producerId) ?? [],
+    }))
+    .filter((manufacturer) => manufacturer.projects.length > 0);
 }
 
 // Gates the "Zapytaj o większą ilość" block on /project/[id] (spec 0038

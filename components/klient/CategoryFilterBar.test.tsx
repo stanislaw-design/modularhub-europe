@@ -7,19 +7,19 @@ import { CategoryFilterBar } from "./CategoryFilterBar";
 const baseFilter: ResultsFilter = { family: "dom" };
 
 describe("CategoryFilterBar", () => {
-  it("renders exactly five real, enabled links (Parterowy, Piętrowy, Pompa ciepła, Rekuperacja, Klasa A+) (AC-7)", async () => {
+  it("renders exactly two real, enabled links (Parterowy, Piętrowy) (AC-7)", async () => {
     render(await resolveAsyncTree(<CategoryFilterBar locale="pl" filter={baseFilter} />));
 
     const nav = screen.getByRole("navigation", { name: "Filtry atrybutów domu" });
-    const links = screen.getAllByRole("link", { name: /Parterowy|Piętrowy|Pompa ciepła|Rekuperacja|Klasa A\+/ });
-    expect(links).toHaveLength(5);
+    const links = screen.getAllByRole("link", { name: /Parterowy|Piętrowy/ });
+    expect(links).toHaveLength(2);
     for (const link of links) {
       expect(nav).toContainElement(link);
       expect(link).not.toHaveAttribute("disabled");
     }
   });
 
-  it("does not render any of the six removed decorative chips or the old Filtry button (AC-7)", async () => {
+  it("does not render the removed decorative chips, the old Filtry button, or the heat/ventilation/energy chips", async () => {
     render(await resolveAsyncTree(<CategoryFilterBar locale="pl" filter={baseFilter} />));
 
     for (const removed of [
@@ -31,6 +31,9 @@ describe("CategoryFilterBar", () => {
       "Bez barier",
       "Konstrukcja CLT",
       "Filtry",
+      "Pompa ciepła",
+      "Rekuperacja",
+      "Klasa A+",
     ]) {
       expect(screen.queryByText(removed)).not.toBeInTheDocument();
     }
@@ -43,30 +46,22 @@ describe("CategoryFilterBar", () => {
       "href",
       "/pl/results?storeys=parterowy"
     );
-    expect(screen.getByRole("link", { name: "Pompa ciepła" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Piętrowy" })).toHaveAttribute(
       "href",
-      "/pl/results?heatSource=pompa-ciepla"
-    );
-    expect(screen.getByRole("link", { name: "Rekuperacja" })).toHaveAttribute(
-      "href",
-      "/pl/results?ventilation=rekuperacja"
-    );
-    expect(screen.getByRole("link", { name: "Klasa A+" })).toHaveAttribute(
-      "href",
-      "/pl/results?energyClass=A%2B"
+      "/pl/results?storeys=pietrowy"
     );
   });
 
   it("marks the active chip with aria-current and links it back to a URL clearing that filter (toggle, AC-7)", async () => {
     render(
-      await resolveAsyncTree(<CategoryFilterBar locale="pl" filter={{ ...baseFilter, heatSource: "pompa-ciepla" }} />)
+      await resolveAsyncTree(<CategoryFilterBar locale="pl" filter={{ ...baseFilter, storeys: "parterowy" }} />)
     );
 
-    const activeChip = screen.getByRole("link", { name: "Pompa ciepła" });
+    const activeChip = screen.getByRole("link", { name: "Parterowy" });
     expect(activeChip).toHaveAttribute("aria-current", "true");
     expect(activeChip).toHaveAttribute("href", "/pl/results");
 
-    const inactiveChip = screen.getByRole("link", { name: "Rekuperacja" });
+    const inactiveChip = screen.getByRole("link", { name: "Piętrowy" });
     expect(inactiveChip).not.toHaveAttribute("aria-current");
   });
 
@@ -80,9 +75,9 @@ describe("CategoryFilterBar", () => {
       )
     );
 
-    expect(screen.getByRole("link", { name: "Rekuperacja" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Parterowy" })).toHaveAttribute(
       "href",
-      "/pl/results?sizeMin=50&sizeMax=100&ventilation=rekuperacja&sort=price-asc&q=Baltyk"
+      "/pl/results?sizeMin=50&sizeMax=100&storeys=parterowy&sort=price-asc&q=Baltyk"
     );
   });
 

@@ -3,6 +3,7 @@ import type { ProjectDraft } from "./data/types";
 import {
   BEDROOMS_MAX,
   BEDROOMS_MIN,
+  CONTAINER_TECHNICAL_FIELDS_BY_SUBCATEGORY,
   ENERGY_CLASS_OPTIONS,
   FLOOR_AREA_MAX_M2,
   FLOOR_AREA_MIN_M2,
@@ -28,7 +29,7 @@ function completeDraft(): ProjectDraft {
     family: "dom",
     category: "caloroczny",
     spaSubcategory: null,
-    pergolaSubcategory: null,
+    containerSubcategory: null,
     technicalSpecs: {
       wallBuildUp: "Szkielet",
       insulation: "U = 0.15",
@@ -123,7 +124,7 @@ describe("isStepComplete: podstawowe", () => {
     expect(isStepComplete("podstawowe", { ...completeDraft(), category: null })).toBe(false);
   });
 
-  it("checks spaSubcategory for family spa-modulowe, and pergolaSubcategory for pergola", () => {
+  it("checks spaSubcategory for family spa-modulowe, and containerSubcategory for kontenery-modulowe (spec 0039)", () => {
     const spaDraft: ProjectDraft = {
       ...completeDraft(),
       family: "spa-modulowe",
@@ -133,14 +134,14 @@ describe("isStepComplete: podstawowe", () => {
     expect(isStepComplete("podstawowe", spaDraft)).toBe(true);
     expect(isStepComplete("podstawowe", { ...spaDraft, spaSubcategory: null })).toBe(false);
 
-    const pergolaDraft: ProjectDraft = {
+    const containerDraft: ProjectDraft = {
       ...completeDraft(),
-      family: "pergola",
+      family: "kontenery-modulowe",
       category: null,
-      pergolaSubcategory: "drewniana",
+      containerSubcategory: "mieszkalne",
     };
-    expect(isStepComplete("podstawowe", pergolaDraft)).toBe(true);
-    expect(isStepComplete("podstawowe", { ...pergolaDraft, pergolaSubcategory: null })).toBe(false);
+    expect(isStepComplete("podstawowe", containerDraft)).toBe(true);
+    expect(isStepComplete("podstawowe", { ...containerDraft, containerSubcategory: null })).toBe(false);
   });
 });
 
@@ -182,6 +183,61 @@ describe("isStepComplete: techniczne", () => {
         technicalSpecs: { ...spaDraft.technicalSpecs, seatingCapacity: undefined },
       })
     ).toBe(false);
+  });
+
+  it("is incomplete for kontenery-modulowe when containerSubcategory is not yet chosen (spec 0039)", () => {
+    expect(
+      isStepComplete("techniczne", {
+        ...completeDraft(),
+        family: "kontenery-modulowe",
+        category: null,
+        containerSubcategory: null,
+        technicalSpecs: {},
+      })
+    ).toBe(false);
+  });
+
+  it("requires a real boolean (not undefined) for a boolean field, mieszkalne's bathroomIncluded (spec 0039 AC-5)", () => {
+    const mieszkalneDraft: ProjectDraft = {
+      ...completeDraft(),
+      family: "kontenery-modulowe",
+      category: null,
+      containerSubcategory: "mieszkalne",
+      technicalSpecs: {
+        dimensions: "6x2.5x2.8m",
+        structureMaterial: "Stal",
+        insulationType: "Wełna mineralna",
+        foundationType: "Płyta betonowa",
+        sleepingCapacity: 2,
+        bathroomIncluded: false,
+        spaceHeatingType: "Elektryczne grzejniki",
+        waterSupplyType: "Przyłącze wodociągowe",
+        wasteWaterHandling: "Zbiornik bezodpływowy",
+        electricalInstallation: "Standardowa jednofazowa",
+      },
+    };
+    expect(isStepComplete("techniczne", mieszkalneDraft)).toBe(true);
+    expect(
+      isStepComplete("techniczne", {
+        ...mieszkalneDraft,
+        technicalSpecs: { ...mieszkalneDraft.technicalSpecs, bathroomIncluded: undefined },
+      })
+    ).toBe(false);
+  });
+});
+
+// spec 0039 AC-4/AC-5: each container subcategory has its own disjoint field
+// set (9 gastronomiczne, 7 uslugowe, 10 mieszkalne), never the whole family's.
+describe("CONTAINER_TECHNICAL_FIELDS_BY_SUBCATEGORY", () => {
+  it("has 9 fields for gastronomiczne, 7 for uslugowe, 10 for mieszkalne", () => {
+    expect(CONTAINER_TECHNICAL_FIELDS_BY_SUBCATEGORY.gastronomiczne).toHaveLength(9);
+    expect(CONTAINER_TECHNICAL_FIELDS_BY_SUBCATEGORY.uslugowe).toHaveLength(7);
+    expect(CONTAINER_TECHNICAL_FIELDS_BY_SUBCATEGORY.mieszkalne).toHaveLength(10);
+  });
+
+  it("configures mieszkalne's bathroomIncluded as a boolean field", () => {
+    const field = CONTAINER_TECHNICAL_FIELDS_BY_SUBCATEGORY.mieszkalne.find((f) => f.key === "bathroomIncluded");
+    expect(field?.type).toBe("boolean");
   });
 });
 

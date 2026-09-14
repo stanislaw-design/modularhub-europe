@@ -120,8 +120,57 @@ Naprawa `getProducerById`/`getProducers` (Follow up decyzja: inżynier poprosił
 
 **Cross check tej aktualizacji (inny model)** znalazł cztery rzeczy warte poprawy w pierwszym szkicu, wszystkie już wprowadzone do index.md: (1) `AC-17` zakładał, że kształt typu `Producer` wystarczy zachować, pomijając że `rating` z bazy jest `null` do pierwszej recenzji, a `StarRating` dziś zakłada liczbę bez zabezpieczenia; naprawiono przez jawne mapowanie `null → 0` i pominięcie producentów bez opublikowanych produktów w `getProducers()`. (2) Modal z AC-15 dzieli ten sam, wspólny limit 3 zgłoszeń na e mail co `/project-request` (spec 0037 AC-10 liczy obie tabele razem); świadomie zostawione bez nowej ochrony, zapisane w Consequences i Follow-up. (3) Ręczne zasianie danych Budmana (Build plan) nie zostawia żadnego artefaktu w repozytorium, więc każde środowisko poza produkcją zobaczy pusty ekran, dopóki ktoś nie powtórzy zasiania tam; uznane za świadomy, już przyjęty w tym projekcie sposób pracy (ten sam co pierwsze ręczne zasianie producenta w funkcji 7), nie nowy dług. (4) `submitBulkProductInquiry` ma odczyt produktu poza blokiem `try/catch`, więc błąd bazy przy tym sprawdzeniu wyrzuciłby wyjątek zamiast zwrócić błąd; dodano jako zadanie 10 Build planu, bo dopiero ta decyzja czyni tę ścieżkę realnie osiągalną z UI. Reużycie `/results` zamiast nowej strony (Option 4b powyżej) było też brakującą alternatywą w pierwszym szkicu; dodane i odrzucone z jasnym powodem.
 
+## Kontekst aktualizacji (2026-09-14, pasek wyszukiwania)
+
+Po zbudowaniu i zasianiu Budman House inżynier wrócił z kolejnym pomysłem: `/verified-manufacturers` dziś pokazuje wszystkie projekty jednego producenta naraz, bez żadnego sposobu zawężenia listy. To nie problem przy jednym producencie i trzynastu projektach, ale zamienia się w problem, gdy katalog zweryfikowanych wolumenowo producentów urośnie.
+
+## Options considered (aktualizacja: pasek wyszukiwania)
+
+### Option 7: Zwykły, statyczny pasek ze słowem kluczowym, krajem dostawy i metrażem (wybrane)
+
+Nowy komponent kliencki nad siatką producentów, reużywający `SearchSegment`/`SIZE_THRESHOLDS` z `ResultsFilterBar`, stan w parametrach URL, przewijany razem z treścią (bez dokowania).
+
+**Pros**:
+- Reużywa w całości już istniejącą, przetestowaną infrastrukturę (pełnotekstowe wyszukiwanie, `producerDeliveryCountry`, komponent `SearchSegment`), zero nowej zależności.
+- Kraj dostawy odpowiada wprost na pytanie "czy ten producent mnie obsłuży", które na tej stronie ma większe znaczenie niż na `/wyniki` (tam kraj dotyczy zgodności prawnej produktu).
+- Prosty, statyczny pasek jest najmniejszym kodem, jaki realnie rozwiązuje dzisiejszy problem (brak jakiegokolwiek zawężenia listy).
+
+**Cons**:
+- Przy dzisiejszym jednym producencie i trzynastu projektach pasek wyprzedza realną potrzebę; wartość ujawni się dopiero z liczbą producentów.
+- Bez sortowania i bez filtra rodziny produktu (patrz Follow-up w index.md), więc nie jest kompletnym odpowiednikiem `ResultsFilterBar`.
+
+### Alternatywa A: Tylko słowo kluczowe, bez kraju dostawy i metrażu
+
+Jedno pole tekstowe, bez dodatkowych filtrów.
+
+**Pros**:
+- Najmniejszy możliwy zakres, najmniej kodu.
+
+**Cons**:
+- Nie rozwiązuje dzisiejszego, realnego pytania inwestora ("który z tych producentów w ogóle dostarczy do mojego kraju"), na które słowo kluczowe nie odpowiada; inżynier wybrał szerszy zakres świadomie z tego powodu.
+
+### Alternatywa B: Pasek przyklejony (dokowany) przy przewijaniu, tym samym wzorcem co spec 0034
+
+Zadokowana wersja paska pod `SiteHeader` po przewinięciu, ten sam mechanizm `IntersectionObserver` co spec 0034 na `/wyniki`.
+
+**Pros**:
+- Spójne UX z `/wyniki` przy długiej liście wyników.
+
+**Cons**:
+- Znacząco więcej kodu (obserwator przecięcia, druga, skrócona wersja paska, panel filtrów) dla strony, która dziś ma tylko trzynaście kart pod jednym producentem, więc scroll z powrotem na górę nie jest dziś realnym problemem; inżynier świadomie odłożył ten wariant do czasu, gdy lista faktycznie urośnie (patrz Follow-up w index.md).
+
+## Rationale (aktualizacja, pasek wyszukiwania)
+
+Pełny zakres (słowo kluczowe, kraj dostawy, metraż) nad samym słowem kluczowym wygrywa, bo kraj dostawy jest tu pytaniem, na które inwestor faktycznie potrzebuje odpowiedzi, nie kosmetycznym dodatkiem; to inne pole niż eligibility'owy "kraj" na `/wyniki`, patrz Key invariants w index.md. Metraż dokłada się prawie bez kosztu, bo `SIZE_THRESHOLDS` i `SearchSegment` już istnieją i są przetestowane na `/wyniki`.
+
+Zwykły, statyczny pasek (nie dokowany jak spec 0034) wygrywa z jasnego, proporcjonalnego powodu: dzisiejsza strona ma jednego producenta i trzynaście kart, więc mechanizm dokowania (obserwator przecięcia, druga wersja paska, panel filtrów) rozwiązywałby problem, który jeszcze nie istnieje. Ten sam wzorzec zostaje w Follow-up jako gotowa, przyszła decyzja, gdy katalog realnie urośnie, zamiast budować go dziś na wyrost.
+
+Sortowanie i filtr rodziny produktu zostały świadomie pominięte: dziś każdy zweryfikowany wolumenowo producent publikuje wyłącznie rodzinę "dom", więc filtr rodziny nie miałby dziś żadnego efektu, a przy jednym producencie i trzynastu projektach kolejność listy nie jest jeszcze realnym problemem. Oba zapisane w Follow-up jako naturalne rozszerzenie tego samego modułu filtra, nie nowa decyzja architektoniczna.
+
 ## Design reference
 
 Wizualny kierunek tej decyzji pochodzi z obrazu referencyjnego dostarczonego przez zamawiającego w rozmowie projektowej (nie z Figma ani z `design.md`): dwukolumnowa sekcja "Projekty inwestycyjne i produkcja seryjna" z odznaką "NOWOŚĆ B2B", po jednym kaflu z tłem fotograficznym na stronę (inwestor/producent), każdy z nagłówkiem, trzema punktami z ikoną checkmark, przyciskiem CTA w kolorze `--brand-v5-amber` (`#fca311`, już istniejący token marki v5) i podpisem w rogu. Realne pliki graficzne już istnieją w repozytorium (`public/images/b2b/investor-background.png`, `public/images/b2b/manufacturer-background-2x1.png`), więc ta decyzja nie potrzebuje żadnej strategii placeholderów.
 
 **Aktualizacja**: dla `/verified-manufacturers` i nowego bloku na `/project/[id]` nie dostarczono żadnego obrazu referencyjnego ani `design.md`. Kierunek wizualny to wprost istniejący system projektowy: karty projektów w stylu `ResultCard`/siatki `/wyniki` (uproszczone, bez mechaniki ulubionych i zaznaczania, bo ten ekran jest publiczny, bez logowania), nagłówek producenta w stylu `ProducerCard`, odznaka zweryfikowanego producenta tym samym wzorcem co plakietka `BadgeCheck` już użyta w `ProducerCard`, a modal przez Headless UI Dialog (już zainstalowany, zgodny z konwencją WCAG tego obszaru). Realne zdjęcia produktów Budmana już istnieją w bazie (`product.coverImageUrl`), więc i tu nie potrzeba żadnej strategii placeholderów.
+
+**Aktualizacja (2026-09-14, pasek wyszukiwania)**: również bez obrazu referencyjnego. Wizualnie to wprost segmentowy pasek `ResultsFilterBar` (`components/klient/ResultsFilterBar.tsx`), reużywający jego komponent `SearchSegment` i tokeny `brand-v5`, tylko z trzema polami zamiast pięciu (bez sortowania, bez rodziny produktu) i bez wariantu dokowanego/mobilnego arkusza z dołu, bo pasek jest tu zwykły i statyczny.

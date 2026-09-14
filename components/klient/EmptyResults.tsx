@@ -10,9 +10,9 @@ interface EmptyResultsProps {
 
 // Treść świadoma rodziny produktu (spec 0026 AC-11). Only ever rendered from
 // ResultsSelection ("use client"), same reason as ResultsHeader: useTranslations,
-// never getTranslations. "Wyczyść filtry" zachowuje aktywną rodzinę (spa/pergola
-// dziś i tak zwykle puste, patrz spec Follow-up) — czyszczenie nie powinno po
-// cichu przełączać z powrotem na dom.
+// never getTranslations. "Wyczyść filtry" zachowuje aktywną rodzinę (spa/kontenery
+// modułowe dziś i tak zwykle puste, patrz spec Follow-up) — czyszczenie nie powinno
+// po cichu przełączać z powrotem na dom.
 export function EmptyResults({ locale, family }: EmptyResultsProps) {
   const t = useTranslations("EmptyResults");
   const familyMany = useTranslations("ProductFamilyNoun")(`${family}.many`);

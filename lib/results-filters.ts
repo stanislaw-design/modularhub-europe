@@ -1,7 +1,7 @@
 import type {
+  ContainerSubcategory,
   CountryCode,
   EligibilityStatus,
-  PergolaSubcategory,
   ProductFamily,
   Project,
   SpaSubcategory,
@@ -12,16 +12,11 @@ import { SIZE_THRESHOLDS, type SizeThreshold } from "./size-thresholds";
 
 const VALID_COUNTRY_CODES: readonly CountryCode[] = ["PL", "DE", "NL"];
 // Trzy prawdziwe rodziny plus sentinel grupy "wiecej-niz-dom" (spec 0035 AC-2).
-const VALID_FAMILY_FILTER_VALUES: readonly FamilyFilterValue[] = ["dom", "spa-modulowe", "pergola", "wiecej-niz-dom"];
+const VALID_FAMILY_FILTER_VALUES: readonly FamilyFilterValue[] = ["dom", "spa-modulowe", "kontenery-modulowe", "wiecej-niz-dom"];
 const DEFAULT_FAMILY: FamilyFilterValue = "dom";
 
 const VALID_SPA_SUBCATEGORIES: readonly SpaSubcategory[] = ["sauna", "jacuzzi", "wellness-combo"];
-const VALID_PERGOLA_SUBCATEGORIES: readonly PergolaSubcategory[] = [
-  "bioklimatyczna",
-  "aluminiowa-stala",
-  "drewniana",
-  "wolnostojaca-przyscienna",
-];
+const VALID_CONTAINER_SUBCATEGORIES: readonly ContainerSubcategory[] = ["gastronomiczne", "uslugowe", "mieszkalne"];
 
 // Skala progów ceny "od" w EUR, ten sam wzorzec zamkniętych progów co SIZE_THRESHOLDS
 // (spec 0026 AC-4): dobrana do rozstawu dzisiejszego katalogu (patrz spec rationale).
@@ -61,7 +56,7 @@ export interface ResultsFilter {
   // Znaczące tylko dla family dopasowanej do ich nazwy (spec 0026 Key invariants,
   // ta sama granica co pole category z spec 0022).
   spaSubcategory?: SpaSubcategory;
-  pergolaSubcategory?: PergolaSubcategory;
+  containerSubcategory?: ContainerSubcategory;
   sort?: SortOption;
   q?: string;
 }
@@ -119,7 +114,7 @@ export function parseResultsSearchParams(
   const energyClass = parseEnumValue(searchParams.energyClass, ENERGY_CLASSES);
   const storeys = parseEnumValue(searchParams.storeys, VALID_STOREYS);
   const spaSubcategory = parseEnumValue(searchParams.spaSubcategory, VALID_SPA_SUBCATEGORIES);
-  const pergolaSubcategory = parseEnumValue(searchParams.pergolaSubcategory, VALID_PERGOLA_SUBCATEGORIES);
+  const containerSubcategory = parseEnumValue(searchParams.containerSubcategory, VALID_CONTAINER_SUBCATEGORIES);
   const sort = parseEnumValue(searchParams.sort, SORT_OPTIONS);
 
   const rawQ = searchParams.q;
@@ -138,7 +133,7 @@ export function parseResultsSearchParams(
     priceMin,
     priceMax,
     spaSubcategory,
-    pergolaSubcategory,
+    containerSubcategory,
     sort,
     q,
   };
@@ -161,7 +156,7 @@ function resultsFilterToSearchParams(filter: ResultsFilter): URLSearchParams {
   if (filter.priceMin !== undefined) params.set("priceMin", String(filter.priceMin));
   if (filter.priceMax !== undefined) params.set("priceMax", String(filter.priceMax));
   if (filter.spaSubcategory !== undefined) params.set("spaSubcategory", filter.spaSubcategory);
-  if (filter.pergolaSubcategory !== undefined) params.set("pergolaSubcategory", filter.pergolaSubcategory);
+  if (filter.containerSubcategory !== undefined) params.set("containerSubcategory", filter.containerSubcategory);
   if (filter.sort !== undefined) params.set("sort", filter.sort);
   if (filter.q !== undefined) params.set("q", filter.q);
   return params;
@@ -175,7 +170,7 @@ export function buildResultsHref(locale: string, filter: ResultsFilter): string 
 // Toggle jednego wymiaru filtra, zachowując resztę bez zmian: ponowne kliknięcie
 // tej samej wartości czyści filtr (spec 0026 AC-7, API surface: "Ponowne
 // kliknięcie tego samego chipa czyści filtr").
-export function toggleFilterValue<K extends "heatSource" | "ventilation" | "energyClass" | "storeys" | "spaSubcategory" | "pergolaSubcategory">(
+export function toggleFilterValue<K extends "heatSource" | "ventilation" | "energyClass" | "storeys" | "spaSubcategory" | "containerSubcategory">(
   filter: ResultsFilter,
   key: K,
   value: NonNullable<ResultsFilter[K]>
@@ -197,7 +192,7 @@ export function resolveHeatSourceValues(value: HeatSourceFilterValue): HeatSourc
 // ceny, podkategorii i wyszukiwania (spec 0026) nie sięgają tej ścieżki podglądu
 // lokalnego, poza zakresem build planu tej funkcji. filter.family rozwiązywany
 // przez FAMILY_GROUPS (spec 0035), więc "wiecej-niz-dom" dopasowuje zarówno
-// spa-modulowe, jak i pergola, tak samo jak getProjects().
+// spa-modulowe, jak i kontenery-modulowe, tak samo jak getProjects().
 export function matchesResultsFilter(
   floorAreaM2: number,
   eligibilityStatus: EligibilityStatus | undefined,

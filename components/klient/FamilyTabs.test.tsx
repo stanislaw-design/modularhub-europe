@@ -25,7 +25,7 @@ describe("FamilyTabs", () => {
     expect(screen.getByRole("link", { name: "Więcej niż dom" })).toHaveAttribute("aria-current", "page");
     const refineNav = screen.getByRole("navigation", { name: "Doprecyzuj w grupie Więcej niż dom" });
     const refineLinks = within(refineNav).getAllByRole("link");
-    expect(refineLinks.map((link) => link.textContent)).toEqual(["Wszystko", "Spa modułowe", "Pergole"]);
+    expect(refineLinks.map((link) => link.textContent)).toEqual(["Wszystko", "Spa modułowe", "Kontenery"]);
     expect(screen.getByRole("link", { name: "Wszystko" })).toHaveAttribute("aria-current", "true");
   });
 
@@ -48,7 +48,11 @@ describe("FamilyTabs", () => {
   });
 
   it("preserves country and size filters on every tab link, both levels (AC-3)", async () => {
-    render(await resolveAsyncTree(<FamilyTabs locale="pl" family="pergola" countryCode="DE" sizeMin={50} sizeMax={100} />));
+    render(
+      await resolveAsyncTree(
+        <FamilyTabs locale="pl" family="kontenery-modulowe" countryCode="DE" sizeMin={50} sizeMax={100} />
+      )
+    );
 
     expect(screen.getByRole("link", { name: "Domy" })).toHaveAttribute(
       "href",

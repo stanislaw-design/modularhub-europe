@@ -16,9 +16,9 @@ interface FamilyTabsProps {
 // dawnych trzech płaskich zakładek. Górny poziom to grupa (Domy / Więcej niż
 // dom, ten sam podział co CategoryShowcase na stronie głównej); w obrębie
 // grupy "Więcej niż dom" drugi poziom pozwala doprecyzować do jednej
-// konkretnej podkategorii (Spa modułowe/Pergole) albo wrócić do widoku
-// łączonego ("Wszystko", AC-3). Zachowuje kraj/metraż przy przełączeniu, żeby
-// nie gubić reszty filtra.
+// konkretnej podkategorii (Spa modułowe/Kontenery modułowe, spec 0039) albo
+// wrócić do widoku łączonego ("Wszystko", AC-3). Zachowuje kraj/metraż przy
+// przełączeniu, żeby nie gubić reszty filtra.
 export async function FamilyTabs({ locale, family, countryCode, sizeMin, sizeMax }: FamilyTabsProps) {
   const t = await getTranslations("FamilyTabs");
   const activeGroup = resolveFamilyGroup(family);
@@ -30,7 +30,7 @@ export async function FamilyTabs({ locale, family, countryCode, sizeMin, sizeMax
   const refineTabs: { value: FamilyFilterValue; label: string }[] = [
     { value: "wiecej-niz-dom", label: t("all") },
     { value: "spa-modulowe", label: t("spa") },
-    { value: "pergola", label: t("pergola") },
+    { value: "kontenery-modulowe", label: t("containers") },
   ];
 
   function hrefFor(value: FamilyFilterValue): string {

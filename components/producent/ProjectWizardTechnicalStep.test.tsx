@@ -112,17 +112,55 @@ describe("ProjectWizardTechnicalStep: family spa-modulowe", () => {
   });
 });
 
-describe("ProjectWizardTechnicalStep: family pergola", () => {
-  it("renders roofType as a select with the three pergola roof options, not spa's fields", async () => {
-    const user = userEvent.setup();
-    const draft = { ...createEmptyDraft(), family: "pergola" as const };
+describe("ProjectWizardTechnicalStep: family kontenery-modulowe (spec 0039)", () => {
+  it("renders no fields when containerSubcategory is not yet chosen", () => {
+    const draft = { ...createEmptyDraft(), family: "kontenery-modulowe" as const };
     render(<ProjectWizardTechnicalStep draft={draft} showValidation={false} onChange={vi.fn()} />);
 
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+  });
+
+  it("renders the nine gastronomiczne fields, not mieszkalne's or spa's fields (AC-4, AC-5)", () => {
+    const draft = {
+      ...createEmptyDraft(),
+      family: "kontenery-modulowe" as const,
+      containerSubcategory: "gastronomiczne" as const,
+    };
+    render(<ProjectWizardTechnicalStep draft={draft} showValidation={false} onChange={vi.fn()} />);
+
+    for (const label of ["Wymiary", "Materiał konstrukcji", "Wyposażenie kuchenne", "Wyciąg"]) {
+      expect(screen.getByLabelText(new RegExp(label))).toBeInTheDocument();
+    }
+    expect(screen.queryByText("Liczba miejsc do spania")).not.toBeInTheDocument();
     expect(screen.queryByText("Liczba miejsc")).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Wybierz…" }));
-    expect(screen.getByRole("option", { name: "Bioklimatyczny (regulowane lamele)" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "Stały" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "Rozsuwany" })).toBeInTheDocument();
+  });
+
+  it("renders mieszkalne's bathroomIncluded as a checkbox, not a text/number input", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const draft = {
+      ...createEmptyDraft(),
+      family: "kontenery-modulowe" as const,
+      containerSubcategory: "mieszkalne" as const,
+    };
+    render(<ProjectWizardTechnicalStep draft={draft} showValidation={false} onChange={onChange} />);
+
+    const checkbox = screen.getByRole("checkbox", { name: "Łazienka" });
+    expect(checkbox).not.toBeChecked();
+    await user.click(checkbox);
+
+    expect(onChange).toHaveBeenCalledWith({ technicalSpecs: { bathroomIncluded: true } });
+  });
+
+  it("flags an unset boolean field as invalid once showValidation is true", () => {
+    const draft = {
+      ...createEmptyDraft(),
+      family: "kontenery-modulowe" as const,
+      containerSubcategory: "mieszkalne" as const,
+    };
+    render(<ProjectWizardTechnicalStep draft={draft} showValidation onChange={vi.fn()} />);
+
+    expect(screen.getByText("Wybierz łazienka.")).toBeInTheDocument();
   });
 });
 

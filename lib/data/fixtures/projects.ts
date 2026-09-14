@@ -562,15 +562,16 @@ export const projects: Project[] = [
     simplifiedPermitEligible: false,
   },
   // Poniższe dwa wpisy łamią komentarz na górze pliku ("dziś wyłącznie domy"):
-  // jedyne przykładowe produkty spa-modulowe/pergola w tym katalogu, dodane
-  // wyłącznie jako teaser CategoryShowcase na stronie głównej (spec 0022,
-  // getFeaturedProjectByFamily w lib/data/projects.ts). getProjects() filtruje
-  // je z wyszukiwania/wyników domów (family !== "dom"), więc nie mieszają się
-  // z prawdziwym katalogiem domów na /wyniki; dostępne są tylko przez
-  // getProjectById i getFeaturedProjectByFamily. Pola myślane pod dom (pokoje,
-  // sypialnie, klasa okien...) częściowo nie pasują 1:1 do sauny/pergoli —
-  // zaakceptowane świadomie, dopóki nie powstanie osobny model per rodzina
-  // (jak technicalSpecs w lib/db/schema.ts, spec 0022) także dla tego katalogu.
+  // jedyne przykładowe produkty spa-modulowe/kontenery-modulowe w tym
+  // katalogu, dodane wyłącznie jako teaser CategoryShowcase na stronie
+  // głównej (spec 0022, getFeaturedProjectByFamily w lib/data/projects.ts).
+  // getProjects() filtruje je z wyszukiwania/wyników domów (family !== "dom"),
+  // więc nie mieszają się z prawdziwym katalogiem domów na /wyniki; dostępne
+  // są tylko przez getProjectById i getFeaturedProjectByFamily. Pola myślane
+  // pod dom (pokoje, sypialnie, klasa okien...) częściowo nie pasują 1:1 do
+  // sauny/kontenera — zaakceptowane świadomie, dopóki nie powstanie osobny
+  // model per rodzina (jak technicalSpecs w lib/db/schema.ts, spec 0022)
+  // także dla tego katalogu.
   {
     id: "prj-cocomodule-spa-refugium-18",
     producerId: "prod-cocomodule",
@@ -622,39 +623,39 @@ export const projects: Project[] = [
     galleryImageUrls: ["/spa/zdj5.jpeg", "/spa/zdj3.jpeg", "/spa/zdj2.jpeg", "/spa/zdj7.jpeg"],
   },
   {
-    id: "prj-cocomodule-pergola-horizon-28",
+    id: "prj-cocomodule-kontener-bistro-24",
     producerId: "prod-cocomodule",
     producerName: "Cocomodule",
-    name: "Cocomodule Pergola Horizon 28",
+    name: "Cocomodule Kontener Bistro 24",
     countryOfProduction: "PL",
     floorAreaM2: 24,
     builtUpAreaM2: 24,
-    rooms: 0,
+    rooms: 1,
     bedrooms: 0,
     bathrooms: 0,
     storeys: 1,
-    externalDimensions: "6,0 × 4,0 m (24 m² zadaszonej powierzchni)",
-    roofType: "Bioklimatyczny, obrotowe lamele aluminiowe 0–135°",
-    family: "pergola",
+    externalDimensions: "6,0 × 4,0 m",
+    roofType: "Płaski, blacha powlekana",
+    family: "kontenery-modulowe",
     category: "rekreacyjny-caloroczny",
-    constructionSystem: "Wolnostojąca aluminiowa konstrukcja bioklimatyczna ze sterowanymi elektrycznie lamelami dachowymi",
-    foundationOptions: "Kotwienie do istniejącego tarasu lub własny fundament punktowy",
-    customizationScope: "Wymiary modułowe, kolor RAL konstrukcji, opcjonalne przeszklenia boczne i oświetlenie LED w lamelach",
+    constructionSystem: "Prefabrykowany moduł stalowy, kompletowany fabrycznie z wyposażeniem gastronomicznym i wyciągiem",
+    foundationOptions: "Punktowe podpory lub płyta fundamentowa po analizie gruntu",
+    customizationScope: "Wyposażenie kuchenne, okno wydawcze, kolor okładziny zewnętrznej",
     structuralWarrantyYears: 10,
     priceMin: 17000,
     priceMax: 23000,
     currency: "EUR",
-    coverImageUrl: "/images/pergole/pergola-horizon-28.webp",
+    coverImageUrl: "/images/houses/golden-hour/baltyk-studio-38.webp",
     description:
-      "Wolnostojąca pergola bioklimatyczna z obrotowymi lamelami dachowymi, sterowana elektrycznie jednym przyciskiem. Zadasza taras lub strefę wypoczynkową, chroniąc przed słońcem i deszczem, a otwarte lamele zamieniają ją latem w zwykłą altanę bez dachu.",
+      "Kontener modułowy gastronomiczny gotowy do ustawienia na wynajętym lub własnym gruncie: okno wydawcze, wyciąg kuchenny i przyłącza wody/prądu w standardzie. Dostarczany w pełni wyposażony, wystarczy podłączyć media na miejscu.",
     wallBuildUp: "",
     insulation: "",
     heatTransferCoefficients: "",
     windowClass: "",
     ventilation: "",
-    heatSource: "Opcjonalne grzejniki promiennikowe montowane w konstrukcji (akcesorium dodatkowe)",
-    fireResistance: "Konstrukcja aluminiowa niepalna (klasa reakcji na ogień A1)",
-    windResistance: "Automatyczne zamknięcie lameli do 100 km/h w trybie czuwania (czujnik wiatru)",
+    heatSource: "",
+    fireResistance: "Konstrukcja stalowa niepalna (klasa reakcji na ogień A1)",
+    windResistance: "Strefa wiatrowa 1-2 (do 24 m/s)",
     commercial: {
       housePriceMinEur: 14000,
       housePriceMaxEur: 19000,
@@ -663,8 +664,8 @@ export const projects: Project[] = [
       productionLeadTimeWeeksMax: 10,
       onSiteAssemblyDaysMin: 1,
       onSiteAssemblyDaysMax: 1,
-      priceIncludes: ["konstrukcja aluminiowa z lamelami dachowymi", "sterowanie elektryczne lameli i czujnik wiatru/deszczu", "montaż na przygotowanym podłożu"],
-      priceExcludes: ["fundament lub kotwienie", "podłączenie elektryczne do sterowania", "oświetlenie LED i grzejniki (opcje dodatkowe)", "przeszklenia boczne (opcja)"],
+      priceIncludes: ["moduł w standardzie pod klucz", "wyciąg kuchenny", "okno wydawcze", "montaż bryły"],
+      priceExcludes: ["transport", "fundament lub podest", "przyłącza mediów (energia, woda, kanalizacja)", "wyposażenie gastronomiczne (opcja)"],
     },
     featured: true,
     certifications: ["CE"],

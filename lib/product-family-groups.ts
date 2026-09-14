@@ -3,7 +3,7 @@ import type { ProductFamily } from "@/lib/data/types";
 // Grupa, do której może należeć rodzina produktu w wyszukiwaniu (spec 0035):
 // "dom" jest zarówno prawdziwą rodziną, jak i jednoelementową grupą samą w
 // sobie; "wiecej-niz-dom" grupuje pod jednym przełącznikiem hero/wyników
-// każdą rodzinę "stylu życia" (dziś spa-modulowe i pergola).
+// każdą rodzinę "stylu życia" (dziś spa-modulowe i kontenery-modulowe, spec 0039).
 export type ProductFamilyGroup = "dom" | "wiecej-niz-dom";
 
 // Jedyne źródło prawdy o tym, jakie rodziny należą do której grupy (spec 0035
@@ -12,7 +12,7 @@ export type ProductFamilyGroup = "dom" | "wiecej-niz-dom";
 // lib/results-filters.ts każdym z osobna.
 export const FAMILY_GROUPS: Record<ProductFamilyGroup, ProductFamily[]> = {
   dom: ["dom"],
-  "wiecej-niz-dom": ["spa-modulowe", "pergola"],
+  "wiecej-niz-dom": ["spa-modulowe", "kontenery-modulowe"],
 };
 
 // Wartość, jaką może przyjąć parametr URL/filtra `family`: dowolna prawdziwa
@@ -27,7 +27,7 @@ const GROUP_BY_FAMILY = new Map<ProductFamily, ProductFamilyGroup>(
 
 // Do której grupy należy dana wartość filtra, do podświetlania zakładek
 // (FamilyTabs, SearchCard): prawdziwa rodzina rozwiązuje się do swojej grupy
-// (spa-modulowe/pergola -> wiecej-niz-dom), sentinel rozwiązuje się do siebie.
+// (spa-modulowe/kontenery-modulowe -> wiecej-niz-dom), sentinel rozwiązuje się do siebie.
 export function resolveFamilyGroup(value: FamilyFilterValue): ProductFamilyGroup {
   if (value === "wiecej-niz-dom") return "wiecej-niz-dom";
   return GROUP_BY_FAMILY.get(value) ?? "dom";

@@ -1,4 +1,4 @@
-import { Building2, Home, Thermometer, Wind, Zap } from "lucide-react";
+import { Building2, Home } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import type { ResultsFilter } from "@/lib/results-filters";
@@ -9,25 +9,23 @@ interface CategoryFilterBarProps {
   filter: ResultsFilter;
 }
 
-// Cztery chipy oparte na realnych danych (spec 0026 AC-7): pozostałe sześć z
-// dawnej dekoracyjnej listy (Fotowoltaika, Tereny górskie, Nad wodą, Ogród,
-// Garaż, Bez barier, Konstrukcja CLT) i przycisk "Filtry" znikają, bo katalog
-// nie niesie tych atrybutów (patrz spec Follow-up). Prawdziwe linki, nie
-// wyłączone przyciski: klawiaturowo obsługiwane, aktualizują URL od razu po
-// kliknięciu, ponowne kliknięcie tego samego chipa czyści filtr (toggle).
+// Dwa chipy oparte na realnych danych (spec 0026 AC-7, storeys). Pompa
+// ciepła / Rekuperacja / Klasa A+ zostały usunięte na życzenie; pozostała
+// dawna dekoracyjna lista (Fotowoltaika, Tereny górskie, Nad wodą, Ogród,
+// Garaż, Bez barier, Konstrukcja CLT) i przycisk "Filtry" też nie wracają, bo
+// katalog nie niesie tych atrybutów (patrz spec Follow-up). Prawdziwe linki,
+// nie wyłączone przyciski: klawiaturowo obsługiwane, aktualizują URL od razu
+// po kliknięciu, ponowne kliknięcie tego samego chipa czyści filtr (toggle).
 export async function CategoryFilterBar({ locale, filter }: CategoryFilterBarProps) {
   const t = await getTranslations("CategoryFilterBar");
   const chips: {
     icon: typeof Home;
     label: string;
-    key: "storeys" | "heatSource" | "ventilation" | "energyClass";
-    value: NonNullable<ResultsFilter["storeys" | "heatSource" | "ventilation" | "energyClass"]>;
+    key: "storeys";
+    value: NonNullable<ResultsFilter["storeys"]>;
   }[] = [
     { icon: Home, label: t("singleStorey"), key: "storeys", value: "parterowy" },
     { icon: Building2, label: t("twoStorey"), key: "storeys", value: "pietrowy" },
-    { icon: Thermometer, label: t("heatPump"), key: "heatSource", value: "pompa-ciepla" },
-    { icon: Wind, label: t("heatRecovery"), key: "ventilation", value: "rekuperacja" },
-    { icon: Zap, label: t("energyClassA"), key: "energyClass", value: "A+" },
   ];
 
   return (

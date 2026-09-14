@@ -7,7 +7,7 @@ import {
   BEDROOMS_MIN,
   FLOOR_AREA_MAX_M2,
   FLOOR_AREA_MIN_M2,
-  getPergolaSubcategoryOptions,
+  getContainerSubcategoryOptions,
   getProductFamilyOptions,
   getProjectCategoryOptions,
   getSpaSubcategoryOptions,
@@ -52,7 +52,7 @@ export function ProjectWizardBasicInfoStep({
     showValidation &&
     ((draft.family === "dom" && draft.category === null) ||
       (draft.family === "spa-modulowe" && draft.spaSubcategory === null) ||
-      (draft.family === "pergola" && draft.pergolaSubcategory === null));
+      (draft.family === "kontenery-modulowe" && draft.containerSubcategory === null));
 
   const countryOptions = countries.map((country) => ({ value: country.code, label: country.name }));
   const familyOptions = getProductFamilyOptions(tOptions);
@@ -81,7 +81,7 @@ export function ProjectWizardBasicInfoStep({
                   family: value,
                   category: null,
                   spaSubcategory: null,
-                  pergolaSubcategory: null,
+                  containerSubcategory: null,
                   technicalSpecs: {},
                 })
               }
@@ -129,17 +129,17 @@ export function ProjectWizardBasicInfoStep({
           )}
         </Stack>
       )}
-      {draft.family === "pergola" && (
+      {draft.family === "kontenery-modulowe" && (
         <Stack gap={1}>
-          <Label id="wizard-pergola-subcategory-label" required>
-            {t("pergolaSubcategoryLabel")}
+          <Label id="wizard-container-subcategory-label" required>
+            {t("containerSubcategoryLabel")}
           </Label>
           <Select
-            value={draft.pergolaSubcategory}
-            onChange={(value) => onChange({ pergolaSubcategory: value })}
-            options={getPergolaSubcategoryOptions(tOptions)}
+            value={draft.containerSubcategory}
+            onChange={(value) => onChange({ containerSubcategory: value, technicalSpecs: {} })}
+            options={getContainerSubcategoryOptions(tOptions)}
             invalid={subcategoryInvalid}
-            aria-labelledby="wizard-pergola-subcategory-label"
+            aria-labelledby="wizard-container-subcategory-label"
           />
           {subcategoryInvalid && (
             <p className="font-sans text-body text-status-blocked">{t("subcategoryRequiredError")}</p>

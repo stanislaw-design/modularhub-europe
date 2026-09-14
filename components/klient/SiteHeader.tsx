@@ -100,11 +100,15 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
   // path rather than a bare "#…" fragment, because SiteHeader renders on
   // every customer route, not just the home page it's targeting.
   // "Producenci"/"Inspiracje"/"O nas" were dropped (spec 0030 AC-3): no page
-  // exists behind them yet.
+  // exists behind them yet. The last two mirror BulkOrdersShowcase's two B2B
+  // tiles (spec 0038) so the same destinations are reachable from every
+  // route, not just the home page section.
   const navItems: NavItem[] = [
     { label: t("nav.homes"), href: `/${locale}` },
     { label: t("nav.projects"), href: `/${locale}/results` },
     { label: t("nav.howItWorks"), href: `/${locale}#jak-to-dziala` },
+    { label: t("nav.verifiedManufacturers"), href: `/${locale}/verified-manufacturers` },
+    { label: t("nav.producerB2b"), href: `/${locale}/producer/registration` },
   ];
   const pathname = usePathname();
   // Only the home route renders Hero's full-bleed photo directly under the

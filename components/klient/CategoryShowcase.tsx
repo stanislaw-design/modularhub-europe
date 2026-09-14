@@ -8,7 +8,7 @@ interface CategoryShowcaseProps {
   locale: string;
 }
 
-export type OutdoorFamily = Extract<ProductFamily, "spa-modulowe" | "pergola">;
+export type OutdoorFamily = Extract<ProductFamily, "spa-modulowe" | "kontenery-modulowe">;
 
 // Everything the client carousel (CategoryShowcaseCarousel) needs to render
 // one category, pre-formatted here so the client component stays pure
@@ -26,9 +26,11 @@ export interface CategoryShowcaseItem {
   dotLabel: string;
 }
 
+// Kontenery modułowe tymczasowo reużywają dawne zdjęcie pergoli jako
+// placeholder (spec 0039 Follow-up), do czasu prawdziwej fotografii produktu.
 const FAMILY_IMAGES: Record<OutdoorFamily, string> = {
   "spa-modulowe": "/spa/zdj1.jpeg",
-  pergola: "/images/houses/golden-hour/baltyk-studio-38.webp",
+  "kontenery-modulowe": "/images/houses/golden-hour/baltyk-studio-38.webp",
 };
 
 const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0 });
@@ -41,7 +43,7 @@ function productCountBucket(count: number): "one" | "few" | "many" {
   return "many";
 }
 
-// "Więcej niż dom": spa i pergole tylko, dom żyje już wyżej na tej stronie
+// "Więcej niż dom": spa i kontenery modułowe tylko, dom żyje już wyżej na tej stronie
 // (PopularHomes). Każda karta linkuje do jednego prawdziwego, klikalnego
 // przykładu z tej rodziny (getFeaturedProjectByFamily, lib/data/projects.ts),
 // nie do nieprzefiltrowanego /wyniki — to realne "oferty" zachęcające do
@@ -56,11 +58,11 @@ export async function CategoryShowcase({ locale }: CategoryShowcaseProps) {
   const t = await getTranslations("CategoryShowcase");
   const familyNames: Record<OutdoorFamily, string> = {
     "spa-modulowe": t("spaName"),
-    pergola: t("pergolaName"),
+    "kontenery-modulowe": t("containersName"),
   };
   const familyDescriptions: Record<OutdoorFamily, string> = {
     "spa-modulowe": t("spaDescription"),
-    pergola: t("pergolaDescription"),
+    "kontenery-modulowe": t("containersDescription"),
   };
 
   const allResultsHref = `/${locale}/results`;

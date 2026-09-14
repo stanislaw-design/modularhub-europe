@@ -3,7 +3,9 @@
     "nav": {
       "homes": "Domy",
       "projects": "Projekty",
-      "howItWorks": "Jak to działa"
+      "howItWorks": "Jak to działa",
+      "verifiedManufacturers": "Zweryfikowani producenci",
+      "producerB2b": "Dołącz jako producent B2B"
     },
     "favorites": "Ulubione",
     "adminPanel": "Panel administratora",
@@ -124,10 +126,10 @@
       "few": "spa modułowe",
       "many": "spa modułowych"
     },
-    "pergola": {
-      "one": "pergola",
-      "few": "pergole",
-      "many": "pergoli"
+    "kontenery-modulowe": {
+      "one": "kontener modułowy",
+      "few": "kontenery modułowe",
+      "many": "kontenerów modułowych"
     },
     "wiecej-niz-dom": {
       "one": "produkt",
@@ -213,7 +215,7 @@
     "family": {
       "dom": "Dom",
       "spa-modulowe": "Spa modułowe",
-      "pergola": "Pergola"
+      "kontenery-modulowe": "Kontenery modułowe"
     },
     "category": {
       "caloroczny": "Całoroczny",
@@ -225,11 +227,10 @@
       "jacuzzi": "Jacuzzi",
       "wellness-combo": "Kabina wellness (sauna + jacuzzi)"
     },
-    "pergolaSubcategory": {
-      "bioklimatyczna": "Bioklimatyczna",
-      "aluminiowa-stala": "Aluminiowa stała",
-      "drewniana": "Drewniana",
-      "wolnostojaca-przyscienna": "Wolnostojąca / przyścienna"
+    "containerSubcategory": {
+      "gastronomiczne": "Gastronomiczny",
+      "uslugowe": "Usługowy",
+      "mieszkalne": "Mieszkalny"
     },
     "completionStandard": {
       "surowy-zamkniety": "Stan surowy zamknięty",
@@ -321,39 +322,38 @@
           "hint": "Sposób posadowienia, np. płyta betonowa"
         }
       },
-      "pergola": {
-        "roofType": {
-          "label": "Typ dachu",
-          "hint": "Rodzaj dachu pergoli",
-          "options": {
-            "bioklimatyczny": "Bioklimatyczny (regulowane lamele)",
-            "staly": "Stały",
-            "rozsuwany": "Rozsuwany"
-          }
+      "kontenery-modulowe": {
+        "gastronomiczne": {
+          "dimensions": { "label": "Wymiary", "hint": "Szerokość × głębokość × wysokość" },
+          "structureMaterial": { "label": "Materiał konstrukcji", "hint": "Materiał szkieletu/konstrukcji kontenera" },
+          "insulationType": { "label": "Typ izolacji", "hint": "Rodzaj izolacji termicznej" },
+          "foundationType": { "label": "Typ fundamentu", "hint": "Sposób posadowienia" },
+          "kitchenEquipmentType": { "label": "Wyposażenie kuchenne", "hint": "Rodzaj zainstalowanego wyposażenia kuchennego" },
+          "extractionVentilation": { "label": "Wyciąg", "hint": "Typ instalacji wyciągowej/wentylacyjnej" },
+          "electricalPower": { "label": "Moc przyłącza elektrycznego", "hint": "Wymagana moc zasilania" },
+          "waterSupplyType": { "label": "Zasilanie w wodę", "hint": "Sposób doprowadzenia wody" },
+          "wasteWaterHandling": { "label": "Odprowadzanie ścieków", "hint": "Sposób odprowadzania ścieków" }
         },
-        "roofMaterial": {
-          "label": "Materiał dachu",
-          "hint": "Materiał pokrycia dachu"
+        "uslugowe": {
+          "dimensions": { "label": "Wymiary", "hint": "Szerokość × głębokość × wysokość" },
+          "structureMaterial": { "label": "Materiał konstrukcji", "hint": "Materiał szkieletu/konstrukcji kontenera" },
+          "insulationType": { "label": "Typ izolacji", "hint": "Rodzaj izolacji termicznej" },
+          "foundationType": { "label": "Typ fundamentu", "hint": "Sposób posadowienia" },
+          "intendedUse": { "label": "Przeznaczenie", "hint": "Planowane wykorzystanie modułu, np. biuro, sklep" },
+          "electricalInstallation": { "label": "Instalacja elektryczna", "hint": "Zakres instalacji elektrycznej" },
+          "spaceHeatingType": { "label": "Typ ogrzewania", "hint": "Sposób ogrzewania pomieszczenia" }
         },
-        "dimensions": {
-          "label": "Wymiary",
-          "hint": "Szerokość × głębokość × wysokość"
-        },
-        "windLoadRating": {
-          "label": "Klasa obciążenia wiatrem",
-          "hint": "Maksymalna dopuszczalna prędkość wiatru"
-        },
-        "snowLoadRating": {
-          "label": "Klasa obciążenia śniegiem",
-          "hint": "Maksymalne obciążenie śniegiem (kN/m²)"
-        },
-        "glazingType": {
-          "label": "Typ przeszklenia",
-          "hint": "Panele boczne lub przeszklenie, jeśli dotyczy"
-        },
-        "foundationType": {
-          "label": "Typ fundamentu",
-          "hint": "Sposób posadowienia słupów"
+        "mieszkalne": {
+          "dimensions": { "label": "Wymiary", "hint": "Szerokość × głębokość × wysokość" },
+          "structureMaterial": { "label": "Materiał konstrukcji", "hint": "Materiał szkieletu/konstrukcji kontenera" },
+          "insulationType": { "label": "Typ izolacji", "hint": "Rodzaj izolacji termicznej" },
+          "foundationType": { "label": "Typ fundamentu", "hint": "Sposób posadowienia" },
+          "sleepingCapacity": { "label": "Liczba miejsc do spania", "hint": "Maksymalna liczba osób" },
+          "bathroomIncluded": { "label": "Łazienka", "hint": "Czy moduł zawiera łazienkę" },
+          "spaceHeatingType": { "label": "Typ ogrzewania", "hint": "Sposób ogrzewania pomieszczenia" },
+          "waterSupplyType": { "label": "Zasilanie w wodę", "hint": "Sposób doprowadzenia wody" },
+          "wasteWaterHandling": { "label": "Odprowadzanie ścieków", "hint": "Sposób odprowadzania ścieków" },
+          "electricalInstallation": { "label": "Instalacja elektryczna", "hint": "Zakres instalacji elektrycznej" }
         }
       }
     }
@@ -382,7 +382,7 @@
     "categoryLabel": "Kategoria",
     "categoryRequiredError": "Wybierz kategorię produktu.",
     "spaSubcategoryLabel": "Podkategoria",
-    "pergolaSubcategoryLabel": "Podkategoria",
+    "containerSubcategoryLabel": "Podkategoria",
     "subcategoryRequiredError": "Wybierz podkategorię.",
     "nameLabel": "Nazwa projektu",
     "nameRequiredError": "Podaj nazwę projektu.",
@@ -457,11 +457,13 @@
     "groupFiles": "Pliki",
     "floorPlanCount": "Rzuty ({count})",
     "photoCount": "Zdjęcia ({count})",
-    "empty": "—"
+    "empty": "—",
+    "booleanYes": "Tak",
+    "booleanNo": "Nie"
   },
   "SubcategoryFilterBar": {
     "spaAriaLabel": "Podkategoria spa modułowego",
-    "pergolaAriaLabel": "Podkategoria pergoli"
+    "containerAriaLabel": "Podkategoria kontenera modułowego"
   },
   "ProducentPage": {
     "heading": "Zostań producentem ModularHub Europe",
@@ -632,7 +634,7 @@
   "SearchCard": {
     "teaserPrompt": "W czym mogę pomóc?",
     "teaserWordHome": "Dom?",
-    "teaserWordPergola": "Pergole?",
+    "teaserWordContainers": "Kontenery?",
     "teaserWordSpa": "SPA?",
     "budgetAny": "Dowolny budżet",
     "budgetUpTo50k": "do 50K €",
@@ -698,8 +700,8 @@
     "headingRest": "niż dom",
     "spaName": "Spa modułowe",
     "spaDescription": "Sauny, jacuzzi i strefy wellness do Twojego ogrodu",
-    "pergolaName": "Pergole",
-    "pergolaDescription": "Aluminiowe i drewniane, z zadaszeniem i przeszkleniami",
+    "containersName": "Kontenery modułowe",
+    "containersDescription": "Gastronomiczne, usługowe i mieszkalne, gotowe do ustawienia",
     "imageAlt": "Przykładowa realizacja z kategorii {category}",
     "viewOffers": "Zobacz oferty",
     "viewOffersShort": "Zobacz",
@@ -719,7 +721,7 @@
     "subNavAriaLabel": "Doprecyzuj w grupie Więcej niż dom",
     "all": "Wszystko",
     "spa": "Spa modułowe",
-    "pergola": "Pergole"
+    "containers": "Kontenery"
   },
   "CategoryFilterBar": {
     "navAriaLabel": "Filtry atrybutów domu",
@@ -1143,14 +1145,28 @@
     "metaTitle": "Zweryfikowani producenci wolumenowi | ModularHub Europe",
     "metaDescription": "Przeglądaj realne projekty producentów zweryfikowanych wolumenowo, zanim wyślesz zapytanie o duże zamówienie.",
     "heading": "Zweryfikowani producenci wolumenowi",
-    "intro": "Sprawdzone przy dużym wolumenie, realne projekty producentów gotowych na 10 i więcej domów naraz.",
     "ctaLabel": "Zgłoś zapytanie",
+    "requestPromoHeading": "Wiesz dokładnie czego szukasz?",
     "verifiedBadge": "Zweryfikowany producent wolumenowy",
     "capacityLabel": "{units} domów/mies.",
     "certificationsLabel": "Certyfikaty: {list}",
     "deliveryLabel": "Dostawa: {list}",
     "emptyStateHeading": "Żaden producent nie jest dziś zweryfikowany wolumenowo",
-    "emptyStateBody": "Wyślij zapytanie o duży projekt — powiadomimy Cię, gdy pojawi się zweryfikowany producent w Twoim kraju."
+    "emptyStateBody": "Wyślij zapytanie o duży projekt — powiadomimy Cię, gdy pojawi się zweryfikowany producent w Twoim kraju.",
+    "noMatchHeading": "Brak projektów dla wybranych filtrów",
+    "noMatchBody": "Żaden zweryfikowany wolumenowo producent nie ma projektu pasującego do wybranych filtrów. Wyczyść filtry albo wyślij zapytanie o swój projekt bezpośrednio.",
+    "clearFiltersLabel": "Wyczyść filtry"
+  },
+  "VerifiedManufacturersFilterBar": {
+    "countryLabel": "Kraj dostawy",
+    "countryPlaceholder": "Wybierz kraj",
+    "countryAriaLabel": "Kraj dostawy",
+    "sizeMinLabel": "Metraż od",
+    "sizeMaxLabel": "Metraż do",
+    "anyPlaceholder": "Dowolny",
+    "keywordLabel": "Słowo kluczowe",
+    "keywordPlaceholder": "Nazwa modelu",
+    "searchAriaLabel": "Szukaj"
   },
   "BulkProductInquiryModal": {
     "triggerLabel": "Zapytaj o większą ilość",

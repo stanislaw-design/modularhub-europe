@@ -14,22 +14,25 @@ export type CompletionStandard = "surowy-zamkniety" | "deweloperski" | "pod-kluc
 // SavedProduct (kreator producenta, spec 0016) przechodzą na family +
 // technicalSpecs (spec 0022 Build plan, zadania 3, 6, 7). getProjects()
 // filtruje do family "dom" (katalog wyszukiwania domów); dwa przykładowe
-// wpisy spa-modulowe/pergola istnieją tylko jako teaser CategoryShowcase na
-// stronie głównej (getFeaturedProjectByFamily), z polami myślanymi pod dom
-// dopasowanymi tam gdzie to ma sens i pustymi tam, gdzie nie (patrz komentarz
-// przy tych dwóch wpisach w fixtures/projects.ts).
-export type ProductFamily = "dom" | "spa-modulowe" | "pergola";
+// wpisy spa-modulowe/kontenery-modulowe istnieją tylko jako teaser
+// CategoryShowcase na stronie głównej (getFeaturedProjectByFamily), z polami
+// myślanymi pod dom dopasowanymi tam gdzie to ma sens i pustymi tam, gdzie
+// nie (patrz komentarz przy tych dwóch wpisach w fixtures/projects.ts).
+// "pergola" zastąpiona przez "kontenery-modulowe" (spec 0039).
+export type ProductFamily = "dom" | "spa-modulowe" | "kontenery-modulowe";
 export type SpaSubcategory = "sauna" | "jacuzzi" | "wellness-combo";
-export type PergolaSubcategory =
-  | "bioklimatyczna"
-  | "aluminiowa-stala"
-  | "drewniana"
-  | "wolnostojaca-przyscienna";
+// Zastępuje dawny PergolaSubcategory (spec 0039): trzy zastosowania kontenera
+// modułowego, każde z własnym kształtem technicalSpecs (patrz
+// lib/product-technical-specs.ts), pierwszy przypadek, gdzie subcategory
+// decyduje o kształcie, nie tylko o klasyfikacji.
+export type ContainerSubcategory = "gastronomiczne" | "uslugowe" | "mieszkalne";
 
 // Kitchen-sink: pola wszystkich trzech rodzin naraz, opcjonalne. Które pola są
-// znaczące zależy od ProjectDraft.family — patrz TECHNICAL_FIELDS_BY_FAMILY w
-// lib/producer-project-draft.ts. Kompletność per rodzina jest sprawdzana przez
-// schemat Zod (lib/product-technical-specs.ts), nie przez ten typ.
+// znaczące zależy od ProjectDraft.family (i, dla kontenery-modulowe, od
+// containerSubcategory) — patrz TECHNICAL_FIELDS_BY_FAMILY /
+// CONTAINER_TECHNICAL_FIELDS_BY_SUBCATEGORY w lib/producer-project-draft.ts.
+// Kompletność per rodzina/podkategoria jest sprawdzana przez schemat Zod
+// (lib/product-technical-specs.ts), nie przez ten typ.
 export interface ProductTechnicalSpecsDraft {
   // dom
   wallBuildUp?: string;
@@ -49,14 +52,27 @@ export interface ProductTechnicalSpecsDraft {
   filtrationSystem?: string;
   shellMaterial?: string;
   electricalRequirement?: string;
-  // pergola
-  roofType?: "bioklimatyczny" | "staly" | "rozsuwany";
-  roofMaterial?: string;
+  // kontenery-modulowe, wspólne trzem podkategoriom (spec 0039)
   dimensions?: string;
-  windLoadRating?: string;
-  snowLoadRating?: string;
-  glazingType?: string;
-  // wspólne (spa i pergola)
+  structureMaterial?: string;
+  insulationType?: string;
+  // kontenery-modulowe: gastronomiczne
+  kitchenEquipmentType?: string;
+  extractionVentilation?: string;
+  electricalPower?: string;
+  waterSupplyType?: string;
+  wasteWaterHandling?: string;
+  // kontenery-modulowe: uslugowe
+  intendedUse?: string;
+  electricalInstallation?: string;
+  // kontenery-modulowe: mieszkalne
+  sleepingCapacity?: number;
+  bathroomIncluded?: boolean;
+  /** Nazwane spaceHeatingType, nie heatingType: heatingType już niesie typ
+   * ogrzewania wody spa (inny typ) w tym samym współdzielonym interfejsie
+   * (spec 0039 Feature design). Współdzielone przez uslugowe i mieszkalne. */
+  spaceHeatingType?: string;
+  // wspólne (spa i kontenery-modulowe)
   foundationType?: string;
 }
 
@@ -182,11 +198,11 @@ export interface ProjectDraft {
   // to pole z draftu i zachowuje wartość istniejącego produktu.
   family: ProductFamily | null;
   // Znaczące tylko dla family dopasowanej do jej nazwy (spec 0022 AC-2, AC-3):
-  // category dla "dom", spaSubcategory dla "spa-modulowe", pergolaSubcategory
-  // dla "pergola".
+  // category dla "dom", spaSubcategory dla "spa-modulowe", containerSubcategory
+  // dla "kontenery-modulowe".
   category: ProjectCategory | null;
   spaSubcategory: SpaSubcategory | null;
-  pergolaSubcategory: PergolaSubcategory | null;
+  containerSubcategory: ContainerSubcategory | null;
   technicalSpecs: ProductTechnicalSpecsDraft;
   floorPlanFiles: MockUploadedFile[];
   photoFiles: MockUploadedFile[];
@@ -218,7 +234,7 @@ export interface SavedProduct {
   family: ProductFamily;
   category: ProjectCategory | null;
   spaSubcategory: SpaSubcategory | null;
-  pergolaSubcategory: PergolaSubcategory | null;
+  containerSubcategory: ContainerSubcategory | null;
   technicalSpecs: ProductTechnicalSpecsDraft;
   floorPlanFiles: MockUploadedFile[];
   photoFiles: MockUploadedFile[];

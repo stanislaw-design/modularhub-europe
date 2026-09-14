@@ -4,11 +4,11 @@ import { Card, DataText, Heading, Stack, Text } from "@/components/ui";
 import type { Country, ProjectDraft } from "@/lib/data/types";
 import {
   getCompletionStandardOptions,
-  getPergolaSubcategoryOptions,
+  getContainerSubcategoryOptions,
   getProductFamilyOptions,
   getProjectCategoryOptions,
   getSpaSubcategoryOptions,
-  getTechnicalFieldsByFamily,
+  getTechnicalFieldsFor,
 } from "@/lib/producer-project-draft";
 
 type Translate = ReturnType<typeof useTranslations>;
@@ -48,10 +48,10 @@ function subcategoryLabel(draft: ProjectDraft, tOptions: Translate, empty: strin
       return (
         getSpaSubcategoryOptions(tOptions).find((option) => option.value === draft.spaSubcategory)?.label ?? empty
       );
-    case "pergola":
+    case "kontenery-modulowe":
       return (
-        getPergolaSubcategoryOptions(tOptions).find((option) => option.value === draft.pergolaSubcategory)?.label ??
-        empty
+        getContainerSubcategoryOptions(tOptions).find((option) => option.value === draft.containerSubcategory)
+          ?.label ?? empty
       );
     case null:
       return empty;
@@ -86,14 +86,20 @@ export function ProjectWizardSummaryStep({ draft, countries }: ProjectWizardSumm
 
       {draft.family !== null && (
         <SummaryGroup title={t("groupTechnical")}>
-          {getTechnicalFieldsByFamily(draft.family, tOptions).map((field) => {
+          {getTechnicalFieldsFor(draft.family, draft.containerSubcategory, tOptions).map((field) => {
             const value = draft.technicalSpecs[field.key];
             const displayValue =
               field.type === "select"
                 ? field.options?.find((option) => option.value === value)?.label ?? empty
-                : value !== undefined && value !== "" && value !== null
-                  ? String(value)
-                  : empty;
+                : field.type === "boolean"
+                  ? value === true
+                    ? t("booleanYes")
+                    : value === false
+                      ? t("booleanNo")
+                      : empty
+                  : value !== undefined && value !== "" && value !== null
+                    ? String(value)
+                    : empty;
             return <SummaryRow key={field.key} label={field.label} value={displayValue} />;
           })}
         </SummaryGroup>

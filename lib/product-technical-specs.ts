@@ -4,8 +4,14 @@ import { z } from "zod";
 // kolumna obok technicalSpecs (nie wewnątrz JSON), więc z.discriminatedUnion
 // (który wymaga dyskryminatora wewnątrz walidowanego obiektu) nie pasuje —
 // zamiast tego mapa schematu per family, wybierana przez wywołującego.
-export const PRODUCT_FAMILIES = ["dom", "spa-modulowe", "pergola"] as const;
+export const PRODUCT_FAMILIES = ["dom", "spa-modulowe", "kontenery-modulowe"] as const;
 export type ProductFamily = (typeof PRODUCT_FAMILIES)[number];
+
+// Podkategorie kontenera modułowego (spec 0039): pierwszy przypadek w tym
+// kodzie, gdzie o kształcie technicalSpecs decyduje subcategory, nie tylko
+// family — patrz getTechnicalSpecsSchema niżej.
+export const CONTAINER_SUBCATEGORIES = ["gastronomiczne", "uslugowe", "mieszkalne"] as const;
+export type ContainerSubcategory = (typeof CONTAINER_SUBCATEGORIES)[number];
 
 // Zamknięta lista źródeł ciepła (spec 0026 AC-2, Feature design). Chip "Pompa
 // ciepła" na /wyniki dopasowuje obie wartości pompy ciepła naraz przez skrót
@@ -55,36 +61,89 @@ const spaModuloweSpecsShape = {
   foundationType: z.string(),
 };
 
-export const PERGOLA_ROOF_TYPES = ["bioklimatyczny", "staly", "rozsuwany"] as const;
-export type PergolaRoofType = (typeof PERGOLA_ROOF_TYPES)[number];
-
-const pergolaSpecsShape = {
-  roofType: z.enum(PERGOLA_ROOF_TYPES),
-  roofMaterial: z.string(),
-  dimensions: z.string(),
-  windLoadRating: z.string(),
-  snowLoadRating: z.string(),
-  glazingType: z.string(),
-  foundationType: z.string(),
-};
-
 // Kompletny kształt (wymagany od status = 'published'): każdy schemat jest
 // .strict() (odrzuca nieznane pola) i wymaga wszystkich swoich pól (spec 0022
-// AC-4, Feature design).
+// AC-4, Feature design). Rodziny "dom" i "spa-modulowe" mają jeden kształt na
+// całą rodzinę; "kontenery-modulowe" nie żyje w tej mapie (patrz niżej, jej
+// kształt zależy od containerSubcategory, nie samej family, spec 0039 AC-4).
 const publishedTechnicalSpecsSchemaByFamily = {
   dom: z.object(domSpecsShape).strict(),
   "spa-modulowe": z.object(spaModuloweSpecsShape).strict(),
-  pergola: z.object(pergolaSpecsShape).strict(),
-} satisfies Record<ProductFamily, z.ZodTypeAny>;
+} satisfies Record<Exclude<ProductFamily, "kontenery-modulowe">, z.ZodTypeAny>;
 
 // Kształt dopuszczalny podczas status = 'draft': te same pola, wszystkie opcjonalne.
 const draftTechnicalSpecsSchemaByFamily = {
   dom: publishedTechnicalSpecsSchemaByFamily.dom.partial(),
   "spa-modulowe": publishedTechnicalSpecsSchemaByFamily["spa-modulowe"].partial(),
-  pergola: publishedTechnicalSpecsSchemaByFamily.pergola.partial(),
-} satisfies Record<ProductFamily, z.ZodTypeAny>;
+} satisfies Record<Exclude<ProductFamily, "kontenery-modulowe">, z.ZodTypeAny>;
 
-export function getTechnicalSpecsSchema(family: ProductFamily, status: "draft" | "published") {
+// Pola dzielone przez wszystkie trzy podkategorie kontenera modułowego (spec
+// 0039 Follow-up: wspólny bazowy kształt rozszerzany per podkategoria, żeby
+// ograniczyć duplikację — finalny, eksportowany kształt każdej podkategorii
+// zostaje dokładnie taki, jak ustalono w decyzji, patrz AC-4).
+const containerBaseSpecsShape = {
+  dimensions: z.string(),
+  structureMaterial: z.string(),
+  insulationType: z.string(),
+  foundationType: z.string(),
+};
+
+const containerGastronomiczneSpecsShape = {
+  ...containerBaseSpecsShape,
+  kitchenEquipmentType: z.string(),
+  extractionVentilation: z.string(),
+  electricalPower: z.string(),
+  waterSupplyType: z.string(),
+  wasteWaterHandling: z.string(),
+};
+
+const containerUslugoweSpecsShape = {
+  ...containerBaseSpecsShape,
+  intendedUse: z.string(),
+  electricalInstallation: z.string(),
+  spaceHeatingType: z.string(),
+};
+
+const containerMieszkalneSpecsShape = {
+  ...containerBaseSpecsShape,
+  sleepingCapacity: z.number(),
+  bathroomIncluded: z.boolean(),
+  spaceHeatingType: z.string(),
+  waterSupplyType: z.string(),
+  wasteWaterHandling: z.string(),
+  electricalInstallation: z.string(),
+};
+
+const publishedContainerSpecsSchemaBySubcategory = {
+  gastronomiczne: z.object(containerGastronomiczneSpecsShape).strict(),
+  uslugowe: z.object(containerUslugoweSpecsShape).strict(),
+  mieszkalne: z.object(containerMieszkalneSpecsShape).strict(),
+} satisfies Record<ContainerSubcategory, z.ZodTypeAny>;
+
+const draftContainerSpecsSchemaBySubcategory = {
+  gastronomiczne: publishedContainerSpecsSchemaBySubcategory.gastronomiczne.partial(),
+  uslugowe: publishedContainerSpecsSchemaBySubcategory.uslugowe.partial(),
+  mieszkalne: publishedContainerSpecsSchemaBySubcategory.mieszkalne.partial(),
+} satisfies Record<ContainerSubcategory, z.ZodTypeAny>;
+
+// containerSubcategory jest wymagany dla family = "kontenery-modulowe" (rzuca
+// błąd, jeśli go zabraknie — w praktyce nieosiągalne przez UI, bo krok
+// techniczny kreatora nie renderuje się bez wybranej podkategorii, ale
+// strażnik czasu działania jest tańszy niż cichy zły kształt walidacji, spec
+// 0039 Kluczowe niezmienniki); ignorowany dla pozostałych rodzin.
+export function getTechnicalSpecsSchema(
+  family: ProductFamily,
+  status: "draft" | "published",
+  containerSubcategory?: ContainerSubcategory,
+): z.ZodTypeAny {
+  if (family === "kontenery-modulowe") {
+    if (!containerSubcategory) {
+      throw new Error("getTechnicalSpecsSchema: containerSubcategory is required for family 'kontenery-modulowe'");
+    }
+    return status === "published"
+      ? publishedContainerSpecsSchemaBySubcategory[containerSubcategory]
+      : draftContainerSpecsSchemaBySubcategory[containerSubcategory];
+  }
   return status === "published"
     ? publishedTechnicalSpecsSchemaByFamily[family]
     : draftTechnicalSpecsSchemaByFamily[family];
@@ -94,4 +153,12 @@ export type DomTechnicalSpecs = z.infer<typeof publishedTechnicalSpecsSchemaByFa
 export type SpaModuloweTechnicalSpecs = z.infer<
   (typeof publishedTechnicalSpecsSchemaByFamily)["spa-modulowe"]
 >;
-export type PergolaTechnicalSpecs = z.infer<typeof publishedTechnicalSpecsSchemaByFamily.pergola>;
+export type ContainerGastronomiczneTechnicalSpecs = z.infer<
+  (typeof publishedContainerSpecsSchemaBySubcategory)["gastronomiczne"]
+>;
+export type ContainerUslugoweTechnicalSpecs = z.infer<
+  (typeof publishedContainerSpecsSchemaBySubcategory)["uslugowe"]
+>;
+export type ContainerMieszkalneTechnicalSpecs = z.infer<
+  (typeof publishedContainerSpecsSchemaBySubcategory)["mieszkalne"]
+>;

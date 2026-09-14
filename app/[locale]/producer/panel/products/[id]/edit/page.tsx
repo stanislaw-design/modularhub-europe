@@ -22,7 +22,7 @@ function producerProductToDraft(row: ProducerProductForEdit): ProjectDraft {
     family: row.family,
     category: row.category,
     spaSubcategory: row.spaSubcategory,
-    pergolaSubcategory: row.pergolaSubcategory,
+    containerSubcategory: row.containerSubcategory,
     technicalSpecs: (row.technicalSpecs ?? {}) as ProductTechnicalSpecsDraft,
     floorPlanFiles: [],
     photoFiles: [],

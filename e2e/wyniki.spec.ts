@@ -82,17 +82,17 @@ test.describe("/pl/results", () => {
   }) => {
     await page.goto("/pl/results?sort=size-desc");
 
-    const heatPumpChip = page.getByRole("link", { name: "Pompa ciepła" });
-    await expect(heatPumpChip).toBeEnabled();
+    const singleStoreyChip = page.getByRole("link", { name: "Parterowy" });
+    await expect(singleStoreyChip).toBeEnabled();
     await expect(page.getByRole("link", { name: "Filtry" })).toHaveCount(0);
 
-    await heatPumpChip.click();
-    await expect(page).toHaveURL(/heatSource=pompa-ciepla/);
+    await singleStoreyChip.click();
+    await expect(page).toHaveURL(/storeys=parterowy/);
     await expect(page).toHaveURL(/sort=size-desc/);
 
     // Clicking the now-active chip again clears just that filter (toggle), keeping sort.
-    await page.getByRole("link", { name: "Pompa ciepła" }).click();
-    await expect(page).not.toHaveURL(/heatSource/);
+    await page.getByRole("link", { name: "Parterowy" }).click();
+    await expect(page).not.toHaveURL(/storeys/);
     await expect(page).toHaveURL(/sort=size-desc/);
   });
 

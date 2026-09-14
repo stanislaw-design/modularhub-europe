@@ -44,22 +44,25 @@ export default async function WynikiPage({
 
   // Rodzina/kategoria/podkategoria (spec 0023, 0026) renderowane dwa razy:
   // raz w normalnym przepływie strony (widoczne tylko od `sm`, patrz
-  // "hidden sm:contents" poniżej — inline nad siatką jak dotąd), raz jako
-  // `mobileFilters` przekazane w głąb ResultsFilterBar, gdzie na telefonie
-  // trafiają do rozwijanego arkusza filtrów razem z polami kraj/metraż/sortuj
-  // (żądanie: na mobile domy widoczne od samej góry, cała wyszukiwarka
-  // schowana w jednym miejscu). To zwykłe server components sterowane samym
+  // "hidden sm:contents" poniżej — rodzina nad paskiem wyszukiwania jak
+  // dotąd, kategoria/podkategoria pod nim), raz jako `mobileFilters`
+  // przekazane w głąb ResultsFilterBar, gdzie na telefonie trafiają do
+  // rozwijanego arkusza filtrów razem z polami kraj/metraż/sortuj (żądanie:
+  // na mobile domy widoczne od samej góry, cała wyszukiwarka schowana w
+  // jednym miejscu). To zwykłe server components sterowane samym
   // `filter`/URL, bez stanu klienta, więc podwójne wyrenderowanie jest tanie
   // i bezpieczne — obie kopie zawsze pokazują ten sam, aktualny stan.
-  const familyAndCategoryFilters = (
+  const familyFilter = (
+    <FamilyTabs
+      locale={locale}
+      family={filter.family}
+      countryCode={filter.countryCode}
+      sizeMin={filter.sizeMin}
+      sizeMax={filter.sizeMax}
+    />
+  );
+  const categoryFilters = (
     <>
-      <FamilyTabs
-        locale={locale}
-        family={filter.family}
-        countryCode={filter.countryCode}
-        sizeMin={filter.sizeMin}
-        sizeMax={filter.sizeMax}
-      />
       {filter.family === "dom" && <CategoryFilterBar locale={locale} filter={filter} />}
       <SubcategoryFilterBar locale={locale} filter={filter} />
     </>
@@ -67,13 +70,19 @@ export default async function WynikiPage({
 
   return (
     <Stack gap={5} className="results-shell">
-      <div className="hidden sm:contents">{familyAndCategoryFilters}</div>
+      <div className="hidden sm:contents">{familyFilter}</div>
       <ResultsFilterBar
         locale={locale}
         countries={countries}
         filter={filter}
-        mobileFilters={familyAndCategoryFilters}
+        mobileFilters={
+          <>
+            {familyFilter}
+            {categoryFilters}
+          </>
+        }
       />
+      <div className="hidden sm:contents">{categoryFilters}</div>
       <ResultsSelection
         locale={locale}
         countryCode={filter.countryCode}

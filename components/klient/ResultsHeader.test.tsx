@@ -52,24 +52,24 @@ describe("ResultsHeader", () => {
       expect(screen.getByText(/wybierz kraj/i)).not.toHaveTextContent("domy");
     });
 
-    it("uses the pergola noun forms by count in the heading", () => {
-      render(<ResultsHeader count={1} family="pergola" />);
-      expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("1 pergola");
+    it("uses the kontenery-modulowe noun forms by count in the heading (spec 0039)", () => {
+      render(<ResultsHeader count={1} family="kontenery-modulowe" />);
+      expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("1 kontener modułowy");
     });
 
-    it.each([2, 3, 4])("uses the pergola 2-4 plural form for %i results", (count) => {
-      render(<ResultsHeader count={count} family="pergola" />);
-      expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(`${count} pergole`);
+    it.each([2, 3, 4])("uses the kontenery-modulowe 2-4 plural form for %i results", (count) => {
+      render(<ResultsHeader count={count} family="kontenery-modulowe" />);
+      expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(`${count} kontenery modułowe`);
     });
 
-    it.each([5, 12])("uses the pergola 5+ plural form for %i results", (count) => {
-      render(<ResultsHeader count={count} family="pergola" />);
-      expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(`${count} pergoli`);
+    it.each([5, 12])("uses the kontenery-modulowe 5+ plural form for %i results", (count) => {
+      render(<ResultsHeader count={count} family="kontenery-modulowe" />);
+      expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(`${count} kontenerów modułowych`);
     });
 
-    it("uses the pergola noun in the hint, not 'domy'", () => {
-      render(<ResultsHeader count={1} family="pergola" />);
-      expect(screen.getByText(/wybierz kraj/i)).toHaveTextContent("pergole");
+    it("uses the kontenery-modulowe noun in the hint, not 'domy'", () => {
+      render(<ResultsHeader count={1} family="kontenery-modulowe" />);
+      expect(screen.getByText(/wybierz kraj/i)).toHaveTextContent("kontenery modułowe");
       expect(screen.getByText(/wybierz kraj/i)).not.toHaveTextContent("domy");
     });
 

@@ -56,7 +56,7 @@ function buildProductValues(fields: ProducerProductFields) {
     description: fields.description || null,
     category: fields.category,
     spaSubcategory: fields.spaSubcategory,
-    pergolaSubcategory: fields.pergolaSubcategory,
+    containerSubcategory: fields.containerSubcategory,
     technicalSpecs: fields.technicalSpecs,
     housePriceMinCents: priceMinCents,
     housePriceMaxCents: priceMaxCents,
@@ -126,7 +126,11 @@ async function validatePublishReadiness(productId: string, fields: ProducerProdu
   const [productRow] = await db.select({ family: product.family }).from(product).where(eq(product.id, productId));
   if (!productRow) return "Nie znaleziono produktu.";
 
-  const specsResult = getTechnicalSpecsSchema(productRow.family, "published").safeParse(fields.technicalSpecs);
+  const specsResult = getTechnicalSpecsSchema(
+    productRow.family,
+    "published",
+    fields.containerSubcategory ?? undefined,
+  ).safeParse(fields.technicalSpecs);
   if (!specsResult.success) {
     return "Uzupełnij wszystkie dane techniczne przed publikacją.";
   }

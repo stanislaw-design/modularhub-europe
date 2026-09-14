@@ -69,8 +69,10 @@ export const productCategoryEnum = pgEnum("product_category", [
 
 // Rodzina produktu, niezależna od category (spec 0022). Bez wartości
 // domyślnej celowo: każdy insert, w tym ręczny przez Neon MCP (funkcja 7),
-// musi jawnie podać family (spec 0022 AC-1).
-export const productFamilyEnum = pgEnum("product_family", ["dom", "spa-modulowe", "pergola"]);
+// musi jawnie podać family (spec 0022 AC-1). "pergola" zastąpiona przez
+// "kontenery-modulowe" (spec 0039): przebudowa typu, nie dopisanie wartości
+// obok starej — Postgres nie ma ALTER TYPE ... DROP VALUE.
+export const productFamilyEnum = pgEnum("product_family", ["dom", "spa-modulowe", "kontenery-modulowe"]);
 
 // Tylko en/nl: polski zostaje na product.name/description samym, jako tekst
 // źródłowy (spec 0028 Decision) — ten enum nigdy nie nosi "pl".
@@ -78,11 +80,13 @@ export const productTranslationLocaleEnum = pgEnum("product_translation_locale",
 
 export const spaSubcategoryEnum = pgEnum("spa_subcategory", ["sauna", "jacuzzi", "wellness-combo"]);
 
-export const pergolaSubcategoryEnum = pgEnum("pergola_subcategory", [
-  "bioklimatyczna",
-  "aluminiowa-stala",
-  "drewniana",
-  "wolnostojaca-przyscienna",
+// Zastępuje dawny pergolaSubcategoryEnum (spec 0039): trzy zastosowania
+// kontenera modułowego, każde z własnym kształtem technicalSpecs (patrz
+// lib/product-technical-specs.ts) zamiast jednego wspólnego na rodzinę.
+export const containerSubcategoryEnum = pgEnum("container_subcategory", [
+  "gastronomiczne",
+  "uslugowe",
+  "mieszkalne",
 ]);
 
 // Współdzielony przez product_country_eligibility, plot_analysis_result i
@@ -315,9 +319,9 @@ export const client = pgTable("client", {
 // Feature design). Pola poniżej są nullable dopóki status = 'draft', wymagane
 // od status = 'published'; walidacja tego jest po stronie aplikacji, nie CHECK
 // constraint (zbyt wiele pól, patrz spec Key invariants). Wyjątek: zgodność
-// family/category/spaSubcategory/pergolaSubcategory JEST ograniczeniem CHECK
-// (spec 0022, patrz product_family_subcategory_match niżej) — wąski, celowy
-// wyjątek od tej konwencji, bo funkcja 7 wstawia wiersze ręcznie przez Neon
+// family/category/spaSubcategory/containerSubcategory JEST ograniczeniem CHECK
+// (spec 0022, rozszerzone spec 0039, patrz product_family_subcategory_match
+// niżej) — wąski, celowy wyjątek od tej konwencji, bo funkcja 7 wstawia wiersze ręcznie przez Neon
 // MCP, mijając walidację aplikacji.
 // ---------------------------------------------------------------------------
 
@@ -348,7 +352,7 @@ export const product = pgTable(
     // egzekwowane niżej przez product_family_subcategory_match (spec 0022 AC-2, AC-3).
     category: productCategoryEnum("category"),
     spaSubcategory: spaSubcategoryEnum("spa_subcategory"),
-    pergolaSubcategory: pergolaSubcategoryEnum("pergola_subcategory"),
+    containerSubcategory: containerSubcategoryEnum("container_subcategory"),
     // Dane techniczne, kształt zależny od family, walidowane schematem Zod
     // po stronie formularza kreatora i zapisu (spec 0022 AC-4). Zastępuje
     // dawnych 8 płaskich kolumn technicznych domu (spec 0022 AC-5).
@@ -391,7 +395,7 @@ export const product = pgTable(
     // po stronie aplikacji, patrz komentarz nad tabelą) — spec 0022 AC-2.
     check(
       "product_family_subcategory_match",
-      sql`(${table.category} IS NULL OR ${table.family} = 'dom') AND (${table.spaSubcategory} IS NULL OR ${table.family} = 'spa-modulowe') AND (${table.pergolaSubcategory} IS NULL OR ${table.family} = 'pergola')`,
+      sql`(${table.category} IS NULL OR ${table.family} = 'dom') AND (${table.spaSubcategory} IS NULL OR ${table.family} = 'spa-modulowe') AND (${table.containerSubcategory} IS NULL OR ${table.family} = 'kontenery-modulowe')`,
     ),
     // Wszystkie cztery poniżej wspierają /wyniki (spec 0026 AC-13): każde
     // dzisiejsze zapytanie filtruje po status+family naraz, stąd złożony indeks

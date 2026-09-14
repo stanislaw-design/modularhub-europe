@@ -10,14 +10,14 @@ describe("FAMILY_GROUPS", () => {
     expect(FAMILY_GROUPS.dom).toEqual(["dom"]);
   });
 
-  it("maps wiecej-niz-dom to spa-modulowe and pergola, in that order", () => {
-    expect(FAMILY_GROUPS["wiecej-niz-dom"]).toEqual(["spa-modulowe", "pergola"]);
+  it("maps wiecej-niz-dom to spa-modulowe and kontenery-modulowe, in that order", () => {
+    expect(FAMILY_GROUPS["wiecej-niz-dom"]).toEqual(["spa-modulowe", "kontenery-modulowe"]);
   });
 });
 
 describe("resolveFamilies", () => {
   it("expands the wiecej-niz-dom sentinel to every family in its group (AC-2, AC-4)", () => {
-    expect(resolveFamilies("wiecej-niz-dom")).toEqual(["spa-modulowe", "pergola"]);
+    expect(resolveFamilies("wiecej-niz-dom")).toEqual(["spa-modulowe", "kontenery-modulowe"]);
   });
 
   it("returns dom unchanged, wrapped in a single-element array", () => {
@@ -28,14 +28,14 @@ describe("resolveFamilies", () => {
     expect(resolveFamilies("spa-modulowe")).toEqual(["spa-modulowe"]);
   });
 
-  it("returns pergola unchanged, wrapped in a single-element array", () => {
-    expect(resolveFamilies("pergola")).toEqual(["pergola"]);
+  it("returns kontenery-modulowe unchanged, wrapped in a single-element array", () => {
+    expect(resolveFamilies("kontenery-modulowe")).toEqual(["kontenery-modulowe"]);
   });
 
   it("returns a fresh array each call, so a caller mutating the result can't corrupt FAMILY_GROUPS", () => {
     const first = resolveFamilies("wiecej-niz-dom");
     first.push("dom" as never);
-    expect(resolveFamilies("wiecej-niz-dom")).toEqual(["spa-modulowe", "pergola"]);
+    expect(resolveFamilies("wiecej-niz-dom")).toEqual(["spa-modulowe", "kontenery-modulowe"]);
   });
 });
 
@@ -48,8 +48,8 @@ describe("resolveFamilyGroup", () => {
     expect(resolveFamilyGroup("spa-modulowe")).toBe("wiecej-niz-dom");
   });
 
-  it("resolves pergola to the wiecej-niz-dom group", () => {
-    expect(resolveFamilyGroup("pergola")).toBe("wiecej-niz-dom");
+  it("resolves kontenery-modulowe to the wiecej-niz-dom group", () => {
+    expect(resolveFamilyGroup("kontenery-modulowe")).toBe("wiecej-niz-dom");
   });
 
   it("resolves the wiecej-niz-dom sentinel to itself", () => {

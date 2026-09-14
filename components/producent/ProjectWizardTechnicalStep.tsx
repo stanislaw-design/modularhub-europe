@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
-import { Heading, Label, Select, Stack } from "@/components/ui";
+import { Checkbox, Heading, Label, Select, Stack } from "@/components/ui";
 import type { ProjectDraft, ProductTechnicalSpecsDraft } from "@/lib/data/types";
-import { getTechnicalFieldsByFamily } from "@/lib/producer-project-draft";
+import { getTechnicalFieldsFor } from "@/lib/producer-project-draft";
 import { ProjectWizardTechnicalField } from "./ProjectWizardTechnicalField";
 
 interface ProjectWizardTechnicalStepProps {
@@ -11,8 +11,10 @@ interface ProjectWizardTechnicalStepProps {
 }
 
 // Krok skonsolidowany z dawnych trzech (konstrukcja/instalacje/odpornosc):
-// pola zależą od draft.family (spec 0022 AC-6). Krok "podstawowe" wymusza
-// wybór family wcześniej w kreatorze, więc draft.family jest tu zawsze ustawione.
+// pola zależą od draft.family (spec 0022 AC-6), a dla "kontenery-modulowe"
+// dodatkowo od draft.containerSubcategory (spec 0039 AC-5) — patrz
+// getTechnicalFieldsFor. Krok "podstawowe" wymusza wybór family (i, dla
+// kontenerów, podkategorii) wcześniej w kreatorze.
 export function ProjectWizardTechnicalStep({ draft, showValidation, onChange }: ProjectWizardTechnicalStepProps) {
   const t = useTranslations("ProjectWizardTechnicalStep");
   const tOptions = useTranslations("ProjectOptions");
@@ -25,9 +27,9 @@ export function ProjectWizardTechnicalStep({ draft, showValidation, onChange }: 
     );
   }
 
-  const fields = getTechnicalFieldsByFamily(draft.family, tOptions);
+  const fields = getTechnicalFieldsFor(draft.family, draft.containerSubcategory, tOptions);
 
-  function updateSpec(key: keyof ProductTechnicalSpecsDraft, value: string | number) {
+  function updateSpec(key: keyof ProductTechnicalSpecsDraft, value: string | number | boolean) {
     onChange({ technicalSpecs: { ...draft.technicalSpecs, [key]: value } });
   }
 
@@ -51,6 +53,33 @@ export function ProjectWizardTechnicalStep({ draft, showValidation, onChange }: 
                 invalid={invalid}
                 aria-labelledby={labelId}
               />
+              {invalid && (
+                <p className="font-sans text-body text-status-blocked">
+                  {t("selectRequiredError", { label: field.label.toLowerCase() })}
+                </p>
+              )}
+            </Stack>
+          );
+        }
+
+        if (field.type === "boolean") {
+          const invalid = showValidation && value !== true && value !== false;
+          const checkboxId = `wizard-technical-${field.key}`;
+          return (
+            <Stack key={field.key} gap={1}>
+              <div className="flex items-center gap-brand-1">
+                <Checkbox
+                  id={checkboxId}
+                  checked={value === true}
+                  onChange={(event) => updateSpec(field.key, event.target.checked)}
+                />
+                <Label htmlFor={checkboxId} required>
+                  {field.label}
+                </Label>
+              </div>
+              <p className="font-sans text-label uppercase tracking-[0.1em] font-medium text-brand-technical-graphite">
+                {field.hint}
+              </p>
               {invalid && (
                 <p className="font-sans text-body text-status-blocked">
                   {t("selectRequiredError", { label: field.label.toLowerCase() })}

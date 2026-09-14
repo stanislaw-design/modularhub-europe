@@ -1,0 +1,24 @@
+model,source_category,usable_area_m2,built_up_area_m2,length_m,width_m,height_m,basic_net_pln,comfort_net_pln,premium_net_pln,source_url,source_cover_image_url,large_image_count
+CUBE 24,CUBE,17.81,23.34,7.95,2.94,2.70,144180,158852,213850,https://domihaus.com/projekty/cube24/,https://domihaus.com/wp-content/uploads/2024/01/cube1_top.jpg,10
+CUBE 28,CUBE,22.43,28.28,9.82,2.94,2.70,155599,171999,230999,https://domihaus.com/projekty/cube28/,https://domihaus.com/wp-content/uploads/2024/01/cube2_top.jpg,9
+CUBE 34,CUBE,27.09,33.70,11.49,2.94,2.70,165699,183499,245999,https://domihaus.com/projekty/cube34/,https://domihaus.com/wp-content/uploads/2024/01/cube3_top.jpg,9
+DH35-1,do 35 m2,32.87,36.37,7.50,4.85,5.24,219000,254000,268000,https://domihaus.com/projekty/dom35-1/,https://domihaus.com/wp-content/uploads/2024/01/DOM35ren-1.jpg,12
+DH35-2,do 35 m2,38.06,34.93,7.10,4.92,5.79,269900,307900,310000,https://domihaus.com/projekty/dom35-2/,https://domihaus.com/wp-content/uploads/2024/01/dom35-2top.jpg,12
+DH35-3,do 35 m2,32.87,34.88,7.55,4.62,6.08,243000,280500,282000,https://domihaus.com/projekty/dom35-3/,https://domihaus.com/wp-content/uploads/2024/01/35-3top.jpg,12
+DH44,do 70 m2,39.12,44.46,8.34,5.33,6.83,325100,399050,407850,https://domihaus.com/projekty/DH44/,https://domihaus.com/wp-content/uploads/2024/10/DH_44_00.jpg,12
+DH47,do 70 m2,51.20,48.64,8.30,5.86,7.04,351350,426600,435450,https://domihaus.com/projekty/dh47/,https://domihaus.com/wp-content/uploads/2024/12/DH47_top.jpg,12
+DH55,do 70 m2,47.90,53.40,9.52,7.40,7.45,368900,446100,456300,https://domihaus.com/projekty/dh55/,https://domihaus.com/wp-content/uploads/2024/10/dh55_00.jpg,12
+DH47-2P z przedsionkiem,do 70 m2,53.72,58.28,8.35,7.84,7.39,395100,476000,486750,https://domihaus.com/projekty/dh47-2p/,https://domihaus.com/wp-content/uploads/2026/03/obraz-1536x859.png,14
+DH70-1,do 70 m2,64.87,65.97,10.64,6.20,7.32,465000,547800,559700,https://domihaus.com/projekty/dh70-1/,https://domihaus.com/wp-content/uploads/2023/12/dom70back.jpg,12
+DH70-2,do 70 m2,66.43,69.66,10.80,6.45,7.39,479600,563300,575700,https://domihaus.com/projekty/dom70-2/,https://domihaus.com/wp-content/uploads/2023/12/tlo8.jpg,12
+DH70-3,do 70 m2,74.60,68.57,13.06,5.25,7.05,500200,587650,600450,https://domihaus.com/projekty/dh70-3/,https://domihaus.com/wp-content/uploads/2024/01/70_1.jpg,12
+DH70-4,do 70 m2,85.10,69.32,11.71,5.92,7.35,509100,596400,609100,https://domihaus.com/projekty/dh70-4/,https://domihaus.com/wp-content/uploads/2023/12/tlo8.jpg,12
+DH70-5,do 70 m2,83.59,69.32,11.71,5.92,7.35,509100,596400,609100,https://domihaus.com/projekty/dh70-5/,https://domihaus.com/wp-content/uploads/2023/12/tlo8.jpg,12
+DH70-6,do 70 m2,83.74,69.32,11.71,5.92,7.35,509100,596400,609100,https://domihaus.com/projekty/dh70-6/,https://domihaus.com/wp-content/uploads/2023/12/tlo8.jpg,12
+DH174,powyzej 70 m2,162.97,173.59,18.69,10.09,8.68,1300000,1370000,1398000,https://domihaus.com/dh174/,https://domihaus.com/wp-content/uploads/2026/03/DH174-1920x1080-1-1536x864.png,12
+DH70-7,do 70 m2,95.07,73.83,10.70,6.90,7.74,534750,624900,638200,https://domihaus.com/dh70-7/,https://domihaus.com/wp-content/uploads/2026/03/DH70-71920X1080-1536x864.jpg,12
+DH60,parterowy,55.13,69.47,11.26,6.17,5.53,300600,345100,359700,https://domihaus.com/projekty/DH60/,https://domihaus.com/wp-content/uploads/2026/03/DH60-wersja1.png,10
+DH110,parterowy,91.17,111.60,13.61,8.20,5.96,478350,529500,550900,https://domihaus.com/projekty/DH110/,https://domihaus.com/wp-content/uploads/2025/01/DH110_5.jpg,12
+DH115,parterowy,93.90,114.80,14.00,8.20,5.96,487950,539650,561600,https://domihaus.com/projekty/DH115/,https://domihaus.com/wp-content/uploads/2025/01/DH115_6_top.jpg,10
+DH127,parterowy,104.71,127.27,14.30,8.90,6.16,520350,572500,596600,https://domihaus.com/projekty/DH127/,https://domihaus.com/wp-content/uploads/2025/01/dh127_1top.jpg,12
+DH127U z garazem dwustanowiskowym,parterowy z garazem,151.17,181.43,20.31,10.73,6.03,756100,811600,844300,https://domihaus.com/projekty/dh127u-z-garazem/,https://domihaus.com/wp-content/uploads/2026/03/Widok-2-1.jpg,11

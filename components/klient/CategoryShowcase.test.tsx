@@ -9,7 +9,7 @@ import { CategoryShowcase } from "./CategoryShowcase";
 // The DB is one system boundary here (spec 0022 AC-8 product counts); the
 // mock project catalog (lib/data/projects) is the other, since each card
 // links to a real featured example project instead of unfiltered /wyniki.
-// "Więcej niż dom" covers spa-modulowe and pergola only — dom already has
+// "Więcej niż dom" covers spa-modulowe and kontenery-modulowe only — dom already has
 // its own showcase (PopularHomes) higher on the home page.
 //
 // jsdom has no IntersectionObserver (or matchMedia), so CategoryShowcaseCarousel's
@@ -30,7 +30,7 @@ const mockedGetFeaturedProjectByFamily = vi.mocked(getFeaturedProjectByFamily);
 const zeroCounts = [
   { family: "dom" as const, subcategory: null, count: 0 },
   { family: "spa-modulowe" as const, subcategory: null, count: 0 },
-  { family: "pergola" as const, subcategory: null, count: 0 },
+  { family: "kontenery-modulowe" as const, subcategory: null, count: 0 },
 ];
 
 // The category name/description no longer sit inside the offer <Link> itself
@@ -56,14 +56,14 @@ describe("CategoryShowcase", () => {
     // The category name renders twice per category (the big overlay caption
     // and again inside the offer card next to its price), by design.
     expect(screen.getAllByText("Spa modułowe")).toHaveLength(2);
-    expect(screen.getAllByText("Pergole")).toHaveLength(2);
+    expect(screen.getAllByText("Kontenery modułowe")).toHaveLength(2);
     expect(screen.getAllByText("0 produktów")).toHaveLength(2);
 
     expect(offerLinkForCategory("Przykładowa realizacja z kategorii Spa modułowe")).toHaveAttribute(
       "href",
       "/pl/results"
     );
-    expect(offerLinkForCategory("Przykładowa realizacja z kategorii Pergole")).toHaveAttribute(
+    expect(offerLinkForCategory("Przykładowa realizacja z kategorii Kontenery modułowe")).toHaveAttribute(
       "href",
       "/pl/results"
     );
@@ -73,7 +73,7 @@ describe("CategoryShowcase", () => {
     mockedGetProductFamilyCounts.mockResolvedValue([
       { family: "dom", subcategory: "caloroczny", count: 3 },
       { family: "spa-modulowe", subcategory: "sauna", count: 1 },
-      { family: "pergola", subcategory: null, count: 0 },
+      { family: "kontenery-modulowe", subcategory: null, count: 0 },
     ]);
     mockedGetFeaturedProjectByFamily.mockResolvedValue(null);
 
@@ -87,7 +87,7 @@ describe("CategoryShowcase", () => {
     mockedGetProductFamilyCounts.mockResolvedValue([
       { family: "dom", subcategory: null, count: 1 },
       { family: "spa-modulowe", subcategory: null, count: 3 },
-      { family: "pergola", subcategory: null, count: 12 },
+      { family: "kontenery-modulowe", subcategory: null, count: 12 },
     ]);
     mockedGetFeaturedProjectByFamily.mockResolvedValue(null);
 
@@ -124,9 +124,9 @@ describe("CategoryShowcase", () => {
       "href",
       "/pl/project/prj-spa-modulowe-example"
     );
-    expect(offerLinkForCategory("Przykładowa realizacja z kategorii Pergole")).toHaveAttribute(
+    expect(offerLinkForCategory("Przykładowa realizacja z kategorii Kontenery modułowe")).toHaveAttribute(
       "href",
-      "/pl/project/prj-pergola-example"
+      "/pl/project/prj-kontenery-modulowe-example"
     );
     expect(screen.getAllByText("od 42 000 €")).toHaveLength(2);
   });
@@ -135,7 +135,7 @@ describe("CategoryShowcase", () => {
     mockedGetProductFamilyCounts.mockResolvedValue([
       { family: "dom", subcategory: null, count: 0 },
       { family: "spa-modulowe", subcategory: null, count: 4 },
-      { family: "pergola", subcategory: null, count: 0 },
+      { family: "kontenery-modulowe", subcategory: null, count: 0 },
     ]);
     mockedGetFeaturedProjectByFamily.mockImplementation(async (family) =>
       createMockProject({ id: `prj-${family}-example`, family, priceOnRequest: true })
@@ -154,20 +154,20 @@ describe("CategoryShowcase", () => {
     render(await CategoryShowcase({ locale: "pl" }));
 
     const spaDot = screen.getByRole("button", { name: "Przejdź do kategorii Spa modułowe" });
-    const pergolaDot = screen.getByRole("button", { name: "Przejdź do kategorii Pergole" });
+    const containerDot = screen.getByRole("button", { name: "Przejdź do kategorii Kontenery modułowe" });
     const nextButton = screen.getByRole("button", { name: "Następna kategoria" });
 
     expect(spaDot).toHaveAttribute("aria-current", "true");
-    expect(pergolaDot).toHaveAttribute("aria-current", "false");
+    expect(containerDot).toHaveAttribute("aria-current", "false");
 
-    await user.click(pergolaDot);
-    expect(pergolaDot).toHaveAttribute("aria-current", "true");
+    await user.click(containerDot);
+    expect(containerDot).toHaveAttribute("aria-current", "true");
     expect(spaDot).toHaveAttribute("aria-current", "false");
 
     // Wraps from the last category back to the first (AC-4).
     await user.click(nextButton);
     expect(spaDot).toHaveAttribute("aria-current", "true");
-    expect(pergolaDot).toHaveAttribute("aria-current", "false");
+    expect(containerDot).toHaveAttribute("aria-current", "false");
   });
 
   it("keeps every offer link keyboard reachable and correctly labeled in the non-pinned fallback (spec 0029 AC-6, AC-7)", async () => {

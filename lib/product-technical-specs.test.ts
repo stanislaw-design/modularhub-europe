@@ -134,33 +134,125 @@ describe("getTechnicalSpecsSchema: spa-modulowe", () => {
   });
 });
 
-describe("getTechnicalSpecsSchema: pergola", () => {
+describe("getTechnicalSpecsSchema: kontenery-modulowe requires containerSubcategory", () => {
+  it("throws when containerSubcategory is missing (spec 0039 Kluczowe niezmienniki)", () => {
+    expect(() => getTechnicalSpecsSchema("kontenery-modulowe", "published")).toThrow();
+  });
+});
+
+describe("getTechnicalSpecsSchema: kontenery-modulowe / gastronomiczne", () => {
   const complete = {
-    roofType: "bioklimatyczny" as const,
-    roofMaterial: "Aluminium",
-    dimensions: "4x3x2.5m",
-    windLoadRating: "Strefa 2",
-    snowLoadRating: "1.2 kN/m2",
-    glazingType: "Szkło hartowane",
+    dimensions: "6x4x2.8m",
+    structureMaterial: "Stal",
+    insulationType: "Wełna mineralna",
     foundationType: "Stopy betonowe",
+    kitchenEquipmentType: "Płyta grillowa, frytkownica",
+    extractionVentilation: "Wyciąg mechaniczny z filtrami tłuszczowymi",
+    electricalPower: "32A trójfazowe",
+    waterSupplyType: "Przyłącze wodociągowe",
+    wasteWaterHandling: "Zbiornik bezodpływowy",
   };
 
-  it("accepts a complete pergola shape when published", () => {
-    const result = getTechnicalSpecsSchema("pergola", "published").safeParse(complete);
+  it("accepts a complete gastronomiczne shape when published (AC-4)", () => {
+    const result = getTechnicalSpecsSchema("kontenery-modulowe", "published", "gastronomiczne").safeParse(complete);
     expect(result.success).toBe(true);
   });
 
-  it("rejects a roofType outside the fixed set", () => {
-    const result = getTechnicalSpecsSchema("pergola", "published").safeParse({
+  it("rejects a shape missing any required field when published", () => {
+    const missingKitchen: Partial<typeof complete> = { ...complete };
+    delete missingKitchen.kitchenEquipmentType;
+    const result = getTechnicalSpecsSchema("kontenery-modulowe", "published", "gastronomiczne").safeParse(
+      missingKitchen,
+    );
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a field from another subcategory even when otherwise complete (strict, disjoint shapes)", () => {
+    const result = getTechnicalSpecsSchema("kontenery-modulowe", "published", "gastronomiczne").safeParse({
       ...complete,
-      roofType: "szklany",
+      sleepingCapacity: 4,
     });
     expect(result.success).toBe(false);
   });
 
   it("requires all fields when published, but allows a partial shape while draft", () => {
-    const partial = { roofType: complete.roofType };
-    expect(getTechnicalSpecsSchema("pergola", "published").safeParse(partial).success).toBe(false);
-    expect(getTechnicalSpecsSchema("pergola", "draft").safeParse(partial).success).toBe(true);
+    const partial = { dimensions: complete.dimensions };
+    expect(getTechnicalSpecsSchema("kontenery-modulowe", "published", "gastronomiczne").safeParse(partial).success).toBe(
+      false,
+    );
+    expect(getTechnicalSpecsSchema("kontenery-modulowe", "draft", "gastronomiczne").safeParse(partial).success).toBe(
+      true,
+    );
+  });
+});
+
+describe("getTechnicalSpecsSchema: kontenery-modulowe / uslugowe", () => {
+  const complete = {
+    dimensions: "6x2.5x2.8m",
+    structureMaterial: "Stal",
+    insulationType: "Styropian",
+    foundationType: "Płyta betonowa",
+    intendedUse: "Biuro sprzedaży",
+    electricalInstallation: "Standardowa jednofazowa",
+    spaceHeatingType: "Klimatyzator z funkcją grzania",
+  };
+
+  it("accepts a complete uslugowe shape when published (AC-4)", () => {
+    const result = getTechnicalSpecsSchema("kontenery-modulowe", "published", "uslugowe").safeParse(complete);
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a gastronomiczne-only field on an uslugowe shape (strict, disjoint schema per subcategory)", () => {
+    const result = getTechnicalSpecsSchema("kontenery-modulowe", "published", "uslugowe").safeParse({
+      ...complete,
+      kitchenEquipmentType: "Płyta grillowa",
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("getTechnicalSpecsSchema: kontenery-modulowe / mieszkalne", () => {
+  const complete = {
+    dimensions: "6x2.5x2.8m",
+    structureMaterial: "Stal",
+    insulationType: "Wełna mineralna",
+    foundationType: "Płyta betonowa",
+    sleepingCapacity: 2,
+    bathroomIncluded: true,
+    spaceHeatingType: "Elektryczne grzejniki",
+    waterSupplyType: "Przyłącze wodociągowe",
+    wasteWaterHandling: "Zbiornik bezodpływowy",
+    electricalInstallation: "Standardowa jednofazowa",
+  };
+
+  it("accepts a complete mieszkalne shape when published (AC-4)", () => {
+    const result = getTechnicalSpecsSchema("kontenery-modulowe", "published", "mieszkalne").safeParse(complete);
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a non boolean bathroomIncluded", () => {
+    const result = getTechnicalSpecsSchema("kontenery-modulowe", "published", "mieszkalne").safeParse({
+      ...complete,
+      bathroomIncluded: "yes",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts both boolean values for bathroomIncluded", () => {
+    for (const bathroomIncluded of [true, false]) {
+      const result = getTechnicalSpecsSchema("kontenery-modulowe", "published", "mieszkalne").safeParse({
+        ...complete,
+        bathroomIncluded,
+      });
+      expect(result.success).toBe(true);
+    }
+  });
+
+  it("rejects a non numeric sleepingCapacity", () => {
+    const result = getTechnicalSpecsSchema("kontenery-modulowe", "published", "mieszkalne").safeParse({
+      ...complete,
+      sleepingCapacity: "2",
+    });
+    expect(result.success).toBe(false);
   });
 });

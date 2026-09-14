@@ -95,16 +95,16 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: getProductFamilyCoun
   const producerId = crypto.randomUUID();
   const publishedDomId = crypto.randomUUID();
   const draftDomId = crypto.randomUUID();
-  const publishedPergolaId = crypto.randomUUID();
+  const publishedContainerId = crypto.randomUUID();
   let domCalorocznyBefore = 0;
-  let pergolaDrewnianaBefore = 0;
+  let containerMieszkalneBefore = 0;
 
   beforeAll(async () => {
     const before = await getProductFamilyCounts();
     domCalorocznyBefore =
       before.find((row) => row.family === "dom" && row.subcategory === "caloroczny")?.count ?? 0;
-    pergolaDrewnianaBefore =
-      before.find((row) => row.family === "pergola" && row.subcategory === "drewniana")?.count ?? 0;
+    containerMieszkalneBefore =
+      before.find((row) => row.family === "kontenery-modulowe" && row.subcategory === "mieszkalne")?.count ?? 0;
 
     await db.insert(users).values({
       id: userId,
@@ -136,10 +136,10 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: getProductFamilyCoun
         status: "draft",
       },
       {
-        id: publishedPergolaId,
+        id: publishedContainerId,
         producerId,
-        family: "pergola",
-        pergolaSubcategory: "drewniana",
+        family: "kontenery-modulowe",
+        containerSubcategory: "mieszkalne",
         status: "published",
       },
     ]);
@@ -162,19 +162,19 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: getProductFamilyCoun
     expect(domCalorocznyAfter).toBe(domCalorocznyBefore + 1);
   });
 
-  it("counts the published pergola row under its own subcategory (exactly one more than before)", async () => {
+  it("counts the published kontenery-modulowe row under its own subcategory (exactly one more than before)", async () => {
     const after = await getProductFamilyCounts();
-    const pergolaDrewnianaAfter =
-      after.find((row) => row.family === "pergola" && row.subcategory === "drewniana")?.count ?? 0;
+    const containerMieszkalneAfter =
+      after.find((row) => row.family === "kontenery-modulowe" && row.subcategory === "mieszkalne")?.count ?? 0;
 
-    expect(pergolaDrewnianaAfter).toBe(pergolaDrewnianaBefore + 1);
+    expect(containerMieszkalneAfter).toBe(containerMieszkalneBefore + 1);
   });
 
   it("keeps every one of the three families represented, zero-filled when a family has no rows", async () => {
     const results = await getProductFamilyCounts();
     const families = new Set(results.map((row) => row.family));
 
-    expect(families).toEqual(new Set(["dom", "spa-modulowe", "pergola"]));
+    expect(families).toEqual(new Set(["dom", "spa-modulowe", "kontenery-modulowe"]));
   });
 });
 
