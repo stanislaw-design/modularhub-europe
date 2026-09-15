@@ -11,7 +11,7 @@
     "adminPanel": "Panel administratora",
     "myProfile": "Mój profil",
     "signIn": "Zaloguj się",
-    "start": "Zacznij",
+    "start": "Załóż konto",
     "openMenu": "Otwórz menu",
     "closeMenu": "Zamknij menu",
     "menu": "Menu",
@@ -28,7 +28,8 @@
     "changeLanguage": "Zmień język",
     "pl": "Polski",
     "en": "English",
-    "nl": "Nederlands"
+    "nl": "Nederlands",
+    "de": "Deutsch"
   },
   "FileUpload": {
     "chooseFiles": "Wybierz pliki",
@@ -521,6 +522,8 @@
       "other": "Potwierdzone {count} certyfikatami"
     },
     "assemblyDays": "Montaż na działce w {min}–{max} dni",
+    "assemblyDaysOne": "Montaż na działce w {count} dzień",
+    "assemblyDaysMany": "Montaż na działce w {count} dni",
     "floorAreaLabel": "Powierzchnia użytkowa",
     "roomsLabel": {
       "one": "pokój",
@@ -554,6 +557,8 @@
     "productionTimeValue": "{min}–{max} tyg.",
     "assemblyTimeLabel": "Czas montażu",
     "assemblyTimeValue": "{min}–{max} dni",
+    "assemblyTimeOne": "{count} dzień",
+    "assemblyTimeMany": "{count} dni",
     "commercialTermsHeading": "Warunki komercyjne",
     "priceIncludesHeading": "Cena zawiera",
     "priceExcludesHeading": "Cena nie zawiera",
@@ -930,8 +935,13 @@
     "checkInboxBody": "Wysłaliśmy link logowania na podany adres e mail. Kliknij go, żeby dokończyć zakładanie konta — link jest ważny przez 24 godziny.",
     "heading": "Załóż konto klienta",
     "intro": "Podaj swoje dane, żeby wysyłać zapytania do producentów. Bez hasła — logujesz się linkiem wysłanym e mailem.",
+    "sectionContactHeading": "Twoje dane",
+    "sectionInvestorHeading": "Status inwestora",
+    "investorLabel": "Jestem inwestorem",
+    "investorDescription": "Planujesz zamówienie od 10 domów wzwyż.",
     "nameLabel": "Imię i nazwisko",
     "phoneLabel": "Telefon",
+    "companyNameLabel": "Nazwa firmy",
     "submitButton": "Załóż konto",
     "alreadyHaveAccount": "Masz już konto?",
     "loginLink": "Zaloguj się"
@@ -944,18 +954,34 @@
     "unknownEmail": "Nie znaleźliśmy konta na ten adres e mail. Załóż konto, żeby się zalogować.",
     "registerAsClient": "Zarejestruj się jako klient",
     "registerAsProducer": "Zarejestruj się jako producent",
-    "submitButton": "Wyślij link logowania"
+    "submitButton": "Wyślij link logowania",
+    "createAccount": "Załóż konto"
   },
   "ProducerRegistrationForm": {
     "checkInboxHeading": "Sprawdź swoją skrzynkę",
     "checkInboxBody": "Wysłaliśmy link logowania na podany adres e mail. Kliknij go, żeby dokończyć zakładanie konta — link jest ważny przez 24 godziny.",
     "heading": "Załóż konto producenta",
     "intro": "Podaj dane swojej firmy. Bez hasła — logujesz się linkiem wysłanym e mailem, tak samo jak klient.",
+    "sectionCompanyHeading": "Dane firmy",
+    "sectionLocationHeading": "Lokalizacja i skala",
     "companyNameLabel": "Nazwa firmy",
     "phoneLabel": "Telefon",
     "countryLabel": "Kraj",
-    "technologyLabel": "Technologia",
+    "productionScaleLabel": "Skala produkcji",
     "submitButton": "Załóż konto",
+    "alreadyHaveAccount": "Masz już konto?",
+    "loginLink": "Zaloguj się"
+  },
+  "RegistrationRoleStep": {
+    "eyebrow": "Rejestracja",
+    "heading": "Załóż konto",
+    "intro": "Wybierz, jakie konto chcesz założyć.",
+    "clientHeading": "Klient",
+    "clientDescription": "Szukasz domu modułowego i chcesz wysyłać zapytania do producentów.",
+    "producerHeading": "Producent",
+    "producerDescription": "Produkujesz domy modułowe i chcesz otrzymywać zapytania od klientów.",
+    "selectCta": "Wybierz",
+    "changeRole": "Zmień rolę",
     "alreadyHaveAccount": "Masz już konto?",
     "loginLink": "Zaloguj się"
   },
@@ -991,6 +1017,7 @@
     "companyNameLabel": "Nazwa firmy",
     "deliveryCountriesLabel": "Kraje dostawy",
     "technologyLabel": "Technologia",
+    "technologyNotSet": "Nie ustawiono jeszcze technologii.",
     "verificationStatusLabel": "Status weryfikacji",
     "verificationNotSubmitted": "Nie zgłoszono",
     "verificationPending": "W trakcie weryfikacji",

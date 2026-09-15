@@ -11,7 +11,7 @@
     "adminPanel": "Admin panel",
     "myProfile": "My profile",
     "signIn": "Sign in",
-    "start": "Get started",
+    "start": "Create account",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "menu": "Menu",
@@ -28,7 +28,8 @@
     "changeLanguage": "Change language",
     "pl": "Polski",
     "en": "English",
-    "nl": "Nederlands"
+    "nl": "Nederlands",
+    "de": "Deutsch"
   },
   "FileUpload": {
     "chooseFiles": "Choose files",
@@ -514,6 +515,8 @@
       "other": "Verified by {count} certificates"
     },
     "assemblyDays": "On-site assembly in {min}–{max} days",
+    "assemblyDaysOne": "On-site assembly in {count} day",
+    "assemblyDaysMany": "On-site assembly in {count} days",
     "floorAreaLabel": "Usable floor area",
     "roomsLabel": {
       "one": "room",
@@ -547,6 +550,8 @@
     "productionTimeValue": "{min}–{max} wks",
     "assemblyTimeLabel": "Assembly time",
     "assemblyTimeValue": "{min}–{max} days",
+    "assemblyTimeOne": "{count} day",
+    "assemblyTimeMany": "{count} days",
     "commercialTermsHeading": "Commercial terms",
     "priceIncludesHeading": "Price includes",
     "priceExcludesHeading": "Price excludes",
@@ -923,8 +928,13 @@
     "checkInboxBody": "We've sent a login link to the given e-mail address. Click it to finish creating your account — the link is valid for 24 hours.",
     "heading": "Create a client account",
     "intro": "Enter your details to send inquiries to producers. No password — you sign in with a link sent by e-mail.",
+    "sectionContactHeading": "Your details",
+    "sectionInvestorHeading": "Investor status",
+    "investorLabel": "I'm an investor",
+    "investorDescription": "You're planning an order of 10 or more homes.",
     "nameLabel": "Full name",
     "phoneLabel": "Phone",
+    "companyNameLabel": "Company name",
     "submitButton": "Create account",
     "alreadyHaveAccount": "Already have an account?",
     "loginLink": "Log in"
@@ -937,18 +947,34 @@
     "unknownEmail": "We couldn't find an account for this e-mail address. Create an account to log in.",
     "registerAsClient": "Register as a client",
     "registerAsProducer": "Register as a producer",
-    "submitButton": "Send login link"
+    "submitButton": "Send login link",
+    "createAccount": "Create account"
   },
   "ProducerRegistrationForm": {
     "checkInboxHeading": "Check your inbox",
     "checkInboxBody": "We've sent a login link to the given e-mail address. Click it to finish creating your account — the link is valid for 24 hours.",
     "heading": "Create a producer account",
     "intro": "Enter your company details. No password — you sign in with a link sent by e-mail, same as a client.",
+    "sectionCompanyHeading": "Company details",
+    "sectionLocationHeading": "Location and scale",
     "companyNameLabel": "Company name",
     "phoneLabel": "Phone",
     "countryLabel": "Country",
-    "technologyLabel": "Technology",
+    "productionScaleLabel": "Production scale",
     "submitButton": "Create account",
+    "alreadyHaveAccount": "Already have an account?",
+    "loginLink": "Log in"
+  },
+  "RegistrationRoleStep": {
+    "eyebrow": "Registration",
+    "heading": "Create account",
+    "intro": "Choose the type of account you want to create.",
+    "clientHeading": "Client",
+    "clientDescription": "You're looking for a modular home and want to send inquiries to producers.",
+    "producerHeading": "Producer",
+    "producerDescription": "You produce modular homes and want to receive inquiries from clients.",
+    "selectCta": "Select",
+    "changeRole": "Change role",
     "alreadyHaveAccount": "Already have an account?",
     "loginLink": "Log in"
   },
@@ -984,6 +1010,7 @@
     "companyNameLabel": "Company name",
     "deliveryCountriesLabel": "Delivery countries",
     "technologyLabel": "Technology",
+    "technologyNotSet": "No technology set yet.",
     "verificationStatusLabel": "Verification status",
     "verificationNotSubmitted": "Not submitted",
     "verificationPending": "Under review",

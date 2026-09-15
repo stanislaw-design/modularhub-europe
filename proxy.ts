@@ -4,10 +4,10 @@ import { routing } from "./lib/i18n/routing";
 
 const intlMiddleware = createMiddleware(routing);
 
-// Dwuliterowy segment, który next intl nie rozpozna jako pl/en/nl (np. "de"),
+// Dwuliterowy segment, który next intl nie rozpozna jako pl/en/nl/de (np. "fr"),
 // więc jego własna logika potraktowałaby go jako brak locale i doklejiłaby
-// domyślny prefiks przed nim (/pl/de/klient) zamiast go zastąpić. AC-3 chce
-// zamiany, nie doklejenia: /de/klient -> /pl/klient.
+// domyślny prefiks przed nim (/pl/fr/klient) zamiast go zastąpić. AC-3 chce
+// zamiany, nie doklejenia: /fr/klient -> /pl/klient.
 const UNRECOGNIZED_LOCALE_SEGMENT = /^[a-z]{2}$/;
 
 // Stare, polskie segmenty ścieżek klienta i producenta (spec 0036 AC-5) i ich

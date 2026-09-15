@@ -84,7 +84,7 @@ interface TechnicalSpecsBridgeFields {
   _extraImageUrls?: string[];
 }
 
-// pl jest tekstem źródłowym (AC-5); en/nl pokazują tłumaczenie producenta,
+// pl jest tekstem źródłowym (AC-5); en/nl/de pokazują tłumaczenie producenta,
 // jeśli istnieje i nie jest puste, inaczej spadają na polski (AC-6) — nigdy
 // pusty string na stronie klienta.
 interface ProductTranslationText {
@@ -308,7 +308,7 @@ export async function getProjects(filters?: GetProjectsFilters): Promise<Project
   }
 
   let projects: Project[];
-  if (locale === "en" || locale === "nl") {
+  if (locale === "en" || locale === "nl" || locale === "de") {
     const rows = await db
       .select({
         product,
@@ -378,7 +378,7 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{
 export async function getProjectById(id: string, locale: Locale = "pl"): Promise<Project | null> {
   if (!UUID_PATTERN.test(id)) return null;
 
-  if (locale === "en" || locale === "nl") {
+  if (locale === "en" || locale === "nl" || locale === "de") {
     const [row] = await db
       .select({
         product,
@@ -422,7 +422,7 @@ export async function getFeaturedProjectByFamily(
   family: ProductFamily,
   locale: Locale = "pl",
 ): Promise<Project | null> {
-  if (locale === "en" || locale === "nl") {
+  if (locale === "en" || locale === "nl" || locale === "de") {
     const [row] = await db
       .select({
         product,
@@ -590,7 +590,7 @@ export async function getVerifiedVolumeManufacturerProjects(
   }
 
   const projectsByProducer = new Map<string, Project[]>();
-  if (locale === "en" || locale === "nl") {
+  if (locale === "en" || locale === "nl" || locale === "de") {
     const rows = await db
       .select({
         product,

@@ -1,5 +1,5 @@
 import type { LabelHTMLAttributes } from "react";
-import { tv } from "tailwind-variants";
+import { tv } from "@/lib/tv";
 
 const label = tv({
   base: "text-label uppercase tracking-[0.1em] font-medium text-brand-technical-graphite",

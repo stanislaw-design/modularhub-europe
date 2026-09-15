@@ -1,5 +1,5 @@
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from "react";
-import { tv, type VariantProps } from "tailwind-variants";
+import { tv, type VariantProps } from "@/lib/tv";
 
 const button = tv({
   base: "focus-ring inline-flex items-center justify-center gap-brand-1 rounded-marketing font-sans font-medium transition-opacity disabled:pointer-events-none disabled:opacity-50",

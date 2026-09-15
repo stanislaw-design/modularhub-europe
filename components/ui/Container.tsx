@@ -1,5 +1,5 @@
 import type { ElementType, ReactNode } from "react";
-import { tv } from "tailwind-variants";
+import { tv } from "@/lib/tv";
 
 const container = tv({
   base: "mx-auto w-full max-w-brand-max px-[6%]",

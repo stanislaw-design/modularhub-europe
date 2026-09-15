@@ -1,5 +1,5 @@
 import type { InputHTMLAttributes } from "react";
-import { tv } from "tailwind-variants";
+import { tv } from "@/lib/tv";
 
 const radio = tv({
   base: "focus-ring size-5 border border-brand-steel accent-brand-passage-blue disabled:cursor-not-allowed disabled:opacity-50",

@@ -11,7 +11,7 @@
     "adminPanel": "Beheerderspaneel",
     "myProfile": "Mijn profiel",
     "signIn": "Inloggen",
-    "start": "Beginnen",
+    "start": "Account aanmaken",
     "openMenu": "Menu openen",
     "closeMenu": "Menu sluiten",
     "menu": "Menu",
@@ -28,7 +28,8 @@
     "changeLanguage": "Taal wijzigen",
     "pl": "Polski",
     "en": "English",
-    "nl": "Nederlands"
+    "nl": "Nederlands",
+    "de": "Deutsch"
   },
   "FileUpload": {
     "chooseFiles": "Bestanden kiezen",
@@ -514,6 +515,8 @@
       "other": "Geverifieerd met {count} certificaten"
     },
     "assemblyDays": "Montage op locatie in {min}–{max} dagen",
+    "assemblyDaysOne": "Montage op locatie in {count} dag",
+    "assemblyDaysMany": "Montage op locatie in {count} dagen",
     "floorAreaLabel": "Bruikbare vloeroppervlakte",
     "roomsLabel": {
       "one": "kamer",
@@ -547,6 +550,8 @@
     "productionTimeValue": "{min}–{max} wk",
     "assemblyTimeLabel": "Montagetijd",
     "assemblyTimeValue": "{min}–{max} dagen",
+    "assemblyTimeOne": "{count} dag",
+    "assemblyTimeMany": "{count} dagen",
     "commercialTermsHeading": "Commerciële voorwaarden",
     "priceIncludesHeading": "Prijs inclusief",
     "priceExcludesHeading": "Prijs exclusief",
@@ -923,8 +928,13 @@
     "checkInboxBody": "We hebben een inloglink gestuurd naar het opgegeven e-mailadres. Klik erop om uw account af te ronden — de link is 24 uur geldig.",
     "heading": "Klantaccount aanmaken",
     "intro": "Vul uw gegevens in om aanvragen naar producenten te sturen. Geen wachtwoord — u logt in met een link die per e-mail wordt verstuurd.",
+    "sectionContactHeading": "Uw gegevens",
+    "sectionInvestorHeading": "Investeerdersstatus",
+    "investorLabel": "Ik ben een investeerder",
+    "investorDescription": "U plant een bestelling van 10 of meer woningen.",
     "nameLabel": "Volledige naam",
     "phoneLabel": "Telefoon",
+    "companyNameLabel": "Bedrijfsnaam",
     "submitButton": "Account aanmaken",
     "alreadyHaveAccount": "Heeft u al een account?",
     "loginLink": "Inloggen"
@@ -937,18 +947,34 @@
     "unknownEmail": "We konden geen account vinden voor dit e-mailadres. Maak een account aan om in te loggen.",
     "registerAsClient": "Registreren als klant",
     "registerAsProducer": "Registreren als producent",
-    "submitButton": "Inloglink versturen"
+    "submitButton": "Inloglink versturen",
+    "createAccount": "Account aanmaken"
   },
   "ProducerRegistrationForm": {
     "checkInboxHeading": "Controleer uw inbox",
     "checkInboxBody": "We hebben een inloglink gestuurd naar het opgegeven e-mailadres. Klik erop om uw account af te ronden — de link is 24 uur geldig.",
     "heading": "Producentaccount aanmaken",
     "intro": "Vul de gegevens van uw bedrijf in. Geen wachtwoord — u logt in met een link die per e-mail wordt verstuurd, net als een klant.",
+    "sectionCompanyHeading": "Bedrijfsgegevens",
+    "sectionLocationHeading": "Locatie en omvang",
     "companyNameLabel": "Bedrijfsnaam",
     "phoneLabel": "Telefoon",
     "countryLabel": "Land",
-    "technologyLabel": "Technologie",
+    "productionScaleLabel": "Productieomvang",
     "submitButton": "Account aanmaken",
+    "alreadyHaveAccount": "Heeft u al een account?",
+    "loginLink": "Inloggen"
+  },
+  "RegistrationRoleStep": {
+    "eyebrow": "Registratie",
+    "heading": "Account aanmaken",
+    "intro": "Kies het type account dat u wilt aanmaken.",
+    "clientHeading": "Klant",
+    "clientDescription": "U zoekt een modulaire woning en wilt aanvragen sturen naar producenten.",
+    "producerHeading": "Producent",
+    "producerDescription": "U produceert modulaire woningen en wilt aanvragen ontvangen van klanten.",
+    "selectCta": "Selecteren",
+    "changeRole": "Rol wijzigen",
     "alreadyHaveAccount": "Heeft u al een account?",
     "loginLink": "Inloggen"
   },
@@ -984,6 +1010,7 @@
     "companyNameLabel": "Bedrijfsnaam",
     "deliveryCountriesLabel": "Leveringslanden",
     "technologyLabel": "Technologie",
+    "technologyNotSet": "Nog geen technologie ingesteld.",
     "verificationStatusLabel": "Verificatiestatus",
     "verificationNotSubmitted": "Niet ingediend",
     "verificationPending": "In beoordeling",

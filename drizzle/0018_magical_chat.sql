@@ -1,0 +1,1 @@
+ALTER TYPE "public"."product_translation_locale" ADD VALUE 'de';

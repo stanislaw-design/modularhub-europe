@@ -1,5 +1,5 @@
 import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
-import { tv, type VariantProps } from "tailwind-variants";
+import { tv, type VariantProps } from "@/lib/tv";
 
 const pill = tv({
   base: "inline-flex items-center gap-brand-1 rounded-data border px-brand-2 py-1 text-label uppercase tracking-[0.1em] font-medium",

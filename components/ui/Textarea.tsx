@@ -1,5 +1,5 @@
 import type { TextareaHTMLAttributes } from "react";
-import { tv } from "tailwind-variants";
+import { tv } from "@/lib/tv";
 
 const textarea = tv({
   base: "focus-ring min-h-24 w-full rounded-data border border-brand-steel bg-brand-warm-white px-brand-2 py-brand-1 text-body text-brand-foundation-navy placeholder:text-brand-technical-graphite/60 disabled:cursor-not-allowed disabled:opacity-50",

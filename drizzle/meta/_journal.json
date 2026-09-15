@@ -127,6 +127,20 @@
       "when": 1789389280349,
       "tag": "0017_foamy_maximus",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1789467666373,
+      "tag": "0018_magical_chat",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1789483050374,
+      "tag": "0019_sleepy_squadron_supreme",
+      "breakpoints": true
     }
   ]
 }

@@ -1,28 +1,17 @@
-import { Container, Stack } from "@/components/ui";
-import { ProducerRegistrationForm } from "@/components/auth/ProducerRegistrationForm";
-import { getCountries } from "@/lib/data/countries";
+import { redirect } from "next/navigation";
 
-export default async function ProducentRejestracjaPage({
+// Cienki alias (spec 0040 AC-10): stara trasa nadal działa, ale przekierowuje
+// na wspólny wizard zamiast renderować własny formularz. Zostaje jako plik,
+// bo dzisiejsze linki (nawigacja, BulkOrdersShowcase, marketing producenta,
+// proxy.ts, testy) wskazują wprost tutaj i nie wymagają zmiany.
+export default async function ProducerRegistrationRedirectPage({
   params,
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ callbackUrl?: string }>;
 }) {
-  const [{ locale }, { callbackUrl }, countries] = await Promise.all([
-    params,
-    searchParams,
-    getCountries(),
-  ]);
-  // AC-9 (spec 0032): bez jawnie podanego celu rejestracja ląduje po
-  // potwierdzeniu w kreatorze pierwszego produktu, nie na stronie głównej producenta.
-  const safeCallbackUrl = callbackUrl?.startsWith("/") ? callbackUrl : `/${locale}/producer/panel/project`;
-
-  return (
-    <Container className="py-brand-6">
-      <Stack gap={5} className="mx-auto max-w-md">
-        <ProducerRegistrationForm locale={locale} callbackUrl={safeCallbackUrl} countries={countries} />
-      </Stack>
-    </Container>
-  );
+  const [{ locale }, { callbackUrl }] = await Promise.all([params, searchParams]);
+  const query = callbackUrl ? `&callbackUrl=${encodeURIComponent(callbackUrl)}` : "";
+  redirect(`/${locale}/registration?role=producer${query}`);
 }

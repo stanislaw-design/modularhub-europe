@@ -125,18 +125,19 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
     return () => window.removeEventListener("scroll", onScroll);
   }, [isHomeRoute]);
 
-  // The pill's default job is inviting an anonymous visitor to become a
-  // producer, which stops making sense once that visitor is already signed
-  // in as a client or admin: it takes over their own account link instead,
-  // so the row never shows both "Zacznij" and "Mój profil" at once. A
-  // producer session falls through to the anonymous default (no dedicated
-  // spot for it here yet, same known gap as everywhere else in this file).
+  // The pill's default job is inviting an anonymous visitor to create any
+  // account (spec 0040 AC-1), which stops making sense once that visitor is
+  // already signed in as a client or admin: it takes over their own account
+  // link instead, so the row never shows both "Załóż konto" and "Mój profil"
+  // at once. A producer session falls through to the anonymous default (no
+  // dedicated spot for it here yet, same known gap as everywhere else in this
+  // file).
   const cta =
     session?.user.role === "admin"
       ? { label: t("adminPanel"), href: `/${locale}/internal/inquiries`, icon: false }
       : session?.user.role === "client"
         ? { label: t("myProfile"), href: `/${locale}/panel/inquiries`, icon: true }
-        : { label: t("start"), href: `/${locale}/producer`, icon: false };
+        : { label: t("start"), href: `/${locale}/registration`, icon: false };
 
   const isOverlay = isHomeRoute && !isScrolled;
   const navTextClass = isOverlay

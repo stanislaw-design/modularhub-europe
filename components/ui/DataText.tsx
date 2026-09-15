@@ -1,5 +1,5 @@
 import type { ElementType, ReactNode } from "react";
-import { tv, type VariantProps } from "tailwind-variants";
+import { tv, type VariantProps } from "@/lib/tv";
 
 const dataText = tv({
   base: "font-mono text-data tabular-nums text-brand-foundation-navy",

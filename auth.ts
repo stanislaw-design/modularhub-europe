@@ -71,14 +71,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         .returning();
 
       if (pending.role === "client") {
-        await db.insert(client).values({ userId: createdUser.id });
-      } else if (pending.role === "producer" && payload.nip && payload.countryCode && payload.technology) {
+        // Checkbox "Jestem inwestorem" (spec 0040): oba pola wypełnione ->
+        // b2bVerificationStatus 'pending', dokładnie ten sam mechanizm co
+        // submitClientB2bDetails (spec 0037).
+        const isInvestor = Boolean(payload.nip && payload.companyName);
+        await db.insert(client).values({
+          userId: createdUser.id,
+          nip: payload.nip,
+          companyName: payload.companyName,
+          b2bVerificationStatus: isInvestor ? "pending" : "not_submitted",
+        });
+      } else if (pending.role === "producer" && payload.nip && payload.countryCode) {
         await db.insert(producer).values({
           userId: createdUser.id,
           nip: payload.nip,
           name: payload.name,
           countryCode: payload.countryCode,
-          technology: payload.technology,
+          productionScale: payload.productionScale,
         });
       }
 

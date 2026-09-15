@@ -1,5 +1,5 @@
 import { Check, Circle, Download, FileText, Image as ImageIcon } from "lucide-react";
-import { tv } from "tailwind-variants";
+import { tv } from "@/lib/tv";
 import { Text } from "./Text";
 
 export type StageStatus = "completed" | "current" | "upcoming";

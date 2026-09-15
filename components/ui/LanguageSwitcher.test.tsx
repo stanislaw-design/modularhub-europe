@@ -24,7 +24,7 @@ afterEach(() => {
 });
 
 describe("LanguageSwitcher (spec 0028 AC-4)", () => {
-  it("shows PL/EN/NL as the three options once opened", async () => {
+  it("shows PL/EN/NL/DE as the four options once opened", async () => {
     const user = userEvent.setup();
     render(<LanguageSwitcher locale="pl" />);
 
@@ -33,6 +33,7 @@ describe("LanguageSwitcher (spec 0028 AC-4)", () => {
     expect(screen.getByRole("menuitem", { name: /Polski/ })).toBeInTheDocument();
     expect(screen.getByRole("menuitem", { name: "English" })).toBeInTheDocument();
     expect(screen.getByRole("menuitem", { name: "Nederlands" })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "Deutsch" })).toBeInTheDocument();
   });
 
   it("navigates to the same path and query under the picked locale", async () => {

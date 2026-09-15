@@ -2,9 +2,9 @@
 
 import { Check } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { tv } from "tailwind-variants";
 import { Text } from "@/components/ui";
 import type { WizardStep } from "@/lib/producer-project-draft";
+import { tv } from "@/lib/tv";
 
 type StepStatus = "completed" | "current" | "upcoming";
 

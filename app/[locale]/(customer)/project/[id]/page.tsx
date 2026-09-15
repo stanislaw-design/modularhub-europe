@@ -168,10 +168,15 @@ export default async function ProjektPage({
       ? {
           icon: AssemblyTimeIcon,
           label: t("assemblyTimeLabel"),
-          value: t("assemblyTimeValue", {
-            min: project.commercial.onSiteAssemblyDaysMin,
-            max: project.commercial.onSiteAssemblyDaysMax,
-          }),
+          value:
+            project.commercial.onSiteAssemblyDaysMin === project.commercial.onSiteAssemblyDaysMax
+              ? t(project.commercial.onSiteAssemblyDaysMax === 1 ? "assemblyTimeOne" : "assemblyTimeMany", {
+                  count: project.commercial.onSiteAssemblyDaysMax,
+                })
+              : t("assemblyTimeValue", {
+                  min: project.commercial.onSiteAssemblyDaysMin,
+                  max: project.commercial.onSiteAssemblyDaysMax,
+                }),
         }
       : null,
   ].filter((entry): entry is NonNullable<typeof entry> => entry !== null);
@@ -304,10 +309,14 @@ export default async function ProjektPage({
                 <span className="flex items-center gap-brand-1">
                   <Truck className="size-4 shrink-0 text-status-approved" aria-hidden="true" />
                   <Text className="text-data" tone="muted" surface="v5">
-                    {t("assemblyDays", {
-                      min: project.commercial.onSiteAssemblyDaysMin,
-                      max: project.commercial.onSiteAssemblyDaysMax,
-                    })}
+                    {project.commercial.onSiteAssemblyDaysMin === project.commercial.onSiteAssemblyDaysMax
+                      ? t(project.commercial.onSiteAssemblyDaysMax === 1 ? "assemblyDaysOne" : "assemblyDaysMany", {
+                          count: project.commercial.onSiteAssemblyDaysMax,
+                        })
+                      : t("assemblyDays", {
+                          min: project.commercial.onSiteAssemblyDaysMin,
+                          max: project.commercial.onSiteAssemblyDaysMax,
+                        })}
                   </Text>
                 </span>
               )}

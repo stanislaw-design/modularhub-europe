@@ -6,7 +6,7 @@ import { AuthError } from "next-auth";
 import { signIn } from "@/auth";
 import { db } from "@/lib/db/client";
 import { pendingRegistration, producer, users } from "@/lib/db/schema";
-import { PRODUCER_TECHNOLOGIES } from "@/lib/producer-technologies";
+import { PRODUCER_PRODUCTION_SCALES } from "@/lib/producer-production-scale";
 import type { PendingRegistrationPayload } from "@/lib/auth-shared";
 
 export interface RegistrationActionState {
@@ -19,14 +19,33 @@ export interface LoginActionState {
   message?: string;
 }
 
-const technologyValues = PRODUCER_TECHNOLOGIES.map((option) => option.value) as [string, ...string[]];
+const productionScaleValues = PRODUCER_PRODUCTION_SCALES.map((option) => option.value) as [
+  string,
+  ...string[],
+];
 
-const clientSchema = z.object({
-  name: z.string().trim().min(1, "Podaj imię i nazwisko."),
-  email: z.email("Podaj prawidłowy adres e mail."),
-  phone: z.string().trim().min(5, "Podaj numer telefonu."),
-  callbackUrl: z.string().min(1),
-});
+// Checkbox "Jestem inwestorem" (spec 0040 AC-6): NIP/nazwa firmy są zawsze
+// opcjonalne w Zod, ale wymagane (superRefine) gdy checkbox zaznaczony.
+// Odznaczony (klient prywatny) → oba pola opcjonalne, jak dziś.
+const clientSchema = z
+  .object({
+    name: z.string().trim().min(1, "Podaj imię i nazwisko."),
+    email: z.email("Podaj prawidłowy adres e mail."),
+    phone: z.string().trim().min(5, "Podaj numer telefonu."),
+    isInvestor: z.boolean(),
+    nip: z.string().trim().optional(),
+    companyName: z.string().trim().optional(),
+    callbackUrl: z.string().min(1),
+  })
+  .superRefine((data, ctx) => {
+    if (!data.isInvestor) return;
+    if (!data.nip) {
+      ctx.addIssue({ code: "custom", message: "Podaj NIP.", path: ["nip"] });
+    }
+    if (!data.companyName) {
+      ctx.addIssue({ code: "custom", message: "Podaj nazwę firmy.", path: ["companyName"] });
+    }
+  });
 
 const producerSchema = z.object({
   name: z.string().trim().min(1, "Podaj nazwę firmy."),
@@ -34,7 +53,7 @@ const producerSchema = z.object({
   phone: z.string().trim().min(5, "Podaj numer telefonu."),
   nip: z.string().trim().min(1, "Podaj NIP."),
   countryCode: z.enum(["PL", "DE", "NL"], "Wybierz kraj."),
-  technology: z.enum(technologyValues, "Wybierz technologię."),
+  productionScale: z.enum(productionScaleValues, "Wybierz skalę produkcji."),
   callbackUrl: z.string().min(1),
 });
 
@@ -66,19 +85,22 @@ export async function registerClient(
     name: formData.get("name"),
     email: formData.get("email"),
     phone: formData.get("phone"),
+    isInvestor: formData.get("isInvestor") === "on",
+    nip: formData.get("nip"),
+    companyName: formData.get("companyName"),
     callbackUrl: formData.get("callbackUrl"),
   });
   if (!parsed.success) {
     return { status: "error", message: parsed.error.issues[0]?.message ?? "Sprawdź dane formularza." };
   }
-  const { name, email, phone, callbackUrl } = parsed.data;
+  const { name, email, phone, nip, companyName, callbackUrl } = parsed.data;
 
   const [existingUser] = await db.select({ id: users.id }).from(users).where(eq(users.email, email));
   if (existingUser) {
     return { status: "error", message: "Ten adres e mail ma już założone konto. Zaloguj się zamiast rejestracji." };
   }
 
-  const payload: PendingRegistrationPayload = { name, phone };
+  const payload: PendingRegistrationPayload = { name, phone, nip: nip || undefined, companyName: companyName || undefined };
   await db
     .insert(pendingRegistration)
     .values({ email, role: "client", payload })
@@ -102,13 +124,13 @@ export async function registerProducer(
     phone: formData.get("phone"),
     nip: formData.get("nip"),
     countryCode: formData.get("countryCode"),
-    technology: formData.get("technology"),
+    productionScale: formData.get("productionScale"),
     callbackUrl: formData.get("callbackUrl"),
   });
   if (!parsed.success) {
     return { status: "error", message: parsed.error.issues[0]?.message ?? "Sprawdź dane formularza." };
   }
-  const { name, email, phone, nip, countryCode, technology, callbackUrl } = parsed.data;
+  const { name, email, phone, nip, countryCode, productionScale, callbackUrl } = parsed.data;
 
   const [existingUser] = await db.select({ id: users.id }).from(users).where(eq(users.email, email));
   if (existingUser) {
@@ -125,7 +147,7 @@ export async function registerProducer(
     phone,
     nip,
     countryCode,
-    technology: technology as PendingRegistrationPayload["technology"],
+    productionScale: productionScale as PendingRegistrationPayload["productionScale"],
   };
   await db
     .insert(pendingRegistration)

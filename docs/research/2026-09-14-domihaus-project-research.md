@@ -3,6 +3,8 @@
 Data przeglądu: 2026-09-14  
 Źródło: [domihaus.com](https://domihaus.com/) oraz wszystkie karty projektów wskazane na stronie [Projekty](https://domihaus.com/projekty/).
 
+Status wdrożenia: właściciel ModularHub potwierdził zgodę na wykorzystanie materiałów. Wszystkie 23 projekty zostały opublikowane, a 285 zdjęć z okładek i galerii zapisano w Cloudflare R2. Źródłowy manifest użyty przez importer znajduje się w `scripts/data/domihaus-catalog.ts`.
+
 ## Wynik
 
 Na stronie jest **23 konkretnych projektów**, które można przygotować do publikacji w ModularHub Europe. Wszystkie 23 zostały otwarte w renderowanej przeglądarce, a nie ocenione wyłącznie na podstawie kodu strony. Dla każdego zebrano powierzchnię użytkową i zabudowy, wymiary, ceny trzech wariantów, adres karty, adres zdjęcia głównego oraz liczbę dużych obrazów wykrytych na karcie.
@@ -78,10 +80,10 @@ Pozostałe 11 modeli warto przygotować równolegle, ale publikować po sprawdze
 1. **Kategorie metrażowe nie oznaczają powierzchni użytkowej.** DH35-2 ma 38,06 m² użytkowej, a DH70-3/4/5/6/7 mają od 74,60 do 95,07 m². Filtry ModularHub muszą korzystać z `floorAreaM2`, nie z etykiety producenta.
 2. **DH127U ma rozbieżny metraż.** Lista projektów pokazuje 151,38 m², a karta szczegółowa 151,17 m². W arkuszu przyjęto wartość z karty szczegółowej, ale producent powinien ją potwierdzić.
 3. **Ceny są netto w PLN.** Nie obejmują automatycznie tej samej zawartości co obecne `priceMin`/`priceMax` ModularHub i nie powinny być publikowane jako ceny końcowe w EUR bez przeliczenia i potwierdzenia zakresu.
-4. **Prawa do zdjęć i opisów.** Adresy obrazów są zapisane wyłącznie jako referencje źródłowe. Nie pobrano ich ani nie dodano do aplikacji. Przed użyciem potrzebna jest zgoda/licencja DomiHaus; opisy ofertowe należy napisać od nowa zamiast kopiować.
+4. **Prawa do zdjęć i opisów.** Zgoda na wykorzystanie materiałów została potwierdzona przez właściciela ModularHub. Obrazy zapisano w R2, a opisy katalogowe napisano od nowa na podstawie danych z kart producenta.
 5. **Prawo budowlane.** Stwierdzenia o braku pozwolenia pojawiają się na źródle, ale w naszym serwisie muszą zależeć od kraju i konkretnej sytuacji działki. Nie należy automatycznie ustawiać `simplifiedPermitEligible` dla rynków DE/NL/PL.
 6. **Niepełne dane operacyjne.** Poza Cube nie ma jednoznacznej liczby dni montażu; brakuje również spójnie podanych terminów produkcji, certyfikatów i parametrów odporności pożarowej/wiatrowej.
 
-## Następny bezpieczny krok
+## Dalsza aktualizacja danych
 
-Po otrzymaniu zgody producenta trzeba poprosić o: oficjalny feed produktowy lub arkusz, prawa do zdjęć, ceny netto/brutto i zawartość wariantów, liczbę pokoi/sypialni/łazienek z rzutów, terminy produkcji i montażu, gwarancję, certyfikaty oraz kwalifikację prawną osobno dla każdego kraju docelowego. Dopiero wtedy rekordy powinny trafić do bazy jako opublikowane produkty.
+Warto nadal pozyskać oficjalny feed produktowy lub arkusz z aktualizacjami cen, potwierdzeniem liczby pomieszczeń, terminami produkcji i montażu, certyfikatami oraz kwalifikacją prawną osobno dla każdego kraju docelowego. Do tego czasu dostępność projektów w Polsce pozostaje oznaczona jako warunkowa.

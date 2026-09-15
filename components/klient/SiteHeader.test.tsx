@@ -74,16 +74,16 @@ describe("SiteHeader (spec 0030)", () => {
     expect(within(account).queryByText("Panel administratora")).not.toBeInTheDocument();
   });
 
-  it("shows 'Zacznij' as the header CTA, linking to the producer signup, when there is no session", () => {
+  it("shows 'Załóż konto' as the header CTA, linking to the shared registration wizard, when there is no session (spec 0040 AC-1)", () => {
     render(<SiteHeader locale="pl" session={null} />);
 
-    expect(screen.getByRole("link", { name: "Zacznij" })).toHaveAttribute("href", "/pl/producer");
+    expect(screen.getByRole("link", { name: "Załóż konto" })).toHaveAttribute("href", "/pl/registration");
   });
 
   it("hides the header CTA below `sm` and shows a matching CTA inside the slide out menu instead, hidden from `sm` up", async () => {
     render(<SiteHeader locale="pl" session={null} />);
 
-    const headerCta = screen.getByRole("link", { name: "Zacznij" });
+    const headerCta = screen.getByRole("link", { name: "Załóż konto" });
     expect(headerCta.className).toContain("hidden");
     expect(headerCta.className).toContain("sm:inline-flex");
 
@@ -92,15 +92,15 @@ describe("SiteHeader (spec 0030)", () => {
     // reachable by role here; that is the accessibility behavior working as
     // intended, not a sign the header copy disappeared.
     await openMenu();
-    const menuCta = screen.getByRole("link", { name: "Zacznij" });
+    const menuCta = screen.getByRole("link", { name: "Załóż konto" });
     expect(menuCta).not.toBe(headerCta);
     expect(menuCta.className).toContain("sm:hidden");
     expect(menuCta.closest('[role="group"]')).toBeNull();
   });
 
-  it("adds a person icon next to 'Mój profil' but not next to 'Zacznij' or 'Panel administratora'", () => {
+  it("adds a person icon next to 'Mój profil' but not next to 'Załóż konto' or 'Panel administratora'", () => {
     const { rerender } = render(<SiteHeader locale="pl" session={null} />);
-    expect(screen.getByRole("link", { name: "Zacznij" }).querySelector("svg")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Załóż konto" }).querySelector("svg")).not.toBeInTheDocument();
 
     rerender(<SiteHeader locale="pl" session={{ user: { role: "client" } }} />);
     expect(screen.getByRole("link", { name: "Mój profil" }).querySelector("svg")).toBeInTheDocument();
@@ -109,11 +109,11 @@ describe("SiteHeader (spec 0030)", () => {
     expect(screen.getByRole("link", { name: "Panel administratora" }).querySelector("svg")).not.toBeInTheDocument();
   });
 
-  it("replaces the 'Zacznij' CTA with 'Mój profil' for a client session, and drops it from the menu's Account group so it is never shown twice", async () => {
+  it("replaces the 'Załóż konto' CTA with 'Mój profil' for a client session, and drops it from the menu's Account group so it is never shown twice", async () => {
     render(<SiteHeader locale="pl" session={{ user: { role: "client" } }} />);
 
     expect(screen.getByRole("link", { name: "Mój profil" })).toHaveAttribute("href", "/pl/panel/inquiries");
-    expect(screen.queryByRole("link", { name: "Zacznij" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Załóż konto" })).not.toBeInTheDocument();
 
     await openMenu();
     const account = screen.getByRole("group", { name: "Konto" });
@@ -121,11 +121,11 @@ describe("SiteHeader (spec 0030)", () => {
     expect(within(account).queryByText("Zaloguj się")).not.toBeInTheDocument();
   });
 
-  it("replaces the 'Zacznij' CTA with 'Panel administratora' for an admin session, and drops it from the menu's Account group", async () => {
+  it("replaces the 'Załóż konto' CTA with 'Panel administratora' for an admin session, and drops it from the menu's Account group", async () => {
     render(<SiteHeader locale="pl" session={{ user: { role: "admin" } }} />);
 
     expect(screen.getByRole("link", { name: "Panel administratora" })).toHaveAttribute("href", "/pl/internal/inquiries");
-    expect(screen.queryByRole("link", { name: "Zacznij" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Załóż konto" })).not.toBeInTheDocument();
 
     await openMenu();
     const account = screen.getByRole("group", { name: "Konto" });

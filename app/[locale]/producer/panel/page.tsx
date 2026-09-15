@@ -37,8 +37,13 @@ export default async function ProducerPanelPage({
     );
   }
 
-  const technologyLabel =
-    PRODUCER_TECHNOLOGIES.find((technology) => technology.value === profile.technology)?.label ?? profile.technology;
+  // Nullable od spec 0040 (formularz rejestracji przestał je zbierać, AC-8):
+  // konto bez ustawionej technologii pokazuje łagodny pusty stan (AC-9), nie
+  // pusty/błędny tekst.
+  const technologyLabel = profile.technology
+    ? (PRODUCER_TECHNOLOGIES.find((technology) => technology.value === profile.technology)?.label ??
+      profile.technology)
+    : t("technologyNotSet");
 
   return (
     <Stack gap={4}>

@@ -5,9 +5,9 @@ import { Check, ChevronDown } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useTransition } from "react";
-import { tv } from "tailwind-variants";
 import { usePathname, useRouter } from "@/lib/i18n/navigation";
 import { routing, type Locale } from "@/lib/i18n/routing";
+import { tv } from "@/lib/tv";
 
 const panel = tv({
   base: "absolute z-50 mt-1 w-36 overflow-hidden rounded-data border border-brand-steel bg-brand-warm-white py-1 shadow-md focus:outline-none data-[closed]:opacity-0 data-[closed]:scale-95 transition duration-100 ease-out",

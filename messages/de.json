@@ -1,0 +1,1215 @@
+{
+  "SiteHeader": {
+    "nav": {
+      "homes": "Häuser",
+      "projects": "Projekte",
+      "howItWorks": "So funktioniert es",
+      "verifiedManufacturers": "Verifizierte Hersteller",
+      "producerB2b": "Als B2B-Hersteller beitreten"
+    },
+    "favorites": "Favoriten",
+    "adminPanel": "Administratorbereich",
+    "myProfile": "Mein Profil",
+    "signIn": "Anmelden",
+    "start": "Konto erstellen",
+    "openMenu": "Menü öffnen",
+    "closeMenu": "Menü schließen",
+    "menu": "Menü",
+    "mainNav": "Navigation",
+    "account": "Konto"
+  },
+  "ProducerHeader": {
+    "imClient": "Ich bin Kunde",
+    "account": "Konto",
+    "signIn": "Anmelden",
+    "signOut": "Abmelden"
+  },
+  "LanguageSwitcher": {
+    "changeLanguage": "Sprache ändern",
+    "pl": "Polski",
+    "en": "English",
+    "nl": "Nederlands",
+    "de": "Deutsch"
+  },
+  "FileUpload": {
+    "chooseFiles": "Dateien auswählen",
+    "mockNotice": "Demo — Dateien werden nirgendwo gespeichert oder hochgeladen",
+    "noFilesSelected": "Es wurde noch keine Datei ausgewählt.",
+    "removeFile": "Datei {name} entfernen"
+  },
+  "FulfillmentStage": {
+    "produkcja": "Produktion",
+    "transport": "Transport",
+    "montaz": "Montage",
+    "odbior": "Abnahme",
+    "gwarancja": "Garantie"
+  },
+  "StageTimelineStatus": {
+    "completed": "Abgeschlossen",
+    "current": "Aktuelle Phase",
+    "upcoming": "Bevorstehend"
+  },
+  "KlientRealizacjaPage": {
+    "heading": "Ausführung — {name}",
+    "completionBanner": "Bestellung abgeschlossen — alle Phasen wurden abgeschlossen.",
+    "backToOffer": "Zurück zu den Anfragen"
+  },
+  "ProducentRealizacjaPage": {
+    "heading": "Ausführung — {name}",
+    "deliveredBanner": "Bestellung abgenommen — Sie können jetzt mit der Unternehmensverifizierung vor der ersten Auszahlung fortfahren.",
+    "backToList": "Zurück zur Ausführung",
+    "verification": "Unternehmensverifizierung und Auszahlung"
+  },
+  "ProducerFulfillmentList": {
+    "heading": "Ausführungen",
+    "intro": "Die Statusleiste für Produktion, Transport, Montage und Abnahme — dieselbe, die der Kunde für diese Bestellung sieht. Nach der Abnahme wird die Unternehmensverifizierung vor der ersten Auszahlung freigeschaltet.",
+    "empty": "Noch keine Ausführungen — Bestellungen mit angenommenem Angebot erscheinen hier.",
+    "readyForVerification": "Bereit zur Unternehmensverifizierung",
+    "currentStage": "Aktuelle Phase: {stage}",
+    "viewTimeline": "Statusleiste ansehen"
+  },
+  "ProjectCertifications": {
+    "heading": "Zertifikate"
+  },
+  "InquiryConfirmationCard": {
+    "message": "Der Kunde bittet um ein Angebot für dieses Projekt, das Haus, Transport und Montage umfasst.",
+    "sentAt": "Gesendet am {date}"
+  },
+  "PopularHomeCard": {
+    "coverAlt": "{name}, Modulhaus",
+    "summary": "{area} m² · {rooms} Zimmer",
+    "summaryNoRooms": "{area} m²",
+    "priceOnRequest": "Preis auf Anfrage",
+    "priceFrom": "ab {price} €"
+  },
+  "ProducerCard": {
+    "photoAlt": "Referenzprojekt von {name}",
+    "verified": "Verifiziert von ModularHub",
+    "countryOfProduction": "Produktionsland: {country}",
+    "modelsAndSize": "{models} Modelle · {min}–{max} m²",
+    "delivery": "Lieferung:",
+    "country": {
+      "PL": "Polen",
+      "DE": "Deutschland",
+      "NL": "Niederlande"
+    }
+  },
+  "ResultCard": {
+    "viewDetails": "Details zu {name} ansehen",
+    "selectForInquiry": "{name} für die Anfrage auswählen",
+    "selectionLimitReached": "Es können maximal 3 Projekte ausgewählt werden",
+    "needsMoreDocuments": "Erfordert zusätzliche Unterlagen",
+    "summary": "{area} m² Nutzfläche · {rooms} {roomsLabel} · {storeys} Geschosse",
+    "rooms": {
+      "one": "Zimmer",
+      "few": "Zimmer",
+      "many": "Zimmer"
+    },
+    "completionStandard": {
+      "surowy-zamkniety": "Rohbau geschlossen",
+      "deweloperski": "Bauträgerstandard",
+      "pod-klucz": "Schlüsselfertig"
+    },
+    "price": "Preis",
+    "priceOnRequest": "Preis auf Anfrage",
+    "priceOnRequestHint": "Wird direkt mit dem Hersteller vereinbart",
+    "priceFrom": "ab {price} €",
+    "leadTime": "{productionMin}–{productionMax} Wochen Produktion · {assemblyMin}–{assemblyMax} Tage Montage"
+  },
+  "ProductFamilyNoun": {
+    "dom": {
+      "one": "Haus",
+      "few": "Häuser",
+      "many": "Häuser"
+    },
+    "spa-modulowe": {
+      "one": "modulares Spa",
+      "few": "modulare Spas",
+      "many": "modulare Spas"
+    },
+    "kontenery-modulowe": {
+      "one": "Modularcontainer",
+      "few": "Modularcontainer",
+      "many": "Modularcontainer"
+    },
+    "wiecej-niz-dom": {
+      "one": "Produkt",
+      "few": "Produkte",
+      "many": "Produkte"
+    }
+  },
+  "CountryLocative": {
+    "PL": "in Polen",
+    "DE": "in Deutschland",
+    "NL": "in den Niederlanden"
+  },
+  "ResultsHeader": {
+    "eligibleSuffix": " zugelassen {country}",
+    "hint": "Wählen Sie oben in der Leiste ein Land aus, um zu sehen, welche {familyFew} dort rechtlich zugelassen sind."
+  },
+  "EmptyResults": {
+    "heading": "Keine {familyMany} entsprechen den gewählten Kriterien",
+    "description": "Kein Projekt erfüllt gleichzeitig alle gewählten Kriterien. Ändern Sie die Filter oben oder beginnen Sie ohne Einschränkungen von vorn.",
+    "clearFilters": "Filter zurücksetzen"
+  },
+  "PanelEmptyState": {
+    "browseHomes": "Häuser durchsuchen"
+  },
+  "PlotAnalysisRow": {
+    "scopeDescription": "Wir prüfen, ob der Grundriss dieses Hauses zusammen mit den erforderlichen Grenzabständen, der Zufahrt und grundlegenden Geländebeschränkungen auf Ihr Grundstück passt.",
+    "disclaimer": "Dies ist keine Rechtsberatung. Das Ergebnis ist eine geschätzte Einschätzung auf Grundlage von Beispieldaten, kein echtes rechtliches oder bautechnisches Gutachten.",
+    "status": {
+      "approved": "Zugelassen",
+      "conditional": "Bedingt zugelassen",
+      "blocked": "Nicht zugelassen"
+    },
+    "noAnalysisData": "Keine Analysedaten für dieses Projekt; versuchen Sie es später erneut.",
+    "servicePrice": "Preis der Leistung",
+    "plotAreaLabel": "Grundstücksfläche (m²)",
+    "plotAreaError": "Geben Sie eine Fläche zwischen {min}–{max} m² an.",
+    "pay": "Bezahlen",
+    "processingPayment": "Zahlung wird verarbeitet…",
+    "goToOffer": "Zu den Anfragen"
+  },
+  "PlotDossierPanel": {
+    "heading": "Grundstücksbereich",
+    "intro": "Geben Sie die Adresse Ihres Grundstücks einmal ein und prüfen Sie danach jedes Haus, nach dem Sie zuvor gefragt haben, einzeln — Preis, Zahlung und Ergebnis werden für jedes unabhängig berechnet.",
+    "addressLabel": "Grundstücksadresse",
+    "backToResults": "Zurück zu den Ergebnissen"
+  },
+  "FavoriteButton": {
+    "signInToFavorite": "Melden Sie sich an, um {name} zu den Favoriten hinzuzufügen",
+    "removeFavorite": "{name} aus den Favoriten entfernen",
+    "addFavorite": "{name} zu den Favoriten hinzufügen",
+    "genericError": "Speichern fehlgeschlagen. Bitte versuchen Sie es erneut."
+  },
+  "FavoriteCard": {
+    "viewDetails": "Details zu {name} ansehen",
+    "selectForCompare": "{name} zum Vergleich auswählen",
+    "compareLimitReached": "Es können maximal 3 Häuser verglichen werden",
+    "unavailable": "Produkt nicht verfügbar",
+    "floorArea": "{area} m² Nutzfläche",
+    "priceFrom": "ab {price} €"
+  },
+  "FavoriteCompareTable": {
+    "house": "Haus",
+    "unavailableSuffix": "(nicht verfügbar)",
+    "floorArea": "Fläche",
+    "price": "Preis",
+    "productionTime": "Produktionszeit",
+    "weeksRange": "{min}–{max} Wo.",
+    "completionStandardLabel": "Ausbaustandard",
+    "completionStandard": {
+      "surowy-zamkniety": "Rohbau geschlossen",
+      "deweloperski": "Bauträgerstandard",
+      "pod-klucz": "Schlüsselfertig"
+    }
+  },
+  "ProjectOptions": {
+    "wizardSteps": {
+      "podstawowe": "Grundinformationen",
+      "techniczne": "Technische Daten",
+      "pliki": "Dateien",
+      "cena": "Preis und Verkauf",
+      "podsumowanie": "Zusammenfassung"
+    },
+    "family": {
+      "dom": "Haus",
+      "spa-modulowe": "Modulares Spa",
+      "kontenery-modulowe": "Modularcontainer"
+    },
+    "category": {
+      "caloroczny": "Ganzjährig",
+      "rekreacyjny-caloroczny": "Freizeit, ganzjährig nutzbar",
+      "mobilny": "Mobil"
+    },
+    "spaSubcategory": {
+      "sauna": "Sauna",
+      "jacuzzi": "Jacuzzi",
+      "wellness-combo": "Wellnesskabine (Sauna + Jacuzzi)"
+    },
+    "containerSubcategory": {
+      "gastronomiczne": "Gastronomie",
+      "uslugowe": "Dienstleistung",
+      "mieszkalne": "Wohnen"
+    },
+    "completionStandard": {
+      "surowy-zamkniety": "Rohbau geschlossen",
+      "deweloperski": "Bauträgerstandard",
+      "pod-klucz": "Schlüsselfertig"
+    },
+    "energyClassPrefix": "Klasse {code}",
+    "technicalFields": {
+      "dom": {
+        "wallBuildUp": {
+          "label": "Wandaufbau",
+          "hint": "Wandschichten von außen nach innen, z. B. Konstruktion, Dämmung, Verkleidung"
+        },
+        "insulation": {
+          "label": "Dämmung",
+          "hint": "U-Wert für Wände und Dach (W/m²K)"
+        },
+        "heatTransferCoefficients": {
+          "label": "Energieklasse",
+          "hint": "Energieklassenbereich des Gebäudes"
+        },
+        "windowClass": {
+          "label": "Fensterklasse",
+          "hint": "Energieklasse und Glasart"
+        },
+        "ventilation": {
+          "label": "Lüftung",
+          "hint": "Lüftungsart",
+          "options": {
+            "grawitacyjna": "Natürlich (Schwerkraft)",
+            "mechaniczna-nawiewno-wywiewna": "Mechanische Zu- und Abluft",
+            "rekuperacja": "Wärmerückgewinnung (mechanisch mit Wärmetauscher)",
+            "brak": "Keine"
+          }
+        },
+        "heatSource": {
+          "label": "Wärmequelle",
+          "hint": "Hauptheizquelle",
+          "options": {
+            "pompa-ciepla-powietrze-woda": "Luft-Wasser-Wärmepumpe",
+            "pompa-ciepla-grunt-woda": "Erdwärmepumpe (Sole-Wasser)",
+            "gazowe": "Gas",
+            "elektryczne": "Elektrisch",
+            "biomasa-pellet": "Biomasse / Pellets",
+            "inne": "Sonstige"
+          }
+        },
+        "fireResistance": {
+          "label": "Feuerwiderstand",
+          "hint": "Feuerwiderstandsklasse der Konstruktion, z. B. REI 30"
+        },
+        "windResistance": {
+          "label": "Windwiderstand",
+          "hint": "Windzone und maximale Windgeschwindigkeit"
+        }
+      },
+      "spa-modulowe": {
+        "seatingCapacity": {
+          "label": "Anzahl der Sitzplätze",
+          "hint": "Anzahl der Sitzplätze in der Kabine/Wanne"
+        },
+        "waterVolumeLiters": {
+          "label": "Wasservolumen (l)",
+          "hint": "Wasserfassungsvermögen des Beckens in Litern"
+        },
+        "heatingType": {
+          "label": "Heizungsart",
+          "hint": "Hauptmethode der Wassererwärmung",
+          "options": {
+            "electric": "Elektrisch",
+            "heat-pump": "Wärmepumpe",
+            "wood-fired": "Holzbefeuert"
+          }
+        },
+        "filtrationSystem": {
+          "label": "Filtersystem",
+          "hint": "Methode der Wasserfiltration und -aufbereitung"
+        },
+        "shellMaterial": {
+          "label": "Beckenmaterial",
+          "hint": "Material der Kabine/des Beckens"
+        },
+        "electricalRequirement": {
+          "label": "Elektrische Anforderungen",
+          "hint": "Erforderliche Stromversorgung, z. B. Anschlussleistung"
+        },
+        "foundationType": {
+          "label": "Fundamenttyp",
+          "hint": "Gründungsart, z. B. Betonplatte"
+        }
+      },
+      "kontenery-modulowe": {
+        "gastronomiczne": {
+          "dimensions": { "label": "Abmessungen", "hint": "Breite × Tiefe × Höhe" },
+          "structureMaterial": { "label": "Konstruktionsmaterial", "hint": "Material des Rahmens/der Containerkonstruktion" },
+          "insulationType": { "label": "Dämmungstyp", "hint": "Art der Wärmedämmung" },
+          "foundationType": { "label": "Fundamenttyp", "hint": "Gründungsart" },
+          "kitchenEquipmentType": { "label": "Küchenausstattung", "hint": "Art der installierten Küchenausstattung" },
+          "extractionVentilation": { "label": "Abluftanlage", "hint": "Art der Abluft-/Lüftungsanlage" },
+          "electricalPower": { "label": "Anschlussleistung", "hint": "Erforderliche Anschlussleistung" },
+          "waterSupplyType": { "label": "Wasserversorgung", "hint": "Art der Wasserzufuhr" },
+          "wasteWaterHandling": { "label": "Abwasserentsorgung", "hint": "Art der Abwasserentsorgung" }
+        },
+        "uslugowe": {
+          "dimensions": { "label": "Abmessungen", "hint": "Breite × Tiefe × Höhe" },
+          "structureMaterial": { "label": "Konstruktionsmaterial", "hint": "Material des Rahmens/der Containerkonstruktion" },
+          "insulationType": { "label": "Dämmungstyp", "hint": "Art der Wärmedämmung" },
+          "foundationType": { "label": "Fundamenttyp", "hint": "Gründungsart" },
+          "intendedUse": { "label": "Verwendungszweck", "hint": "Geplante Nutzung des Moduls, z. B. Büro, Geschäft" },
+          "electricalInstallation": { "label": "Elektroinstallation", "hint": "Umfang der Elektroinstallation" },
+          "spaceHeatingType": { "label": "Heizungsart", "hint": "Art der Raumheizung" }
+        },
+        "mieszkalne": {
+          "dimensions": { "label": "Abmessungen", "hint": "Breite × Tiefe × Höhe" },
+          "structureMaterial": { "label": "Konstruktionsmaterial", "hint": "Material des Rahmens/der Containerkonstruktion" },
+          "insulationType": { "label": "Dämmungstyp", "hint": "Art der Wärmedämmung" },
+          "foundationType": { "label": "Fundamenttyp", "hint": "Gründungsart" },
+          "sleepingCapacity": { "label": "Anzahl der Schlafplätze", "hint": "Maximale Personenzahl" },
+          "bathroomIncluded": { "label": "Badezimmer", "hint": "Ob das Modul ein Badezimmer enthält" },
+          "spaceHeatingType": { "label": "Heizungsart", "hint": "Art der Raumheizung" },
+          "waterSupplyType": { "label": "Wasserversorgung", "hint": "Art der Wasserzufuhr" },
+          "wasteWaterHandling": { "label": "Abwasserentsorgung", "hint": "Art der Abwasserentsorgung" },
+          "electricalInstallation": { "label": "Elektroinstallation", "hint": "Umfang der Elektroinstallation" }
+        }
+      }
+    }
+  },
+  "ProjectWizard": {
+    "heading": "Fügen Sie Ihr erstes Projekt hinzu",
+    "back": "Zurück",
+    "next": "Weiter",
+    "save": "Projekt speichern",
+    "saveError": "Das Projekt konnte nicht gespeichert werden. Bitte versuchen Sie es erneut."
+  },
+  "ProductEditWizard": {
+    "heading": "Produkt bearbeiten",
+    "back": "Zurück",
+    "next": "Weiter",
+    "save": "Änderungen speichern",
+    "saveError": "Die Änderungen konnten nicht gespeichert werden. Bitte versuchen Sie es erneut."
+  },
+  "ProjectWizardProgress": {
+    "ariaLabel": "Fortschritt des Assistenten"
+  },
+  "ProjectWizardBasicInfoStep": {
+    "heading": "Grundinformationen",
+    "familyLabel": "Produktfamilie",
+    "familyRequiredError": "Wählen Sie eine Produktfamilie aus.",
+    "categoryLabel": "Kategorie",
+    "categoryRequiredError": "Wählen Sie eine Produktkategorie aus.",
+    "spaSubcategoryLabel": "Unterkategorie",
+    "containerSubcategoryLabel": "Unterkategorie",
+    "subcategoryRequiredError": "Wählen Sie eine Unterkategorie aus.",
+    "nameLabel": "Projektname",
+    "nameRequiredError": "Geben Sie einen Projektnamen an.",
+    "floorAreaLabel": "Fläche (m²)",
+    "floorAreaRequiredError": "Geben Sie eine Fläche zwischen {min} und {max} m² an.",
+    "bedroomsLabel": "Anzahl der Schlafzimmer",
+    "bedroomsRequiredError": "Geben Sie eine Anzahl von Schlafzimmern zwischen {min} und {max} an.",
+    "countryLabel": "Produktionsland",
+    "countryRequiredError": "Wählen Sie ein Produktionsland aus.",
+    "descriptionLabel": "Beschreibung",
+    "descriptionRequiredError": "Geben Sie eine Projektbeschreibung an.",
+    "translationsHeading": "Übersetzungen (optional)",
+    "translationsHint": "Englisch und Niederländisch sind optional — ohne Übersetzung sehen ausländische Kunden den polnischen Text.",
+    "translationTabEn": "Englisch",
+    "translationTabNl": "Niederländisch",
+    "nameEnLabel": "Name (Englisch)",
+    "nameNlLabel": "Name (Niederländisch)",
+    "descriptionEnLabel": "Beschreibung (Englisch)",
+    "descriptionNlLabel": "Beschreibung (Niederländisch)"
+  },
+  "ProjectWizardTechnicalStep": {
+    "heading": "Technische Daten",
+    "selectRequiredError": "Wählen Sie {label} aus.",
+    "textRequiredError": "Geben Sie {label} an."
+  },
+  "ProjectWizardPricingStep": {
+    "heading": "Preis und Verkauf",
+    "priceLabel": "Preis des Hauses im Basisstandard (EUR)",
+    "priceRequiredError": "Geben Sie den Preis des Hauses an.",
+    "standardLabel": "Ausbaustandard",
+    "standardRequiredError": "Wählen Sie einen Ausbaustandard aus.",
+    "leadTimeLabel": "Produktionszeit (Wochen)",
+    "leadTimeFromAriaLabel": "Produktionszeit, von (Wochen)",
+    "leadTimeToAriaLabel": "Produktionszeit, bis (Wochen)",
+    "leadTimeRequiredError": "Geben Sie eine Produktionszeit von und bis an, sodass der Von-Wert den Bis-Wert nicht überschreitet.",
+    "assemblyTimeLabel": "Montagezeit vor Ort (Tage)",
+    "assemblyTimeFromAriaLabel": "Montagezeit, von (Tage)",
+    "assemblyTimeToAriaLabel": "Montagezeit, bis (Tage)",
+    "assemblyTimeRequiredError": "Geben Sie eine Montagezeit von und bis an, sodass der Von-Wert den Bis-Wert nicht überschreitet.",
+    "warrantyLabel": "Konstruktionsgarantie (Jahre)",
+    "warrantyRequiredError": "Geben Sie die Konstruktionsgarantie in Jahren an."
+  },
+  "ProjectWizardFilesStep": {
+    "heading": "Dateien",
+    "floorPlanLabel": "Grundrisse",
+    "floorPlanRequiredError": "Fügen Sie mindestens einen Grundriss hinzu.",
+    "photosUnavailable": "Speichern Sie zuerst die Grundinformationen des Produkts, um Fotos hinzuzufügen."
+  },
+  "ProjectWizardSummaryStep": {
+    "heading": "Zusammenfassung",
+    "intro": "Überprüfen Sie alle Angaben, bevor Sie das Projekt speichern.",
+    "groupBasicInfo": "Grundinformationen",
+    "rowName": "Projektname",
+    "rowFloorArea": "Fläche",
+    "rowFloorAreaValue": "{area} m²",
+    "rowBedrooms": "Anzahl der Schlafzimmer",
+    "rowCountry": "Produktionsland",
+    "rowDescription": "Beschreibung",
+    "rowFamily": "Produktfamilie",
+    "rowSubcategory": "Unterkategorie",
+    "groupTechnical": "Technische Daten",
+    "groupPricing": "Preis und Verkauf",
+    "rowPrice": "Preis des Hauses",
+    "rowPriceValue": "{price} EUR",
+    "rowStandard": "Ausbaustandard",
+    "rowLeadTime": "Produktionszeit",
+    "rowLeadTimeValue": "{min}–{max} Wo.",
+    "rowAssemblyTime": "Montagezeit",
+    "rowAssemblyTimeValue": "{min}–{max} Tage",
+    "rowWarranty": "Konstruktionsgarantie",
+    "rowWarrantyValue": "{years} Jahre",
+    "groupFiles": "Dateien",
+    "floorPlanCount": "Grundrisse ({count})",
+    "photoCount": "Fotos ({count})",
+    "empty": "—",
+    "booleanYes": "Ja",
+    "booleanNo": "Nein"
+  },
+  "SubcategoryFilterBar": {
+    "spaAriaLabel": "Unterkategorie modulares Spa",
+    "containerAriaLabel": "Unterkategorie Modularcontainer"
+  },
+  "ProducentPage": {
+    "heading": "Werden Sie Hersteller bei ModularHub Europe",
+    "subheading": "Erstellen Sie ein Konto, melden Sie sich per E-Mail-Link an und verwalten Sie Ihren Produktkatalog sowie Kundenanfragen an einem Ort.",
+    "whyHeading": "Warum ModularHub Europe",
+    "benefitRegistrationTitle": "Eine Registrierung, alle Länder",
+    "benefitRegistrationDescription": "Wählen Sie Ihre Lieferländer einmal aus — wir prüfen die Zulässigkeit der Projekte für jedes davon.",
+    "benefitInquiriesTitle": "Anfragen mit fertigem Kontext",
+    "benefitInquiriesDescription": "Kunden senden Anfragen direkt mit dem gewählten Projekt und ihren Kontaktdaten.",
+    "benefitStatusTitle": "Ausführungsstatus an einem Ort",
+    "benefitStatusDescription": "Produktion, Transport, Montage und Abnahme — eine Statusleiste, dieselbe wie beim Kunden.",
+    "ctaHeading": "Haben Sie bereits ein Konto?",
+    "ctaBody": "Melden Sie sich an, um Ihren Bereich zu sehen, oder erstellen Sie ein neues Herstellerkonto.",
+    "ctaRegister": "Registrieren",
+    "ctaLogin": "Anmelden"
+  },
+  "KlientPanelZapytaniaPage": {
+    "heading": "Anfragen",
+    "emptyTitle": "Sie haben noch keine Anfragen gesendet",
+    "emptyDescription": "Wählen Sie ein Haus in den Suchergebnissen und senden Sie eine Anfrage, um sie hier mit dem Status zu sehen.",
+    "columnProducts": "Produkte",
+    "columnStatus": "Status",
+    "columnDate": "Datum",
+    "statusOpen": "Wartet auf Antwort",
+    "statusOffered": "Angebot erhalten",
+    "statusClosed": "Geschlossen",
+    "unreadOfferLabel": "Neues Angebot"
+  },
+  "ClientInquiryDetailPage": {
+    "heading": "Anfragedetails",
+    "statusOpen": "Wartet auf Antwort",
+    "statusOffered": "Angebot erhalten",
+    "statusClosed": "Geschlossen",
+    "emptyMessage": "Noch kein Hersteller hat auf diese Anfrage geantwortet."
+  },
+  "KlientPanelUlubionePage": {
+    "heading": "Favoriten",
+    "emptyTitle": "Sie haben noch keine favorisierten Häuser",
+    "emptyDescription": "Klicken Sie auf das Herz in den Suchergebnissen oder auf der Projektseite, um ein Haus zu speichern und später dazu zurückzukehren."
+  },
+  "KlientPanelProfilPage": {
+    "heading": "Profil"
+  },
+  "KlientProjektPage": {
+    "price": "Preis",
+    "priceOnRequest": "Preis auf Anfrage",
+    "priceOnRequestHint": "Der Preis wird nach Ihrer Anfrage direkt mit dem Hersteller vereinbart.",
+    "estimatedPackage": "Geschätztes Paket",
+    "packageIncludes": "Haus",
+    "sendInquiry": "Anfrage senden",
+    "warrantyYears": "{years} Jahre Konstruktionsgarantie",
+    "warrantyYearsValue": "{years} Jahre",
+    "certifiedCount": {
+      "one": "Bestätigt durch {count} Zertifikat",
+      "other": "Bestätigt durch {count} Zertifikate"
+    },
+    "assemblyDays": "Montage vor Ort in {min}–{max} Tagen",
+    "assemblyDaysOne": "Montage vor Ort in {count} Tag",
+    "assemblyDaysMany": "Montage vor Ort in {count} Tagen",
+    "floorAreaLabel": "Nutzfläche",
+    "roomsLabel": {
+      "one": "Zimmer",
+      "few": "Zimmer",
+      "many": "Zimmer"
+    },
+    "bedroomsLabel": {
+      "one": "Schlafzimmer",
+      "few": "Schlafzimmer",
+      "many": "Schlafzimmer"
+    },
+    "bathroomsLabel": {
+      "one": "Badezimmer",
+      "other": "Badezimmer"
+    },
+    "storeysLabel": {
+      "one": "Etage",
+      "other": "Etagen"
+    },
+    "descriptionLabel": "Beschreibung",
+    "showMore": "Mehr anzeigen",
+    "showLess": "Weniger anzeigen",
+    "completionStandardLabel": "Ausbaustandard",
+    "completionStandard": {
+      "surowy-zamkniety": "Rohbau geschlossen",
+      "deweloperski": "Bauträgerstandard",
+      "pod-klucz": "Schlüsselfertig"
+    },
+    "warrantyTermLabel": "Konstruktionsgarantie",
+    "productionTimeLabel": "Produktionszeit",
+    "productionTimeValue": "{min}–{max} Wo.",
+    "assemblyTimeLabel": "Montagezeit",
+    "assemblyTimeValue": "{min}–{max} Tage",
+    "assemblyTimeOne": "{count} Tag",
+    "assemblyTimeMany": "{count} Tage",
+    "commercialTermsHeading": "Kommerzielle Bedingungen",
+    "priceIncludesHeading": "Der Preis beinhaltet",
+    "priceExcludesHeading": "Der Preis beinhaltet nicht",
+    "legalComplianceHeading": "Rechtliche Konformität in {country}",
+    "status": {
+      "approved": "Konform mit den Vorschriften",
+      "conditional": "Erfordert zusätzliche Unterlagen",
+      "blocked": "In diesem Land nicht verfügbar"
+    },
+    "simplifiedPermitEligible": "Berechtigt für das vereinfachte Genehmigungsverfahren",
+    "simplifiedPermitNotEligible": "Nicht berechtigt für das vereinfachte Genehmigungsverfahren",
+    "producerHeading": "Hersteller",
+    "bulkInquiryHeading": "Benötigen Sie eine größere Menge?",
+    "bulkInquiryBody": "Dieser Hersteller ist volumenverifiziert. Fragen Sie nach diesem Modell in größerer Stückzahl.",
+    "addToShortlist": "Zur Shortlist hinzufügen",
+    "checkPlot": "Grundstück für dieses Projekt prüfen",
+    "from": "ab",
+    "descriptionImageAlt": "{name}, Modulhaus"
+  },
+  "Faq": {
+    "heading": "Häufig gestellte Fragen",
+    "subheading": "Keine Antwort gefunden? Schreiben Sie uns über das Kontaktformular.",
+    "howQuestion": "Wie genau funktioniert ModularHub?",
+    "howAnswer": "Sie suchen nach Häusern, die in Ihrem Land verfügbar sind, vergleichen bis zu drei Projekte, prüfen die rechtliche Konformität mit der Compliance Engine™ und senden anschließend eine einzige Anfrage an die gewählten Hersteller, statt jeden einzeln zu kontaktieren.",
+    "costQuestion": "Ist die Nutzung der Plattform kostenpflichtig?",
+    "costAnswer": "Angebote ansehen, vergleichen und Anfragen senden sind kostenlos. Kostenpflichtig ist ausschließlich der optionale Grundstücksanalysebericht für ein bestimmtes Projekt.",
+    "priceQuestion": "Warum ist der Preis eine Spanne und kein fester Betrag?",
+    "priceAnswer": "Der endgültige Preis hängt vom Ausbaustandard, dem Transport zu Ihrem Standort und dem Umfang der Montage ab. Die Spanne zeigt den realistischen Bereich, bevor Sie ein verbindliches Angebot vom Hersteller erhalten.",
+    "complianceQuestion": "Was prüft die Compliance Engine™?",
+    "complianceAnswer": "Konstruktion, Dämmung, Lüftung und erforderliche Unterlagen eines Hauses im Abgleich mit den Bauvorschriften des Ziellandes — bevor Sie eine Anfrage an den Hersteller senden.",
+    "producersQuestion": "Woher weiß man, dass die Hersteller geprüft sind?",
+    "producersAnswer": "Jeder Hersteller auf der Plattform durchläuft die ModularHub-Verifizierung, sichtbar als Abzeichen auf seiner Karte, bevor seine Projekte in den Suchergebnissen erscheinen.",
+    "timeQuestion": "Wie lange dauert es, bis Sie Angebote erhalten?",
+    "timeAnswer": "In der Regel bis zu 48 Stunden nach dem Senden der Anfrage — Hersteller antworten direkt an die im Kontaktformular angegebene Adresse."
+  },
+  "ProjectTechnicalSpecs": {
+    "heading": "Technologie und Konstruktion",
+    "groupConstructionTitle": "Konstruktion und Ausbau",
+    "groupEnergyTitle": "Energieeffizienz",
+    "groupSafetyTitle": "Sicherheit und Garantie",
+    "constructionSystem": "Konstruktionssystem",
+    "externalDimensions": "Außenabmessungen",
+    "roofType": "Dach",
+    "foundationOptions": "Fundament",
+    "wallBuildUp": "Wandaufbau",
+    "customizationScope": "Umfang der Individualisierung",
+    "insulation": "Dämmwerte",
+    "heatTransferCoefficients": "Wärmedurchgangskoeffizienten",
+    "windowClass": "Fensterklasse",
+    "ventilation": "Lüftung",
+    "heatSource": "Wärmequelle",
+    "fireResistance": "Feuerwiderstand",
+    "windResistance": "Windwiderstand",
+    "warrantyLabel": "Konstruktionsgarantie",
+    "warrantyValue": "{years} Jahre"
+  },
+  "ResultsFilterBar": {
+    "sortPriceAsc": "Preis: aufsteigend",
+    "sortPriceDesc": "Preis: absteigend",
+    "sortSizeAsc": "Fläche: aufsteigend",
+    "sortSizeDesc": "Fläche: absteigend",
+    "countryLabel": "Land",
+    "countryPlaceholder": "Land auswählen",
+    "countryAriaLabel": "Zielland",
+    "sizeMinLabel": "Fläche von",
+    "sizeMaxLabel": "Fläche bis",
+    "anyPlaceholder": "Beliebig",
+    "sortLabel": "Sortieren",
+    "sortPlaceholder": "Empfohlen",
+    "sortAriaLabel": "Ergebnisse sortieren",
+    "keywordLabel": "Suchbegriff",
+    "keywordPlaceholder": "Name oder Beschreibung",
+    "searchAriaLabel": "Suchen",
+    "filterTrigger": "Filtern",
+    "closeFilters": "Filter schließen",
+    "applyFilters": "Ergebnisse anzeigen"
+  },
+  "SearchCard": {
+    "teaserPrompt": "Womit kann ich Ihnen helfen?",
+    "teaserWordHome": "Ein Haus?",
+    "teaserWordContainers": "Container?",
+    "teaserWordSpa": "Ein Spa?",
+    "budgetAny": "Beliebiges Budget",
+    "budgetUpTo50k": "bis 50.000 €",
+    "budget50to100k": "50.000–100.000 €",
+    "budget100to200k": "100.000–200.000 €",
+    "budgetOver200k": "über 200.000 €",
+    "categoryHome": "Häuser",
+    "categoryMore": "Mehr als ein Haus",
+    "categoryAriaLabel": "Produktkategorie",
+    "whereLabel": "Wo?",
+    "wherePlaceholder": "Land, Region oder Stadt",
+    "whereAriaLabel": "Zielland",
+    "budgetLabel": "Budget",
+    "budgetAriaLabel": "Budget",
+    "areaLabel": "Fläche",
+    "areaPlaceholder": "Beliebig",
+    "searchButton": "Häuser suchen"
+  },
+  "FloatingSearchButton": {
+    "prompt": "Wonach suchen Sie heute?",
+    "buttonAriaLabel": "Zu den Suchergebnissen"
+  },
+  "Testimonials": {
+    "heading": "Das sagen unsere Kunden",
+    "subheading": "Illustrative Bewertungen, bis unsere ersten echten Kunden da sind.",
+    "countryPl": "Polen",
+    "countryDe": "Deutschland",
+    "countryNl": "Niederlande",
+    "quote1": "Ich habe an einem Abend eine Anfrage an drei Hersteller geschickt, statt jeden einzeln anzuschreiben. Die Antworten kamen innerhalb von zwei Tagen.",
+    "quote2": "Die Prüfung der Konformität mit den deutschen Vorschriften vor dem Senden der Anfrage hat mir wochenlange Korrespondenz mit einem Anwalt erspart.",
+    "quote3": "Mir hat gefallen, dass ich sofort die aufgeschlüsselten Preise sehen konnte — Haus, Transport, Montage — statt eines undurchsichtigen Gesamtbetrags.",
+    "quote4": "Der direkte Vergleich von drei Projekten zeigte mir, dass ich für Quadratmeter zu viel zahlte, die ich nicht brauchte.",
+    "quote5": "Die Plattform ist unabhängig von den Herstellern, daher hatte ich das Gefühl, beraten statt verkauft zu werden."
+  },
+  "ClosingCta": {
+    "eyebrow": "Wissen Sie nicht, wo Sie anfangen sollen?",
+    "heading": "Erhalten Sie in 48 Stunden 3 passende Angebote",
+    "body": "Sagen Sie uns, was Sie brauchen, und wir stellen Ihnen personalisierte Angebote der besten Hersteller zusammen.",
+    "cta": "Kostenlose Angebote erhalten",
+    "step1Title": "Sagen Sie uns, was Sie brauchen",
+    "step1Description": "Beantworten Sie ein paar Fragen zu Ihrem Traumhaus.",
+    "step2Title": "Wir wählen die besten Hersteller aus",
+    "step2Description": "Wir wählen geprüfte Hersteller passend zu Ihrem Projekt aus.",
+    "step3Title": "Sie erhalten Angebote",
+    "step3Description": "Sie erhalten Angebote und wählen die beste Option für sich."
+  },
+  "HowItWorksExplainer": {
+    "heading": "So funktioniert ModularHub",
+    "subheading": "Fünf Schritte von der ersten Suche bis zur Schlüsselübergabe.",
+    "stage1Title": "Suchen",
+    "stage1Description": "Wählen Sie Land und Fläche in der Suche, sehen Sie sich passende Häuser an.",
+    "stage2Title": "Vergleichen",
+    "stage2Description": "Stellen Sie bis zu drei Projekte nebeneinander: Preis, Fläche, Standard.",
+    "stage3Title": "Konformität prüfen",
+    "stage3Description": "Die Compliance Engine™ prüft das Haus im Hinblick auf das Recht Ihres Landes.",
+    "stage4Title": "Angebote anfragen",
+    "stage4Description": "Senden Sie eine Anfrage gleichzeitig an die gewählten Hersteller.",
+    "stage5Title": "Haus übernehmen",
+    "stage5Description": "Verfolgen Sie Produktion, Transport und Montage bis zur Schlüsselübergabe."
+  },
+  "CategoryShowcase": {
+    "headingUnderline": "Mehr",
+    "headingRest": "als ein Haus",
+    "spaName": "Modulare Spas",
+    "spaDescription": "Saunen, Jacuzzis und Wellnessbereiche für Ihren Garten",
+    "containersName": "Modularcontainer",
+    "containersDescription": "Gastronomie, Dienstleistung und Wohnen, sofort aufstellbar",
+    "imageAlt": "Beispielprojekt aus der Kategorie {category}",
+    "viewOffers": "Angebote ansehen",
+    "viewOffersShort": "Ansehen",
+    "productCount": {
+      "one": "1 Produkt",
+      "few": "{count} Produkte",
+      "many": "{count} Produkte"
+    },
+    "priceFrom": "ab {price} €",
+    "nextCategory": "Nächste Kategorie",
+    "dotLabel": "Zur Kategorie {category}"
+  },
+  "FamilyTabs": {
+    "navAriaLabel": "Produktfamilie",
+    "home": "Häuser",
+    "more": "Mehr als ein Haus",
+    "subNavAriaLabel": "Verfeinern innerhalb von Mehr als ein Haus",
+    "all": "Alle",
+    "spa": "Modulare Spas",
+    "containers": "Container"
+  },
+  "CategoryFilterBar": {
+    "navAriaLabel": "Filter für Hausmerkmale",
+    "singleStorey": "Eingeschossig",
+    "twoStorey": "Mit Etage",
+    "heatPump": "Wärmepumpe",
+    "heatRecovery": "Wärmerückgewinnung",
+    "energyClassA": "Klasse A+"
+  },
+  "InquiryFlow": {
+    "sentHeading": "Anfrage gesendet",
+    "productNoun": {
+      "one": "Haus",
+      "other": "Häuser"
+    },
+    "sentConfirmation": "Bestätigung der Anfrage für {count} {noun} unten.",
+    "checkPlot": "Grundstück prüfen",
+    "backToResults": "Zurück zu den Ergebnissen",
+    "heading": "Anfrage für die ausgewählten Häuser",
+    "intro": "Sie senden eine Anfrage für {count} {noun}: {names}. Geben Sie Ihre Kontaktdaten an, damit Hersteller Sie kontaktieren können.",
+    "nameLabel": "Vollständiger Name",
+    "emailInvalidError": "Geben Sie eine gültige E-Mail-Adresse an.",
+    "phoneLabel": "Telefon",
+    "deliveryCountryLabel": "Lieferland",
+    "sendingLabel": "Wird gesendet…",
+    "retrySendLabel": "Erneut senden",
+    "sendLabel": "Anfrage senden",
+    "genericSendError": "Die Anfrage konnte nicht gesendet werden. Bitte versuchen Sie es erneut."
+  },
+  "ProfileForm": {
+    "nameLabel": "Vollständiger Name",
+    "phoneLabel": "Telefon",
+    "savedMessage": "Änderungen gespeichert.",
+    "savingLabel": "Wird gespeichert…",
+    "retryLabel": "Erneut speichern",
+    "saveLabel": "Änderungen speichern",
+    "genericError": "Die Änderungen konnten nicht gespeichert werden. Bitte versuchen Sie es erneut."
+  },
+  "CompanyVerificationView": {
+    "heading": "Unternehmensverifizierung — {name}",
+    "disclaimer": "Dies ist eine Demo — hier wird keine echte Verifizierung durchgeführt und keine Auszahlung ist real.",
+    "disclaimerSuffix": "Vor der ersten Auszahlung prüfen wir das Unternehmen anhand der folgenden Unterlagen.",
+    "requiredDocsHeading": "Erforderliche Unterlagen",
+    "doc1": "Handelsregisterauszug (KRS oder CEIDG)",
+    "doc2": "Unbedenklichkeitsbescheinigung von Sozialversicherung und Finanzamt (ZUS und US)",
+    "doc3": "Bestätigung des Firmenbankkontos (Kontoauszug oder Verifizierungsüberweisung)",
+    "doc4": "Betriebshaftpflichtversicherungspolice",
+    "submittedMessage": "Unterlagen zur Verifizierung eingereicht. Die erste Auszahlung wird nach deren Abschluss freigeschaltet (Demo, ohne echte Verifizierung).",
+    "backToFulfillment": "Zurück zur Ausführung",
+    "uploadLabel": "Unterlagen zur Verifizierung",
+    "submitButton": "Zur Verifizierung einreichen"
+  },
+  "ExportReadinessCountryRow": {
+    "statusApproved": "Zugelassen",
+    "statusConditional": "Bedingt zugelassen",
+    "statusBlocked": "Nicht zugelassen",
+    "resolvedReason": "Lücken geschlossen durch den Kauf des Lückenschließungspakets (in diesem Browser gespeichert).",
+    "whatsMissing": "Was fehlt",
+    "closeGaps": "Lücken schließen"
+  },
+  "GapClosureView": {
+    "heading": "Lücken schließen: {country}",
+    "headingWithProject": "Lücken schließen: {country} — „{project}“",
+    "disclaimer": "Dies ist keine Rechtsberatung. Das Ergebnis ist eine geschätzte Einschätzung auf Grundlage von Beispieldaten, kein echtes rechtliches oder bautechnisches Gutachten.",
+    "alreadyResolved": "Dieses Land ist bereits abgeschlossen — die Lücken wurden durch den Kauf des Pakets geschlossen.",
+    "backToMap": "Zurück zur Exportbereitschaftskarte"
+  },
+  "ExportReadinessMap": {
+    "headingWithProject": "Exportbereitschaft: „{project}“",
+    "heading": "Exportbereitschaft",
+    "disclaimer": "Dies ist keine Rechtsberatung. Das Ergebnis ist eine geschätzte Einschätzung auf Grundlage von Beispieldaten, kein echtes rechtliches oder bautechnisches Gutachten.",
+    "viewProducts": "Ihre Produkte ansehen"
+  },
+  "GapClosureUploadSection": {
+    "heading": "Laden Sie die Unterlagen selbst hoch",
+    "submittedMessage": "Unterlagen zur Verifizierung eingereicht.",
+    "backToMap": "Zurück zur Exportbereitschaftskarte",
+    "intro": "Erklären Sie eigenständig, dass Sie die fehlenden Unterlagen hochladen. Dieser Weg verifiziert nichts und ändert den Status des Landes auf der Karte nicht.",
+    "uploadLabel": "Fehlende Unterlagen",
+    "submitButton": "Senden"
+  },
+  "OfferForm": {
+    "intro": "Kalkulieren Sie jedes Ihrer Produkte in dieser Anfrage einzeln und geben Sie anschließend Transport und Montage an.",
+    "revisionIntro": "Sie überarbeiten ein zuvor abgegebenes Angebot — die neue Version ersetzt die vorherige, der Kunde sieht nur diese.",
+    "productUnavailable": "Das Produkt ist nicht mehr veröffentlicht — Sie können es weiterhin kalkulieren.",
+    "housePriceInputLabel": "Preis des Hauses — {name} (€)",
+    "transportInputLabel": "Transport (€)",
+    "installationInputLabel": "Montage (€)",
+    "totalLabel": "Gesamt",
+    "submitOffer": "Angebot senden",
+    "submitRevision": "Überarbeitetes Angebot senden",
+    "submitting": "Wird gesendet…",
+    "submittedMessage": "Angebot an den Kunden gesendet.",
+    "genericError": "Das Angebot konnte nicht gespeichert werden. Bitte versuchen Sie es erneut."
+  },
+  "OfferCard": {
+    "transportLabel": "Transport",
+    "installationLabel": "Montage",
+    "totalLabel": "Gesamt",
+    "accept": "Angebot annehmen",
+    "reject": "Angebot ablehnen",
+    "accepted": "Angenommen",
+    "rejected": "Abgelehnt",
+    "genericError": "Die Entscheidung konnte nicht gespeichert werden. Bitte versuchen Sie es erneut."
+  },
+  "RegistrationForm": {
+    "nipLabel": "Steuernummer (NIP)",
+    "nipPlaceholder": "000-000-00-00",
+    "nipError": "Geben Sie eine gültige Steuernummer an (10 Ziffern).",
+    "deliveryCountriesLegend": "Lieferländer",
+    "technologyLabel": "Technologie",
+    "technologyPlaceholder": "Technologie auswählen",
+    "submitButton": "Registrieren"
+  },
+  "Hero": {
+    "trustVerified": "Verifizierte Hersteller",
+    "trustPricing": "Transparente Preise",
+    "headingLine1": "Ihr",
+    "headingUnderline1": "Haus.",
+    "headingLine2": "Klug",
+    "headingUnderline2": "gewählt.",
+    "subheading": "Vergleichen Sie geprüfte Modulhäuser aus ganz Europa."
+  },
+  "ComplianceEngineShowcase": {
+    "headingBefore": "Wir prüfen",
+    "headingUnderline": "die rechtliche Konformität",
+    "headingAfter": "bevor Sie es tun müssen",
+    "intro": "Wir vergleichen jedes Haus mit den lokalen Bauvorschriften des Ziellandes — Konstruktion, Dämmung, Lüftung und erforderliche Unterlagen — bevor Sie eine Anfrage an den Hersteller senden.",
+    "disclaimer": "Das Ergebnis ist eine vorläufige, orientierende Prüfung — sie stellt keine Rechtsberatung dar. Wir aktualisieren die Daten und die Logik der Compliance Engine™ laufend, damit sie die Bauvorschriften des jeweiligen Landes möglichst genau widerspiegeln, die endgültige Konformität des Projekts bestätigt jedoch die zuständige Behörde und der gewählte Hersteller.",
+    "exampleLocation": "Standort: Venlo, Niederlande",
+    "complianceSuffix": "konform",
+    "checklistConstruction": "Konstruktion",
+    "checklistInsulation": "Dämmung",
+    "checklistVentilation": "Lüftung",
+    "checklistDocumentation": "Dokumentation",
+    "checklistPermit": "Örtliche Genehmigung",
+    "statusOk": "Erfüllt",
+    "statusWarning": "Erfordert Aufmerksamkeit",
+    "checkHouse": "Haus prüfen"
+  },
+  "CompareHomesTeaser": {
+    "heading": "Vergleichen Sie Häuser nebeneinander",
+    "subheading": "Stellen Sie bis zu drei Projekte gegenüber und sehen Sie die Unterschiede bei Preis, Fläche und Zimmern auf einem Bildschirm.",
+    "compareButton": "Häuser vergleichen",
+    "captionCompare": "Beispielvergleich von {count} Häusern: Preis, Fläche und Zimmeranzahl",
+    "featureColumnSr": "Merkmal",
+    "priceFromRow": "Preis ab",
+    "floorAreaRow": "Fläche",
+    "roomsRow": "Zimmer"
+  },
+  "ProducerShowcase": {
+    "heading": "Verifizierte Hersteller",
+    "subheading": "Jeder Hersteller auf der Plattform durchläuft unsere Verifizierung.",
+    "viewAllButton": "Alle Hersteller ansehen"
+  },
+  "PopularHomes": {
+    "heading": "Beliebte Häuser",
+    "subheading": "Eine illustrative Auswahl — so sehen heute einige der meistgesehenen Projekte aus."
+  },
+  "PanelTabs": {
+    "navAriaLabel": "Kundenbereich",
+    "zapytania": "Anfragen",
+    "ulubione": "Favoriten",
+    "profil": "Profil",
+    "unreadBadgeLabel": "Neues Angebot"
+  },
+  "ProjectGallery": {
+    "photoCountBadge": {
+      "few": "{count} Fotos",
+      "many": "{count} Fotos"
+    },
+    "coverAlt": "{name}, Modulhaus",
+    "thumbnailAlt": "{name}, Foto {index}",
+    "lightboxOpen": "Foto in voller Größe öffnen: {alt}",
+    "lightboxClose": "Fotoansicht schließen",
+    "lightboxPrev": "Vorheriges Foto",
+    "lightboxNext": "Nächstes Foto",
+    "lightboxCounter": "{current} / {total}"
+  },
+  "ShortlistActionBar": {
+    "selectedCount": "Ausgewählt: {count}/{max}",
+    "sendInquiry": "Anfrage senden"
+  },
+  "DeleteProductDialog": {
+    "heading": "Produkt löschen?",
+    "body": "Das Produkt „{name}“ wird dauerhaft aus Ihrem Katalog gelöscht. Dieser Vorgang kann nicht rückgängig gemacht werden.",
+    "cancel": "Abbrechen",
+    "confirm": "Löschen"
+  },
+  "GapClosurePackageSection": {
+    "heading": "Lückenschließungspaket kaufen",
+    "intro": "Wir kaufen in Ihrem Namen den vollständigen Satz fehlender Unterlagen und erklären das Land als zugelassen.",
+    "priceLabel": "Paketpreis",
+    "payButton": "Bezahlen",
+    "processingPayment": "Zahlung wird verarbeitet…",
+    "approvedStatus": "Zugelassen",
+    "paidMessage": "Paket bezahlt — das Land ist jetzt zugelassen.",
+    "backToMap": "Zurück zur Exportbereitschaftskarte"
+  },
+  "ProducerRegistrationBar": {
+    "registeredBadge": "Registriert",
+    "nipLabel": "NIP-Nummer"
+  },
+  "ClientRegistrationForm": {
+    "checkInboxHeading": "Prüfen Sie Ihr Postfach",
+    "checkInboxBody": "Wir haben einen Anmeldelink an die angegebene E-Mail-Adresse gesendet. Klicken Sie darauf, um die Kontoerstellung abzuschließen — der Link ist 24 Stunden gültig.",
+    "heading": "Kundenkonto erstellen",
+    "intro": "Geben Sie Ihre Daten an, um Anfragen an Hersteller zu senden. Kein Passwort — Sie melden sich mit einem per E-Mail gesendeten Link an.",
+    "sectionContactHeading": "Ihre Daten",
+    "sectionInvestorHeading": "Investorenstatus",
+    "investorLabel": "Ich bin Investor",
+    "investorDescription": "Sie planen eine Bestellung von 10 oder mehr Häusern.",
+    "nameLabel": "Vollständiger Name",
+    "phoneLabel": "Telefon",
+    "companyNameLabel": "Firmenname",
+    "submitButton": "Konto erstellen",
+    "alreadyHaveAccount": "Haben Sie bereits ein Konto?",
+    "loginLink": "Anmelden"
+  },
+  "LoginForm": {
+    "checkInboxHeading": "Prüfen Sie Ihr Postfach",
+    "checkInboxBody": "Wir haben einen Anmeldelink an die angegebene E-Mail-Adresse gesendet. Klicken Sie darauf, um sich anzumelden — der Link ist 24 Stunden gültig.",
+    "heading": "Anmelden",
+    "intro": "Geben Sie die E-Mail-Adresse an, an die wir den Anmeldelink senden. Kein Passwort.",
+    "unknownEmail": "Wir konnten kein Konto zu dieser E-Mail-Adresse finden. Erstellen Sie ein Konto, um sich anzumelden.",
+    "registerAsClient": "Als Kunde registrieren",
+    "registerAsProducer": "Als Hersteller registrieren",
+    "submitButton": "Anmeldelink senden",
+    "createAccount": "Konto erstellen"
+  },
+  "ProducerRegistrationForm": {
+    "checkInboxHeading": "Prüfen Sie Ihr Postfach",
+    "checkInboxBody": "Wir haben einen Anmeldelink an die angegebene E-Mail-Adresse gesendet. Klicken Sie darauf, um die Kontoerstellung abzuschließen — der Link ist 24 Stunden gültig.",
+    "heading": "Herstellerkonto erstellen",
+    "intro": "Geben Sie die Daten Ihres Unternehmens an. Kein Passwort — Sie melden sich mit einem per E-Mail gesendeten Link an, genau wie ein Kunde.",
+    "sectionCompanyHeading": "Unternehmensdaten",
+    "sectionLocationHeading": "Standort und Umfang",
+    "companyNameLabel": "Firmenname",
+    "phoneLabel": "Telefon",
+    "countryLabel": "Land",
+    "productionScaleLabel": "Produktionsumfang",
+    "submitButton": "Konto erstellen",
+    "alreadyHaveAccount": "Haben Sie bereits ein Konto?",
+    "loginLink": "Anmelden"
+  },
+  "RegistrationRoleStep": {
+    "eyebrow": "Registrierung",
+    "heading": "Konto erstellen",
+    "intro": "Wählen Sie die Art des Kontos, das Sie erstellen möchten.",
+    "clientHeading": "Kunde",
+    "clientDescription": "Sie suchen ein modulares Haus und möchten Anfragen an Hersteller senden.",
+    "producerHeading": "Hersteller",
+    "producerDescription": "Sie produzieren modulare Häuser und möchten Anfragen von Kunden erhalten.",
+    "selectCta": "Auswählen",
+    "changeRole": "Rolle ändern",
+    "alreadyHaveAccount": "Haben Sie bereits ein Konto?",
+    "loginLink": "Anmelden"
+  },
+  "ProductCatalogList": {
+    "heading": "Ihre Produkte",
+    "loading": "Wird geladen…",
+    "subtitle": "Alle Produkte, die unter der NIP-Nummer {nip} hinzugefügt wurden.",
+    "addProduct": "Produkt hinzufügen",
+    "emptyMessage": "Sie haben noch kein Produkt in Ihrem Katalog.",
+    "addFirstProduct": "Fügen Sie Ihr erstes Produkt hinzu",
+    "addedOn": "Hinzugefügt am {date}",
+    "bedroomsOne": "Schlafzimmer",
+    "bedroomsOther": "Schlafzimmer",
+    "editButton": "Bearbeiten",
+    "deleteButton": "Löschen"
+  },
+  "ProducerCatalogLookupForm": {
+    "label": "Haben Sie bereits ein Konto? Geben Sie Ihre NIP-Nummer ein, um Ihren Produktkatalog zu sehen",
+    "placeholder": "000-000-00-00",
+    "error": "Geben Sie eine gültige NIP-Nummer an (10 Ziffern).",
+    "submitButton": "Produkte ansehen"
+  },
+  "ProducerPanelTabs": {
+    "navAriaLabel": "Herstellerbereich",
+    "konto": "Konto",
+    "produkty": "Produkte",
+    "zapytania": "Anfragen",
+    "unreadBadgeLabel": "Kunde hat eine Entscheidung getroffen"
+  },
+  "ProducerPanelPage": {
+    "heading": "Konto",
+    "noProfile": "Für dieses Konto wurden keine Unternehmensdaten gefunden.",
+    "companyNameLabel": "Firmenname",
+    "deliveryCountriesLabel": "Lieferländer",
+    "technologyLabel": "Technologie",
+    "technologyNotSet": "Noch keine Technologie festgelegt.",
+    "verificationStatusLabel": "Verifizierungsstatus",
+    "verificationNotSubmitted": "Nicht eingereicht",
+    "verificationPending": "In Prüfung",
+    "verificationApproved": "Verifiziert",
+    "verificationRejected": "Abgelehnt",
+    "inquiriesOffers": "Anfragen und Angebote",
+    "demoScreensHeading": "Demomaterial",
+    "demoScreensDescription": "Diese Bildschirme zeigen, wie der weitere Herstellerweg aussieht — heute noch mit Beispieldaten, nicht mit Ihrem Konto.",
+    "demoExportReadiness": "Exportbereitschaft",
+    "demoCompanyVerification": "Unternehmensverifizierung",
+    "demoFulfillment": "Ausführungen"
+  },
+  "ProducerProductPhotosStep": {
+    "label": "Fotos",
+    "chooseFiles": "Dateien auswählen",
+    "hint": "JPEG, PNG oder WebP, max. 10 MB.",
+    "noPhotos": "Es wurde noch kein Foto hochgeladen.",
+    "requiredError": "Fügen Sie mindestens ein Foto hinzu.",
+    "uploadError": "Die Datei konnte nicht hochgeladen werden.",
+    "coverError": "Das Titelbild konnte nicht festgelegt werden.",
+    "deleteError": "Das Foto konnte nicht gelöscht werden.",
+    "coverLabel": "Titelbild",
+    "setCoverButton": "Als Titelbild festlegen",
+    "removePhoto": "{name} entfernen"
+  },
+  "ProducerProductList": {
+    "heading": "Produkte",
+    "addProduct": "Produkt hinzufügen",
+    "addFirstProduct": "Fügen Sie Ihr erstes Produkt hinzu",
+    "emptyMessage": "Sie haben noch kein Produkt in Ihrem Katalog.",
+    "unnamedProduct": "Produkt ohne Namen",
+    "addedOn": "Hinzugefügt am {date}",
+    "statusPublished": "Veröffentlicht",
+    "statusDraft": "Entwurf",
+    "editButton": "Bearbeiten",
+    "deleteButton": "Löschen",
+    "deleteError": "Das Produkt konnte nicht gelöscht werden."
+  },
+  "DemoScreenNotice": {
+    "message": "Demoversion: Dieser Bildschirm zeigt Beispieldaten, nicht die Daten Ihres Kontos."
+  },
+  "ProducerPanelZapytaniaPage": {
+    "heading": "Anfragen",
+    "emptyMessage": "Sie haben noch keine Kundenanfragen.",
+    "columnProducts": "Produkte",
+    "columnStatus": "Status",
+    "columnDate": "Datum",
+    "statusOpen": "Wartet auf Antwort",
+    "statusOffered": "Angebot erhalten",
+    "statusClosed": "Geschlossen",
+    "unreadDecisionLabel": "Kunde hat eine Entscheidung getroffen"
+  },
+  "ProducerInquiryDetailPage": {
+    "heading": "Anfragedetails",
+    "deliveryCountryLabel": "Lieferland",
+    "statusOpen": "Wartet auf Antwort",
+    "statusOffered": "Angebot erhalten",
+    "statusClosed": "Geschlossen",
+    "productsHeading": "Ihre Produkte in dieser Anfrage",
+    "productUnavailable": "(nicht verfügbar)",
+    "historyHeading": "Angebotsverlauf",
+    "columnStatus": "Status",
+    "columnTotal": "Gesamt",
+    "columnDate": "Datum",
+    "offerStatusActive": "Aktiv",
+    "offerStatusAccepted": "Angenommen",
+    "offerStatusRejected": "Abgelehnt",
+    "offerStatusSuperseded": "Ersetzt",
+    "lockedMessage": "Der Kunde hat dieses Angebot angenommen — es kann nicht mehr geändert werden.",
+    "backToInquiries": "Zurück zu den Anfragen"
+  },
+  "BulkOrdersShowcase": {
+    "heading": "Investitionsprojekte und Serienproduktion",
+    "subheading": "Große Bestellungen ab 10 Häusern: eine Anfrage erreicht verifizierte, volumenbereite Hersteller.",
+    "investorHeading": "Für Investoren",
+    "investorSubheading": "10+ Häuser",
+    "investorPoint1": "Individueller Herstellervergleich",
+    "investorPoint2": "Unterstützung bei Großprojekten",
+    "investorPoint3": "Termine, Produktionskapazität und Standard",
+    "investorCta": "Durchsuchen",
+    "investorSignatureLine1": "Größere Ideen",
+    "investorSignatureLine2": "Reale Möglichkeiten",
+    "producerHeading": "Für Hersteller",
+    "producerSubheading": "Große Produktionskapazität",
+    "producerPoint1": "Zeigen Sie Ihre Produktionskapazität",
+    "producerPoint2": "Gewinnen Sie Großaufträge",
+    "producerPoint3": "Status Verified Volume Manufacturer",
+    "producerCta": "Als B2B-Hersteller beitreten",
+    "producerSignatureLine1": "Gemeinsam",
+    "producerSignatureLine2": "Bauen wir mehr"
+  },
+  "ProjectRequestPage": {
+    "metaTitle": "Großes B2B-Projekt einreichen (10+ Häuser) | ModularHub Europe",
+    "metaDescription": "Senden Sie eine Anfrage für ein großes Investitionsprojekt (10 oder mehr Modulhäuser) an verifizierte Hersteller in Europa, ohne ein Konto zu erstellen."
+  },
+  "ProjectRequestFlow": {
+    "heading": "Großes Projekt einreichen",
+    "intro": "Senden Sie eine Anfrage für ein Projekt mit 10 oder mehr Modulhäusern — sie erreicht verifizierte, volumenbereite Hersteller im gewählten Land.",
+    "sentHeading": "Anfrage gesendet",
+    "backToHome": "Zurück zur Startseite",
+    "sectionAboutHeading": "Über das Projekt",
+    "countryLabel": "Land",
+    "projectTypeLabel": "Projektart",
+    "familiesLegend": "Produktfamilie",
+    "locationDetailLabel": "Standort (optional)",
+    "sectionDetailsHeading": "Details",
+    "unitCountMinLabel": "Mindestanzahl Einheiten",
+    "unitCountMaxLabel": "Maximale Anzahl Einheiten (optional)",
+    "floorAreaMinLabel": "Fläche von (m², optional)",
+    "floorAreaMaxLabel": "Fläche bis (m², optional)",
+    "completionStandardLabel": "Ausbaustandard (optional)",
+    "startWindowFromLabel": "Startfenster von (optional)",
+    "startWindowToLabel": "Startfenster bis (optional)",
+    "deliveryWindowFromLabel": "Lieferfenster von (optional)",
+    "deliveryWindowToLabel": "Lieferfenster bis (optional)",
+    "extrasNoteLabel": "Zusätzliche Anmerkungen (optional)",
+    "sectionContactHeading": "Kontaktdaten",
+    "nameLabel": "Vollständiger Name",
+    "emailInvalidError": "Geben Sie eine gültige E-Mail-Adresse an.",
+    "phoneLabel": "Telefon (optional)",
+    "dataSharingNotice": "Ihre Kontaktdaten werden an passende, verifizierte Hersteller weitergegeben, damit diese Ihnen Angebote zusenden können.",
+    "sendingLabel": "Wird gesendet…",
+    "retrySendLabel": "Erneut senden",
+    "sendLabel": "Anfrage senden",
+    "genericSendError": "Die Anfrage konnte nicht gesendet werden. Bitte versuchen Sie es erneut.",
+    "projectType": {
+      "resort": "Resort",
+      "holiday-park": "Ferienpark",
+      "housing-development": "Wohnsiedlung",
+      "student-housing": "Studentenwohnheim",
+      "senior-living": "Betreutes Wohnen für Senioren",
+      "workforce-accommodation": "Arbeiterunterkünfte",
+      "other": "Sonstiges"
+    },
+    "completionStandard": {
+      "surowy-zamkniety": "Rohbau geschlossen",
+      "deweloperski": "Bauträgerstandard",
+      "pod-klucz": "Schlüsselfertig"
+    },
+    "backStepLabel": "Zurück",
+    "nextStepLabel": "Weiter",
+    "stepperLabel": "Formularfortschritt",
+    "stepAnnouncement": "Schritt {current} von {total}: {label}"
+  },
+  "ProjectRequestConfirmationCard": {
+    "statusLabel": "Gesendet",
+    "heading": "Anfrage gesendet",
+    "message": "Passende, verifizierte Hersteller in Ihrem Land wurden über Ihr Projekt informiert.",
+    "emailNote": "Antworten (Angebote) gehen per E-Mail an {email} ein."
+  },
+  "VerifiedManufacturersPage": {
+    "metaTitle": "Verifizierte Volumenhersteller | ModularHub Europe",
+    "metaDescription": "Sehen Sie sich echte Projekte volumenverifizierter Hersteller an, bevor Sie eine Anfrage für eine Großbestellung senden.",
+    "heading": "Verifizierte Volumenhersteller",
+    "ctaLabel": "Anfrage einreichen",
+    "requestPromoHeading": "Wissen Sie genau, wonach Sie suchen?",
+    "verifiedBadge": "Volumenverifizierter Hersteller",
+    "capacityLabel": "{units} Häuser/Monat",
+    "certificationsLabel": "Zertifikate: {list}",
+    "deliveryLabel": "Lieferung: {list}",
+    "emptyStateHeading": "Heute ist kein Hersteller volumenverifiziert",
+    "emptyStateBody": "Senden Sie eine Anfrage für Ihr Großprojekt — wir benachrichtigen Sie, sobald ein verifizierter Hersteller in Ihrem Land verfügbar ist.",
+    "noMatchHeading": "Keine Projekte für die gewählten Filter",
+    "noMatchBody": "Kein volumenverifizierter Hersteller hat ein Projekt, das zu den gewählten Filtern passt. Setzen Sie die Filter zurück oder senden Sie direkt eine Anfrage für Ihr Projekt.",
+    "clearFiltersLabel": "Filter zurücksetzen"
+  },
+  "VerifiedManufacturersFilterBar": {
+    "countryLabel": "Lieferland",
+    "countryPlaceholder": "Land auswählen",
+    "countryAriaLabel": "Lieferland",
+    "sizeMinLabel": "Fläche von",
+    "sizeMaxLabel": "Fläche bis",
+    "anyPlaceholder": "Beliebig",
+    "keywordLabel": "Suchbegriff",
+    "keywordPlaceholder": "Modellname",
+    "searchAriaLabel": "Suchen"
+  },
+  "BulkProductInquiryModal": {
+    "triggerLabel": "Nach größerer Menge fragen",
+    "heading": "Nach größerer Menge fragen",
+    "nameLabel": "Vollständiger Name",
+    "phoneLabel": "Telefon (optional)",
+    "unitCountMinLabel": "Mindestanzahl",
+    "unitCountMaxLabel": "Maximalanzahl (optional)",
+    "deliveryCountryLabel": "Land der Lieferung",
+    "noteLabel": "Zusätzliche Anmerkungen (optional)",
+    "cancel": "Abbrechen",
+    "sendingLabel": "Wird gesendet…",
+    "sendLabel": "Anfrage senden",
+    "genericSendError": "Ihre Anfrage konnte nicht gesendet werden. Bitte versuchen Sie es erneut.",
+    "sentHeading": "Anfrage gesendet",
+    "sentBody": "Der Hersteller hat Ihre Anfrage erhalten und antwortet per E-Mail mit einem Angebot.",
+    "close": "Schließen"
+  }
+}

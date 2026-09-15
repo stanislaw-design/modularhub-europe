@@ -17,6 +17,11 @@ const nextConfig: NextConfig = {
         hostname: "picsum.photos",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "domihaus.com",
+        pathname: "/wp-content/uploads/**",
+      },
       ...(r2PublicDomain
         ? [
             {

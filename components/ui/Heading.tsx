@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { tv, type VariantProps } from "tailwind-variants";
+import { tv, type VariantProps } from "@/lib/tv";
 
 const heading = tv({
   base: "font-display font-semibold text-brand-foundation-navy",

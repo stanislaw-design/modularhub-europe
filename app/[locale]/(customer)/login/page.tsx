@@ -17,7 +17,7 @@ export default async function LogowaniePage({
 
   return (
     <Container className="py-brand-6">
-      <Stack gap={5} className="mx-auto max-w-md">
+      <Stack gap={5} className="mx-auto max-w-lg">
         <Link
           href={`/${locale}`}
           aria-label="ModularHub Europe — strona główna"

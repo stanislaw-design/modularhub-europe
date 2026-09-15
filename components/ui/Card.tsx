@@ -1,5 +1,5 @@
 import type { ElementType, ReactNode } from "react";
-import { tv, type VariantProps } from "tailwind-variants";
+import { tv, type VariantProps } from "@/lib/tv";
 
 const card = tv({
   base: "rounded-card border border-brand-steel bg-brand-warm-white",

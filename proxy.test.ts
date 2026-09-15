@@ -27,7 +27,7 @@ function request(path: string): NextRequest {
 describe("proxy (spec 0028)", () => {
   describe("unrecognized locale segment (AC-3)", () => {
     it("redirects a two-letter segment next-intl won't recognize to the default locale, keeping the rest of the path", () => {
-      const response = proxy(request("/de/klient"));
+      const response = proxy(request("/fr/klient"));
 
       expect(response.status).toBe(307);
       expect(new URL(response.headers.get("location")!).pathname).toBe("/pl/klient");
@@ -35,13 +35,19 @@ describe("proxy (spec 0028)", () => {
     });
 
     it("redirects a bare unrecognized locale segment with no further path", () => {
-      const response = proxy(request("/de"));
+      const response = proxy(request("/fr"));
 
       expect(new URL(response.headers.get("location")!).pathname).toBe("/pl");
     });
 
     it("does not treat a recognized locale as unrecognized", () => {
       proxy(request("/en/results"));
+
+      expect(intlMiddlewareMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("treats de as a recognized locale, not an unrecognized segment (spec 0028 German extension)", () => {
+      proxy(request("/de/results"));
 
       expect(intlMiddlewareMock).toHaveBeenCalledTimes(1);
     });
@@ -127,6 +133,12 @@ describe("proxy (spec 0028)", () => {
 
     it("redirects /nl/internal/... to /pl/internal/...", () => {
       const response = proxy(request("/nl/internal/inquiries"));
+
+      expect(new URL(response.headers.get("location")!).pathname).toBe("/pl/internal/inquiries");
+    });
+
+    it("redirects /de/internal/... to /pl/internal/... (spec 0028 German extension)", () => {
+      const response = proxy(request("/de/internal/inquiries"));
 
       expect(new URL(response.headers.get("location")!).pathname).toBe("/pl/internal/inquiries");
     });

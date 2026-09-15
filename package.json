@@ -13,7 +13,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "migrate:product-photos": "tsx --env-file=.env.local scripts/migrate-existing-product-photos.ts"
+    "migrate:product-photos": "tsx --env-file=.env.local scripts/migrate-existing-product-photos.ts",
+    "import:domihaus": "tsx --env-file=.env.local scripts/import-domihaus-catalog.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.3",

@@ -53,6 +53,14 @@ export const producerTechnologyEnum = pgEnum("producer_technology", [
   "beton-modulowy",
 ]);
 
+// Orientacyjny wybór przy rejestracji (spec 0040 AC-8), czysto informacyjny,
+// odrębny od producerCapacityProfile.unitsPerMonth (dokładna liczba, spec 0037,
+// uzupełniana później w panelu).
+export const producerProductionScaleEnum = pgEnum("producer_production_scale", [
+  "do-10",
+  "powyzej-10",
+]);
+
 export const productStatusEnum = pgEnum("product_status", ["draft", "published"]);
 
 export const completionStandardEnum = pgEnum("completion_standard", [
@@ -74,9 +82,12 @@ export const productCategoryEnum = pgEnum("product_category", [
 // obok starej — Postgres nie ma ALTER TYPE ... DROP VALUE.
 export const productFamilyEnum = pgEnum("product_family", ["dom", "spa-modulowe", "kontenery-modulowe"]);
 
-// Tylko en/nl: polski zostaje na product.name/description samym, jako tekst
-// źródłowy (spec 0028 Decision) — ten enum nigdy nie nosi "pl".
-export const productTranslationLocaleEnum = pgEnum("product_translation_locale", ["en", "nl"]);
+// en/nl/de: polski zostaje na product.name/description samym, jako tekst
+// źródłowy (spec 0028 Decision) — ten enum nigdy nie nosi "pl". "de" dopisana
+// przez ALTER TYPE ... ADD VALUE (spec 0028 rozszerzenie o niemiecki, ten sam
+// wzorzec co productFamilyEnum wyżej) — Postgres nie ma DROP VALUE, więc to
+// jednokierunkowe rozszerzenie, nie przebudowa typu.
+export const productTranslationLocaleEnum = pgEnum("product_translation_locale", ["en", "nl", "de"]);
 
 export const spaSubcategoryEnum = pgEnum("spa_subcategory", ["sauna", "jacuzzi", "wellness-combo"]);
 
@@ -271,7 +282,13 @@ export const producer = pgTable("producer", {
     .references(() => country.code),
   rating: real("rating"),
   reviewCount: integer("review_count").notNull().default(0),
-  technology: producerTechnologyEnum("technology").notNull(),
+  // Nullable od spec 0040: formularz rejestracji przestał je zbierać (AC-8);
+  // istniejące konta nietknięte, nowe konta mają NULL do czasu ekranu edycji
+  // profilu producenta (spec 0040 Follow-up).
+  technology: producerTechnologyEnum("technology"),
+  // Orientacyjna skala produkcji zbierana przy rejestracji (spec 0040 AC-8),
+  // bez wpływu na żadną inną regułę czy walidację.
+  productionScale: producerProductionScaleEnum("production_scale"),
   verificationStatus: producerVerificationStatusEnum("verification_status")
     .notNull()
     .default("not_submitted"),
