@@ -50,6 +50,8 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 33 | Ekrany wejściowe dla dużych zamówień B2B | Slice 12 | in progress |
 | 34 | Kontenery modułowe zamiast pergoli | Foundation | in progress |
 | 35 | Poprawa flow logowania i rejestracji | Slice 2 | in progress |
+| 36 | Model danych karty projektu: warianty, koszty, harmonogram | Slice 2 | done |
+| 37 | Nowy układ strony projektu (klient) | Slice 2 | in progress |
 
 ## Foundations
 
@@ -272,6 +274,29 @@ Dziś rejestracja stoi na dwóch osobnych, niepowiązanych stronach (klient, pro
   - [x] Ekran logowania i nagłówek: "Załóż konto" zamiast "Zacznij", zawsze widoczny wyśrodkowany link rejestracji, przycisk "Wyślij link" na szerokość pola e mail, łagodny pusty stan technologii w panelu producenta, tłumaczenia, satisfies AC-1, AC-2, AC-3, AC-9
 - [ ] Zweryfikuj: `/check verify poprawa flow logowania i rejestracji`
 - [ ] Testuj: `/test poprawa flow logowania i rejestracji`
+
+### 36. Model danych karty projektu: warianty, koszty, harmonogram · full · done
+Dziś jeden produkt ma tylko jeden standard wykonania i jedną cenę naraz, więc karta projektu nie może pokazać, że ten sam dom bywa oferowany w kilku standardach z osobnymi, pełnymi cenami i zakresami (research `docs/research/2026-09-12-karta-projektu-research.md` nazywa to najpilniejszym problemem strony, potwierdzonym realnym przykładem od Castora). Ta funkcja rozszerza bazę o warianty produktu, pozycje kosztowe ze statusem i harmonogram per wariant, tak żeby cena nigdy nie mogła być pokazana obok zakresu innego standardu; przebudowa samej strony klienta pod te dane zostaje osobną, późniejszą funkcją.
+**Done when:** produkt może mieć kilka nazwanych wariantów, każdy z własną ceną, zakresem, pozycjami kosztowymi i harmonogramem; cena na liście wyników zawsze odpowiada wariantowi domyślnemu, nawet przy ręcznym wpisywaniu danych przez Neon MCP; wszystkie 88 dzisiejszych produktów zachowują swoją dzisiejszą cenę i standard po migracji.
+- [x] Zaprojektuj (spec): [0041](../specs/0041-model-danych-karty-projektu/index.md) (nowe tabele `product_variant`/`cost_line_item`/`product_timeline_stage`, wyzwalacz Postgresa synchronizujący cenę produktu z wariantem domyślnym, dwuprzebiegowa migracja, zapis nadal ręczny przez Neon MCP)
+- [x] Zbuduj: `/develop model danych karty projektu` — kod w `lib/db/schema.ts`, migracja `drizzle/0020_lame_tigra.sql`
+  - [x] Fundament wariantu i ceny: tabela `product_variant`, nowa wartość enuma kategorii pod wynajem/hotel, wyzwalacz synchronizacji ceny (z regułą jednego polecenia SQL przy zmianie wariantu domyślnego i pustą ceną zamiast zmieszanego zakresu), backfill 49 z 88 żywych produktów (39 bez `completion_standard` świadomie pominiętych, patrz Follow-up specyfikacji), satisfies AC-1, AC-5, AC-6, AC-7
+  - [x] Koszty i harmonogram: tabele `cost_line_item` i `product_timeline_stage`, migracja dzisiejszych list rzeczy w cenie/poza ceną i pól czasu produkcji/montażu na te nowe tabele (dla tych samych 49 produktów z wariantem), satisfies AC-2, AC-3
+  - [x] Logistyka, gwarancja i dokumenty: nowe kolumny na `product` (transport, dźwig, minimalna szerokość działki, gwarancja instalacji, zakres serwisu), `product_variant_id` na `document`, nowa wartość enuma na zdjęcie z realizacji, satisfies AC-4, AC-9
+- [x] Zweryfikuj: `/check verify model danych karty projektu`
+- [x] Testuj: `/test model danych karty projektu`
+
+### 37. Nowy układ strony projektu (klient) · in progress
+Strona szczegółów projektu klienta dziś pokazuje jeden standard wykonania i jedną cenę na produkt (spec 0020), a funkcja 36 zbudowała pod to nowy model danych (warianty, pozycje kosztowe, harmonogram), bez podłączenia strony do niego. Ta funkcja przebudowuje stronę: przełącznik wariantów z tabelą porównawczą cena i zakres, układ pomieszczeń, logistykę działki (wymiary transportowe, dźwig, minimalna szerokość), harmonogram z odpowiedzialnym wykonawcą, zakładki galerii rozróżniające wizualizacje od prawdziwych zdjęć z realizacji, i dwa nowe fakty zaufania do producenta (czas odpowiedzi, możliwość odwiedzin osobistych). Podobne domy i indywidualne opinie o modelu są świadomie poza zakresem, patrz Follow-up specyfikacji.
+**Done when:** strona projektu czyta `Project.variants` zamiast dzisiejszego `Project.commercial`, pokazuje osobną, pełną parę cena i zakres dla każdego wariantu bez możliwości pomieszania standardów, i dokłada sekcje układu pomieszczeń, logistyki i harmonogramu tylko tam gdzie dane istnieją.
+- [x] Zaprojektuj (spec): [0042](../specs/0042-nowy-uklad-strony-projektu/index.md) (przebudowa w miejscu, cienki plaster Tracer Bullet: najpierw integralność ceny i wariantu, potem reszta treści; wybór wariantu jako parametr URL, nie stan klienta)
+- [ ] Zbuduj: `/develop nowy układ strony projektu`
+  - [ ] Fundament: migracja addytywna (cztery nowe, opcjonalne kolumny) i sprzężone przejście `lib/data/projects.ts`/`lib/data/types.ts` i ich odbiorców na `Project.variants`/`roomLayout`/`documents`, satisfies AC-1, AC-3, AC-9, AC-10, AC-11
+  - [ ] Cienki plaster ceny: przełącznik wariantu w hero plus pełna tabela porównawcza kosztów w sekcji "Cena i zakres", satisfies AC-1, AC-2, AC-3, AC-11, AC-14
+  - [ ] Treść: układ domu, logistyka działki, harmonogram, w potwierdzonej kolejności sekcji, satisfies AC-4, AC-5, AC-6, AC-12, AC-13
+  - [ ] Zaufanie: zakładki galerii z rozróżnieniem realizacji, rozszerzony `ProducerCard` (odwiedziny, notatka, czas odpowiedzi), satisfies AC-7, AC-8, AC-9, AC-10
+- [ ] Zweryfikuj: `/check verify nowy układ strony projektu`
+- [ ] Testuj: `/test nowy układ strony projektu`
 
 ## Slice 2b: panel producenta
 
