@@ -28,12 +28,15 @@ vi.mock("@/lib/storage/r2-client", async (importOriginal) => {
 import { db } from "@/lib/db/client";
 import {
   auditLog,
+  costLineItem,
   document,
   producer,
   producerCapacityProfile,
   producerDeliveryCountry,
   product,
   productCountryEligibility,
+  productTimelineStage,
+  productVariant,
   users,
 } from "@/lib/db/schema";
 import {
@@ -708,6 +711,175 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: verified volume m
 
     it("returns null for a non-uuid id instead of throwing", async () => {
       expect(await getProducerVolumeProfile("not-a-uuid")).toBeNull();
+    });
+  });
+
+  // spec 0042: getProjectById assembles Project.variants (with nested
+  // costLineItems/timelineStages), Project.roomLayout and Project.documents
+  // from the real product_variant/cost_line_item/product_timeline_stage/
+  // document tables, replacing the old flat Project.commercial.
+  describe("getProjectById reads variants, room layout and documents (spec 0042)", () => {
+    const variantsUserId = crypto.randomUUID();
+    const variantsProducerId = crypto.randomUUID();
+    const variantsProductId = crypto.randomUUID();
+    const rawVariantId = crypto.randomUUID();
+    const turnkeyVariantId = crypto.randomUUID();
+    const noVariantProductId = crypto.randomUUID();
+
+    beforeAll(async () => {
+      await db.insert(users).values([
+        { id: variantsUserId, email: `data-projects-variants-${variantsUserId}@example.test`, phone: "+48000000001", role: "producer" },
+      ]);
+      await db.insert(producer).values({
+        id: variantsProducerId,
+        userId: variantsUserId,
+        nip: `DPV${variantsProducerId.slice(0, 8)}`,
+        name: "Test Variant Producer",
+        countryCode: "PL",
+        technology: "szkielet-drewniany",
+      });
+      await db.insert(product).values([
+        {
+          id: variantsProductId,
+          producerId: variantsProducerId,
+          status: "published",
+          family: "dom",
+          name: "Test Variant Product",
+          floorAreaM2: 90,
+          roomLayout: [
+            { name: "Salon", areaM2: 28, function: "Dzienna" },
+            { name: "Antresola", function: "Sypialnia", isMezzanine: true },
+          ],
+          currency: "EUR",
+        },
+        {
+          id: noVariantProductId,
+          producerId: variantsProducerId,
+          status: "published",
+          family: "dom",
+          name: "Test No-Variant Product",
+          floorAreaM2: 60,
+          currency: "EUR",
+        },
+      ]);
+      await db.insert(productVariant).values([
+        {
+          id: rawVariantId,
+          productId: variantsProductId,
+          completionStandard: "surowy-zamkniety",
+          priceMinCents: 13800000,
+          priceMaxCents: 16800000,
+          scopeSummary: "Bryła zamknięta.",
+          isDefault: false,
+          sortOrder: 1,
+        },
+        {
+          id: turnkeyVariantId,
+          productId: variantsProductId,
+          completionStandard: "pod-klucz",
+          priceMinCents: 20700000,
+          priceMaxCents: 22000000,
+          scopeSummary: "Gotowy do zamieszkania.",
+          isDefault: true,
+          sortOrder: 2,
+        },
+      ]);
+      await db.insert(costLineItem).values([
+        { productVariantId: rawVariantId, label: "Fundament", status: "po-stronie-klienta", sortOrder: 1 },
+        { productVariantId: turnkeyVariantId, label: "Fundament", status: "w-cenie", sortOrder: 1 },
+      ]);
+      await db.insert(productTimelineStage).values([
+        { productVariantId: turnkeyVariantId, stageKey: "montaz", durationMinDays: 3, durationMaxDays: 5 },
+        { productVariantId: turnkeyVariantId, stageKey: "produkcja", durationMinDays: 84, durationMaxDays: 112 },
+      ]);
+      await db.insert(document).values([
+        {
+          ownerUserId: variantsUserId,
+          productId: variantsProductId,
+          purpose: "product_floor_plan",
+          r2Key: "test/floor-plan.webp",
+          filename: "floor-plan.webp",
+          mimeType: "image/webp",
+          sizeBytes: 10,
+        },
+        {
+          ownerUserId: variantsUserId,
+          productId: variantsProductId,
+          productVariantId: turnkeyVariantId,
+          purpose: "product_realization_photo",
+          r2Key: "test/realization.webp",
+          filename: "realization.webp",
+          mimeType: "image/webp",
+          sizeBytes: 10,
+        },
+      ]);
+    });
+
+    afterAll(async () => {
+      await db.delete(document).where(inArray(document.productId, [variantsProductId, noVariantProductId]));
+      await db.delete(productTimelineStage).where(inArray(productTimelineStage.productVariantId, [rawVariantId, turnkeyVariantId]));
+      await db.delete(costLineItem).where(inArray(costLineItem.productVariantId, [rawVariantId, turnkeyVariantId]));
+      await db.delete(productVariant).where(inArray(productVariant.id, [rawVariantId, turnkeyVariantId]));
+      await db.delete(product).where(inArray(product.id, [variantsProductId, noVariantProductId]));
+      await db.delete(producer).where(eq(producer.id, variantsProducerId));
+      await db.delete(users).where(eq(users.id, variantsUserId));
+    });
+
+    it("assembles every variant with its own costLineItems and timelineStages, sorted by sort_order", async () => {
+      const project = await getProjectById(variantsProductId);
+      expect(project?.variants.map((variant) => variant.completionStandard)).toEqual([
+        "surowy-zamkniety",
+        "pod-klucz",
+      ]);
+
+      const rawVariant = project?.variants.find((variant) => variant.completionStandard === "surowy-zamkniety");
+      expect(rawVariant?.priceMin).toBe(138000);
+      expect(rawVariant?.priceMax).toBe(168000);
+      expect(rawVariant?.isDefault).toBe(false);
+      expect(rawVariant?.costLineItems).toEqual([
+        { id: expect.any(String), label: "Fundament", status: "po-stronie-klienta", responsibleParty: undefined },
+      ]);
+
+      const turnkeyVariant = project?.variants.find((variant) => variant.completionStandard === "pod-klucz");
+      expect(turnkeyVariant?.isDefault).toBe(true);
+      // Kolejność stała (formalności/produkcja/transport/montaż/wykończenie),
+      // nie kolejność wstawienia (spec 0042 AC-6).
+      expect(turnkeyVariant?.timelineStages.map((stage) => stage.stageKey)).toEqual(["produkcja", "montaz"]);
+    });
+
+    it("mirrors the trigger-derived product.price_min/max_cents at the top level, matching the default variant", async () => {
+      const project = await getProjectById(variantsProductId);
+      expect(project?.priceOnRequest).toBeFalsy();
+      expect(project?.priceMin).toBe(207000);
+      expect(project?.priceMax).toBe(220000);
+    });
+
+    it("reads roomLayout from product.room_layout, undefined when empty (spec 0042 AC-4)", async () => {
+      const withRooms = await getProjectById(variantsProductId);
+      expect(withRooms?.roomLayout).toEqual([
+        { name: "Salon", areaM2: 28, function: "Dzienna" },
+        { name: "Antresola", function: "Sypialnia", isMezzanine: true },
+      ]);
+
+      const withoutRooms = await getProjectById(noVariantProductId);
+      expect(withoutRooms?.roomLayout).toBeUndefined();
+    });
+
+    it("resolves documents by purpose, and a document assigned to one variant only appears there (spec 0042 AC-7, AC-8)", async () => {
+      const project = await getProjectById(variantsProductId);
+      const floorPlan = project?.documents.find((doc) => doc.purpose === "product_floor_plan");
+      const realization = project?.documents.find((doc) => doc.purpose === "product_realization_photo");
+
+      expect(floorPlan?.productVariantId).toBeUndefined();
+      expect(realization?.productVariantId).toBe(turnkeyVariantId);
+    });
+
+    it("treats a product with zero active variants exactly like priceOnRequest, never a mixed range (spec 0042 AC-11)", async () => {
+      const project = await getProjectById(noVariantProductId);
+      expect(project?.variants).toEqual([]);
+      expect(project?.priceOnRequest).toBe(true);
+      expect(project?.priceMin).toBe(0);
+      expect(project?.priceMax).toBe(0);
     });
   });
 });

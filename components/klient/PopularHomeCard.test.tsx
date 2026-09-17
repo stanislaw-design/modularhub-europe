@@ -11,16 +11,16 @@ describe("PopularHomeCard", () => {
     expect(screen.getByRole("link")).toHaveAttribute("href", "/pl/project/prj-modulor-family-90");
   });
 
-  it("shows the house price, excluding transport and assembly, when priceOnRequest is not set", async () => {
+  it("shows the project's starting price when priceOnRequest is not set", async () => {
     render(await PopularHomeCard({ project, countryName: "Polska", href: "/x" }));
-    expect(screen.getByText(/od\s+105\s?000\s?€/)).toBeInTheDocument();
+    expect(screen.getByText(/od\s+118\s?000\s?€/)).toBeInTheDocument();
   });
 
   it("shows Wycena indywidualna instead of a price when priceOnRequest is true (spec 0020 AC-5)", async () => {
     const onRequestProject = createMockProject({ priceOnRequest: true });
     render(await PopularHomeCard({ project: onRequestProject, countryName: "Polska", href: "/x" }));
     expect(screen.getByText("Wycena indywidualna")).toBeInTheDocument();
-    expect(screen.queryByText(/105\s?000/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/118\s?000/)).not.toBeInTheDocument();
   });
 
   it("shows the project name, floor area, room count and country", async () => {

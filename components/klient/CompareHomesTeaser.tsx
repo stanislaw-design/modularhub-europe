@@ -74,7 +74,7 @@ export async function CompareHomesTeaser({ locale, projects }: CompareHomesTease
                 {compareProjects.map((project) => (
                   <td key={project.id} className="p-brand-2">
                     <DataText className="text-body font-semibold">
-                      {priceFormatter.format(project.commercial.housePriceMinEur)} €
+                      {priceFormatter.format(project.priceMin)} €
                     </DataText>
                   </td>
                 ))}

@@ -117,6 +117,9 @@ function mapRowToProducer(
     deliveryCountries,
     featuredPhotoUrl,
     verified: row.verificationStatus === "approved",
+    inquiryResponseTimeLabel: row.inquiryResponseTimeLabel ?? undefined,
+    showroomVisitAvailable: row.showroomVisitAvailable,
+    showroomVisitNote: row.showroomVisitNote ?? undefined,
   };
 }
 

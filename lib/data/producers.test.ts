@@ -24,10 +24,15 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/producers: real DB", () => 
   const noProductsUserId = crypto.randomUUID();
   const noProductsProducerId = crypto.randomUUID();
 
+  const unfilledTrustUserId = crypto.randomUUID();
+  const unfilledTrustProducerId = crypto.randomUUID();
+  const unfilledTrustProductId = crypto.randomUUID();
+
   beforeAll(async () => {
     await db.insert(users).values([
       { id: withProductsUserId, email: `producers-test-1-${withProductsUserId}@example.test`, phone: "+48000000020", role: "producer" },
       { id: noProductsUserId, email: `producers-test-2-${noProductsUserId}@example.test`, phone: "+48000000021", role: "producer" },
+      { id: unfilledTrustUserId, email: `producers-test-3-${unfilledTrustUserId}@example.test`, phone: "+48000000022", role: "producer" },
     ]);
     await db.insert(producer).values([
       {
@@ -39,12 +44,23 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/producers: real DB", () => 
         rating: null,
         technology: "szkielet-drewniany",
         verificationStatus: "approved",
+        inquiryResponseTimeLabel: "2 dni robocze",
+        showroomVisitAvailable: true,
+        showroomVisitNote: "Umów wizytę telefonicznie.",
       },
       {
         id: noProductsProducerId,
         userId: noProductsUserId,
         nip: `PDT${noProductsProducerId.slice(0, 9)}`,
         name: "Producers Test Producer Without Products",
+        countryCode: "PL",
+        technology: "szkielet-drewniany",
+      },
+      {
+        id: unfilledTrustProducerId,
+        userId: unfilledTrustUserId,
+        nip: `PDT${unfilledTrustProducerId.slice(0, 9)}`,
+        name: "Producers Test Producer Without Trust Fields",
         countryCode: "PL",
         technology: "szkielet-drewniany",
       },
@@ -67,15 +83,23 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/producers: real DB", () => 
         name: "Producers Test Draft Product",
         floorAreaM2: 999,
       },
+      {
+        id: unfilledTrustProductId,
+        producerId: unfilledTrustProducerId,
+        family: "dom",
+        status: "published",
+        name: "Producers Test Unfilled Trust Product",
+        floorAreaM2: 60,
+      },
     ]);
     await db.insert(producerDeliveryCountry).values([{ producerId: withProductsProducerId, countryCode: "NL" }]);
   });
 
   afterAll(async () => {
-    await db.delete(product).where(inArray(product.id, [publishedProductId, draftProductId]));
+    await db.delete(product).where(inArray(product.id, [publishedProductId, draftProductId, unfilledTrustProductId]));
     await db.delete(producerDeliveryCountry).where(eq(producerDeliveryCountry.producerId, withProductsProducerId));
-    await db.delete(producer).where(inArray(producer.id, [withProductsProducerId, noProductsProducerId]));
-    await db.delete(users).where(inArray(users.id, [withProductsUserId, noProductsUserId]));
+    await db.delete(producer).where(inArray(producer.id, [withProductsProducerId, noProductsProducerId, unfilledTrustProducerId]));
+    await db.delete(users).where(inArray(users.id, [withProductsUserId, noProductsUserId, unfilledTrustUserId]));
   });
 
   describe("getProducerById", () => {
@@ -106,6 +130,20 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/producers: real DB", () => 
 
     it("returns null for a non-uuid id (old fixture-style slug)", async () => {
       expect(await getProducerById("prod-cocomodule")).toBeNull();
+    });
+
+    it("reads the trust fields added by spec 0042 (AC-9, AC-10)", async () => {
+      const result = await getProducerById(withProductsProducerId);
+      expect(result?.inquiryResponseTimeLabel).toBe("2 dni robocze");
+      expect(result?.showroomVisitAvailable).toBe(true);
+      expect(result?.showroomVisitNote).toBe("Umów wizytę telefonicznie.");
+    });
+
+    it("maps an unfilled showroomVisitAvailable to null, never a silent false (spec 0042 AC-9)", async () => {
+      const result = await getProducerById(unfilledTrustProducerId);
+      expect(result?.showroomVisitAvailable).toBeNull();
+      expect(result?.inquiryResponseTimeLabel).toBeUndefined();
+      expect(result?.showroomVisitNote).toBeUndefined();
     });
   });
 

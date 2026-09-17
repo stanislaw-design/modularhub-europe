@@ -32,6 +32,7 @@ Ten pierwszy etap jest świadomie prototypem demonstracyjnym: żaden ekran nic t
 | 17 | Tokeny marki v4 (fundament wizualny) | Foundation | in-progress |
 | 18 | Katalog produktów (producent) | Prototyp | in-progress |
 | 19 | Strona szczegółów projektu (klient) | Prototyp | done |
+| 20 | Tryb ciemny (flow klienta) | Prototyp | done |
 
 ## Foundations
 
@@ -234,6 +235,18 @@ Dziś karty projektów w wynikach i na stronie startowej nie prowadzą nigdzie �
   - [x] SEO: `generateMetadata` per projekt, JSON-LD Product/Offer, obraz OG, canonical (satisfies AC-9)
 - [x] Zweryfikuj: `/check verify strona szczegółów projektu`
 - [x] Testuj: `/test strona szczegółów projektu` (`lib/data/producers.test.ts`, `components/klient/ProjectGallery.test.tsx`, `ProjectTechnicalSpecs.test.tsx`, `ProjectCertifications.test.tsx`, `PopularHomeCard.test.tsx`, `PopularHomes.test.tsx`, rozszerzone `ResultCard.test.tsx`, e2e `projekt-szczegoly.spec.ts` — 403/403 vitest, 6/6 e2e)
+
+### 20. Tryb ciemny (flow klienta) · done
+Przełącznik motywu (jasny/ciemny) w `SiteHeader`, obok `LanguageSwitcher`, obejmujący całą trasę `app/[locale]/klient/**`, zaczynając od strony głównej. Domyślny motyw idzie za preferencją systemową (`prefers-color-scheme`), jawny wybór jest zapamiętywany w cookie i wygrywa na kolejnych stronach/wizytach. Jasny motyw zostaje bez zmian; producent i panel wewnętrzny zostają na razie tylko jasne. Odkryte przez `/architect` po zamknięciu strony szczegółów projektu (funkcja 19), nie od początku planu — stąd numer poza kolejnością.
+**Done when:** przełącznik jest widoczny i działa na każdej trasie flow klienta (desktop i mobile), pierwsza wizyta bez zapisanego wyboru respektuje ustawienie systemowe bez błysku złego motywu, jawny wybór przetrwa przeładowanie i zmianę strony, jasny motyw wygląda identycznie jak dziś, a tekst/`StatusPill`/`.focus-ring` przechodzą kontrast WCAG 2.2 AA na ciemnym tle.
+- [x] Zaprojektuj (spec): [0043](../specs/0043-tryb-ciemny-flow-klienta/index.md)
+- [x] Zbuduj: `/develop tryb ciemny (flow klienta)` — kod w `lib/theme.ts`, `components/ui/{ThemeProvider,ThemeToggle}.tsx`, `app/[locale]/(customer)/layout.tsx`, `app/globals.css`
+  - [x] Tokeny i strategia CSS: `@custom-variant dark`, wartości ciemne dla v3/v4/v5 w `app/globals.css` (satisfies AC-3, AC-6, AC-7)
+  - [x] Most cookie i kontekst: `lib/theme.ts`, `ThemeProvider`, wpięcie w `app/[locale]/(customer)/layout.tsx` — nie `app/[locale]/layout.tsx` jak zapisano w specu: prawdziwa struktura tras to route group `(customer)`, nie folder `klient/`, a każda trasa producenta/internal ma własny, osobny layout, więc scoping przez `.theme-klient` (wpięty tylko w warstwę klienta) był konieczny żeby AC-11 się utrzymało nawet gdy odwiedzający ma systemowy tryb ciemny na trasie producenta (satisfies AC-4, AC-11)
+  - [x] Przełącznik w interfejsie: `ThemeToggle` w `SiteHeader` (desktop + mobile), tłumaczenia (satisfies AC-1, AC-2, AC-5, AC-9)
+  - [x] Audyt komponentów i kontrastu: `components/klient/`/`components/ui/` już nie miały twardych kolorów (reguła z `AGENTS.md` trzymana), ale kilkanaście miejsc nadużywało tokenów `v5-ink`/`v5-surface` do roli "stały ciemny akcent" zamiast "odwracalny tekst/tło" — przełączone na `v5-night`/`v5-paper`; kontrast dobranych wartości ciemnych wyliczony matematycznie (WCAG relative luminance), nie tylko wzrokowo (satisfies AC-6, AC-7, AC-8)
+- [x] Zweryfikuj: `/check verify tryb ciemny (flow klienta)` — PASS; po drodze znaleziony i naprawiony prawdziwy błąd (patrz `verify.md`): portalowane `Dialog` (menu mobilne, arkusz filtrów) zostawały jasne w trybie ciemnym
+- [x] Testuj: `/test tryb ciemny (flow klienta)` — 32 testy jednostkowe (`lib/theme.test.ts`, `components/ui/{ThemeProvider,ThemeToggle}.test.tsx`, rozszerzone `SiteHeader.test.tsx`) + 6 e2e (`e2e/tryb-ciemny.spec.ts`, w tym dwa nowe testy blokujące regresję błędu portalowanego `Dialog` znalezionego przy weryfikacji), wszystkie zielone
 
 ## Deferred
 Poza zakresem tego pierwszego etapu, świadomie odłożone do podłączenia prawdziwego zaplecza po ekranie. Większość poniższych pozycji jest teraz aktywnie zaplanowana w epice [Produkcja](produkcja.md), link przy każdej pozycji wskazuje na jej nowy numer.

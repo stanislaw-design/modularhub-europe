@@ -47,10 +47,10 @@ export async function ComplianceEngineShowcase({ locale }: ComplianceEngineShowc
           </Text>
         </div>
         <div className="lg:col-span-7">
-          <div className="flex flex-col gap-brand-3 rounded-v5-panel bg-brand-v5-night p-brand-4 text-brand-v5-surface">
+          <div className="flex flex-col gap-brand-3 rounded-v5-panel bg-brand-v5-night p-brand-4 text-brand-v5-paper">
             <div className="flex items-start justify-between gap-brand-2">
               <div className="flex flex-col gap-0.5">
-                <Text className="text-body-l font-semibold text-brand-v5-surface">
+                <Text className="text-body-l font-semibold text-brand-v5-paper">
                   Nordic 126
                 </Text>
                 <Text className="text-data text-brand-v4-mist">{t("exampleLocation")}</Text>
@@ -66,14 +66,14 @@ export async function ComplianceEngineShowcase({ locale }: ComplianceEngineShowc
                   key={item.label}
                   className="flex items-center justify-between gap-brand-2 py-brand-2"
                 >
-                  <DataText className="text-data text-brand-v5-surface">{item.label}</DataText>
+                  <DataText className="text-data text-brand-v5-paper">{item.label}</DataText>
                   {item.status === "ok" ? (
-                    <span className="flex items-center gap-1 text-data text-brand-v5-surface">
+                    <span className="flex items-center gap-1 text-data text-brand-v5-paper">
                       <CheckCircle2 className="size-4 text-status-approved" aria-hidden="true" />
                       {t("statusOk")}
                     </span>
                   ) : (
-                    <span className="flex items-center gap-1 text-data text-brand-v5-surface">
+                    <span className="flex items-center gap-1 text-data text-brand-v5-paper">
                       <AlertTriangle className="size-4 text-status-conditional" aria-hidden="true" />
                       {t("statusWarning")}
                     </span>

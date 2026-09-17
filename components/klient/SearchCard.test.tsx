@@ -5,8 +5,8 @@ import type { Country } from "@/lib/data/types";
 import { SearchCard } from "./SearchCard";
 
 // jsdom has no matchMedia (same gap noted in CategoryShowcase.test.tsx): motion/react's
-// useReducedMotion (SearchSegment) and WordRotate (the collapsed-teaser hint) both call
-// it unconditionally, so every test here needs a working stub rather than a per-call guard.
+// useReducedMotion (SearchSegment, the category tab indicator) calls it unconditionally,
+// so every test here needs a working stub rather than a per-call guard.
 window.matchMedia ??= ((query: string) => ({
   matches: false,
   media: query,
@@ -29,26 +29,45 @@ const countries: Country[] = [
   { code: "DE", name: "Niemcy" },
 ];
 
-// The card starts collapsed to a single teaser button (spec 0015 AC-3); every
-// test below needs the real form expanded first to reach the tabs/fields.
-async function expandCard(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getByRole("button", { name: /w czym mogę pomóc/i }));
-}
-
 describe("SearchCard", () => {
-  it("renders exactly two family tabs, Domy and Więcej niż dom, not the old three (spec 0035 AC-1)", async () => {
+  it("pre-fills Gdzie from the active locale (pl -> Polska), so Szukaj is usable without picking a country first", () => {
+    render(<SearchCard locale="pl" countries={countries} />);
+
+    expect(screen.getByRole("button", { name: "Kraj docelowy" })).toHaveTextContent("Polska");
+    expect(screen.getByRole("button", { name: /szukaj/i })).toBeEnabled();
+  });
+
+  it("pre-fills Gdzie from a non-default locale too (de -> Niemcy)", () => {
+    render(<SearchCard locale="de" countries={countries} />);
+
+    expect(screen.getByRole("button", { name: "Kraj docelowy" })).toHaveTextContent("Niemcy");
+  });
+
+  it("leaves Gdzie unselected when the locale has no matching country (en)", () => {
+    render(<SearchCard locale="en" countries={countries} />);
+
+    expect(screen.getByRole("button", { name: "Kraj docelowy" })).toHaveTextContent("Kraj, region lub miasto");
+    expect(screen.getByRole("button", { name: /szukaj/i })).toBeDisabled();
+  });
+
+  it("navigates using the locale-prefilled country when Szukaj is clicked without touching Gdzie", async () => {
     const user = userEvent.setup();
     render(<SearchCard locale="pl" countries={countries} />);
-    await expandCard(user);
+
+    await user.click(screen.getByRole("button", { name: /szukaj/i }));
+
+    expect(push).toHaveBeenCalledWith("/pl/results?country=PL");
+  });
+
+  it("renders exactly two family tabs, Domy and Więcej niż dom, not the old three (spec 0035 AC-1)", () => {
+    render(<SearchCard locale="pl" countries={countries} />);
 
     const tabs = screen.getAllByRole("tab");
     expect(tabs.map((tab) => tab.textContent)).toEqual(["Domy", "Więcej niż dom"]);
   });
 
-  it("selects Domy by default", async () => {
-    const user = userEvent.setup();
+  it("selects Domy by default", () => {
     render(<SearchCard locale="pl" countries={countries} />);
-    await expandCard(user);
 
     expect(screen.getByRole("tab", { name: "Domy" })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByRole("tab", { name: "Więcej niż dom" })).toHaveAttribute("aria-selected", "false");
@@ -57,7 +76,6 @@ describe("SearchCard", () => {
   it("navigates to /wyniki with family=wiecej-niz-dom when that tab is active on search (AC-2)", async () => {
     const user = userEvent.setup();
     render(<SearchCard locale="pl" countries={countries} />);
-    await expandCard(user);
 
     await user.click(screen.getByRole("tab", { name: "Więcej niż dom" }));
     await user.click(screen.getByRole("button", { name: "Kraj docelowy" }));
@@ -70,7 +88,6 @@ describe("SearchCard", () => {
   it("omits family from the URL when Domy (the default) is active on search (AC-1)", async () => {
     const user = userEvent.setup();
     render(<SearchCard locale="pl" countries={countries} />);
-    await expandCard(user);
 
     await user.click(screen.getByRole("button", { name: "Kraj docelowy" }));
     await user.click(screen.getByRole("option", { name: "Polska" }));
@@ -82,7 +99,6 @@ describe("SearchCard", () => {
   it("keeps Budżet and Powierzchnia unchanged regardless of the active family tab (AC-5)", async () => {
     const user = userEvent.setup();
     render(<SearchCard locale="pl" countries={countries} />);
-    await expandCard(user);
 
     await user.click(screen.getByRole("tab", { name: "Więcej niż dom" }));
 

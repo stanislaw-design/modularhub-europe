@@ -21,7 +21,7 @@ describe("ResultCard", () => {
   it("shows the comparable project, scope, technology and delivery facts (AC-7)", () => {
     render(<ResultCard project={project} countryName="Polska" locale="pl" />);
     expect(screen.getByText("Modulor Family 90")).toBeInTheDocument();
-    expect(screen.getByText(/od 105\s?000\s?€/)).toBeInTheDocument();
+    expect(screen.getByText(/od 118\s?000\s?€/)).toBeInTheDocument();
     expect(screen.getByText(/Modulor Systems Sp\. z o\.o\..*Polska/)).toBeInTheDocument();
     expect(screen.getByText(/90 m² użytkowe.*4 pokoje.*1 kond/)).toBeInTheDocument();
     expect(screen.getByText(/Prefabrykowany szkielet drewniany.*Standard deweloperski/)).toBeInTheDocument();
@@ -53,8 +53,8 @@ describe("ResultCard", () => {
   it("shows only the house price, without transport or assembly, even when countryCode is set", () => {
     render(<ResultCard project={project} countryName="Polska" locale="pl" countryCode="DE" />);
 
-    expect(screen.getByText("Cena")).toBeInTheDocument();
-    expect(screen.getByText(/od 105\s?000\s?€/)).toBeInTheDocument();
+    expect(screen.getByText(/Cena/)).toBeInTheDocument();
+    expect(screen.getByText(/od 118\s?000\s?€/)).toBeInTheDocument();
     expect(screen.queryByText("Razem")).not.toBeInTheDocument();
     expect(screen.queryByText("Montaż")).not.toBeInTheDocument();
   });
@@ -119,5 +119,64 @@ describe("ResultCard", () => {
     const checkbox = screen.getByRole("checkbox");
     expect(checkbox).toBeEnabled();
     expect(checkbox).not.toHaveAttribute("title");
+  });
+
+  it("pairs the price with the default variant's name and scope (spec 0044 AC-1)", () => {
+    render(<ResultCard project={project} countryName="Polska" locale="pl" />);
+    expect(screen.getAllByText(/Standard deweloperski/).length).toBeGreaterThan(0);
+    expect(screen.getByText("Dom w standardzie deweloperskim, gotowy do wykończenia.")).toBeInTheDocument();
+  });
+
+  it("shows a scope-to-be-confirmed fallback instead of hiding the scope line (spec 0044 AC-2)", () => {
+    const noScopeProject = createMockProject({
+      variants: [{ ...project.variants[0], scopeSummary: undefined }],
+    });
+    render(<ResultCard project={noScopeProject} countryName="Polska" locale="pl" />);
+    expect(screen.getByText("Zakres do potwierdzenia")).toBeInTheDocument();
+  });
+
+  it("shows a floor-plan link only when a product_floor_plan document exists (spec 0044 AC-3)", () => {
+    render(<ResultCard project={project} countryName="Polska" locale="pl" />);
+    expect(screen.queryByText("Rzut dostępny")).not.toBeInTheDocument();
+
+    const withPlan = createMockProject({ documents: [{ url: "/plan.png", purpose: "product_floor_plan" }] });
+    render(<ResultCard project={withPlan} countryName="Polska" locale="pl" />);
+    const link = screen.getByRole("link", { name: `Zobacz rzut projektu ${withPlan.name}` });
+    expect(link).toHaveAttribute("href", `/pl/project/${withPlan.id}?zakladka=rzut`);
+  });
+
+  it("preserves the country param on the floor-plan link (spec 0044 AC-3)", () => {
+    const withPlan = createMockProject({ documents: [{ url: "/plan.png", purpose: "product_floor_plan" }] });
+    render(<ResultCard project={withPlan} countryName="Polska" locale="pl" countryCode="DE" />);
+    expect(screen.getByRole("link", { name: `Zobacz rzut projektu ${withPlan.name}` })).toHaveAttribute(
+      "href",
+      `/pl/project/${withPlan.id}?country=DE&zakladka=rzut`
+    );
+  });
+
+  it("renders no compare checkbox when onToggleCompare is not provided (spec 0044 AC-4)", () => {
+    render(<ResultCard project={project} countryName="Polska" locale="pl" onToggleSelect={vi.fn()} />);
+    expect(screen.getAllByRole("checkbox")).toHaveLength(1);
+  });
+
+  it("renders an independent compare checkbox alongside the inquiry checkbox (spec 0044 AC-4)", async () => {
+    const user = userEvent.setup();
+    const onToggleSelect = vi.fn();
+    const onToggleCompare = vi.fn();
+    render(
+      <ResultCard
+        project={project}
+        countryName="Polska"
+        locale="pl"
+        onToggleSelect={onToggleSelect}
+        onToggleCompare={onToggleCompare}
+      />
+    );
+
+    const compareCheckbox = screen.getByRole("checkbox", { name: `Porównaj ${project.name} z innymi domami` });
+    await user.click(compareCheckbox);
+
+    expect(onToggleCompare).toHaveBeenCalledTimes(1);
+    expect(onToggleSelect).not.toHaveBeenCalled();
   });
 });

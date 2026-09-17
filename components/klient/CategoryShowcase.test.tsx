@@ -104,17 +104,8 @@ describe("CategoryShowcase", () => {
         id: `prj-${family}-example`,
         family,
         priceOnRequest: false,
-        commercial: {
-          housePriceMinEur: 42000,
-          housePriceMaxEur: 55000,
-          completionStandard: "deweloperski",
-          productionLeadTimeWeeksMin: 12,
-          productionLeadTimeWeeksMax: 16,
-          onSiteAssemblyDaysMin: 3,
-          onSiteAssemblyDaysMax: 5,
-          priceIncludes: [],
-          priceExcludes: [],
-        },
+        priceMin: 42000,
+        priceMax: 55000,
       })
     );
 

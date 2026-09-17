@@ -71,7 +71,7 @@ export async function VerifiedManufacturerProjectCard({
         <DataText as="p" className="text-body-l font-semibold">
           {project.priceOnRequest
             ? tCard("priceOnRequest")
-            : tCard("priceFrom", { price: priceFormatter.format(project.commercial.housePriceMinEur) })}
+            : tCard("priceFrom", { price: priceFormatter.format(project.priceMin) })}
         </DataText>
         <div className="mt-auto flex flex-wrap gap-brand-3 border-t border-brand-v5-line pt-brand-2">
           {unitsPerMonth !== null && (

@@ -1,7 +1,6 @@
-import { Award, CheckCircle2, Minus, ShieldCheck, Truck } from "lucide-react";
+import { Award, ShieldCheck, Truck } from "lucide-react";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { Button, Card, DataText, Heading, StatusPill, Text } from "@/components/ui";
@@ -9,24 +8,19 @@ import { BulkProductInquiryModal } from "@/components/klient/BulkProductInquiryM
 import { FavoriteButton } from "@/components/klient/FavoriteButton";
 import { ProducerCard } from "@/components/klient/ProducerCard";
 import { ProjectCertifications } from "@/components/klient/ProjectCertifications";
-import { ProjectGalleryCover, ProjectGalleryThumbnails } from "@/components/klient/ProjectGallery";
+import { ProjectCostComparisonTable } from "@/components/klient/ProjectCostComparisonTable";
+import { ProjectGalleryTabs, type GalleryTabKey } from "@/components/klient/ProjectGalleryTabs";
 import { GalleryLightboxProvider } from "@/components/klient/ProjectGalleryLightbox";
-import {
-  AssemblyTimeIcon,
-  BathroomsIcon,
-  BedroomsIcon,
-  CompletionStandardIcon,
-  FloorAreaIcon,
-  ProductionTimeIcon,
-  RoomsIcon,
-  StoreysIcon,
-  WarrantyIcon,
-} from "@/components/klient/ProjectSpecIcons";
+import { ProjectLogistics } from "@/components/klient/ProjectLogistics";
+import { ProjectRoomLayout } from "@/components/klient/ProjectRoomLayout";
+import { ProjectSectionNav } from "@/components/klient/ProjectSectionNav";
 import { ProjectTechnicalSpecs } from "@/components/klient/ProjectTechnicalSpecs";
+import { ProjectTimeline } from "@/components/klient/ProjectTimeline";
+import { ProjectVariantPicker } from "@/components/klient/ProjectVariantPicker";
 import { getCountries } from "@/lib/data/countries";
 import { getProducerById } from "@/lib/data/producers";
-import { getEligibilityByCountry, getProducerVolumeProfile, getProjectById } from "@/lib/data/projects";
-import type { EligibilityByCountry } from "@/lib/data/types";
+import { getDisplayProjectVariants, getEligibilityByCountry, getProducerVolumeProfile, getProjectById } from "@/lib/data/projects";
+import type { CompletionStandard, EligibilityByCountry } from "@/lib/data/types";
 import { getClientIdForUser, getFavoritedProductIds } from "@/lib/db/queries";
 import { routing, type Locale } from "@/lib/i18n/routing";
 import { parseResultsSearchParams } from "@/lib/results-filters";
@@ -35,6 +29,28 @@ const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0
 
 function countBucket(count: number): "one" | "few" | "many" {
   return count === 1 ? "one" : count >= 2 && count <= 4 ? "few" : "many";
+}
+
+function firstParam(value: string | string[] | undefined): string | undefined {
+  return typeof value === "string" ? value : undefined;
+}
+
+// Klon dzisiejszego search params z jedną nadpisaną wartością (spec 0042
+// AC-1): przełącznik wariantu i zakładki galerii idą przez zwykłą nawigację
+// <Link>, nie stan klienta, więc każdy inny parametr (np. country) musi
+// przetrwać zmianę.
+function buildQueryHref(searchParams: PageSearchParams, overrides: Record<string, string | undefined>): string {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(searchParams)) {
+    const resolved = firstParam(value);
+    if (resolved) params.set(key, resolved);
+  }
+  for (const [key, value] of Object.entries(overrides)) {
+    if (value === undefined) params.delete(key);
+    else params.set(key, value);
+  }
+  const query = params.toString();
+  return query ? `?${query}` : "";
 }
 
 type PageParams = { locale: string; id: string };
@@ -88,11 +104,12 @@ export default async function ProjektPage({
   params: Promise<PageParams>;
   searchParams: Promise<PageSearchParams>;
 }) {
-  const [{ locale, id }, rawSearchParams, t, tGallery] = await Promise.all([
+  const [{ locale, id }, rawSearchParams, t, tGallery, tOptions] = await Promise.all([
     params,
     searchParams,
     getTranslations("KlientProjektPage"),
     getTranslations("ProjectGallery"),
+    getTranslations("ProjectOptions"),
   ]);
   const project = await getProjectById(id, locale as Locale);
   if (!project) notFound();
@@ -123,12 +140,10 @@ export default async function ProjektPage({
     : undefined;
   const eligibility = eligibilityRows.find((row) => row.projectId === project.id);
   const galleryExtraImages = project.galleryImageUrls?.filter((url) => url.length > 0) ?? [];
-  const descriptionImageUrl = galleryExtraImages.at(-1) ?? project.coverImageUrl;
-  const isLongDescription = project.description.trim().length > 220;
   // Ta sama kolejność co okładka (index 0) + miniatury (index 1+) w
-  // ProjectGalleryCover/Thumbnails — GalleryLightboxProvider musi widzieć
-  // dokładnie ten sam zestaw zdjęć w tej samej kolejności, żeby strzałki w
-  // modalu odpowiadały temu, na co kliknięto.
+  // ProjectGalleryTabs (zakładka Wizualizacje) — GalleryLightboxProvider musi
+  // widzieć dokładnie ten sam zestaw zdjęć w tej samej kolejności, żeby
+  // strzałki w modalu odpowiadały temu, na co kliknięto.
   const lightboxImages = [
     { src: project.coverImageUrl, alt: tGallery("coverAlt", { name: project.name }) },
     ...galleryExtraImages.map((url, index) => ({
@@ -137,52 +152,50 @@ export default async function ProjektPage({
     })),
   ];
 
-  // Cztery ustalenia handlowe, filtrowane do tych realnie znanych: dane
-  // realnych dostawców bywają niepełne (Budman nie podaje gwarancji ani
-  // czasu produkcji/montażu), a "0 lat"/"0–0 dni" czytałoby się jako fałszywe
-  // zapewnienie, nie jako brak danych — ten sam wzorzec co ProjectTechnicalSpecs.
-  const commercialTerms = [
-    {
-      icon: CompletionStandardIcon,
-      label: t("completionStandardLabel"),
-      value: t(`completionStandard.${project.commercial.completionStandard}`),
-    },
-    project.structuralWarrantyYears > 0
-      ? {
-          icon: WarrantyIcon,
-          label: t("warrantyTermLabel"),
-          value: t("warrantyYearsValue", { years: project.structuralWarrantyYears }),
-        }
-      : null,
-    project.commercial.productionLeadTimeWeeksMax > 0
-      ? {
-          icon: ProductionTimeIcon,
-          label: t("productionTimeLabel"),
-          value: t("productionTimeValue", {
-            min: project.commercial.productionLeadTimeWeeksMin,
-            max: project.commercial.productionLeadTimeWeeksMax,
-          }),
-        }
-      : null,
-    project.commercial.onSiteAssemblyDaysMax > 0
-      ? {
-          icon: AssemblyTimeIcon,
-          label: t("assemblyTimeLabel"),
-          value:
-            project.commercial.onSiteAssemblyDaysMin === project.commercial.onSiteAssemblyDaysMax
-              ? t(project.commercial.onSiteAssemblyDaysMax === 1 ? "assemblyTimeOne" : "assemblyTimeMany", {
-                  count: project.commercial.onSiteAssemblyDaysMax,
-                })
-              : t("assemblyTimeValue", {
-                  min: project.commercial.onSiteAssemblyDaysMin,
-                  max: project.commercial.onSiteAssemblyDaysMax,
-                }),
-        }
-      : null,
-  ].filter((entry): entry is NonNullable<typeof entry> => entry !== null);
+  // Wszystkie trzy standardy wykończenia są zawsze wybieralne (enum
+  // zamknięty), niezależnie od tego, ile ma ich dziś wypełniony
+  // `product_variant` — standard bez wiersza w bazie to placeholder
+  // (getDisplayProjectVariants), żeby klient widział cały układ od razu.
+  const displayVariants = getDisplayProjectVariants(project);
+  // Wariant wybrany przez parametr adresu URL (spec 0042 AC-1): is_default,
+  // a w jego braku pierwszy wg sort_order wśród realnych wariantów.
+  const wariantParam = firstParam(rawSearchParams.wariant);
+  const defaultRealVariant = project.variants.find((variant) => variant.isDefault) ?? project.variants[0];
+  const selectedVariant =
+    displayVariants.find((variant) => variant.completionStandard === wariantParam) ??
+    (defaultRealVariant
+      ? displayVariants.find((variant) => variant.completionStandard === defaultRealVariant.completionStandard)
+      : displayVariants[0]);
+  const zakladkaParam = firstParam(rawSearchParams.zakladka);
+  const activeGalleryTab: GalleryTabKey =
+    zakladkaParam === "rzut" || zakladkaParam === "realizacje" ? zakladkaParam : "wizualizacje";
+
+  function hrefForVariant(standard: CompletionStandard): string {
+    return `/${locale}/project/${project!.id}${buildQueryHref(rawSearchParams, { wariant: standard })}`;
+  }
+  function hrefForGalleryTab(tab: GalleryTabKey): string {
+    return `/${locale}/project/${project!.id}${buildQueryHref(rawSearchParams, { zakladka: tab === "wizualizacje" ? undefined : tab })}`;
+  }
+
+  const standardLabel: Record<CompletionStandard, string> = {
+    "surowy-zamkniety": t("completionStandard.surowy-zamkniety"),
+    deweloperski: t("completionStandard.deweloperski"),
+    "pod-klucz": t("completionStandard.pod-klucz"),
+  };
+  const montazStage = selectedVariant?.timelineStages.find((stage) => stage.stageKey === "montaz");
+
+  // Odznaka przeznaczenia (spec 0042 AC-13): family + category, już
+  // istniejące pola, tylko luka w renderze — bez zmiany schematu. Category
+  // jest znacząca tylko dla family "dom" (lib/data/types.ts).
+  const familyLabel = tOptions(`family.${project.family}`);
+  const purposeBadge =
+    project.family === "dom" ? `${familyLabel} ${tOptions(`category.${project.category}`).toLowerCase()}` : familyLabel;
 
   const query = countryCode ? `&country=${countryCode}` : "";
-  const zapytanieHref = `/${locale}/inquiry?projects=${project.id}${query}`;
+  // Wariant przenosi się dalej do linku zapytania (AC-1), żeby wybór nie
+  // zgubił się przy przejściu do formularza.
+  const variantQuery = selectedVariant ? `&wariant=${selectedVariant.completionStandard}` : "";
+  const zapytanieHref = `/${locale}/inquiry?projects=${project.id}${query}${variantQuery}`;
   const shortlistHref = `/${locale}/results?projects=${project.id}${query}`;
   const dzialkaHref = `/${locale}/plot?projects=${project.id}${query}`;
 
@@ -214,29 +227,34 @@ export default async function ProjektPage({
           się nie renderuje i CTA żyje tylko w treści strony. */}
       <GalleryLightboxProvider images={lightboxImages}>
       <div className="flex flex-col gap-brand-6 pb-24 lg:pb-0">
-        {/* Hero: galeria + nazwa + cena + CTA (spec 0020 AC-1) — zdjęcia dostają
-            wizualną przewagę (7 z 12 kolumn). Prawa kolumna jest wyrównana do
-            wysokości samego zdjęcia głównego (items-stretch w tym wierszu), nie do
-            całej galerii razem z paskiem miniatur — dlatego miniatury renderują się
-            w osobnym wierszu siatki poniżej, poza tym stretch-em. */}
+        {/* Hero: galeria (z zakładkami) + nazwa + przeznaczenie + cena i wariant +
+            CTA (spec 0020 AC-1, spec 0042 AC-1, AC-13) — zdjęcia dostają wizualną
+            przewagę (7 z 12 kolumn). Prawa kolumna jest wyrównana do wysokości
+            samej galerii (items-stretch w tym wierszu). */}
         <div className="grid grid-cols-1 items-stretch gap-brand-4 lg:grid-cols-12">
-          {/* Pełna szerokość ekranu na mobile (przełamuje 6% padding Containera
-              ujemnym marginesem) — na desktopie z powrotem w siatce 7/12. */}
-          <div className="-mx-[6%] lg:col-span-7 lg:mx-0">
-            <ProjectGalleryCover
-              coverImageUrl={project.coverImageUrl}
-              totalCount={galleryExtraImages.length + 1}
+          <div className="lg:col-span-7">
+            <ProjectGalleryTabs
               projectName={project.name}
-              className="max-lg:rounded-none"
+              coverImageUrl={project.coverImageUrl}
+              galleryImageUrls={project.galleryImageUrls}
+              documents={project.documents}
+              selectedVariantId={selectedVariant?.id}
+              activeTab={activeGalleryTab}
+              hrefFor={hrefForGalleryTab}
             />
           </div>
           <div className="flex h-full flex-col justify-between gap-brand-3 lg:col-span-5">
             <div className="flex flex-col gap-brand-3">
               <div className="flex items-start justify-between gap-brand-2">
                 <div className="flex flex-col gap-1">
-                  <Heading level="h1" surface="v5">
-                    {project.name}
-                  </Heading>
+                  <div className="flex flex-wrap items-center gap-brand-2">
+                    <Heading level="h1" surface="v5">
+                      {project.name}
+                    </Heading>
+                    <span className="rounded-data border border-brand-v5-line px-brand-1 py-0.5 text-label font-semibold uppercase tracking-[0.1em] text-brand-v5-muted">
+                      {purposeBadge}
+                    </span>
+                  </div>
                   <Text tone="muted" surface="v5">
                     {project.producerName} · {countryName}
                   </Text>
@@ -251,7 +269,15 @@ export default async function ProjektPage({
                 />
               </div>
 
-              <Card padding="lg" surface="v5" className="flex flex-col gap-brand-2 border-brand-v5-amber-strong/30">
+              <ProjectVariantPicker
+                variants={displayVariants}
+                selectedVariantId={selectedVariant?.id ?? ""}
+                hrefFor={hrefForVariant}
+                standardLabel={standardLabel}
+                ariaLabel={t("variantPickerAriaLabel")}
+              />
+
+              <Card padding="lg" surface="v5" className="flex flex-col gap-brand-3 border-brand-v5-amber-strong/30">
                 {project.priceOnRequest ? (
                   <>
                     <Text variant="label" tone="muted" surface="v5">
@@ -264,7 +290,51 @@ export default async function ProjektPage({
                       {t("priceOnRequestHint")}
                     </Text>
                   </>
-                ) : (
+                ) : selectedVariant?.priceMin !== undefined && selectedVariant?.priceMax !== undefined ? (
+                  <>
+                    <Text variant="label" tone="muted" surface="v5">
+                      {t("priceForStandard", { standard: standardLabel[selectedVariant.completionStandard] })}
+                    </Text>
+                    <DataText as="p" surface="v5" className="text-h2 font-semibold">
+                      {priceFormatter.format(selectedVariant.priceMin)} €{" "}
+                      <Text as="span" tone="muted" surface="v5" className="text-body-l font-normal">
+                        {t("netVat")}
+                      </Text>
+                    </DataText>
+                    <Text tone="muted" surface="v5" className="text-data">
+                      {t("vatDisclaimer")}
+                    </Text>
+                    {selectedVariant.scopeSummary && (
+                      <Text tone="muted" surface="v5" className="text-data">
+                        {selectedVariant.scopeSummary}
+                      </Text>
+                    )}
+                    {(() => {
+                      const pendingCount = selectedVariant.costLineItems.filter(
+                        (item) => item.status === "do-wyceny",
+                      ).length;
+                      return (
+                        <div className="flex items-baseline justify-between gap-brand-3 border-t border-dashed border-brand-v5-line pt-brand-2">
+                          <Text tone="muted" surface="v5" className="text-data">
+                            {t("knownCostSum")}
+                          </Text>
+                          <DataText surface="v5" className="text-right text-body-l font-semibold">
+                            {priceFormatter.format(selectedVariant.priceMin)} €
+                            {pendingCount > 0 && (
+                              <Text as="span" tone="muted" surface="v5" className="ml-1 text-data font-normal">
+                                {t(`pendingCostItems.${countBucket(pendingCount)}`, { count: pendingCount })}
+                              </Text>
+                            )}
+                          </DataText>
+                        </div>
+                      );
+                    })()}
+                  </>
+                ) : project.variants.length === 0 ? (
+                  // Produkt bez żadnego jeszcze wypełnionego product_variant
+                  // (Follow-up spec 0041): pokazuje starą, płaską cenę
+                  // project.priceMin bez opisu zakresu — nigdy fałszywe
+                  // "wycena indywidualna" (spec 0042 AC-11).
                   <>
                     <Text variant="label" tone="muted" surface="v5">
                       {t("estimatedPackage")}
@@ -272,20 +342,61 @@ export default async function ProjektPage({
                     <DataText as="p" surface="v5" className="text-h2 font-semibold">
                       {t("from")} {priceFormatter.format(project.priceMin)} €
                     </DataText>
+                  </>
+                ) : (
+                  // Ten konkretny standard nie ma jeszcze własnego wiersza w
+                  // product_variant, choć inne standardy tego produktu mają —
+                  // jawny placeholder zamiast cichego przełączenia na płaską cenę.
+                  <>
+                    <Text variant="label" tone="muted" surface="v5">
+                      {t("priceForStandard", {
+                        standard: standardLabel[selectedVariant!.completionStandard],
+                      })}
+                    </Text>
+                    <StatusPill status="conditional">{t("toBeCompleted")}</StatusPill>
                     <Text tone="muted" surface="v5" className="text-data">
-                      {t("packageIncludes")}
+                      {t("scopeToBeCompleted")}
                     </Text>
                   </>
                 )}
                 <Button as="a" href={zapytanieHref} size="lg" surface="v5" className="mt-brand-1 w-full sm:w-fit">
                   {t("sendInquiry")}
                 </Button>
+                <Button as="a" href={shortlistHref} variant="secondary" surface="v5" className="w-full sm:w-fit">
+                  {t("compareWithAnother")}
+                </Button>
+                <div className="flex flex-col gap-1">
+                  <Text tone="muted" surface="v5" className="text-data">
+                    {t.rich("inquiryGoesTo", {
+                      producer: project.producerName,
+                      b: (chunks) => (
+                        <Text as="span" surface="v5" className="font-semibold">
+                          {chunks}
+                        </Text>
+                      ),
+                    })}
+                  </Text>
+                  {producer?.inquiryResponseTimeLabel ? (
+                    <Text tone="muted" surface="v5" className="text-data">
+                      {t("inquiryResponseTimeShort", { label: producer.inquiryResponseTimeLabel })}
+                    </Text>
+                  ) : (
+                    <span className="flex flex-wrap items-center gap-brand-1">
+                      <Text tone="muted" surface="v5" className="text-data">
+                        {t("inquiryResponseTimeLabel")}
+                      </Text>
+                      <StatusPill status="conditional">{t("toBeCompleted")}</StatusPill>
+                      <Text tone="muted" surface="v5" className="text-data">
+                        · {t("noPurchaseObligation")}
+                      </Text>
+                    </span>
+                  )}
+                </div>
               </Card>
             </div>
 
-            {/* Szybkie sygnały zaufania, przypięte do dołu kolumny (czyli do dołu
-                zdjęcia) — ten sam moment decyzji nie musi czekać na scroll do
-                sekcji technicznej, żeby zbić pierwsze obawy. */}
+            {/* Szybkie sygnały zaufania, przypięte do dołu kolumny — ten sam moment
+                decyzji nie musi czekać na scroll do sekcji technicznej. */}
             <div className="flex flex-col gap-brand-2">
               {project.structuralWarrantyYears > 0 && (
                 <span className="flex items-center gap-brand-1">
@@ -305,17 +416,17 @@ export default async function ProjektPage({
                   </Text>
                 </span>
               )}
-              {project.commercial.onSiteAssemblyDaysMax > 0 && (
+              {montazStage && (montazStage.durationMaxDays ?? 0) > 0 && (
                 <span className="flex items-center gap-brand-1">
                   <Truck className="size-4 shrink-0 text-status-approved" aria-hidden="true" />
                   <Text className="text-data" tone="muted" surface="v5">
-                    {project.commercial.onSiteAssemblyDaysMin === project.commercial.onSiteAssemblyDaysMax
-                      ? t(project.commercial.onSiteAssemblyDaysMax === 1 ? "assemblyDaysOne" : "assemblyDaysMany", {
-                          count: project.commercial.onSiteAssemblyDaysMax,
+                    {montazStage.durationMinDays === montazStage.durationMaxDays
+                      ? t(montazStage.durationMaxDays === 1 ? "assemblyDaysOne" : "assemblyDaysMany", {
+                          count: montazStage.durationMaxDays ?? 0,
                         })
                       : t("assemblyDays", {
-                          min: project.commercial.onSiteAssemblyDaysMin,
-                          max: project.commercial.onSiteAssemblyDaysMax,
+                          min: montazStage.durationMinDays ?? 0,
+                          max: montazStage.durationMaxDays ?? 0,
                         })}
                   </Text>
                 </span>
@@ -324,134 +435,57 @@ export default async function ProjektPage({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12">
-          <div className="lg:col-span-7">
-            <ProjectGalleryThumbnails galleryImageUrls={project.galleryImageUrls} projectName={project.name} />
-          </div>
-        </div>
+        <ProjectSectionNav
+          items={[
+            { id: "uklad", label: t("sectionNav.uklad") },
+            { id: "cena", label: t("sectionNav.cena") },
+            { id: "dzialka", label: t("sectionNav.dzialka") },
+            { id: "harmonogram", label: t("sectionNav.harmonogram") },
+            { id: "komfort", label: t("sectionNav.komfort") },
+            { id: "producent", label: t("sectionNav.producent") },
+            { id: "dokumenty", label: t("sectionNav.dokumenty"), disabled: true },
+            { id: "podobne", label: t("sectionNav.podobne"), disabled: true },
+          ]}
+          ariaLabel={t("sectionNavAriaLabel")}
+          scrollLeftLabel={t("sectionNavScrollLeft")}
+          scrollRightLabel={t("sectionNavScrollRight")}
+        />
 
         <div className="flex flex-col gap-brand-5">
-          {/* Kluczowe dane skrótowo (spec 0020 AC-1). Powierzchnia jest tym, co
-              pierwsze pada w rozmowie o domu, więc dostaje osobną, większą kolumnę
-              (grubsza plakietka, text-h1) — reszta parametrów stoi obok, mniejsza,
-              oddzielona pionową kreską. Kontrast rozmiaru robi hierarchię zamiast
-              jednego rzędu identycznych kafli, a rysunkowe ikony (linia wymiarowa,
-              rozwarcie drzwi, rzut łóżka...) mówią czego dotyczy dany parametr,
-              zamiast być zamiennym glifem z biblioteki. */}
-          <div className="flex flex-col gap-brand-4 rounded-v5-card border-2 border-brand-v5-ink bg-brand-v5-surface p-brand-4 sm:p-brand-5">
-            <div className="flex items-center gap-brand-3 border-b border-brand-v5-line pb-brand-4">
-              <span className="flex size-16 shrink-0 items-center justify-center rounded-data bg-brand-v5-ink">
-                <FloorAreaIcon className="size-8 text-brand-v5-paper" />
-              </span>
-              <div className="flex flex-col">
-                <DataText surface="v5" className="text-h2 font-black leading-none">
-                  {project.floorAreaM2} m²
-                </DataText>
-                <Text variant="label" tone="muted" surface="v5" className="font-semibold">
-                  {t("floorAreaLabel")}
-                </Text>
-              </div>
-            </div>
-
-            <div className="grid min-w-0 grid-cols-2 gap-brand-4 sm:grid-cols-4">
-              {(
-                [
-                  {
-                    icon: RoomsIcon,
-                    value: String(project.rooms),
-                    label: t(`roomsLabel.${countBucket(project.rooms)}`),
-                  },
-                  project.bedrooms > 0
-                    ? {
-                        icon: BedroomsIcon,
-                        value: String(project.bedrooms),
-                        label: t(`bedroomsLabel.${countBucket(project.bedrooms)}`),
-                      }
-                    : null,
-                  {
-                    icon: BathroomsIcon,
-                    value: String(project.bathrooms),
-                    label: t(`bathroomsLabel.${project.bathrooms === 1 ? "one" : "other"}`),
-                  },
-                  {
-                    icon: StoreysIcon,
-                    value: String(project.storeys),
-                    label: t(`storeysLabel.${project.storeys === 1 ? "one" : "other"}`),
-                  },
-                ] as const
-              )
-                .filter((entry) => entry !== null)
-                .map(({ icon: Icon, value, label }) => (
-                <div
-                  key={label}
-                  className="flex min-w-0 items-center gap-brand-2"
-                >
-                  <span className="flex size-11 shrink-0 items-center justify-center rounded-data bg-brand-v5-amber/10">
-                    <Icon className="size-6 text-brand-v5-amber-strong" />
-                  </span>
-                  <div className="flex min-w-0 flex-col">
-                    <DataText surface="v5" className="text-body-l font-black leading-none">
-                      {value}
-                    </DataText>
-                    <Text variant="label" tone="muted" surface="v5" className="text-[0.6875rem] font-semibold">
-                      {label}
-                    </Text>
-                  </div>
-                </div>
-              ))}
-            </div>
+          <div id="uklad" className="scroll-mt-20">
+            <ProjectRoomLayout
+              rooms={project.roomLayout ?? []}
+              roomCount={project.rooms}
+              bathroomCount={project.bathrooms}
+              projectName={project.name}
+              coverImageUrl={project.coverImageUrl}
+              documents={project.documents}
+            />
           </div>
 
-          {project.description.trim().length > 0 && (
-            <div className="grid grid-cols-1 gap-brand-5 lg:grid-cols-12 lg:items-center lg:gap-brand-6">
-              <div className="flex flex-col gap-brand-3 lg:col-span-7">
-                <Text variant="label" tone="muted" surface="v5">
-                  {t("descriptionLabel")}
-                </Text>
-                {isLongDescription ? (
-                  // Bez JS: `details[open]` w obrębie `.group/desc` steruje przez
-                  // `group-has-[[open]]` czy tekst jest przycięty i którą etykietę
-                  // pokazać — jeden przełącznik zamiast osobnego stanu klienckiego.
-                  <div className="group/desc flex flex-col items-start gap-brand-2">
-                    <Text
-                      variant="bodyL"
-                      surface="v5"
-                      measure
-                      className="text-h3 leading-snug line-clamp-4 group-has-[[open]]/desc:line-clamp-none"
-                    >
-                      {project.description}
-                    </Text>
-                    <details>
-                      <summary className="focus-ring w-fit cursor-pointer list-none text-body-l font-semibold text-brand-v5-ink underline underline-offset-2 [&::-webkit-details-marker]:hidden">
-                        <span className="group-has-[[open]]/desc:hidden">{t("showMore")}</span>
-                        <span className="hidden group-has-[[open]]/desc:inline">{t("showLess")}</span>
-                      </summary>
-                    </details>
-                  </div>
-                ) : (
-                  <Text variant="bodyL" surface="v5" measure className="text-h3 leading-snug">
-                    {project.description}
-                  </Text>
-                )}
-              </div>
-              {descriptionImageUrl && (
-                <div className="hidden lg:col-span-5 lg:block">
-                  <div className="relative aspect-[4/3] overflow-hidden rounded-v5-card">
-                    <Image
-                      src={descriptionImageUrl}
-                      alt={t("descriptionImageAlt", { name: project.name })}
-                      fill
-                      sizes="(min-width: 1024px) 33vw, 100vw"
-                      className="object-cover"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
-        <div className="flex flex-col gap-brand-4">
+        {/* Cena i zakres: tabela porównawcza pokazuje zawsze wszystkie trzy
+            standardy wykończenia (getDisplayProjectVariants), niezależnie od
+            tego, ile ma ich dziś wypełniony product_variant — standard bez
+            danych pokazuje "do uzupełnienia" zamiast znikać razem z całą
+            sekcją (świadome odejście od pierwotnego AC-2/AC-3/AC-11). */}
+        <div id="cena" className="flex scroll-mt-20 flex-col gap-brand-4">
+          <Heading level="h2" surface="v5" className="text-h3">
+            {t("priceAndScopeHeading")}
+          </Heading>
+          <ProjectCostComparisonTable variants={displayVariants} />
+        </div>
+
+        <div id="dzialka" className="scroll-mt-20">
+          <ProjectLogistics project={project} />
+        </div>
+
+        <div id="harmonogram" className="scroll-mt-20">
+          <ProjectTimeline stages={selectedVariant?.timelineStages ?? []} />
+        </div>
+
+        <div id="komfort" className="flex scroll-mt-20 flex-col gap-brand-4">
           <ProjectTechnicalSpecs project={project} />
 
           {(project.certifications?.length || project.simplifiedPermitEligible !== undefined) && (
@@ -468,78 +502,14 @@ export default async function ProjektPage({
           )}
         </div>
 
-        <div className="flex flex-col gap-brand-4">
-          <Heading level="h2" surface="v5" className="text-h3">
-            {t("commercialTermsHeading")}
-          </Heading>
-          {/* Cztery ustalenia handlowe, każde odpowiada na inne pytanie kupującego
-              (w jakim stanie odbieram dom / na ile lat / jak długo czekam / ile trwa
-              montaż) — stąd własna, rysunkowa ikona przy każdym, a nie ten sam wzorzec
-              wizualny co pasek "kluczowe dane" wyżej. Siatka z gap-px i wspólnym tłem
-              rysuje cienkie linie podziału niezależnie od liczby kolumn na danej
-              szerokości ekranu, bez osobnej logiki obramowań na komórkę. */}
-          <dl
-            className={`grid grid-cols-1 gap-px overflow-hidden rounded-v5-card border border-brand-v5-line bg-brand-v5-line ${commercialTerms.length > 1 ? "sm:grid-cols-2" : ""}`}
-          >
-            {commercialTerms.map(({ icon: Icon, label, value }) => (
-              <div key={label} className="flex items-center gap-brand-3 bg-brand-v5-surface p-brand-4">
-                <span className="flex size-12 shrink-0 items-center justify-center rounded-data border border-brand-v5-ink/15 bg-brand-v5-ink/5">
-                  <Icon className="size-6 text-brand-v5-ink" />
-                </span>
-                <div className="flex flex-col gap-0.5">
-                  <Text as="dt" variant="label" tone="muted" surface="v5">
-                    {label}
-                  </Text>
-                  <DataText as="dd" surface="v5" className="text-h3 font-semibold leading-tight">
-                    {value}
-                  </DataText>
-                </div>
-              </div>
-            ))}
-          </dl>
-
-          {(project.commercial.priceIncludes.length > 0 || project.commercial.priceExcludes.length > 0) && (
-            <div className="grid gap-brand-3 sm:grid-cols-2">
-              {project.commercial.priceIncludes.length > 0 && (
-                <div className="flex flex-col gap-brand-3 rounded-v5-card border border-status-approved/30 bg-status-approved/5 p-brand-4">
-                  <Text variant="label" tone="muted" surface="v5">
-                    {t("priceIncludesHeading")}
-                  </Text>
-                  <ul className="flex flex-col gap-brand-2">
-                    {project.commercial.priceIncludes.map((item) => (
-                      <li key={item} className="flex items-start gap-brand-2">
-                        <CheckCircle2
-                          className="mt-0.5 size-4 shrink-0 text-status-approved"
-                          aria-hidden="true"
-                        />
-                        <Text as="span" surface="v5">
-                          {item}
-                        </Text>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {project.commercial.priceExcludes.length > 0 && (
-                <div className="flex flex-col gap-brand-3 rounded-v5-card border border-brand-v5-line bg-brand-v5-line/10 p-brand-4">
-                  <Text variant="label" tone="muted" surface="v5">
-                    {t("priceExcludesHeading")}
-                  </Text>
-                  <ul className="flex flex-col gap-brand-2">
-                    {project.commercial.priceExcludes.map((item) => (
-                      <li key={item} className="flex items-start gap-brand-2">
-                        <Minus className="mt-0.5 size-4 shrink-0 text-brand-v5-muted" aria-hidden="true" />
-                        <Text as="span" tone="muted" surface="v5">
-                          {item}
-                        </Text>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+        {producer && (
+          <div id="producent" className="flex scroll-mt-20 flex-col gap-brand-3">
+            <Heading level="h2" surface="v5" className="text-h3">
+              {t("producerHeading")}
+            </Heading>
+            <ProducerCard producer={producer} showTrustDetails />
+          </div>
+        )}
 
         {countryCode && eligibility && (
           <div className="flex flex-col gap-brand-2">
@@ -550,15 +520,6 @@ export default async function ProjektPage({
             <Text tone="muted" surface="v5">
               {eligibility.reason}
             </Text>
-          </div>
-        )}
-
-        {producer && (
-          <div className="flex flex-col gap-brand-3">
-            <Heading level="h2" surface="v5" className="text-h3">
-              {t("producerHeading")}
-            </Heading>
-            <ProducerCard producer={producer} />
           </div>
         )}
 

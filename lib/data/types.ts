@@ -5,7 +5,9 @@ export interface Country {
   name: string;
 }
 
-export type ProjectCategory = "caloroczny" | "rekreacyjny-caloroczny" | "mobilny";
+// "wynajem-hotel" dopisana spec 0041 AC-6, mirror productCategoryEnum
+// (lib/db/schema.ts); dziś żaden produkt w katalogu pilotażowym jej nie używa.
+export type ProjectCategory = "caloroczny" | "rekreacyjny-caloroczny" | "mobilny" | "wynajem-hotel";
 export type CompletionStandard = "surowy-zamkniety" | "deweloperski" | "pod-klucz";
 
 // Rodzina produktu (spec 0022), niezależna od ProjectCategory (który zostaje
@@ -76,17 +78,70 @@ export interface ProductTechnicalSpecsDraft {
   foundationType?: string;
 }
 
-export interface ProjectCommercialProfile {
-  /** Cena samego budynku w standardzie bazowym, bez logistyki i montażu. */
-  housePriceMinEur: number;
-  housePriceMaxEur: number;
+// Warianty produktu (spec 0041/0042): zastępują dawny płaski
+// ProjectCommercialProfile. Każdy wariant niesie własną, pełną parę cena i
+// zakres, więc cena nigdy nie może być pokazana obok zakresu innego standardu
+// (spec 0042 Kluczowe niezmienniki).
+export type CostLineItemStatus =
+  | "w-cenie"
+  | "obowiazkowa-doplata"
+  | "opcja"
+  | "po-stronie-klienta"
+  | "do-wyceny";
+
+export interface CostLineItem {
+  id: string;
+  label: string;
+  status: CostLineItemStatus;
+  responsibleParty?: string;
+}
+
+export type TimelineStageKey = "formalnosci" | "produkcja" | "transport" | "montaz" | "wykonczenie";
+
+export interface TimelineStage {
+  stageKey: TimelineStageKey;
+  durationMinDays?: number;
+  durationMaxDays?: number;
+  startsFromLabel?: string;
+  responsibleParty?: string;
+}
+
+export interface ProjectVariant {
+  id: string;
   completionStandard: CompletionStandard;
-  productionLeadTimeWeeksMin: number;
-  productionLeadTimeWeeksMax: number;
-  onSiteAssemblyDaysMin: number;
-  onSiteAssemblyDaysMax: number;
-  priceIncludes: string[];
-  priceExcludes: string[];
+  variantLabel?: string;
+  priceMin?: number;
+  priceMax?: number;
+  currency: "EUR";
+  scopeSummary?: string;
+  isDefault: boolean;
+  costLineItems: CostLineItem[];
+  timelineStages: TimelineStage[];
+  /** True for a synthetic entry standing in for a completion standard that
+   * has no real `product_variant` row yet (see getDisplayProjectVariants).
+   * Never set by the data layer itself — only by presentation code that
+   * fills the fixed 3-standard picker so the layout renders before the
+   * producer has entered real variant data. */
+  isPlaceholder?: boolean;
+}
+
+export interface RoomLayoutEntry {
+  name: string;
+  areaM2?: number;
+  function?: string;
+  isMezzanine?: boolean;
+}
+
+// Tylko te trzy wartości document_purpose dotyczą kart projektu klienta
+// (spec 0041 AC-9); reszta enuma (order_stage, company_verification,
+// producer_photo) żyje poza tym ekranem.
+export type ProjectDocumentPurpose = "product_photo" | "product_floor_plan" | "product_realization_photo";
+
+export interface ProjectDocument {
+  url: string;
+  purpose: ProjectDocumentPurpose;
+  /** Puste znaczy: dokument dotyczy każdego wariantu produktu (spec 0041 AC-4). */
+  productVariantId?: string;
 }
 
 export interface Project {
@@ -124,7 +179,22 @@ export interface Project {
   heatSource: string;
   fireResistance: string;
   windResistance: string;
-  commercial: ProjectCommercialProfile;
+  // Osobna, pełna para cena/zakres na standard wykończenia (spec 0041/0042),
+  // zastępuje dawny płaski Project.commercial. Pusta tablica (produkt bez
+  // żadnego aktywnego wariantu) renderuje się jak priceOnRequest (spec 0042
+  // AC-11), nigdy jako "od undefined €".
+  variants: ProjectVariant[];
+  /** Puste lub brak → sekcja "Układ domu" nie renderuje się (spec 0042 AC-4). */
+  roomLayout?: RoomLayoutEntry[];
+  /** Zdjęcia/rzuty produktu z ich purpose i opcjonalnym wariantem (spec 0042 AC-7, AC-8). */
+  documents: ProjectDocument[];
+  /** Logistyka i serwis (spec 0041 AC-9), każde pole renderuje się niezależnie
+   * tylko gdy jest wypełnione (spec 0042 AC-5). */
+  installationWarrantyYears?: number;
+  serviceScopeDescription?: string;
+  transportDimensions?: string;
+  craneRequirements?: string;
+  minPlotWidthM?: number;
   featured: boolean;
   /** Gdy true, priceMin/priceMax nie są pokazywane nigdzie na stronie projektu ani na
    * kartach — w ich miejscu widoczne jest tylko CTA zapytania (spec 0020 AC-5). */
@@ -151,6 +221,13 @@ export interface Producer {
   deliveryCountries: CountryCode[];
   featuredPhotoUrl: string;
   verified: boolean;
+  /** Wolny tekst, np. "2 dni robocze"; puste → linia zaufania się nie pokazuje (spec 0042 AC-10). */
+  inquiryResponseTimeLabel?: string;
+  /** Trzy stany: true, false, null (nieznane); null renderuje się jawnie jako
+   * "do potwierdzenia", nigdy jako ciche "nie" (spec 0042 AC-9). */
+  showroomVisitAvailable: boolean | null;
+  /** Znacząca tylko gdy showroomVisitAvailable === true (spec 0042 Feature design). */
+  showroomVisitNote?: string;
 }
 
 export type EligibilityStatus = "approved" | "conditional" | "blocked";

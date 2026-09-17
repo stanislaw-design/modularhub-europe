@@ -43,6 +43,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# local PDF research and Python bytecode
+/tmp/pdfs/
+__pycache__/
+
 # playwright mcp debug output
 .playwright-mcp/
 

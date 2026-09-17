@@ -43,7 +43,7 @@ export async function PopularHomeCard({ project, countryName, href }: PopularHom
         <DataText as="p" className="mt-1 text-body-l font-semibold">
           {project.priceOnRequest
             ? t("priceOnRequest")
-            : t("priceFrom", { price: priceFormatter.format(project.commercial.housePriceMinEur) })}
+            : t("priceFrom", { price: priceFormatter.format(project.priceMin) })}
         </DataText>
       </div>
     </Link>

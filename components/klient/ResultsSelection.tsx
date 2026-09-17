@@ -5,12 +5,14 @@ import type { CountryCode, EligibilityStatus, Project } from "@/lib/data/types";
 import type { FamilyFilterValue } from "@/lib/product-family-groups";
 import type { SizeThreshold } from "@/lib/size-thresholds";
 import { ScrollReveal, Stack } from "@/components/ui";
+import { CompareSelectionBar } from "./CompareSelectionBar";
 import { EmptyResults } from "./EmptyResults";
 import { ResultCard } from "./ResultCard";
 import { ResultsHeader } from "./ResultsHeader";
 import { ShortlistActionBar } from "./ShortlistActionBar";
 
 const MAX_SELECTED = 3;
+const MAX_COMPARE = 3;
 
 export interface ResultItem {
   project: Project;
@@ -45,7 +47,12 @@ export function ResultsSelection({
   isClientSession,
 }: ResultsSelectionProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  // Zaznaczenie do porównania (spec 0044 AC-4) żyje w osobnym stanie od
+  // zaznaczenia "do zapytania" wyżej — te same karty, dwa niezależne zamiary,
+  // żadnego współdzielonego checkboxa ani etykiety.
+  const [compareIds, setCompareIds] = useState<string[]>([]);
   const items = serverItems;
+  const showCompare = family === "dom";
 
   function toggle(id: string) {
     setSelectedIds((prev) => {
@@ -55,7 +62,16 @@ export function ResultsSelection({
     });
   }
 
+  function toggleCompare(id: string) {
+    setCompareIds((prev) => {
+      if (prev.includes(id)) return prev.filter((existing) => existing !== id);
+      if (prev.length >= MAX_COMPARE) return prev;
+      return [...prev, id];
+    });
+  }
+
   const limitReached = selectedIds.length >= MAX_SELECTED;
+  const compareLimitReached = compareIds.length >= MAX_COMPARE;
 
   if (items.length === 0) {
     return (
@@ -68,6 +84,15 @@ export function ResultsSelection({
   return (
     <Stack gap={5}>
       <ResultsHeader count={items.length} family={family} countryCode={countryCode} />
+      {showCompare && compareIds.length > 0 && (
+        <CompareSelectionBar
+          locale={locale}
+          selectedIds={compareIds}
+          maxSelected={MAX_COMPARE}
+          countryCode={countryCode}
+          onClear={() => setCompareIds([])}
+        />
+      )}
       {/* Clearance for ResultsFilterBar, now permanently pinned to the
           bottom (spec less polish, see components/klient/AGENTS.md); more
           when ShortlistActionBar stacks above it too (selection made). */}
@@ -87,6 +112,9 @@ export function ResultsSelection({
                 selected={selectedIds.includes(project.id)}
                 selectionDisabled={limitReached && !selectedIds.includes(project.id)}
                 onToggleSelect={() => toggle(project.id)}
+                compareSelected={showCompare ? compareIds.includes(project.id) : undefined}
+                compareSelectionDisabled={compareLimitReached && !compareIds.includes(project.id)}
+                onToggleCompare={showCompare ? () => toggleCompare(project.id) : undefined}
                 countryCode={countryCode}
                 favorite={{ isClientSession, initialFavorited: favorited ?? false }}
               />

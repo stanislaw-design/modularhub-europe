@@ -1,0 +1,110 @@
+{
+  "productId": "3c4d9557-bf0a-4b61-9f0d-6dbebf7c27aa",
+  "producerId": "11891027-da87-4e70-ad02-af90df3db675",
+  "sourceUrl": "https://budman.house/projekty/mary-z-antresola-35m2/",
+  "productPatchCandidate": {
+    "name": "Mary z antresolą",
+    "family": "dom",
+    "category": "caloroczny",
+    "countryOfProduction": "PL",
+    "floorAreaM2": 51.65,
+    "builtUpAreaM2": 35,
+    "rooms": 3,
+    "bedrooms": 1,
+    "bathrooms": 1,
+    "storeys": 1,
+    "externalDimensions": "6,47 × 5,37 m",
+    "roofType": "Dwuspadowy, nachylenie 40°",
+    "constructionSystem": "Prefabrykowana konstrukcja drewniana C24/KVH z izolacją PUR zamkniętokomórkową",
+    "foundationOptions": "Płyta fundamentowa wyceniana indywidualnie; nie jest częścią opublikowanego zakresu domu",
+    "customizationScope": "Wybór wariantu ogrzewania; opcjonalne lustrzane odbicie, dwustronny kolor antracyt stolarki, drzwi przesuwne, taras z pergolą",
+    "technicalSpecs": {
+      "wallBuildUp": "Od zewnątrz: tynk silikonowy, deska lub cegła Elastolith; 30 mm podkładu elewacyjnego, MFP/OSB3 12 mm, PIR 20 mm, konstrukcja C24/KVH 120 mm z PUR 140 mm, MFP/OSB3 12 mm, GKF 12,5 mm. U ściany 0,18 W/(m²·K).",
+      "insulation": "Podłoga: EPS 120 mm; ściany: PIR 20 mm i PUR 140 mm; dach: PUR 200 mm, U dachu 0,16 W/(m²·K).",
+      "heatTransferCoefficients": "nieznana",
+      "windowClass": "Okna PCV z pakietem trzyszybowym, Uw 0,8 W/(m²·K); drzwi zewnętrzne stalowe, Ud ≤ 1,0 W/(m²·K).",
+      "ventilation": "rekuperacja",
+      "heatSource": "elektryczne",
+      "fireResistance": "Brak podanej klasy odporności ogniowej w sprawdzonych źródłach.",
+      "windResistance": "Brak podanej klasy odporności na wiatr w sprawdzonych źródłach."
+    },
+    "roomLayout": [
+      { "name": "Salon z aneksem kuchennym", "areaM2": 17.55, "function": "strefa dzienna", "isMezzanine": false },
+      { "name": "Sypialnia", "areaM2": 6.72, "function": "sypialnia", "isMezzanine": false },
+      { "name": "Łazienka", "areaM2": 3.9, "function": "łazienka", "isMezzanine": false },
+      { "name": "Antresola", "areaM2": 23.48, "function": "dodatkowa przestrzeń sypialna", "isMezzanine": true }
+    ]
+  },
+  "sourceMeasurements": {
+    "floorAreaBasis": "Łączna powierzchnia podłóg, a nie potwierdzona powierzchnia użytkowa: parter 28,17 m² + antresola 23,48 m²",
+    "sitePriceFromPln": 171500,
+    "sitePriceVariant": null,
+    "pdfStatesPricesAreGrossPln": true,
+    "roofU_Wm2K": 0.16,
+    "wallU_Wm2K": 0.18,
+    "windowUw_Wm2K": 0.8,
+    "doorUdMax_Wm2K": 1.0,
+    "electricalPoints": { "lighting": 8, "switches": 8, "sockets": 12 }
+  },
+  "sourceVariants": [
+    {
+      "variantLabel": "Standard",
+      "completionStandard": "deweloperski",
+      "scopeSummary": "Budynek z wentylacją mechaniczną z odzyskiem ciepła i elektrycznymi grzejnikami przypodłogowymi",
+      "heatSourceDetail": "5 grzejników płytowych przypodłogowych i 1 grzejnik łazienkowy",
+      "foundationIncluded": false,
+      "pricePln": null
+    },
+    {
+      "variantLabel": "Standard Plus",
+      "completionStandard": "deweloperski",
+      "scopeSummary": "Budynek z wentylacją mechaniczną z odzyskiem ciepła i elektrycznym ogrzewaniem sufitowym na podczerwień",
+      "heatSourceDetail": "5 grzejników sufitowych na podczerwień i 1 grzejnik łazienkowy",
+      "foundationIncluded": false,
+      "pricePln": null
+    },
+    {
+      "variantLabel": "Premium",
+      "completionStandard": "deweloperski",
+      "scopeSummary": "Budynek z wentylacją mechaniczną z odzyskiem ciepła i klimatyzacją do ogrzewania i chłodzenia",
+      "heatSourceDetail": "Klimatyzacja multisplit z 3 jednostkami wewnętrznymi i 1 grzejnik łazienkowy",
+      "foundationIncluded": false,
+      "pricePln": null
+    }
+  ],
+  "commonCostLineCandidates": [
+    { "label": "Płyta fundamentowa i roboty ziemne", "status": "do-wyceny", "responsibleParty": "Do uzgodnienia z Budman House" },
+    { "label": "Drzwi wewnętrzne, schody, posadzki, okładziny, malowanie i parapety wewnętrzne", "status": "do-wyceny", "responsibleParty": "Do uzgodnienia indywidualnie" },
+    { "label": "Urządzenia sanitarne", "status": "do-wyceny", "responsibleParty": "Do uzgodnienia indywidualnie" },
+    { "label": "Przyłącza i uzbrojenie terenu", "status": "po-stronie-klienta", "responsibleParty": "Inwestor" },
+    { "label": "Geodeta, zgłoszenie lub pozwolenie, odbiory", "status": "po-stronie-klienta", "responsibleParty": "Inwestor" },
+    { "label": "Szafka licznikowa i podłączenie do rozdzielnicy domu", "status": "po-stronie-klienta", "responsibleParty": "Inwestor" },
+    { "label": "Lustrzane odbicie projektu — w PDF 6 000 zł", "status": "opcja", "responsibleParty": "Budman House" },
+    { "label": "Dwustronny antracyt stolarki — w PDF 3 500 zł", "status": "opcja", "responsibleParty": "Budman House" },
+    { "label": "Taras z pergolą i zacienieniem", "status": "opcja", "responsibleParty": "Budman House" },
+    { "label": "Zakwaterowanie montażystów przy odległości co najmniej 100 km od Chełma", "status": "do-wyceny", "responsibleParty": "Do potwierdzenia" }
+  ],
+  "mediaCandidates": [
+    { "purpose": "product_photo", "role": "cover", "sourceUrl": "https://budman.house/wp-content/uploads/2021/02/1-e1612179063136.jpg" },
+    { "purpose": "product_photo", "role": "gallery", "sourceUrl": "https://budman.house/wp-content/uploads/2021/02/2.jpg" },
+    { "purpose": "product_floor_plan", "role": "antresola", "sourceUrl": "https://budman.house/wp-content/uploads/2021/02/Antresola-1.jpg" },
+    { "purpose": "product_floor_plan", "role": "parter", "sourceUrl": "https://budman.house/wp-content/uploads/2021/02/Parter-1.jpg" },
+    { "purpose": "product_floor_plan", "role": "full-pdf", "sourceUrl": "https://budman.house/wp-content/uploads/2021/02/Parter-scalone.pdf" }
+  ],
+  "otherSourceDocuments": [
+    { "label": "Specyfikacja techniczna Mary ANTRESOLA, styczeń 2022", "sourceUrl": "https://budman.house/wp-content/uploads/2021/02/Specyfikacja-techniczna-MaryA-styczeń-2022.pdf", "currentDocumentPurposeAvailable": false }
+  ],
+  "importBlocks": [
+    "Unikalność (productId, completionStandard) blokuje zapis trzech wariantów deweloperskich; potrzebny model pozwalający na różne nazwy wariantów przy tym samym standardzie.",
+    "Cena 171 500 zł pochodzi ze strony, a zakresy i informacja o VAT z PDF ze stycznia 2022. Brak dowodu, że dotyczą tej samej wersji oferty; nie tworzyć ceny wariantu ani przeliczenia EUR bez aktualnego cennika.",
+    "floorAreaM2 oznacza tutaj powierzchnię podłóg. Interfejs porównania nazywa to pole powierzchnią użytkową; etykieta wymaga korekty lub osobnego pola przed publikacją.",
+    "Manifest importu wymaga potwierdzenia licencji na użycie zdjęć, rzutów i opisu. Nie publikować materiałów producenta przed potwierdzeniem praw.",
+    "Brak potwierdzonych danych o gwarancji, czasie produkcji i montażu, kosztach transportu, klasie energetycznej oraz odporności ogniowej i wiatrowej."
+  ],
+  "sources": {
+    "page": "https://budman.house/projekty/mary-z-antresola-35m2/",
+    "plan": "https://budman.house/wp-content/uploads/2021/02/Parter-scalone.pdf",
+    "specification": "https://budman.house/wp-content/uploads/2021/02/Specyfikacja-techniczna-MaryA-styczeń-2022.pdf",
+    "existingImportManifest": "_docs/budmanhouse-import-manifest.json"
+  }
+}

@@ -1,15 +1,18 @@
 import { createHash } from "node:crypto";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { db } from "./client";
 import {
   auditLog,
   bulkProductInquiry,
   client,
+  costLineItem,
   document,
   favorite,
   producer,
   product,
+  productTimelineStage,
+  productVariant,
   projectQuote,
   projectRequest,
   users,
@@ -603,5 +606,338 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: enforce_bulk_request_
     );
 
     await db.delete(projectRequest).where(eq(projectRequest.contactEmail, email));
+  });
+});
+
+// spec 0041 AC-5: product.price_min_cents/price_max_cents are no longer
+// written directly -- they are derived by the price sync trigger
+// (drizzle/0020_lame_tigra.sql) from whichever product_variant has
+// is_default = true. /check verify confirmed this manually on a disposable
+// Neon branch; these tests lock the same behaviour in permanently.
+describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: product_variant price sync trigger (spec 0041 AC-5)", () => {
+  const userId = crypto.randomUUID();
+  const producerId = crypto.randomUUID();
+  const productId = crypto.randomUUID();
+
+  beforeAll(async () => {
+    await db.insert(users).values({ id: userId, email: `variant-sync-${userId}@example.test`, phone: "+48000000000", role: "producer" });
+    await db.insert(producer).values({ id: producerId, userId, nip: `PVS${producerId.slice(0, 9)}`, name: "Variant Sync Test Producer", countryCode: "PL", technology: "szkielet-drewniany" });
+    await db.insert(product).values({ id: productId, producerId, family: "dom", name: "Variant Sync Test Product" });
+  });
+
+  afterEach(async () => {
+    await db.delete(productVariant).where(eq(productVariant.productId, productId));
+  });
+
+  afterAll(async () => {
+    await db.delete(product).where(eq(product.id, productId));
+    await db.delete(producer).where(eq(producer.id, producerId));
+    await db.delete(users).where(eq(users.id, userId));
+    await db.delete(auditLog).where(inArray(auditLog.recordId, [userId, producerId]));
+  });
+
+  it("sets product price from the sole default variant on insert", async () => {
+    await db.insert(productVariant).values({
+      productId,
+      completionStandard: "surowy-zamkniety",
+      priceMinCents: 500000,
+      priceMaxCents: 550000,
+      isDefault: true,
+    });
+
+    const [row] = await db.select().from(product).where(eq(product.id, productId));
+    expect(row?.priceMinCents).toBe(500000);
+    expect(row?.priceMaxCents).toBe(550000);
+  });
+
+  it("keeps product price in sync after switching the default variant with a single UPDATE", async () => {
+    await db.insert(productVariant).values({
+      productId,
+      completionStandard: "surowy-zamkniety",
+      priceMinCents: 500000,
+      priceMaxCents: 550000,
+      isDefault: true,
+    });
+    const [second] = await db
+      .insert(productVariant)
+      .values({ productId, completionStandard: "pod-klucz", priceMinCents: 900000, priceMaxCents: 950000, isDefault: false })
+      .returning({ id: productVariant.id });
+
+    // The spec's key invariant: switching the default is always one UPDATE,
+    // never two (which would open a window with no default variant).
+    await db.execute(sql`UPDATE product_variant SET is_default = (id = ${second.id}) WHERE product_id = ${productId}`);
+
+    const [row] = await db.select().from(product).where(eq(product.id, productId));
+    expect(row?.priceMinCents).toBe(900000);
+    expect(row?.priceMaxCents).toBe(950000);
+  });
+
+  it("reverts product price to NULL when no variant is marked default, never a mixed range", async () => {
+    await db.insert(productVariant).values({
+      productId,
+      completionStandard: "surowy-zamkniety",
+      priceMinCents: 500000,
+      priceMaxCents: 550000,
+      isDefault: true,
+    });
+
+    await db.update(productVariant).set({ isDefault: false }).where(eq(productVariant.productId, productId));
+
+    const [row] = await db.select().from(product).where(eq(product.id, productId));
+    expect(row?.priceMinCents).toBeNull();
+    expect(row?.priceMaxCents).toBeNull();
+  });
+});
+
+// spec 0041 AC-1: enforced by two partial unique indexes, not just
+// application discipline -- a manual insert bypassing future application
+// code must trip them too (same rationale as document_one_cover_per_product
+// above).
+describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: product_variant uniqueness and price constraints (spec 0041 AC-1)", () => {
+  const userId = crypto.randomUUID();
+  const producerId = crypto.randomUUID();
+  const productId = crypto.randomUUID();
+
+  beforeAll(async () => {
+    await db.insert(users).values({ id: userId, email: `variant-unique-${userId}@example.test`, phone: "+48000000000", role: "producer" });
+    await db.insert(producer).values({ id: producerId, userId, nip: `PVU${producerId.slice(0, 9)}`, name: "Variant Unique Test Producer", countryCode: "PL", technology: "szkielet-drewniany" });
+    await db.insert(product).values({ id: productId, producerId, family: "dom", name: "Variant Unique Test Product" });
+  });
+
+  afterEach(async () => {
+    await db.delete(productVariant).where(eq(productVariant.productId, productId));
+  });
+
+  afterAll(async () => {
+    await db.delete(product).where(eq(product.id, productId));
+    await db.delete(producer).where(eq(producer.id, producerId));
+    await db.delete(users).where(eq(users.id, userId));
+    await db.delete(auditLog).where(inArray(auditLog.recordId, [userId, producerId]));
+  });
+
+  it("rejects a second active variant with the same completion_standard for the same product", async () => {
+    await db.insert(productVariant).values({ productId, completionStandard: "surowy-zamkniety" });
+
+    await expectRejectionToMatch(
+      db.insert(productVariant).values({ productId, completionStandard: "surowy-zamkniety" }),
+      /product_variant_product_standard_unique/,
+    );
+  });
+
+  it("allows re-adding the same completion_standard once the original variant is soft-deleted", async () => {
+    const [original] = await db
+      .insert(productVariant)
+      .values({ productId, completionStandard: "deweloperski" })
+      .returning({ id: productVariant.id });
+    await db.update(productVariant).set({ deletedAt: new Date() }).where(eq(productVariant.id, original.id));
+
+    await expect(db.insert(productVariant).values({ productId, completionStandard: "deweloperski" })).resolves.not.toThrow();
+  });
+
+  it("rejects marking a second variant as default while another is already the active default", async () => {
+    await db.insert(productVariant).values({ productId, completionStandard: "surowy-zamkniety", isDefault: true });
+    const [second] = await db
+      .insert(productVariant)
+      .values({ productId, completionStandard: "pod-klucz", isDefault: false })
+      .returning({ id: productVariant.id });
+
+    await expectRejectionToMatch(
+      db.update(productVariant).set({ isDefault: true }).where(eq(productVariant.id, second.id)),
+      /product_variant_one_default_per_product/,
+    );
+  });
+
+  it("rejects a variant whose price_max_cents is below price_min_cents", async () => {
+    await expectRejectionToMatch(
+      db.insert(productVariant).values({ productId, completionStandard: "surowy-zamkniety", priceMinCents: 900000, priceMaxCents: 500000 }),
+      /product_variant_price_order/,
+    );
+  });
+});
+
+// spec 0041 AC-2: cost_line_item.status must never be empty -- the reading
+// application is never meant to guess a status from a missing value.
+describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: cost_line_item status (spec 0041 AC-2)", () => {
+  const userId = crypto.randomUUID();
+  const producerId = crypto.randomUUID();
+  const productId = crypto.randomUUID();
+  const variantId = crypto.randomUUID();
+
+  beforeAll(async () => {
+    await db.insert(users).values({ id: userId, email: `cost-line-${userId}@example.test`, phone: "+48000000000", role: "producer" });
+    await db.insert(producer).values({ id: producerId, userId, nip: `CLI${producerId.slice(0, 9)}`, name: "Cost Line Item Test Producer", countryCode: "PL", technology: "szkielet-drewniany" });
+    await db.insert(product).values({ id: productId, producerId, family: "dom", name: "Cost Line Item Test Product" });
+    await db.insert(productVariant).values({ id: variantId, productId, completionStandard: "surowy-zamkniety" });
+  });
+
+  afterEach(async () => {
+    await db.delete(costLineItem).where(eq(costLineItem.productVariantId, variantId));
+  });
+
+  afterAll(async () => {
+    await db.delete(productVariant).where(eq(productVariant.id, variantId));
+    await db.delete(product).where(eq(product.id, productId));
+    await db.delete(producer).where(eq(producer.id, producerId));
+    await db.delete(users).where(eq(users.id, userId));
+    await db.delete(auditLog).where(inArray(auditLog.recordId, [userId, producerId]));
+  });
+
+  it("rejects a cost line item with no status, even bypassing the application's own type check", async () => {
+    await expectRejectionToMatch(
+      db.insert(costLineItem).values({ productVariantId: variantId, label: "Fundament" } as never),
+      /null value in column "status"|not-null constraint/i,
+    );
+  });
+
+  it("stores each of the five defined statuses", async () => {
+    const statuses = ["w-cenie", "obowiazkowa-doplata", "opcja", "po-stronie-klienta", "do-wyceny"] as const;
+    await db.insert(costLineItem).values(statuses.map((status) => ({ productVariantId: variantId, label: status, status })));
+
+    const rows = await db.select().from(costLineItem).where(eq(costLineItem.productVariantId, variantId));
+    expect(rows.map((row) => row.status).sort()).toEqual([...statuses].sort());
+  });
+});
+
+// spec 0041 AC-3: at most one row per (variant, stage) pair, and a stage's
+// duration range must be well formed.
+describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: product_timeline_stage constraints (spec 0041 AC-3)", () => {
+  const userId = crypto.randomUUID();
+  const producerId = crypto.randomUUID();
+  const productId = crypto.randomUUID();
+  const variantId = crypto.randomUUID();
+
+  beforeAll(async () => {
+    await db.insert(users).values({ id: userId, email: `timeline-${userId}@example.test`, phone: "+48000000000", role: "producer" });
+    await db.insert(producer).values({ id: producerId, userId, nip: `TLS${producerId.slice(0, 9)}`, name: "Timeline Stage Test Producer", countryCode: "PL", technology: "szkielet-drewniany" });
+    await db.insert(product).values({ id: productId, producerId, family: "dom", name: "Timeline Stage Test Product" });
+    await db.insert(productVariant).values({ id: variantId, productId, completionStandard: "surowy-zamkniety" });
+  });
+
+  afterEach(async () => {
+    await db.delete(productTimelineStage).where(eq(productTimelineStage.productVariantId, variantId));
+  });
+
+  afterAll(async () => {
+    await db.delete(productVariant).where(eq(productVariant.id, variantId));
+    await db.delete(product).where(eq(product.id, productId));
+    await db.delete(producer).where(eq(producer.id, producerId));
+    await db.delete(users).where(eq(users.id, userId));
+    await db.delete(auditLog).where(inArray(auditLog.recordId, [userId, producerId]));
+  });
+
+  it("rejects a second stage row for the same (variant, stage_key) pair", async () => {
+    await db.insert(productTimelineStage).values({ productVariantId: variantId, stageKey: "formalnosci" });
+
+    await expectRejectionToMatch(
+      db.insert(productTimelineStage).values({ productVariantId: variantId, stageKey: "formalnosci" }),
+      /product_timeline_stage_variant_stage_unique/,
+    );
+  });
+
+  it("rejects duration_max_days below duration_min_days", async () => {
+    await expectRejectionToMatch(
+      db.insert(productTimelineStage).values({ productVariantId: variantId, stageKey: "montaz", durationMinDays: 10, durationMaxDays: 5 }),
+      /product_timeline_stage_duration_order/,
+    );
+  });
+});
+
+// spec 0041 AC-4: a document with no product_variant_id applies to every
+// variant of its product; one with a specific id applies only to that variant.
+describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: document.product_variant_id (spec 0041 AC-4)", () => {
+  const userId = crypto.randomUUID();
+  const producerId = crypto.randomUUID();
+  const productId = crypto.randomUUID();
+  const variantId = crypto.randomUUID();
+
+  beforeAll(async () => {
+    await db.insert(users).values({ id: userId, email: `doc-variant-${userId}@example.test`, phone: "+48000000000", role: "producer" });
+    await db.insert(producer).values({ id: producerId, userId, nip: `DVT${producerId.slice(0, 9)}`, name: "Document Variant Test Producer", countryCode: "PL", technology: "szkielet-drewniany" });
+    await db.insert(product).values({ id: productId, producerId, family: "dom", name: "Document Variant Test Product" });
+    await db.insert(productVariant).values({ id: variantId, productId, completionStandard: "surowy-zamkniety" });
+  });
+
+  afterAll(async () => {
+    const docs = await db.select({ id: document.id }).from(document).where(eq(document.productId, productId));
+    if (docs.length > 0) {
+      await db.delete(auditLog).where(inArray(auditLog.recordId, docs.map((d) => d.id)));
+      await db.delete(document).where(eq(document.productId, productId));
+    }
+    await db.delete(productVariant).where(eq(productVariant.id, variantId));
+    await db.delete(product).where(eq(product.id, productId));
+    await db.delete(producer).where(eq(producer.id, producerId));
+    await db.delete(users).where(eq(users.id, userId));
+    await db.delete(auditLog).where(inArray(auditLog.recordId, [userId, producerId]));
+  });
+
+  it("accepts a document with no product_variant_id (applies to every variant of the product)", async () => {
+    const [row] = await db
+      .insert(document)
+      .values({ r2Key: "variant-general.jpg", filename: "general.jpg", mimeType: "image/jpeg", sizeBytes: 10, purpose: "product_photo", ownerUserId: userId, productId })
+      .returning();
+
+    expect(row.productVariantId).toBeNull();
+  });
+
+  it("accepts a document scoped to a specific product_variant_id", async () => {
+    const [row] = await db
+      .insert(document)
+      .values({
+        r2Key: "variant-specific.jpg",
+        filename: "specific.jpg",
+        mimeType: "image/jpeg",
+        sizeBytes: 10,
+        purpose: "product_photo",
+        ownerUserId: userId,
+        productId,
+        productVariantId: variantId,
+      })
+      .returning();
+
+    expect(row.productVariantId).toBe(variantId);
+  });
+});
+
+// spec 0041 AC-6, AC-9: one-way enum extensions (Postgres has no ADD VALUE
+// rollback) -- confirms the new values are actually usable, not just declared.
+describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: spec 0041 enum extensions", () => {
+  const userId = crypto.randomUUID();
+  const producerId = crypto.randomUUID();
+
+  beforeAll(async () => {
+    await db.insert(users).values({ id: userId, email: `enum-ext-${userId}@example.test`, phone: "+48000000000", role: "producer" });
+    await db.insert(producer).values({ id: producerId, userId, nip: `EET${producerId.slice(0, 9)}`, name: "Enum Extension Test Producer", countryCode: "PL", technology: "szkielet-drewniany" });
+  });
+
+  afterAll(async () => {
+    await db.delete(producer).where(eq(producer.id, producerId));
+    await db.delete(users).where(eq(users.id, userId));
+    await db.delete(auditLog).where(inArray(auditLog.recordId, [userId, producerId]));
+  });
+
+  it("accepts product_category = 'wynajem-hotel' (AC-6)", async () => {
+    const productId = crypto.randomUUID();
+    await db.insert(product).values({ id: productId, producerId, family: "dom", category: "wynajem-hotel", name: "Rental Hotel Test Product" });
+
+    const [row] = await db.select().from(product).where(eq(product.id, productId));
+    expect(row?.category).toBe("wynajem-hotel");
+
+    await db.delete(product).where(eq(product.id, productId));
+  });
+
+  it("accepts document_purpose = 'product_realization_photo', distinct from product_photo (AC-9)", async () => {
+    const productId = crypto.randomUUID();
+    await db.insert(product).values({ id: productId, producerId, family: "dom", name: "Realization Photo Test Product" });
+    const [row] = await db
+      .insert(document)
+      .values({ r2Key: "realization.jpg", filename: "realization.jpg", mimeType: "image/jpeg", sizeBytes: 10, purpose: "product_realization_photo", ownerUserId: userId, productId })
+      .returning();
+
+    expect(row.purpose).toBe("product_realization_photo");
+    expect(row.purpose).not.toBe("product_photo");
+
+    await db.delete(auditLog).where(eq(auditLog.recordId, row.id));
+    await db.delete(document).where(eq(document.id, row.id));
+    await db.delete(product).where(eq(product.id, productId));
   });
 });

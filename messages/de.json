@@ -16,7 +16,8 @@
     "closeMenu": "Menü schließen",
     "menu": "Menü",
     "mainNav": "Navigation",
-    "account": "Konto"
+    "account": "Konto",
+    "changeLanguage": "Sprache ändern"
   },
   "ProducerHeader": {
     "imClient": "Ich bin Kunde",
@@ -30,6 +31,10 @@
     "en": "English",
     "nl": "Nederlands",
     "de": "Deutsch"
+  },
+  "Theme": {
+    "toggleToLight": "Zu hellem Modus wechseln",
+    "toggleToDark": "Zu dunklem Modus wechseln"
   },
   "FileUpload": {
     "chooseFiles": "Dateien auswählen",
@@ -88,6 +93,12 @@
     "countryOfProduction": "Produktionsland: {country}",
     "modelsAndSize": "{models} Modelle · {min}–{max} m²",
     "delivery": "Lieferung:",
+    "showroomVisitAvailable": "Besichtigung vor Ort möglich",
+    "showroomVisitUnavailable": "Keine Besichtigung vor Ort möglich",
+    "showroomVisitUnknown": "Besichtigung vor Ort noch mit dem Hersteller zu klären",
+    "inquiryResponseTime": "Antwortet innerhalb von {label}",
+    "inquiryResponseTimeLabel": "Antwortzeit",
+    "toBeCompleted": "Noch zu ergänzen",
     "country": {
       "PL": "Polen",
       "DE": "Deutschland",
@@ -114,7 +125,12 @@
     "priceOnRequest": "Preis auf Anfrage",
     "priceOnRequestHint": "Wird direkt mit dem Hersteller vereinbart",
     "priceFrom": "ab {price} €",
-    "leadTime": "{productionMin}–{productionMax} Wochen Produktion · {assemblyMin}–{assemblyMax} Tage Montage"
+    "leadTime": "{productionMin}–{productionMax} Wochen Produktion · {assemblyMin}–{assemblyMax} Tage Montage",
+    "scopeToBeConfirmed": "Umfang noch zu bestätigen",
+    "floorPlanAvailable": "Grundriss verfügbar",
+    "floorPlanLinkLabel": "Grundriss von {name} ansehen",
+    "selectForCompare": "{name} mit anderen Häusern vergleichen",
+    "compareLabel": "Vergleichen"
   },
   "ProductFamilyNoun": {
     "dom": {
@@ -543,9 +559,6 @@
       "one": "Etage",
       "other": "Etagen"
     },
-    "descriptionLabel": "Beschreibung",
-    "showMore": "Mehr anzeigen",
-    "showLess": "Weniger anzeigen",
     "completionStandardLabel": "Ausbaustandard",
     "completionStandard": {
       "surowy-zamkniety": "Rohbau geschlossen",
@@ -576,7 +589,38 @@
     "addToShortlist": "Zur Shortlist hinzufügen",
     "checkPlot": "Grundstück für dieses Projekt prüfen",
     "from": "ab",
-    "descriptionImageAlt": "{name}, Modulhaus"
+    "priceAndScopeHeading": "Preis und Leistungsumfang",
+    "variantPickerAriaLabel": "Ausbaustandard",
+    "inquiryResponseTime": "Der Hersteller antwortet in der Regel innerhalb von {label}",
+    "inquiryResponseTimeLabel": "Antwortzeit des Herstellers",
+    "toBeCompleted": "Noch zu ergänzen",
+    "scopeToBeCompleted": "Umfang und Preis für diesen Standard wurden vom Hersteller noch nicht angegeben.",
+    "priceForStandard": "Preis · {standard}",
+    "netVat": "netto",
+    "vatDisclaimer": "+ MwSt. gemäß den Vorschriften des Baulandes · Preis bereits in der Angebotswährung",
+    "knownCostSum": "Summe der bekannten Positionen für diesen Standard",
+    "pendingCostItems": {
+      "one": "+ {count} Position noch anzufragen",
+      "few": "+ {count} Positionen noch anzufragen",
+      "many": "+ {count} Positionen noch anzufragen"
+    },
+    "compareWithAnother": "Mit einem anderen Haus vergleichen",
+    "inquiryGoesTo": "Die Anfrage geht an <b>{producer}</b>.",
+    "inquiryResponseTimeShort": "Antwort innerhalb von {label}, unverbindlich.",
+    "noPurchaseObligation": "unverbindlich",
+    "sectionNavAriaLabel": "Navigation durch die Seitenabschnitte",
+    "sectionNavScrollLeft": "Abschnittsleiste nach links scrollen",
+    "sectionNavScrollRight": "Abschnittsleiste nach rechts scrollen",
+    "sectionNav": {
+      "uklad": "Raumaufteilung",
+      "cena": "Preis und Umfang",
+      "dzialka": "Grundstück und Anlieferung",
+      "harmonogram": "Bauzeitplan",
+      "komfort": "Komfort und Technik",
+      "producent": "Referenzen und Hersteller",
+      "dokumenty": "Dokumente und Fragen",
+      "podobne": "Ähnliche Häuser"
+    }
   },
   "Faq": {
     "heading": "Häufig gestellte Fragen",
@@ -594,22 +638,141 @@
     "timeQuestion": "Wie lange dauert es, bis Sie Angebote erhalten?",
     "timeAnswer": "In der Regel bis zu 48 Stunden nach dem Senden der Anfrage — Hersteller antworten direkt an die im Kontaktformular angegebene Adresse."
   },
+  "ProjectCostComparisonTable": {
+    "onlyDifferences": "Nur Unterschiede anzeigen",
+    "showMore": "Mehr anzeigen ({count})",
+    "showFewer": "Weniger anzeigen",
+    "tableCaption": "Kostenvergleich zwischen den Ausbaustandards",
+    "lineItemColumn": "Position",
+    "priceFrom": "ab {price} €",
+    "priceOnRequest": "Preis auf Anfrage",
+    "notIncluded": "Nicht zutreffend",
+    "noCostLineItems": "Kostenpositionen: vom Hersteller noch zu ergänzen.",
+    "toBeCompleted": "Noch zu ergänzen",
+    "completionStandard": {
+      "surowy-zamkniety": "Rohbau geschlossen",
+      "deweloperski": "Bauträgerstandard",
+      "pod-klucz": "Schlüsselfertig"
+    },
+    "status": {
+      "w-cenie": "Im Preis enthalten",
+      "obowiazkowa-doplata": "Verpflichtender Aufpreis",
+      "opcja": "Option",
+      "po-stronie-klienta": "Sache des Kunden",
+      "do-wyceny": "Auf Anfrage"
+    }
+  },
+  "ProjectCompareTable": {
+    "heading": "Häuser vergleichen",
+    "intro": "Ein Vergleich von {count} ausgewählten Häusern nebeneinander, ohne Konto.",
+    "unavailableNotice": "Einige der ausgewählten Häuser sind nicht mehr verfügbar. Gehen Sie zurück zu den Ergebnissen, um andere auszuwählen.",
+    "backToResults": "Zurück zu den Ergebnissen",
+    "onlyDifferences": "Nur Unterschiede anzeigen",
+    "tableCaption": "Vergleich der Parameter und Preise der ausgewählten Häuser",
+    "attributeColumn": "Merkmal",
+    "floorAreaLabel": "Nutzfläche",
+    "areaValue": "{area} m²",
+    "builtUpAreaLabel": "Bebaute Fläche",
+    "bedroomsLabel": "Schlafzimmer",
+    "bathroomsLabel": "Badezimmer",
+    "storeysLabel": "Geschosse",
+    "externalDimensionsLabel": "Außenabmessungen",
+    "completionStandardLabel": "Ausbaustandard",
+    "completionStandard": {
+      "surowy-zamkniety": "Rohbau geschlossen",
+      "deweloperski": "Bauträgerstandard",
+      "pod-klucz": "Schlüsselfertig"
+    },
+    "productionTimeLabel": "Produktions- und Montagezeit",
+    "productionTimeValue": "{productionMin}–{productionMax} Tage Produktion · {assemblyMin}–{assemblyMax} Tage Montage",
+    "floorPlanLabel": "Grundrissverfügbarkeit",
+    "floorPlanYes": "Verfügbar",
+    "floorPlanNo": "Kein Grundriss",
+    "variantPickerLabel": "Variante für {name}",
+    "priceFrom": "ab {price} €",
+    "scopeToBeConfirmed": "Umfang noch zu bestätigen",
+    "priceOnRequest": "Preis auf Anfrage",
+    "unavailableColumnLabel": "Nicht verfügbar",
+    "unavailableColumnHint": "Dieses Haus wurde entfernt oder ist nicht mehr öffentlich verfügbar.",
+    "notProvided": "Nicht angegeben"
+  },
+  "ProjectRoomLayout": {
+    "heading": "Raumaufteilung",
+    "tableCaption": "Raumliste mit Fläche",
+    "nameColumn": "Raum",
+    "areaColumn": "Fläche",
+    "mezzanineBadge": "Empore",
+    "areaValue": "{area} m²",
+    "emptyHint": "Die Raumaufteilung wurde vom Hersteller noch nicht übermittelt.",
+    "totalAreaLabel": "Nutzfläche",
+    "roomsLabel": {
+      "one": "Zimmer",
+      "few": "Zimmer",
+      "many": "Zimmer"
+    },
+    "bathroomsLabel": {
+      "one": "Badezimmer",
+      "few": "Badezimmer",
+      "many": "Badezimmer"
+    },
+    "imageAlt": "{name}, Hausinnenraum",
+    "floorPlanAlt": "{name}, Grundriss",
+    "showAllRooms": "Alle Räume anzeigen ({count})",
+    "showFewerRooms": "Weniger anzeigen",
+    "zoomOpenLabel": "Grundriss vergrößern",
+    "zoomCloseLabel": "Vergrößerung schließen"
+  },
+  "ProjectLogistics": {
+    "heading": "Grundstück und Anlieferung",
+    "minPlotWidthLabel": "Mindestgrundstücksbreite",
+    "minPlotWidthValue": "{width} m",
+    "externalDimensionsLabel": "Außenmaße",
+    "foundationOptionsLabel": "Fundamentanforderungen",
+    "transportDimensionsLabel": "Transportmaße",
+    "craneRequirementsLabel": "Kraneinsatz erforderlich",
+    "toBeCompleted": "Noch zu ergänzen"
+  },
+  "ProjectTimeline": {
+    "heading": "Bauzeitplan",
+    "stage": {
+      "formalnosci": "Formalitäten",
+      "produkcja": "Produktion",
+      "transport": "Transport",
+      "montaz": "Montage",
+      "wykonczenie": "Fertigstellung"
+    },
+    "durationRange": "{min}–{max} Tage",
+    "durationSingle": "{count} Tage",
+    "startsFrom": "Start: {label}",
+    "responsibleParty": "Verantwortlich: {party}",
+    "toBeCompleted": "Noch zu ergänzen"
+  },
+  "ProjectGalleryTabs": {
+    "tablistLabel": "Projektfotos",
+    "tabWizualizacje": "Visualisierungen",
+    "tabRzut": "Grundriss",
+    "tabRealizacje": "Referenzprojekte",
+    "floorPlanAlt": "Grundriss {name}, Ansicht {index}",
+    "realizationAlt": "Foto vom Referenzprojekt {name}, {index}",
+    "realizacjePlaceholder": "Fotos vom Referenzprojekt, vom Hersteller noch zu ergänzen",
+    "rzutPlaceholder": "Grundriss vom Hersteller noch zu ergänzen"
+  },
   "ProjectTechnicalSpecs": {
     "heading": "Technologie und Konstruktion",
     "groupConstructionTitle": "Konstruktion und Ausbau",
     "groupEnergyTitle": "Energieeffizienz",
     "groupSafetyTitle": "Sicherheit und Garantie",
-    "constructionSystem": "Konstruktionssystem",
-    "externalDimensions": "Außenabmessungen",
-    "roofType": "Dach",
-    "foundationOptions": "Fundament",
-    "wallBuildUp": "Wandaufbau",
-    "customizationScope": "Umfang der Individualisierung",
-    "insulation": "Dämmwerte",
-    "heatTransferCoefficients": "Wärmedurchgangskoeffizienten",
-    "windowClass": "Fensterklasse",
-    "ventilation": "Lüftung",
-    "heatSource": "Wärmequelle",
+    "constructionSystem": "Woraus ist das Haus gebaut?",
+    "externalDimensions": "Wie groß ist das Haus?",
+    "roofType": "Wie groß ist die Dachneigung?",
+    "foundationOptions": "Worauf steht das Haus?",
+    "wallBuildUp": "Aus welchen Schichten besteht die Wand?",
+    "customizationScope": "Was kann ich an meine Bedürfnisse anpassen?",
+    "insulation": "Wird es im Winter warm?",
+    "heatTransferCoefficients": "Wie dicht sind Fenster und Türen?",
+    "windowClass": "Welche Fenster sind verbaut?",
+    "ventilation": "Wird es im Sommer stickig?",
+    "heatSource": "Womit wird das Haus beheizt?",
     "fireResistance": "Feuerwiderstand",
     "windResistance": "Windwiderstand",
     "warrantyLabel": "Konstruktionsgarantie",
@@ -637,10 +800,6 @@
     "applyFilters": "Ergebnisse anzeigen"
   },
   "SearchCard": {
-    "teaserPrompt": "Womit kann ich Ihnen helfen?",
-    "teaserWordHome": "Ein Haus?",
-    "teaserWordContainers": "Container?",
-    "teaserWordSpa": "Ein Spa?",
     "budgetAny": "Beliebiges Budget",
     "budgetUpTo50k": "bis 50.000 €",
     "budget50to100k": "50.000–100.000 €",
@@ -909,6 +1068,12 @@
   "ShortlistActionBar": {
     "selectedCount": "Ausgewählt: {count}/{max}",
     "sendInquiry": "Anfrage senden"
+  },
+  "CompareSelectionBar": {
+    "selectedCount": "Zum Vergleich ausgewählt: {count}/{max}",
+    "needTwoHint": "Wählen Sie mindestens ein weiteres Haus aus",
+    "compareCta": "Häuser vergleichen",
+    "clear": "Zurücksetzen"
   },
   "DeleteProductDialog": {
     "heading": "Produkt löschen?",

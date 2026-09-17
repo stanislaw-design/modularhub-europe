@@ -1,9 +1,10 @@
-import { Clock3, ImageOff, MapPin } from "lucide-react";
+import { Clock3, ImageOff, MapPin, Ruler } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
 import { Card, Checkbox, DataText, Heading, StatusPill, Text } from "@/components/ui";
 import { FavoriteButton } from "./FavoriteButton";
+import { getDefaultProjectVariant, getProjectPriceDisplay } from "@/lib/data/project-variants";
 import type { CountryCode, EligibilityStatus, Project } from "@/lib/data/types";
 
 interface ResultCardProps {
@@ -15,6 +16,12 @@ interface ResultCardProps {
   selected?: boolean;
   selectionDisabled?: boolean;
   onToggleSelect?: () => void;
+  /** Osobne od `onToggleSelect` (zapytanie): zaznaczenie do porównania domów
+   * (spec 0044 AC-4), z własnym stanem i własną etykietą, żeby dwa różne
+   * zamiary nigdy nie współdzieliły jednego checkboxa. */
+  compareSelected?: boolean;
+  compareSelectionDisabled?: boolean;
+  onToggleCompare?: () => void;
   /** Target delivery country from /results's `country` URL param, carried into
    * the /project/[id] link so the legal compliance section there can
    * resolve it (spec 0015 AC-14). */
@@ -40,6 +47,9 @@ export function ResultCard({
   selected,
   selectionDisabled,
   onToggleSelect,
+  compareSelected,
+  compareSelectionDisabled,
+  onToggleCompare,
   countryCode,
   favorite,
 }: ResultCardProps) {
@@ -50,7 +60,21 @@ export function ResultCard({
     "pod-klucz": t("completionStandard.pod-klucz"),
   } as const;
   const roomsLabel = t(`rooms.${roomsCountBucket(project.rooms)}`);
-  const href = `/${locale}/project/${project.id}${countryCode ? `?country=${countryCode}` : ""}`;
+  const countryQuery = countryCode ? `country=${countryCode}` : "";
+  const href = `/${locale}/project/${project.id}${countryQuery ? `?${countryQuery}` : ""}`;
+  const defaultVariant = getDefaultProjectVariant(project);
+  const priceDisplay = getProjectPriceDisplay(project);
+  // Dokument bez productVariantId dotyczy każdego wariantu (spec 0041 Feature
+  // design); karta pyta tylko o istnienie choćby jednego rzutu w ogóle (spec
+  // 0044 AC-3), bez zawężania do wybranego wariantu.
+  const hasFloorPlan = project.documents.some((doc) => doc.purpose === "product_floor_plan");
+  const floorPlanHref = `/${locale}/project/${project.id}?${[countryQuery, "zakladka=rzut"].filter(Boolean).join("&")}`;
+  // Harmonogram żyje dziś w dniach na wariancie (spec 0041/0042), ale ta karta
+  // zachowuje dawny, tygodniowy zapis czasu produkcji (t("leadTime")) — stąd
+  // konwersja z powrotem, zamiast zmiany treści komunikatu w czterech językach.
+  const produkcjaStage = defaultVariant?.timelineStages.find((stage) => stage.stageKey === "produkcja");
+  const montazStage = defaultVariant?.timelineStages.find((stage) => stage.stageKey === "montaz");
+  const productionWeeksMax = produkcjaStage?.durationMaxDays ? Math.round(produkcjaStage.durationMaxDays / 7) : 0;
 
   return (
     <Card
@@ -123,10 +147,21 @@ export function ResultCard({
           {t("summary", { area: project.floorAreaM2, rooms: project.rooms, roomsLabel, storeys: project.storeys })}
         </Text>
         <Text tone="muted" surface="v5" className="text-data">
-          {project.constructionSystem} · {standardLabel[project.commercial.completionStandard]}
+          {project.constructionSystem}
+          {defaultVariant ? ` · ${standardLabel[defaultVariant.completionStandard]}` : ""}
         </Text>
+        {hasFloorPlan && (
+          <Link
+            href={floorPlanHref}
+            className="focus-ring relative z-10 flex w-fit items-center gap-1 rounded-data text-data font-medium text-brand-v5-ink underline underline-offset-2"
+            aria-label={t("floorPlanLinkLabel", { name: project.name })}
+          >
+            <Ruler className="size-3.5 shrink-0" aria-hidden="true" />
+            {t("floorPlanAvailable")}
+          </Link>
+        )}
         <div className="mt-auto border-t border-brand-v5-line pt-brand-2">
-          {project.priceOnRequest ? (
+          {priceDisplay.priceOnRequest ? (
             <>
               <Text variant="label" tone="muted" surface="v5">{t("price")}</Text>
               <DataText as="p" surface="v5" className="mt-1 text-body-l font-semibold">{t("priceOnRequest")}</DataText>
@@ -134,23 +169,45 @@ export function ResultCard({
             </>
           ) : (
             <>
-              <Text variant="label" tone="muted" surface="v5">{t("price")}</Text>
+              {/* Etykieta wariantu zawsze obok ceny z tego samego wariantu
+                  (spec 0044 AC-1) — nigdy dwie różne wartości z dwóch źródeł. */}
+              <Text variant="label" tone="muted" surface="v5">
+                {t("price")} · {priceDisplay.variant.variantLabel ?? standardLabel[priceDisplay.variant.completionStandard]}
+              </Text>
               <DataText as="p" surface="v5" className="mt-1 text-body-l font-semibold">
-                {t("priceFrom", { price: priceFormatter.format(project.commercial.housePriceMinEur) })}
+                {t("priceFrom", { price: priceFormatter.format(priceDisplay.variant.priceMin) })}
               </DataText>
+              <Text tone="muted" surface="v5" className="mt-1 text-data">
+                {priceDisplay.variant.scopeSummary || t("scopeToBeConfirmed")}
+              </Text>
             </>
           )}
         </div>
-        {project.commercial.productionLeadTimeWeeksMax > 0 && (
+        {productionWeeksMax > 0 && (
           <Text tone="muted" surface="v5" className="flex items-center gap-1 text-data">
             <Clock3 className="size-3.5 shrink-0" aria-hidden="true" />
             {t("leadTime", {
-              productionMin: project.commercial.productionLeadTimeWeeksMin,
-              productionMax: project.commercial.productionLeadTimeWeeksMax,
-              assemblyMin: project.commercial.onSiteAssemblyDaysMin,
-              assemblyMax: project.commercial.onSiteAssemblyDaysMax,
+              productionMin: produkcjaStage?.durationMinDays ? Math.round(produkcjaStage.durationMinDays / 7) : 0,
+              productionMax: productionWeeksMax,
+              assemblyMin: montazStage?.durationMinDays ?? 0,
+              assemblyMax: montazStage?.durationMaxDays ?? 0,
             })}
           </Text>
+        )}
+        {onToggleCompare && (
+          <label className="focus-ring relative z-10 flex w-fit cursor-pointer items-center gap-2 rounded-data">
+            <span className="sr-only">{t("selectForCompare", { name: project.name })}</span>
+            <Checkbox
+              surface="v5"
+              checked={compareSelected ?? false}
+              disabled={compareSelectionDisabled}
+              onChange={onToggleCompare}
+              title={compareSelectionDisabled ? t("selectionLimitReached") : undefined}
+            />
+            <span aria-hidden="true" className="font-sans text-data text-brand-v5-muted">
+              {t("compareLabel")}
+            </span>
+          </label>
         )}
       </div>
     </Card>

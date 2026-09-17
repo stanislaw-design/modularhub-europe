@@ -1,0 +1,113 @@
+{
+  "sourceUrl": "https://budman.house/projekty/mary-z-antresola-35m2/",
+  "checkedAt": "2026-09-17T16:00:08.170708+00:00",
+  "pageSha256": "c61f9a95231a7e9d9c8e32ff83d699978e1cefcae7f4a39a0253aa484bc648ef",
+  "productCandidates": {
+    "name": "Mary antresola",
+    "description": "Mary z antresolą to całoroczny dom parterowy o powierzchni zabudowy 35 m2. Całkowita powierzchnia podłóg to aż 51,65 m2. Dom z dachem dwuspadowym, poddaszem w formie antresoli, salonem z aneksem kuchennym, sypialnią, łazienką i opcjonalnie tarasem z funkcjonalną pergolą. Doskonałe wykorzystanie przestrzeni na niewielkiej powierzchni zabudowy.",
+    "builtUpAreaM2": 35.0,
+    "floorAreaM2": 51.65,
+    "rooms": 3,
+    "bathrooms": 1,
+    "storeysShownByProducer": 1,
+    "roofPitchDegrees": 40.0,
+    "priceFromPln": 171500.0,
+    "priceVariantKnown": false
+  },
+  "pdfCandidates": {
+    "reportedUValues_Wm2K": [
+      0.18,
+      0.16
+    ],
+    "windowUw_Wm2K": 0.8,
+    "grossPlnDisclaimer": true,
+    "variants": [
+      {
+        "label": "Standard Plus",
+        "scopeSummary": "Budynek + wentylacja mechaniczna z rekuperacją + ogrzewanie przez grzejniki sufitowe na podczerwień",
+        "excludes": "płyta fundamentowa",
+        "price": null
+      },
+      {
+        "label": "Standard",
+        "scopeSummary": "Budynek + wentylacja mechaniczna z rekuperacją + ogrzewanie przez grzejniki płytowe przypodłogowe",
+        "excludes": "płyta fundamentowa",
+        "price": null
+      },
+      {
+        "label": "Premium",
+        "scopeSummary": "Budynek + wentylacja mechaniczna z rekuperacją + ogrzewanie/chłodzenie przez klimatyzację",
+        "excludes": "płyta fundamentowa",
+        "price": null
+      }
+    ],
+    "hasMechanicalVentilation": true,
+    "hasHeatRecovery": true
+  },
+  "images": [
+    {
+      "url": "https://budman.house/wp-content/uploads/2021/02/1-e1612179063136-1200x700.jpg",
+      "alt": "",
+      "downloadedUrl": "https://budman.house/wp-content/uploads/2021/02/1-e1612179063136.jpg",
+      "sha256": "d12b97f36d9cdfeaf3a407adec2df744d07b87663a8c100b5ee32e4f41489777",
+      "localReviewPath": "tmp\\pdfs\\mary-z-antresola-35m2\\image-01-1-e1612179063136.jpg"
+    },
+    {
+      "url": "https://budman.house/wp-content/uploads/2021/02/2-460x270.jpg",
+      "alt": "",
+      "downloadedUrl": "https://budman.house/wp-content/uploads/2021/02/2.jpg",
+      "sha256": "0fa6e30a251dad4877ebc4ac82ba15beb38345d14ba16ae511e99f433a46ed2f",
+      "localReviewPath": "tmp\\pdfs\\mary-z-antresola-35m2\\image-02-2.jpg"
+    },
+    {
+      "url": "https://budman.house/wp-content/uploads/2021/02/Antresola-1-460x270.jpg",
+      "alt": "",
+      "downloadedUrl": "https://budman.house/wp-content/uploads/2021/02/Antresola-1.jpg",
+      "sha256": "40983b02aeb3631100f73b8af1f1a797544baf2bd24e406ad1f4d7794bc59c0f",
+      "localReviewPath": "tmp\\pdfs\\mary-z-antresola-35m2\\image-03-Antresola-1.jpg"
+    },
+    {
+      "url": "https://budman.house/wp-content/uploads/2021/02/Parter-1-460x270.jpg",
+      "alt": "",
+      "downloadedUrl": "https://budman.house/wp-content/uploads/2021/02/Parter-1.jpg",
+      "sha256": "cc801485d8d87c24967f9521b4869e8e68eccbea40f452f9a9ae89170665ff0b",
+      "localReviewPath": "tmp\\pdfs\\mary-z-antresola-35m2\\image-04-Parter-1.jpg"
+    },
+    {
+      "url": "https://budman.house/wp-content/uploads/2021/02/Parter-1.jpg",
+      "alt": "",
+      "downloadedUrl": "https://budman.house/wp-content/uploads/2021/02/Parter-1.jpg",
+      "sha256": "cc801485d8d87c24967f9521b4869e8e68eccbea40f452f9a9ae89170665ff0b",
+      "localReviewPath": "tmp\\pdfs\\mary-z-antresola-35m2\\image-04-Parter-1.jpg"
+    }
+  ],
+  "pdfs": [
+    {
+      "url": "https://budman.house/wp-content/uploads/2021/02/Parter-scalone.pdf",
+      "labels": [
+        "POBIERZ RZUT I ZAKRES PRAC KAŻDEGO Z WARIANTÓW",
+        "rzut domów"
+      ],
+      "sha256": "ffc36f3c557d070679d21700feb54f75247ccf403a6a5278d009a5183bd4203b",
+      "pages": 2,
+      "textExtractable": false,
+      "localReviewPath": "tmp\\pdfs\\mary-z-antresola-35m2\\01-Parter-scalone.pdf"
+    },
+    {
+      "url": "https://budman.house/wp-content/uploads/2021/02/Specyfikacja-techniczna-MaryA-styczeń-2022.pdf",
+      "labels": [
+        "zakres robót"
+      ],
+      "sha256": "5aaec405096ee7cde2c0dd577045264396e6a3f0b4f5d1734a3efea9664fa300",
+      "pages": 2,
+      "textExtractable": true,
+      "localReviewPath": "tmp\\pdfs\\mary-z-antresola-35m2\\02-Specyfikacja-techniczna-MaryA-styczeń-2022.pdf"
+    }
+  ],
+  "reviewRequired": [
+    "Powiąż cenę z konkretnym wariantem i sprawdź aktualność cennika.",
+    "Zweryfikuj PDF bez warstwy tekstowej na podglądzie stron i wpisz metraże pomieszczeń.",
+    "Potwierdź prawa do publikacji materiałów producenta.",
+    "Potwierdź dane logistyczne, gwarancję i klasy odporności, jeśli są potrzebne."
+  ]
+}

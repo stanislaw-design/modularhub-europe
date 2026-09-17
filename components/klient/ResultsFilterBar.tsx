@@ -198,7 +198,7 @@ export function ResultsFilterBar({ locale, countries, filter, mobileFilters }: R
       <Dialog open={mobileOpen} onClose={setMobileOpen} className="relative z-50">
         <DialogBackdrop
           transition
-          className="fixed inset-0 bg-brand-v5-ink/40 transition duration-200 ease-out data-[closed]:opacity-0"
+          className="fixed inset-0 bg-brand-v5-night/40 transition duration-200 ease-out data-[closed]:opacity-0"
         />
         <div className="fixed inset-x-0 bottom-0 flex max-h-[85vh] flex-col">
           <DialogPanel

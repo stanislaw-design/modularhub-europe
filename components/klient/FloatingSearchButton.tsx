@@ -31,7 +31,7 @@ export function FloatingSearchButton({ locale }: FloatingSearchButtonProps) {
 
   // The pinned "Więcej niż dom" showcase (CategoryShowcase) is a full-bleed
   // dark section spanning several viewport heights while scrolled through —
-  // the bubble's own dark bg-brand-v5-ink would sit invisibly on top of it,
+  // the bubble's own dark bg-brand-v5-night would sit invisibly on top of it,
   // so it's hidden for as long as any part of that section is in view and
   // reappears once scrolled past. The round button itself stays put.
   useEffect(() => {
@@ -51,14 +51,14 @@ export function FloatingSearchButton({ locale }: FloatingSearchButtonProps) {
       }`}
     >
       <div
-        className={`relative rounded-v5-panel bg-brand-v5-ink px-brand-3 py-brand-2 text-body font-medium whitespace-nowrap text-brand-v5-paper shadow-lg transition-[opacity,transform] duration-300 ease-out ${
+        className={`relative rounded-v5-panel bg-brand-v5-night px-brand-3 py-brand-2 text-body font-medium whitespace-nowrap text-brand-v5-paper shadow-lg transition-[opacity,transform] duration-300 ease-out ${
           bubbleHidden ? "translate-y-2 opacity-0" : "translate-y-0 opacity-100"
         }`}
       >
         {t("prompt")}
         <span
           aria-hidden="true"
-          className="absolute -bottom-1.5 right-6 size-3 rotate-45 bg-brand-v5-ink"
+          className="absolute -bottom-1.5 right-6 size-3 rotate-45 bg-brand-v5-night"
         />
       </div>
       <button

@@ -82,7 +82,7 @@ export async function BulkOrdersShowcase({ locale }: BulkOrdersShowcaseProps) {
                 />
                 <div
                   aria-hidden="true"
-                  className="absolute inset-0 bg-gradient-to-r from-brand-v5-ink/95 via-brand-v5-ink/55 to-brand-v5-ink/15"
+                  className="absolute inset-0 bg-gradient-to-r from-brand-v5-night/95 via-brand-v5-night/55 to-brand-v5-night/15"
                 />
                 <div className="relative flex h-full flex-col justify-between py-brand-4 pl-brand-3 pr-brand-4 sm:py-brand-5 sm:pl-brand-4 sm:pr-brand-5">
                   <div className="flex flex-col gap-0.5">
@@ -93,7 +93,7 @@ export async function BulkOrdersShowcase({ locale }: BulkOrdersShowcaseProps) {
                         both through tv() here loses either the size or the color.
                         Plain classes compile independently, same escape hatch
                         Hero.tsx already uses for its own headline. */}
-                    <h3 className="font-display text-h2 font-semibold leading-tight text-brand-v5-surface [text-shadow:0_2px_12px_rgba(0,0,0,0.45)]">
+                    <h3 className="font-display text-h2 font-semibold leading-tight text-brand-v5-paper [text-shadow:0_2px_12px_rgba(0,0,0,0.45)]">
                       {tile.heading}
                     </h3>
                     <p className="font-display text-h2 font-bold leading-tight text-brand-v5-amber [text-shadow:0_2px_12px_rgba(0,0,0,0.45)]">
@@ -103,7 +103,7 @@ export async function BulkOrdersShowcase({ locale }: BulkOrdersShowcaseProps) {
                   <div className="flex flex-col gap-brand-3">
                     <ul className="flex flex-col gap-1">
                       {tile.points.map((point) => (
-                        <li key={point} className="flex items-start gap-2 text-body text-brand-v5-surface/90">
+                        <li key={point} className="flex items-start gap-2 text-body text-brand-v5-paper/90">
                           <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-brand-v5-amber" aria-hidden="true" />
                           {point}
                         </li>
@@ -115,11 +115,11 @@ export async function BulkOrdersShowcase({ locale }: BulkOrdersShowcaseProps) {
                         <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" aria-hidden="true" />
                       </span>
                       <div className="hidden flex-col items-end gap-0.5 text-right sm:flex">
-                        <span className="text-label uppercase tracking-[0.08em] text-brand-v5-surface/60">
+                        <span className="text-label uppercase tracking-[0.08em] text-brand-v5-paper/60">
                           {tile.signatureLine1}
                         </span>
-                        <span className="flex items-center gap-2 text-label uppercase tracking-[0.08em] text-brand-v5-surface/60">
-                          <span className="h-px w-6 bg-brand-v5-surface/40" aria-hidden="true" />
+                        <span className="flex items-center gap-2 text-label uppercase tracking-[0.08em] text-brand-v5-paper/60">
+                          <span className="h-px w-6 bg-brand-v5-paper/40" aria-hidden="true" />
                           {tile.signatureLine2}
                         </span>
                       </div>

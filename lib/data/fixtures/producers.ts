@@ -17,6 +17,7 @@ export const producers: Producer[] = [
     deliveryCountries: ["PL", "DE"],
     featuredPhotoUrl: "/images/houses/budman-house/mary-antresola/01_wizualizacja_frontowa.jpg",
     verified: true,
+    showroomVisitAvailable: null,
   },
   {
     id: "prod-steelhouse",
@@ -30,6 +31,7 @@ export const producers: Producer[] = [
     deliveryCountries: ["PL", "DE"],
     featuredPhotoUrl: "/images/houses/steel-house/pomerania/01_wizualizacja_okladka.jpg",
     verified: true,
+    showroomVisitAvailable: null,
   },
   {
     id: "prod-cocomodule",
@@ -43,6 +45,7 @@ export const producers: Producer[] = [
     deliveryCountries: ["PL", "DE", "NL"],
     featuredPhotoUrl: "/images/houses/cocomodule/cover-premium.png",
     verified: true,
+    showroomVisitAvailable: null,
   },
   {
     id: "prod-castor",
@@ -56,5 +59,6 @@ export const producers: Producer[] = [
     deliveryCountries: ["PL", "DE"],
     featuredPhotoUrl: "/images/houses/castor/cas-98-mikolajki/01_okladka.jpeg",
     verified: true,
+    showroomVisitAvailable: null,
   },
 ];

@@ -34,17 +34,26 @@ export function createMockProject(overrides: Partial<Project> = {}): Project {
     heatSource: "",
     fireResistance: "",
     windResistance: "",
-    commercial: {
-      housePriceMinEur: 105000,
-      housePriceMaxEur: 125000,
-      completionStandard: "deweloperski",
-      productionLeadTimeWeeksMin: 12,
-      productionLeadTimeWeeksMax: 16,
-      onSiteAssemblyDaysMin: 3,
-      onSiteAssemblyDaysMax: 5,
-      priceIncludes: [],
-      priceExcludes: [],
-    },
+    variants: [
+      {
+        id: "variant-deweloperski",
+        completionStandard: "deweloperski",
+        priceMin: 118000,
+        priceMax: 142000,
+        currency: "EUR",
+        scopeSummary: "Dom w standardzie deweloperskim, gotowy do wykończenia.",
+        isDefault: true,
+        costLineItems: [],
+        // Dni zamiast dawnych tygodni (spec 0041/0042): 12–16 tyg. produkcji
+        // = 84–112 dni, żeby testy odwołujące się do starego zapisu
+        // tygodniowego (ResultCard, FavoriteCompareTable) nie musiały się zmienić.
+        timelineStages: [
+          { stageKey: "produkcja", durationMinDays: 84, durationMaxDays: 112 },
+          { stageKey: "montaz", durationMinDays: 3, durationMaxDays: 5 },
+        ],
+      },
+    ],
+    documents: [],
     featured: false,
     ...overrides,
   };

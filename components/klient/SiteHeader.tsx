@@ -7,7 +7,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState, useTransition } from "react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
-import { Container, LanguageSwitcher } from "@/components/ui";
+import { Container, LanguageSwitcher, ThemeToggle } from "@/components/ui";
 import { usePathname as useLocalizedPathname, useRouter as useLocalizedRouter } from "@/lib/i18n/navigation";
 import { routing, type Locale } from "@/lib/i18n/routing";
 
@@ -163,6 +163,7 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
           />
         </Link>
         <div className="flex items-center gap-brand-1 sm:gap-brand-3">
+          <ThemeToggle className={`hidden sm:flex ${navTextClass}`} />
           <LanguageSwitcher
             locale={locale}
             surface="v5"
@@ -215,7 +216,7 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
       <Dialog open={isMenuOpen} onClose={setIsMenuOpen} className="relative z-50">
         <DialogBackdrop
           transition
-          className="fixed inset-0 bg-brand-v5-ink/40 transition duration-200 ease-out data-[closed]:opacity-0"
+          className="fixed inset-0 bg-brand-v5-night/40 transition duration-200 ease-out data-[closed]:opacity-0"
         />
         <div className="fixed inset-0 flex justify-end">
           <DialogPanel
@@ -283,6 +284,9 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
                 {t("account")}
               </h2>
               <ul className="flex flex-col gap-brand-3">
+                <li className="sm:hidden">
+                  <ThemeToggle withLabel className="text-brand-v5-ink hover:text-brand-v5-amber-strong" />
+                </li>
                 <li className="sm:hidden">
                   <Link
                     href={`/${locale}/panel/favorites`}

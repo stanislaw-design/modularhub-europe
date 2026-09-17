@@ -1,6 +1,6 @@
 # components/ui/
 
-The generic, domain free design system primitives (`Button`, `Card`, `Input`, `Select`, `Checkbox`, `Radio`, `Textarea`, `Heading`, `Text`, `DataText`, `Label`, `Container`, `Grid`, `Stack`, `StatusPill`, `StageTimeline`, `Accordion`, `FileUpload`, `StarRating`, `ScrollReveal`, …) that `components/klient/` and `components/producent/` compose. Established by `docs/specs/0002-system-projektowy-i-fundament-ui/`.
+The generic, domain free design system primitives (`Button`, `Card`, `Input`, `Select`, `Checkbox`, `Radio`, `Textarea`, `Heading`, `Text`, `DataText`, `Label`, `Container`, `Grid`, `Stack`, `StatusPill`, `StageTimeline`, `Accordion`, `FileUpload`, `StarRating`, `ScrollReveal`, `ThemeProvider`, `ThemeToggle`, …) that `components/klient/` and `components/producent/` compose. Established by `docs/specs/0002-system-projektowy-i-fundament-ui/`.
 
 ## Conventions
 
@@ -10,6 +10,8 @@ The generic, domain free design system primitives (`Button`, `Card`, `Input`, `S
 - Import via the barrel `@/components/ui` (`index.ts` re-exports every primitive); a consumer never deep imports `components/ui/Button` directly.
 - `focus-ring` (a token class, not a Tailwind utility) is the one sanctioned visible focus style, applied in each interactive primitive's `base` variant, not re-implemented per screen.
 - Accessibility is built into the primitive, not left to callers: `StageTimeline` sets `aria-current="step"` on the current item itself; a screen using it does not need to reproduce that logic.
+- `StageTimeline`'s v3 "completed" marker (`bg-brand-foundation-navy` + `text-brand-warm-white`) is not dark-mode-safe: both tokens invert independently under `.theme-klient` (spec 0043), so if this marker ever renders inside a dark customer screen it goes light-on-light. Currently safe only because no `components/klient/` screen imports `StageTimeline` (each has its own bespoke timeline); fix it the same way `components/klient/*.tsx`'s `v5-ink`→`v5-night` audit did (pin the fixed-dark pairing) before any future klient screen reuses it under dark mode.
+- Headless UI's `Dialog` portals its panel to the end of `document.body`, not into the component tree it's declared in — dark mode's `.theme-klient` scoping (spec 0043) has to mirror its classes onto `document.body` itself (`ThemeProvider.tsx`) to reach it. Any other component that portals (a future `Menu`/`Popover` wrapped in an explicit `<Portal>`) needs the same consideration; a plain, non-portaled Headless UI `Menu`/`Listbox` does not.
 
 ## Agent skills
 

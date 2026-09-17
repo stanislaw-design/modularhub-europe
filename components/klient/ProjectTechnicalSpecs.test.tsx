@@ -22,8 +22,8 @@ describe("ProjectTechnicalSpecs", () => {
     const project = createMockProject({ insulation: "", windowClass: "Klasa energetyczna A" });
     render(await resolveAsyncTree(<ProjectTechnicalSpecs project={project} />));
 
-    expect(screen.queryByText("Izolacyjność")).not.toBeInTheDocument();
-    expect(screen.getByText("Klasa okien")).toBeInTheDocument();
+    expect(screen.queryByText("Czy zimą będzie ciepło?")).not.toBeInTheDocument();
+    expect(screen.getByText("Jakie okna są zamontowane?")).toBeInTheDocument();
     expect(screen.getByText("Klasa energetyczna A")).toBeInTheDocument();
   });
 
@@ -31,7 +31,7 @@ describe("ProjectTechnicalSpecs", () => {
     const project = createMockProject({ ventilation: "   " });
     render(await resolveAsyncTree(<ProjectTechnicalSpecs project={project} />));
 
-    expect(screen.queryByText("Wentylacja")).not.toBeInTheDocument();
+    expect(screen.queryByText("Czy latem będzie duszno?")).not.toBeInTheDocument();
   });
 
   it("always renders the construction warranty row, since structuralWarrantyYears is a required number", async () => {

@@ -31,6 +31,20 @@ class ResizeObserverStub {
 }
 globalThis.ResizeObserver ??= ResizeObserverStub as unknown as typeof ResizeObserver;
 
+// jsdom has no matchMedia; ThemeProvider (components/ui, spec 0043) reads it
+// to detect the system color scheme preference when no theme cookie is set.
+// Defaults to "no dark preference" — tests assert against light-mode markup.
+window.matchMedia ??= ((query: string) => ({
+  matches: false,
+  media: query,
+  onchange: null,
+  addListener: () => {},
+  removeListener: () => {},
+  addEventListener: () => {},
+  removeEventListener: () => {},
+  dispatchEvent: () => false,
+})) as unknown as typeof window.matchMedia;
+
 afterEach(() => {
   cleanup();
 });

@@ -1,6 +1,7 @@
 import { and, desc, eq, gte, inArray, isNull, lte, ne, or, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
+  costLineItem,
   document,
   favorite,
   producer,
@@ -8,7 +9,9 @@ import {
   producerDeliveryCountry,
   product,
   productCountryEligibility,
+  productTimelineStage,
   productTranslation,
+  productVariant,
 } from "@/lib/db/schema";
 import type { Locale } from "@/lib/i18n/routing";
 import type { EnergyClass, VentilationType } from "@/lib/product-technical-specs";
@@ -18,13 +21,230 @@ import { resolveHeatSourceValues, type HeatSourceFilterValue, type PriceThreshol
 import { buildPublicUrl } from "@/lib/storage/r2-client";
 import type {
   ContainerSubcategory,
+  CostLineItem,
   CountryCode,
   EligibilityByCountry,
   Project,
+  ProjectDocument,
+  ProjectDocumentPurpose,
+  ProjectVariant,
   ProductFamily,
   ProductTechnicalSpecsDraft,
+  RoomLayoutEntry,
   SpaSubcategory,
+  TimelineStage,
+  TimelineStageKey,
 } from "./types";
+
+// Kolejność stała, niezależna od sort_order w bazie (spec 0042 AC-6):
+// formalności, produkcja, transport, montaż, wykończenie.
+const TIMELINE_STAGE_ORDER: TimelineStageKey[] = [
+  "formalnosci",
+  "produkcja",
+  "transport",
+  "montaz",
+  "wykonczenie",
+];
+
+// Tylko te trzy wartości document_purpose dotyczą karty projektu klienta
+// (spec 0041 AC-9, spec 0042 AC-7); document_purpose ma też order_stage,
+// company_verification, producer_photo, które żyją poza tym ekranem.
+const CLIENT_DOCUMENT_PURPOSES: ProjectDocumentPurpose[] = [
+  "product_photo",
+  "product_floor_plan",
+  "product_realization_photo",
+];
+
+interface ResolveVariantsOptions {
+  /** Pozycje kosztowe i etapy harmonogramu są potrzebne tylko na stronie
+   * szczegółów pojedynczego projektu (spec 0042 AC-2, AC-6); karty/listy
+   * czytają wyłącznie completionStandard/cenę/isDefault, więc pomijają obie
+   * dodatkowe zapytania (domyślnie false). */
+  withDetails?: boolean;
+}
+
+// Warianty produktu, zgrupowane po product_id (spec 0041/0042): jedno
+// zapytanie dla wielu produktów naraz (ten sam wzorzec wsadowy co
+// resolveProductDocumentPhotos), nie fanout na wywołanie mapRowToProject.
+export async function resolveProductVariants(
+  productIds: string[],
+  options?: ResolveVariantsOptions,
+): Promise<Map<string, ProjectVariant[]>> {
+  if (productIds.length === 0) return new Map();
+
+  const variantRows = await db
+    .select({
+      id: productVariant.id,
+      productId: productVariant.productId,
+      completionStandard: productVariant.completionStandard,
+      variantLabel: productVariant.variantLabel,
+      priceMinCents: productVariant.priceMinCents,
+      priceMaxCents: productVariant.priceMaxCents,
+      scopeSummary: productVariant.scopeSummary,
+      isDefault: productVariant.isDefault,
+      sortOrder: productVariant.sortOrder,
+    })
+    .from(productVariant)
+    .where(and(inArray(productVariant.productId, productIds), isNull(productVariant.deletedAt)));
+
+  const variantIds = variantRows.map((row) => row.id);
+  const costLineItemsByVariant = new Map<string, CostLineItem[]>();
+  const timelineStagesByVariant = new Map<string, TimelineStage[]>();
+
+  if (options?.withDetails && variantIds.length > 0) {
+    const [costRows, stageRows] = await Promise.all([
+      db
+        .select({
+          id: costLineItem.id,
+          productVariantId: costLineItem.productVariantId,
+          label: costLineItem.label,
+          status: costLineItem.status,
+          responsibleParty: costLineItem.responsibleParty,
+          sortOrder: costLineItem.sortOrder,
+        })
+        .from(costLineItem)
+        .where(inArray(costLineItem.productVariantId, variantIds)),
+      db
+        .select({
+          productVariantId: productTimelineStage.productVariantId,
+          stageKey: productTimelineStage.stageKey,
+          durationMinDays: productTimelineStage.durationMinDays,
+          durationMaxDays: productTimelineStage.durationMaxDays,
+          startsFromLabel: productTimelineStage.startsFromLabel,
+          responsibleParty: productTimelineStage.responsibleParty,
+        })
+        .from(productTimelineStage)
+        .where(inArray(productTimelineStage.productVariantId, variantIds)),
+    ]);
+
+    const costRowsByVariant = new Map<string, typeof costRows>();
+    for (const row of costRows) {
+      const list = costRowsByVariant.get(row.productVariantId) ?? [];
+      list.push(row);
+      costRowsByVariant.set(row.productVariantId, list);
+    }
+    for (const [variantId, rows] of costRowsByVariant) {
+      const sorted = [...rows].sort(
+        (a, b) => (a.sortOrder ?? Number.MAX_SAFE_INTEGER) - (b.sortOrder ?? Number.MAX_SAFE_INTEGER),
+      );
+      costLineItemsByVariant.set(
+        variantId,
+        sorted.map((row) => ({
+          id: row.id,
+          label: row.label,
+          status: row.status,
+          responsibleParty: row.responsibleParty ?? undefined,
+        })),
+      );
+    }
+
+    const stageRowsByVariant = new Map<string, typeof stageRows>();
+    for (const row of stageRows) {
+      const list = stageRowsByVariant.get(row.productVariantId) ?? [];
+      list.push(row);
+      stageRowsByVariant.set(row.productVariantId, list);
+    }
+    for (const [variantId, rows] of stageRowsByVariant) {
+      const sorted = [...rows].sort(
+        (a, b) => TIMELINE_STAGE_ORDER.indexOf(a.stageKey) - TIMELINE_STAGE_ORDER.indexOf(b.stageKey),
+      );
+      timelineStagesByVariant.set(
+        variantId,
+        sorted.map((row) => ({
+          stageKey: row.stageKey,
+          durationMinDays: row.durationMinDays ?? undefined,
+          durationMaxDays: row.durationMaxDays ?? undefined,
+          startsFromLabel: row.startsFromLabel ?? undefined,
+          responsibleParty: row.responsibleParty ?? undefined,
+        })),
+      );
+    }
+  }
+
+  const byProduct = new Map<string, typeof variantRows>();
+  for (const row of variantRows) {
+    const list = byProduct.get(row.productId) ?? [];
+    list.push(row);
+    byProduct.set(row.productId, list);
+  }
+
+  const result = new Map<string, ProjectVariant[]>();
+  for (const [productId, rows] of byProduct) {
+    const sorted = [...rows].sort(
+      (a, b) => (a.sortOrder ?? Number.MAX_SAFE_INTEGER) - (b.sortOrder ?? Number.MAX_SAFE_INTEGER),
+    );
+    result.set(
+      productId,
+      sorted.map((row) => ({
+        id: row.id,
+        completionStandard: row.completionStandard,
+        variantLabel: row.variantLabel ?? undefined,
+        priceMin: row.priceMinCents !== null ? row.priceMinCents / 100 : undefined,
+        priceMax: row.priceMaxCents !== null ? row.priceMaxCents / 100 : undefined,
+        currency: "EUR",
+        scopeSummary: row.scopeSummary ?? undefined,
+        isDefault: row.isDefault,
+        costLineItems: costLineItemsByVariant.get(row.id) ?? [],
+        timelineStages: timelineStagesByVariant.get(row.id) ?? [],
+      })),
+    );
+  }
+  return result;
+}
+
+// Dokumenty produktu (zdjęcia/rzuty) z ich purpose i opcjonalnym wariantem
+// (spec 0042 AC-7, AC-8): zasila zakładki galerii na stronie projektu, osobno
+// od resolveProductDocumentPhotos (która tylko wybiera okładkę/galerię
+// product_photo dla kart listy, bez rozróżnienia purpose/wariantu).
+export async function resolveProductDocuments(productIds: string[]): Promise<Map<string, ProjectDocument[]>> {
+  if (productIds.length === 0) return new Map();
+
+  try {
+    const rows = await db
+      .select({
+        productId: document.productId,
+        r2Key: document.r2Key,
+        purpose: document.purpose,
+        productVariantId: document.productVariantId,
+        sortOrder: document.sortOrder,
+      })
+      .from(document)
+      .where(
+        and(
+          inArray(document.productId, productIds),
+          inArray(document.purpose, CLIENT_DOCUMENT_PURPOSES),
+          isNull(document.deletedAt),
+        ),
+      );
+
+    const byProduct = new Map<string, typeof rows>();
+    for (const row of rows) {
+      if (!row.productId) continue;
+      const list = byProduct.get(row.productId) ?? [];
+      list.push(row);
+      byProduct.set(row.productId, list);
+    }
+
+    const result = new Map<string, ProjectDocument[]>();
+    for (const [productId, docs] of byProduct) {
+      const sorted = [...docs].sort(
+        (a, b) => (a.sortOrder ?? Number.MAX_SAFE_INTEGER) - (b.sortOrder ?? Number.MAX_SAFE_INTEGER),
+      );
+      result.set(
+        productId,
+        sorted.map((row) => ({
+          url: buildPublicUrl(row.r2Key),
+          purpose: row.purpose as ProjectDocumentPurpose,
+          productVariantId: row.productVariantId ?? undefined,
+        })),
+      );
+    }
+    return result;
+  } catch (error) {
+    captureError(error, { path: "resolveProductDocuments" });
+    return new Map();
+  }
+}
 
 interface GetProjectsFilters {
   // Polski jest tekstem źródłowym i nigdy nie wymaga JOIN-a na product_translation
@@ -164,16 +384,32 @@ function applyDocumentPhotos(projectItem: Project, photos: ProductDocumentPhotos
   };
 }
 
+function applyVariants(projectItem: Project, variants: ProjectVariant[] | undefined): Project {
+  return { ...projectItem, variants: variants ?? [] };
+}
+
+function applyDocuments(projectItem: Project, documents: ProjectDocument[] | undefined): Project {
+  return { ...projectItem, documents: documents ?? [] };
+}
+
+interface ProjectRelatedRows {
+  variants?: ProjectVariant[];
+  documents?: ProjectDocument[];
+}
+
 function mapRowToProject(
   row: typeof product.$inferSelect,
   producerName: string,
   translation?: ProductTranslationText,
+  related?: ProjectRelatedRows,
 ): Project {
   const specs = (row.technicalSpecs ?? {}) as ProductTechnicalSpecsDraft & TechnicalSpecsBridgeFields;
-  const priceMinCents = row.priceMinCents ?? row.housePriceMinCents ?? 0;
-  const priceMaxCents = row.priceMaxCents ?? row.housePriceMaxCents ?? 0;
-  const housePriceMinCents = row.housePriceMinCents ?? priceMinCents;
-  const housePriceMaxCents = row.housePriceMaxCents ?? priceMaxCents;
+  // price_min/max_cents są od spec 0041 pochodną wyzwalacza synchronizacji
+  // ceny (lib/db/AGENTS.md): NULL gdy produkt nie ma aktywnego wariantu
+  // domyślnego. AC-11 traktuje to dokładnie jak priceOnRequest, nigdy jako
+  // "od undefined €".
+  const priceOnRequest = Boolean(specs._priceOnRequest) || row.priceMinCents === null;
+  const roomLayout = (row.roomLayout as RoomLayoutEntry[] | null) ?? undefined;
 
   return {
     id: row.id,
@@ -195,8 +431,8 @@ function mapRowToProject(
     foundationOptions: row.foundationOptions ?? "",
     customizationScope: row.customizationScope ?? "",
     structuralWarrantyYears: row.structuralWarrantyYears ?? 0,
-    priceMin: priceMinCents / 100,
-    priceMax: priceMaxCents / 100,
+    priceMin: (row.priceMinCents ?? 0) / 100,
+    priceMax: (row.priceMaxCents ?? 0) / 100,
     currency: "EUR",
     coverImageUrl: row.coverImageUrl ?? "",
     description: resolveTranslatedText(row.description, translation?.description),
@@ -208,22 +444,25 @@ function mapRowToProject(
     heatSource: specs.heatSource ?? "",
     fireResistance: specs.fireResistance ?? "",
     windResistance: specs.windResistance ?? "",
-    commercial: {
-      housePriceMinEur: housePriceMinCents / 100,
-      housePriceMaxEur: housePriceMaxCents / 100,
-      completionStandard: row.completionStandard ?? "surowy-zamkniety",
-      productionLeadTimeWeeksMin: row.productionLeadTimeWeeksMin ?? 0,
-      productionLeadTimeWeeksMax: row.productionLeadTimeWeeksMax ?? 0,
-      onSiteAssemblyDaysMin: row.onSiteAssemblyDaysMin ?? 0,
-      onSiteAssemblyDaysMax: row.onSiteAssemblyDaysMax ?? 0,
-      priceIncludes: row.priceIncludes ?? [],
-      priceExcludes: row.priceExcludes ?? [],
-    },
+    variants: related?.variants ?? [],
+    roomLayout: roomLayout && roomLayout.length > 0 ? roomLayout : undefined,
+    documents: related?.documents ?? [],
+    installationWarrantyYears: row.installationWarrantyYears ?? undefined,
+    serviceScopeDescription: row.serviceScopeDescription ?? undefined,
+    transportDimensions: row.transportDimensions ?? undefined,
+    craneRequirements: row.craneRequirements ?? undefined,
+    minPlotWidthM: row.minPlotWidthM ?? undefined,
     featured: row.featured,
-    priceOnRequest: specs._priceOnRequest,
+    priceOnRequest,
     galleryImageUrls: specs._extraImageUrls,
   };
 }
+
+// Re-exportowane z lib/data/project-variants.ts (moduł bez zależności na
+// lib/db/client), żeby dzisiejsi odbiorcy importujący z tego pliku nie musieli
+// zmieniać ścieżki importu; komponenty prezentacyjne importują bezpośrednio
+// z project-variants.ts, patrz komentarz tam.
+export { getDefaultProjectVariant, getDisplayProjectVariants } from "./project-variants";
 
 // countryCode filter: a project surfaces for a country when it has an
 // eligibility row there and that row is not "blocked" ("approved" and
@@ -352,8 +591,14 @@ export async function getProjects(filters?: GetProjectsFilters): Promise<Project
     projects = projects.filter((project) => eligibleIds.has(project.id));
   }
 
-  const documentPhotos = await resolveProductDocumentPhotos(projects.map((project) => project.id));
-  return projects.map((project) => applyDocumentPhotos(project, documentPhotos.get(project.id)));
+  const projectIds = projects.map((project) => project.id);
+  const [documentPhotos, variantsByProduct] = await Promise.all([
+    resolveProductDocumentPhotos(projectIds),
+    resolveProductVariants(projectIds),
+  ]);
+  return projects.map((project) =>
+    applyVariants(applyDocumentPhotos(project, documentPhotos.get(project.id)), variantsByProduct.get(project.id)),
+  );
 }
 
 // Id existence check for the zapytanie/dzialka flows (spec 0023 AC-... /
@@ -395,13 +640,23 @@ export async function getProjectById(id: string, locale: Locale = "pl"): Promise
       .where(eq(product.id, id));
 
     if (!row) return null;
-    const documentPhotos = await resolveProductDocumentPhotos([id]);
-    return applyDocumentPhotos(
-      mapRowToProject(row.product, row.producerName, {
-        name: row.translationName,
-        description: row.translationDescription,
-      }),
-      documentPhotos.get(id),
+    const [documentPhotos, variantsByProduct, documentsByProduct] = await Promise.all([
+      resolveProductDocumentPhotos([id]),
+      resolveProductVariants([id], { withDetails: true }),
+      resolveProductDocuments([id]),
+    ]);
+    return applyDocuments(
+      applyVariants(
+        applyDocumentPhotos(
+          mapRowToProject(row.product, row.producerName, {
+            name: row.translationName,
+            description: row.translationDescription,
+          }),
+          documentPhotos.get(id),
+        ),
+        variantsByProduct.get(id),
+      ),
+      documentsByProduct.get(id),
     );
   }
 
@@ -412,8 +667,18 @@ export async function getProjectById(id: string, locale: Locale = "pl"): Promise
     .where(eq(product.id, id));
 
   if (!row) return null;
-  const documentPhotos = await resolveProductDocumentPhotos([id]);
-  return applyDocumentPhotos(mapRowToProject(row.product, row.producerName), documentPhotos.get(id));
+  const [documentPhotos, variantsByProduct, documentsByProduct] = await Promise.all([
+    resolveProductDocumentPhotos([id]),
+    resolveProductVariants([id], { withDetails: true }),
+    resolveProductDocuments([id]),
+  ]);
+  return applyDocuments(
+    applyVariants(
+      applyDocumentPhotos(mapRowToProject(row.product, row.producerName), documentPhotos.get(id)),
+      variantsByProduct.get(id),
+    ),
+    documentsByProduct.get(id),
+  );
 }
 
 // Public: feeds CategoryShowcase on the home page with one real, clickable
@@ -439,13 +704,19 @@ export async function getFeaturedProjectByFamily(
       .where(and(eq(product.family, family), eq(product.featured, true), eq(product.status, "published")));
 
     if (!row) return null;
-    const documentPhotos = await resolveProductDocumentPhotos([row.product.id]);
-    return applyDocumentPhotos(
-      mapRowToProject(row.product, row.producerName, {
-        name: row.translationName,
-        description: row.translationDescription,
-      }),
-      documentPhotos.get(row.product.id),
+    const [documentPhotos, variantsByProduct] = await Promise.all([
+      resolveProductDocumentPhotos([row.product.id]),
+      resolveProductVariants([row.product.id]),
+    ]);
+    return applyVariants(
+      applyDocumentPhotos(
+        mapRowToProject(row.product, row.producerName, {
+          name: row.translationName,
+          description: row.translationDescription,
+        }),
+        documentPhotos.get(row.product.id),
+      ),
+      variantsByProduct.get(row.product.id),
     );
   }
 
@@ -456,8 +727,14 @@ export async function getFeaturedProjectByFamily(
     .where(and(eq(product.family, family), eq(product.featured, true), eq(product.status, "published")));
 
   if (!row) return null;
-  const documentPhotos = await resolveProductDocumentPhotos([row.product.id]);
-  return applyDocumentPhotos(mapRowToProject(row.product, row.producerName), documentPhotos.get(row.product.id));
+  const [documentPhotos, variantsByProduct] = await Promise.all([
+    resolveProductDocumentPhotos([row.product.id]),
+    resolveProductVariants([row.product.id]),
+  ]);
+  return applyVariants(
+    applyDocumentPhotos(mapRowToProject(row.product, row.producerName), documentPhotos.get(row.product.id)),
+    variantsByProduct.get(row.product.id),
+  );
 }
 
 export async function getEligibilityByCountry(
@@ -496,10 +773,17 @@ export async function getFavoritesForClient(clientId: string): Promise<FavoriteL
     .where(eq(favorite.clientId, clientId))
     .orderBy(desc(favorite.createdAt));
 
-  const documentPhotos = await resolveProductDocumentPhotos(rows.map((row) => row.product.id));
+  const favoriteIds = rows.map((row) => row.product.id);
+  const [documentPhotos, variantsByProduct] = await Promise.all([
+    resolveProductDocumentPhotos(favoriteIds),
+    resolveProductVariants(favoriteIds),
+  ]);
 
   return rows.map((row) => ({
-    project: applyDocumentPhotos(mapRowToProject(row.product, row.producerName), documentPhotos.get(row.product.id)),
+    project: applyVariants(
+      applyDocumentPhotos(mapRowToProject(row.product, row.producerName), documentPhotos.get(row.product.id)),
+      variantsByProduct.get(row.product.id),
+    ),
     available: row.product.status === "published" && row.product.deletedAt === null,
   }));
 }
@@ -629,11 +913,16 @@ export async function getVerifiedVolumeManufacturerProjects(
   }
 
   const allProjectIds = [...projectsByProducer.values()].flat().map((project) => project.id);
-  const documentPhotos = await resolveProductDocumentPhotos(allProjectIds);
+  const [documentPhotos, variantsByProduct] = await Promise.all([
+    resolveProductDocumentPhotos(allProjectIds),
+    resolveProductVariants(allProjectIds),
+  ]);
   for (const [producerId, list] of projectsByProducer) {
     projectsByProducer.set(
       producerId,
-      list.map((project) => applyDocumentPhotos(project, documentPhotos.get(project.id))),
+      list.map((project) =>
+        applyVariants(applyDocumentPhotos(project, documentPhotos.get(project.id)), variantsByProduct.get(project.id)),
+      ),
     );
   }
 

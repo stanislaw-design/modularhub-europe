@@ -120,4 +120,49 @@ describe("ResultsSelection", () => {
       "/pl/inquiry?projects=id1%2Cid2&country=DE&sizeMin=50&sizeMax=100"
     );
   });
+
+  it("keeps the compare selection independent from the inquiry selection (spec 0044 AC-4)", async () => {
+    const user = userEvent.setup();
+    render(<ResultsSelection serverItems={items} locale="pl" family="dom" isClientSession={false} />);
+
+    await user.click(screen.getByRole("checkbox", { name: "Porównaj Dom Jeden z innymi domami" }));
+
+    expect(screen.getByText("Do porównania: 1/3")).toBeInTheDocument();
+    expect(screen.queryByText(/Zaznaczono:/)).not.toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "Zaznacz Dom Jeden do zapytania" })).not.toBeChecked();
+  });
+
+  it("disables the compare CTA until at least 2 homes are selected, then navigates to /compare (spec 0044 AC-5)", async () => {
+    const user = userEvent.setup();
+    render(
+      <ResultsSelection serverItems={items} locale="pl" countryCode="DE" family="dom" isClientSession={false} />
+    );
+
+    await user.click(screen.getByRole("checkbox", { name: "Porównaj Dom Jeden z innymi domami" }));
+    expect(screen.getByRole("button", { name: "Porównaj domy" })).toBeDisabled();
+
+    await user.click(screen.getByRole("checkbox", { name: "Porównaj Dom Dwa z innymi domami" }));
+    const compareButton = screen.getByRole("button", { name: "Porównaj domy" });
+    expect(compareButton).toBeEnabled();
+
+    await user.click(compareButton);
+    expect(push).toHaveBeenCalledWith("/pl/compare?products=id1%2Cid2&country=DE");
+  });
+
+  it("clears the compare selection when 'Wyczyść' is clicked (spec 0044 AC-4)", async () => {
+    const user = userEvent.setup();
+    render(<ResultsSelection serverItems={items} locale="pl" family="dom" isClientSession={false} />);
+
+    await user.click(screen.getByRole("checkbox", { name: "Porównaj Dom Jeden z innymi domami" }));
+    await user.click(screen.getByRole("button", { name: "Wyczyść" }));
+
+    expect(screen.queryByText(/Do porównania:/)).not.toBeInTheDocument();
+  });
+
+  it("hides the compare control entirely for a non-dom family (spec 0044 AC-4)", () => {
+    render(
+      <ResultsSelection serverItems={items} locale="pl" family="spa-modulowe" isClientSession={false} />
+    );
+    expect(screen.queryByRole("checkbox", { name: /Porównaj/ })).not.toBeInTheDocument();
+  });
 });

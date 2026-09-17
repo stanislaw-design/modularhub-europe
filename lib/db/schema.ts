@@ -69,10 +69,14 @@ export const completionStandardEnum = pgEnum("completion_standard", [
   "pod-klucz",
 ]);
 
+// "wynajem-hotel" dopisana przez ALTER TYPE ... ADD VALUE (spec 0041 AC-6),
+// ten sam wzorzec co productTranslationLocaleEnum wyżej — Postgres nie ma
+// DROP VALUE, więc to jednokierunkowe rozszerzenie.
 export const productCategoryEnum = pgEnum("product_category", [
   "caloroczny",
   "rekreacyjny-caloroczny",
   "mobilny",
+  "wynajem-hotel",
 ]);
 
 // Rodzina produktu, niezależna od category (spec 0022). Bez wartości
@@ -138,12 +142,15 @@ export const paymentStatusEnum = pgEnum("payment_status", [
   "refunded",
 ]);
 
+// "product_realization_photo" dopisana przez ALTER TYPE ... ADD VALUE (spec
+// 0041 AC-9), odróżniona od "product_photo" (wizualizacje/marketing).
 export const documentPurposeEnum = pgEnum("document_purpose", [
   "product_photo",
   "product_floor_plan",
   "order_stage",
   "company_verification",
   "producer_photo",
+  "product_realization_photo",
 ]);
 
 export const auditActionEnum = pgEnum("audit_action", ["create", "update", "delete"]);
@@ -168,6 +175,26 @@ export const clientVerificationStatusEnum = pgEnum("client_verification_status",
   "pending",
   "approved",
   "rejected",
+]);
+
+// Pięć statusów pozycji kosztowej wariantu (spec 0041 AC-2): nigdy puste,
+// aplikacja czytająca te dane nigdy nie zgaduje statusu z braku wartości.
+export const costLineItemStatusEnum = pgEnum("cost_line_item_status", [
+  "w-cenie",
+  "obowiazkowa-doplata",
+  "opcja",
+  "po-stronie-klienta",
+  "do-wyceny",
+]);
+
+// Pięć etapów realizacji, jeden wiersz na (product_variant, stage_key)
+// (spec 0041 AC-3).
+export const productTimelineStageKeyEnum = pgEnum("product_timeline_stage_key", [
+  "formalnosci",
+  "produkcja",
+  "transport",
+  "montaz",
+  "wykonczenie",
 ]);
 
 export const projectTypeEnum = pgEnum("project_type", [
@@ -292,6 +319,13 @@ export const producer = pgTable("producer", {
   verificationStatus: producerVerificationStatusEnum("verification_status")
     .notNull()
     .default("not_submitted"),
+  // Trzy pola zaufania na kartę projektu (spec 0042 AC-9, AC-10), wpisywane
+  // ręcznie przez Neon MCP jak reszta danych producenta w tym etapie. Puste
+  // showroomVisitAvailable renderuje się jako "do potwierdzenia", nigdy jako
+  // ciche "nie" (patrz components/klient/ProducerCard.tsx).
+  inquiryResponseTimeLabel: text("inquiry_response_time_label"),
+  showroomVisitAvailable: boolean("showroom_visit_available"),
+  showroomVisitNote: text("showroom_visit_note"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
@@ -374,6 +408,12 @@ export const product = pgTable(
     // po stronie formularza kreatora i zapisu (spec 0022 AC-4). Zastępuje
     // dawnych 8 płaskich kolumn technicznych domu (spec 0022 AC-5).
     technicalSpecs: jsonb("technical_specs"),
+    // Uklad pomieszczen (spec 0042 Feature design): tablica {name, areaM2,
+    // function, isMezzanine}, wspolna dla calego produktu (nie per wariant).
+    // Ten sam wzorzec co technicalSpecs wyzej (jsonb bez wlasnej tabeli, bo
+    // nikt dzis nie planuje zapytan przekrojowych po nazwie pomieszczenia),
+    // walidacja Zod na granicy aplikacji jest otwartym Follow-up spec 0042.
+    roomLayout: jsonb("room_layout"),
     // Pola obecne tylko w dzisiejszym fixture Project, których kreator
     // producenta (spec 0016) jeszcze nie zbiera: nullable, wypełniane później
     // (patrz spec 0018 Follow-up).
@@ -391,6 +431,14 @@ export const product = pgTable(
     currency: text("currency").notNull().default("EUR"),
     priceIncludes: jsonb("price_includes").$type<string[]>(),
     priceExcludes: jsonb("price_excludes").$type<string[]>(),
+    // Dodane spec 0041 AC-9 (logistyka/gwarancja per produkt, poza wariantem):
+    // gwarancja instalacji jest osobna od structuralWarrantyYears wyżej (spec
+    // 0018), bo dotyczy montażu, nie samej konstrukcji.
+    installationWarrantyYears: integer("installation_warranty_years"),
+    serviceScopeDescription: text("service_scope_description"),
+    transportDimensions: text("transport_dimensions"),
+    craneRequirements: text("crane_requirements"),
+    minPlotWidthM: real("min_plot_width_m"),
     featured: boolean("featured").notNull().default(false),
     // Tymczasowe: zwykły URL zewnętrzny, zastąpione realnym przechowywaniem
     // plików (Cloudflare R2) w Slice 5 (spec 0023 Context, Follow-up).
@@ -433,6 +481,109 @@ export const product = pgTable(
     // powyżej — ta migracja SQL musi wykonać się PRZED tą, którą wygeneruje
     // `db:generate` dla tego indeksu (kolejność w drizzle/, patrz Build plan zadanie 1).
     index("product_search_vector_idx").using("gin", table.searchVector),
+  ],
+);
+
+// ---------------------------------------------------------------------------
+// Wariant produktu (spec 0041 Decision): jeden nazwany standard wykonania
+// dostaje własną, pełną parę cena/zakres, żeby cena nigdy nie mogła być
+// pokazana obok zakresu innego standardu. product.priceMinCents/priceMaxCents
+// wyżej stają się od tej migracji pochodną wyzwalacza price_sync_trigger
+// (patrz drizzle/, migracja tej funkcji), nigdy polem wpisywanym wprost —
+// patrz lib/db/AGENTS.md.
+// ---------------------------------------------------------------------------
+
+export const productVariant = pgTable(
+  "product_variant",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => product.id),
+    completionStandard: completionStandardEnum("completion_standard").notNull(),
+    // Opcjonalna własna nazwa marketingowa producenta (np. "Comfort"); tylko
+    // opisowa, nigdy używana do reguł biznesowych czy unikalności (spec 0041
+    // Feature design) — to zostaje completionStandard.
+    variantLabel: text("variant_label"),
+    priceMinCents: integer("price_min_cents"),
+    priceMaxCents: integer("price_max_cents"),
+    scopeSummary: text("scope_summary"),
+    isDefault: boolean("is_default").notNull().default(false),
+    sortOrder: integer("sort_order"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  },
+  (table) => [
+    check(
+      "product_variant_price_order",
+      sql`${table.priceMinCents} IS NULL OR ${table.priceMaxCents} IS NULL OR ${table.priceMaxCents} >= ${table.priceMinCents}`,
+    ),
+    // Co najwyżej jeden aktywny wariant na (product, standard); indeks
+    // częściowy tak, żeby usunięty miękko wariant nie blokował ponownego
+    // dodania tego samego standardu (spec 0041 Feature design).
+    uniqueIndex("product_variant_product_standard_unique")
+      .on(table.productId, table.completionStandard)
+      .where(sql`${table.deletedAt} IS NULL`),
+    // Co najwyżej jeden aktywny wariant domyślny na produkt, ten sam wzorzec
+    // częściowego indeksu co document_one_cover_per_product.
+    uniqueIndex("product_variant_one_default_per_product")
+      .on(table.productId)
+      .where(sql`${table.isDefault} AND ${table.deletedAt} IS NULL`),
+    index("product_variant_product_id_idx").on(table.productId),
+  ],
+);
+
+// Pozycje kosztowe, zawsze przy konkretnym wariancie (status często różni się
+// między standardami tego samego produktu, spec 0041 AC-2).
+export const costLineItem = pgTable(
+  "cost_line_item",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    productVariantId: uuid("product_variant_id")
+      .notNull()
+      .references(() => productVariant.id),
+    label: text("label").notNull(),
+    status: costLineItemStatusEnum("status").notNull(),
+    responsibleParty: text("responsible_party"),
+    sortOrder: integer("sort_order"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index("cost_line_item_product_variant_id_idx").on(table.productVariantId)],
+);
+
+// Etapy harmonogramu, też per wariant, bo czas wykończenia zależy od standardu
+// (świadomy kompromis, spec 0041 Feature design: formalności/produkcja/transport
+// bywają identyczne między wariantami tego samego produktu, ale mimo to żyją
+// per wariant, nie per produkt).
+export const productTimelineStage = pgTable(
+  "product_timeline_stage",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    productVariantId: uuid("product_variant_id")
+      .notNull()
+      .references(() => productVariant.id),
+    stageKey: productTimelineStageKeyEnum("stage_key").notNull(),
+    // Jedna wspólna jednostka (dni) zamiast dzisiejszej mieszanki tygodni
+    // (produkcja) i dni (montaż) na product.
+    durationMinDays: integer("duration_min_days"),
+    durationMaxDays: integer("duration_max_days"),
+    startsFromLabel: text("starts_from_label"),
+    responsibleParty: text("responsible_party"),
+    sortOrder: integer("sort_order"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    check(
+      "product_timeline_stage_duration_order",
+      sql`${table.durationMinDays} IS NULL OR ${table.durationMaxDays} IS NULL OR ${table.durationMaxDays} >= ${table.durationMinDays}`,
+    ),
+    uniqueIndex("product_timeline_stage_variant_stage_unique").on(
+      table.productVariantId,
+      table.stageKey,
+    ),
   ],
 );
 
@@ -901,6 +1052,10 @@ export const document = pgTable(
       .notNull()
       .references(() => users.id),
     productId: uuid("product_id").references(() => product.id),
+    // Puste znaczy: dokument dotyczy każdego wariantu tego produktu (spec 0041
+    // Feature design). document_one_cover_per_product niżej zostaje bez zmian,
+    // bo nadal działa na poziomie produktu, nie wariantu.
+    productVariantId: uuid("product_variant_id").references(() => productVariant.id),
     orderStageEventId: uuid("order_stage_event_id").references(() => orderStageEvent.id),
     producerId: uuid("producer_id").references(() => producer.id),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),

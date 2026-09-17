@@ -16,7 +16,8 @@
     "closeMenu": "Menu sluiten",
     "menu": "Menu",
     "mainNav": "Navigatie",
-    "account": "Account"
+    "account": "Account",
+    "changeLanguage": "Taal wijzigen"
   },
   "ProducerHeader": {
     "imClient": "Ik ben klant",
@@ -30,6 +31,10 @@
     "en": "English",
     "nl": "Nederlands",
     "de": "Deutsch"
+  },
+  "Theme": {
+    "toggleToLight": "Overschakelen naar lichte modus",
+    "toggleToDark": "Overschakelen naar donkere modus"
   },
   "FileUpload": {
     "chooseFiles": "Bestanden kiezen",
@@ -88,6 +93,12 @@
     "countryOfProduction": "Productieland: {country}",
     "modelsAndSize": "{models} modellen · {min}–{max} m²",
     "delivery": "Levert aan:",
+    "showroomVisitAvailable": "Bezoek op locatie mogelijk",
+    "showroomVisitUnavailable": "Geen bezoek op locatie mogelijk",
+    "showroomVisitUnknown": "Bezoek op locatie nog te bevestigen met de producent",
+    "inquiryResponseTime": "Reageert binnen {label}",
+    "inquiryResponseTimeLabel": "Reactietijd",
+    "toBeCompleted": "Nog aan te vullen",
     "country": {
       "PL": "Polen",
       "DE": "Duitsland",
@@ -114,7 +125,12 @@
     "priceOnRequest": "Prijs op aanvraag",
     "priceOnRequestHint": "Rechtstreeks overeengekomen met de producent",
     "priceFrom": "vanaf €{price}",
-    "leadTime": "{productionMin}–{productionMax} weken productie · {assemblyMin}–{assemblyMax} dagen montage"
+    "leadTime": "{productionMin}–{productionMax} weken productie · {assemblyMin}–{assemblyMax} dagen montage",
+    "scopeToBeConfirmed": "Omvang nog te bevestigen",
+    "floorPlanAvailable": "Plattegrond beschikbaar",
+    "floorPlanLinkLabel": "Bekijk de plattegrond van {name}",
+    "selectForCompare": "Vergelijk {name} met andere woningen",
+    "compareLabel": "Vergelijk"
   },
   "ProductFamilyNoun": {
     "dom": {
@@ -536,9 +552,6 @@
       "one": "verdieping",
       "other": "verdiepingen"
     },
-    "descriptionLabel": "Beschrijving",
-    "showMore": "Meer tonen",
-    "showLess": "Minder tonen",
     "completionStandardLabel": "Afwerkingsniveau",
     "completionStandard": {
       "surowy-zamkniety": "Casco dicht",
@@ -569,7 +582,38 @@
     "addToShortlist": "Toevoegen aan shortlist",
     "checkPlot": "Controleer uw perceel voor dit project",
     "from": "vanaf",
-    "descriptionImageAlt": "{name}, modulaire woning"
+    "priceAndScopeHeading": "Prijs en omvang",
+    "variantPickerAriaLabel": "Afwerkingsniveau",
+    "inquiryResponseTime": "De producent reageert meestal binnen {label}",
+    "inquiryResponseTimeLabel": "Reactietijd van de producent",
+    "toBeCompleted": "Nog aan te vullen",
+    "scopeToBeCompleted": "Omvang en prijs voor dit niveau zijn nog niet door de producent opgegeven.",
+    "priceForStandard": "Prijs · {standard}",
+    "netVat": "netto",
+    "vatDisclaimer": "+ btw volgens de regelgeving van het land van uitvoering · prijs al in de valuta van het aanbod",
+    "knownCostSum": "Som van de bekende posten voor dit niveau",
+    "pendingCostItems": {
+      "one": "+ {count} post nog te offreren",
+      "few": "+ {count} posten nog te offreren",
+      "many": "+ {count} posten nog te offreren"
+    },
+    "compareWithAnother": "Vergelijk met een andere woning",
+    "inquiryGoesTo": "Uw aanvraag gaat naar <b>{producer}</b>.",
+    "inquiryResponseTimeShort": "Reactie binnen {label}, geheel vrijblijvend.",
+    "noPurchaseObligation": "geheel vrijblijvend",
+    "sectionNavAriaLabel": "Navigatie door de paginasecties",
+    "sectionNavScrollLeft": "Sectiebalk naar links scrollen",
+    "sectionNavScrollRight": "Sectiebalk naar rechts scrollen",
+    "sectionNav": {
+      "uklad": "Indeling van de woning",
+      "cena": "Prijs en omvang",
+      "dzialka": "Perceel en levering",
+      "harmonogram": "Planning",
+      "komfort": "Comfort en techniek",
+      "producent": "Opgeleverde projecten en producent",
+      "dokumenty": "Documenten en vragen",
+      "podobne": "Vergelijkbare woningen"
+    }
   },
   "Faq": {
     "heading": "Veelgestelde vragen",
@@ -587,22 +631,141 @@
     "timeQuestion": "Hoe lang duurt het voordat u aanbiedingen ontvangt?",
     "timeAnswer": "Meestal tot 48 uur na het versturen van de aanvraag — producenten reageren rechtstreeks op het adres dat u in het contactformulier heeft opgegeven."
   },
+  "ProjectCostComparisonTable": {
+    "onlyDifferences": "Alleen verschillen tonen",
+    "showMore": "Toon meer ({count})",
+    "showFewer": "Toon minder",
+    "tableCaption": "Kostenvergelijking tussen afwerkingsniveaus",
+    "lineItemColumn": "Post",
+    "priceFrom": "vanaf {price} €",
+    "priceOnRequest": "Prijs op aanvraag",
+    "notIncluded": "Niet van toepassing",
+    "noCostLineItems": "Kostenposten: nog aan te vullen door de producent.",
+    "toBeCompleted": "Nog aan te vullen",
+    "completionStandard": {
+      "surowy-zamkniety": "Casco dicht",
+      "deweloperski": "Afbouwniveau ontwikkelaar",
+      "pod-klucz": "Sleutelklaar"
+    },
+    "status": {
+      "w-cenie": "Inbegrepen",
+      "obowiazkowa-doplata": "Verplichte meerprijs",
+      "opcja": "Optie",
+      "po-stronie-klienta": "Voor rekening van de klant",
+      "do-wyceny": "Nog te offreren"
+    }
+  },
+  "ProjectCompareTable": {
+    "heading": "Woningen vergelijken",
+    "intro": "Een vergelijking van {count} geselecteerde woningen naast elkaar, zonder account.",
+    "unavailableNotice": "Sommige geselecteerde woningen zijn niet meer beschikbaar. Ga terug naar de resultaten om andere te kiezen.",
+    "backToResults": "Terug naar resultaten",
+    "onlyDifferences": "Toon alleen verschillen",
+    "tableCaption": "Vergelijking van parameters en prijzen van de geselecteerde woningen",
+    "attributeColumn": "Kenmerk",
+    "floorAreaLabel": "Bruikbare oppervlakte",
+    "areaValue": "{area} m²",
+    "builtUpAreaLabel": "Bebouwde oppervlakte",
+    "bedroomsLabel": "Slaapkamers",
+    "bathroomsLabel": "Badkamers",
+    "storeysLabel": "Bouwlagen",
+    "externalDimensionsLabel": "Buitenafmetingen",
+    "completionStandardLabel": "Afwerkingsniveau",
+    "completionStandard": {
+      "surowy-zamkniety": "Casco",
+      "deweloperski": "Ontwikkelaarsstandaard",
+      "pod-klucz": "Sleutelklaar"
+    },
+    "productionTimeLabel": "Productie- en montagetijd",
+    "productionTimeValue": "{productionMin}–{productionMax} dagen productie · {assemblyMin}–{assemblyMax} dagen montage",
+    "floorPlanLabel": "Beschikbaarheid plattegrond",
+    "floorPlanYes": "Beschikbaar",
+    "floorPlanNo": "Geen plattegrond",
+    "variantPickerLabel": "Variant voor {name}",
+    "priceFrom": "vanaf €{price}",
+    "scopeToBeConfirmed": "Omvang nog te bevestigen",
+    "priceOnRequest": "Prijs op aanvraag",
+    "unavailableColumnLabel": "Niet beschikbaar",
+    "unavailableColumnHint": "Deze woning is verwijderd of niet meer openbaar beschikbaar.",
+    "notProvided": "Niet opgegeven"
+  },
+  "ProjectRoomLayout": {
+    "heading": "Indeling van de woning",
+    "tableCaption": "Lijst van ruimtes met oppervlakte",
+    "nameColumn": "Ruimte",
+    "areaColumn": "Oppervlakte",
+    "mezzanineBadge": "vide",
+    "areaValue": "{area} m²",
+    "emptyHint": "De indeling is nog niet door de producent aangeleverd.",
+    "totalAreaLabel": "Bruikbare vloeroppervlakte",
+    "roomsLabel": {
+      "one": "kamer",
+      "few": "kamers",
+      "many": "kamers"
+    },
+    "bathroomsLabel": {
+      "one": "badkamer",
+      "few": "badkamers",
+      "many": "badkamers"
+    },
+    "imageAlt": "{name}, interieur van de woning",
+    "floorPlanAlt": "{name}, plattegrond",
+    "showAllRooms": "Toon alle ruimtes ({count})",
+    "showFewerRooms": "Toon minder",
+    "zoomOpenLabel": "Plattegrond vergroten",
+    "zoomCloseLabel": "Vergroting sluiten"
+  },
+  "ProjectLogistics": {
+    "heading": "Perceel en levering",
+    "minPlotWidthLabel": "Minimale perceelbreedte",
+    "minPlotWidthValue": "{width} m",
+    "externalDimensionsLabel": "Buitenafmetingen",
+    "foundationOptionsLabel": "Funderingseisen",
+    "transportDimensionsLabel": "Transportafmetingen",
+    "craneRequirementsLabel": "Kraanvereisten",
+    "toBeCompleted": "Nog aan te vullen"
+  },
+  "ProjectTimeline": {
+    "heading": "Bouwplanning",
+    "stage": {
+      "formalnosci": "Formaliteiten",
+      "produkcja": "Productie",
+      "transport": "Transport",
+      "montaz": "Montage",
+      "wykonczenie": "Afwerking"
+    },
+    "durationRange": "{min}–{max} dagen",
+    "durationSingle": "{count} dagen",
+    "startsFrom": "Start: {label}",
+    "responsibleParty": "Verantwoordelijk: {party}",
+    "toBeCompleted": "Nog aan te vullen"
+  },
+  "ProjectGalleryTabs": {
+    "tablistLabel": "Projectfoto's",
+    "tabWizualizacje": "Visualisaties",
+    "tabRzut": "Plattegrond",
+    "tabRealizacje": "Opgeleverde projecten",
+    "floorPlanAlt": "Plattegrond {name}, weergave {index}",
+    "realizationAlt": "Foto van een opgeleverd project {name}, {index}",
+    "realizacjePlaceholder": "Foto's van een opgeleverd project, nog aan te vullen door de producent",
+    "rzutPlaceholder": "Plattegrond nog aan te vullen door de producent"
+  },
   "ProjectTechnicalSpecs": {
     "heading": "Technologie en constructie",
     "groupConstructionTitle": "Constructie en afwerking",
     "groupEnergyTitle": "Energie-efficiëntie",
     "groupSafetyTitle": "Veiligheid en garantie",
-    "constructionSystem": "Constructiesysteem",
-    "externalDimensions": "Buitenafmetingen",
-    "roofType": "Dak",
-    "foundationOptions": "Fundering",
-    "wallBuildUp": "Wandopbouw",
-    "customizationScope": "Aanpassingsmogelijkheden",
-    "insulation": "Isolatie",
-    "heatTransferCoefficients": "Warmtedoorgangscoëfficiënten",
-    "windowClass": "Raamklasse",
-    "ventilation": "Ventilatie",
-    "heatSource": "Warmtebron",
+    "constructionSystem": "Waarvan is het huis gebouwd?",
+    "externalDimensions": "Hoe groot is het huis?",
+    "roofType": "Wat is de dakhelling?",
+    "foundationOptions": "Waarop staat het huis?",
+    "wallBuildUp": "Uit welke lagen bestaat de wand?",
+    "customizationScope": "Wat kan ik naar eigen wens aanpassen?",
+    "insulation": "Wordt het warm in de winter?",
+    "heatTransferCoefficients": "Hoe goed sluiten ramen en deuren?",
+    "windowClass": "Welke ramen zijn gemonteerd?",
+    "ventilation": "Wordt het benauwd in de zomer?",
+    "heatSource": "Waarmee wordt het huis verwarmd?",
     "fireResistance": "Brandwerendheid",
     "windResistance": "Windbestendigheid",
     "warrantyLabel": "Constructiegarantie",
@@ -630,10 +793,6 @@
     "applyFilters": "Resultaten tonen"
   },
   "SearchCard": {
-    "teaserPrompt": "Waarmee kan ik u helpen?",
-    "teaserWordHome": "Een woning?",
-    "teaserWordContainers": "Modulaire containers?",
-    "teaserWordSpa": "Een spa?",
     "budgetAny": "Elk budget",
     "budgetUpTo50k": "tot €50K",
     "budget50to100k": "€50K–100K",
@@ -902,6 +1061,12 @@
   "ShortlistActionBar": {
     "selectedCount": "Geselecteerd: {count}/{max}",
     "sendInquiry": "Aanvraag versturen"
+  },
+  "CompareSelectionBar": {
+    "selectedCount": "Geselecteerd om te vergelijken: {count}/{max}",
+    "needTwoHint": "Selecteer nog minstens één woning",
+    "compareCta": "Woningen vergelijken",
+    "clear": "Wissen"
   },
   "DeleteProductDialog": {
     "heading": "Product verwijderen?",

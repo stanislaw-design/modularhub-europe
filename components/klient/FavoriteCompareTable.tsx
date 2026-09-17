@@ -1,5 +1,6 @@
 import { useTranslations } from "next-intl";
 import { DataText, Text } from "@/components/ui";
+import { getDefaultProjectVariant } from "@/lib/data/project-variants";
 import type { FavoriteListEntry } from "@/lib/data/projects";
 
 interface FavoriteCompareTableProps {
@@ -62,26 +63,38 @@ export function FavoriteCompareTable({ favorites }: FavoriteCompareTableProps) {
             <Text as="td" tone="muted" surface="v5" className="p-brand-2">
               {t("productionTime")}
             </Text>
-            {favorites.map(({ project }) => (
-              <DataText as="td" key={project.id} surface="v5" className="p-brand-2">
-                {project.commercial.productionLeadTimeWeeksMax > 0
-                  ? t("weeksRange", {
-                      min: project.commercial.productionLeadTimeWeeksMin,
-                      max: project.commercial.productionLeadTimeWeeksMax,
-                    })
-                  : "—"}
-              </DataText>
-            ))}
+            {favorites.map(({ project }) => {
+              // Harmonogram żyje dziś w dniach na wariancie (spec 0041/0042);
+              // ta tabela zachowuje dawny, tygodniowy zapis, stąd konwersja
+              // z powrotem zamiast zmiany treści w czterech językach.
+              const produkcjaStage = getDefaultProjectVariant(project)?.timelineStages.find(
+                (stage) => stage.stageKey === "produkcja",
+              );
+              const weeksMax = produkcjaStage?.durationMaxDays ? Math.round(produkcjaStage.durationMaxDays / 7) : 0;
+              return (
+                <DataText as="td" key={project.id} surface="v5" className="p-brand-2">
+                  {weeksMax > 0
+                    ? t("weeksRange", {
+                        min: produkcjaStage?.durationMinDays ? Math.round(produkcjaStage.durationMinDays / 7) : 0,
+                        max: weeksMax,
+                      })
+                    : "—"}
+                </DataText>
+              );
+            })}
           </tr>
           <tr>
             <Text as="td" tone="muted" surface="v5" className="p-brand-2">
               {t("completionStandardLabel")}
             </Text>
-            {favorites.map(({ project }) => (
-              <DataText as="td" key={project.id} surface="v5" className="p-brand-2">
-                {standardLabel[project.commercial.completionStandard]}
-              </DataText>
-            ))}
+            {favorites.map(({ project }) => {
+              const defaultVariant = getDefaultProjectVariant(project);
+              return (
+                <DataText as="td" key={project.id} surface="v5" className="p-brand-2">
+                  {defaultVariant ? standardLabel[defaultVariant.completionStandard] : "—"}
+                </DataText>
+              );
+            })}
           </tr>
         </tbody>
       </table>

@@ -31,7 +31,9 @@ export async function ProducerShowcase({ producers }: ProducerShowcaseProps) {
         </div>
         <div className="grid grid-cols-1 gap-brand-4 sm:grid-cols-2 lg:grid-cols-3">
           {producers.map((producer) => (
-            <ProducerCard key={producer.id} producer={producer} />
+            // showTrustDetails=false: showroom/odpowiedź nie ma tu kontekstu
+            // (spec 0042 Follow-up, świadomie ustawione w obu miejscach użycia).
+            <ProducerCard key={producer.id} producer={producer} showTrustDetails={false} />
           ))}
         </div>
       </div>

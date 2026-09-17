@@ -3,6 +3,14 @@
 @import "../assets/tokens/brand-v4-tokens.css";
 @import "../assets/tokens/brand-v5-tokens.css";
 
+/* Enables a `dark:` utility variant matched by an ancestor `.dark` class
+   (spec 0043's Decision names this directive explicitly). Unused directly
+   today: dark mode here works by redefining the custom properties below
+   under .theme-klient.dark instead of sprinkling dark: classes through
+   components, per spec 0043's rationale. Kept for parity with the decision
+   and so a future component can opt into dark: locally if it ever needs to. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: var(--brand-warm-white);
   --foreground: var(--brand-foundation-navy);
@@ -14,6 +22,30 @@
   --font-brand-display: var(--font-manrope), "Avenir Next", Arial, sans-serif;
   --font-brand-body: var(--font-manrope), "Helvetica Neue", Arial, sans-serif;
   --font-brand-data: var(--font-manrope), "SFMono-Regular", Consolas, monospace;
+
+  /* Dark mode value palette (spec 0043). Literal hex values live only here;
+     everything below just points at one of these. Contrast against
+     --dm-bg (#111318, WCAG relative luminance ~0.0065): --dm-ink ~16.5:1,
+     --dm-muted ~8.3:1, both comfortably above the 4.5:1 text threshold. */
+  --dm-bg: #111318;
+  --dm-surface: #181c24;
+  --dm-ink: #f3f1ec;
+  --dm-muted: #a8adb8;
+  --dm-border: #333a4a;
+  --dm-deep: #c7d2e8;
+  --dm-status-approved: #3ddc84;
+  --dm-status-conditional: #f0a733;
+  --dm-status-blocked: #ff6b6b;
+
+  /* Pinned alongside --status-blocked (see .theme-klient.dark below): a
+     second, non-inverting alias for the rare solid-fill + white-text usage
+     (FavoriteButton's error toast). --status-blocked itself brightens in
+     dark mode so it stays readable as text (StatusPill, spec 0043 AC-8);
+     that brighter value is too light for white text at 4.5:1 on a solid
+     fill (the two constraints are mutually exclusive — solving for both
+     shows no single value can satisfy them), so the solid-fill call site
+     needs its own always-dark value instead. */
+  --status-blocked-fill: var(--status-blocked);
 }
 
 @theme inline {
@@ -39,6 +71,7 @@
   --color-status-approved: var(--status-approved);
   --color-status-conditional: var(--status-conditional);
   --color-status-blocked: var(--status-blocked);
+  --color-status-blocked-fill: var(--status-blocked-fill);
 
   /* Marketing surface aliases. They now resolve to the same global identity
      as the product tokens so every route uses one coherent palette. */
@@ -335,5 +368,110 @@ body {
    by that bar's own height instead of sitting underneath it. */
 .results-shell:has(.shortlist-action-bar) .results-filter-bar {
   bottom: 77px;
+}
+
+/* Dark mode (spec 0043): scoped to .theme-klient, the wrapper ThemeProvider
+   renders around the customer flow only (app/[locale]/(customer)/layout.tsx)
+   — producer/internal never render inside it, so this never reaches them
+   (AC-11), even under the system-preference media query below (which is
+   otherwise unaware of route). Redefines the semantic alias custom
+   properties, not the raw --brand-black/--brand-orange/... primitives, so
+   pinned pairings (e.g. --brand-action-foreground, always black on an
+   unchanging orange fill) keep resolving to their original value by simply
+   not being touched here.
+
+   Each token generation splits into two treatments, decided by how it's
+   actually used across components/klient today (not by name alone):
+   - "Inverts": tokens used as the dominant text/page-surface role
+     (foundation-navy, warm-white, steel, technical-graphite, v5-ink,
+     v5-surface, v5-muted, v5-line, plus --background/--foreground and the
+     status-* text colors). These flip so body copy and card surfaces stay
+     legible on a dark page.
+   - "Pinned" (deliberately absent below, so they keep their light-mode
+     value): tokens whose actual usage is a fixed-dark accent paired with
+     fixed-light text/icons, independent of the page theme (v4-night/
+     night-deep/surface/mist/line/line-dark, v5-night/paper, all four
+     amber-family accents, --brand-action-foreground). Inverting these would
+     break their pairing (e.g. a "dark badge, white icon" would become
+     "light badge, light icon"). v5-ink specifically needed several call
+     sites (icon plaques, modal backdrops, floating tooltips, gradient
+     scrims — components/klient/{FloatingSearchButton,ProjectLogistics,
+     ProjectTechnicalSpecs,SearchCard,CategoryShowcase,
+     CategoryShowcaseCarousel,BulkOrdersShowcase,SiteHeader,
+     ResultsFilterBar}.tsx) moved onto v5-night instead, since those were
+     using v5-ink for this fixed-dark role, not the inverting text role. */
+.theme-klient.dark {
+  color-scheme: dark;
+
+  --background: var(--dm-bg);
+  --foreground: var(--dm-ink);
+
+  --brand-foundation-navy: var(--dm-ink);
+  --brand-deep-structure: var(--dm-deep);
+  --brand-warm-white: var(--dm-bg);
+  --brand-steel: var(--dm-border);
+  --brand-technical-graphite: var(--dm-muted);
+
+  --status-approved: var(--dm-status-approved);
+  --status-conditional: var(--dm-status-conditional);
+  --status-blocked: var(--dm-status-blocked);
+
+  --brand-v4-paper: var(--dm-surface);
+  --brand-v4-ink: var(--dm-ink);
+  --brand-v4-muted: var(--dm-muted);
+
+  --brand-v5-surface: var(--dm-surface);
+  --brand-v5-ink: var(--dm-ink);
+  --brand-v5-muted: var(--dm-muted);
+  --brand-v5-line: var(--dm-border);
+}
+
+/* Same declarations as .theme-klient.dark above, kept in sync manually: no
+   explicit cookie yet, so the effective theme comes from the visitor's OS
+   setting instead (spec 0043 AC-3), resolved by the browser at paint time
+   with no JS. :not(.light) lets an explicit light cookie override a
+   dark-preferring system (AC-4). */
+@media (prefers-color-scheme: dark) {
+  .theme-klient:not(.light) {
+    color-scheme: dark;
+
+    --background: var(--dm-bg);
+    --foreground: var(--dm-ink);
+
+    --brand-foundation-navy: var(--dm-ink);
+    --brand-deep-structure: var(--dm-deep);
+    --brand-warm-white: var(--dm-bg);
+    --brand-steel: var(--dm-border);
+    --brand-technical-graphite: var(--dm-muted);
+
+    --status-approved: var(--dm-status-approved);
+    --status-conditional: var(--dm-status-conditional);
+    --status-blocked: var(--dm-status-blocked);
+
+    --brand-v4-paper: var(--dm-surface);
+    --brand-v4-ink: var(--dm-ink);
+    --brand-v4-muted: var(--dm-muted);
+
+    --brand-v5-surface: var(--dm-surface);
+    --brand-v5-ink: var(--dm-ink);
+    --brand-v5-muted: var(--dm-muted);
+    --brand-v5-line: var(--dm-border);
+  }
+}
+
+/* Subtle crossfade when the theme flips (spec 0043 AC-2), scoped to the
+   customer flow. :where(...) gives this zero specificity, so it only ever
+   acts as a fallback default: any element that already declares its own
+   transition (e.g. a button's `transition-opacity`, SiteHeader's
+   `transition-colors duration-300`) keeps that transition completely
+   untouched, no matter the source order — this rule can never override it.
+   Elements with no transition of their own pick up this one instead, so the
+   whole page recolors smoothly rather than snapping. */
+@media not (prefers-reduced-motion: reduce) {
+  :where(.theme-klient *) {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-duration: 200ms;
+    transition-timing-function: ease;
+  }
 }
 

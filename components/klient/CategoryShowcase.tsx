@@ -82,7 +82,7 @@ export async function CategoryShowcase({ locale }: CategoryShowcaseProps) {
     const project = featuredByFamily.get(family) ?? null;
     const name = familyNames[family];
     const count = totalsByFamily.get(family) ?? 0;
-    const priceFromEur = project ? (project.priceOnRequest ? null : project.commercial.housePriceMinEur) : null;
+    const priceFromEur = project ? (project.priceOnRequest ? null : project.priceMin) : null;
     const offerLabel =
       priceFromEur !== null
         ? t("priceFrom", { price: priceFormatter.format(priceFromEur) })
@@ -107,7 +107,7 @@ export async function CategoryShowcase({ locale }: CategoryShowcaseProps) {
     // Each showcase mode clips its own crossfading/scrolling content itself.
     <section
       id="category-showcase"
-      className="full-bleed relative isolate mt-brand-7 mb-brand-7 bg-brand-v5-ink"
+      className="full-bleed relative isolate mt-brand-7 mb-brand-7 bg-brand-v5-night"
     >
       <CategoryShowcaseCarousel
         headingUnderline={t("headingUnderline")}

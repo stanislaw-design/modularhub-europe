@@ -1,7 +1,7 @@
 # 0042. Nowy uklad strony projektu (client)
 
 **Date**: 2026-09-15
-**Status**: Proposed
+**Status**: In Progress
 
 ## Summary
 

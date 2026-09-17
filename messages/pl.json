@@ -16,7 +16,8 @@
     "closeMenu": "Zamknij menu",
     "menu": "Menu",
     "mainNav": "Nawigacja",
-    "account": "Konto"
+    "account": "Konto",
+    "changeLanguage": "Zmień język"
   },
   "ProducerHeader": {
     "imClient": "Jestem klientem",
@@ -30,6 +31,10 @@
     "en": "English",
     "nl": "Nederlands",
     "de": "Deutsch"
+  },
+  "Theme": {
+    "toggleToLight": "Przełącz na jasny motyw",
+    "toggleToDark": "Przełącz na ciemny motyw"
   },
   "FileUpload": {
     "chooseFiles": "Wybierz pliki",
@@ -88,6 +93,12 @@
     "countryOfProduction": "Kraj produkcji: {country}",
     "modelsAndSize": "{models} modeli · {min}–{max} m²",
     "delivery": "Dostawa:",
+    "showroomVisitAvailable": "Możliwe odwiedziny osobiste",
+    "showroomVisitUnavailable": "Bez możliwości odwiedzin osobistych",
+    "showroomVisitUnknown": "Odwiedziny osobiste do potwierdzenia z producentem",
+    "inquiryResponseTime": "Odpowiada w ciągu {label}",
+    "inquiryResponseTimeLabel": "Czas odpowiedzi",
+    "toBeCompleted": "Do uzupełnienia",
     "country": {
       "PL": "Polska",
       "DE": "Niemcy",
@@ -114,7 +125,12 @@
     "priceOnRequest": "Wycena indywidualna",
     "priceOnRequestHint": "Ustalana bezpośrednio z producentem",
     "priceFrom": "od {price} €",
-    "leadTime": "{productionMin}–{productionMax} tyg. produkcji · {assemblyMin}–{assemblyMax} dni montażu"
+    "leadTime": "{productionMin}–{productionMax} tyg. produkcji · {assemblyMin}–{assemblyMax} dni montażu",
+    "scopeToBeConfirmed": "Zakres do potwierdzenia",
+    "floorPlanAvailable": "Rzut dostępny",
+    "floorPlanLinkLabel": "Zobacz rzut projektu {name}",
+    "selectForCompare": "Porównaj {name} z innymi domami",
+    "compareLabel": "Porównaj"
   },
   "ProductFamilyNoun": {
     "dom": {
@@ -543,9 +559,6 @@
       "one": "kondygnacja",
       "other": "kondygnacje"
     },
-    "descriptionLabel": "Opis",
-    "showMore": "Pokaż więcej",
-    "showLess": "Pokaż mniej",
     "completionStandardLabel": "Standard wykończenia",
     "completionStandard": {
       "surowy-zamkniety": "Stan surowy zamknięty",
@@ -576,7 +589,38 @@
     "addToShortlist": "Dodaj do shortlisty",
     "checkPlot": "Sprawdź działkę pod ten projekt",
     "from": "od",
-    "descriptionImageAlt": "{name}, dom modułowy"
+    "priceAndScopeHeading": "Cena i zakres",
+    "variantPickerAriaLabel": "Standard wykończenia",
+    "inquiryResponseTime": "Producent zwykle odpowiada w ciągu {label}",
+    "inquiryResponseTimeLabel": "Czas odpowiedzi producenta",
+    "toBeCompleted": "Do uzupełnienia",
+    "scopeToBeCompleted": "Zakres i cena tego standardu nie zostały jeszcze przekazane przez producenta.",
+    "priceForStandard": "Cena · {standard}",
+    "netVat": "netto",
+    "vatDisclaimer": "+ VAT zgodnie z przepisami kraju realizacji · cena już w walucie oferty",
+    "knownCostSum": "Suma znanych pozycji dla tego wariantu",
+    "pendingCostItems": {
+      "one": "+ {count} pozycja do wyceny",
+      "few": "+ {count} pozycje do wyceny",
+      "many": "+ {count} pozycji do wyceny"
+    },
+    "compareWithAnother": "Porównaj z innym domem",
+    "inquiryGoesTo": "Zapytanie trafi do <b>{producer}</b>.",
+    "inquiryResponseTimeShort": "Odpowiedź w ciągu {label}, bez zobowiązania zakupowego.",
+    "noPurchaseObligation": "bez zobowiązania zakupowego",
+    "sectionNavAriaLabel": "Nawigacja po sekcjach strony",
+    "sectionNavScrollLeft": "Przewiń pasek sekcji w lewo",
+    "sectionNavScrollRight": "Przewiń pasek sekcji w prawo",
+    "sectionNav": {
+      "uklad": "Układ domu",
+      "cena": "Cena i zakres",
+      "dzialka": "Działka i dostawa",
+      "harmonogram": "Harmonogram",
+      "komfort": "Komfort i technologia",
+      "producent": "Realizacje i producent",
+      "dokumenty": "Dokumenty i pytania",
+      "podobne": "Podobne domy"
+    }
   },
   "Faq": {
     "heading": "Najczęstsze pytania",
@@ -594,22 +638,141 @@
     "timeQuestion": "Ile czasu zajmuje otrzymanie ofert?",
     "timeAnswer": "Zwykle do 48 godzin od wysłania zapytania — producenci odpowiadają bezpośrednio na adres podany w formularzu kontaktowym."
   },
+  "ProjectCostComparisonTable": {
+    "onlyDifferences": "Pokaż tylko różnice",
+    "showMore": "Pokaż więcej ({count})",
+    "showFewer": "Pokaż mniej",
+    "tableCaption": "Porównanie kosztów między wariantami wykończenia",
+    "lineItemColumn": "Pozycja",
+    "priceFrom": "od {price} €",
+    "priceOnRequest": "Wycena indywidualna",
+    "notIncluded": "Nie dotyczy",
+    "noCostLineItems": "Pozycje kosztowe: do uzupełnienia przez producenta.",
+    "toBeCompleted": "Do uzupełnienia",
+    "completionStandard": {
+      "surowy-zamkniety": "Stan surowy zamknięty",
+      "deweloperski": "Standard deweloperski",
+      "pod-klucz": "Pod klucz"
+    },
+    "status": {
+      "w-cenie": "W cenie",
+      "obowiazkowa-doplata": "Obowiązkowa dopłata",
+      "opcja": "Opcja",
+      "po-stronie-klienta": "Po stronie klienta",
+      "do-wyceny": "Do wyceny"
+    }
+  },
+  "ProjectCompareTable": {
+    "heading": "Porównanie domów",
+    "intro": "Zestawienie {count} wybranych domów obok siebie, bez zakładania konta.",
+    "unavailableNotice": "Część wybranych domów nie jest już dostępna. Wróć do wyników, aby wybrać inne.",
+    "backToResults": "Wróć do wyników",
+    "onlyDifferences": "Pokaż tylko różnice",
+    "tableCaption": "Porównanie parametrów i cen wybranych domów",
+    "attributeColumn": "Parametr",
+    "floorAreaLabel": "Powierzchnia użytkowa",
+    "areaValue": "{area} m²",
+    "builtUpAreaLabel": "Powierzchnia zabudowy",
+    "bedroomsLabel": "Sypialnie",
+    "bathroomsLabel": "Łazienki",
+    "storeysLabel": "Kondygnacje",
+    "externalDimensionsLabel": "Wymiary zewnętrzne",
+    "completionStandardLabel": "Standard wykończenia",
+    "completionStandard": {
+      "surowy-zamkniety": "Stan surowy zamknięty",
+      "deweloperski": "Standard deweloperski",
+      "pod-klucz": "Pod klucz"
+    },
+    "productionTimeLabel": "Czas produkcji i montażu",
+    "productionTimeValue": "{productionMin}–{productionMax} dni produkcji · {assemblyMin}–{assemblyMax} dni montażu",
+    "floorPlanLabel": "Dostępność rzutu",
+    "floorPlanYes": "Dostępny",
+    "floorPlanNo": "Brak rzutu",
+    "variantPickerLabel": "Wariant dla {name}",
+    "priceFrom": "od {price} €",
+    "scopeToBeConfirmed": "Zakres do potwierdzenia",
+    "priceOnRequest": "Wycena indywidualna",
+    "unavailableColumnLabel": "Niedostępny",
+    "unavailableColumnHint": "Ten dom został usunięty lub nie jest już publicznie dostępny.",
+    "notProvided": "Nie podano"
+  },
+  "ProjectRoomLayout": {
+    "heading": "Układ domu",
+    "tableCaption": "Lista pomieszczeń z metrażem",
+    "nameColumn": "Pomieszczenie",
+    "areaColumn": "Powierzchnia",
+    "mezzanineBadge": "antresola",
+    "areaValue": "{area} m²",
+    "emptyHint": "Układ pomieszczeń nie został jeszcze przekazany przez producenta.",
+    "totalAreaLabel": "Powierzchnia użytkowa",
+    "roomsLabel": {
+      "one": "pokój",
+      "few": "pokoje",
+      "many": "pokoi"
+    },
+    "bathroomsLabel": {
+      "one": "łazienka",
+      "few": "łazienki",
+      "many": "łazienek"
+    },
+    "imageAlt": "{name}, wnętrze domu",
+    "floorPlanAlt": "{name}, rzut kondygnacji",
+    "showAllRooms": "Pokaż wszystkie pomieszczenia ({count})",
+    "showFewerRooms": "Pokaż mniej",
+    "zoomOpenLabel": "Powiększ rzut domu",
+    "zoomCloseLabel": "Zamknij powiększenie"
+  },
+  "ProjectLogistics": {
+    "heading": "Działka i dostawa",
+    "minPlotWidthLabel": "Minimalna szerokość działki",
+    "minPlotWidthValue": "{width} m",
+    "externalDimensionsLabel": "Wymiary zabudowy",
+    "foundationOptionsLabel": "Wymagania fundamentu",
+    "transportDimensionsLabel": "Wymiary transportowe",
+    "craneRequirementsLabel": "Wymagania dźwigu",
+    "toBeCompleted": "Do uzupełnienia"
+  },
+  "ProjectTimeline": {
+    "heading": "Harmonogram realizacji",
+    "stage": {
+      "formalnosci": "Formalności",
+      "produkcja": "Produkcja",
+      "transport": "Transport",
+      "montaz": "Montaż",
+      "wykonczenie": "Wykończenie"
+    },
+    "durationRange": "{min}–{max} dni",
+    "durationSingle": "{count} dni",
+    "startsFrom": "Start: {label}",
+    "responsibleParty": "Odpowiada: {party}",
+    "toBeCompleted": "Do uzupełnienia"
+  },
+  "ProjectGalleryTabs": {
+    "tablistLabel": "Zdjęcia projektu",
+    "tabWizualizacje": "Wizualizacje",
+    "tabRzut": "Rzut",
+    "tabRealizacje": "Realizacje",
+    "floorPlanAlt": "Rzut {name}, widok {index}",
+    "realizationAlt": "Zdjęcie z realizacji {name}, {index}",
+    "realizacjePlaceholder": "Zdjęcia z realizacji, do uzupełnienia przez producenta",
+    "rzutPlaceholder": "Rzut do uzupełnienia przez producenta"
+  },
   "ProjectTechnicalSpecs": {
     "heading": "Technologia i konstrukcja",
     "groupConstructionTitle": "Konstrukcja i wykończenie",
     "groupEnergyTitle": "Efektywność energetyczna",
     "groupSafetyTitle": "Bezpieczeństwo i gwarancja",
-    "constructionSystem": "System konstrukcyjny",
-    "externalDimensions": "Wymiary zewnętrzne",
-    "roofType": "Dach",
-    "foundationOptions": "Fundament",
-    "wallBuildUp": "Przegroda ścienna",
-    "customizationScope": "Zakres personalizacji",
-    "insulation": "Izolacyjność",
-    "heatTransferCoefficients": "Współczynniki przenikania ciepła",
-    "windowClass": "Klasa okien",
-    "ventilation": "Wentylacja",
-    "heatSource": "Źródło ciepła",
+    "constructionSystem": "Z czego zbudowany jest ten dom?",
+    "externalDimensions": "Jak duży jest dom?",
+    "roofType": "Jaki jest kąt nachylenia dachu?",
+    "foundationOptions": "Na czym stanie dom?",
+    "wallBuildUp": "Z jakich warstw jest ściana?",
+    "customizationScope": "Co mogę dopasować pod siebie?",
+    "insulation": "Czy zimą będzie ciepło?",
+    "heatTransferCoefficients": "Jak szczelne są okna i drzwi?",
+    "windowClass": "Jakie okna są zamontowane?",
+    "ventilation": "Czy latem będzie duszno?",
+    "heatSource": "Czym dom jest ogrzewany?",
     "fireResistance": "Odporność ogniowa",
     "windResistance": "Odporność na wiatr",
     "warrantyLabel": "Gwarancja konstrukcyjna",
@@ -637,10 +800,6 @@
     "applyFilters": "Pokaż wyniki"
   },
   "SearchCard": {
-    "teaserPrompt": "W czym mogę pomóc?",
-    "teaserWordHome": "Dom?",
-    "teaserWordContainers": "Kontenery?",
-    "teaserWordSpa": "SPA?",
     "budgetAny": "Dowolny budżet",
     "budgetUpTo50k": "do 50K €",
     "budget50to100k": "50K–100K €",
@@ -909,6 +1068,12 @@
   "ShortlistActionBar": {
     "selectedCount": "Zaznaczono: {count}/{max}",
     "sendInquiry": "Wyślij zapytanie"
+  },
+  "CompareSelectionBar": {
+    "selectedCount": "Do porównania: {count}/{max}",
+    "needTwoHint": "Wybierz jeszcze co najmniej jeden dom",
+    "compareCta": "Porównaj domy",
+    "clear": "Wyczyść"
   },
   "DeleteProductDialog": {
     "heading": "Usunąć produkt?",

@@ -34,21 +34,24 @@ interface SpecGroup {
 // dekoracja, tylko konsekwentne domknięcie istniejącego kodu barw: czerń =
 // konstrukcja, pomarańcz = parametry energetyczne, zielony = bezpieczeństwo/
 // gwarancja (ten sam zielony co status "approved" wyżej na stronie).
-const GROUP_ACCENTS: Record<GroupId, { plaque: string; icon: string; rule: string }> = {
+const GROUP_ACCENTS: Record<GroupId, { plaque: string; icon: string; rule: string; panel: string }> = {
   construction: {
-    plaque: "bg-brand-v5-ink",
+    plaque: "bg-brand-v5-night",
     icon: "text-brand-v5-paper",
-    rule: "border-brand-v5-ink/30",
+    rule: "border-brand-v5-night/30",
+    panel: "bg-brand-v5-night/[0.06]",
   },
   energy: {
     plaque: "bg-brand-v5-amber/15",
     icon: "text-brand-v5-amber-strong",
     rule: "border-brand-v5-amber-strong/40",
+    panel: "bg-brand-v5-amber/12",
   },
   safety: {
     plaque: "bg-status-approved/15",
     icon: "text-status-approved",
     rule: "border-status-approved/40",
+    panel: "bg-status-approved/10",
   },
 };
 
@@ -139,7 +142,7 @@ export async function ProjectTechnicalSpecs({ project }: ProjectTechnicalSpecsPr
             >
               <div className="flex items-center gap-brand-4">
                 <span
-                  className={`flex size-14 shrink-0 items-center justify-center rounded-data ${accent?.plaque ?? "bg-brand-v5-ink"}`}
+                  className={`flex size-14 shrink-0 items-center justify-center rounded-data ${accent?.plaque ?? "bg-brand-v5-night"}`}
                 >
                   <group.icon
                     className={`size-7 ${accent?.icon ?? "text-brand-v5-paper"}`}
@@ -149,36 +152,64 @@ export async function ProjectTechnicalSpecs({ project }: ProjectTechnicalSpecsPr
                   {group.title}
                 </Heading>
               </div>
-              <dl className="grid grid-cols-1 gap-x-brand-6 gap-y-brand-5 sm:grid-cols-2 lg:grid-cols-3">
-                {group.rows.map((row) => {
-                  // Krótkie wartości (wymiary, lata gwarancji, klasy) dostają duży,
-                  // "cennikowy" rozmiar dla efektu ekskluzywności; dłuższe, zdaniowe
-                  // opisy (np. przegroda ścienna, współczynniki U) zajmują cały wiersz
-                  // i mniejszy rozmiar, żeby nie zawijały się w gęstą ścianę tekstu.
-                  const isLongValue = row.value.length > 40;
-                  return (
-                    <div
-                      key={row.label}
-                      className={`flex flex-col gap-2 ${isLongValue ? "sm:col-span-2 lg:col-span-3" : ""}`}
-                    >
-                      <Text as="dt" variant="label" tone="muted" surface="v5">
-                        {row.label}
-                      </Text>
-                      <DataText
-                        as="dd"
-                        surface="v5"
-                        className={
-                          isLongValue
-                            ? "text-body-l font-medium leading-snug"
-                            : "text-h3 font-medium leading-snug"
-                        }
+              {group.id === "safety" ? (
+                <dl className="grid grid-cols-1 gap-x-brand-6 gap-y-brand-5 sm:grid-cols-2 lg:grid-cols-3">
+                  {group.rows.map((row) => {
+                    // Krótkie wartości (wymiary, lata gwarancji, klasy) dostają duży,
+                    // "cennikowy" rozmiar dla efektu ekskluzywności; dłuższe, zdaniowe
+                    // opisy (np. przegroda ścienna, współczynniki U) zajmują cały wiersz
+                    // i mniejszy rozmiar, żeby nie zawijały się w gęstą ścianę tekstu.
+                    const isLongValue = row.value.length > 40;
+                    return (
+                      <div
+                        key={row.label}
+                        className={`flex flex-col gap-2 ${isLongValue ? "sm:col-span-2 lg:col-span-3" : ""}`}
                       >
-                        {row.value}
-                      </DataText>
-                    </div>
-                  );
-                })}
-              </dl>
+                        <Text as="dt" variant="label" tone="muted" surface="v5">
+                          {row.label}
+                        </Text>
+                        <DataText
+                          as="dd"
+                          surface="v5"
+                          className={
+                            isLongValue
+                              ? "text-body-l font-medium leading-snug"
+                              : "text-h3 font-medium leading-snug"
+                          }
+                        >
+                          {row.value}
+                        </DataText>
+                      </div>
+                    );
+                  })}
+                </dl>
+              ) : (
+                // Konstrukcja i technologia stawiają pytanie kupującego jako argument
+                // ("czy będzie mi tu ciepło"), a surowy parametr producenta jest tylko
+                // odpowiedzią pod spodem — nie odwrotnie, jak w dawnym układzie tabeli,
+                // gdzie sama liczba (duży DataText) była bohaterem karty. Cała grupa
+                // siedzi w jednym, nasyconym kolorem akcentu panelu zamiast siatki
+                // identycznych, obramowanych kart (banalne i płaskie, ten sam problem
+                // co odrzucona generyczna e-commerce'owa siatka specyfikacji) — próba
+                // wyróżnienia jednego "najlepszego" wiersza zamiast tego zawodzi w
+                // praktyce, bo dane producenta są nierówne (patrz komentarz wyżej) i to,
+                // co akurat przetrwa filtr pustych pól, bywa najsłabszym argumentem, nie
+                // najmocniejszym. Każde pytanie w panelu dostaje więc równą, dużą wagę.
+                <div className={`rounded-v5-card border p-brand-5 lg:p-brand-6 ${accent?.panel ?? "bg-brand-v5-surface"} ${accent?.rule ?? "border-brand-v5-line"}`}>
+                  <div className="grid grid-cols-1 gap-x-brand-6 gap-y-brand-5 sm:grid-cols-2">
+                    {group.rows.map((row) => (
+                      <div key={row.label} className="flex flex-col gap-2">
+                        <Text as="h4" surface="v5" className="text-h3 font-bold leading-snug">
+                          {row.label}
+                        </Text>
+                        <Text as="p" variant="body" tone="muted" surface="v5" className="leading-relaxed">
+                          {row.value}
+                        </Text>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </ScrollReveal>
           );
         })}

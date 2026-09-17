@@ -100,7 +100,7 @@ export function FavoriteButton({
         {error && (
           <p
             role="alert"
-            className="absolute right-0 top-full z-20 mt-1 w-40 rounded-data bg-status-blocked px-2 py-1 text-label text-brand-warm-white shadow-sm"
+            className="absolute right-0 top-full z-20 mt-1 w-40 rounded-data bg-status-blocked-fill px-2 py-1 text-label text-brand-white shadow-sm"
           >
             {error}
           </p>

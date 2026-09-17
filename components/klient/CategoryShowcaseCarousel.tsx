@@ -271,7 +271,7 @@ function CategorySlide({
       {/* Darkened + softly blurred background (unlike Hero's scrim-free
           treatment): the bottom-left copy and offer card read as the
           foreground content here, not a caption over a crisp photo. */}
-      <div className="absolute inset-0 bg-brand-v5-ink/50" />
+      <div className="absolute inset-0 bg-brand-v5-night/50" />
       {/* Sizes step up at `lg` only (same reasoning as ShowcaseChrome's
           heading): the mobile carousel frame is a fixed-height box shared
           with this section's persistent top heading, so oversized text here
@@ -279,10 +279,10 @@ function CategorySlide({
           at 700px tall before this was made responsive. */}
       <div className="absolute inset-x-0 bottom-0 flex flex-col gap-brand-3 p-brand-4 pb-20 lg:flex-row lg:items-end lg:justify-between lg:gap-brand-4 lg:p-brand-6 lg:pb-16">
         <div className="max-w-[30ch] lg:max-w-[38ch]">
-          <p className="font-display text-h1 font-bold text-brand-v5-surface [text-shadow:0_2px_16px_rgba(0,0,0,0.45)] lg:text-display-xl">
+          <p className="font-display text-h1 font-bold text-brand-v5-paper [text-shadow:0_2px_16px_rgba(0,0,0,0.45)] lg:text-display-xl">
             {category.name}
           </p>
-          <p className="mt-brand-1 max-w-[32ch] text-body-l text-brand-v5-surface/90 [text-shadow:0_2px_10px_rgba(0,0,0,0.4)] lg:mt-brand-2 lg:text-h3">
+          <p className="mt-brand-1 max-w-[32ch] text-body-l text-brand-v5-paper/90 [text-shadow:0_2px_10px_rgba(0,0,0,0.4)] lg:mt-brand-2 lg:text-h3">
             {category.description}
           </p>
         </div>
@@ -341,7 +341,7 @@ function ShowcaseChrome({
           hero-underline (globals.css) is the same animated amber underline
           Hero.tsx draws under its own heading words, reused here for visual
           consistency between the two full-bleed sections. */}
-      <h2 className="pointer-events-auto max-w-[20ch] px-brand-4 pt-24 pb-brand-4 font-display text-h2 leading-tight font-bold text-brand-v5-surface [text-shadow:0_2px_16px_rgba(0,0,0,0.4)] lg:max-w-[14ch] lg:px-brand-6 lg:pt-28 lg:pb-brand-6 lg:text-display-xl lg:leading-[1.05]">
+      <h2 className="pointer-events-auto max-w-[20ch] px-brand-4 pt-24 pb-brand-4 font-display text-h2 leading-tight font-bold text-brand-v5-paper [text-shadow:0_2px_16px_rgba(0,0,0,0.4)] lg:max-w-[14ch] lg:px-brand-6 lg:pt-28 lg:pb-brand-6 lg:text-display-xl lg:leading-[1.05]">
         <span className="hero-underline">{headingUnderline}</span> {headingRest}
       </h2>
       <div className="pointer-events-auto flex items-center justify-center gap-brand-2 pb-brand-4">
@@ -353,7 +353,7 @@ function ShowcaseChrome({
             aria-current={activeIndex === index}
             onClick={() => onSelect(index)}
             className={`focus-ring size-2.5 rounded-full transition-colors ${
-              activeIndex === index ? "bg-brand-v5-surface" : "bg-brand-v5-surface/40 hover:bg-brand-v5-surface/70"
+              activeIndex === index ? "bg-brand-v5-paper" : "bg-brand-v5-paper/40 hover:bg-brand-v5-paper/70"
             }`}
           />
         ))}
@@ -361,7 +361,7 @@ function ShowcaseChrome({
           type="button"
           aria-label={nextCategoryLabel}
           onClick={() => onSelect(activeIndex + 1)}
-          className="focus-ring ml-brand-1 flex size-9 items-center justify-center rounded-full bg-brand-v5-surface/90 text-brand-v5-ink transition-colors hover:bg-brand-v5-surface"
+          className="focus-ring ml-brand-1 flex size-9 items-center justify-center rounded-full bg-brand-v5-paper/90 text-brand-v5-night transition-colors hover:bg-brand-v5-paper"
         >
           <ArrowRight className="size-4" aria-hidden="true" />
         </button>

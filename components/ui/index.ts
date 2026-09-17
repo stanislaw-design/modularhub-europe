@@ -23,4 +23,6 @@ export type { StageTimelineDocument, StageTimelineItem, StageStatus } from "./St
 export { StatusPill } from "./StatusPill";
 export { Text } from "./Text";
 export { Textarea } from "./Textarea";
+export { ThemeProvider, useTheme } from "./ThemeProvider";
+export { ThemeToggle } from "./ThemeToggle";
 export { WordRotate } from "./WordRotate";

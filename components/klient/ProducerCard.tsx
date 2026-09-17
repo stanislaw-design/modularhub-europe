@@ -1,20 +1,24 @@
-import { BadgeCheck } from "lucide-react";
+import { BadgeCheck, CircleHelp, Home, XCircle } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import Image from "next/image";
-import { StarRating, Text } from "@/components/ui";
+import { StarRating, StatusPill, Text } from "@/components/ui";
 import type { CountryCode, Producer } from "@/lib/data/types";
 
 const countryFlag: Record<CountryCode, string> = { PL: "🇵🇱", DE: "🇩🇪", NL: "🇳🇱" };
 
 interface ProducerCardProps {
   producer: Producer;
+  /** Pola zaufania (odwiedziny, notatka, czas odpowiedzi) mają sens tylko w
+   * kontekście karty projektu, nie w ProducerShowcase na stronie głównej,
+   * gdzie showroom nie jest istotny (spec 0042 AC-9, AC-10, Follow-up). */
+  showTrustDetails?: boolean;
 }
 
 // No logo files exist for any mock producer, and inventing graphic logos for
 // fictional companies risks reading as a real brand (spec 0014 AC-8's same
 // concern, spec 0015 Feature design). The name renders as large, styled
 // text instead of an image.
-export async function ProducerCard({ producer }: ProducerCardProps) {
+export async function ProducerCard({ producer, showTrustDetails = false }: ProducerCardProps) {
   const t = await getTranslations("ProducerCard");
   const countryLabel: Record<CountryCode, string> = {
     PL: t("country.PL"),
@@ -69,6 +73,47 @@ export async function ProducerCard({ producer }: ProducerCardProps) {
             ))}
           </ul>
         </div>
+        {showTrustDetails && (
+          <div className="flex flex-col gap-brand-1 border-t border-brand-v5-line pt-brand-2">
+            {/* Trzy rozróżnialne stany, nigdy sprowadzone do prawda/fałsz z
+                cichym domyślnym "nie" dla braku danych (spec 0042 AC-9). */}
+            <span className="flex items-center gap-brand-1">
+              {producer.showroomVisitAvailable === true && (
+                <Home className="size-4 shrink-0 text-status-approved" aria-hidden="true" />
+              )}
+              {producer.showroomVisitAvailable === false && (
+                <XCircle className="size-4 shrink-0 text-brand-v5-muted" aria-hidden="true" />
+              )}
+              {producer.showroomVisitAvailable === null && (
+                <CircleHelp className="size-4 shrink-0 text-brand-v5-muted" aria-hidden="true" />
+              )}
+              <Text tone="muted" className="text-data">
+                {producer.showroomVisitAvailable === true
+                  ? t("showroomVisitAvailable")
+                  : producer.showroomVisitAvailable === false
+                    ? t("showroomVisitUnavailable")
+                    : t("showroomVisitUnknown")}
+              </Text>
+            </span>
+            {producer.showroomVisitAvailable === true && producer.showroomVisitNote && (
+              <Text tone="muted" className="text-data">
+                {producer.showroomVisitNote}
+              </Text>
+            )}
+            {producer.inquiryResponseTimeLabel ? (
+              <Text tone="muted" className="text-data">
+                {t("inquiryResponseTime", { label: producer.inquiryResponseTimeLabel })}
+              </Text>
+            ) : (
+              <span className="flex items-center gap-brand-1">
+                <Text tone="muted" className="text-data">
+                  {t("inquiryResponseTimeLabel")}
+                </Text>
+                <StatusPill status="conditional">{t("toBeCompleted")}</StatusPill>
+              </span>
+            )}
+          </div>
+        )}
       </div>
     </article>
   );
