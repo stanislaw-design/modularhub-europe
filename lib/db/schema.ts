@@ -439,6 +439,15 @@ export const product = pgTable(
     transportDimensions: text("transport_dimensions"),
     craneRequirements: text("crane_requirements"),
     minPlotWidthM: real("min_plot_width_m"),
+    // Zgłoszenie zamiast pozwolenia na budowę (spec 0045 AC-8): czysto
+    // deklaratywny checkbox producenta, bez żadnej reguły wyliczającej za
+    // nim i bez wartości domyślnej (nieustawiony != "nie").
+    simplifiedPermitEligible: boolean("simplified_permit_eligible"),
+    // Pytania i odpowiedzi specyficzne dla modelu (sekcja "Dokumenty i
+    // pytania" na karcie projektu klienta): tablica {question, answer}, ten
+    // sam wzorzec co roomLayout wyżej (jsonb bez własnej tabeli; walidacja
+    // Zod na granicy aplikacji jest otwartym Follow-up, tak jak roomLayout).
+    faq: jsonb("faq"),
     featured: boolean("featured").notNull().default(false),
     // Tymczasowe: zwykły URL zewnętrzny, zastąpione realnym przechowywaniem
     // plików (Cloudflare R2) w Slice 5 (spec 0023 Context, Follow-up).
@@ -624,10 +633,40 @@ export const productTranslation = pgTable(
     locale: productTranslationLocaleEnum("locale").notNull(),
     name: text("name"),
     description: text("description"),
+    // Tłumaczenie wpisów product.room_layout/faq (spec 0045 AC-5, AC-6, AC-10):
+    // tablica o tym samym kształcie co źródło polskie na `product`, dopasowana
+    // po stabilnym `id` wpisu (pole w jsonb, nie kolumna), nigdy po indeksie —
+    // może być krótsza niż polska wersja (tłumaczenie częściowe).
+    roomLayout: jsonb("room_layout"),
+    faq: jsonb("faq"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [uniqueIndex("product_translation_product_id_locale_idx").on(table.productId, table.locale)],
+);
+
+// Tłumaczenie opisu zakresu wariantu (spec 0045 AC-10 Feature design): osobna
+// tabela, nie kolumny na productVariant, ten sam wzorzec co productTranslation
+// powyżej ale keyed po variantId zamiast productId, bo scope_summary żyje na
+// product_variant, nie na product.
+export const productVariantTranslation = pgTable(
+  "product_variant_translation",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    productVariantId: uuid("product_variant_id")
+      .notNull()
+      .references(() => productVariant.id),
+    locale: productTranslationLocaleEnum("locale").notNull(),
+    scopeSummary: text("scope_summary"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("product_variant_translation_variant_id_locale_idx").on(
+      table.productVariantId,
+      table.locale,
+    ),
+  ],
 );
 
 // Kluczowane per (product, client), nie per product samo: dwóch różnych

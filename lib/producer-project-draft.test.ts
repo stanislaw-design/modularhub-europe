@@ -11,8 +11,11 @@ import {
   TECHNICAL_FIELDS_BY_FAMILY,
   VENTILATION_TYPE_OPTIONS,
   WIZARD_STEPS,
+  alignFaqTranslation,
+  alignRoomLayoutTranslation,
   createEmptyDraft,
   isStepComplete,
+  sanitizeDraftForSave,
 } from "./producer-project-draft";
 
 function completeDraft(): ProjectDraft {
@@ -40,26 +43,33 @@ function completeDraft(): ProjectDraft {
       fireResistance: "REI 30",
       windResistance: "Strefa 2",
     },
+    roomLayout: [],
+    roomLayoutEn: [],
+    roomLayoutNl: [],
+    faq: [],
+    faqEn: [],
+    faqNl: [],
     floorPlanFiles: [{ name: "rzut.pdf", sizeBytes: 100 }],
     photoFiles: [{ name: "zdjecie.png", sizeBytes: 200 }],
-    housePriceMinEur: 100000,
-    housePriceMaxEur: 120000,
-    completionStandard: "deweloperski",
-    productionLeadTimeWeeksMin: 10,
-    productionLeadTimeWeeksMax: 14,
-    onSiteAssemblyDaysMin: 3,
-    onSiteAssemblyDaysMax: 5,
     structuralWarrantyYears: 25,
+    installationWarrantyYears: null,
+    serviceScopeDescription: "",
+    transportDimensions: "",
+    craneRequirements: "",
+    minPlotWidthM: null,
+    simplifiedPermitEligible: null,
+    variantsSummary: [{ isDefault: true, priceMinCents: 10_000_000 }],
   };
 }
 
 describe("WIZARD_STEPS", () => {
-  it("has five steps in the fixed spec order (spec 0022)", () => {
+  it("has six steps in the fixed spec order (spec 0045 Build plan zadanie 12: 'cena' usunięta, 'faq' dodane)", () => {
     expect(WIZARD_STEPS.map((step) => step.id)).toEqual([
       "podstawowe",
       "techniczne",
       "pliki",
-      "cena",
+      "warianty",
+      "faq",
       "podsumowanie",
     ]);
   });
@@ -76,8 +86,11 @@ describe("createEmptyDraft", () => {
     expect(draft.family).toBeNull();
     expect(draft.category).toBeNull();
     expect(draft.technicalSpecs).toEqual({});
+    expect(draft.roomLayout).toEqual([]);
+    expect(draft.faq).toEqual([]);
     expect(draft.floorPlanFiles).toEqual([]);
     expect(draft.photoFiles).toEqual([]);
+    expect(draft.simplifiedPermitEligible).toBeNull();
   });
 });
 
@@ -158,6 +171,14 @@ describe("isStepComplete: techniczne", () => {
 
   it("is incomplete when family is not yet chosen", () => {
     expect(isStepComplete("techniczne", { ...completeDraft(), family: null })).toBe(false);
+  });
+
+  // Gwarancja konstrukcyjna dołączyła tu z usuniętego kroku "Cena" (spec 0045
+  // zadanie 9, 12).
+  it("is incomplete when structuralWarrantyYears is missing, negative, or non-integer", () => {
+    expect(isStepComplete("techniczne", { ...completeDraft(), structuralWarrantyYears: null })).toBe(false);
+    expect(isStepComplete("techniczne", { ...completeDraft(), structuralWarrantyYears: -1 })).toBe(false);
+    expect(isStepComplete("techniczne", { ...completeDraft(), structuralWarrantyYears: 2.5 })).toBe(false);
   });
 
   it("requires numeric fields for family spa-modulowe, not just non-blank strings", () => {
@@ -249,31 +270,27 @@ describe("isStepComplete: pliki", () => {
   });
 });
 
-describe("isStepComplete: cena", () => {
-  it("is complete when price, standard, lead times, and warranty are all valid", () => {
-    expect(isStepComplete("cena", completeDraft())).toBe(true);
+// spec 0045 AC-1/AC-4: kompletny tylko gdy istnieje dokładnie jeden domyślny
+// wariant z wypełnioną ceną minimalną.
+describe("isStepComplete: warianty", () => {
+  it("is complete with a default variant that has a min price", () => {
+    expect(isStepComplete("warianty", completeDraft())).toBe(true);
   });
 
-  it("rejects a reversed lead time or assembly time range", () => {
+  it("is incomplete with no variants at all", () => {
+    expect(isStepComplete("warianty", { ...completeDraft(), variantsSummary: [] })).toBe(false);
+  });
+
+  it("is incomplete when the default variant has no price yet", () => {
     expect(
-      isStepComplete("cena", { ...completeDraft(), productionLeadTimeWeeksMin: 20 })
+      isStepComplete("warianty", { ...completeDraft(), variantsSummary: [{ isDefault: true, priceMinCents: null }] })
     ).toBe(false);
-    expect(isStepComplete("cena", { ...completeDraft(), onSiteAssemblyDaysMin: 10 })).toBe(false);
   });
 
-  it("is incomplete when the price is missing, regardless of housePriceMaxEur (spec 0032: kreator zbiera tylko cenę minimalną)", () => {
-    expect(isStepComplete("cena", { ...completeDraft(), housePriceMinEur: null })).toBe(false);
-    expect(isStepComplete("cena", { ...completeDraft(), housePriceMinEur: 130000 })).toBe(true);
-  });
-
-  it("is incomplete when the standard or warranty is missing", () => {
-    expect(isStepComplete("cena", { ...completeDraft(), completionStandard: null })).toBe(false);
-    expect(isStepComplete("cena", { ...completeDraft(), structuralWarrantyYears: null })).toBe(false);
-  });
-
-  it("rejects a negative or non-integer warranty", () => {
-    expect(isStepComplete("cena", { ...completeDraft(), structuralWarrantyYears: -1 })).toBe(false);
-    expect(isStepComplete("cena", { ...completeDraft(), structuralWarrantyYears: 2.5 })).toBe(false);
+  it("is incomplete when a variant has a price but none is marked default", () => {
+    expect(
+      isStepComplete("warianty", { ...completeDraft(), variantsSummary: [{ isDefault: false, priceMinCents: 10_000_000 }] })
+    ).toBe(false);
   });
 });
 
@@ -291,6 +308,75 @@ describe("isStepComplete: podsumowanie", () => {
       })
     ).toBe(false);
     expect(isStepComplete("podsumowanie", { ...completeDraft(), photoFiles: [] })).toBe(false);
+    expect(isStepComplete("podsumowanie", { ...completeDraft(), variantsSummary: [] })).toBe(false);
+  });
+});
+
+// FAQ jest opcjonalne (spec 0045 AC-6): brak wpisów nie blokuje "Dalej" ani
+// podsumowania.
+describe("isStepComplete: faq", () => {
+  it("is always complete regardless of how many entries exist", () => {
+    expect(isStepComplete("faq", { ...completeDraft(), faq: [] })).toBe(true);
+    expect(
+      isStepComplete("faq", {
+        ...completeDraft(),
+        faq: [{ id: "1", question: "Czy da się zamówić z antresolą?", answer: "Tak." }],
+      }),
+    ).toBe(true);
+  });
+});
+
+// spec 0045 AC-10: dopasowanie tłumaczenia po stabilnym `id`, dopełniające
+// puste wpisy tam, gdzie tłumaczenie jeszcze nie istnieje (edycja produktu).
+describe("alignRoomLayoutTranslation / alignFaqTranslation", () => {
+  it("fills a missing translation with an empty placeholder sharing the same id", () => {
+    const rows = [{ id: "a", name: "Salon", areaM2: 30, function: "dzienna", isMezzanine: false }];
+    expect(alignRoomLayoutTranslation(rows, [])).toEqual([{ id: "a", name: "" }]);
+  });
+
+  it("keeps an existing translation matched by id, ignoring array position", () => {
+    const rows = [
+      { id: "a", name: "Salon", areaM2: 30, function: "dzienna", isMezzanine: false },
+      { id: "b", name: "Sypialnia", areaM2: 12, function: "nocna", isMezzanine: false },
+    ];
+    const translation = [{ id: "b", name: "Bedroom" }];
+    expect(alignRoomLayoutTranslation(rows, translation)).toEqual([
+      { id: "a", name: "" },
+      { id: "b", name: "Bedroom" },
+    ]);
+  });
+
+  it("does the same for FAQ, with question/answer instead of name", () => {
+    const rows = [{ id: "1", question: "Czy dom ma antresolę?", answer: "Opcjonalnie." }];
+    expect(alignFaqTranslation(rows, [])).toEqual([{ id: "1", question: "", answer: "" }]);
+  });
+});
+
+// spec 0045 AC-10: odwrotność align*Translation wyżej — puste wpisy tłumaczenia
+// (jeszcze nie wpisane) muszą zniknąć przed zapisem, inaczej łamią
+// roomLayoutTranslationRowSchema/faqTranslationRowSchema (min(1)).
+describe("sanitizeDraftForSave", () => {
+  it("drops room layout translation rows with an empty name", () => {
+    const draft = {
+      ...completeDraft(),
+      roomLayoutEn: [
+        { id: "a", name: "" },
+        { id: "b", name: "Bedroom" },
+      ],
+    };
+    expect(sanitizeDraftForSave(draft).roomLayoutEn).toEqual([{ id: "b", name: "Bedroom" }]);
+  });
+
+  it("drops FAQ translation rows missing a question or an answer", () => {
+    const draft = {
+      ...completeDraft(),
+      faqEn: [
+        { id: "1", question: "", answer: "Yes." },
+        { id: "2", question: "Does it fit?", answer: "" },
+        { id: "3", question: "Is it heated?", answer: "Yes." },
+      ],
+    };
+    expect(sanitizeDraftForSave(draft).faqEn).toEqual([{ id: "3", question: "Is it heated?", answer: "Yes." }]);
   });
 });
 

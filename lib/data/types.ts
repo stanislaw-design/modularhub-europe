@@ -1,3 +1,6 @@
+import type { FaqRow, FaqTranslationRow } from "../product-faq";
+import type { RoomLayoutRow, RoomLayoutTranslationRow } from "../product-room-layout";
+
 export type CountryCode = "PL" | "DE" | "NL";
 
 export interface Country {
@@ -132,6 +135,11 @@ export interface RoomLayoutEntry {
   isMezzanine?: boolean;
 }
 
+export interface ProjectFaqItem {
+  question: string;
+  answer: string;
+}
+
 // Tylko te trzy wartości document_purpose dotyczą kart projektu klienta
 // (spec 0041 AC-9); reszta enuma (order_stage, company_verification,
 // producer_photo) żyje poza tym ekranem.
@@ -188,6 +196,10 @@ export interface Project {
   roomLayout?: RoomLayoutEntry[];
   /** Zdjęcia/rzuty produktu z ich purpose i opcjonalnym wariantem (spec 0042 AC-7, AC-8). */
   documents: ProjectDocument[];
+  /** Pytania i odpowiedzi specyficzne dla modelu (sekcja "Dokumenty i pytania"
+   * na karcie projektu). Puste lub brak → sekcja pokazuje placeholder "do
+   * uzupełnienia", ten sam wzorzec co roomLayout wyżej. */
+  faq?: ProjectFaqItem[];
   /** Logistyka i serwis (spec 0041 AC-9), każde pole renderuje się niezależnie
    * tylko gdy jest wypełnione (spec 0042 AC-5). */
   installationWarrantyYears?: number;
@@ -221,6 +233,9 @@ export interface Producer {
   deliveryCountries: CountryCode[];
   featuredPhotoUrl: string;
   verified: boolean;
+  /** Zamówienia tego producenta, które doszły do etapu odbioru lub gwarancji
+   * (order.currentStage), czyli dom faktycznie trafił do klienta. */
+  completedProjectsCount: number;
   /** Wolny tekst, np. "2 dni robocze"; puste → linia zaufania się nie pokazuje (spec 0042 AC-10). */
   inquiryResponseTimeLabel?: string;
   /** Trzy stany: true, false, null (nieznane); null renderuje się jawnie jako
@@ -281,16 +296,41 @@ export interface ProjectDraft {
   spaSubcategory: SpaSubcategory | null;
   containerSubcategory: ContainerSubcategory | null;
   technicalSpecs: ProductTechnicalSpecsDraft;
+  // Uklad pomieszczen (spec 0045 AC-5): zapisywany do product.room_layout,
+  // ten sam stabilny-id wzorzec co lib/product-room-layout.ts. Tlumaczenia
+  // (AC-10) dopasowane po tym samym id, moga byc krotsze niz lista polska.
+  roomLayout: RoomLayoutRow[];
+  roomLayoutEn: RoomLayoutTranslationRow[];
+  roomLayoutNl: RoomLayoutTranslationRow[];
+  // FAQ produktu (spec 0045 AC-6): zapisywany do product.faq, ten sam wzorzec
+  // co roomLayout wyzej.
+  faq: FaqRow[];
+  faqEn: FaqTranslationRow[];
+  faqNl: FaqTranslationRow[];
   floorPlanFiles: MockUploadedFile[];
   photoFiles: MockUploadedFile[];
-  housePriceMinEur: number | null;
-  housePriceMaxEur: number | null;
-  completionStandard: CompletionStandard | null;
-  productionLeadTimeWeeksMin: number | null;
-  productionLeadTimeWeeksMax: number | null;
-  onSiteAssemblyDaysMin: number | null;
-  onSiteAssemblyDaysMax: number | null;
+  // Gwarancja konstrukcyjna (dom/materialy), niezalezna od
+  // installationWarrantyYears nizej (montaz) — patrz lib/db/schema.ts komentarz
+  // przy product.structuralWarrantyYears. Dawniej zbierana w usunietym kroku
+  // "Cena", teraz w sekcji logistyki kroku "Dane techniczne" (spec 0045 zadanie 9).
   structuralWarrantyYears: number | null;
+  // Logistyka i zgodnosc (spec 0045 AC-8): sekcja w kroku "Dane techniczne",
+  // czysto deklaratywne pola producenta, bez zadnej reguly wyliczajacej.
+  installationWarrantyYears: number | null;
+  serviceScopeDescription: string;
+  transportDimensions: string;
+  craneRequirements: string;
+  minPlotWidthM: number | null;
+  // Trzy stany (spec 0045 AC-8): null = nieustawiony (nigdy traktowany jako
+  // "nie"), true/false = jawna deklaracja producenta.
+  simplifiedPermitEligible: boolean | null;
+  // Migawka rzeczywistego stanu wariantów (spec 0045 AC-1, AC-4), utrzymywana
+  // przez ProjectWizardVariantsStep przez onVariantsSummaryChange — ten sam
+  // wzorzec co photoFiles wyżej: prawdziwe dane żyją w product_variant przez
+  // osobne akcje serwerowe (lib/producer-product-variant-actions.ts), to pole
+  // istnieje wyłącznie po to, żeby isStepComplete("warianty", ...) miało co
+  // sprawdzić bez czytania bazy z poziomu czystej funkcji walidującej.
+  variantsSummary: { isDefault: boolean; priceMinCents: number | null }[];
 }
 
 // Kompletny, zapisany produkt katalogu producenta (spec 0016): te same pola co

@@ -1,6 +1,6 @@
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { producer, producerDeliveryCountry, product } from "@/lib/db/schema";
+import { offer, order, producer, producerDeliveryCountry, product } from "@/lib/db/schema";
 import { resolveProductDocumentPhotos } from "./projects";
 import type { CountryCode, Producer } from "./types";
 
@@ -42,6 +42,24 @@ async function loadProductAggregatesByProducer(producerIds?: string[]): Promise<
       sizeRangeM2Max: row.sizeMax ?? 0,
     });
   }
+  return map;
+}
+
+// "Zrealizowany" = zamówienie dotarło do odbioru albo jest już w gwarancji,
+// czyli dom faktycznie stoi u klienta (order.currentStage), nie tylko został
+// zamówiony. Join przez offer.producerId (order nie ma własnego producentId).
+async function loadCompletedOrderCountByProducer(producerIds: string[]): Promise<Map<string, number>> {
+  if (producerIds.length === 0) return new Map();
+
+  const rows = await db
+    .select({ producerId: offer.producerId, count: sql<number>`count(*)::int` })
+    .from(order)
+    .innerJoin(offer, eq(order.offerId, offer.id))
+    .where(and(inArray(offer.producerId, producerIds), inArray(order.currentStage, ["odbior", "gwarancja"])))
+    .groupBy(offer.producerId);
+
+  const map = new Map<string, number>();
+  for (const row of rows) map.set(row.producerId, row.count);
   return map;
 }
 
@@ -101,6 +119,7 @@ function mapRowToProducer(
   aggregate: ProductAggregate,
   deliveryCountries: CountryCode[],
   featuredPhotoUrl: string,
+  completedProjectsCount: number,
 ): Producer {
   return {
     id: row.id,
@@ -116,6 +135,7 @@ function mapRowToProducer(
     sizeRangeM2Max: aggregate.sizeRangeM2Max,
     deliveryCountries,
     featuredPhotoUrl,
+    completedProjectsCount,
     verified: row.verificationStatus === "approved",
     inquiryResponseTimeLabel: row.inquiryResponseTimeLabel ?? undefined,
     showroomVisitAvailable: row.showroomVisitAvailable,
@@ -137,13 +157,20 @@ export async function getProducers(): Promise<Producer[]> {
     .from(producer)
     .where(and(inArray(producer.id, producerIds), isNull(producer.deletedAt)));
 
-  const [deliveryMap, photoMap] = await Promise.all([
+  const [deliveryMap, photoMap, completedMap] = await Promise.all([
     loadDeliveryCountriesByProducer(producerIds),
     loadFeaturedPhotoByProducer(producerIds),
+    loadCompletedOrderCountByProducer(producerIds),
   ]);
 
   return rows.map((row) =>
-    mapRowToProducer(row, aggregates.get(row.id)!, deliveryMap.get(row.id) ?? [], photoMap.get(row.id) ?? ""),
+    mapRowToProducer(
+      row,
+      aggregates.get(row.id)!,
+      deliveryMap.get(row.id) ?? [],
+      photoMap.get(row.id) ?? "",
+      completedMap.get(row.id) ?? 0,
+    ),
   );
 }
 
@@ -164,10 +191,17 @@ export async function getProducerById(id: string): Promise<Producer | null> {
   // defensive null instead of a crash on the never-verified case.
   if (!aggregate) return null;
 
-  const [deliveryMap, photoMap] = await Promise.all([
+  const [deliveryMap, photoMap, completedMap] = await Promise.all([
     loadDeliveryCountriesByProducer([id]),
     loadFeaturedPhotoByProducer([id]),
+    loadCompletedOrderCountByProducer([id]),
   ]);
 
-  return mapRowToProducer(row, aggregate, deliveryMap.get(id) ?? [], photoMap.get(id) ?? "");
+  return mapRowToProducer(
+    row,
+    aggregate,
+    deliveryMap.get(id) ?? [],
+    photoMap.get(id) ?? "",
+    completedMap.get(id) ?? 0,
+  );
 }

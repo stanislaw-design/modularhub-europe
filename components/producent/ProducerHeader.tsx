@@ -32,7 +32,7 @@ export async function ProducerHeader({ locale }: ProducerHeaderProps) {
             href={`/${locale}`}
             className="focus-ring rounded-data text-body font-medium text-brand-foundation-navy hover:underline"
           >
-            {t("imClient")}
+            {t("home")}
           </Link>
           <LanguageSwitcher locale={locale} surface="v3" triggerClassName="flex text-brand-foundation-navy" />
           {isProducerSession ? (

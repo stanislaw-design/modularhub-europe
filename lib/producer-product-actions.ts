@@ -5,15 +5,19 @@ import { auth } from "@/auth";
 import type { ProjectDraft } from "@/lib/data/types";
 import { db } from "@/lib/db/client";
 import { getProducerIdForUser } from "@/lib/db/queries";
-import { document, product, productTranslation } from "@/lib/db/schema";
+import { document, product, productTranslation, productVariant } from "@/lib/db/schema";
 import { captureError } from "@/lib/observability/errors";
 import { trackEvent } from "@/lib/observability";
+import { faqSchema, faqTranslationSchema } from "@/lib/product-faq";
+import { roomLayoutSchema, roomLayoutTranslationSchema } from "@/lib/product-room-layout";
 import { getTechnicalSpecsSchema } from "@/lib/product-technical-specs";
 
 // Pola kreatora zapisywane do bazy; floorPlanFiles/photoFiles nie mają tu
 // odpowiednika (rzuty zostają mockiem, zdjęcia idą przez lib/product-photo-actions.ts
-// na tabelę document, spec 0032 Key invariants).
-export type ProducerProductFields = Omit<ProjectDraft, "floorPlanFiles" | "photoFiles">;
+// na tabelę document, spec 0032 Key invariants). variantsSummary też nie: to
+// tylko migawka na potrzeby isStepComplete("warianty", ...) w kreatorze
+// (spec 0045), prawdziwy zapis idzie przez lib/producer-product-variant-actions.ts.
+export type ProducerProductFields = Omit<ProjectDraft, "floorPlanFiles" | "photoFiles" | "variantsSummary">;
 
 interface ActionResult {
   ok: boolean;
@@ -36,18 +40,14 @@ async function requireProducerActor(): Promise<{ userId: string; producerId: str
   return { userId: session.user.id, producerId };
 }
 
-function toPriceCents(value: number | null): number | null {
-  return value === null ? null : Math.round(value * 100);
-}
-
-// housePriceMinCents/priceMinCents to dwie osobne kolumny historyczne (spec
-// 0018 bridge); getProjects filtruje po priceMinCents wprost w SQL, a
-// mapRowToProject (lib/data/projects.ts) czyta priceMinCents z fallbackiem na
-// housePriceMinCents. Zapis do obu naraz trzyma je zawsze zgodne, żeby ani
-// filtr ceny na /wyniki, ani widok karty/szczegółów nigdy się nie rozjechały.
+// AC-17: housePriceMinCents/priceMinCents/completionStandard nie są już
+// pisane wprost stąd — priceMinCents/priceMaxCents są od spec 0041 pochodną
+// wyzwalacza product_variant_price_sync (patrz lib/db/AGENTS.md), sterowaną
+// przez product_variant (lib/producer-product-variant-actions.ts), nie przez
+// ten formularz. productionLeadTimeWeeksMin/Max i onSiteAssemblyDaysMin/Max
+// są superseded przez product_timeline_stage per wariant (spec 0041) i
+// przestały być zbierane w ogóle (usunięty krok "Cena", zadanie 12).
 function buildProductValues(fields: ProducerProductFields) {
-  const priceMinCents = toPriceCents(fields.housePriceMinEur);
-  const priceMaxCents = toPriceCents(fields.housePriceMaxEur);
   return {
     name: fields.name || null,
     floorAreaM2: fields.floorAreaM2,
@@ -58,16 +58,19 @@ function buildProductValues(fields: ProducerProductFields) {
     spaSubcategory: fields.spaSubcategory,
     containerSubcategory: fields.containerSubcategory,
     technicalSpecs: fields.technicalSpecs,
-    housePriceMinCents: priceMinCents,
-    housePriceMaxCents: priceMaxCents,
-    priceMinCents,
-    priceMaxCents,
-    completionStandard: fields.completionStandard,
-    productionLeadTimeWeeksMin: fields.productionLeadTimeWeeksMin,
-    productionLeadTimeWeeksMax: fields.productionLeadTimeWeeksMax,
-    onSiteAssemblyDaysMin: fields.onSiteAssemblyDaysMin,
-    onSiteAssemblyDaysMax: fields.onSiteAssemblyDaysMax,
+    // AC-5: id stabilny generowany po stronie klienta, zapisywany jak jest —
+    // walidacja kształtu przez roomLayoutSchema w validateContentShape niżej.
+    roomLayout: fields.roomLayout,
+    // AC-6.
+    faq: fields.faq,
     structuralWarrantyYears: fields.structuralWarrantyYears,
+    // AC-8: logistyka i zgodność, czysto deklaratywne, bez reguły wyliczającej.
+    installationWarrantyYears: fields.installationWarrantyYears,
+    serviceScopeDescription: fields.serviceScopeDescription || null,
+    transportDimensions: fields.transportDimensions || null,
+    craneRequirements: fields.craneRequirements || null,
+    minPlotWidthM: fields.minPlotWidthM,
+    simplifiedPermitEligible: fields.simplifiedPermitEligible,
     updatedAt: new Date(),
   };
 }
@@ -75,35 +78,72 @@ function buildProductValues(fields: ProducerProductFields) {
 // Zawsze upsert obu wierszy (en/nl), nawet gdy oba pola puste (spada wtedy na
 // fallback do polskiego tekstu źródłowego, patrz komentarz przy
 // product_translation w schema.ts) — prostsze niż warunkowe wstawianie/usuwanie.
-function translationRow(productId: string, locale: "en" | "nl", name: string, description: string) {
-  return { productId, locale, name: name || null, description: description || null };
+function translationRow(productId: string, locale: "en" | "nl", fields: ProducerProductFields) {
+  return {
+    productId,
+    locale,
+    name: (locale === "en" ? fields.nameEn : fields.nameNl) || null,
+    description: (locale === "en" ? fields.descriptionEn : fields.descriptionNl) || null,
+    // AC-10: tłumaczenie roomLayout/faq dopasowane po stabilnym id z listy
+    // polskiej (fields.roomLayout/faq), może być krótsze (tłumaczenie częściowe).
+    roomLayout: locale === "en" ? fields.roomLayoutEn : fields.roomLayoutNl,
+    faq: locale === "en" ? fields.faqEn : fields.faqNl,
+  };
 }
 
 async function upsertTranslations(productId: string, fields: ProducerProductFields) {
   await db.batch([
     db
       .insert(productTranslation)
-      .values(translationRow(productId, "en", fields.nameEn, fields.descriptionEn))
+      .values(translationRow(productId, "en", fields))
       .onConflictDoUpdate({
         target: [productTranslation.productId, productTranslation.locale],
-        set: { name: fields.nameEn || null, description: fields.descriptionEn || null, updatedAt: new Date() },
+        set: { ...translationRow(productId, "en", fields), updatedAt: new Date() },
       }),
     db
       .insert(productTranslation)
-      .values(translationRow(productId, "nl", fields.nameNl, fields.descriptionNl))
+      .values(translationRow(productId, "nl", fields))
       .onConflictDoUpdate({
         target: [productTranslation.productId, productTranslation.locale],
-        set: { name: fields.nameNl || null, description: fields.descriptionNl || null, updatedAt: new Date() },
+        set: { ...translationRow(productId, "nl", fields), updatedAt: new Date() },
       }),
   ]);
 }
 
+// AC-5, AC-6: forma jest walidowana Zod na granicy zapisu (nie tylko przy
+// odczycie, domykając dawny otwarty Follow-up spec 0042), zanim cokolwiek
+// trafi do buildProductValues/upsertTranslations. Zwraca komunikat błędu albo
+// null, ten sam kształt co reszta walidacji w tym pliku.
+function validateContentShape(fields: ProducerProductFields): string | null {
+  if (!roomLayoutSchema.safeParse(fields.roomLayout).success) {
+    return "Nieprawidłowy układ pomieszczeń.";
+  }
+  if (!roomLayoutTranslationSchema.safeParse(fields.roomLayoutEn).success) {
+    return "Nieprawidłowe tłumaczenie układu pomieszczeń (angielski).";
+  }
+  if (!roomLayoutTranslationSchema.safeParse(fields.roomLayoutNl).success) {
+    return "Nieprawidłowe tłumaczenie układu pomieszczeń (niderlandzki).";
+  }
+  if (!faqSchema.safeParse(fields.faq).success) {
+    return "Nieprawidłowe FAQ.";
+  }
+  if (!faqTranslationSchema.safeParse(fields.faqEn).success) {
+    return "Nieprawidłowe tłumaczenie FAQ (angielski).";
+  }
+  if (!faqTranslationSchema.safeParse(fields.faqNl).success) {
+    return "Nieprawidłowe tłumaczenie FAQ (niderlandzki).";
+  }
+  return null;
+}
+
 // AC-4: publikacja wymaga kompletu pól podstawowych, danych technicznych
 // zgodnych ze schematem Zod tej rodziny (lib/product-technical-specs.ts,
-// wariant "published", strict) i co najmniej jednego realnego zdjęcia w
-// document. Krok szczegółowej walidacji per-pole żyje już po stronie kreatora
-// (isStepComplete, lib/producer-project-draft.ts) — to jest druga linia
-// obrony po stronie serwera, nie duplikat całej logiki formularza.
+// wariant "published", strict), co najmniej jednego realnego zdjęcia w
+// document i co najmniej jednego domyślnego wariantu z wypełnioną ceną
+// minimalną (spec 0045 AC-4/AC-17, zastępuje dawny wymóg housePriceMinEur/Max/
+// completionStandard). Krok szczegółowej walidacji per-pole żyje już po
+// stronie kreatora (isStepComplete, lib/producer-project-draft.ts) — to jest
+// druga linia obrony po stronie serwera, nie duplikat całej logiki formularza.
 async function validatePublishReadiness(productId: string, fields: ProducerProductFields): Promise<string | null> {
   if (
     !fields.name.trim() ||
@@ -111,13 +151,6 @@ async function validatePublishReadiness(productId: string, fields: ProducerProdu
     fields.bedrooms === null ||
     fields.countryOfProduction === null ||
     !fields.description.trim() ||
-    fields.housePriceMinEur === null ||
-    fields.housePriceMaxEur === null ||
-    fields.completionStandard === null ||
-    fields.productionLeadTimeWeeksMin === null ||
-    fields.productionLeadTimeWeeksMax === null ||
-    fields.onSiteAssemblyDaysMin === null ||
-    fields.onSiteAssemblyDaysMax === null ||
     fields.structuralWarrantyYears === null
   ) {
     return "Uzupełnij wszystkie wymagane pola przed publikacją.";
@@ -143,6 +176,20 @@ async function validatePublishReadiness(productId: string, fields: ProducerProdu
     return "Dodaj co najmniej jedno zdjęcie przed publikacją.";
   }
 
+  const [defaultVariant] = await db
+    .select({ priceMinCents: productVariant.priceMinCents })
+    .from(productVariant)
+    .where(
+      and(
+        eq(productVariant.productId, productId),
+        eq(productVariant.isDefault, true),
+        isNull(productVariant.deletedAt),
+      ),
+    );
+  if (!defaultVariant || defaultVariant.priceMinCents === null) {
+    return "Dodaj domyślny wariant z ceną minimalną przed publikacją.";
+  }
+
   return null;
 }
 
@@ -154,6 +201,8 @@ export async function createProducerProduct(fields: ProducerProductFields): Prom
   const actor = await requireProducerActor();
   if (!actor) return { ok: false, error: DENIED_ERROR };
   if (fields.family === null) return { ok: false, error: GENERIC_ERROR };
+  const contentError = validateContentShape(fields);
+  if (contentError) return { ok: false, error: contentError };
 
   try {
     const [inserted] = await db
@@ -184,6 +233,8 @@ export async function updateProducerProduct(
 ): Promise<SaveProducerProductResult> {
   const actor = await requireProducerActor();
   if (!actor) return { ok: false, error: DENIED_ERROR };
+  const contentError = validateContentShape(fields);
+  if (contentError) return { ok: false, error: contentError };
 
   const [existing] = await db
     .select({ id: product.id, status: product.status })
@@ -207,17 +258,17 @@ export async function updateProducerProduct(
         .where(eq(product.id, productId)),
       db
         .insert(productTranslation)
-        .values(translationRow(productId, "en", fields.nameEn, fields.descriptionEn))
+        .values(translationRow(productId, "en", fields))
         .onConflictDoUpdate({
           target: [productTranslation.productId, productTranslation.locale],
-          set: { name: fields.nameEn || null, description: fields.descriptionEn || null, updatedAt: new Date() },
+          set: { ...translationRow(productId, "en", fields), updatedAt: new Date() },
         }),
       db
         .insert(productTranslation)
-        .values(translationRow(productId, "nl", fields.nameNl, fields.descriptionNl))
+        .values(translationRow(productId, "nl", fields))
         .onConflictDoUpdate({
           target: [productTranslation.productId, productTranslation.locale],
-          set: { name: fields.nameNl || null, description: fields.descriptionNl || null, updatedAt: new Date() },
+          set: { ...translationRow(productId, "nl", fields), updatedAt: new Date() },
         }),
     ]);
   } catch (error) {

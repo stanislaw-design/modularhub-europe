@@ -8,7 +8,7 @@ const captureErrorMock = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/observability/errors", () => ({ captureError: captureErrorMock }));
 
 import { db } from "@/lib/db/client";
-import { producer, producerDeliveryCountry, product, users } from "@/lib/db/schema";
+import { client, inquiry, offer, order, producer, producerDeliveryCountry, product, users } from "@/lib/db/schema";
 import { getProducerById, getProducers } from "./producers";
 
 // Hits the real dev database (spec 0038, mirrors lib/data/projects.test.ts's
@@ -28,11 +28,22 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/producers: real DB", () => 
   const unfilledTrustProducerId = crypto.randomUUID();
   const unfilledTrustProductId = crypto.randomUUID();
 
+  const completedOrdersClientUserId = crypto.randomUUID();
+  const completedOrdersClientId = crypto.randomUUID();
+  const completedOrdersInquiryId = crypto.randomUUID();
+  const warrantyOfferId = crypto.randomUUID();
+  const warrantyOrderId = crypto.randomUUID();
+  const handoverOfferId = crypto.randomUUID();
+  const handoverOrderId = crypto.randomUUID();
+  const inProductionOfferId = crypto.randomUUID();
+  const inProductionOrderId = crypto.randomUUID();
+
   beforeAll(async () => {
     await db.insert(users).values([
       { id: withProductsUserId, email: `producers-test-1-${withProductsUserId}@example.test`, phone: "+48000000020", role: "producer" },
       { id: noProductsUserId, email: `producers-test-2-${noProductsUserId}@example.test`, phone: "+48000000021", role: "producer" },
       { id: unfilledTrustUserId, email: `producers-test-3-${unfilledTrustUserId}@example.test`, phone: "+48000000022", role: "producer" },
+      { id: completedOrdersClientUserId, email: `producers-test-4-${completedOrdersClientUserId}@example.test`, phone: "+48000000023", role: "client" },
     ]);
     await db.insert(producer).values([
       {
@@ -93,13 +104,42 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/producers: real DB", () => 
       },
     ]);
     await db.insert(producerDeliveryCountry).values([{ producerId: withProductsProducerId, countryCode: "NL" }]);
+
+    await db.insert(client).values({ id: completedOrdersClientId, userId: completedOrdersClientUserId });
+    await db.insert(inquiry).values({
+      id: completedOrdersInquiryId,
+      clientId: completedOrdersClientId,
+      name: "Producers Test Completed Orders Client",
+      email: `producers-test-4-${completedOrdersClientUserId}@example.test`,
+      phone: "+48000000023",
+      deliveryCountryCode: "PL",
+      status: "closed",
+    });
+    // Trzy oferty tego samego producenta na trzech różnych etapach (spec
+    // AC nowa): tylko odbior/gwarancja liczą się jako "zrealizowany" — jedna
+    // wciąż w produkcji sprawdza, że loadCompletedOrderCountByProducer nie
+    // liczy każdego zamówienia z osobna.
+    await db.insert(offer).values([
+      { id: warrantyOfferId, inquiryId: completedOrdersInquiryId, producerId: withProductsProducerId, installationPriceCents: 100, transportPriceCents: 100, status: "accepted" },
+      { id: handoverOfferId, inquiryId: completedOrdersInquiryId, producerId: withProductsProducerId, installationPriceCents: 100, transportPriceCents: 100, status: "accepted" },
+      { id: inProductionOfferId, inquiryId: completedOrdersInquiryId, producerId: withProductsProducerId, installationPriceCents: 100, transportPriceCents: 100, status: "accepted" },
+    ]);
+    await db.insert(order).values([
+      { id: warrantyOrderId, offerId: warrantyOfferId, currentStage: "gwarancja" },
+      { id: handoverOrderId, offerId: handoverOfferId, currentStage: "odbior" },
+      { id: inProductionOrderId, offerId: inProductionOfferId, currentStage: "produkcja" },
+    ]);
   });
 
   afterAll(async () => {
+    await db.delete(order).where(inArray(order.id, [warrantyOrderId, handoverOrderId, inProductionOrderId]));
+    await db.delete(offer).where(inArray(offer.id, [warrantyOfferId, handoverOfferId, inProductionOfferId]));
+    await db.delete(inquiry).where(eq(inquiry.id, completedOrdersInquiryId));
+    await db.delete(client).where(eq(client.id, completedOrdersClientId));
     await db.delete(product).where(inArray(product.id, [publishedProductId, draftProductId, unfilledTrustProductId]));
     await db.delete(producerDeliveryCountry).where(eq(producerDeliveryCountry.producerId, withProductsProducerId));
     await db.delete(producer).where(inArray(producer.id, [withProductsProducerId, noProductsProducerId, unfilledTrustProducerId]));
-    await db.delete(users).where(inArray(users.id, [withProductsUserId, noProductsUserId, unfilledTrustUserId]));
+    await db.delete(users).where(inArray(users.id, [withProductsUserId, noProductsUserId, unfilledTrustUserId, completedOrdersClientUserId]));
   });
 
   describe("getProducerById", () => {
@@ -118,6 +158,16 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/producers: real DB", () => 
     it("counts only published products, not drafts", async () => {
       const result = await getProducerById(withProductsProducerId);
       expect(result?.modelsCount).toBe(1);
+    });
+
+    it("counts only orders that reached odbior or gwarancja as completed", async () => {
+      const result = await getProducerById(withProductsProducerId);
+      expect(result?.completedProjectsCount).toBe(2);
+    });
+
+    it("returns 0 completed projects for a producer with no orders", async () => {
+      const result = await getProducerById(unfilledTrustProducerId);
+      expect(result?.completedProjectsCount).toBe(0);
     });
 
     it("returns null for an unknown id instead of throwing", async () => {

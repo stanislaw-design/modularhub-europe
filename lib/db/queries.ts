@@ -1,8 +1,9 @@
-import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "./client";
 import { buildPublicUrl } from "@/lib/storage/r2-client";
 import {
   client,
+  costLineItem,
   country,
   document,
   favorite,
@@ -14,7 +15,10 @@ import {
   producerDeliveryCountry,
   product,
   productFamilyEnum,
+  productTimelineStage,
   productTranslation,
+  productVariant,
+  productVariantTranslation,
 } from "./schema";
 
 // Wzorzec autoryzacji na poziomie aplikacji (spec 0018, AC-5): każde
@@ -85,21 +89,26 @@ export interface ProducerProductForEdit {
   countryOfProduction: string | null;
   description: string | null;
   technicalSpecs: unknown;
-  housePriceMinCents: number | null;
-  housePriceMaxCents: number | null;
-  completionStandard: (typeof product.$inferSelect)["completionStandard"];
-  productionLeadTimeWeeksMin: number | null;
-  productionLeadTimeWeeksMax: number | null;
-  onSiteAssemblyDaysMin: number | null;
-  onSiteAssemblyDaysMax: number | null;
+  roomLayout: unknown;
+  faq: unknown;
   structuralWarrantyYears: number | null;
+  installationWarrantyYears: number | null;
+  serviceScopeDescription: string | null;
+  transportDimensions: string | null;
+  craneRequirements: string | null;
+  minPlotWidthM: number | null;
+  simplifiedPermitEligible: boolean | null;
   nameEn: string | null;
   nameNl: string | null;
   descriptionEn: string | null;
   descriptionNl: string | null;
+  roomLayoutEn: unknown;
+  roomLayoutNl: unknown;
+  faqEn: unknown;
+  faqNl: unknown;
 }
 
-// Zasila /producer/panel/products/[id]/edytuj (spec 0032 AC-5, AC-13): null
+// Zasila /producer/panel/products/[id]/edit (spec 0032 AC-5, AC-13): null
 // zarówno gdy produktu nie ma, jak i gdy istnieje ale należy do innego
 // producenta — wywołujący nie rozróżnia tych dwóch przypadków (ten sam
 // przekaz co "cudzy/nieistniejący id -> przekierowanie do listy").
@@ -114,7 +123,13 @@ export async function getProducerProductForEdit(
   if (!row) return null;
 
   const translations = await db
-    .select({ locale: productTranslation.locale, name: productTranslation.name, description: productTranslation.description })
+    .select({
+      locale: productTranslation.locale,
+      name: productTranslation.name,
+      description: productTranslation.description,
+      roomLayout: productTranslation.roomLayout,
+      faq: productTranslation.faq,
+    })
     .from(productTranslation)
     .where(eq(productTranslation.productId, productId));
   const en = translations.find((translation) => translation.locale === "en");
@@ -134,19 +149,96 @@ export async function getProducerProductForEdit(
     countryOfProduction: row.countryOfProduction,
     description: row.description,
     technicalSpecs: row.technicalSpecs,
-    housePriceMinCents: row.housePriceMinCents,
-    housePriceMaxCents: row.housePriceMaxCents,
-    completionStandard: row.completionStandard,
-    productionLeadTimeWeeksMin: row.productionLeadTimeWeeksMin,
-    productionLeadTimeWeeksMax: row.productionLeadTimeWeeksMax,
-    onSiteAssemblyDaysMin: row.onSiteAssemblyDaysMin,
-    onSiteAssemblyDaysMax: row.onSiteAssemblyDaysMax,
+    roomLayout: row.roomLayout,
+    faq: row.faq,
     structuralWarrantyYears: row.structuralWarrantyYears,
+    installationWarrantyYears: row.installationWarrantyYears,
+    serviceScopeDescription: row.serviceScopeDescription,
+    transportDimensions: row.transportDimensions,
+    craneRequirements: row.craneRequirements,
+    minPlotWidthM: row.minPlotWidthM,
+    simplifiedPermitEligible: row.simplifiedPermitEligible,
     nameEn: en?.name ?? null,
     nameNl: nl?.name ?? null,
     descriptionEn: en?.description ?? null,
     descriptionNl: nl?.description ?? null,
+    roomLayoutEn: en?.roomLayout ?? null,
+    roomLayoutNl: nl?.roomLayout ?? null,
+    faqEn: en?.faq ?? null,
+    faqNl: nl?.faq ?? null,
   };
+}
+
+export interface ProducerVariantCostLineItemForEdit {
+  id: string;
+  label: string;
+  status: (typeof costLineItem.$inferSelect)["status"];
+  responsibleParty: string | null;
+}
+
+export interface ProducerVariantTimelineStageForEdit {
+  stageKey: (typeof productTimelineStage.$inferSelect)["stageKey"];
+  durationMinDays: number | null;
+  durationMaxDays: number | null;
+  startsFromLabel: string | null;
+  responsibleParty: string | null;
+}
+
+export interface ProducerVariantForEdit {
+  id: string;
+  completionStandard: (typeof productVariant.$inferSelect)["completionStandard"];
+  isDefault: boolean;
+  priceMinCents: number | null;
+  priceMaxCents: number | null;
+  scopeSummary: string | null;
+  scopeSummaryEn: string | null;
+  scopeSummaryNl: string | null;
+  costLineItems: ProducerVariantCostLineItemForEdit[];
+  timelineStages: ProducerVariantTimelineStageForEdit[];
+}
+
+// Zasila krok "Warianty i cennik" w /producer/panel/products/[id]/edit (spec
+// 0045 Build plan zadanie 13, wywołane wcześniej na prośbę producenta, żeby
+// móc od razu przetestować krok na istniejącym projekcie zamiast tylko na
+// nowo tworzonym): productId już ownership-checked przez wywołującego (mirror
+// getProductPhotosForAdmin), więc bez powtórnego sprawdzenia producerId tutaj.
+export async function getProducerVariantsForEdit(productId: string): Promise<ProducerVariantForEdit[]> {
+  const variantRows = await db
+    .select()
+    .from(productVariant)
+    .where(and(eq(productVariant.productId, productId), isNull(productVariant.deletedAt)))
+    .orderBy(asc(productVariant.sortOrder));
+  if (variantRows.length === 0) return [];
+
+  const variantIds = variantRows.map((row) => row.id);
+  const [costItemRows, stageRows, translationRows] = await Promise.all([
+    db.select().from(costLineItem).where(inArray(costLineItem.productVariantId, variantIds)),
+    db.select().from(productTimelineStage).where(inArray(productTimelineStage.productVariantId, variantIds)),
+    db.select().from(productVariantTranslation).where(inArray(productVariantTranslation.productVariantId, variantIds)),
+  ]);
+
+  return variantRows.map((variant) => ({
+    id: variant.id,
+    completionStandard: variant.completionStandard,
+    isDefault: variant.isDefault,
+    priceMinCents: variant.priceMinCents,
+    priceMaxCents: variant.priceMaxCents,
+    scopeSummary: variant.scopeSummary,
+    scopeSummaryEn: translationRows.find((row) => row.productVariantId === variant.id && row.locale === "en")?.scopeSummary ?? null,
+    scopeSummaryNl: translationRows.find((row) => row.productVariantId === variant.id && row.locale === "nl")?.scopeSummary ?? null,
+    costLineItems: costItemRows
+      .filter((row) => row.productVariantId === variant.id)
+      .map((row) => ({ id: row.id, label: row.label, status: row.status, responsibleParty: row.responsibleParty })),
+    timelineStages: stageRows
+      .filter((row) => row.productVariantId === variant.id)
+      .map((row) => ({
+        stageKey: row.stageKey,
+        durationMinDays: row.durationMinDays,
+        durationMaxDays: row.durationMaxDays,
+        startsFromLabel: row.startsFromLabel,
+        responsibleParty: row.responsibleParty,
+      })),
+  }));
 }
 
 export interface ProductFamilyCount {
@@ -397,6 +489,47 @@ export async function getProductPhotosForAdmin(productId: string): Promise<Produ
       url: buildPublicUrl(row.r2Key),
       filename: row.filename,
       isCover: row.isCover,
+      sortOrder: row.sortOrder,
+    }))
+    .sort((a, b) => (a.sortOrder ?? Number.MAX_SAFE_INTEGER) - (b.sortOrder ?? Number.MAX_SAFE_INTEGER));
+}
+
+export interface ProductFloorPlanForEdit {
+  id: string;
+  url: string;
+  filename: string;
+  productVariantId: string | null;
+  sortOrder: number | null;
+}
+
+// Zasila krok "Pliki" kreatora (spec 0045 AC-7, Build plan zadanie 8): ten sam
+// wzorzec co getProductPhotosForAdmin wyżej, purpose="product_floor_plan"
+// zamiast "product_photo". productVariantId puste = rzut dotyczy wszystkich
+// wariantów produktu (spec 0041 Feature design).
+export async function getProductFloorPlansForAdmin(productId: string): Promise<ProductFloorPlanForEdit[]> {
+  const rows = await db
+    .select({
+      id: document.id,
+      r2Key: document.r2Key,
+      filename: document.filename,
+      productVariantId: document.productVariantId,
+      sortOrder: document.sortOrder,
+    })
+    .from(document)
+    .where(
+      and(
+        eq(document.productId, productId),
+        eq(document.purpose, "product_floor_plan"),
+        isNull(document.deletedAt),
+      ),
+    );
+
+  return rows
+    .map((row) => ({
+      id: row.id,
+      url: buildPublicUrl(row.r2Key),
+      filename: row.filename,
+      productVariantId: row.productVariantId,
       sortOrder: row.sortOrder,
     }))
     .sort((a, b) => (a.sortOrder ?? Number.MAX_SAFE_INTEGER) - (b.sortOrder ?? Number.MAX_SAFE_INTEGER));

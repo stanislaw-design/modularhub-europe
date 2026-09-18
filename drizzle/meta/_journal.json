@@ -155,6 +155,20 @@
       "when": 1789506932850,
       "tag": "0021_public_imperial_guard",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1789723759153,
+      "tag": "0022_dry_silhouette",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1789731245315,
+      "tag": "0023_lively_satana",
+      "breakpoints": true
     }
   ]
 }

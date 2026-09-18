@@ -15,6 +15,7 @@ function makeProducer(overrides: Partial<Producer> = {}): Producer {
     sizeRangeM2Max: 141.57,
     deliveryCountries: ["PL", "DE"],
     featuredPhotoUrl: "/cover.webp",
+    completedProjectsCount: 42,
     verified: true,
     showroomVisitAvailable: null,
     ...overrides,

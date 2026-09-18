@@ -370,10 +370,12 @@ body {
   bottom: 77px;
 }
 
-/* Dark mode (spec 0043): scoped to .theme-klient, the wrapper ThemeProvider
-   renders around the customer flow only (app/[locale]/(customer)/layout.tsx)
-   — producer/internal never render inside it, so this never reaches them
-   (AC-11), even under the system-preference media query below (which is
+/* Dark mode (spec 0043, extended by spec 0046 to a second scope): scoped to
+   .theme-klient (customer flow, app/[locale]/(customer)/layout.tsx) and
+   .theme-producer (protected producer panel,
+   app/[locale]/producer/panel/layout.tsx) — producer public routes and
+   internal never render inside either, so this never reaches them (0043
+   AC-11), even under the system-preference media query below (which is
    otherwise unaware of route). Redefines the semantic alias custom
    properties, not the raw --brand-black/--brand-orange/... primitives, so
    pinned pairings (e.g. --brand-action-foreground, always black on an
@@ -399,8 +401,20 @@ body {
      ProjectTechnicalSpecs,SearchCard,CategoryShowcase,
      CategoryShowcaseCarousel,BulkOrdersShowcase,SiteHeader,
      ResultsFilterBar}.tsx) moved onto v5-night instead, since those were
-     using v5-ink for this fixed-dark role, not the inverting text role. */
-.theme-klient.dark {
+     using v5-ink for this fixed-dark role, not the inverting text role.
+
+   The v3 declarations below, plus --brand-v5-ink, are shared by both scopes
+   in one selector list. spec 0046's original audit only checked
+   components/producent/ (confirmed v3-only) but missed that
+   components/brand/BrandLogo.tsx — a shared component, not under
+   components/producent/ — also renders inside the panel (ProducerPanelSidebar)
+   and defaults to tone="dark", which resolves to text-brand-v5-ink: without
+   this, the logo's "Modular" wordmark stayed pinned to its light-mode (dark
+   ink) color and disappeared against the dark panel background. The rest of
+   the v4/v5 declarations stay .theme-klient only — no other component
+   reachable from the panel references them. */
+.theme-klient.dark,
+.theme-producer.dark {
   color-scheme: dark;
 
   --background: var(--dm-bg);
@@ -411,28 +425,31 @@ body {
   --brand-warm-white: var(--dm-bg);
   --brand-steel: var(--dm-border);
   --brand-technical-graphite: var(--dm-muted);
+  --brand-v5-ink: var(--dm-ink);
 
   --status-approved: var(--dm-status-approved);
   --status-conditional: var(--dm-status-conditional);
   --status-blocked: var(--dm-status-blocked);
+}
 
+.theme-klient.dark {
   --brand-v4-paper: var(--dm-surface);
   --brand-v4-ink: var(--dm-ink);
   --brand-v4-muted: var(--dm-muted);
 
   --brand-v5-surface: var(--dm-surface);
-  --brand-v5-ink: var(--dm-ink);
   --brand-v5-muted: var(--dm-muted);
   --brand-v5-line: var(--dm-border);
 }
 
-/* Same declarations as .theme-klient.dark above, kept in sync manually: no
-   explicit cookie yet, so the effective theme comes from the visitor's OS
-   setting instead (spec 0043 AC-3), resolved by the browser at paint time
-   with no JS. :not(.light) lets an explicit light cookie override a
-   dark-preferring system (AC-4). */
+/* Same declarations as .theme-klient.dark/.theme-producer.dark above, kept in
+   sync manually: no explicit cookie yet, so the effective theme comes from
+   the visitor's OS setting instead (spec 0043 AC-3), resolved by the browser
+   at paint time with no JS. :not(.light) lets an explicit light cookie
+   override a dark-preferring system (AC-4). */
 @media (prefers-color-scheme: dark) {
-  .theme-klient:not(.light) {
+  .theme-klient:not(.light),
+  .theme-producer:not(.light) {
     color-scheme: dark;
 
     --background: var(--dm-bg);
@@ -443,35 +460,46 @@ body {
     --brand-warm-white: var(--dm-bg);
     --brand-steel: var(--dm-border);
     --brand-technical-graphite: var(--dm-muted);
+    --brand-v5-ink: var(--dm-ink);
 
     --status-approved: var(--dm-status-approved);
     --status-conditional: var(--dm-status-conditional);
     --status-blocked: var(--dm-status-blocked);
+  }
 
+  .theme-klient:not(.light) {
     --brand-v4-paper: var(--dm-surface);
     --brand-v4-ink: var(--dm-ink);
     --brand-v4-muted: var(--dm-muted);
 
     --brand-v5-surface: var(--dm-surface);
-    --brand-v5-ink: var(--dm-ink);
     --brand-v5-muted: var(--dm-muted);
     --brand-v5-line: var(--dm-border);
   }
 }
 
 /* Subtle crossfade when the theme flips (spec 0043 AC-2), scoped to the
-   customer flow. :where(...) gives this zero specificity, so it only ever
-   acts as a fallback default: any element that already declares its own
-   transition (e.g. a button's `transition-opacity`, SiteHeader's
-   `transition-colors duration-300`) keeps that transition completely
-   untouched, no matter the source order — this rule can never override it.
-   Elements with no transition of their own pick up this one instead, so the
-   whole page recolors smoothly rather than snapping. */
-@media not (prefers-reduced-motion: reduce) {
-  :where(.theme-klient *) {
-    transition-property: background-color, border-color, color, fill, stroke;
-    transition-duration: 200ms;
-    transition-timing-function: ease;
+   customer flow and, since spec 0046, the producer panel. :where(...) gives
+   this zero specificity, so within its own layer it only ever acts as a
+   fallback default — but Tailwind's utility classes (transition-transform,
+   transition-colors, duration-*, ease-*, …) live in `@layer utilities`, and
+   an unlayered rule beats every layered rule regardless of specificity.
+   Without this `@layer base` wrapper, this "fallback" would unconditionally
+   win over any element's own transition utilities instead of yielding to
+   them (it did, silently, until this was fixed — e.g. SiteHeader's
+   slide-out drawer transform never actually animated). Placing it in
+   `base` — which Tailwind's own `@layer theme, base, components,
+   utilities;` declares before `utilities` — restores the intended
+   precedence: any component's own transition utility class (in `utilities`)
+   wins; elements with no transition of their own pick up this one instead,
+   so the whole page recolors smoothly rather than snapping. */
+@layer base {
+  @media not (prefers-reduced-motion: reduce) {
+    :where(.theme-klient *, .theme-producer *) {
+      transition-property: background-color, border-color, color, fill, stroke;
+      transition-duration: 200ms;
+      transition-timing-function: ease;
+    }
   }
 }
 

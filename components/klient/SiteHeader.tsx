@@ -4,12 +4,10 @@ import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
 import { Heart, Menu, User, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState, useTransition } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
-import { Container, LanguageSwitcher, ThemeToggle } from "@/components/ui";
-import { usePathname as useLocalizedPathname, useRouter as useLocalizedRouter } from "@/lib/i18n/navigation";
-import { routing, type Locale } from "@/lib/i18n/routing";
+import { Button, Container, LanguageSwitcher, ThemeToggle } from "@/components/ui";
 
 interface SiteHeaderSession {
   user: {
@@ -34,77 +32,20 @@ interface NavItem {
 // solid header every other customer route always uses.
 const HOME_HERO_SCROLL_THRESHOLD = 96;
 
-// The inline language picker in the slide out menu needs `useSearchParams`,
-// which opts a statically rendered page into client rendering unless the
-// component calling it sits behind its own Suspense boundary (Next.js
-// requirement). That is the same reason components/ui/LanguageSwitcher.tsx
-// splits a trigger fallback from the live menu.
-function MobileLanguagePickerFallback() {
-  const t = useTranslations("LanguageSwitcher");
-  return (
-    <div className="flex flex-wrap gap-brand-4" aria-hidden="true">
-      {routing.locales.map((code) => (
-        <span key={code} className="border-b-2 border-transparent pb-0.5 text-body font-medium text-brand-v5-muted opacity-50">
-          {t(code)}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-function MobileLanguagePicker({ locale }: { locale: string }) {
-  const t = useTranslations("LanguageSwitcher");
-  const pathname = useLocalizedPathname();
-  const searchParams = useSearchParams();
-  const router = useLocalizedRouter();
-  const [isPending, startTransition] = useTransition();
-
-  const query = searchParams.toString();
-  const target = query ? `${pathname}?${query}` : pathname;
-
-  function switchTo(nextLocale: Locale) {
-    if (nextLocale === locale) return;
-    startTransition(() => {
-      router.replace(target, { locale: nextLocale });
-    });
-  }
-
-  return (
-    <div className="flex flex-wrap gap-brand-4" role="group" aria-label={t("changeLanguage")}>
-      {routing.locales.map((code) => (
-        <button
-          key={code}
-          type="button"
-          disabled={isPending}
-          onClick={() => switchTo(code)}
-          aria-pressed={code === locale}
-          className={`focus-ring border-b-2 pb-0.5 text-body font-medium transition-colors disabled:cursor-default disabled:opacity-50 ${
-            code === locale
-              ? "border-brand-v5-amber-strong text-brand-v5-ink"
-              : "border-transparent text-brand-v5-muted hover:text-brand-v5-ink"
-          }`}
-        >
-          {t(code)}
-        </button>
-      ))}
-    </div>
-  );
-}
-
 export function SiteHeader({ locale, session }: SiteHeaderProps) {
   const t = useTranslations("SiteHeader");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  // "Domy" mirrors the logo (both point at the home page). "Projekty" and
-  // "Jak to działa" (an anchor into the closing CTA's explainer, spec 0014
-  // AC-1, AC-9) are the other two real destinations, each using an absolute
-  // path rather than a bare "#…" fragment, because SiteHeader renders on
-  // every customer route, not just the home page it's targeting.
-  // "Producenci"/"Inspiracje"/"O nas" were dropped (spec 0030 AC-3): no page
-  // exists behind them yet. The last two mirror BulkOrdersShowcase's two B2B
-  // tiles (spec 0038) so the same destinations are reachable from every
-  // route, not just the home page section.
+  // "Domy" was dropped: it only mirrored the logo (both pointed at the home
+  // page), so it added a redundant entry rather than a real destination.
+  // "Projekty" and "Jak to działa" (an anchor into the closing CTA's
+  // explainer, spec 0014 AC-1, AC-9) are the other two real destinations,
+  // each using an absolute path rather than a bare "#…" fragment, because
+  // SiteHeader renders on every customer route, not just the home page it's
+  // targeting. "Producenci"/"Inspiracje"/"O nas" were dropped (spec 0030
+  // AC-3): no page exists behind them yet. The last two mirror
+  // BulkOrdersShowcase's two B2B tiles (spec 0038) so the same destinations
+  // are reachable from every route, not just the home page section.
   const navItems: NavItem[] = [
-    { label: t("nav.homes"), href: `/${locale}` },
     { label: t("nav.projects"), href: `/${locale}/results` },
     { label: t("nav.howItWorks"), href: `/${locale}#jak-to-dziala` },
     { label: t("nav.verifiedManufacturers"), href: `/${locale}/verified-manufacturers` },
@@ -127,17 +68,17 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
 
   // The pill's default job is inviting an anonymous visitor to create any
   // account (spec 0040 AC-1), which stops making sense once that visitor is
-  // already signed in as a client or admin: it takes over their own account
-  // link instead, so the row never shows both "Załóż konto" and "Mój profil"
-  // at once. A producer session falls through to the anonymous default (no
-  // dedicated spot for it here yet, same known gap as everywhere else in this
-  // file).
+  // already signed in as a client, producer, or admin: it takes over their
+  // own account link instead, so the row never shows both "Załóż konto" and
+  // "Mój profil"/"Panel producenta" at once.
   const cta =
     session?.user.role === "admin"
       ? { label: t("adminPanel"), href: `/${locale}/internal/inquiries`, icon: false }
       : session?.user.role === "client"
         ? { label: t("myProfile"), href: `/${locale}/panel/inquiries`, icon: true }
-        : { label: t("start"), href: `/${locale}/registration`, icon: false };
+        : session?.user.role === "producer"
+          ? { label: t("producerPanel"), href: `/${locale}/producer/panel`, icon: true }
+          : { label: t("start"), href: `/${locale}/registration`, icon: false };
 
   const isOverlay = isHomeRoute && !isScrolled;
   const navTextClass = isOverlay
@@ -169,13 +110,20 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
             surface="v5"
             triggerClassName={`hidden disabled:cursor-default disabled:opacity-50 sm:flex ${navTextClass}`}
           />
-          <Link
-            href={`/${locale}/panel/favorites`}
-            className={`focus-ring hidden items-center gap-1 rounded-data text-body font-medium sm:flex ${navTextClass}`}
-          >
-            <Heart className="size-4" aria-hidden="true" />
-            {t("favorites")}
-          </Link>
+          {/* Favorites requires a client session (requirePanelClientSession
+              redirects anonymous visitors straight to login), so the link is
+              pointless chrome for a signed-out visitor rather than a real
+              destination. Producers have no favorites of their own either,
+              so the link is dropped for that role too. */}
+          {session && session.user.role !== "producer" && (
+            <Link
+              href={`/${locale}/panel/favorites`}
+              className={`focus-ring hidden items-center gap-1 rounded-data text-body font-medium sm:flex ${navTextClass}`}
+            >
+              <Heart className="size-4" aria-hidden="true" />
+              {t("favorites")}
+            </Link>
+          )}
           {!session && (
             <Link
               href={`/${locale}/login`}
@@ -185,17 +133,18 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
               {t("signIn")}
             </Link>
           )}
-          {/* Hidden below `sm`: on the narrowest phones this pill is the
+          {/* The shared `Button` (not a one-off pill): this is chrome, not a
+              marketing module, so it takes the design system's actual
+              primary-action shape (`rounded-marketing`) rather than the
+              stadium `rounded-v5-pill` reserved for hero/showcase CTAs.
+              Hidden below `sm`: on the narrowest phones this button is the
               part that moves into the slide out menu instead (see below),
               which is also what keeps the logo/hamburger fitting at 320px
-              without needing this pill's width too (spec 0030 AC-1). */}
-          <Link
-            href={cta.href}
-            className="focus-ring hidden shrink-0 items-center gap-1 rounded-v5-pill bg-brand-v5-amber px-brand-3 py-brand-2 text-body font-semibold text-brand-v5-amber-foreground hover:bg-brand-v5-amber-strong sm:inline-flex"
-          >
+              without needing this button's width too (spec 0030 AC-1). */}
+          <Button as="a" href={cta.href} surface="v5" className="hidden shrink-0 sm:inline-flex">
             {cta.icon && <User className="size-4" aria-hidden="true" />}
             {cta.label}
-          </Link>
+          </Button>
           {/* Fixed 44×44 touch target (spec 0030 AC-1) plus `shrink-0` so the
               hamburger is never the first thing to give up space when the
               row runs tight. The fix is shrinking the logo, the gaps, and
@@ -216,12 +165,15 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
       <Dialog open={isMenuOpen} onClose={setIsMenuOpen} className="relative z-50">
         <DialogBackdrop
           transition
-          className="fixed inset-0 bg-brand-v5-night/40 transition duration-200 ease-out data-[closed]:opacity-0"
+          className="fixed inset-0 bg-brand-v5-night/40 transition-opacity duration-200 ease-out data-[closed]:opacity-0"
         />
         <div className="fixed inset-0 flex justify-end">
+          {/* `ease-[cubic-bezier(...)]` is easeOutQuint (easings.net): a
+              weighted deceleration rather than Tailwind's linear-ish default
+              `ease-out`, so the drawer settles instead of just stopping. */}
           <DialogPanel
             transition
-            className="flex h-full w-full max-w-xs flex-col gap-brand-4 overflow-y-auto bg-brand-v5-surface p-brand-4 shadow-xl transition duration-200 ease-out data-[closed]:translate-x-full"
+            className="flex h-full w-full max-w-xs flex-col gap-brand-4 overflow-y-auto bg-brand-v5-surface p-brand-4 shadow-xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] data-[closed]:translate-x-full"
           >
             <div className="flex items-center justify-between">
               <span className="text-body font-medium text-brand-v5-ink">{t("menu")}</span>
@@ -235,19 +187,39 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
               </button>
             </div>
 
-            {/* The mobile twin of the header row's CTA pill, hidden from
+            {/* The mobile twin of the header row's CTA button, hidden from
                 `sm` up since the row shows it there instead (see above);
                 same `cta` (label plus href, swapping to "Mój profil"/"Panel
                 administratora" for a signed in session) so it never drifts
-                out of sync with the row. */}
-            <Link
-              href={cta.href}
-              onClick={() => setIsMenuOpen(false)}
-              className="focus-ring flex items-center justify-center gap-1 rounded-v5-pill bg-brand-v5-amber px-brand-3 py-brand-2 text-body font-semibold text-brand-v5-amber-foreground hover:bg-brand-v5-amber-strong sm:hidden"
-            >
-              {cta.icon && <User className="size-4" aria-hidden="true" />}
-              {cta.label}
-            </Link>
+                out of sync with the row. "Zaloguj się" sits right beside it
+                (not buried in the Account section below) since the two are
+                the anonymous visitor's actual choice: create an account or
+                sign into an existing one. It keeps its own `md:hidden` so
+                it's still reachable through the slide-out between `sm` and
+                `md`, the range where the header row shows the CTA button but
+                not yet its own dedicated sign in link. */}
+            <div className="flex flex-wrap items-center gap-brand-1">
+              <Button
+                as="a"
+                href={cta.href}
+                onClick={() => setIsMenuOpen(false)}
+                surface="v5"
+                className="sm:hidden"
+              >
+                {cta.icon && <User className="size-4" aria-hidden="true" />}
+                {cta.label}
+              </Button>
+              {!session && (
+                <Link
+                  href={`/${locale}/login`}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="focus-ring flex items-center gap-1 rounded-data text-body font-medium text-brand-v5-ink hover:text-brand-v5-amber-strong md:hidden"
+                >
+                  <User className="size-4" aria-hidden="true" />
+                  {t("signIn")}
+                </Link>
+              )}
+            </div>
 
             <nav aria-label={t("mainNav")}>
               <h2 className="mb-brand-2 text-body font-semibold text-brand-v5-muted">{t("mainNav")}</h2>
@@ -267,16 +239,14 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
             </nav>
 
             {/* Account actions, dropped into the slide out menu (spec 0030
-                AC-4/AC-5) so they're reachable below `sm`/`md`, where the
-                header row hides them. Each item hides itself at the same
-                breakpoint its header row twin appears at (Favorites and the
-                language buttons from `sm`, sign in from `md`; profile and
-                admin panel live only in the CTA pill above, never here), so
-                nothing here duplicates what the row already shows; the
-                whole group hides at `md` once every item inside it would
-                otherwise be empty. */}
+                AC-4/AC-5) so they're reachable below `sm`, where the header
+                row hides them. Sign in moved up next to the CTA button above;
+                everything left here (theme, language, and — session
+                permitting — favorites) hides itself at `sm` the same as the
+                row's own equivalents appear there, so the whole group can
+                fold at `sm` too, once nothing inside it would still show. */}
             <div
-              className="border-t border-brand-v5-line pt-brand-4 md:hidden"
+              className="border-t border-brand-v5-line pt-brand-4 sm:hidden"
               role="group"
               aria-labelledby="site-header-account-heading"
             >
@@ -284,43 +254,38 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
                 {t("account")}
               </h2>
               <ul className="flex flex-col gap-brand-3">
-                <li className="sm:hidden">
-                  <ThemeToggle withLabel className="text-brand-v5-ink hover:text-brand-v5-amber-strong" />
+                <li>
+                  <div className="flex items-center gap-brand-3">
+                    <ThemeToggle className="text-brand-v5-ink hover:text-brand-v5-amber-strong" />
+                    <LanguageSwitcher
+                      locale={locale}
+                      surface="v5"
+                      align="start"
+                      triggerClassName="inline-flex text-brand-v5-ink hover:text-brand-v5-amber-strong"
+                    />
+                  </div>
                 </li>
-                <li className="sm:hidden">
-                  <Link
-                    href={`/${locale}/panel/favorites`}
-                    onClick={() => setIsMenuOpen(false)}
-                    className="focus-ring flex items-center gap-1 rounded-data text-body font-medium text-brand-v5-ink hover:text-brand-v5-amber-strong"
-                  >
-                    <Heart className="size-4" aria-hidden="true" />
-                    {t("favorites")}
-                  </Link>
-                </li>
-                {/* No client/admin link here: the header row's CTA pill
-                    already becomes "Mój profil"/"Panel administratora" for
-                    those sessions, at every width, so repeating it here
-                    would always be a duplicate, not just on desktop. Sign in
-                    still belongs here below `md`, since the pill only
-                    replaces itself for an existing session; an anonymous
-                    visitor's pill stays "Zacznij". */}
-                {!session && (
+                {/* Favorites requires a client session (see the header row's
+                    twin above), so it's dropped here too for a signed-out
+                    visitor rather than linking to a page that just bounces
+                    them to login, and for a producer session, which has no
+                    favorites of its own either. No client/admin link here
+                    either: the CTA button above already becomes "Mój
+                    profil"/"Panel administratora" for those sessions, so
+                    repeating it here would always be a duplicate, not just on
+                    desktop. */}
+                {session && session.user.role !== "producer" && (
                   <li>
                     <Link
-                      href={`/${locale}/login`}
+                      href={`/${locale}/panel/favorites`}
                       onClick={() => setIsMenuOpen(false)}
                       className="focus-ring flex items-center gap-1 rounded-data text-body font-medium text-brand-v5-ink hover:text-brand-v5-amber-strong"
                     >
-                      <User className="size-4" aria-hidden="true" />
-                      {t("signIn")}
+                      <Heart className="size-4" aria-hidden="true" />
+                      {t("favorites")}
                     </Link>
                   </li>
                 )}
-                <li className="sm:hidden">
-                  <Suspense fallback={<MobileLanguagePickerFallback />}>
-                    <MobileLanguagePicker locale={locale} />
-                  </Suspense>
-                </li>
               </ul>
             </div>
           </DialogPanel>

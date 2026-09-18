@@ -1,44 +1,50 @@
 import { useTranslations } from "next-intl";
-import { FileUpload, Heading, Stack, Text } from "@/components/ui";
-import type { ProjectDraft } from "@/lib/data/types";
+import { Heading, Stack, Text } from "@/components/ui";
+import { ProducerFloorPlanUploadStep, type ProducerFloorPlan, type ProducerFloorPlanVariantOption } from "./ProducerFloorPlanUploadStep";
 import { ProducerProductPhotosStep, type ProducerProductPhoto } from "./ProducerProductPhotosStep";
 
 interface ProjectWizardFilesStepProps {
-  draft: ProjectDraft;
   showValidation: boolean;
   productId: string | null;
   photos: ProducerProductPhoto[];
-  onChange: (patch: Partial<ProjectDraft>) => void;
   onPhotosChange: (photos: ProducerProductPhoto[]) => void;
+  floorPlans: ProducerFloorPlan[];
+  onFloorPlansChange: (floorPlans: ProducerFloorPlan[]) => void;
+  // Puste dla ProjectWizard (nowy projekt, krok "warianty" jeszcze nie
+  // wypełniony) — patrz komentarz w ProducerFloorPlanUploadStep.
+  floorPlanVariantOptions?: ProducerFloorPlanVariantOption[];
 }
 
-// Rzuty (floorPlanFiles) zostają makietą (spec 0032: żadne kryterium akceptacji
-// tej funkcji ich nie dotyczy, product nie ma dla nich kolumny) — tylko zdjęcia
-// przechodzą na realne wgrywanie (AC-7), patrz ProducerProductPhotosStep.
+// Rzuty przeszły na realne wgrywanie R2 (spec 0045 AC-7, Build plan zadanie 8),
+// ten sam mechanizm co zdjęcia (ProducerProductPhotosStep). floorPlanFiles na
+// ProjectDraft zostaje jako sygnał kompletności kroku dla isStepComplete
+// (ten sam wzorzec co photoFiles), synchronizowany przez rodzica (ProjectWizard/
+// ProductEditWizard) z onFloorPlansChange, nie edytowany bezpośrednio tutaj.
 export function ProjectWizardFilesStep({
-  draft,
   showValidation,
   productId,
   photos,
-  onChange,
   onPhotosChange,
+  floorPlans,
+  onFloorPlansChange,
+  floorPlanVariantOptions = [],
 }: ProjectWizardFilesStepProps) {
   const t = useTranslations("ProjectWizardFilesStep");
-  const floorPlanInvalid = showValidation && draft.floorPlanFiles.length === 0;
 
   return (
     <Stack gap={4}>
       <Heading level="h2">{t("heading")}</Heading>
       <Stack gap={2}>
-        <FileUpload
-          id="wizard-floor-plan-files"
-          label={t("floorPlanLabel")}
-          required
-          files={draft.floorPlanFiles}
-          onFilesChange={(files) => onChange({ floorPlanFiles: files })}
-        />
-        {floorPlanInvalid && (
-          <p className="font-sans text-body text-status-blocked">{t("floorPlanRequiredError")}</p>
+        {productId ? (
+          <ProducerFloorPlanUploadStep
+            productId={productId}
+            floorPlans={floorPlans}
+            showValidation={showValidation}
+            variants={floorPlanVariantOptions}
+            onFloorPlansChange={onFloorPlansChange}
+          />
+        ) : (
+          <Text tone="muted">{t("photosUnavailable")}</Text>
         )}
       </Stack>
       {productId ? (

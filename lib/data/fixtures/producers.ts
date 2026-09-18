@@ -1,9 +1,9 @@
 import type { Producer } from "../types";
 
-// Illustrative reputation numbers (rating/reviewCount/modelsCount), same
-// Facade spirit as StatsBar's old static stats (spec 0015 AC-9). id must
-// always match an existing Project.producerId — referential integrity is a
-// spec invariant, not a coincidence.
+// Illustrative reputation numbers (rating/reviewCount/modelsCount/
+// completedProjectsCount), same Facade spirit as StatsBar's old static stats
+// (spec 0015 AC-9). id must always match an existing Project.producerId —
+// referential integrity is a spec invariant, not a coincidence.
 export const producers: Producer[] = [
   {
     id: "prod-budman",
@@ -16,6 +16,7 @@ export const producers: Producer[] = [
     sizeRangeM2Max: 141.57,
     deliveryCountries: ["PL", "DE"],
     featuredPhotoUrl: "/images/houses/budman-house/mary-antresola/01_wizualizacja_frontowa.jpg",
+    completedProjectsCount: 96,
     verified: true,
     showroomVisitAvailable: null,
   },
@@ -30,6 +31,7 @@ export const producers: Producer[] = [
     sizeRangeM2Max: 55.2,
     deliveryCountries: ["PL", "DE"],
     featuredPhotoUrl: "/images/houses/steel-house/pomerania/01_wizualizacja_okladka.jpg",
+    completedProjectsCount: 143,
     verified: true,
     showroomVisitAvailable: null,
   },
@@ -44,6 +46,7 @@ export const producers: Producer[] = [
     sizeRangeM2Max: 128.8,
     deliveryCountries: ["PL", "DE", "NL"],
     featuredPhotoUrl: "/images/houses/cocomodule/cover-premium.png",
+    completedProjectsCount: 58,
     verified: true,
     showroomVisitAvailable: null,
   },
@@ -58,6 +61,7 @@ export const producers: Producer[] = [
     sizeRangeM2Max: 116.59,
     deliveryCountries: ["PL", "DE"],
     featuredPhotoUrl: "/images/houses/castor/cas-98-mikolajki/01_okladka.jpeg",
+    completedProjectsCount: 112,
     verified: true,
     showroomVisitAvailable: null,
   },

@@ -1,7 +1,6 @@
 {
   "SiteHeader": {
     "nav": {
-      "homes": "Homes",
       "projects": "Projects",
       "howItWorks": "How it works",
       "verifiedManufacturers": "Verified manufacturers",
@@ -10,6 +9,7 @@
     "favorites": "Favorites",
     "adminPanel": "Admin panel",
     "myProfile": "My profile",
+    "producerPanel": "Producer panel",
     "signIn": "Sign in",
     "start": "Create account",
     "openMenu": "Open menu",
@@ -20,7 +20,7 @@
     "changeLanguage": "Change language"
   },
   "ProducerHeader": {
-    "imClient": "I'm a customer",
+    "home": "Home",
     "account": "Account",
     "signIn": "Sign in",
     "signOut": "Sign out"
@@ -226,7 +226,8 @@
       "podstawowe": "Basic information",
       "techniczne": "Technical data",
       "pliki": "Files",
-      "cena": "Price and sale",
+      "warianty": "Variants and pricing",
+      "faq": "FAQ",
       "podsumowanie": "Summary"
     },
     "family": {
@@ -248,6 +249,20 @@
       "gastronomiczne": "Catering",
       "uslugowe": "Service",
       "mieszkalne": "Residential"
+    },
+    "costLineItemStatus": {
+      "w-cenie": "Included",
+      "obowiazkowa-doplata": "Mandatory surcharge",
+      "opcja": "Option",
+      "po-stronie-klienta": "Client's responsibility",
+      "do-wyceny": "To be quoted"
+    },
+    "timelineStageKey": {
+      "formalnosci": "Formalities",
+      "produkcja": "Production",
+      "transport": "Transport",
+      "montaz": "Assembly",
+      "wykonczenie": "Finishing"
     },
     "completionStandard": {
       "surowy-zamkniety": "Shell and core",
@@ -341,36 +356,114 @@
       },
       "kontenery-modulowe": {
         "gastronomiczne": {
-          "dimensions": { "label": "Dimensions", "hint": "Width × depth × height" },
-          "structureMaterial": { "label": "Structure material", "hint": "Frame/structure material of the container" },
-          "insulationType": { "label": "Insulation type", "hint": "Type of thermal insulation" },
-          "foundationType": { "label": "Foundation type", "hint": "Foundation method" },
-          "kitchenEquipmentType": { "label": "Kitchen equipment", "hint": "Type of kitchen equipment installed" },
-          "extractionVentilation": { "label": "Extraction", "hint": "Type of extraction/ventilation installation" },
-          "electricalPower": { "label": "Electrical connection power", "hint": "Required power supply" },
-          "waterSupplyType": { "label": "Water supply", "hint": "How water is supplied" },
-          "wasteWaterHandling": { "label": "Wastewater handling", "hint": "How wastewater is discharged" }
+          "dimensions": {
+            "label": "Dimensions",
+            "hint": "Width × depth × height"
+          },
+          "structureMaterial": {
+            "label": "Structure material",
+            "hint": "Frame/structure material of the container"
+          },
+          "insulationType": {
+            "label": "Insulation type",
+            "hint": "Type of thermal insulation"
+          },
+          "foundationType": {
+            "label": "Foundation type",
+            "hint": "Foundation method"
+          },
+          "kitchenEquipmentType": {
+            "label": "Kitchen equipment",
+            "hint": "Type of kitchen equipment installed"
+          },
+          "extractionVentilation": {
+            "label": "Extraction",
+            "hint": "Type of extraction/ventilation installation"
+          },
+          "electricalPower": {
+            "label": "Electrical connection power",
+            "hint": "Required power supply"
+          },
+          "waterSupplyType": {
+            "label": "Water supply",
+            "hint": "How water is supplied"
+          },
+          "wasteWaterHandling": {
+            "label": "Wastewater handling",
+            "hint": "How wastewater is discharged"
+          }
         },
         "uslugowe": {
-          "dimensions": { "label": "Dimensions", "hint": "Width × depth × height" },
-          "structureMaterial": { "label": "Structure material", "hint": "Frame/structure material of the container" },
-          "insulationType": { "label": "Insulation type", "hint": "Type of thermal insulation" },
-          "foundationType": { "label": "Foundation type", "hint": "Foundation method" },
-          "intendedUse": { "label": "Intended use", "hint": "Planned use of the module, e.g. office, shop" },
-          "electricalInstallation": { "label": "Electrical installation", "hint": "Scope of the electrical installation" },
-          "spaceHeatingType": { "label": "Heating type", "hint": "How the space is heated" }
+          "dimensions": {
+            "label": "Dimensions",
+            "hint": "Width × depth × height"
+          },
+          "structureMaterial": {
+            "label": "Structure material",
+            "hint": "Frame/structure material of the container"
+          },
+          "insulationType": {
+            "label": "Insulation type",
+            "hint": "Type of thermal insulation"
+          },
+          "foundationType": {
+            "label": "Foundation type",
+            "hint": "Foundation method"
+          },
+          "intendedUse": {
+            "label": "Intended use",
+            "hint": "Planned use of the module, e.g. office, shop"
+          },
+          "electricalInstallation": {
+            "label": "Electrical installation",
+            "hint": "Scope of the electrical installation"
+          },
+          "spaceHeatingType": {
+            "label": "Heating type",
+            "hint": "How the space is heated"
+          }
         },
         "mieszkalne": {
-          "dimensions": { "label": "Dimensions", "hint": "Width × depth × height" },
-          "structureMaterial": { "label": "Structure material", "hint": "Frame/structure material of the container" },
-          "insulationType": { "label": "Insulation type", "hint": "Type of thermal insulation" },
-          "foundationType": { "label": "Foundation type", "hint": "Foundation method" },
-          "sleepingCapacity": { "label": "Sleeping capacity", "hint": "Maximum number of occupants" },
-          "bathroomIncluded": { "label": "Bathroom", "hint": "Whether the module includes a bathroom" },
-          "spaceHeatingType": { "label": "Heating type", "hint": "How the space is heated" },
-          "waterSupplyType": { "label": "Water supply", "hint": "How water is supplied" },
-          "wasteWaterHandling": { "label": "Wastewater handling", "hint": "How wastewater is discharged" },
-          "electricalInstallation": { "label": "Electrical installation", "hint": "Scope of the electrical installation" }
+          "dimensions": {
+            "label": "Dimensions",
+            "hint": "Width × depth × height"
+          },
+          "structureMaterial": {
+            "label": "Structure material",
+            "hint": "Frame/structure material of the container"
+          },
+          "insulationType": {
+            "label": "Insulation type",
+            "hint": "Type of thermal insulation"
+          },
+          "foundationType": {
+            "label": "Foundation type",
+            "hint": "Foundation method"
+          },
+          "sleepingCapacity": {
+            "label": "Sleeping capacity",
+            "hint": "Maximum number of occupants"
+          },
+          "bathroomIncluded": {
+            "label": "Bathroom",
+            "hint": "Whether the module includes a bathroom"
+          },
+          "spaceHeatingType": {
+            "label": "Heating type",
+            "hint": "How the space is heated"
+          },
+          "waterSupplyType": {
+            "label": "Water supply",
+            "hint": "How water is supplied"
+          },
+          "wasteWaterHandling": {
+            "label": "Wastewater handling",
+            "hint": "How wastewater is discharged"
+          },
+          "electricalInstallation": {
+            "label": "Electrical installation",
+            "hint": "Scope of the electrical installation"
+          }
         }
       }
     }
@@ -418,35 +511,112 @@
     "nameEnLabel": "Name (English)",
     "nameNlLabel": "Name (Dutch)",
     "descriptionEnLabel": "Description (English)",
-    "descriptionNlLabel": "Description (Dutch)"
+    "descriptionNlLabel": "Description (Dutch)",
+    "roomLayoutHeading": "Room layout",
+    "roomLayoutHint": "Add rooms, their area and function — this section shows on the customer's project page.",
+    "roomLayoutEmptyHint": "No room has been added yet.",
+    "roomNameLabel": "Room name",
+    "roomAreaLabel": "Area (m²)",
+    "roomFunctionLabel": "Function",
+    "roomMezzanineLabel": "Mezzanine",
+    "moveUpLabel": "Move up",
+    "moveDownLabel": "Move down",
+    "removeRoomLabel": "Remove room",
+    "roomTranslationsHeading": "Room name translations (optional)",
+    "roomNameTranslationLabel": "Room name {index}",
+    "addRoomButton": "Add room"
   },
   "ProjectWizardTechnicalStep": {
     "heading": "Technical data",
     "selectRequiredError": "Choose {label}.",
-    "textRequiredError": "Enter {label}."
+    "textRequiredError": "Enter {label}.",
+    "structuralWarrantyLabel": "Structural warranty (years)",
+    "structuralWarrantyRequiredError": "Enter the structural warranty in years.",
+    "logisticsHeading": "Logistics and compliance",
+    "logisticsHint": "Transport and service details plus a simplified-permit declaration — no automated rule behind it.",
+    "installationWarrantyLabel": "Assembly warranty (years)",
+    "minPlotWidthLabel": "Minimum plot width (m)",
+    "serviceScopeLabel": "Service scope description",
+    "transportDimensionsLabel": "Transport dimensions",
+    "craneRequirementsLabel": "Crane requirements",
+    "simplifiedPermitLabel": "Qualifies for a simplified permit",
+    "simplifiedPermitUnset": "Not decided",
+    "simplifiedPermitYes": "Yes",
+    "simplifiedPermitNo": "No"
   },
-  "ProjectWizardPricingStep": {
-    "heading": "Price and sale",
-    "priceLabel": "House price in the base standard (EUR)",
-    "priceRequiredError": "Enter the house price.",
+  "ProjectWizardVariantsStep": {
+    "heading": "Variants and pricing",
+    "intro": "Add 1 to 3 completion-standard variants, each with its own price, cost line items and delivery timeline.",
+    "emptyHint": "No variant has been added yet.",
+    "genericError": "Couldn't save the changes. Please try again.",
+    "addVariantHeading": "Add a variant",
     "standardLabel": "Completion standard",
-    "standardRequiredError": "Choose a completion standard.",
-    "leadTimeLabel": "Production lead time (weeks)",
-    "leadTimeFromAriaLabel": "Production lead time, from (weeks)",
-    "leadTimeToAriaLabel": "Production lead time, to (weeks)",
-    "leadTimeRequiredError": "Enter a from and to lead time, so that the from value doesn't exceed the to value.",
-    "assemblyTimeLabel": "On-site assembly time (days)",
-    "assemblyTimeFromAriaLabel": "Assembly time, from (days)",
-    "assemblyTimeToAriaLabel": "Assembly time, to (days)",
-    "assemblyTimeRequiredError": "Enter a from and to assembly time, so that the from value doesn't exceed the to value.",
-    "warrantyLabel": "Structural warranty (years)",
-    "warrantyRequiredError": "Enter the structural warranty in years."
+    "addVariantButton": "Add variant",
+    "cloneSourceLabel": "Clone from variant",
+    "cloneStandardLabel": "New standard",
+    "cloneVariantButton": "Clone",
+    "defaultBadge": "Default",
+    "moveUpLabel": "Move up",
+    "moveDownLabel": "Move down",
+    "deleteVariantLabel": "Delete variant",
+    "setDefaultLabel": "Set as default",
+    "priceMinLabel": "Minimum price (EUR)",
+    "priceMaxLabel": "Maximum price (EUR)",
+    "scopeSummaryLabel": "Scope description",
+    "translationsHeading": "Scope description translations (optional)",
+    "translationTabEn": "EN",
+    "translationTabNl": "NL",
+    "scopeSummaryEnLabel": "Scope description (EN)",
+    "scopeSummaryNlLabel": "Scope description (NL)",
+    "costLineItemsHeading": "Cost line items",
+    "costLineItemLabelLabel": "Item",
+    "costLineItemStatusLabel": "Status",
+    "costLineItemResponsiblePartyLabel": "Responsible",
+    "removeCostLineItemLabel": "Remove cost line item",
+    "addCostLineItemButton": "Add cost line item",
+    "timelineHeading": "Delivery timeline",
+    "stageDurationMinLabel": "Days from",
+    "stageDurationMaxLabel": "Days to",
+    "stageResponsiblePartyLabel": "Responsible",
+    "saveVariantButton": "Save variant",
+    "savedHint": "Saved."
+  },
+  "ProjectWizardFaqStep": {
+    "heading": "FAQ",
+    "intro": "Add the questions customers ask most often about this project.",
+    "emptyHint": "No question has been added yet.",
+    "entryLabel": "Question {index}",
+    "moveUpLabel": "Move up",
+    "moveDownLabel": "Move down",
+    "removeLabel": "Remove question",
+    "questionLabel": "Question",
+    "answerLabel": "Answer",
+    "translationsHeading": "Translations (optional)",
+    "translationTabEn": "EN",
+    "translationTabNl": "NL",
+    "questionEnLabel": "Question (EN)",
+    "answerEnLabel": "Answer (EN)",
+    "questionNlLabel": "Question (NL)",
+    "answerNlLabel": "Answer (NL)",
+    "addButton": "Add question"
   },
   "ProjectWizardFilesStep": {
     "heading": "Files",
     "floorPlanLabel": "Floor plans",
     "floorPlanRequiredError": "Add at least one floor plan.",
     "photosUnavailable": "Save the basic product information first to add photos."
+  },
+  "ProducerFloorPlanUploadStep": {
+    "label": "Floor plans",
+    "variantLabel": "Applies to variant",
+    "allVariants": "All variants",
+    "chooseFiles": "Choose files",
+    "hint": "JPEG, PNG or WebP, max. 10 MB.",
+    "uploadError": "Couldn't upload the floor plan. Please try again.",
+    "deleteError": "Couldn't delete the floor plan. Please try again.",
+    "requiredError": "Add at least one floor plan.",
+    "noFloorPlans": "No floor plan has been uploaded yet.",
+    "removeFloorPlan": "Remove floor plan {name}"
   },
   "ProjectWizardSummaryStep": {
     "heading": "Summary",
@@ -461,16 +631,18 @@
     "rowFamily": "Product family",
     "rowSubcategory": "Subcategory",
     "groupTechnical": "Technical data",
-    "groupPricing": "Price and sale",
-    "rowPrice": "House price",
-    "rowPriceValue": "{price} EUR",
-    "rowStandard": "Completion standard",
-    "rowLeadTime": "Production lead time",
-    "rowLeadTimeValue": "{min}–{max} wks",
-    "rowAssemblyTime": "Assembly time",
-    "rowAssemblyTimeValue": "{min}–{max} days",
+    "groupVariants": "Variants and pricing",
+    "rowVariantCount": "Number of variants",
+    "rowDefaultPrice": "Default variant price",
+    "rowDefaultPriceValue": "{price} EUR",
+    "groupLogistics": "Logistics and compliance",
     "rowWarranty": "Structural warranty",
     "rowWarrantyValue": "{years} yrs",
+    "rowInstallationWarranty": "Assembly warranty",
+    "rowSimplifiedPermit": "Simplified permit",
+    "groupContent": "Project page content",
+    "rowRoomCount": "Number of rooms",
+    "rowFaqCount": "Number of FAQ entries",
     "groupFiles": "Files",
     "floorPlanCount": "Floor plans ({count})",
     "photoCount": "Photos ({count})",
@@ -576,7 +748,7 @@
     },
     "simplifiedPermitEligible": "Eligible for the simplified permit notice",
     "simplifiedPermitNotEligible": "Not eligible for the simplified permit notice",
-    "producerHeading": "Producer",
+    "producerHeading": "Completed projects and producer",
     "bulkInquiryHeading": "Need a larger quantity?",
     "bulkInquiryBody": "This producer is volume-verified. Ask about this model in a larger quantity.",
     "addToShortlist": "Add to shortlist",
@@ -642,9 +814,15 @@
     "notIncluded": "Not applicable",
     "noCostLineItems": "Cost line items: to be completed by the producer.",
     "toBeCompleted": "To be completed",
+    "legendMissing": "To be completed / not applicable",
     "completionStandard": {
       "surowy-zamkniety": "Closed shell condition",
       "deweloperski": "Developer finish",
+      "pod-klucz": "Turnkey"
+    },
+    "completionStandardShort": {
+      "surowy-zamkniety": "Shell",
+      "deweloperski": "Developer",
       "pod-klucz": "Turnkey"
     },
     "status": {
@@ -740,15 +918,37 @@
     "responsibleParty": "Responsible: {party}",
     "toBeCompleted": "To be completed"
   },
+  "ProjectDocumentsAndFaq": {
+    "heading": "Documents and questions",
+    "documentsHeading": "Documents",
+    "documentsPlaceholder": "Spec sheets, warranties, and other formal documents for this house have not been provided by the producer yet.",
+    "questionsHeading": "Questions and answers",
+    "questionsPlaceholder": "The producer has not added answers to frequently asked questions about this model yet.",
+    "toBeCompleted": "To be completed"
+  },
   "ProjectGalleryTabs": {
     "tablistLabel": "Project photos",
     "tabWizualizacje": "Renderings",
     "tabRzut": "Floor plan",
-    "tabRealizacje": "Completed projects",
     "floorPlanAlt": "Floor plan {name}, view {index}",
-    "realizationAlt": "Photo from a completed project {name}, {index}",
-    "realizacjePlaceholder": "Photos from a completed project, to be provided by the producer",
     "rzutPlaceholder": "Floor plan to be provided by the producer"
+  },
+  "ProducerRealizationsSection": {
+    "verified": "Verified by ModularHub",
+    "completedProjects": "{count} completed projects",
+    "modelsInOffer": "{count} models on offer",
+    "showroomVisitAvailable": "In-person visits available",
+    "showroomVisitUnavailable": "In-person visits not available",
+    "showroomVisitUnknown": "In-person visits to be confirmed with the producer",
+    "realizationsHeading": "Completed builds of this project",
+    "realizationAlt": "Photo from a completed project {name}, {index}",
+    "realizationsPlaceholder": "Real photos of completed houses from this project, to be provided by the producer",
+    "country": {
+      "PL": "Poland",
+      "DE": "Germany",
+      "NL": "Netherlands"
+    },
+    "countryOfProduction": "Country of production: {country}"
   },
   "ProjectTechnicalSpecs": {
     "heading": "Technology and construction",
@@ -1162,13 +1362,6 @@
     "error": "Enter a valid NIP (10 digits).",
     "submitButton": "View products"
   },
-  "ProducerPanelTabs": {
-    "navAriaLabel": "Producer panel",
-    "konto": "Account",
-    "produkty": "Products",
-    "zapytania": "Inquiries",
-    "unreadBadgeLabel": "Client made a decision"
-  },
   "ProducerPanelPage": {
     "heading": "Account",
     "noProfile": "No company data found for this account.",
@@ -1376,5 +1569,17 @@
     "sentHeading": "Request sent",
     "sentBody": "The producer received your request and will reply with a quote by email.",
     "close": "Close"
+  },
+  "ProducerPanelSidebar": {
+    "navAriaLabel": "Producer panel",
+    "konto": "Account",
+    "produkty": "Products",
+    "zapytania": "Inquiries",
+    "unreadBadgeLabel": "Client made a decision",
+    "home": "Home",
+    "signOut": "Sign out",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "menu": "Menu"
   }
 }

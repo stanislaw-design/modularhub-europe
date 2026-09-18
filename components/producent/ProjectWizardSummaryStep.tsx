@@ -3,7 +3,6 @@ import type { ReactNode } from "react";
 import { Card, DataText, Heading, Stack, Text } from "@/components/ui";
 import type { Country, ProjectDraft } from "@/lib/data/types";
 import {
-  getCompletionStandardOptions,
   getContainerSubcategoryOptions,
   getProductFamilyOptions,
   getProjectCategoryOptions,
@@ -105,37 +104,20 @@ export function ProjectWizardSummaryStep({ draft, countries }: ProjectWizardSumm
         </SummaryGroup>
       )}
 
-      <SummaryGroup title={t("groupPricing")}>
+      <SummaryGroup title={t("groupVariants")}>
+        <SummaryRow label={t("rowVariantCount")} value={String(draft.variantsSummary.length)} />
         <SummaryRow
-          label={t("rowPrice")}
-          value={draft.housePriceMinEur !== null ? t("rowPriceValue", { price: draft.housePriceMinEur }) : empty}
+          label={t("rowDefaultPrice")}
+          value={(() => {
+            const defaultVariant = draft.variantsSummary.find((variant) => variant.isDefault);
+            return defaultVariant && defaultVariant.priceMinCents !== null
+              ? t("rowDefaultPriceValue", { price: defaultVariant.priceMinCents / 100 })
+              : empty;
+          })()}
         />
-        <SummaryRow
-          label={t("rowStandard")}
-          value={
-            getCompletionStandardOptions(tOptions).find((option) => option.value === draft.completionStandard)
-              ?.label ?? empty
-          }
-        />
-        <SummaryRow
-          label={t("rowLeadTime")}
-          value={
-            draft.productionLeadTimeWeeksMin !== null && draft.productionLeadTimeWeeksMax !== null
-              ? t("rowLeadTimeValue", {
-                  min: draft.productionLeadTimeWeeksMin,
-                  max: draft.productionLeadTimeWeeksMax,
-                })
-              : empty
-          }
-        />
-        <SummaryRow
-          label={t("rowAssemblyTime")}
-          value={
-            draft.onSiteAssemblyDaysMin !== null && draft.onSiteAssemblyDaysMax !== null
-              ? t("rowAssemblyTimeValue", { min: draft.onSiteAssemblyDaysMin, max: draft.onSiteAssemblyDaysMax })
-              : empty
-          }
-        />
+      </SummaryGroup>
+
+      <SummaryGroup title={t("groupLogistics")}>
         <SummaryRow
           label={t("rowWarranty")}
           value={
@@ -144,6 +126,29 @@ export function ProjectWizardSummaryStep({ draft, countries }: ProjectWizardSumm
               : empty
           }
         />
+        <SummaryRow
+          label={t("rowInstallationWarranty")}
+          value={
+            draft.installationWarrantyYears !== null
+              ? t("rowWarrantyValue", { years: draft.installationWarrantyYears })
+              : empty
+          }
+        />
+        <SummaryRow
+          label={t("rowSimplifiedPermit")}
+          value={
+            draft.simplifiedPermitEligible === null
+              ? empty
+              : draft.simplifiedPermitEligible
+                ? t("booleanYes")
+                : t("booleanNo")
+          }
+        />
+      </SummaryGroup>
+
+      <SummaryGroup title={t("groupContent")}>
+        <SummaryRow label={t("rowRoomCount")} value={String(draft.roomLayout.length)} />
+        <SummaryRow label={t("rowFaqCount")} value={String(draft.faq.length)} />
       </SummaryGroup>
 
       <Stack gap={2}>

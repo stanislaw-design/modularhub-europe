@@ -27,6 +27,7 @@ import type {
   Project,
   ProjectDocument,
   ProjectDocumentPurpose,
+  ProjectFaqItem,
   ProjectVariant,
   ProductFamily,
   ProductTechnicalSpecsDraft,
@@ -392,6 +393,26 @@ function applyDocuments(projectItem: Project, documents: ProjectDocument[] | und
   return { ...projectItem, documents: documents ?? [] };
 }
 
+function applyCertifications(projectItem: Project, certifications: string[] | undefined): Project {
+  return { ...projectItem, certifications: certifications && certifications.length > 0 ? certifications : undefined };
+}
+
+// Certyfikaty czytane z producer_capacity_profile.certifications (spec 0045
+// AC-9): dane producenta, nie per-projektowe — kreator nie zbiera żadnego
+// nowego pola, karta klienta czyta wprost stąd. LEFT JOIN przez batch (nie
+// INNER w resolveVerifiedVolumeManufacturerProjects powyżej): większość
+// producentów nie ma jeszcze wiersza producer_capacity_profile (dostają go
+// dopiero przy weryfikacji wolumenowej, spec 0038), więc brak wiersza musi
+// znaczyć "brak certyfikatów", nie "usuń produkt z wyniku".
+async function resolveProducerCertifications(producerIds: string[]): Promise<Map<string, string[]>> {
+  if (producerIds.length === 0) return new Map();
+  const rows = await db
+    .select({ producerId: producerCapacityProfile.producerId, certifications: producerCapacityProfile.certifications })
+    .from(producerCapacityProfile)
+    .where(inArray(producerCapacityProfile.producerId, producerIds));
+  return new Map(rows.map((row) => [row.producerId, row.certifications]));
+}
+
 interface ProjectRelatedRows {
   variants?: ProjectVariant[];
   documents?: ProjectDocument[];
@@ -410,6 +431,7 @@ function mapRowToProject(
   // "od undefined €".
   const priceOnRequest = Boolean(specs._priceOnRequest) || row.priceMinCents === null;
   const roomLayout = (row.roomLayout as RoomLayoutEntry[] | null) ?? undefined;
+  const faq = (row.faq as ProjectFaqItem[] | null) ?? undefined;
 
   return {
     id: row.id,
@@ -447,6 +469,7 @@ function mapRowToProject(
     variants: related?.variants ?? [],
     roomLayout: roomLayout && roomLayout.length > 0 ? roomLayout : undefined,
     documents: related?.documents ?? [],
+    faq: faq && faq.length > 0 ? faq : undefined,
     installationWarrantyYears: row.installationWarrantyYears ?? undefined,
     serviceScopeDescription: row.serviceScopeDescription ?? undefined,
     transportDimensions: row.transportDimensions ?? undefined,
@@ -592,12 +615,17 @@ export async function getProjects(filters?: GetProjectsFilters): Promise<Project
   }
 
   const projectIds = projects.map((project) => project.id);
-  const [documentPhotos, variantsByProduct] = await Promise.all([
+  const producerIds = [...new Set(projects.map((project) => project.producerId))];
+  const [documentPhotos, variantsByProduct, certificationsByProducer] = await Promise.all([
     resolveProductDocumentPhotos(projectIds),
     resolveProductVariants(projectIds),
+    resolveProducerCertifications(producerIds),
   ]);
   return projects.map((project) =>
-    applyVariants(applyDocumentPhotos(project, documentPhotos.get(project.id)), variantsByProduct.get(project.id)),
+    applyCertifications(
+      applyVariants(applyDocumentPhotos(project, documentPhotos.get(project.id)), variantsByProduct.get(project.id)),
+      certificationsByProducer.get(project.producerId),
+    ),
   );
 }
 
@@ -640,23 +668,27 @@ export async function getProjectById(id: string, locale: Locale = "pl"): Promise
       .where(eq(product.id, id));
 
     if (!row) return null;
-    const [documentPhotos, variantsByProduct, documentsByProduct] = await Promise.all([
+    const [documentPhotos, variantsByProduct, documentsByProduct, certificationsByProducer] = await Promise.all([
       resolveProductDocumentPhotos([id]),
       resolveProductVariants([id], { withDetails: true }),
       resolveProductDocuments([id]),
+      resolveProducerCertifications([row.product.producerId]),
     ]);
-    return applyDocuments(
-      applyVariants(
-        applyDocumentPhotos(
-          mapRowToProject(row.product, row.producerName, {
-            name: row.translationName,
-            description: row.translationDescription,
-          }),
-          documentPhotos.get(id),
+    return applyCertifications(
+      applyDocuments(
+        applyVariants(
+          applyDocumentPhotos(
+            mapRowToProject(row.product, row.producerName, {
+              name: row.translationName,
+              description: row.translationDescription,
+            }),
+            documentPhotos.get(id),
+          ),
+          variantsByProduct.get(id),
         ),
-        variantsByProduct.get(id),
+        documentsByProduct.get(id),
       ),
-      documentsByProduct.get(id),
+      certificationsByProducer.get(row.product.producerId),
     );
   }
 
@@ -667,17 +699,21 @@ export async function getProjectById(id: string, locale: Locale = "pl"): Promise
     .where(eq(product.id, id));
 
   if (!row) return null;
-  const [documentPhotos, variantsByProduct, documentsByProduct] = await Promise.all([
+  const [documentPhotos, variantsByProduct, documentsByProduct, certificationsByProducer] = await Promise.all([
     resolveProductDocumentPhotos([id]),
     resolveProductVariants([id], { withDetails: true }),
     resolveProductDocuments([id]),
+    resolveProducerCertifications([row.product.producerId]),
   ]);
-  return applyDocuments(
-    applyVariants(
-      applyDocumentPhotos(mapRowToProject(row.product, row.producerName), documentPhotos.get(id)),
-      variantsByProduct.get(id),
+  return applyCertifications(
+    applyDocuments(
+      applyVariants(
+        applyDocumentPhotos(mapRowToProject(row.product, row.producerName), documentPhotos.get(id)),
+        variantsByProduct.get(id),
+      ),
+      documentsByProduct.get(id),
     ),
-    documentsByProduct.get(id),
+    certificationsByProducer.get(row.product.producerId),
   );
 }
 

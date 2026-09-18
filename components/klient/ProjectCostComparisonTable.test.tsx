@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { ProjectVariant } from "@/lib/data/types";
@@ -34,6 +34,15 @@ const variants: ProjectVariant[] = [
   },
 ];
 
+// Row/status text now renders twice (mobile cards below lg + the desktop
+// table from lg up, see ProjectCostComparisonTable's `lg:hidden`/`hidden
+// lg:block` split) — scoped to the desktop `<table>` so these assertions
+// keep checking the same grouping/filtering logic without tripping over the
+// mobile duplicate.
+function table() {
+  return within(screen.getByRole("table"));
+}
+
 describe("ProjectCostComparisonTable", () => {
   it("shows a price/scope column per variant (spec 0042 AC-2)", () => {
     render(<ProjectCostComparisonTable variants={variants} />);
@@ -55,10 +64,10 @@ describe("ProjectCostComparisonTable", () => {
 
   it("matches line items across variants by exact label, showing 'not included' where a variant has none", () => {
     render(<ProjectCostComparisonTable variants={variants} />);
-    expect(screen.getAllByText("W cenie")).toHaveLength(2);
-    expect(screen.getByText("Po stronie klienta")).toBeInTheDocument();
-    expect(screen.getByText("Obowiązkowa dopłata")).toBeInTheDocument();
-    expect(screen.getAllByText("Nie dotyczy")).toHaveLength(2);
+    expect(table().getAllByText("W cenie")).toHaveLength(2);
+    expect(table().getByText("Po stronie klienta")).toBeInTheDocument();
+    expect(table().getByText("Obowiązkowa dopłata")).toBeInTheDocument();
+    expect(table().getAllByText("Nie dotyczy")).toHaveLength(2);
   });
 
   it("hides rows identical across every variant when 'show only differences' is checked", async () => {
@@ -66,12 +75,12 @@ describe("ProjectCostComparisonTable", () => {
     render(<ProjectCostComparisonTable variants={variants} />);
 
     // "Transport" is w-cenie in both variants, "Fundament"/"Wykończenie wnętrz" differ.
-    expect(screen.getByText("Transport")).toBeInTheDocument();
+    expect(table().getByText("Transport")).toBeInTheDocument();
     await user.click(screen.getByRole("checkbox", { name: "Pokaż tylko różnice" }));
 
-    expect(screen.queryByText("Transport")).not.toBeInTheDocument();
-    expect(screen.getByText("Fundament")).toBeInTheDocument();
-    expect(screen.getByText("Wykończenie wnętrz")).toBeInTheDocument();
+    expect(table().queryByText("Transport")).not.toBeInTheDocument();
+    expect(table().getByText("Fundament")).toBeInTheDocument();
+    expect(table().getByText("Wykończenie wnętrz")).toBeInTheDocument();
   });
 
   it("ignores the placeholder 'pod klucz' column (empty costLineItems) when deciding what counts as a difference", async () => {
@@ -95,9 +104,9 @@ describe("ProjectCostComparisonTable", () => {
     // "Transport" is identical between the two real variants; the placeholder's
     // always-null cell must not make it look like a difference (regression: it
     // used to make every row "different" and the checkbox effectively a no-op).
-    expect(screen.queryByText("Transport")).not.toBeInTheDocument();
-    expect(screen.getByText("Fundament")).toBeInTheDocument();
-    expect(screen.getByText("Wykończenie wnętrz")).toBeInTheDocument();
+    expect(table().queryByText("Transport")).not.toBeInTheDocument();
+    expect(table().getByText("Fundament")).toBeInTheDocument();
+    expect(table().getByText("Wykończenie wnętrz")).toBeInTheDocument();
   });
 
   it("previews only the first 10 rows and reveals the rest through the expand toggle", async () => {
@@ -115,9 +124,9 @@ describe("ProjectCostComparisonTable", () => {
     ];
     render(<ProjectCostComparisonTable variants={manyLabelVariants} />);
 
-    expect(screen.getByText("Pozycja 1")).toBeInTheDocument();
-    expect(screen.getByText("Pozycja 10")).toBeInTheDocument();
-    expect(screen.queryByText("Pozycja 11")).not.toBeInTheDocument();
+    expect(table().getByText("Pozycja 1")).toBeInTheDocument();
+    expect(table().getByText("Pozycja 10")).toBeInTheDocument();
+    expect(table().queryByText("Pozycja 11")).not.toBeInTheDocument();
 
     const toggle = screen.getByRole("button", { name: /Pokaż więcej \(2\)/ });
     expect(toggle).toHaveAttribute("aria-expanded", "false");
@@ -125,8 +134,8 @@ describe("ProjectCostComparisonTable", () => {
     await user.click(toggle);
 
     expect(toggle).toHaveAttribute("aria-expanded", "true");
-    expect(screen.getByText("Pozycja 11")).toBeInTheDocument();
-    expect(screen.getByText("Pozycja 12")).toBeInTheDocument();
+    expect(table().getByText("Pozycja 11")).toBeInTheDocument();
+    expect(table().getByText("Pozycja 12")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Pokaż mniej/ })).toBe(toggle);
   });
 

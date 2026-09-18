@@ -1,7 +1,7 @@
 # 0008. Pierwszy projekt (producent): kreator wieloetapowy z zapisem stanu
 
 **Date**: 2026-08-14
-**Status**: In Progress
+**Status**: Superseded by [0045](../0045-przebudowa-kreatora-projektow/index.md)
 
 ## Summary
 

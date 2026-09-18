@@ -2,17 +2,21 @@
 
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { Button, Heading, Stack, Text } from "@/components/ui";
 import type { Country, ProjectDraft } from "@/lib/data/types";
+import type { ProducerVariantForEdit } from "@/lib/db/queries";
 import { updateProducerProduct } from "@/lib/producer-product-actions";
-import { WIZARD_STEPS, getWizardSteps, isStepComplete } from "@/lib/producer-project-draft";
+import { WIZARD_STEPS, getCompletionStandardOptions, getWizardSteps, isStepComplete, sanitizeDraftForSave } from "@/lib/producer-project-draft";
 import { ProjectWizardBasicInfoStep } from "./ProjectWizardBasicInfoStep";
+import { ProjectWizardFaqStep } from "./ProjectWizardFaqStep";
 import { ProjectWizardFilesStep } from "./ProjectWizardFilesStep";
-import { ProjectWizardPricingStep } from "./ProjectWizardPricingStep";
 import { ProjectWizardProgress } from "./ProjectWizardProgress";
 import { ProjectWizardSummaryStep } from "./ProjectWizardSummaryStep";
 import { ProjectWizardTechnicalStep } from "./ProjectWizardTechnicalStep";
+import { ProjectWizardVariantsStep } from "./ProjectWizardVariantsStep";
+import type { ProducerFloorPlan } from "./ProducerFloorPlanUploadStep";
 import type { ProducerProductPhoto } from "./ProducerProductPhotosStep";
 
 interface ProductEditWizardProps {
@@ -20,6 +24,8 @@ interface ProductEditWizardProps {
   productId: string;
   initialDraft: ProjectDraft;
   initialPhotos: ProducerProductPhoto[];
+  initialFloorPlans: ProducerFloorPlan[];
+  initialVariants: ProducerVariantForEdit[];
   countries: Country[];
 }
 
@@ -27,28 +33,64 @@ interface ProductEditWizardProps {
 // już wczytane po stronie serwera (strona ownership-checked producenta,
 // getProducerProductForEdit), więc bez stanu "loading"/fetch po stronie
 // przeglądarki jak w dawnym mocku (spec 0016). Osobny komponent od ProjectWizard
-// (dodawanie nowego produktu), świadomy wybór z tamtego builda — reużywa tylko
-// jego siedem kroków (rationale.md 0016).
-export function ProductEditWizard({ locale, productId, initialDraft, initialPhotos, countries }: ProductEditWizardProps) {
+// (dodawanie nowego produktu), świadomy wybór z tamtego builda — reużywa jego
+// kroki (rationale.md 0016).
+//
+// Stan formularza żyje w react-hook-form (spec 0045 AC-14, Build plan zadanie
+// 3), ten sam wzorzec co ProjectWizard.tsx — patrz komentarz tam. Krok
+// "warianty" (Build plan zadanie 5) jest tu wpięty wcześniej niż zadanie 13
+// planowało, na wyraźną prośbę: bez tego producent nie miał jak przetestować
+// kroku na już istniejącym, zapisanym projekcie, tylko na dopiero tworzonym.
+// initialVariants pochodzi z
+// lib/db/queries.ts#getProducerVariantsForEdit (ownership już sprawdzony przez
+// stronę wywołującą) i hydratuje lokalny useForm ProjectWizardVariantsStep.
+export function ProductEditWizard({
+  locale,
+  productId,
+  initialDraft,
+  initialPhotos,
+  initialFloorPlans,
+  initialVariants,
+  countries,
+}: ProductEditWizardProps) {
   const t = useTranslations("ProductEditWizard");
   const tOptions = useTranslations("ProjectOptions");
   const wizardSteps = getWizardSteps(tOptions);
   const router = useRouter();
-  const [draft, setDraft] = useState<ProjectDraft>(initialDraft);
+  const form = useForm<ProjectDraft>({ defaultValues: initialDraft });
+  const values = useWatch({ control: form.control }) as ProjectDraft;
   const [photos, setPhotos] = useState<ProducerProductPhoto[]>(initialPhotos);
+  const [floorPlans, setFloorPlans] = useState<ProducerFloorPlan[]>(initialFloorPlans);
   const [stepIndex, setStepIndex] = useState(0);
   const [maxReachedIndex, setMaxReachedIndex] = useState(WIZARD_STEPS.length - 1);
   const [showValidation, setShowValidation] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  function updateDraft(patch: Partial<ProjectDraft>) {
-    setDraft((prev) => ({ ...prev, ...patch }));
-  }
+  // Rzuty przypisywane do konkretnego wariantu, jeśli produkt już ma warianty
+  // (spec 0045 AC-7): edycja jest jedynym miejscem, gdzie krok "pliki"
+  // (przed krokiem "warianty" w dzisiejszej kolejności) ma już realną listę do
+  // wyboru — patrz komentarz w ProducerFloorPlanUploadStep.
+  const standardOptions = getCompletionStandardOptions(tOptions);
+  const floorPlanVariantOptions = initialVariants.map((variant) => ({
+    id: variant.id,
+    label: standardOptions.find((option) => option.value === variant.completionStandard)?.label ?? variant.completionStandard,
+  }));
 
   function handlePhotosChange(next: ProducerProductPhoto[]) {
     setPhotos(next);
-    updateDraft({ photoFiles: next.map((photo) => ({ name: photo.filename, sizeBytes: 0 })) });
+    form.setValue(
+      "photoFiles",
+      next.map((photo) => ({ name: photo.filename, sizeBytes: 0 })),
+    );
+  }
+
+  function handleFloorPlansChange(next: ProducerFloorPlan[]) {
+    setFloorPlans(next);
+    form.setValue(
+      "floorPlanFiles",
+      next.map((plan) => ({ name: plan.filename, sizeBytes: 0 })),
+    );
   }
 
   function goToStep(index: number) {
@@ -58,13 +100,14 @@ export function ProductEditWizard({ locale, productId, initialDraft, initialPhot
 
   async function handleNext() {
     const currentStepId = WIZARD_STEPS[stepIndex].id;
-    if (!isStepComplete(currentStepId, draft)) {
+    const currentDraft = form.getValues();
+    if (!isStepComplete(currentStepId, currentDraft)) {
       setShowValidation(true);
       return;
     }
     setSaveError(null);
     setIsSaving(true);
-    const result = await updateProducerProduct(productId, draft, { publish: false });
+    const result = await updateProducerProduct(productId, sanitizeDraftForSave(currentDraft), { publish: false });
     setIsSaving(false);
     if (!result.ok) {
       setSaveError(result.error ?? t("saveError"));
@@ -88,7 +131,7 @@ export function ProductEditWizard({ locale, productId, initialDraft, initialPhot
   async function handleSave() {
     setSaveError(null);
     setIsSaving(true);
-    const result = await updateProducerProduct(productId, draft, { publish: true });
+    const result = await updateProducerProduct(productId, sanitizeDraftForSave(form.getValues()), { publish: true });
     setIsSaving(false);
     if (!result.ok) {
       setSaveError(result.error ?? t("saveError"));
@@ -101,59 +144,55 @@ export function ProductEditWizard({ locale, productId, initialDraft, initialPhot
   const isSummaryStep = currentStep.id === "podsumowanie";
 
   return (
-    <Stack gap={5}>
-      <Heading level="h1">{t("heading")}</Heading>
-      <ProjectWizardProgress
-        steps={wizardSteps}
-        currentIndex={stepIndex}
-        maxReachedIndex={maxReachedIndex}
-        onStepClick={handleStepClick}
-      />
-      <Stack gap={4}>
-        {currentStep.id === "podstawowe" && (
-          <ProjectWizardBasicInfoStep
-            draft={draft}
-            countries={countries}
-            showValidation={showValidation}
-            familyLocked
-            onChange={updateDraft}
-          />
-        )}
-        {currentStep.id === "techniczne" && (
-          <ProjectWizardTechnicalStep draft={draft} showValidation={showValidation} onChange={updateDraft} />
-        )}
-        {currentStep.id === "pliki" && (
-          <ProjectWizardFilesStep
-            draft={draft}
-            showValidation={showValidation}
-            productId={productId}
-            photos={photos}
-            onChange={updateDraft}
-            onPhotosChange={handlePhotosChange}
-          />
-        )}
-        {currentStep.id === "cena" && (
-          <ProjectWizardPricingStep draft={draft} showValidation={showValidation} onChange={updateDraft} />
-        )}
-        {isSummaryStep && <ProjectWizardSummaryStep draft={draft} countries={countries} />}
+    <FormProvider {...form}>
+      <Stack gap={5}>
+        <Heading level="h1">{t("heading")}</Heading>
+        <ProjectWizardProgress
+          steps={wizardSteps}
+          currentIndex={stepIndex}
+          maxReachedIndex={maxReachedIndex}
+          onStepClick={handleStepClick}
+        />
+        <Stack gap={4}>
+          {currentStep.id === "podstawowe" && (
+            <ProjectWizardBasicInfoStep countries={countries} showValidation={showValidation} familyLocked />
+          )}
+          {currentStep.id === "techniczne" && <ProjectWizardTechnicalStep showValidation={showValidation} />}
+          {currentStep.id === "pliki" && (
+            <ProjectWizardFilesStep
+              showValidation={showValidation}
+              productId={productId}
+              photos={photos}
+              onPhotosChange={handlePhotosChange}
+              floorPlans={floorPlans}
+              onFloorPlansChange={handleFloorPlansChange}
+              floorPlanVariantOptions={floorPlanVariantOptions}
+            />
+          )}
+          {currentStep.id === "warianty" && (
+            <ProjectWizardVariantsStep productId={productId} initialVariants={initialVariants} />
+          )}
+          {currentStep.id === "faq" && <ProjectWizardFaqStep />}
+          {isSummaryStep && <ProjectWizardSummaryStep draft={values} countries={countries} />}
+        </Stack>
+        {saveError && <Text className="text-status-blocked">{saveError}</Text>}
+        <Stack direction="row" gap={2}>
+          {stepIndex > 0 && (
+            <Button type="button" variant="secondary" onClick={handleBack} disabled={isSaving} className="w-fit">
+              {t("back")}
+            </Button>
+          )}
+          {isSummaryStep ? (
+            <Button type="button" onClick={handleSave} disabled={isSaving} className="w-fit">
+              {t("save")}
+            </Button>
+          ) : (
+            <Button type="button" onClick={handleNext} disabled={isSaving} className="w-fit">
+              {t("next")}
+            </Button>
+          )}
+        </Stack>
       </Stack>
-      {saveError && <Text className="text-status-blocked">{saveError}</Text>}
-      <Stack direction="row" gap={2}>
-        {stepIndex > 0 && (
-          <Button type="button" variant="secondary" onClick={handleBack} disabled={isSaving} className="w-fit">
-            {t("back")}
-          </Button>
-        )}
-        {isSummaryStep ? (
-          <Button type="button" onClick={handleSave} disabled={isSaving} className="w-fit">
-            {t("save")}
-          </Button>
-        ) : (
-          <Button type="button" onClick={handleNext} disabled={isSaving} className="w-fit">
-            {t("next")}
-          </Button>
-        )}
-      </Stack>
-    </Stack>
+    </FormProvider>
   );
 }

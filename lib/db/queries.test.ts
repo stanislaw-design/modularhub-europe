@@ -6,6 +6,7 @@ import {
   getInquiryDetailForClient,
   getInquiryDetailForProducer,
   getOffersByInquiryIdForAdmin,
+  getProducerVariantsForEdit,
   getProductFamilyCounts,
   getProductForAdmin,
   getProductPhotosForAdmin,
@@ -13,7 +14,22 @@ import {
   getUnreadDecisionInquiryIds,
   getUnreadOfferInquiryIds,
 } from "./queries";
-import { auditLog, client, document, inquiry, inquiryItem, offer, offerItem, producer, product, users } from "./schema";
+import {
+  auditLog,
+  client,
+  costLineItem,
+  document,
+  inquiry,
+  inquiryItem,
+  offer,
+  offerItem,
+  producer,
+  product,
+  productTimelineStage,
+  productVariant,
+  productVariantTranslation,
+  users,
+} from "./schema";
 
 // Confirms AC-5 (spec 0018): a query scoped by producer_id never returns
 // another producer's rows. Hits the real dev Neon database (vitest.setup.ts
@@ -460,5 +476,118 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: offer/inquiry detail
       const map = await getOffersByInquiryIdForAdmin();
       expect(map.get(crypto.randomUUID())).toBeUndefined();
     });
+  });
+});
+
+// Zasila krok "Warianty i cennik" w ProductEditWizard (spec 0045 Build plan
+// zadanie 5/13): potwierdza, że odczyt składa cost_line_item, product_timeline_stage
+// i product_variant_translation przy właściwym wariancie, a nie miesza ich
+// między dwoma wariantami tego samego produktu.
+describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: getProducerVariantsForEdit", () => {
+  const userId = crypto.randomUUID();
+  const producerId = crypto.randomUUID();
+  const productId = crypto.randomUUID();
+  const emptyProductId = crypto.randomUUID();
+  const defaultVariantId = crypto.randomUUID();
+  const otherVariantId = crypto.randomUUID();
+
+  beforeAll(async () => {
+    await db.insert(users).values({
+      id: userId,
+      email: `variant-edit-${userId}@example.test`,
+      phone: "+48000000000",
+      role: "producer",
+    });
+    await db.insert(producer).values({
+      id: producerId,
+      userId,
+      nip: `VED${producerId.slice(0, 9)}`,
+      name: "Variant Edit Query Test Producer",
+      countryCode: "PL",
+      technology: "szkielet-drewniany",
+    });
+    await db.insert(product).values([
+      { id: productId, producerId, family: "dom", name: "Variant Edit Query Test Product" },
+      { id: emptyProductId, producerId, family: "dom", name: "Variant Edit Query Test Product (no variants)" },
+    ]);
+    await db.insert(productVariant).values([
+      {
+        id: defaultVariantId,
+        productId,
+        completionStandard: "deweloperski",
+        isDefault: true,
+        priceMinCents: 10_000_000,
+        priceMaxCents: 12_000_000,
+        scopeSummary: "Zakres podstawowy",
+        sortOrder: 0,
+      },
+      {
+        id: otherVariantId,
+        productId,
+        completionStandard: "pod-klucz",
+        isDefault: false,
+        priceMinCents: 15_000_000,
+        priceMaxCents: 17_000_000,
+        sortOrder: 1,
+      },
+    ]);
+    await db.insert(costLineItem).values([
+      { productVariantId: defaultVariantId, label: "Fundament", status: "w-cenie" },
+      { productVariantId: otherVariantId, label: "Instalacja fotowoltaiczna", status: "opcja" },
+    ]);
+    await db.insert(productTimelineStage).values([
+      { productVariantId: defaultVariantId, stageKey: "formalnosci", durationMinDays: 2, durationMaxDays: 4 },
+    ]);
+    await db.insert(productVariantTranslation).values([
+      { productVariantId: defaultVariantId, locale: "en", scopeSummary: "Base scope" },
+      { productVariantId: defaultVariantId, locale: "nl", scopeSummary: "Basisomvang" },
+    ]);
+  });
+
+  afterAll(async () => {
+    await db.delete(costLineItem).where(inArray(costLineItem.productVariantId, [defaultVariantId, otherVariantId]));
+    await db.delete(productTimelineStage).where(inArray(productTimelineStage.productVariantId, [defaultVariantId, otherVariantId]));
+    await db.delete(productVariantTranslation).where(inArray(productVariantTranslation.productVariantId, [defaultVariantId, otherVariantId]));
+    await db.delete(productVariant).where(inArray(productVariant.id, [defaultVariantId, otherVariantId]));
+    await db.delete(product).where(inArray(product.id, [productId, emptyProductId]));
+    await db.delete(producer).where(eq(producer.id, producerId));
+    await db.delete(users).where(eq(users.id, userId));
+    await db.delete(auditLog).where(inArray(auditLog.recordId, [userId, producerId]));
+  });
+
+  it("returns variants ordered by sortOrder, each with its own cost items, timeline stages, and translations", async () => {
+    const results = await getProducerVariantsForEdit(productId);
+
+    expect(results.map((row) => row.id)).toEqual([defaultVariantId, otherVariantId]);
+
+    const defaultVariant = results[0];
+    expect(defaultVariant).toMatchObject({
+      completionStandard: "deweloperski",
+      isDefault: true,
+      priceMinCents: 10_000_000,
+      priceMaxCents: 12_000_000,
+      scopeSummary: "Zakres podstawowy",
+      scopeSummaryEn: "Base scope",
+      scopeSummaryNl: "Basisomvang",
+    });
+    expect(defaultVariant.costLineItems).toEqual([
+      { id: expect.any(String), label: "Fundament", status: "w-cenie", responsibleParty: null },
+    ]);
+    expect(defaultVariant.timelineStages).toEqual([
+      { stageKey: "formalnosci", durationMinDays: 2, durationMaxDays: 4, startsFromLabel: null, responsibleParty: null },
+    ]);
+
+    const otherVariant = results[1];
+    expect(otherVariant.scopeSummaryEn).toBeNull();
+    expect(otherVariant.scopeSummaryNl).toBeNull();
+    expect(otherVariant.costLineItems).toEqual([
+      { id: expect.any(String), label: "Instalacja fotowoltaiczna", status: "opcja", responsibleParty: null },
+    ]);
+    expect(otherVariant.timelineStages).toEqual([]);
+  });
+
+  it("returns an empty array for a product with no variants", async () => {
+    const results = await getProducerVariantsForEdit(emptyProductId);
+    expect(results).toEqual([]);
   });
 });

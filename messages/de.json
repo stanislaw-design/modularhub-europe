@@ -1,7 +1,6 @@
 {
   "SiteHeader": {
     "nav": {
-      "homes": "Häuser",
       "projects": "Projekte",
       "howItWorks": "So funktioniert es",
       "verifiedManufacturers": "Verifizierte Hersteller",
@@ -10,6 +9,7 @@
     "favorites": "Favoriten",
     "adminPanel": "Administratorbereich",
     "myProfile": "Mein Profil",
+    "producerPanel": "Herstellerbereich",
     "signIn": "Anmelden",
     "start": "Konto erstellen",
     "openMenu": "Menü öffnen",
@@ -20,7 +20,7 @@
     "changeLanguage": "Sprache ändern"
   },
   "ProducerHeader": {
-    "imClient": "Ich bin Kunde",
+    "home": "Startseite",
     "account": "Konto",
     "signIn": "Anmelden",
     "signOut": "Abmelden"
@@ -226,7 +226,8 @@
       "podstawowe": "Grundinformationen",
       "techniczne": "Technische Daten",
       "pliki": "Dateien",
-      "cena": "Preis und Verkauf",
+      "warianty": "Varianten und Preise",
+      "faq": "FAQ",
       "podsumowanie": "Zusammenfassung"
     },
     "family": {
@@ -248,6 +249,20 @@
       "gastronomiczne": "Gastronomie",
       "uslugowe": "Dienstleistung",
       "mieszkalne": "Wohnen"
+    },
+    "costLineItemStatus": {
+      "w-cenie": "Im Preis enthalten",
+      "obowiazkowa-doplata": "Verpflichtender Aufpreis",
+      "opcja": "Option",
+      "po-stronie-klienta": "Sache des Kunden",
+      "do-wyceny": "Auf Anfrage"
+    },
+    "timelineStageKey": {
+      "formalnosci": "Formalitäten",
+      "produkcja": "Produktion",
+      "transport": "Transport",
+      "montaz": "Montage",
+      "wykonczenie": "Fertigstellung"
     },
     "completionStandard": {
       "surowy-zamkniety": "Rohbau geschlossen",
@@ -341,36 +356,114 @@
       },
       "kontenery-modulowe": {
         "gastronomiczne": {
-          "dimensions": { "label": "Abmessungen", "hint": "Breite × Tiefe × Höhe" },
-          "structureMaterial": { "label": "Konstruktionsmaterial", "hint": "Material des Rahmens/der Containerkonstruktion" },
-          "insulationType": { "label": "Dämmungstyp", "hint": "Art der Wärmedämmung" },
-          "foundationType": { "label": "Fundamenttyp", "hint": "Gründungsart" },
-          "kitchenEquipmentType": { "label": "Küchenausstattung", "hint": "Art der installierten Küchenausstattung" },
-          "extractionVentilation": { "label": "Abluftanlage", "hint": "Art der Abluft-/Lüftungsanlage" },
-          "electricalPower": { "label": "Anschlussleistung", "hint": "Erforderliche Anschlussleistung" },
-          "waterSupplyType": { "label": "Wasserversorgung", "hint": "Art der Wasserzufuhr" },
-          "wasteWaterHandling": { "label": "Abwasserentsorgung", "hint": "Art der Abwasserentsorgung" }
+          "dimensions": {
+            "label": "Abmessungen",
+            "hint": "Breite × Tiefe × Höhe"
+          },
+          "structureMaterial": {
+            "label": "Konstruktionsmaterial",
+            "hint": "Material des Rahmens/der Containerkonstruktion"
+          },
+          "insulationType": {
+            "label": "Dämmungstyp",
+            "hint": "Art der Wärmedämmung"
+          },
+          "foundationType": {
+            "label": "Fundamenttyp",
+            "hint": "Gründungsart"
+          },
+          "kitchenEquipmentType": {
+            "label": "Küchenausstattung",
+            "hint": "Art der installierten Küchenausstattung"
+          },
+          "extractionVentilation": {
+            "label": "Abluftanlage",
+            "hint": "Art der Abluft-/Lüftungsanlage"
+          },
+          "electricalPower": {
+            "label": "Anschlussleistung",
+            "hint": "Erforderliche Anschlussleistung"
+          },
+          "waterSupplyType": {
+            "label": "Wasserversorgung",
+            "hint": "Art der Wasserzufuhr"
+          },
+          "wasteWaterHandling": {
+            "label": "Abwasserentsorgung",
+            "hint": "Art der Abwasserentsorgung"
+          }
         },
         "uslugowe": {
-          "dimensions": { "label": "Abmessungen", "hint": "Breite × Tiefe × Höhe" },
-          "structureMaterial": { "label": "Konstruktionsmaterial", "hint": "Material des Rahmens/der Containerkonstruktion" },
-          "insulationType": { "label": "Dämmungstyp", "hint": "Art der Wärmedämmung" },
-          "foundationType": { "label": "Fundamenttyp", "hint": "Gründungsart" },
-          "intendedUse": { "label": "Verwendungszweck", "hint": "Geplante Nutzung des Moduls, z. B. Büro, Geschäft" },
-          "electricalInstallation": { "label": "Elektroinstallation", "hint": "Umfang der Elektroinstallation" },
-          "spaceHeatingType": { "label": "Heizungsart", "hint": "Art der Raumheizung" }
+          "dimensions": {
+            "label": "Abmessungen",
+            "hint": "Breite × Tiefe × Höhe"
+          },
+          "structureMaterial": {
+            "label": "Konstruktionsmaterial",
+            "hint": "Material des Rahmens/der Containerkonstruktion"
+          },
+          "insulationType": {
+            "label": "Dämmungstyp",
+            "hint": "Art der Wärmedämmung"
+          },
+          "foundationType": {
+            "label": "Fundamenttyp",
+            "hint": "Gründungsart"
+          },
+          "intendedUse": {
+            "label": "Verwendungszweck",
+            "hint": "Geplante Nutzung des Moduls, z. B. Büro, Geschäft"
+          },
+          "electricalInstallation": {
+            "label": "Elektroinstallation",
+            "hint": "Umfang der Elektroinstallation"
+          },
+          "spaceHeatingType": {
+            "label": "Heizungsart",
+            "hint": "Art der Raumheizung"
+          }
         },
         "mieszkalne": {
-          "dimensions": { "label": "Abmessungen", "hint": "Breite × Tiefe × Höhe" },
-          "structureMaterial": { "label": "Konstruktionsmaterial", "hint": "Material des Rahmens/der Containerkonstruktion" },
-          "insulationType": { "label": "Dämmungstyp", "hint": "Art der Wärmedämmung" },
-          "foundationType": { "label": "Fundamenttyp", "hint": "Gründungsart" },
-          "sleepingCapacity": { "label": "Anzahl der Schlafplätze", "hint": "Maximale Personenzahl" },
-          "bathroomIncluded": { "label": "Badezimmer", "hint": "Ob das Modul ein Badezimmer enthält" },
-          "spaceHeatingType": { "label": "Heizungsart", "hint": "Art der Raumheizung" },
-          "waterSupplyType": { "label": "Wasserversorgung", "hint": "Art der Wasserzufuhr" },
-          "wasteWaterHandling": { "label": "Abwasserentsorgung", "hint": "Art der Abwasserentsorgung" },
-          "electricalInstallation": { "label": "Elektroinstallation", "hint": "Umfang der Elektroinstallation" }
+          "dimensions": {
+            "label": "Abmessungen",
+            "hint": "Breite × Tiefe × Höhe"
+          },
+          "structureMaterial": {
+            "label": "Konstruktionsmaterial",
+            "hint": "Material des Rahmens/der Containerkonstruktion"
+          },
+          "insulationType": {
+            "label": "Dämmungstyp",
+            "hint": "Art der Wärmedämmung"
+          },
+          "foundationType": {
+            "label": "Fundamenttyp",
+            "hint": "Gründungsart"
+          },
+          "sleepingCapacity": {
+            "label": "Anzahl der Schlafplätze",
+            "hint": "Maximale Personenzahl"
+          },
+          "bathroomIncluded": {
+            "label": "Badezimmer",
+            "hint": "Ob das Modul ein Badezimmer enthält"
+          },
+          "spaceHeatingType": {
+            "label": "Heizungsart",
+            "hint": "Art der Raumheizung"
+          },
+          "waterSupplyType": {
+            "label": "Wasserversorgung",
+            "hint": "Art der Wasserzufuhr"
+          },
+          "wasteWaterHandling": {
+            "label": "Abwasserentsorgung",
+            "hint": "Art der Abwasserentsorgung"
+          },
+          "electricalInstallation": {
+            "label": "Elektroinstallation",
+            "hint": "Umfang der Elektroinstallation"
+          }
         }
       }
     }
@@ -418,35 +511,112 @@
     "nameEnLabel": "Name (Englisch)",
     "nameNlLabel": "Name (Niederländisch)",
     "descriptionEnLabel": "Beschreibung (Englisch)",
-    "descriptionNlLabel": "Beschreibung (Niederländisch)"
+    "descriptionNlLabel": "Beschreibung (Niederländisch)",
+    "roomLayoutHeading": "Raumaufteilung",
+    "roomLayoutHint": "Fügen Sie Räume mit Fläche und Funktion hinzu — dieser Abschnitt erscheint auf der Projektseite des Kunden.",
+    "roomLayoutEmptyHint": "Es wurde noch kein Raum hinzugefügt.",
+    "roomNameLabel": "Raumname",
+    "roomAreaLabel": "Fläche (m²)",
+    "roomFunctionLabel": "Funktion",
+    "roomMezzanineLabel": "Empore",
+    "moveUpLabel": "Nach oben verschieben",
+    "moveDownLabel": "Nach unten verschieben",
+    "removeRoomLabel": "Raum entfernen",
+    "roomTranslationsHeading": "Übersetzungen der Raumnamen (optional)",
+    "roomNameTranslationLabel": "Raumname {index}",
+    "addRoomButton": "Raum hinzufügen"
   },
   "ProjectWizardTechnicalStep": {
     "heading": "Technische Daten",
     "selectRequiredError": "Wählen Sie {label} aus.",
-    "textRequiredError": "Geben Sie {label} an."
+    "textRequiredError": "Geben Sie {label} an.",
+    "structuralWarrantyLabel": "Konstruktionsgarantie (Jahre)",
+    "structuralWarrantyRequiredError": "Geben Sie die Konstruktionsgarantie in Jahren an.",
+    "logisticsHeading": "Logistik und Konformität",
+    "logisticsHint": "Transport- und Serviceangaben sowie eine Erklärung zur vereinfachten Genehmigung — ohne automatische Regel dahinter.",
+    "installationWarrantyLabel": "Montagegarantie (Jahre)",
+    "minPlotWidthLabel": "Mindestgrundstücksbreite (m)",
+    "serviceScopeLabel": "Beschreibung des Serviceumfangs",
+    "transportDimensionsLabel": "Transportabmessungen",
+    "craneRequirementsLabel": "Krananforderungen",
+    "simplifiedPermitLabel": "Qualifiziert sich für eine vereinfachte Genehmigung",
+    "simplifiedPermitUnset": "Noch nicht festgelegt",
+    "simplifiedPermitYes": "Ja",
+    "simplifiedPermitNo": "Nein"
   },
-  "ProjectWizardPricingStep": {
-    "heading": "Preis und Verkauf",
-    "priceLabel": "Preis des Hauses im Basisstandard (EUR)",
-    "priceRequiredError": "Geben Sie den Preis des Hauses an.",
+  "ProjectWizardVariantsStep": {
+    "heading": "Varianten und Preise",
+    "intro": "Fügen Sie 1 bis 3 Ausbauvarianten hinzu, jede mit eigenem Preis, Kostenpositionen und Ausführungszeitplan.",
+    "emptyHint": "Es wurde noch keine Variante hinzugefügt.",
+    "genericError": "Die Änderungen konnten nicht gespeichert werden. Bitte versuchen Sie es erneut.",
+    "addVariantHeading": "Variante hinzufügen",
     "standardLabel": "Ausbaustandard",
-    "standardRequiredError": "Wählen Sie einen Ausbaustandard aus.",
-    "leadTimeLabel": "Produktionszeit (Wochen)",
-    "leadTimeFromAriaLabel": "Produktionszeit, von (Wochen)",
-    "leadTimeToAriaLabel": "Produktionszeit, bis (Wochen)",
-    "leadTimeRequiredError": "Geben Sie eine Produktionszeit von und bis an, sodass der Von-Wert den Bis-Wert nicht überschreitet.",
-    "assemblyTimeLabel": "Montagezeit vor Ort (Tage)",
-    "assemblyTimeFromAriaLabel": "Montagezeit, von (Tage)",
-    "assemblyTimeToAriaLabel": "Montagezeit, bis (Tage)",
-    "assemblyTimeRequiredError": "Geben Sie eine Montagezeit von und bis an, sodass der Von-Wert den Bis-Wert nicht überschreitet.",
-    "warrantyLabel": "Konstruktionsgarantie (Jahre)",
-    "warrantyRequiredError": "Geben Sie die Konstruktionsgarantie in Jahren an."
+    "addVariantButton": "Variante hinzufügen",
+    "cloneSourceLabel": "Klonen von Variante",
+    "cloneStandardLabel": "Neuer Standard",
+    "cloneVariantButton": "Klonen",
+    "defaultBadge": "Standard",
+    "moveUpLabel": "Nach oben verschieben",
+    "moveDownLabel": "Nach unten verschieben",
+    "deleteVariantLabel": "Variante löschen",
+    "setDefaultLabel": "Als Standard festlegen",
+    "priceMinLabel": "Mindestpreis (EUR)",
+    "priceMaxLabel": "Höchstpreis (EUR)",
+    "scopeSummaryLabel": "Leistungsbeschreibung",
+    "translationsHeading": "Übersetzungen der Leistungsbeschreibung (optional)",
+    "translationTabEn": "EN",
+    "translationTabNl": "NL",
+    "scopeSummaryEnLabel": "Leistungsbeschreibung (EN)",
+    "scopeSummaryNlLabel": "Leistungsbeschreibung (NL)",
+    "costLineItemsHeading": "Kostenpositionen",
+    "costLineItemLabelLabel": "Position",
+    "costLineItemStatusLabel": "Status",
+    "costLineItemResponsiblePartyLabel": "Verantwortlich",
+    "removeCostLineItemLabel": "Kostenposition entfernen",
+    "addCostLineItemButton": "Kostenposition hinzufügen",
+    "timelineHeading": "Ausführungszeitplan",
+    "stageDurationMinLabel": "Tage von",
+    "stageDurationMaxLabel": "Tage bis",
+    "stageResponsiblePartyLabel": "Verantwortlich",
+    "saveVariantButton": "Variante speichern",
+    "savedHint": "Gespeichert."
+  },
+  "ProjectWizardFaqStep": {
+    "heading": "FAQ",
+    "intro": "Fügen Sie die Fragen hinzu, die Kunden zu diesem Projekt am häufigsten stellen.",
+    "emptyHint": "Es wurde noch keine Frage hinzugefügt.",
+    "entryLabel": "Frage {index}",
+    "moveUpLabel": "Nach oben verschieben",
+    "moveDownLabel": "Nach unten verschieben",
+    "removeLabel": "Frage entfernen",
+    "questionLabel": "Frage",
+    "answerLabel": "Antwort",
+    "translationsHeading": "Übersetzungen (optional)",
+    "translationTabEn": "EN",
+    "translationTabNl": "NL",
+    "questionEnLabel": "Frage (EN)",
+    "answerEnLabel": "Antwort (EN)",
+    "questionNlLabel": "Frage (NL)",
+    "answerNlLabel": "Antwort (NL)",
+    "addButton": "Frage hinzufügen"
   },
   "ProjectWizardFilesStep": {
     "heading": "Dateien",
     "floorPlanLabel": "Grundrisse",
     "floorPlanRequiredError": "Fügen Sie mindestens einen Grundriss hinzu.",
     "photosUnavailable": "Speichern Sie zuerst die Grundinformationen des Produkts, um Fotos hinzuzufügen."
+  },
+  "ProducerFloorPlanUploadStep": {
+    "label": "Grundrisse",
+    "variantLabel": "Gilt für Variante",
+    "allVariants": "Alle Varianten",
+    "chooseFiles": "Dateien auswählen",
+    "hint": "JPEG, PNG oder WebP, max. 10 MB.",
+    "uploadError": "Der Grundriss konnte nicht hochgeladen werden. Bitte versuchen Sie es erneut.",
+    "deleteError": "Der Grundriss konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.",
+    "requiredError": "Fügen Sie mindestens einen Grundriss hinzu.",
+    "noFloorPlans": "Es wurde noch kein Grundriss hochgeladen.",
+    "removeFloorPlan": "Grundriss {name} entfernen"
   },
   "ProjectWizardSummaryStep": {
     "heading": "Zusammenfassung",
@@ -461,16 +631,18 @@
     "rowFamily": "Produktfamilie",
     "rowSubcategory": "Unterkategorie",
     "groupTechnical": "Technische Daten",
-    "groupPricing": "Preis und Verkauf",
-    "rowPrice": "Preis des Hauses",
-    "rowPriceValue": "{price} EUR",
-    "rowStandard": "Ausbaustandard",
-    "rowLeadTime": "Produktionszeit",
-    "rowLeadTimeValue": "{min}–{max} Wo.",
-    "rowAssemblyTime": "Montagezeit",
-    "rowAssemblyTimeValue": "{min}–{max} Tage",
+    "groupVariants": "Varianten und Preise",
+    "rowVariantCount": "Anzahl der Varianten",
+    "rowDefaultPrice": "Preis der Standardvariante",
+    "rowDefaultPriceValue": "{price} EUR",
+    "groupLogistics": "Logistik und Konformität",
     "rowWarranty": "Konstruktionsgarantie",
     "rowWarrantyValue": "{years} Jahre",
+    "rowInstallationWarranty": "Montagegarantie",
+    "rowSimplifiedPermit": "Vereinfachte Genehmigung",
+    "groupContent": "Inhalt der Projektseite",
+    "rowRoomCount": "Anzahl der Räume",
+    "rowFaqCount": "Anzahl der FAQ-Einträge",
     "groupFiles": "Dateien",
     "floorPlanCount": "Grundrisse ({count})",
     "photoCount": "Fotos ({count})",
@@ -583,7 +755,7 @@
     },
     "simplifiedPermitEligible": "Berechtigt für das vereinfachte Genehmigungsverfahren",
     "simplifiedPermitNotEligible": "Nicht berechtigt für das vereinfachte Genehmigungsverfahren",
-    "producerHeading": "Hersteller",
+    "producerHeading": "Referenzen und Hersteller",
     "bulkInquiryHeading": "Benötigen Sie eine größere Menge?",
     "bulkInquiryBody": "Dieser Hersteller ist volumenverifiziert. Fragen Sie nach diesem Modell in größerer Stückzahl.",
     "addToShortlist": "Zur Shortlist hinzufügen",
@@ -649,9 +821,15 @@
     "notIncluded": "Nicht zutreffend",
     "noCostLineItems": "Kostenpositionen: vom Hersteller noch zu ergänzen.",
     "toBeCompleted": "Noch zu ergänzen",
+    "legendMissing": "Noch zu ergänzen / nicht zutreffend",
     "completionStandard": {
       "surowy-zamkniety": "Rohbau geschlossen",
       "deweloperski": "Bauträgerstandard",
+      "pod-klucz": "Schlüsselfertig"
+    },
+    "completionStandardShort": {
+      "surowy-zamkniety": "Rohbau",
+      "deweloperski": "Bauträger",
       "pod-klucz": "Schlüsselfertig"
     },
     "status": {
@@ -747,15 +925,37 @@
     "responsibleParty": "Verantwortlich: {party}",
     "toBeCompleted": "Noch zu ergänzen"
   },
+  "ProjectDocumentsAndFaq": {
+    "heading": "Dokumente und Fragen",
+    "documentsHeading": "Dokumente",
+    "documentsPlaceholder": "Datenblätter, Garantien und andere formelle Dokumente zu diesem Haus wurden vom Hersteller noch nicht bereitgestellt.",
+    "questionsHeading": "Fragen und Antworten",
+    "questionsPlaceholder": "Der Hersteller hat noch keine Antworten auf häufig gestellte Fragen zu diesem Modell hinzugefügt.",
+    "toBeCompleted": "Noch zu ergänzen"
+  },
   "ProjectGalleryTabs": {
     "tablistLabel": "Projektfotos",
     "tabWizualizacje": "Visualisierungen",
     "tabRzut": "Grundriss",
-    "tabRealizacje": "Referenzprojekte",
     "floorPlanAlt": "Grundriss {name}, Ansicht {index}",
-    "realizationAlt": "Foto vom Referenzprojekt {name}, {index}",
-    "realizacjePlaceholder": "Fotos vom Referenzprojekt, vom Hersteller noch zu ergänzen",
     "rzutPlaceholder": "Grundriss vom Hersteller noch zu ergänzen"
+  },
+  "ProducerRealizationsSection": {
+    "verified": "Verifiziert von ModularHub",
+    "completedProjects": "{count} realisierte Projekte",
+    "modelsInOffer": "{count} Modelle im Angebot",
+    "showroomVisitAvailable": "Besichtigung vor Ort möglich",
+    "showroomVisitUnavailable": "Keine Besichtigung vor Ort möglich",
+    "showroomVisitUnknown": "Besichtigung vor Ort noch mit dem Hersteller zu klären",
+    "realizationsHeading": "Referenzobjekte dieses Projekts",
+    "realizationAlt": "Foto vom Referenzprojekt {name}, {index}",
+    "realizationsPlaceholder": "Echte Fotos realisierter Häuser dieses Projekts, vom Hersteller noch zu ergänzen",
+    "country": {
+      "PL": "Polen",
+      "DE": "Deutschland",
+      "NL": "Niederlande"
+    },
+    "countryOfProduction": "Produktionsland: {country}"
   },
   "ProjectTechnicalSpecs": {
     "heading": "Technologie und Konstruktion",
@@ -1169,13 +1369,6 @@
     "error": "Geben Sie eine gültige NIP-Nummer an (10 Ziffern).",
     "submitButton": "Produkte ansehen"
   },
-  "ProducerPanelTabs": {
-    "navAriaLabel": "Herstellerbereich",
-    "konto": "Konto",
-    "produkty": "Produkte",
-    "zapytania": "Anfragen",
-    "unreadBadgeLabel": "Kunde hat eine Entscheidung getroffen"
-  },
   "ProducerPanelPage": {
     "heading": "Konto",
     "noProfile": "Für dieses Konto wurden keine Unternehmensdaten gefunden.",
@@ -1376,5 +1569,17 @@
     "sentHeading": "Anfrage gesendet",
     "sentBody": "Der Hersteller hat Ihre Anfrage erhalten und antwortet per E-Mail mit einem Angebot.",
     "close": "Schließen"
+  },
+  "ProducerPanelSidebar": {
+    "navAriaLabel": "Herstellerbereich",
+    "konto": "Konto",
+    "produkty": "Produkte",
+    "zapytania": "Anfragen",
+    "unreadBadgeLabel": "Kunde hat eine Entscheidung getroffen",
+    "home": "Startseite",
+    "signOut": "Abmelden",
+    "openMenu": "Menü öffnen",
+    "closeMenu": "Menü schließen",
+    "menu": "Menü"
   }
 }

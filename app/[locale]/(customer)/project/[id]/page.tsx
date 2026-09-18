@@ -6,9 +6,10 @@ import { auth } from "@/auth";
 import { Button, Card, DataText, Heading, StatusPill, Text } from "@/components/ui";
 import { BulkProductInquiryModal } from "@/components/klient/BulkProductInquiryModal";
 import { FavoriteButton } from "@/components/klient/FavoriteButton";
-import { ProducerCard } from "@/components/klient/ProducerCard";
+import { ProducerRealizationsSection } from "@/components/klient/ProducerRealizationsSection";
 import { ProjectCertifications } from "@/components/klient/ProjectCertifications";
 import { ProjectCostComparisonTable } from "@/components/klient/ProjectCostComparisonTable";
+import { ProjectDocumentsAndFaq } from "@/components/klient/ProjectDocumentsAndFaq";
 import { ProjectGalleryTabs, type GalleryTabKey } from "@/components/klient/ProjectGalleryTabs";
 import { GalleryLightboxProvider } from "@/components/klient/ProjectGalleryLightbox";
 import { ProjectLogistics } from "@/components/klient/ProjectLogistics";
@@ -167,8 +168,7 @@ export default async function ProjektPage({
       ? displayVariants.find((variant) => variant.completionStandard === defaultRealVariant.completionStandard)
       : displayVariants[0]);
   const zakladkaParam = firstParam(rawSearchParams.zakladka);
-  const activeGalleryTab: GalleryTabKey =
-    zakladkaParam === "rzut" || zakladkaParam === "realizacje" ? zakladkaParam : "wizualizacje";
+  const activeGalleryTab: GalleryTabKey = zakladkaParam === "rzut" ? zakladkaParam : "wizualizacje";
 
   function hrefForVariant(standard: CompletionStandard): string {
     return `/${locale}/project/${project!.id}${buildQueryHref(rawSearchParams, { wariant: standard })}`;
@@ -197,7 +197,6 @@ export default async function ProjektPage({
   const variantQuery = selectedVariant ? `&wariant=${selectedVariant.completionStandard}` : "";
   const zapytanieHref = `/${locale}/inquiry?projects=${project.id}${query}${variantQuery}`;
   const shortlistHref = `/${locale}/results?projects=${project.id}${query}`;
-  const dzialkaHref = `/${locale}/plot?projects=${project.id}${query}`;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -224,9 +223,11 @@ export default async function ProjektPage({
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       {/* pb-24 rezerwuje miejsce pod sticky pasek CTA na mobile (fixed, więc nie
           zajmuje miejsca w layoucie samodzielnie) — zdejmowane na lg, gdzie pasek
-          się nie renderuje i CTA żyje tylko w treści strony. */}
+          się nie renderuje i CTA żyje tylko w treści strony. -mt-brand-5 na
+          mobile znosi pt-brand-5 z RouteShell, żeby zdjęcie zaczynało się od
+          razu pod navbarem, bez oddechu nad nim (desktopowy odstęp zostaje). */}
       <GalleryLightboxProvider images={lightboxImages}>
-      <div className="flex flex-col gap-brand-6 pb-24 lg:pb-0">
+      <div className="-mt-brand-5 flex flex-col gap-brand-6 pb-24 lg:mt-0 lg:pb-0">
         {/* Hero: galeria (z zakładkami) + nazwa + przeznaczenie + cena i wariant +
             CTA (spec 0020 AC-1, spec 0042 AC-1, AC-13) — zdjęcia dostają wizualną
             przewagę (7 z 12 kolumn). Prawa kolumna jest wyrównana do wysokości
@@ -246,18 +247,18 @@ export default async function ProjektPage({
           <div className="flex h-full flex-col justify-between gap-brand-3 lg:col-span-5">
             <div className="flex flex-col gap-brand-3">
               <div className="flex items-start justify-between gap-brand-2">
-                <div className="flex flex-col gap-1">
+                <div className="flex min-w-0 flex-1 flex-col gap-1">
+                  <Heading level="h1" surface="v5">
+                    {project.name}
+                  </Heading>
                   <div className="flex flex-wrap items-center gap-brand-2">
-                    <Heading level="h1" surface="v5">
-                      {project.name}
-                    </Heading>
                     <span className="rounded-data border border-brand-v5-line px-brand-1 py-0.5 text-label font-semibold uppercase tracking-[0.1em] text-brand-v5-muted">
                       {purposeBadge}
                     </span>
+                    <Text tone="muted" surface="v5">
+                      {project.producerName} · {countryName}
+                    </Text>
                   </div>
-                  <Text tone="muted" surface="v5">
-                    {project.producerName} · {countryName}
-                  </Text>
                 </div>
                 <FavoriteButton
                   productId={project.id}
@@ -314,7 +315,7 @@ export default async function ProjektPage({
                         (item) => item.status === "do-wyceny",
                       ).length;
                       return (
-                        <div className="flex items-baseline justify-between gap-brand-3 border-t border-dashed border-brand-v5-line pt-brand-2">
+                        <div className="hidden items-baseline justify-between gap-brand-3 border-t border-dashed border-brand-v5-line pt-brand-2 lg:flex">
                           <Text tone="muted" surface="v5" className="text-data">
                             {t("knownCostSum")}
                           </Text>
@@ -443,7 +444,7 @@ export default async function ProjektPage({
             { id: "harmonogram", label: t("sectionNav.harmonogram") },
             { id: "komfort", label: t("sectionNav.komfort") },
             { id: "producent", label: t("sectionNav.producent") },
-            { id: "dokumenty", label: t("sectionNav.dokumenty"), disabled: true },
+            { id: "dokumenty", label: t("sectionNav.dokumenty") },
             { id: "podobne", label: t("sectionNav.podobne"), disabled: true },
           ]}
           ariaLabel={t("sectionNavAriaLabel")}
@@ -507,9 +508,18 @@ export default async function ProjektPage({
             <Heading level="h2" surface="v5" className="text-h3">
               {t("producerHeading")}
             </Heading>
-            <ProducerCard producer={producer} showTrustDetails />
+            <ProducerRealizationsSection
+              producer={producer}
+              projectName={project.name}
+              documents={project.documents}
+              selectedVariantId={selectedVariant?.id}
+            />
           </div>
         )}
+
+        <div id="dokumenty" className="scroll-mt-20">
+          <ProjectDocumentsAndFaq faq={project.faq} />
+        </div>
 
         {countryCode && eligibility && (
           <div className="flex flex-col gap-brand-2">
@@ -535,23 +545,16 @@ export default async function ProjektPage({
           </div>
         )}
 
-        <div className="flex flex-wrap items-center gap-brand-2 border-t border-brand-v5-line pt-brand-4">
-          <Button as="a" href={zapytanieHref} size="lg" surface="v5">
-            {t("sendInquiry")}
-          </Button>
-          <Button as="a" href={shortlistHref} variant="secondary" surface="v5">
-            {t("addToShortlist")}
-          </Button>
-          <Button as="a" href={dzialkaHref} variant="secondary" surface="v5">
-            {t("checkPlot")}
-          </Button>
-        </div>
       </div>
       </GalleryLightboxProvider>
 
-      {/* Sticky CTA na mobile: cena + "Wyślij zapytanie" pod ręką bez scrollowania
-          z powrotem do sekcji hero. Desktop ma tę samą akcję już w treści. */}
-      <div className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-brand-3 border-t-2 border-brand-v5-ink bg-brand-v5-surface px-brand-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-brand-3 lg:hidden">
+      {/* Sticky CTA na mobile: cena + ulubione + "Wyślij zapytanie" pod ręką
+          bez scrollowania do hero. Shortlista/działka jako osobne akcje tu
+          zostały wycofane (na razie nieużywane funkcjonalności) na rzecz
+          serca — jedyna z trzech, która ma dziś realne działanie
+          (toggleFavorite, patrz FavoriteButton). Desktop ma "Wyślij
+          zapytanie" już w treści. */}
+      <div className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-brand-2 border-t-2 border-brand-v5-ink bg-brand-v5-surface px-brand-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-brand-3 lg:hidden">
         <div className="flex min-w-0 flex-col">
           {project.priceOnRequest ? (
             <DataText surface="v5" className="truncate text-body-l font-semibold">
@@ -568,9 +571,20 @@ export default async function ProjektPage({
             </>
           )}
         </div>
-        <Button as="a" href={zapytanieHref} size="lg" surface="v5" className="shrink-0">
-          {t("sendInquiry")}
-        </Button>
+        <div className="flex shrink-0 items-center gap-brand-2">
+          <FavoriteButton
+            productId={project.id}
+            productName={project.name}
+            locale={locale}
+            isClientSession={isClientSession}
+            initialFavorited={isFavorited}
+            surface="v5"
+            className="shrink-0 border border-brand-v5-line"
+          />
+          <Button as="a" href={zapytanieHref} size="md" surface="v5" className="shrink-0">
+            {t("sendInquiry")}
+          </Button>
+        </div>
       </div>
     </>
   );

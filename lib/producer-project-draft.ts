@@ -1,12 +1,16 @@
 import type { useTranslations } from "next-intl";
+import type { FaqRow, FaqTranslationRow } from "./product-faq";
+import type { RoomLayoutRow, RoomLayoutTranslationRow } from "./product-room-layout";
 import { ENERGY_CLASSES, HEAT_SOURCES, VENTILATION_TYPES } from "./product-technical-specs";
 import type {
   CompletionStandard,
   ContainerSubcategory,
+  CostLineItemStatus,
   ProductFamily,
   ProjectCategory,
   ProjectDraft,
   SpaSubcategory,
+  TimelineStageKey,
 } from "./data/types";
 
 // Callable shape shared by client `useTranslations()` and awaited server
@@ -14,21 +18,36 @@ import type {
 // below accept either without depending on one entry point.
 type Translate = ReturnType<typeof useTranslations>;
 
-export type WizardStepId = "podstawowe" | "techniczne" | "pliki" | "cena" | "podsumowanie";
+export type WizardStepId = "podstawowe" | "techniczne" | "pliki" | "warianty" | "faq" | "podsumowanie";
 
 export interface WizardStep {
   id: WizardStepId;
   label: string;
 }
 
-// Krok 1 zbiera family i podkategorię (spec 0022 AC-6); dawne trzy kroki
-// techniczne domu (konstrukcja/instalacje/odpornosc) zwijają się w jeden krok
-// "techniczne", którego pola zależą od family.
+// Krok 1 zbiera family i podkategorię (spec 0022 AC-6), plus uklad pomieszczen
+// (spec 0045 AC-5); dawne trzy kroki techniczne domu (konstrukcja/instalacje/
+// odpornosc) zwijają się w jeden krok "techniczne", ktorego pola zależą od
+// family i ktory od zadania 9 niesie tez sekcje logistyki i zgodnosci (AC-8).
+//
+// Dawny krok "cena" zostal usuniety (spec 0045 Build plan zadanie 12): jego
+// pola cenowe (housePriceMinEur/Max, completionStandard) i stara reguła
+// walidacji zastapione przez "warianty" (product_variant z cena minimalna,
+// AC-4/AC-17); termin produkcji/montazu (productionLeadTimeWeeksMin/Max,
+// onSiteAssemblyDaysMin/Max) sa superseded przez product_timeline_stage per
+// wariant (spec 0041) i przestaly byc zbierane; gwarancja konstrukcyjna
+// (structuralWarrantyYears) przeniosla sie do sekcji logistyki kroku
+// "techniczne", bo nadal jest realnie wyswietlana klientowi (patrz
+// ProjectTechnicalSpecs.tsx), w odroznieniu od pol superseded wyzej.
+// Kolejnosc reorganizowana docelowo dopiero w zadaniu 17 (audyt, AC-20) —
+// ta lista zostaje w dzisiejszej kolejnosci (podstawowe/techniczne/pliki),
+// tylko z "cena" usunieta i "faq" dodanym po "warianty".
 export const WIZARD_STEPS: WizardStep[] = [
   { id: "podstawowe", label: "Informacje podstawowe" },
   { id: "techniczne", label: "Dane techniczne" },
   { id: "pliki", label: "Pliki" },
-  { id: "cena", label: "Cena i sprzedaż" },
+  { id: "warianty", label: "Warianty i cennik" },
+  { id: "faq", label: "FAQ" },
   { id: "podsumowanie", label: "Podsumowanie" },
 ];
 
@@ -79,6 +98,35 @@ export function getContainerSubcategoryOptions(t: Translate): { value: Container
     { value: "uslugowe", label: t("containerSubcategory.uslugowe") },
     { value: "mieszkalne", label: t("containerSubcategory.mieszkalne") },
   ];
+}
+
+// Spec 0045 AC-1: te same pięć statusów, które ProjectCostComparisonTable
+// (klient) już tłumaczy pod swoim własnym namespace — zduplikowane tu pod
+// ProjectOptions zamiast reużyte wprost, żeby zachować konwencję "jedno
+// źródło etykiet dla kreatora/edycji" z komentarza wyżej bez łączenia
+// namespace'u klienta z namespace'em producenta.
+export function getCostLineItemStatusOptions(t: Translate): { value: CostLineItemStatus; label: string }[] {
+  return [
+    { value: "w-cenie", label: t("costLineItemStatus.w-cenie") },
+    { value: "obowiazkowa-doplata", label: t("costLineItemStatus.obowiazkowa-doplata") },
+    { value: "opcja", label: t("costLineItemStatus.opcja") },
+    { value: "po-stronie-klienta", label: t("costLineItemStatus.po-stronie-klienta") },
+    { value: "do-wyceny", label: t("costLineItemStatus.do-wyceny") },
+  ];
+}
+
+// Spec 0045 AC-1: kolejność stała, zgodna z product_timeline_stage_key (pięć
+// etapów realizacji, ten sam porządek co ProjectTimeline po stronie klienta).
+export const TIMELINE_STAGE_KEYS: TimelineStageKey[] = [
+  "formalnosci",
+  "produkcja",
+  "transport",
+  "montaz",
+  "wykonczenie",
+];
+
+export function getTimelineStageKeyOptions(t: Translate): { value: TimelineStageKey; label: string }[] {
+  return TIMELINE_STAGE_KEYS.map((value) => ({ value, label: t(`timelineStageKey.${value}`) }));
 }
 
 // Zamknięte listy dla trzech pól technicznych domu (spec 0026 AC-2, Feature design),
@@ -368,16 +416,22 @@ export function createEmptyDraft(): ProjectDraft {
     spaSubcategory: null,
     containerSubcategory: null,
     technicalSpecs: {},
+    roomLayout: [],
+    roomLayoutEn: [],
+    roomLayoutNl: [],
+    faq: [],
+    faqEn: [],
+    faqNl: [],
     floorPlanFiles: [],
     photoFiles: [],
-    housePriceMinEur: null,
-    housePriceMaxEur: null,
-    completionStandard: null,
-    productionLeadTimeWeeksMin: null,
-    productionLeadTimeWeeksMax: null,
-    onSiteAssemblyDaysMin: null,
-    onSiteAssemblyDaysMax: null,
     structuralWarrantyYears: null,
+    installationWarrantyYears: null,
+    serviceScopeDescription: "",
+    transportDimensions: "",
+    craneRequirements: "",
+    minPlotWidthM: null,
+    simplifiedPermitEligible: null,
+    variantsSummary: [],
   };
 }
 
@@ -445,26 +499,69 @@ export function isStepComplete(stepId: WizardStepId, draft: ProjectDraft): boole
         draft.family !== null &&
         isSubcategoryComplete(draft)
       );
+    // Gwarancja konstrukcyjna dołączyła tu z usuniętego kroku "Cena" (spec
+    // 0045 zadanie 9, 12): nadal wymagana, bo karta klienta zawsze ją
+    // wyświetla (ProjectTechnicalSpecs.tsx), w odróżnieniu od pól logistyki
+    // (AC-8), które są czysto deklaratywne i opcjonalne.
     case "techniczne":
-      return isTechnicalSpecsComplete(draft);
-    case "pliki":
-      return draft.floorPlanFiles.length > 0 && draft.photoFiles.length > 0;
-    case "cena":
       return (
-        draft.housePriceMinEur !== null &&
-        draft.completionStandard !== null &&
-        draft.productionLeadTimeWeeksMin !== null &&
-        draft.productionLeadTimeWeeksMax !== null &&
-        draft.productionLeadTimeWeeksMin <= draft.productionLeadTimeWeeksMax &&
-        draft.onSiteAssemblyDaysMin !== null &&
-        draft.onSiteAssemblyDaysMax !== null &&
-        draft.onSiteAssemblyDaysMin <= draft.onSiteAssemblyDaysMax &&
+        isTechnicalSpecsComplete(draft) &&
         draft.structuralWarrantyYears !== null &&
         Number.isInteger(draft.structuralWarrantyYears) &&
         draft.structuralWarrantyYears >= 0
       );
+    case "pliki":
+      return draft.floorPlanFiles.length > 0 && draft.photoFiles.length > 0;
+    // AC-1/AC-4: krok jest kompletny gdy istnieje dokładnie jeden domyślny
+    // wariant z wypełnioną ceną minimalną — ten sam warunek, który bramkuje
+    // publikację na serwerze (validatePublishReadiness, spec 0045 zadanie 12).
+    case "warianty":
+      return draft.variantsSummary.some((variant) => variant.isDefault && variant.priceMinCents !== null);
+    // FAQ jest opcjonalne (żadne AC tego spec nie wymaga wypełnienia), krok
+    // jest więc zawsze przechodzialny — walidacja Zod pilnuje tylko kształtu
+    // wpisanych wierszy, nie ich obecności.
+    case "faq":
+      return true;
     case "podsumowanie":
       return WIZARD_STEPS.slice(0, -1).every((step) => isStepComplete(step.id, draft));
   }
+}
+
+// AC-10: dopasowuje tłumaczenie po stabilnym `id` z listy polskiej, dopełniając
+// puste wpisy tam, gdzie tłumaczenie jeszcze nie istnieje (edycja produktu,
+// gdzie translation może być krótsza niż roomLayout — częściowe tłumaczenie).
+// Zamienia rzadki (sparse) kształt z bazy na gęsty (dense), pozycyjnie
+// wyrównany z roomLayout, żeby ProjectWizardBasicInfoStep mógł trzymać
+// roomLayout/roomLayoutEn/roomLayoutNl w locku po indeksie (add/remove/move
+// stosowane naraz na wszystkich trzech tablicach). Odwrotność:
+// sanitizeDraftForSave niżej, wywoływana tuż przed zapisem.
+export function alignRoomLayoutTranslation(
+  rows: RoomLayoutRow[],
+  translation: RoomLayoutTranslationRow[],
+): RoomLayoutTranslationRow[] {
+  return rows.map((row) => translation.find((entry) => entry.id === row.id) ?? { id: row.id, name: "" });
+}
+
+// Ten sam wzorzec co alignRoomLayoutTranslation wyżej, dla FAQ (AC-10).
+export function alignFaqTranslation(rows: FaqRow[], translation: FaqTranslationRow[]): FaqTranslationRow[] {
+  return rows.map((row) => translation.find((entry) => entry.id === row.id) ?? { id: row.id, question: "", answer: "" });
+}
+
+// Odwrotność alignRoomLayoutTranslation/alignFaqTranslation wyżej: kreator
+// trzyma tłumaczenia w gęstym, pozycyjnie wyrównanym kształcie (UI-friendly),
+// ale roomLayoutTranslationRowSchema/faqTranslationRowSchema wymagają
+// niepustych pól (name/question/answer min(1)) — puste wpisy (tłumaczenie
+// jeszcze nie wpisane) muszą zniknąć przed wysłaniem do serwera, inaczej
+// złamałyby walidację Zod zamiast po prostu nie istnieć (AC-10, częściowe
+// tłumaczenie). Wywoływana tuż przed każdym createProducerProduct/
+// updateProducerProduct.
+export function sanitizeDraftForSave(draft: ProjectDraft): ProjectDraft {
+  return {
+    ...draft,
+    roomLayoutEn: draft.roomLayoutEn.filter((row) => isNonEmpty(row.name)),
+    roomLayoutNl: draft.roomLayoutNl.filter((row) => isNonEmpty(row.name)),
+    faqEn: draft.faqEn.filter((row) => isNonEmpty(row.question) && isNonEmpty(row.answer)),
+    faqNl: draft.faqNl.filter((row) => isNonEmpty(row.question) && isNonEmpty(row.answer)),
+  };
 }
 

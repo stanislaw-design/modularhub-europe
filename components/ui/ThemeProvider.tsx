@@ -32,34 +32,40 @@ function getServerSystemTheme(): Theme {
 interface ThemeProviderProps {
   /** The `theme` cookie's value, read server side; `null` means no explicit choice yet (follow system). */
   initialTheme: Theme | null;
+  /** CSS scope class this instance paints under (e.g. `theme-klient`, `theme-producer`; see app/globals.css). */
+  scopeClassName: string;
   children: ReactNode;
 }
 
-// Scopes dark mode to the customer flow only (spec 0043 AC-11: producer/internal
-// stay light). The wrapper's own class only ever reflects the explicit cookie
-// choice, never the system-detected fallback below — the no-cookie case is left
-// to app/globals.css's plain `@media (prefers-color-scheme: dark)` rule, which
-// paints correctly before hydration with no blocking script (AC-3). `contents`
-// keeps this div invisible to layout (RouteShell's <main> still sits directly in
-// body's flex column), it exists purely to scope the CSS custom property overrides.
-export function ThemeProvider({ initialTheme, children }: ThemeProviderProps) {
+// Scopes dark mode to whichever subtree mounts this provider (spec 0043
+// AC-11: producer/internal stay light by never mounting it at all; spec 0046
+// adds a second scope, theme-producer, for the producer panel, via
+// scopeClassName rather than a second provider). The wrapper's own class
+// only ever reflects the explicit cookie choice, never the system-detected
+// fallback below — the no-cookie case is left to app/globals.css's plain
+// `@media (prefers-color-scheme: dark)` rule, which paints correctly before
+// hydration with no blocking script (AC-3). `contents` keeps this div
+// invisible to layout, it exists purely to scope the CSS custom property
+// overrides.
+export function ThemeProvider({ initialTheme, scopeClassName, children }: ThemeProviderProps) {
   const [explicitTheme, setExplicitTheme] = useState<Theme | null>(initialTheme);
   const systemTheme = useSyncExternalStore(subscribeToSystemTheme, getSystemTheme, getServerSystemTheme);
 
   // Headless UI's Dialog (SiteHeader's mobile menu, ResultsFilterBar's mobile
-  // sheet, …) portals its content to the end of document.body, outside this
-  // component's own subtree — so it never sees the wrapper div's class below.
-  // Mirroring the same classes onto body (client only; the wrapper div still
-  // carries them server side for the actual first-paint, flash free theming)
-  // fixes portaled content too. Removed on unmount so a client side
-  // navigation into producer/internal (which never mounts ThemeProvider)
-  // can't leave a stale dark body behind (spec 0043 AC-11).
+  // sheet, the producer panel's DeleteProductDialog, …) portals its content to
+  // the end of document.body, outside this component's own subtree — so it
+  // never sees the wrapper div's class below. Mirroring the same classes onto
+  // body (client only; the wrapper div still carries them server side for the
+  // actual first-paint, flash free theming) fixes portaled content too.
+  // Removed on unmount so a client side navigation into an area that never
+  // mounts ThemeProvider (producer public routes, internal) can't leave a
+  // stale dark body behind (spec 0043 AC-11).
   useEffect(() => {
-    document.body.classList.add("theme-klient");
+    document.body.classList.add(scopeClassName);
     return () => {
-      document.body.classList.remove("theme-klient", "dark", "light");
+      document.body.classList.remove(scopeClassName, "dark", "light");
     };
-  }, []);
+  }, [scopeClassName]);
 
   useEffect(() => {
     document.body.classList.toggle("dark", explicitTheme === "dark");
@@ -74,7 +80,7 @@ export function ThemeProvider({ initialTheme, children }: ThemeProviderProps) {
 
   return (
     <ThemeContext.Provider value={{ theme: explicitTheme ?? systemTheme, setTheme }}>
-      <div className={`contents theme-klient ${explicitTheme ?? ""}`}>{children}</div>
+      <div className={`contents ${scopeClassName} ${explicitTheme ?? ""}`}>{children}</div>
     </ThemeContext.Provider>
   );
 }

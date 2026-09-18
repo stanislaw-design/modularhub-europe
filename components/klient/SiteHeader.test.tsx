@@ -9,7 +9,7 @@ import { SiteHeader } from "./SiteHeader";
 // (spec 0043); "light" keeps every existing assertion below theme-agnostic.
 function renderHeader(props: ComponentProps<typeof SiteHeader>) {
   return render(
-    <ThemeProvider initialTheme="light">
+    <ThemeProvider initialTheme="light" scopeClassName="theme-klient">
       <SiteHeader {...props} />
     </ThemeProvider>
   );
@@ -56,7 +56,7 @@ describe("SiteHeader (spec 0030)", () => {
     await openMenu();
 
     const nav = screen.getByRole("navigation", { name: "Nawigacja" });
-    expect(within(nav).getByRole("link", { name: "Domy" })).toHaveAttribute("href", "/pl");
+    expect(within(nav).queryByRole("link", { name: "Domy" })).not.toBeInTheDocument();
     expect(within(nav).getByRole("link", { name: "Projekty" })).toHaveAttribute("href", "/pl/results");
     expect(within(nav).getByRole("link", { name: "Jak to działa" })).toHaveAttribute(
       "href",
@@ -75,15 +75,17 @@ describe("SiteHeader (spec 0030)", () => {
     expect(screen.queryByText("O nas")).not.toBeInTheDocument();
   });
 
-  it("shows the sign-in link in the menu's Account group when there is no session (AC-4)", async () => {
+  it("puts the sign-in link next to the CTA pill instead of the Account group, and drops Favorites entirely, when there is no session", async () => {
     renderHeader({ locale: "pl", session: null });
     await openMenu();
 
     const account = screen.getByRole("group", { name: "Konto" });
-    expect(within(account).getByRole("link", { name: /Ulubione/ })).toBeInTheDocument();
-    expect(within(account).getByRole("link", { name: /Zaloguj się/ })).toBeInTheDocument();
-    expect(within(account).queryByText("Mój profil")).not.toBeInTheDocument();
-    expect(within(account).queryByText("Panel administratora")).not.toBeInTheDocument();
+    expect(within(account).queryByRole("link", { name: /Ulubione/ })).not.toBeInTheDocument();
+    expect(within(account).queryByRole("link", { name: /Zaloguj się/ })).not.toBeInTheDocument();
+
+    const signIn = screen.getByRole("link", { name: /Zaloguj się/ });
+    expect(signIn.closest('[role="group"]')).toBeNull();
+    expect(signIn).toHaveAttribute("href", "/pl/login");
   });
 
   it("shows 'Załóż konto' as the header CTA, linking to the shared registration wizard, when there is no session (spec 0040 AC-1)", () => {
@@ -115,14 +117,14 @@ describe("SiteHeader (spec 0030)", () => {
     expect(screen.getByRole("link", { name: "Załóż konto" }).querySelector("svg")).not.toBeInTheDocument();
 
     rerender(
-      <ThemeProvider initialTheme="light">
+      <ThemeProvider initialTheme="light" scopeClassName="theme-klient">
         <SiteHeader locale="pl" session={{ user: { role: "client" } }} />
       </ThemeProvider>
     );
     expect(screen.getByRole("link", { name: "Mój profil" }).querySelector("svg")).toBeInTheDocument();
 
     rerender(
-      <ThemeProvider initialTheme="light">
+      <ThemeProvider initialTheme="light" scopeClassName="theme-klient">
         <SiteHeader locale="pl" session={{ user: { role: "admin" } }} />
       </ThemeProvider>
     );
@@ -153,39 +155,53 @@ describe("SiteHeader (spec 0030)", () => {
     expect(within(account).queryByText("Panel administratora")).not.toBeInTheDocument();
   });
 
-  it("offers PL/EN/NL as plain buttons in the Account group, not a dropdown (AC-4)", async () => {
+  it("replaces the 'Załóż konto' CTA with 'Panel producenta' for a producer session, and drops it from the menu's Account group", async () => {
+    renderHeader({ locale: "pl", session: { user: { role: "producer" } } });
+
+    expect(screen.getByRole("link", { name: "Panel producenta" })).toHaveAttribute("href", "/pl/producer/panel");
+    expect(screen.queryByRole("link", { name: "Załóż konto" })).not.toBeInTheDocument();
+
+    await openMenu();
+    const account = screen.getByRole("group", { name: "Konto" });
+    expect(within(account).queryByText("Panel producenta")).not.toBeInTheDocument();
+  });
+
+  it("hides the Favorites link, both in the header row and the menu's Account group, for a producer session", async () => {
+    renderHeader({ locale: "pl", session: { user: { role: "producer" } } });
+
+    expect(screen.queryByRole("link", { name: /Ulubione/ })).not.toBeInTheDocument();
+
+    await openMenu();
+    const account = screen.getByRole("group", { name: "Konto" });
+    expect(within(account).queryByRole("link", { name: /Ulubione/ })).not.toBeInTheDocument();
+  });
+
+  it("offers a language dropdown in the Account group next to an icon-only theme toggle, not a wrapped row of buttons", async () => {
     renderHeader({ locale: "pl", session: null });
     await openMenu();
 
     const account = screen.getByRole("group", { name: "Konto" });
-    expect(within(account).getByRole("button", { name: "Polski" })).toBeInTheDocument();
-    expect(within(account).getByRole("button", { name: "English" })).toBeInTheDocument();
-    expect(within(account).getByRole("button", { name: "Nederlands" })).toBeInTheDocument();
+    expect(within(account).getByRole("button", { name: "Zmień język" })).toHaveTextContent("PL");
+    const themeToggle = within(account).getByRole("button", { name: /Przełącz na (ciemny|jasny) motyw/ });
+    expect(themeToggle.textContent).toBe("");
   });
 
-  it("switches locale by calling router.replace when a language button is clicked", async () => {
+  it("switches locale by calling router.replace when a language option is picked from the Account group dropdown", async () => {
     renderHeader({ locale: "pl", session: null });
     const user = await openMenu();
 
-    await user.click(screen.getByRole("button", { name: "English" }));
+    const account = screen.getByRole("group", { name: "Konto" });
+    await user.click(within(account).getByRole("button", { name: "Zmień język" }));
+    await user.click(screen.getByRole("menuitem", { name: "English" }));
 
     expect(replace).toHaveBeenCalledWith("/wyniki", { locale: "en" });
   });
 
-  it("hides the whole Account group from `md` up and hides Favorites/language earlier, at `sm`, matching each item's header row twin so nothing is shown twice on desktop", async () => {
-    renderHeader({ locale: "pl", session: null });
+  it("hides the whole Account group at `sm`, matching the header row's own theme/language/favorites equivalents so nothing is shown twice on desktop", async () => {
+    renderHeader({ locale: "pl", session: { user: { role: "client" } } });
     await openMenu();
 
     const account = screen.getByRole("group", { name: "Konto" });
-    expect(account.className).toContain("md:hidden");
-
-    const favorites = within(account).getByRole("link", { name: /Ulubione/ });
-    expect(favorites.closest("li")?.className).toContain("sm:hidden");
-
-    const polish = within(account).getByRole("button", { name: "Polski" });
-    expect(polish.closest("li")?.className).toContain("sm:hidden");
-
-    const signIn = within(account).getByRole("link", { name: /Zaloguj się/ });
-    expect(signIn.closest("li")?.className ?? "").not.toContain("sm:hidden");
+    expect(account.className).toContain("sm:hidden");
   });
 });

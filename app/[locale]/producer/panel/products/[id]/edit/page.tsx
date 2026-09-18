@@ -2,13 +2,38 @@ import { redirect } from "next/navigation";
 import { ProductEditWizard } from "@/components/producent/ProductEditWizard";
 import { getCountries } from "@/lib/data/countries";
 import type { ProductTechnicalSpecsDraft, ProjectDraft } from "@/lib/data/types";
-import { getProducerIdForUser, getProducerProductForEdit, getProductPhotosForAdmin, type ProducerProductForEdit } from "@/lib/db/queries";
+import {
+  getProducerIdForUser,
+  getProducerProductForEdit,
+  getProducerVariantsForEdit,
+  getProductFloorPlansForAdmin,
+  getProductPhotosForAdmin,
+  type ProducerProductForEdit,
+  type ProducerVariantForEdit,
+} from "@/lib/db/queries";
 import { requirePanelProducerSession } from "@/lib/panel-session";
+import { alignFaqTranslation, alignRoomLayoutTranslation } from "@/lib/producer-project-draft";
+import { faqSchema, faqTranslationSchema } from "@/lib/product-faq";
+import { roomLayoutSchema, roomLayoutTranslationSchema } from "@/lib/product-room-layout";
 
 // Odwrotność zapisu w lib/producer-product-actions.ts: pole po polu, żeby
 // createdAt/id/status nie trafiły do stanu formularza edycji (mirror
-// savedProductToDraft, dawny lib/producer-products.ts).
-function producerProductToDraft(row: ProducerProductForEdit): ProjectDraft {
+// savedProductToDraft, dawny lib/producer-products.ts). roomLayout/faq
+// dostają safeParse z fallbackiem do pustej tablicy: dawne, sprzed spec 0045,
+// wiersze wpisane ręcznie przez Neon MCP mogły nie mieć jeszcze stabilnego
+// `id` na wpisie (walidacja Zod tego pola była otwartym Follow-up aż do tego
+// spec) — kreator ma wtedy po prostu czystą listę do wypełnienia, zamiast
+// wywalać całą stronę edycji błędem parsowania.
+function producerProductToDraft(row: ProducerProductForEdit, variants: ProducerVariantForEdit[]): ProjectDraft {
+  const roomLayoutResult = roomLayoutSchema.safeParse(row.roomLayout ?? []);
+  const roomLayout = roomLayoutResult.success ? roomLayoutResult.data : [];
+  const roomLayoutEnResult = roomLayoutTranslationSchema.safeParse(row.roomLayoutEn ?? []);
+  const roomLayoutNlResult = roomLayoutTranslationSchema.safeParse(row.roomLayoutNl ?? []);
+  const faqResult = faqSchema.safeParse(row.faq ?? []);
+  const faq = faqResult.success ? faqResult.data : [];
+  const faqEnResult = faqTranslationSchema.safeParse(row.faqEn ?? []);
+  const faqNlResult = faqTranslationSchema.safeParse(row.faqNl ?? []);
+
   return {
     name: row.name,
     floorAreaM2: row.floorAreaM2,
@@ -24,16 +49,22 @@ function producerProductToDraft(row: ProducerProductForEdit): ProjectDraft {
     spaSubcategory: row.spaSubcategory,
     containerSubcategory: row.containerSubcategory,
     technicalSpecs: (row.technicalSpecs ?? {}) as ProductTechnicalSpecsDraft,
+    roomLayout,
+    roomLayoutEn: alignRoomLayoutTranslation(roomLayout, roomLayoutEnResult.success ? roomLayoutEnResult.data : []),
+    roomLayoutNl: alignRoomLayoutTranslation(roomLayout, roomLayoutNlResult.success ? roomLayoutNlResult.data : []),
+    faq,
+    faqEn: alignFaqTranslation(faq, faqEnResult.success ? faqEnResult.data : []),
+    faqNl: alignFaqTranslation(faq, faqNlResult.success ? faqNlResult.data : []),
     floorPlanFiles: [],
     photoFiles: [],
-    housePriceMinEur: row.housePriceMinCents !== null ? row.housePriceMinCents / 100 : null,
-    housePriceMaxEur: row.housePriceMaxCents !== null ? row.housePriceMaxCents / 100 : null,
-    completionStandard: row.completionStandard,
-    productionLeadTimeWeeksMin: row.productionLeadTimeWeeksMin,
-    productionLeadTimeWeeksMax: row.productionLeadTimeWeeksMax,
-    onSiteAssemblyDaysMin: row.onSiteAssemblyDaysMin,
-    onSiteAssemblyDaysMax: row.onSiteAssemblyDaysMax,
     structuralWarrantyYears: row.structuralWarrantyYears,
+    installationWarrantyYears: row.installationWarrantyYears,
+    serviceScopeDescription: row.serviceScopeDescription ?? "",
+    transportDimensions: row.transportDimensions ?? "",
+    craneRequirements: row.craneRequirements ?? "",
+    minPlotWidthM: row.minPlotWidthM,
+    simplifiedPermitEligible: row.simplifiedPermitEligible,
+    variantsSummary: variants.map((variant) => ({ isDefault: variant.isDefault, priceMinCents: variant.priceMinCents })),
   };
 }
 
@@ -47,7 +78,7 @@ export default async function ProducerPanelEdytujProduktPage({
   params: Promise<{ locale: string; id: string }>;
 }) {
   const { locale, id } = await params;
-  const selfHref = `/${locale}/producer/panel/products/${id}/edytuj`;
+  const selfHref = `/${locale}/producer/panel/products/${id}/edit`;
   const session = await requirePanelProducerSession(locale, selfHref);
 
   const producerId = await getProducerIdForUser(session.user.id);
@@ -56,9 +87,15 @@ export default async function ProducerPanelEdytujProduktPage({
     redirect(`/${locale}/producer/panel/products`);
   }
 
-  const [countries, photos] = await Promise.all([getCountries(), getProductPhotosForAdmin(id)]);
-  const draft = producerProductToDraft(productRow);
+  const [countries, photos, floorPlans, variants] = await Promise.all([
+    getCountries(),
+    getProductPhotosForAdmin(id),
+    getProductFloorPlansForAdmin(id),
+    getProducerVariantsForEdit(id),
+  ]);
+  const draft = producerProductToDraft(productRow, variants);
   draft.photoFiles = photos.map((photo) => ({ name: photo.filename, sizeBytes: 0 }));
+  draft.floorPlanFiles = floorPlans.map((plan) => ({ name: plan.filename, sizeBytes: 0 }));
 
   return (
     <ProductEditWizard
@@ -66,6 +103,8 @@ export default async function ProducerPanelEdytujProduktPage({
       productId={id}
       initialDraft={draft}
       initialPhotos={photos.map((photo) => ({ id: photo.id, url: photo.url, filename: photo.filename, isCover: photo.isCover }))}
+      initialFloorPlans={floorPlans.map((plan) => ({ id: plan.id, url: plan.url, filename: plan.filename, variantId: plan.productVariantId }))}
+      initialVariants={variants}
       countries={countries}
     />
   );

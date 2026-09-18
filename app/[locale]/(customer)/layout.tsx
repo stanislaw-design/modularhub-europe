@@ -21,7 +21,7 @@ export default async function KlientLayout({
   const initialTheme = isTheme(themeCookie) ? themeCookie : null;
 
   return (
-    <ThemeProvider initialTheme={initialTheme}>
+    <ThemeProvider initialTheme={initialTheme} scopeClassName="theme-klient">
       <SkipLink />
       <SiteHeader locale={locale} session={session} />
       <RouteShell>{children}</RouteShell>

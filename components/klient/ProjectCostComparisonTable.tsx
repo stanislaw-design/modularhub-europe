@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, ChevronDown, CircleDot, HelpCircle, PlusCircle, User } from "lucide-react";
+import { CheckCircle2, ChevronDown, CircleDot, HelpCircle, PlusCircle, TriangleAlert, User } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { Checkbox, DataText, StatusPill, Text } from "@/components/ui";
@@ -55,6 +55,11 @@ export function ProjectCostComparisonTable({ variants }: ProjectCostComparisonTa
     deweloperski: t("completionStandard.deweloperski"),
     "pod-klucz": t("completionStandard.pod-klucz"),
   };
+  const standardLabelShort: Record<CompletionStandard, string> = {
+    "surowy-zamkniety": t("completionStandardShort.surowy-zamkniety"),
+    deweloperski: t("completionStandardShort.deweloperski"),
+    "pod-klucz": t("completionStandardShort.pod-klucz"),
+  };
   const statusLabel: Record<CostLineItemStatus, string> = {
     "w-cenie": t("status.w-cenie"),
     "obowiazkowa-doplata": t("status.obowiazkowa-doplata"),
@@ -105,7 +110,73 @@ export function ProjectCostComparisonTable({ variants }: ProjectCostComparisonTa
           </Text>
         </label>
       )}
-      <div className="overflow-x-auto rounded-v5-card border border-brand-v5-line">
+      {/* Mobile: karty zamiast szerokiej tabeli (wymagała poziomego scrolla) —
+          nagłówek "Pozycja" znika, bo etykieta pozycji jest już tytułem karty;
+          3 warianty stają się rzędem ikon z krótką podpisaną nazwą standardu
+          pod spodem, bez osobnego tekstu statusu (ikona + podpis pod ikoną
+          liczy się jako "status ikoną i tekstem", tekst statusu trafia do
+          sr-only zamiast zajmować miejsce na ekranie). Brak statusu (kolumna
+          placeholder albo pozycja spoza wariantu) to zawsze ten sam trójkąt
+          z wykrzyknikiem, niezależnie od przyczyny — desktopowa tabela
+          rozróżnia "do uzupełnienia" od "nie dotyczy" tekstem, tu nie ma na to
+          miejsca. Legenda tłumaczy ikony raz na górze, więc karty poniżej nie
+          muszą powtarzać tekstu statusu na widoku. */}
+      {rows.length > 0 && (
+        <div className="flex flex-wrap gap-x-brand-3 gap-y-1 lg:hidden">
+          {(Object.keys(STATUS_ICON) as CostLineItemStatus[]).map((status) => {
+            const Icon = STATUS_ICON[status];
+            return (
+              <span key={status} className={`flex items-center gap-1 ${STATUS_COLOR_CLASS[status]}`}>
+                <Icon className="size-4 shrink-0" aria-hidden="true" />
+                <Text as="span" surface="v5" className="text-data font-medium">
+                  {statusLabel[status]}
+                </Text>
+              </span>
+            );
+          })}
+          <span className="flex items-center gap-1 text-status-conditional">
+            <TriangleAlert className="size-4 shrink-0" aria-hidden="true" />
+            <Text as="span" surface="v5" className="text-data font-medium">
+              {t("legendMissing")}
+            </Text>
+          </span>
+        </div>
+      )}
+      <div className="flex flex-col gap-brand-2 lg:hidden">
+        {visibleRows.length === 0 ? (
+          <Text tone="muted" surface="v5">
+            {t("noCostLineItems")}
+          </Text>
+        ) : (
+          displayedRows.map((row) => (
+            <div key={row.label} className="rounded-v5-card border border-brand-v5-line p-brand-3">
+              <Text as="p" surface="v5" className="font-medium">
+                {row.label}
+              </Text>
+              <div className="mt-brand-2 grid grid-cols-3 gap-brand-2">
+                {row.cells.map((status, index) => {
+                  const variant = variants[index];
+                  const missing = variant.isPlaceholder || !status;
+                  const Icon = missing ? TriangleAlert : STATUS_ICON[status];
+                  const colorClass = missing ? "text-status-conditional" : STATUS_COLOR_CLASS[status];
+                  const srLabel = variant.isPlaceholder ? t("toBeCompleted") : status ? statusLabel[status] : t("notIncluded");
+                  return (
+                    <div key={variant.id} className="flex flex-col items-center gap-1 text-center">
+                      <Icon className={`size-5 shrink-0 ${colorClass}`} aria-hidden="true" />
+                      <span className="sr-only">{srLabel}</span>
+                      <Text as="span" tone="muted" surface="v5" className="text-data font-medium">
+                        {standardLabelShort[variant.completionStandard]}
+                      </Text>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      <div className="hidden overflow-x-auto rounded-v5-card border border-brand-v5-line lg:block">
         <table className="w-full min-w-[40rem] border-collapse text-left">
           <caption className="sr-only">{t("tableCaption")}</caption>
           <thead>

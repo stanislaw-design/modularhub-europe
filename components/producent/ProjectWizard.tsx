@@ -2,17 +2,20 @@
 
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { Button, Heading, Stack, Text } from "@/components/ui";
 import type { Country, ProjectDraft } from "@/lib/data/types";
 import { createProducerProduct, updateProducerProduct } from "@/lib/producer-product-actions";
-import { WIZARD_STEPS, createEmptyDraft, getWizardSteps, isStepComplete } from "@/lib/producer-project-draft";
+import { WIZARD_STEPS, createEmptyDraft, getWizardSteps, isStepComplete, sanitizeDraftForSave } from "@/lib/producer-project-draft";
 import { ProjectWizardBasicInfoStep } from "./ProjectWizardBasicInfoStep";
+import { ProjectWizardFaqStep } from "./ProjectWizardFaqStep";
 import { ProjectWizardFilesStep } from "./ProjectWizardFilesStep";
-import { ProjectWizardPricingStep } from "./ProjectWizardPricingStep";
 import { ProjectWizardProgress } from "./ProjectWizardProgress";
 import { ProjectWizardSummaryStep } from "./ProjectWizardSummaryStep";
 import { ProjectWizardTechnicalStep } from "./ProjectWizardTechnicalStep";
+import { ProjectWizardVariantsStep } from "./ProjectWizardVariantsStep";
+import type { ProducerFloorPlan } from "./ProducerFloorPlanUploadStep";
 import type { ProducerProductPhoto } from "./ProducerProductPhotosStep";
 
 interface ProjectWizardProps {
@@ -27,27 +30,50 @@ interface ProjectWizardProps {
 // swoje pola do tego samego wiersza; "Zapisz projekt" na Podsumowaniu
 // publikuje go. Wizualnie ten sam kreator co dawny mock (spec 0016) — zmienia
 // się wyłącznie to, dokąd zapisuje.
+//
+// Stan formularza żyje w react-hook-form (spec 0045 AC-14, Build plan zadanie
+// 3): kroki podstawowe/techniczne/pliki/faq czytają go przez useFormContext.
+// Dawny krok "cena" i jego draft/onChange adapter zostały usunięte (zadanie
+// 12): bramka publikacji przechodzi teraz na domyślny wariant z ceną
+// (AC-4/AC-17), sprawdzaną po stronie serwera w validatePublishReadiness.
+// ProjectWizardVariantsStep ma własny, osobny useForm/useFieldArray (AC-14):
+// dostaje tylko productId, do rodzica wraca jedynie migawka przez
+// draft.variantsSummary (setValue wewnątrz tamtego komponentu).
+// ProjectWizardSummaryStep jest tylko do odczytu — dostaje jednorazowy
+// snapshot z useWatch przy każdym renderze, bez własnej subskrypcji.
 export function ProjectWizard({ locale, countries }: ProjectWizardProps) {
   const t = useTranslations("ProjectWizard");
   const tOptions = useTranslations("ProjectOptions");
   const wizardSteps = getWizardSteps(tOptions);
   const router = useRouter();
-  const [draft, setDraft] = useState<ProjectDraft>(() => createEmptyDraft());
+  const form = useForm<ProjectDraft>({ defaultValues: createEmptyDraft() });
+  // Subskrypcja całego formularza wyłącznie dla ProjectWizardSummaryStep
+  // (jedyny konsument wciąż na starym draft-prop interfejsie, czysto do
+  // odczytu); reszta kroków czyta stan przez własny, węższy useFormContext.
+  const values = useWatch({ control: form.control }) as ProjectDraft;
   const [productId, setProductId] = useState<string | null>(null);
   const [photos, setPhotos] = useState<ProducerProductPhoto[]>([]);
+  const [floorPlans, setFloorPlans] = useState<ProducerFloorPlan[]>([]);
   const [stepIndex, setStepIndex] = useState(0);
   const [maxReachedIndex, setMaxReachedIndex] = useState(0);
   const [showValidation, setShowValidation] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  function updateDraft(patch: Partial<ProjectDraft>) {
-    setDraft((prev) => ({ ...prev, ...patch }));
-  }
-
   function handlePhotosChange(next: ProducerProductPhoto[]) {
     setPhotos(next);
-    updateDraft({ photoFiles: next.map((photo) => ({ name: photo.filename, sizeBytes: 0 })) });
+    form.setValue(
+      "photoFiles",
+      next.map((photo) => ({ name: photo.filename, sizeBytes: 0 })),
+    );
+  }
+
+  function handleFloorPlansChange(next: ProducerFloorPlan[]) {
+    setFloorPlans(next);
+    form.setValue(
+      "floorPlanFiles",
+      next.map((plan) => ({ name: plan.filename, sizeBytes: 0 })),
+    );
   }
 
   async function persistProgress(currentDraft: ProjectDraft, currentProductId: string | null): Promise<boolean> {
@@ -75,13 +101,14 @@ export function ProjectWizard({ locale, countries }: ProjectWizardProps) {
 
   async function handleNext() {
     const currentStepId = WIZARD_STEPS[stepIndex].id;
-    if (!isStepComplete(currentStepId, draft)) {
+    const currentDraft = form.getValues();
+    if (!isStepComplete(currentStepId, currentDraft)) {
       setShowValidation(true);
       return;
     }
     setSaveError(null);
     setIsSaving(true);
-    const persisted = await persistProgress(draft, productId);
+    const persisted = await persistProgress(sanitizeDraftForSave(currentDraft), productId);
     setIsSaving(false);
     if (!persisted) return;
     const nextIndex = Math.min(stepIndex + 1, WIZARD_STEPS.length - 1);
@@ -103,7 +130,7 @@ export function ProjectWizard({ locale, countries }: ProjectWizardProps) {
     if (productId === null) return;
     setSaveError(null);
     setIsSaving(true);
-    const result = await updateProducerProduct(productId, draft, { publish: true });
+    const result = await updateProducerProduct(productId, sanitizeDraftForSave(form.getValues()), { publish: true });
     setIsSaving(false);
     if (!result.ok) {
       setSaveError(result.error ?? t("saveError"));
@@ -116,58 +143,52 @@ export function ProjectWizard({ locale, countries }: ProjectWizardProps) {
   const isSummaryStep = currentStep.id === "podsumowanie";
 
   return (
-    <Stack gap={5}>
-      <Heading level="h1">{t("heading")}</Heading>
-      <ProjectWizardProgress
-        steps={wizardSteps}
-        currentIndex={stepIndex}
-        maxReachedIndex={maxReachedIndex}
-        onStepClick={handleStepClick}
-      />
-      <Stack gap={4}>
-        {currentStep.id === "podstawowe" && (
-          <ProjectWizardBasicInfoStep
-            draft={draft}
-            countries={countries}
-            showValidation={showValidation}
-            onChange={updateDraft}
-          />
-        )}
-        {currentStep.id === "techniczne" && (
-          <ProjectWizardTechnicalStep draft={draft} showValidation={showValidation} onChange={updateDraft} />
-        )}
-        {currentStep.id === "pliki" && (
-          <ProjectWizardFilesStep
-            draft={draft}
-            showValidation={showValidation}
-            productId={productId}
-            photos={photos}
-            onChange={updateDraft}
-            onPhotosChange={handlePhotosChange}
-          />
-        )}
-        {currentStep.id === "cena" && (
-          <ProjectWizardPricingStep draft={draft} showValidation={showValidation} onChange={updateDraft} />
-        )}
-        {isSummaryStep && <ProjectWizardSummaryStep draft={draft} countries={countries} />}
+    <FormProvider {...form}>
+      <Stack gap={5}>
+        <Heading level="h1">{t("heading")}</Heading>
+        <ProjectWizardProgress
+          steps={wizardSteps}
+          currentIndex={stepIndex}
+          maxReachedIndex={maxReachedIndex}
+          onStepClick={handleStepClick}
+        />
+        <Stack gap={4}>
+          {currentStep.id === "podstawowe" && (
+            <ProjectWizardBasicInfoStep countries={countries} showValidation={showValidation} />
+          )}
+          {currentStep.id === "techniczne" && <ProjectWizardTechnicalStep showValidation={showValidation} />}
+          {currentStep.id === "pliki" && (
+            <ProjectWizardFilesStep
+              showValidation={showValidation}
+              productId={productId}
+              photos={photos}
+              onPhotosChange={handlePhotosChange}
+              floorPlans={floorPlans}
+              onFloorPlansChange={handleFloorPlansChange}
+            />
+          )}
+          {currentStep.id === "warianty" && <ProjectWizardVariantsStep productId={productId} />}
+          {currentStep.id === "faq" && <ProjectWizardFaqStep />}
+          {isSummaryStep && <ProjectWizardSummaryStep draft={values} countries={countries} />}
+        </Stack>
+        {saveError && <Text className="text-status-blocked">{saveError}</Text>}
+        <Stack direction="row" gap={2}>
+          {stepIndex > 0 && (
+            <Button type="button" variant="secondary" onClick={handleBack} disabled={isSaving} className="w-fit">
+              {t("back")}
+            </Button>
+          )}
+          {isSummaryStep ? (
+            <Button type="button" onClick={handleSave} disabled={isSaving} className="w-fit">
+              {t("save")}
+            </Button>
+          ) : (
+            <Button type="button" onClick={handleNext} disabled={isSaving} className="w-fit">
+              {t("next")}
+            </Button>
+          )}
+        </Stack>
       </Stack>
-      {saveError && <Text className="text-status-blocked">{saveError}</Text>}
-      <Stack direction="row" gap={2}>
-        {stepIndex > 0 && (
-          <Button type="button" variant="secondary" onClick={handleBack} disabled={isSaving} className="w-fit">
-            {t("back")}
-          </Button>
-        )}
-        {isSummaryStep ? (
-          <Button type="button" onClick={handleSave} disabled={isSaving} className="w-fit">
-            {t("save")}
-          </Button>
-        ) : (
-          <Button type="button" onClick={handleNext} disabled={isSaving} className="w-fit">
-            {t("next")}
-          </Button>
-        )}
-      </Stack>
-    </Stack>
+    </FormProvider>
   );
 }

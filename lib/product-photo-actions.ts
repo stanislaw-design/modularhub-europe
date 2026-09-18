@@ -4,7 +4,7 @@ import { and, eq, isNull } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db/client";
 import { getProducerIdForUser } from "@/lib/db/queries";
-import { document, product } from "@/lib/db/schema";
+import { document, product, productVariant } from "@/lib/db/schema";
 import { captureError } from "@/lib/observability/errors";
 import { validateProductPhotoFile } from "@/lib/storage/document-validation";
 import { buildPublicUrl, buildR2Key, deleteObject, uploadObject } from "@/lib/storage/r2-client";
@@ -222,6 +222,111 @@ export async function deleteProductPhoto(documentId: string): Promise<ActionResu
     await deleteObject(documentRow.r2Key);
   } catch (error) {
     captureError(error, { path: "deleteProductPhoto.r2", userId: actor.userId });
+  }
+
+  return { ok: true };
+}
+
+export interface UploadFloorPlanResult extends ActionResult {
+  documentId?: string;
+  url?: string;
+}
+
+// AC-7: prawdziwe wgrywanie rzutów architektonicznych, tym samym mechanizmem
+// R2 co zdjęcia produktu wyżej (spec 0045 Build plan zadanie 8) — ten sam
+// walidator magic-bytes (JPEG/PNG/WebP), ta sama tabela document z
+// purpose="product_floor_plan" zamiast "product_photo". variantId opcjonalny:
+// puste znaczy "dotyczy wszystkich wariantów" (spec 0041 Feature design);
+// podany variantId jest sprawdzony jako należący do tego samego productId,
+// żeby zmanipulowane żądanie nie mogło przypisać rzutu do cudzego wariantu.
+export async function uploadFloorPlan(
+  productId: string,
+  file: File,
+  variantId?: string | null,
+): Promise<UploadFloorPlanResult> {
+  const actor = await requirePhotoActor();
+  if (!actor) return { ok: false, error: DENIED_ERROR };
+  const ownership = await resolveProductOwnership(actor, productId);
+  if (ownership === "not_found") return { ok: false, error: PRODUCT_NOT_FOUND_ERROR };
+  if (ownership === "denied") return { ok: false, error: DENIED_ERROR };
+
+  if (variantId) {
+    const [variantRow] = await db
+      .select({ id: productVariant.id })
+      .from(productVariant)
+      .where(and(eq(productVariant.id, variantId), eq(productVariant.productId, productId), isNull(productVariant.deletedAt)));
+    if (!variantRow) return { ok: false, error: "Wariant nie należy do tego produktu." };
+  }
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const validation = validateProductPhotoFile(buffer);
+  if (!validation.ok || !validation.mimeType) {
+    return { ok: false, error: validation.error ?? "Nieprawidłowy plik." };
+  }
+
+  const r2Key = buildR2Key(file.name);
+  try {
+    await uploadObject(r2Key, buffer, validation.mimeType);
+  } catch (error) {
+    captureError(error, { path: "uploadFloorPlan", userId: actor.userId });
+    return { ok: false, error: "Nie udało się wgrać pliku do magazynu. Spróbuj ponownie." };
+  }
+
+  try {
+    const existing = await db
+      .select({ sortOrder: document.sortOrder })
+      .from(document)
+      .where(
+        and(eq(document.productId, productId), eq(document.purpose, "product_floor_plan"), isNull(document.deletedAt)),
+      );
+    const maxSortOrder = existing.reduce((max, row) => Math.max(max, row.sortOrder ?? -1), -1);
+
+    const [inserted] = await db
+      .insert(document)
+      .values({
+        r2Key,
+        filename: file.name,
+        mimeType: validation.mimeType,
+        sizeBytes: buffer.byteLength,
+        purpose: "product_floor_plan",
+        sortOrder: maxSortOrder + 1,
+        ownerUserId: actor.userId,
+        productId,
+        productVariantId: variantId || null,
+      })
+      .returning({ id: document.id });
+
+    return { ok: true, documentId: inserted.id, url: buildPublicUrl(r2Key) };
+  } catch (error) {
+    captureError(error, { path: "uploadFloorPlan", userId: actor.userId });
+    return { ok: false, error: "Plik trafił do magazynu, ale zapis w bazie się nie powiódł. Spróbuj ponownie." };
+  }
+}
+
+// AC-7: usunięcie rzutu, ten sam wzorzec co deleteProductPhoto wyżej (miękkie
+// usunięcie wiersza niezależnie od wyniku usunięcia z R2).
+export async function deleteFloorPlan(documentId: string): Promise<ActionResult> {
+  const actor = await requirePhotoActor();
+  if (!actor) return { ok: false, error: DENIED_ERROR };
+
+  const [documentRow] = await db
+    .select({ id: document.id, r2Key: document.r2Key, productId: document.productId })
+    .from(document)
+    .where(and(eq(document.id, documentId), isNull(document.deletedAt)));
+  if (!documentRow) return { ok: false, error: "Nie znaleziono rzutu." };
+  if (!(await actorOwnsProduct(actor, documentRow.productId))) return { ok: false, error: DENIED_ERROR };
+
+  try {
+    await db.update(document).set({ deletedAt: new Date() }).where(eq(document.id, documentId));
+  } catch (error) {
+    captureError(error, { path: "deleteFloorPlan", userId: actor.userId });
+    return { ok: false, error: "Nie udało się usunąć rzutu. Spróbuj ponownie." };
+  }
+
+  try {
+    await deleteObject(documentRow.r2Key);
+  } catch (error) {
+    captureError(error, { path: "deleteFloorPlan.r2", userId: actor.userId });
   }
 
   return { ok: true };

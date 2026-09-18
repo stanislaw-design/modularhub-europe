@@ -24,14 +24,11 @@ test.describe("/pl/project/[id]", () => {
       "href",
       "/pl/inquiry?projects=prj-modulor-family-90"
     );
-    await expect(page.getByRole("link", { name: "Dodaj do shortlisty" })).toHaveAttribute(
-      "href",
-      "/pl/results?projects=prj-modulor-family-90"
-    );
-    await expect(page.getByRole("link", { name: "Sprawdź działkę pod ten projekt" })).toHaveAttribute(
-      "href",
-      "/pl/plot?projects=prj-modulor-family-90"
-    );
+    // "Dodaj do shortlisty"/"Sprawdź działkę pod ten projekt" used to also
+    // close the page as a button row; that row is gone (redundant with the
+    // mobile sticky bar's icon buttons, and desktop already has "Porównaj z
+    // innym domem" in the hero card), so there's nothing left to assert here
+    // at this (desktop) viewport.
   });
 
   test("hides sections with no source data, without an empty placeholder (AC-4)", async ({ page }) => {

@@ -23,7 +23,7 @@ afterEach(() => {
 describe("ThemeProvider body class mirroring (spec 0043 AC-11, portal fix)", () => {
   it("adds theme-klient to document.body while mounted", () => {
     render(
-      <ThemeProvider initialTheme="light">
+      <ThemeProvider initialTheme="light" scopeClassName="theme-klient">
         <ThemeConsumer />
       </ThemeProvider>
     );
@@ -33,7 +33,7 @@ describe("ThemeProvider body class mirroring (spec 0043 AC-11, portal fix)", () 
 
   it("adds dark to document.body when the initial (cookie) theme is dark", () => {
     render(
-      <ThemeProvider initialTheme="dark">
+      <ThemeProvider initialTheme="dark" scopeClassName="theme-klient">
         <ThemeConsumer />
       </ThemeProvider>
     );
@@ -44,7 +44,7 @@ describe("ThemeProvider body class mirroring (spec 0043 AC-11, portal fix)", () 
 
   it("adds light to document.body when the initial (cookie) theme is light", () => {
     render(
-      <ThemeProvider initialTheme="light">
+      <ThemeProvider initialTheme="light" scopeClassName="theme-klient">
         <ThemeConsumer />
       </ThemeProvider>
     );
@@ -55,7 +55,7 @@ describe("ThemeProvider body class mirroring (spec 0043 AC-11, portal fix)", () 
 
   it("adds neither dark nor light when there is no explicit theme yet (follows system via CSS media query)", () => {
     render(
-      <ThemeProvider initialTheme={null}>
+      <ThemeProvider initialTheme={null} scopeClassName="theme-klient">
         <ThemeConsumer />
       </ThemeProvider>
     );
@@ -68,7 +68,7 @@ describe("ThemeProvider body class mirroring (spec 0043 AC-11, portal fix)", () 
   it("moves the dark/light class on document.body when the theme is toggled", async () => {
     const user = userEvent.setup();
     render(
-      <ThemeProvider initialTheme="light">
+      <ThemeProvider initialTheme="light" scopeClassName="theme-klient">
         <ThemeConsumer />
       </ThemeProvider>
     );
@@ -82,7 +82,7 @@ describe("ThemeProvider body class mirroring (spec 0043 AC-11, portal fix)", () 
 
   it("removes theme-klient, dark, and light from document.body on unmount", () => {
     const { unmount } = render(
-      <ThemeProvider initialTheme="dark">
+      <ThemeProvider initialTheme="dark" scopeClassName="theme-klient">
         <ThemeConsumer />
       </ThemeProvider>
     );
@@ -97,5 +97,32 @@ describe("ThemeProvider body class mirroring (spec 0043 AC-11, portal fix)", () 
     expect(document.body.classList.contains("theme-klient")).toBe(false);
     expect(document.body.classList.contains("dark")).toBe(false);
     expect(document.body.classList.contains("light")).toBe(false);
+  });
+});
+
+describe("ThemeProvider scopeClassName (spec 0046: second, independent scope for the producer panel)", () => {
+  it("mounts the given scope class instead of theme-klient when scopeClassName differs", () => {
+    render(
+      <ThemeProvider initialTheme="dark" scopeClassName="theme-producer">
+        <ThemeConsumer />
+      </ThemeProvider>
+    );
+
+    expect(document.body.classList.contains("theme-producer")).toBe(true);
+    expect(document.body.classList.contains("theme-klient")).toBe(false);
+    expect(document.body.classList.contains("dark")).toBe(true);
+  });
+
+  it("removes the given scope class (not theme-klient) on unmount", () => {
+    const { unmount } = render(
+      <ThemeProvider initialTheme="dark" scopeClassName="theme-producer">
+        <ThemeConsumer />
+      </ThemeProvider>
+    );
+
+    unmount();
+
+    expect(document.body.classList.contains("theme-producer")).toBe(false);
+    expect(document.body.classList.contains("dark")).toBe(false);
   });
 });

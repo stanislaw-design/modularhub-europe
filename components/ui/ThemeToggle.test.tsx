@@ -24,7 +24,7 @@ afterEach(() => {
 describe("ThemeToggle (spec 0043 AC-1, AC-2, AC-5, AC-9)", () => {
   it("shows the moon icon and offers switching to dark while the theme is light", () => {
     render(
-      <ThemeProvider initialTheme="light">
+      <ThemeProvider initialTheme="light" scopeClassName="theme-klient">
         <ThemeToggle />
       </ThemeProvider>
     );
@@ -36,7 +36,7 @@ describe("ThemeToggle (spec 0043 AC-1, AC-2, AC-5, AC-9)", () => {
 
   it("shows the sun icon and offers switching to light while the theme is dark", () => {
     render(
-      <ThemeProvider initialTheme="dark">
+      <ThemeProvider initialTheme="dark" scopeClassName="theme-klient">
         <ThemeToggle />
       </ThemeProvider>
     );
@@ -48,7 +48,7 @@ describe("ThemeToggle (spec 0043 AC-1, AC-2, AC-5, AC-9)", () => {
   it("flips the theme, aria-pressed, and label on click (AC-2, AC-5)", async () => {
     const user = userEvent.setup();
     render(
-      <ThemeProvider initialTheme="light">
+      <ThemeProvider initialTheme="light" scopeClassName="theme-klient">
         <ThemeToggle />
       </ThemeProvider>
     );
@@ -61,7 +61,7 @@ describe("ThemeToggle (spec 0043 AC-1, AC-2, AC-5, AC-9)", () => {
   it("writes the choice to the theme cookie on click, so it survives a reload (AC-4)", async () => {
     const user = userEvent.setup();
     render(
-      <ThemeProvider initialTheme="light">
+      <ThemeProvider initialTheme="light" scopeClassName="theme-klient">
         <ThemeToggle />
       </ThemeProvider>
     );
@@ -84,7 +84,7 @@ describe("ThemeToggle (spec 0043 AC-1, AC-2, AC-5, AC-9)", () => {
     } as unknown as MediaQueryList);
 
     render(
-      <ThemeProvider initialTheme={null}>
+      <ThemeProvider initialTheme={null} scopeClassName="theme-klient">
         <ThemeToggle />
       </ThemeProvider>
     );
@@ -95,7 +95,7 @@ describe("ThemeToggle (spec 0043 AC-1, AC-2, AC-5, AC-9)", () => {
 
   it("renders a visible text label next to the icon when withLabel is set (mobile menu usage)", () => {
     render(
-      <ThemeProvider initialTheme="light">
+      <ThemeProvider initialTheme="light" scopeClassName="theme-klient">
         <ThemeToggle withLabel />
       </ThemeProvider>
     );
@@ -106,7 +106,7 @@ describe("ThemeToggle (spec 0043 AC-1, AC-2, AC-5, AC-9)", () => {
   it("is reachable by Tab and activates with the keyboard (AC-9)", async () => {
     const user = userEvent.setup();
     render(
-      <ThemeProvider initialTheme="light">
+      <ThemeProvider initialTheme="light" scopeClassName="theme-klient">
         <ThemeToggle />
       </ThemeProvider>
     );

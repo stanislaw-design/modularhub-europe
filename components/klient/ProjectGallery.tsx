@@ -46,6 +46,49 @@ export async function ProjectGalleryCover({ coverImageUrl, totalCount, projectNa
   );
 }
 
+interface ProjectGalleryCarouselProps {
+  coverImageUrl: string;
+  galleryImageUrls?: string[];
+  projectName: string;
+  className?: string;
+}
+
+// Mobile/tablet only (renderowany pod lg, patrz ProjectGalleryTabs): jedno
+// zdjęcie na cały ekran naraz, przewijane gestem w bok (scroll-snap, bez JS)
+// zamiast osobnej okładki + paska miniatur pod spodem — ten sam zestaw zdjęć
+// co ProjectGalleryCover/Thumbnails razem, w tej samej kolejności, więc
+// indeksy trafiają do tego samego GalleryLightboxProvider.
+export async function ProjectGalleryCarousel({ coverImageUrl, galleryImageUrls, projectName, className }: ProjectGalleryCarouselProps) {
+  const t = await getTranslations("ProjectGallery");
+  const extraImages = galleryImageUrls?.filter((url) => url.length > 0) ?? [];
+  const images = [coverImageUrl, ...extraImages];
+
+  return (
+    <div
+      className={`flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${className ?? ""}`}
+    >
+      {images.map((url, index) => {
+        const alt = index === 0 ? t("coverAlt", { name: projectName }) : t("thumbnailAlt", { name: projectName, index: index + 1 });
+        return (
+          <GalleryImageButton
+            key={`${url}-${index}`}
+            index={index}
+            label={t("lightboxOpen", { alt })}
+            className="relative aspect-[4/3] w-full shrink-0 snap-center overflow-hidden"
+          >
+            <Image src={url} alt={alt} fill priority={index === 0} sizes="100vw" className="object-cover" />
+            {index === 0 && images.length > 1 && (
+              <span className="absolute bottom-brand-2 left-brand-2 rounded-v5-pill bg-brand-v5-night/70 px-brand-2 py-1 text-label font-medium text-brand-v5-paper backdrop-blur-sm">
+                {t(`photoCountBadge.${photoCountBucket(images.length)}`, { count: images.length })}
+              </span>
+            )}
+          </GalleryImageButton>
+        );
+      })}
+    </div>
+  );
+}
+
 interface ProjectGalleryThumbnailsProps {
   galleryImageUrls?: string[];
   projectName: string;

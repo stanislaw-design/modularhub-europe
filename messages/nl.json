@@ -1,7 +1,6 @@
 {
   "SiteHeader": {
     "nav": {
-      "homes": "Woningen",
       "projects": "Projecten",
       "howItWorks": "Hoe het werkt",
       "verifiedManufacturers": "Geverifieerde producenten",
@@ -10,6 +9,7 @@
     "favorites": "Favorieten",
     "adminPanel": "Beheerderspaneel",
     "myProfile": "Mijn profiel",
+    "producerPanel": "Producentenpaneel",
     "signIn": "Inloggen",
     "start": "Account aanmaken",
     "openMenu": "Menu openen",
@@ -20,7 +20,7 @@
     "changeLanguage": "Taal wijzigen"
   },
   "ProducerHeader": {
-    "imClient": "Ik ben klant",
+    "home": "Startpagina",
     "account": "Account",
     "signIn": "Inloggen",
     "signOut": "Uitloggen"
@@ -226,7 +226,8 @@
       "podstawowe": "Basisinformatie",
       "techniczne": "Technische gegevens",
       "pliki": "Bestanden",
-      "cena": "Prijs en verkoop",
+      "warianty": "Varianten en prijzen",
+      "faq": "FAQ",
       "podsumowanie": "Samenvatting"
     },
     "family": {
@@ -248,6 +249,20 @@
       "gastronomiczne": "Horeca",
       "uslugowe": "Dienstverlening",
       "mieszkalne": "Wonen"
+    },
+    "costLineItemStatus": {
+      "w-cenie": "Inbegrepen",
+      "obowiazkowa-doplata": "Verplichte meerprijs",
+      "opcja": "Optie",
+      "po-stronie-klienta": "Voor rekening van de klant",
+      "do-wyceny": "Nog te offreren"
+    },
+    "timelineStageKey": {
+      "formalnosci": "Formaliteiten",
+      "produkcja": "Productie",
+      "transport": "Transport",
+      "montaz": "Montage",
+      "wykonczenie": "Afwerking"
     },
     "completionStandard": {
       "surowy-zamkniety": "Casco",
@@ -341,36 +356,114 @@
       },
       "kontenery-modulowe": {
         "gastronomiczne": {
-          "dimensions": { "label": "Afmetingen", "hint": "Breedte × diepte × hoogte" },
-          "structureMaterial": { "label": "Constructiemateriaal", "hint": "Materiaal van het frame/de constructie van de container" },
-          "insulationType": { "label": "Type isolatie", "hint": "Type thermische isolatie" },
-          "foundationType": { "label": "Funderingstype", "hint": "Funderingsmethode" },
-          "kitchenEquipmentType": { "label": "Keukenapparatuur", "hint": "Type geïnstalleerde keukenapparatuur" },
-          "extractionVentilation": { "label": "Afzuiging", "hint": "Type afzuig-/ventilatie-installatie" },
-          "electricalPower": { "label": "Vermogen elektrische aansluiting", "hint": "Vereiste stroomvoorziening" },
-          "waterSupplyType": { "label": "Watervoorziening", "hint": "Wijze van watertoevoer" },
-          "wasteWaterHandling": { "label": "Afvalwaterverwerking", "hint": "Wijze van afvoer van afvalwater" }
+          "dimensions": {
+            "label": "Afmetingen",
+            "hint": "Breedte × diepte × hoogte"
+          },
+          "structureMaterial": {
+            "label": "Constructiemateriaal",
+            "hint": "Materiaal van het frame/de constructie van de container"
+          },
+          "insulationType": {
+            "label": "Type isolatie",
+            "hint": "Type thermische isolatie"
+          },
+          "foundationType": {
+            "label": "Funderingstype",
+            "hint": "Funderingsmethode"
+          },
+          "kitchenEquipmentType": {
+            "label": "Keukenapparatuur",
+            "hint": "Type geïnstalleerde keukenapparatuur"
+          },
+          "extractionVentilation": {
+            "label": "Afzuiging",
+            "hint": "Type afzuig-/ventilatie-installatie"
+          },
+          "electricalPower": {
+            "label": "Vermogen elektrische aansluiting",
+            "hint": "Vereiste stroomvoorziening"
+          },
+          "waterSupplyType": {
+            "label": "Watervoorziening",
+            "hint": "Wijze van watertoevoer"
+          },
+          "wasteWaterHandling": {
+            "label": "Afvalwaterverwerking",
+            "hint": "Wijze van afvoer van afvalwater"
+          }
         },
         "uslugowe": {
-          "dimensions": { "label": "Afmetingen", "hint": "Breedte × diepte × hoogte" },
-          "structureMaterial": { "label": "Constructiemateriaal", "hint": "Materiaal van het frame/de constructie van de container" },
-          "insulationType": { "label": "Type isolatie", "hint": "Type thermische isolatie" },
-          "foundationType": { "label": "Funderingstype", "hint": "Funderingsmethode" },
-          "intendedUse": { "label": "Beoogd gebruik", "hint": "Gepland gebruik van de module, bijv. kantoor, winkel" },
-          "electricalInstallation": { "label": "Elektrische installatie", "hint": "Omvang van de elektrische installatie" },
-          "spaceHeatingType": { "label": "Type verwarming", "hint": "Wijze van ruimteverwarming" }
+          "dimensions": {
+            "label": "Afmetingen",
+            "hint": "Breedte × diepte × hoogte"
+          },
+          "structureMaterial": {
+            "label": "Constructiemateriaal",
+            "hint": "Materiaal van het frame/de constructie van de container"
+          },
+          "insulationType": {
+            "label": "Type isolatie",
+            "hint": "Type thermische isolatie"
+          },
+          "foundationType": {
+            "label": "Funderingstype",
+            "hint": "Funderingsmethode"
+          },
+          "intendedUse": {
+            "label": "Beoogd gebruik",
+            "hint": "Gepland gebruik van de module, bijv. kantoor, winkel"
+          },
+          "electricalInstallation": {
+            "label": "Elektrische installatie",
+            "hint": "Omvang van de elektrische installatie"
+          },
+          "spaceHeatingType": {
+            "label": "Type verwarming",
+            "hint": "Wijze van ruimteverwarming"
+          }
         },
         "mieszkalne": {
-          "dimensions": { "label": "Afmetingen", "hint": "Breedte × diepte × hoogte" },
-          "structureMaterial": { "label": "Constructiemateriaal", "hint": "Materiaal van het frame/de constructie van de container" },
-          "insulationType": { "label": "Type isolatie", "hint": "Type thermische isolatie" },
-          "foundationType": { "label": "Funderingstype", "hint": "Funderingsmethode" },
-          "sleepingCapacity": { "label": "Aantal slaapplaatsen", "hint": "Maximaal aantal personen" },
-          "bathroomIncluded": { "label": "Badkamer", "hint": "Of de module een badkamer bevat" },
-          "spaceHeatingType": { "label": "Type verwarming", "hint": "Wijze van ruimteverwarming" },
-          "waterSupplyType": { "label": "Watervoorziening", "hint": "Wijze van watertoevoer" },
-          "wasteWaterHandling": { "label": "Afvalwaterverwerking", "hint": "Wijze van afvoer van afvalwater" },
-          "electricalInstallation": { "label": "Elektrische installatie", "hint": "Omvang van de elektrische installatie" }
+          "dimensions": {
+            "label": "Afmetingen",
+            "hint": "Breedte × diepte × hoogte"
+          },
+          "structureMaterial": {
+            "label": "Constructiemateriaal",
+            "hint": "Materiaal van het frame/de constructie van de container"
+          },
+          "insulationType": {
+            "label": "Type isolatie",
+            "hint": "Type thermische isolatie"
+          },
+          "foundationType": {
+            "label": "Funderingstype",
+            "hint": "Funderingsmethode"
+          },
+          "sleepingCapacity": {
+            "label": "Aantal slaapplaatsen",
+            "hint": "Maximaal aantal personen"
+          },
+          "bathroomIncluded": {
+            "label": "Badkamer",
+            "hint": "Of de module een badkamer bevat"
+          },
+          "spaceHeatingType": {
+            "label": "Type verwarming",
+            "hint": "Wijze van ruimteverwarming"
+          },
+          "waterSupplyType": {
+            "label": "Watervoorziening",
+            "hint": "Wijze van watertoevoer"
+          },
+          "wasteWaterHandling": {
+            "label": "Afvalwaterverwerking",
+            "hint": "Wijze van afvoer van afvalwater"
+          },
+          "electricalInstallation": {
+            "label": "Elektrische installatie",
+            "hint": "Omvang van de elektrische installatie"
+          }
         }
       }
     }
@@ -418,35 +511,112 @@
     "nameEnLabel": "Naam (Engels)",
     "nameNlLabel": "Naam (Nederlands)",
     "descriptionEnLabel": "Beschrijving (Engels)",
-    "descriptionNlLabel": "Beschrijving (Nederlands)"
+    "descriptionNlLabel": "Beschrijving (Nederlands)",
+    "roomLayoutHeading": "Indeling van de ruimtes",
+    "roomLayoutHint": "Voeg ruimtes toe met hun oppervlakte en functie — deze sectie is zichtbaar op de projectpagina van de klant.",
+    "roomLayoutEmptyHint": "Er is nog geen ruimte toegevoegd.",
+    "roomNameLabel": "Naam van de ruimte",
+    "roomAreaLabel": "Oppervlakte (m²)",
+    "roomFunctionLabel": "Functie",
+    "roomMezzanineLabel": "Vide",
+    "moveUpLabel": "Omhoog verplaatsen",
+    "moveDownLabel": "Omlaag verplaatsen",
+    "removeRoomLabel": "Ruimte verwijderen",
+    "roomTranslationsHeading": "Vertalingen van ruimtenamen (optioneel)",
+    "roomNameTranslationLabel": "Naam van ruimte {index}",
+    "addRoomButton": "Ruimte toevoegen"
   },
   "ProjectWizardTechnicalStep": {
     "heading": "Technische gegevens",
     "selectRequiredError": "Kies {label}.",
-    "textRequiredError": "Voer {label} in."
+    "textRequiredError": "Voer {label} in.",
+    "structuralWarrantyLabel": "Constructiegarantie (jaar)",
+    "structuralWarrantyRequiredError": "Voer de constructiegarantie in jaren in.",
+    "logisticsHeading": "Logistiek en naleving",
+    "logisticsHint": "Transport- en servicegegevens plus een verklaring over de vereenvoudigde vergunning — zonder automatische regel erachter.",
+    "installationWarrantyLabel": "Montagegarantie (jaar)",
+    "minPlotWidthLabel": "Minimale kavelbreedte (m)",
+    "serviceScopeLabel": "Omschrijving van de service",
+    "transportDimensionsLabel": "Transportafmetingen",
+    "craneRequirementsLabel": "Kraanvereisten",
+    "simplifiedPermitLabel": "Komt in aanmerking voor een vereenvoudigde vergunning",
+    "simplifiedPermitUnset": "Nog niet bepaald",
+    "simplifiedPermitYes": "Ja",
+    "simplifiedPermitNo": "Nee"
   },
-  "ProjectWizardPricingStep": {
-    "heading": "Prijs en verkoop",
-    "priceLabel": "Prijs van het huis in de basisstandaard (EUR)",
-    "priceRequiredError": "Voer de prijs van het huis in.",
+  "ProjectWizardVariantsStep": {
+    "heading": "Varianten en prijzen",
+    "intro": "Voeg 1 tot 3 afwerkingsvarianten toe, elk met een eigen prijs, kostenposten en uitvoeringsplanning.",
+    "emptyHint": "Er is nog geen variant toegevoegd.",
+    "genericError": "Wijzigingen konden niet worden opgeslagen. Probeer het opnieuw.",
+    "addVariantHeading": "Variant toevoegen",
     "standardLabel": "Afwerkingsstandaard",
-    "standardRequiredError": "Kies een afwerkingsstandaard.",
-    "leadTimeLabel": "Productietermijn (weken)",
-    "leadTimeFromAriaLabel": "Productietermijn, vanaf (weken)",
-    "leadTimeToAriaLabel": "Productietermijn, tot (weken)",
-    "leadTimeRequiredError": "Voer een productietermijn vanaf en tot in, zodat de vanaf-waarde niet hoger is dan de tot-waarde.",
-    "assemblyTimeLabel": "Montagetijd ter plaatse (dagen)",
-    "assemblyTimeFromAriaLabel": "Montagetijd, vanaf (dagen)",
-    "assemblyTimeToAriaLabel": "Montagetijd, tot (dagen)",
-    "assemblyTimeRequiredError": "Voer een montagetijd vanaf en tot in, zodat de vanaf-waarde niet hoger is dan de tot-waarde.",
-    "warrantyLabel": "Constructiegarantie (jaar)",
-    "warrantyRequiredError": "Voer de constructiegarantie in jaren in."
+    "addVariantButton": "Variant toevoegen",
+    "cloneSourceLabel": "Klonen van variant",
+    "cloneStandardLabel": "Nieuwe standaard",
+    "cloneVariantButton": "Klonen",
+    "defaultBadge": "Standaard",
+    "moveUpLabel": "Omhoog verplaatsen",
+    "moveDownLabel": "Omlaag verplaatsen",
+    "deleteVariantLabel": "Variant verwijderen",
+    "setDefaultLabel": "Als standaard instellen",
+    "priceMinLabel": "Minimumprijs (EUR)",
+    "priceMaxLabel": "Maximumprijs (EUR)",
+    "scopeSummaryLabel": "Omschrijving van de omvang",
+    "translationsHeading": "Vertalingen van de omschrijving (optioneel)",
+    "translationTabEn": "EN",
+    "translationTabNl": "NL",
+    "scopeSummaryEnLabel": "Omschrijving van de omvang (EN)",
+    "scopeSummaryNlLabel": "Omschrijving van de omvang (NL)",
+    "costLineItemsHeading": "Kostenposten",
+    "costLineItemLabelLabel": "Post",
+    "costLineItemStatusLabel": "Status",
+    "costLineItemResponsiblePartyLabel": "Verantwoordelijke",
+    "removeCostLineItemLabel": "Kostenpost verwijderen",
+    "addCostLineItemButton": "Kostenpost toevoegen",
+    "timelineHeading": "Uitvoeringsplanning",
+    "stageDurationMinLabel": "Dagen vanaf",
+    "stageDurationMaxLabel": "Dagen tot",
+    "stageResponsiblePartyLabel": "Verantwoordelijke",
+    "saveVariantButton": "Variant opslaan",
+    "savedHint": "Opgeslagen."
+  },
+  "ProjectWizardFaqStep": {
+    "heading": "FAQ",
+    "intro": "Voeg de vragen toe die klanten het vaakst stellen over dit project.",
+    "emptyHint": "Er is nog geen vraag toegevoegd.",
+    "entryLabel": "Vraag {index}",
+    "moveUpLabel": "Omhoog verplaatsen",
+    "moveDownLabel": "Omlaag verplaatsen",
+    "removeLabel": "Vraag verwijderen",
+    "questionLabel": "Vraag",
+    "answerLabel": "Antwoord",
+    "translationsHeading": "Vertalingen (optioneel)",
+    "translationTabEn": "EN",
+    "translationTabNl": "NL",
+    "questionEnLabel": "Vraag (EN)",
+    "answerEnLabel": "Antwoord (EN)",
+    "questionNlLabel": "Vraag (NL)",
+    "answerNlLabel": "Antwoord (NL)",
+    "addButton": "Vraag toevoegen"
   },
   "ProjectWizardFilesStep": {
     "heading": "Bestanden",
     "floorPlanLabel": "Plattegronden",
     "floorPlanRequiredError": "Voeg minstens één plattegrond toe.",
     "photosUnavailable": "Sla eerst de basisinformatie van het product op om foto's toe te voegen."
+  },
+  "ProducerFloorPlanUploadStep": {
+    "label": "Plattegronden",
+    "variantLabel": "Geldt voor variant",
+    "allVariants": "Alle varianten",
+    "chooseFiles": "Bestanden kiezen",
+    "hint": "JPEG, PNG of WebP, max. 10 MB.",
+    "uploadError": "De plattegrond kon niet worden geüpload. Probeer het opnieuw.",
+    "deleteError": "De plattegrond kon niet worden verwijderd. Probeer het opnieuw.",
+    "requiredError": "Voeg minstens één plattegrond toe.",
+    "noFloorPlans": "Er is nog geen plattegrond geüpload.",
+    "removeFloorPlan": "Plattegrond {name} verwijderen"
   },
   "ProjectWizardSummaryStep": {
     "heading": "Samenvatting",
@@ -461,16 +631,18 @@
     "rowFamily": "Productfamilie",
     "rowSubcategory": "Subcategorie",
     "groupTechnical": "Technische gegevens",
-    "groupPricing": "Prijs en verkoop",
-    "rowPrice": "Prijs van het huis",
-    "rowPriceValue": "{price} EUR",
-    "rowStandard": "Afwerkingsstandaard",
-    "rowLeadTime": "Productietermijn",
-    "rowLeadTimeValue": "{min}–{max} wk.",
-    "rowAssemblyTime": "Montagetijd",
-    "rowAssemblyTimeValue": "{min}–{max} dagen",
+    "groupVariants": "Varianten en prijzen",
+    "rowVariantCount": "Aantal varianten",
+    "rowDefaultPrice": "Prijs van de standaardvariant",
+    "rowDefaultPriceValue": "{price} EUR",
+    "groupLogistics": "Logistiek en naleving",
     "rowWarranty": "Constructiegarantie",
     "rowWarrantyValue": "{years} jaar",
+    "rowInstallationWarranty": "Montagegarantie",
+    "rowSimplifiedPermit": "Vereenvoudigde vergunning",
+    "groupContent": "Inhoud van de projectpagina",
+    "rowRoomCount": "Aantal ruimtes",
+    "rowFaqCount": "Aantal FAQ-vragen",
     "groupFiles": "Bestanden",
     "floorPlanCount": "Plattegronden ({count})",
     "photoCount": "Foto's ({count})",
@@ -576,7 +748,7 @@
     },
     "simplifiedPermitEligible": "In aanmerking voor de vereenvoudigde vergunningsmelding",
     "simplifiedPermitNotEligible": "Niet in aanmerking voor de vereenvoudigde vergunningsmelding",
-    "producerHeading": "Producent",
+    "producerHeading": "Opgeleverde projecten en producent",
     "bulkInquiryHeading": "Grotere hoeveelheid nodig?",
     "bulkInquiryBody": "Deze producent is volume-geverifieerd. Vraag naar dit model in een grotere hoeveelheid.",
     "addToShortlist": "Toevoegen aan shortlist",
@@ -642,9 +814,15 @@
     "notIncluded": "Niet van toepassing",
     "noCostLineItems": "Kostenposten: nog aan te vullen door de producent.",
     "toBeCompleted": "Nog aan te vullen",
+    "legendMissing": "Nog aan te vullen / niet van toepassing",
     "completionStandard": {
       "surowy-zamkniety": "Casco dicht",
       "deweloperski": "Afbouwniveau ontwikkelaar",
+      "pod-klucz": "Sleutelklaar"
+    },
+    "completionStandardShort": {
+      "surowy-zamkniety": "Casco",
+      "deweloperski": "Ontwikkelaar",
       "pod-klucz": "Sleutelklaar"
     },
     "status": {
@@ -740,15 +918,37 @@
     "responsibleParty": "Verantwoordelijk: {party}",
     "toBeCompleted": "Nog aan te vullen"
   },
+  "ProjectDocumentsAndFaq": {
+    "heading": "Documenten en vragen",
+    "documentsHeading": "Documenten",
+    "documentsPlaceholder": "Technische fiches, garanties en andere formele documenten voor dit huis zijn nog niet door de producent aangeleverd.",
+    "questionsHeading": "Vragen en antwoorden",
+    "questionsPlaceholder": "De producent heeft nog geen antwoorden toegevoegd op veelgestelde vragen over dit model.",
+    "toBeCompleted": "Nog aan te vullen"
+  },
   "ProjectGalleryTabs": {
     "tablistLabel": "Projectfoto's",
     "tabWizualizacje": "Visualisaties",
     "tabRzut": "Plattegrond",
-    "tabRealizacje": "Opgeleverde projecten",
     "floorPlanAlt": "Plattegrond {name}, weergave {index}",
-    "realizationAlt": "Foto van een opgeleverd project {name}, {index}",
-    "realizacjePlaceholder": "Foto's van een opgeleverd project, nog aan te vullen door de producent",
     "rzutPlaceholder": "Plattegrond nog aan te vullen door de producent"
+  },
+  "ProducerRealizationsSection": {
+    "verified": "Geverifieerd door ModularHub",
+    "completedProjects": "{count} opgeleverde projecten",
+    "modelsInOffer": "{count} modellen in het assortiment",
+    "showroomVisitAvailable": "Bezoek op locatie mogelijk",
+    "showroomVisitUnavailable": "Geen bezoek op locatie mogelijk",
+    "showroomVisitUnknown": "Bezoek op locatie nog te bevestigen met de producent",
+    "realizationsHeading": "Opgeleverde huizen van dit project",
+    "realizationAlt": "Foto van een opgeleverd project {name}, {index}",
+    "realizationsPlaceholder": "Echte foto's van opgeleverde huizen van dit project, nog aan te vullen door de producent",
+    "country": {
+      "PL": "Polen",
+      "DE": "Duitsland",
+      "NL": "Nederland"
+    },
+    "countryOfProduction": "Productieland: {country}"
   },
   "ProjectTechnicalSpecs": {
     "heading": "Technologie en constructie",
@@ -1162,13 +1362,6 @@
     "error": "Voer een geldig NIP in (10 cijfers).",
     "submitButton": "Producten bekijken"
   },
-  "ProducerPanelTabs": {
-    "navAriaLabel": "Fabrikantenpaneel",
-    "konto": "Account",
-    "produkty": "Producten",
-    "zapytania": "Aanvragen",
-    "unreadBadgeLabel": "Klant heeft een beslissing genomen"
-  },
   "ProducerPanelPage": {
     "heading": "Account",
     "noProfile": "Geen bedrijfsgegevens gevonden voor dit account.",
@@ -1376,5 +1569,17 @@
     "sentHeading": "Aanvraag verzonden",
     "sentBody": "De producent heeft uw aanvraag ontvangen en reageert per e mail met een offerte.",
     "close": "Sluiten"
+  },
+  "ProducerPanelSidebar": {
+    "navAriaLabel": "Fabrikantenpaneel",
+    "konto": "Account",
+    "produkty": "Producten",
+    "zapytania": "Aanvragen",
+    "unreadBadgeLabel": "Klant heeft een beslissing genomen",
+    "home": "Startpagina",
+    "signOut": "Uitloggen",
+    "openMenu": "Menu openen",
+    "closeMenu": "Menu sluiten",
+    "menu": "Menu"
   }
 }

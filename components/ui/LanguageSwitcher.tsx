@@ -9,21 +9,21 @@ import { usePathname, useRouter } from "@/lib/i18n/navigation";
 import { routing, type Locale } from "@/lib/i18n/routing";
 import { tv } from "@/lib/tv";
 
+// `anchor` (Headless UI v2's Floating UI integration, see MenuItems below)
+// takes over positioning, including flipping the panel above the trigger
+// when there isn't room below (e.g. the language row near the bottom of the
+// slide-out menu) — the manual `absolute`/`left-0`/`right-0` classes this
+// used before couldn't do that.
 const panel = tv({
-  base: "absolute z-50 mt-1 w-36 overflow-hidden rounded-data border border-brand-steel bg-brand-warm-white py-1 shadow-md focus:outline-none data-[closed]:opacity-0 data-[closed]:scale-95 transition duration-100 ease-out",
+  base: "z-50 w-36 overflow-hidden rounded-data border border-brand-steel bg-brand-warm-white py-1 shadow-md focus:outline-none data-[closed]:opacity-0 data-[closed]:scale-95 transition duration-100 ease-out [--anchor-gap:4px]",
   variants: {
     surface: {
       v3: "",
       v5: "border-brand-v5-line bg-brand-v5-surface",
     },
-    align: {
-      start: "left-0",
-      end: "right-0",
-    },
   },
   defaultVariants: {
     surface: "v3",
-    align: "end",
   },
 });
 
@@ -56,11 +56,11 @@ function LanguageSwitcherTrigger({ locale, triggerClassName = "" }: LanguageSwit
   return (
     <span
       aria-hidden="true"
-      className={`items-center gap-1 text-body font-medium opacity-50 ${triggerClassName}`}
+      className={`inline-flex items-center gap-1 whitespace-nowrap text-body font-medium opacity-50 ${triggerClassName}`}
       title={t("changeLanguage")}
     >
       {locale.toUpperCase()}
-      <ChevronDown className="size-4" />
+      <ChevronDown className="size-4 shrink-0" />
     </span>
   );
 }
@@ -83,16 +83,16 @@ function LanguageSwitcherMenu({ locale, surface, align, triggerClassName = "" }:
   }
 
   return (
-    <Menu as="div" className="relative">
+    <Menu as="div">
       <MenuButton
         disabled={isPending}
         aria-label={t("changeLanguage")}
-        className={`items-center gap-1 text-body font-medium disabled:cursor-default disabled:opacity-50 ${triggerClassName}`}
+        className={`inline-flex items-center gap-1 whitespace-nowrap text-body font-medium disabled:cursor-default disabled:opacity-50 ${triggerClassName}`}
       >
         {locale.toUpperCase()}
-        <ChevronDown className="size-4" aria-hidden="true" />
+        <ChevronDown className="size-4 shrink-0" aria-hidden="true" />
       </MenuButton>
-      <MenuItems transition className={panel({ surface, align })}>
+      <MenuItems transition anchor={align === "start" ? "bottom start" : "bottom end"} className={panel({ surface })}>
         {routing.locales.map((code) => (
           <MenuItem key={code}>
             <button type="button" onClick={() => switchTo(code)} className={option({ surface })}>

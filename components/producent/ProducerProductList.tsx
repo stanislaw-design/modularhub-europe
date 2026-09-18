@@ -93,7 +93,7 @@ export function ProducerProductList({ locale, products }: ProducerProductListPro
                 <Stack direction="row" gap={2}>
                   <Button
                     as="a"
-                    href={`/${locale}/producer/panel/products/${productItem.id}/edytuj`}
+                    href={`/${locale}/producer/panel/products/${productItem.id}/edit`}
                     variant="secondary"
                     size="sm"
                   >
