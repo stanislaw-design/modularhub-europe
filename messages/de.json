@@ -501,13 +501,16 @@
     "descriptionLabel": "Beschreibung",
     "descriptionRequiredError": "Geben Sie eine Projektbeschreibung an.",
     "translationsHeading": "Übersetzungen (optional)",
-    "translationsHint": "Englisch und Niederländisch sind optional — ohne Übersetzung sehen ausländische Kunden den polnischen Text.",
+    "translationsHint": "Englisch, Niederländisch und Deutsch sind optional — ohne Übersetzung sehen ausländische Kunden den polnischen Text.",
     "translationTabEn": "Englisch",
     "translationTabNl": "Niederländisch",
+    "translationTabDe": "Deutsch",
     "nameEnLabel": "Name (Englisch)",
     "nameNlLabel": "Name (Niederländisch)",
+    "nameDeLabel": "Name (Deutsch)",
     "descriptionEnLabel": "Beschreibung (Englisch)",
     "descriptionNlLabel": "Beschreibung (Niederländisch)",
+    "descriptionDeLabel": "Beschreibung (Deutsch)",
     "roomLayoutHeading": "Raumaufteilung",
     "roomLayoutHint": "Fügen Sie Räume mit Fläche und Funktion hinzu — dieser Abschnitt erscheint auf der Projektseite des Kunden.",
     "roomLayoutEmptyHint": "Es wurde noch kein Raum hinzugefügt.",
@@ -613,6 +616,16 @@
     "requiredError": "Fügen Sie mindestens einen Grundriss hinzu.",
     "noFloorPlans": "Es wurde noch kein Grundriss hochgeladen.",
     "removeFloorPlan": "Grundriss {name} entfernen"
+  },
+  "ProducerSpecificationPdfUploadStep": {
+    "label": "Spezifikations-PDF",
+    "chooseFile": "Datei auswählen",
+    "replaceFile": "Datei ersetzen",
+    "hint": "PDF, max. 10 MB.",
+    "uploadError": "Die Spezifikationsdatei konnte nicht hochgeladen werden. Bitte versuchen Sie es erneut.",
+    "deleteError": "Die Spezifikationsdatei konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.",
+    "noFile": "Es wurde noch keine Spezifikationsdatei hochgeladen.",
+    "removeFile": "Spezifikationsdatei {name} entfernen"
   },
   "ProjectWizardSummaryStep": {
     "heading": "Zusammenfassung",
@@ -938,6 +951,7 @@
     "heading": "Dokumente und Fragen",
     "documentsHeading": "Dokumente",
     "documentsPlaceholder": "Datenblätter, Garantien und andere formelle Dokumente zu diesem Haus wurden vom Hersteller noch nicht bereitgestellt.",
+    "downloadSpecificationLabel": "Spezifikations-PDF herunterladen",
     "questionsHeading": "Fragen und Antworten",
     "questionsPlaceholder": "Der Hersteller hat noch keine Antworten auf häufig gestellte Fragen zu diesem Modell hinzugefügt.",
     "toBeCompleted": "Noch zu ergänzen"

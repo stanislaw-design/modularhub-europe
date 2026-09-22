@@ -19,14 +19,9 @@ const filledDraft = {
   family: "dom" as const,
   category: "caloroczny" as const,
   technicalSpecs: {
-    wallBuildUp: "Szkielet",
-    insulation: "U = 0.15",
     heatTransferCoefficients: "A" as const,
-    windowClass: "Uw = 0.8",
     ventilation: "rekuperacja" as const,
     heatSource: "pompa-ciepla-powietrze-woda" as const,
-    fireResistance: "REI 30",
-    windResistance: "Strefa 2",
   },
   floorPlanFiles: [{ name: "rzut.pdf", sizeBytes: 10 }],
   photoFiles: [
@@ -43,8 +38,8 @@ describe("ProjectWizardSummaryStep", () => {
     expect(screen.getByText("120 m²")).toBeInTheDocument();
     expect(screen.getByText("3")).toBeInTheDocument();
     expect(screen.getByText("Polska")).toBeInTheDocument();
-    expect(screen.getByText("Szkielet")).toBeInTheDocument();
-    expect(screen.getByText("REI 30")).toBeInTheDocument();
+    expect(screen.getByText("Klasa A")).toBeInTheDocument();
+    expect(screen.getByText("Pompa ciepła powietrze-woda")).toBeInTheDocument();
   });
 
   it("renders no editable form controls, only static text", () => {

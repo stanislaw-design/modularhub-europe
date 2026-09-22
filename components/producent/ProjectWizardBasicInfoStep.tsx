@@ -35,9 +35,9 @@ export function ProjectWizardBasicInfoStep({
   const t = useTranslations("ProjectWizardBasicInfoStep");
   const tOptions = useTranslations("ProjectOptions");
   const { control, register, setValue } = useFormContext<ProjectDraft>();
-  // Zakładki EN/NL są opcjonalne (spec 0028 AC-5): brak walidacji, w
+  // Zakładki EN/NL/DE są opcjonalne (spec 0028 AC-5, AC-16): brak walidacji, w
   // przeciwieństwie do wymaganych pól polskich poniżej.
-  const [translationTab, setTranslationTab] = useState<"en" | "nl">("en");
+  const [translationTab, setTranslationTab] = useState<"en" | "nl" | "de">("en");
   // Uklad pomieszczen (spec 0045 AC-5, AC-10): trzy tablice w locku po
   // pozycji, ten sam wzorzec co ProjectWizardFaqStep — patrz komentarz tam.
   const roomLayoutArray = useFieldArray({ control, name: "roomLayout" });
@@ -324,8 +324,18 @@ export function ProjectWizardBasicInfoStep({
           >
             {t("translationTabNl")}
           </Button>
+          <Button
+            type="button"
+            role="tab"
+            aria-selected={translationTab === "de"}
+            variant={translationTab === "de" ? "primary" : "secondary"}
+            size="sm"
+            onClick={() => setTranslationTab("de")}
+          >
+            {t("translationTabDe")}
+          </Button>
         </div>
-        {translationTab === "en" ? (
+        {translationTab === "en" && (
           <Stack gap={2}>
             <Stack gap={1}>
               <Label htmlFor="wizard-name-en">{t("nameEnLabel")}</Label>
@@ -336,7 +346,8 @@ export function ProjectWizardBasicInfoStep({
               <Textarea id="wizard-description-en" {...register("descriptionEn")} />
             </Stack>
           </Stack>
-        ) : (
+        )}
+        {translationTab === "nl" && (
           <Stack gap={2}>
             <Stack gap={1}>
               <Label htmlFor="wizard-name-nl">{t("nameNlLabel")}</Label>
@@ -345,6 +356,18 @@ export function ProjectWizardBasicInfoStep({
             <Stack gap={1}>
               <Label htmlFor="wizard-description-nl">{t("descriptionNlLabel")}</Label>
               <Textarea id="wizard-description-nl" {...register("descriptionNl")} />
+            </Stack>
+          </Stack>
+        )}
+        {translationTab === "de" && (
+          <Stack gap={2}>
+            <Stack gap={1}>
+              <Label htmlFor="wizard-name-de">{t("nameDeLabel")}</Label>
+              <Input id="wizard-name-de" {...register("nameDe")} />
+            </Stack>
+            <Stack gap={1}>
+              <Label htmlFor="wizard-description-de">{t("descriptionDeLabel")}</Label>
+              <Textarea id="wizard-description-de" {...register("descriptionDe")} />
             </Stack>
           </Stack>
         )}

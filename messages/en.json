@@ -501,13 +501,16 @@
     "descriptionLabel": "Description",
     "descriptionRequiredError": "Enter a project description.",
     "translationsHeading": "Translations (optional)",
-    "translationsHint": "English and Dutch are optional — without a translation, foreign clients see the Polish text.",
+    "translationsHint": "English, Dutch, and German are optional — without a translation, foreign clients see the Polish text.",
     "translationTabEn": "English",
     "translationTabNl": "Dutch",
+    "translationTabDe": "German",
     "nameEnLabel": "Name (English)",
     "nameNlLabel": "Name (Dutch)",
+    "nameDeLabel": "Name (German)",
     "descriptionEnLabel": "Description (English)",
     "descriptionNlLabel": "Description (Dutch)",
+    "descriptionDeLabel": "Description (German)",
     "roomLayoutHeading": "Room layout",
     "roomLayoutHint": "Add rooms, their area and function — this section shows on the customer's project page.",
     "roomLayoutEmptyHint": "No room has been added yet.",
@@ -613,6 +616,16 @@
     "requiredError": "Add at least one floor plan.",
     "noFloorPlans": "No floor plan has been uploaded yet.",
     "removeFloorPlan": "Remove floor plan {name}"
+  },
+  "ProducerSpecificationPdfUploadStep": {
+    "label": "Specification PDF",
+    "chooseFile": "Choose file",
+    "replaceFile": "Replace file",
+    "hint": "PDF, max. 10 MB.",
+    "uploadError": "Couldn't upload the specification file. Please try again.",
+    "deleteError": "Couldn't delete the specification file. Please try again.",
+    "noFile": "No specification file has been uploaded yet.",
+    "removeFile": "Remove specification file {name}"
   },
   "ProjectWizardSummaryStep": {
     "heading": "Summary",
@@ -931,6 +944,7 @@
     "heading": "Documents and questions",
     "documentsHeading": "Documents",
     "documentsPlaceholder": "Spec sheets, warranties, and other formal documents for this house have not been provided by the producer yet.",
+    "downloadSpecificationLabel": "Download the specification PDF",
     "questionsHeading": "Questions and answers",
     "questionsPlaceholder": "The producer has not added answers to frequently asked questions about this model yet.",
     "toBeCompleted": "To be completed"

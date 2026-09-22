@@ -501,13 +501,16 @@
     "descriptionLabel": "Opis",
     "descriptionRequiredError": "Podaj opis projektu.",
     "translationsHeading": "Tłumaczenia (opcjonalnie)",
-    "translationsHint": "Angielski i niderlandzki są opcjonalne — bez tłumaczenia klienci z zagranicy zobaczą tekst polski.",
+    "translationsHint": "Angielski, niderlandzki i niemiecki są opcjonalne — bez tłumaczenia klienci z zagranicy zobaczą tekst polski.",
     "translationTabEn": "Angielski",
     "translationTabNl": "Niderlandzki",
+    "translationTabDe": "Niemiecki",
     "nameEnLabel": "Nazwa (angielski)",
     "nameNlLabel": "Nazwa (niderlandzki)",
+    "nameDeLabel": "Nazwa (niemiecki)",
     "descriptionEnLabel": "Opis (angielski)",
     "descriptionNlLabel": "Opis (niderlandzki)",
+    "descriptionDeLabel": "Opis (niemiecki)",
     "roomLayoutHeading": "Układ pomieszczeń",
     "roomLayoutHint": "Dodaj pomieszczenia, ich powierzchnię i funkcję — sekcja jest widoczna na karcie projektu klienta.",
     "roomLayoutEmptyHint": "Nie dodano jeszcze żadnego pomieszczenia.",
@@ -613,6 +616,16 @@
     "requiredError": "Dodaj co najmniej jeden rzut.",
     "noFloorPlans": "Nie wgrano jeszcze żadnego rzutu.",
     "removeFloorPlan": "Usuń rzut {name}"
+  },
+  "ProducerSpecificationPdfUploadStep": {
+    "label": "Specyfikacja PDF",
+    "chooseFile": "Wybierz plik",
+    "replaceFile": "Zastąp plik",
+    "hint": "PDF, maks. 10 MB.",
+    "uploadError": "Nie udało się wgrać pliku specyfikacji. Spróbuj ponownie.",
+    "deleteError": "Nie udało się usunąć pliku specyfikacji. Spróbuj ponownie.",
+    "noFile": "Nie wgrano jeszcze pliku specyfikacji.",
+    "removeFile": "Usuń plik specyfikacji {name}"
   },
   "ProjectWizardSummaryStep": {
     "heading": "Podsumowanie",
@@ -938,6 +951,7 @@
     "heading": "Dokumenty i pytania",
     "documentsHeading": "Dokumenty",
     "documentsPlaceholder": "Karty katalogowe, gwarancje i inne dokumenty formalne tego domu nie zostały jeszcze przekazane przez producenta.",
+    "downloadSpecificationLabel": "Pobierz PDF ze specyfikacją",
     "questionsHeading": "Pytania i odpowiedzi",
     "questionsPlaceholder": "Producent nie dodał jeszcze odpowiedzi na najczęściej zadawane pytania dotyczące tego modelu.",
     "toBeCompleted": "Do uzupełnienia"

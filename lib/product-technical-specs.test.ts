@@ -19,10 +19,25 @@ describe("getTechnicalSpecsSchema: dom", () => {
   });
 
   it("rejects a dom shape missing any required field when published", () => {
-    const missingWallBuildUp: Partial<typeof complete> = { ...complete };
-    delete missingWallBuildUp.wallBuildUp;
-    const result = getTechnicalSpecsSchema("dom", "published").safeParse(missingWallBuildUp);
+    const missingHeatSource: Partial<typeof complete> = { ...complete };
+    delete missingHeatSource.heatSource;
+    const result = getTechnicalSpecsSchema("dom", "published").safeParse(missingHeatSource);
     expect(result.success).toBe(false);
+  });
+
+  // wallBuildUp/insulation/windowClass/fireResistance/windResistance są
+  // .optional() od spec 0049 (AC-1, AC-5): brak ich w danych dawnego produktu
+  // nadal przechodzi walidację "published", żeby ponowny zapis istniejącego
+  // produktu bez tych pól się nie wywalał.
+  it("accepts a dom shape missing the five retired fields when published", () => {
+    const withoutRetiredFields = { ...complete };
+    delete (withoutRetiredFields as Partial<typeof complete>).wallBuildUp;
+    delete (withoutRetiredFields as Partial<typeof complete>).insulation;
+    delete (withoutRetiredFields as Partial<typeof complete>).windowClass;
+    delete (withoutRetiredFields as Partial<typeof complete>).fireResistance;
+    delete (withoutRetiredFields as Partial<typeof complete>).windResistance;
+    const result = getTechnicalSpecsSchema("dom", "published").safeParse(withoutRetiredFields);
+    expect(result.success).toBe(true);
   });
 
   it("rejects a heatSource outside the fixed set (spec 0026 AC-2)", () => {

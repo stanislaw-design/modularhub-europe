@@ -17,7 +17,7 @@ import { resolveHousePdfImportView, type HousePdfImportView } from "@/lib/house-
 import { getHouseAiIdentityKey, getHouseAiReviewGate, normalizeHouseAiValue, type HouseAiReviewBlockCode } from "@/lib/house-ai-rules";
 import type { HouseAiCandidate, HouseAiDecision } from "@/lib/house-ai-schemas";
 import { groupHouseAiReviewFields } from "@/lib/house-ai-review-groups";
-import { acknowledgeAiDocumentIssue, getAiReviewGate, saveAiFieldDecision } from "@/lib/house-ai-actions";
+import { acknowledgeAiDocumentIssue, applyAiExtraction, getAiReviewGate, saveAiFieldDecision } from "@/lib/house-ai-actions";
 import { HouseAiEvidencePanel } from "./HouseAiEvidencePanel";
 import { HouseAiFieldReview } from "./HouseAiFieldReview";
 import { HouseAiReviewGate } from "./HouseAiReviewGate";
@@ -47,6 +47,7 @@ export function HousePdfImportFlow({
   const [acknowledgedIssues, setAcknowledgedIssues] = useState<string[]>(fixtures.review.documentIssues.filter((issue) => issue.acknowledged).map((issue) => issue.id));
   const [activeCandidate, setActiveCandidate] = useState<HouseAiCandidate | null>(null);
   const [applied, setApplied] = useState(false);
+  const [isApplying, setIsApplying] = useState(false);
   const [persistenceError, setPersistenceError] = useState<string | null>(null);
   const [serverBlockCodes, setServerBlockCodes] = useState<HouseAiReviewBlockCode[] | undefined>(undefined);
 
@@ -212,6 +213,24 @@ export function HousePdfImportFlow({
     setAcknowledgedIssues((current) => [...current, issueId]);
     setPersistenceError(null);
     await refreshServerGate();
+  }
+
+  async function handleApply() {
+    if (!persisted) {
+      setApplied(true);
+      return;
+    }
+    setIsApplying(true);
+    setPersistenceError(null);
+    const result = await applyAiExtraction({ sessionId: reviewFixture.sessionId, expectedDecisionRevision: decisionRevision });
+    setIsApplying(false);
+    if (!result.ok) {
+      setPersistenceError(result.error ?? "Nie udało się zastosować wyniku do szkicu.");
+      return;
+    }
+    setApplied(true);
+    if (result.productId) router.push(`/${locale}/producer/panel/products/${result.productId}/edit`);
+    router.refresh();
   }
 
   const decisionByIdentity = new Map(decisions.map((decision) => [getHouseAiIdentityKey(decision), decision]));
@@ -385,7 +404,7 @@ export function HousePdfImportFlow({
             </div>
             <div className="lg:col-span-4"><HouseAiEvidencePanel candidate={activeCandidate} /></div>
           </div>
-          <HouseAiReviewGate isReady={gate.isApplyReady} blockCodes={gate.blockCodes} applied={applied} applyEnabled={!persisted} onApply={() => setApplied(true)} />
+          <HouseAiReviewGate isReady={gate.isApplyReady} blockCodes={gate.blockCodes} applied={applied} isApplying={isApplying} onApply={() => void handleApply()} />
         </Stack>
       )}
     </Stack>

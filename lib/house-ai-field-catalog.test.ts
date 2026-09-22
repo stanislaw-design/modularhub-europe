@@ -13,7 +13,7 @@ describe("HOUSE_AI_FIELD_CATALOG", () => {
     expect(paths).toEqual(expect.arrayContaining([
       "product.name",
       "technical.heatSource",
-      "logistics.minPlotWidthM",
+      "logistics.installationWarrantyYears",
       "rooms[].name",
       "variants[].priceMinCents",
       "variants[].costItems[].status",

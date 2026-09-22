@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 import { Controller, type Path, useFormContext, useWatch } from "react-hook-form";
-import { Checkbox, Heading, Input, Label, Select, Stack, Text, Textarea } from "@/components/ui";
+import { Checkbox, Heading, Input, Label, Select, Stack, Text } from "@/components/ui";
 import type { ProjectDraft } from "@/lib/data/types";
 import { getTechnicalFieldsFor } from "@/lib/producer-project-draft";
 import { ProjectWizardTechnicalField } from "./ProjectWizardTechnicalField";
@@ -146,6 +146,9 @@ export function ProjectWizardTechnicalStep({ showValidation }: ProjectWizardTech
           <Text tone="muted">{t("logisticsHint")}</Text>
         </Stack>
 
+        {/* minPlotWidthM/serviceScopeDescription/transportDimensions/craneRequirements
+            usunięte z kreatora (spec 0049 AC-1): dane istniejących produktów
+            zostają w bazie, rolę przejmuje jeden PDF specyfikacji (AC-6). */}
         <Stack direction="row" gap={3} className="flex-wrap">
           <Stack gap={1} className="min-w-40 flex-1">
             <Label htmlFor="wizard-installation-warranty">{t("installationWarrantyLabel")}</Label>
@@ -156,31 +159,6 @@ export function ProjectWizardTechnicalStep({ showValidation }: ProjectWizardTech
               {...register("installationWarrantyYears", { setValueAs: (value) => (value === "" ? null : Number(value)) })}
             />
           </Stack>
-          <Stack gap={1} className="min-w-40 flex-1">
-            <Label htmlFor="wizard-min-plot-width">{t("minPlotWidthLabel")}</Label>
-            <Input
-              id="wizard-min-plot-width"
-              type="number"
-              min={0}
-              step="0.1"
-              {...register("minPlotWidthM", { setValueAs: (value) => (value === "" ? null : Number(value)) })}
-            />
-          </Stack>
-        </Stack>
-
-        <Stack gap={1}>
-          <Label htmlFor="wizard-service-scope">{t("serviceScopeLabel")}</Label>
-          <Textarea id="wizard-service-scope" {...register("serviceScopeDescription")} />
-        </Stack>
-
-        <Stack gap={1}>
-          <Label htmlFor="wizard-transport-dimensions">{t("transportDimensionsLabel")}</Label>
-          <Input id="wizard-transport-dimensions" {...register("transportDimensions")} />
-        </Stack>
-
-        <Stack gap={1}>
-          <Label htmlFor="wizard-crane-requirements">{t("craneRequirementsLabel")}</Label>
-          <Input id="wizard-crane-requirements" {...register("craneRequirements")} />
         </Stack>
 
         <Stack gap={1}>

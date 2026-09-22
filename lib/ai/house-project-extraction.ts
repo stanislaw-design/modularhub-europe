@@ -559,8 +559,7 @@ Return pod-klucz or surowy-zamkniety only when the evidence explicitly names tha
 When the document uses only a canonical completion standard and gives no explicit package names, create exactly one variant entity for that standard. Do not invent package labels or duplicate an unnamed standard.
 Use a different variant entityKey for every named commercial package. Every label, completion standard, total price, scope, cost item, and timeline fact for that package must resolve to that same variant key.
 Return a total variant price only for an entity that also has an explicit package label or a supported canonical completion standard. Installation estimates, transport, foundations, differences between packages, per-square-metre options, and other line items must never create price-only variants.
-Variant-specific transport, installation, foundation, or package scope belongs under variants[], never in the global logistics.serviceScopeDescription field.
-Use logistics.serviceScopeDescription only for one service statement that explicitly applies to the whole product and every package. Keep each package-specific scope in variants[].scopeSummary under that package's entityKey, and combine complementary statements for the same package instead of returning them as conflicts.
+Variant-specific transport, installation, foundation, or package scope belongs only under variants[].scopeSummary for that package's entityKey; combine complementary statements for the same package instead of returning them as conflicts.
 For cost items and timeline stages, parentEntityKey must equal the local key of their parent variant only when the document makes that relationship explicit.
 If the parent variant is missing or ambiguous, return parentEntityKey null. Never guess a parent. The application will ask the user to add or assign the variant manually.
 All other parentEntityKey values must be null. Non-repeated fields must have entityKey null.

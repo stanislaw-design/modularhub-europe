@@ -143,7 +143,7 @@ export interface ProjectFaqItem {
 // Tylko te trzy wartości document_purpose dotyczą kart projektu klienta
 // (spec 0041 AC-9); reszta enuma (order_stage, company_verification,
 // producer_photo) żyje poza tym ekranem.
-export type ProjectDocumentPurpose = "product_photo" | "product_floor_plan" | "product_realization_photo";
+export type ProjectDocumentPurpose = "product_photo" | "product_floor_plan" | "product_realization_photo" | "product_specification";
 
 export interface ProjectDocument {
   url: string;
@@ -278,13 +278,18 @@ export interface ProjectDraft {
   bedrooms: number | null;
   countryOfProduction: CountryCode | null;
   description: string;
-  // Opcjonalne tłumaczenia EN/NL nazwy i opisu (spec 0028 AC-5): polski
-  // (name/description) zostaje wymaganym tekstem źródłowym, te pola mogą
-  // zostać puste — strona klienta wtedy pokazuje polski tekst (AC-6).
+  // Opcjonalne tłumaczenia EN/NL/DE nazwy i opisu (spec 0028 AC-5, AC-16):
+  // polski (name/description) zostaje wymaganym tekstem źródłowym, te pola
+  // mogą zostać puste — strona klienta wtedy pokazuje polski tekst (AC-6).
+  // Zawsze konkretny (choćby pusty) string tutaj: to stan formularza w
+  // przeglądarce, nie payload zapisu — patrz ProducerProductFields
+  // (lib/producer-product-actions.ts), gdzie te sześć pól jest opcjonalnych.
   nameEn: string;
   nameNl: string;
+  nameDe: string;
   descriptionEn: string;
   descriptionNl: string;
+  descriptionDe: string;
   // Niezmienna po utworzeniu produktu (spec 0022 AC-7): ścieżka edycji nie
   // pokazuje selektora, a updateProduct (lib/producer-products.ts) ignoruje
   // to pole z draftu i zachowuje wartość istniejącego produktu.

@@ -13,9 +13,12 @@ vi.mock("./ProducerProductPhotosStep", () => ({
 vi.mock("./ProducerFloorPlanUploadStep", () => ({
   ProducerFloorPlanUploadStep: () => <div>floor-plan-step</div>,
 }));
+vi.mock("./ProducerSpecificationPdfUploadStep", () => ({
+  ProducerSpecificationPdfUploadStep: () => <div>specification-pdf-step</div>,
+}));
 
 describe("ProjectWizardFilesStep", () => {
-  it("shows a placeholder instead of either real uploader when no productId exists yet", () => {
+  it("shows a placeholder instead of any real uploader when no productId exists yet", () => {
     render(
       <ProjectWizardFilesStep
         showValidation={false}
@@ -24,15 +27,18 @@ describe("ProjectWizardFilesStep", () => {
         onPhotosChange={vi.fn()}
         floorPlans={[]}
         onFloorPlansChange={vi.fn()}
+        specificationPdf={null}
+        onSpecificationPdfChange={vi.fn()}
       />,
     );
 
     expect(screen.queryByText("photos-step")).not.toBeInTheDocument();
     expect(screen.queryByText("floor-plan-step")).not.toBeInTheDocument();
-    expect(screen.getAllByText(/zapisz najpierw podstawowe informacje/i)).toHaveLength(2);
+    expect(screen.queryByText("specification-pdf-step")).not.toBeInTheDocument();
+    expect(screen.getAllByText(/zapisz najpierw podstawowe informacje/i)).toHaveLength(3);
   });
 
-  it("renders both real upload components once a productId exists (spec 0045 AC-7)", () => {
+  it("renders all three real upload components once a productId exists (spec 0045 AC-7, spec 0049 AC-6)", () => {
     render(
       <ProjectWizardFilesStep
         showValidation={false}
@@ -41,10 +47,13 @@ describe("ProjectWizardFilesStep", () => {
         onPhotosChange={vi.fn()}
         floorPlans={[]}
         onFloorPlansChange={vi.fn()}
+        specificationPdf={null}
+        onSpecificationPdfChange={vi.fn()}
       />,
     );
 
     expect(screen.getByText("photos-step")).toBeInTheDocument();
     expect(screen.getByText("floor-plan-step")).toBeInTheDocument();
+    expect(screen.getByText("specification-pdf-step")).toBeInTheDocument();
   });
 });

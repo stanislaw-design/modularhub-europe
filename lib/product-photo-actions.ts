@@ -1,11 +1,13 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { and, eq, isNull } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db/client";
 import { getProducerIdForUser } from "@/lib/db/queries";
 import { document, product, productVariant } from "@/lib/db/schema";
 import { captureError } from "@/lib/observability/errors";
+import { validateDocumentPdf } from "@/lib/storage/document-pdf-validation";
 import { validateProductPhotoFile } from "@/lib/storage/document-validation";
 import { buildPublicUrl, buildR2Key, deleteObject, uploadObject } from "@/lib/storage/r2-client";
 
@@ -327,6 +329,96 @@ export async function deleteFloorPlan(documentId: string): Promise<ActionResult>
     await deleteObject(documentRow.r2Key);
   } catch (error) {
     captureError(error, { path: "deleteFloorPlan.r2", userId: actor.userId });
+  }
+
+  return { ok: true };
+}
+
+export interface UploadProductSpecificationPdfResult extends ActionResult {
+  documentId?: string;
+  url?: string;
+}
+
+// Jeden plik PDF specyfikacji na produkt, zawsze productVariantId = null
+// (spec 0049 AC-6, AC-7): wgranie nowego pliku zastępuje poprzedni atomowo w
+// jednym db.batch (miękkie usunięcie starego, wstawienie nowego), ten sam
+// wzorzec co createAiProductDraft (lib/house-ai-import-actions.ts), bo
+// sterownik neon-http nie wspiera db.transaction (lib/db/AGENTS.md).
+export async function uploadProductSpecificationPdf(productId: string, file: File): Promise<UploadProductSpecificationPdfResult> {
+  const actor = await requirePhotoActor();
+  if (!actor) return { ok: false, error: DENIED_ERROR };
+  const ownership = await resolveProductOwnership(actor, productId);
+  if (ownership === "not_found") return { ok: false, error: PRODUCT_NOT_FOUND_ERROR };
+  if (ownership === "denied") return { ok: false, error: DENIED_ERROR };
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const validation = validateDocumentPdf(buffer);
+  if (!validation.ok) {
+    return { ok: false, error: validation.error ?? "Nieprawidłowy plik PDF." };
+  }
+
+  const r2Key = buildR2Key(file.name);
+  try {
+    await uploadObject(r2Key, buffer, "application/pdf");
+  } catch (error) {
+    captureError(error, { path: "uploadProductSpecificationPdf", userId: actor.userId });
+    return { ok: false, error: "Nie udało się wgrać pliku do magazynu. Spróbuj ponownie." };
+  }
+
+  try {
+    const existing = await db
+      .select({ id: document.id })
+      .from(document)
+      .where(
+        and(eq(document.productId, productId), eq(document.purpose, "product_specification"), isNull(document.deletedAt)),
+      );
+
+    const newDocumentId = randomUUID();
+    const statements = [
+      db.insert(document).values({
+        id: newDocumentId,
+        r2Key,
+        filename: file.name,
+        mimeType: "application/pdf",
+        sizeBytes: buffer.byteLength,
+        purpose: "product_specification",
+        ownerUserId: actor.userId,
+        productId,
+        productVariantId: null,
+      }),
+      ...existing.map((row) => db.update(document).set({ deletedAt: new Date() }).where(eq(document.id, row.id))),
+    ];
+    await db.batch(statements as [(typeof statements)[number], ...typeof statements]);
+
+    return { ok: true, documentId: newDocumentId, url: buildPublicUrl(r2Key) };
+  } catch (error) {
+    captureError(error, { path: "uploadProductSpecificationPdf", userId: actor.userId });
+    return { ok: false, error: "Plik trafił do magazynu, ale zapis w bazie się nie powiódł. Spróbuj ponownie." };
+  }
+}
+
+export async function deleteProductSpecificationPdf(documentId: string): Promise<ActionResult> {
+  const actor = await requirePhotoActor();
+  if (!actor) return { ok: false, error: DENIED_ERROR };
+
+  const [documentRow] = await db
+    .select({ id: document.id, r2Key: document.r2Key, productId: document.productId })
+    .from(document)
+    .where(and(eq(document.id, documentId), isNull(document.deletedAt)));
+  if (!documentRow) return { ok: false, error: "Nie znaleziono pliku specyfikacji." };
+  if (!(await actorOwnsProduct(actor, documentRow.productId))) return { ok: false, error: DENIED_ERROR };
+
+  try {
+    await db.update(document).set({ deletedAt: new Date() }).where(eq(document.id, documentId));
+  } catch (error) {
+    captureError(error, { path: "deleteProductSpecificationPdf", userId: actor.userId });
+    return { ok: false, error: "Nie udało się usunąć pliku specyfikacji. Spróbuj ponownie." };
+  }
+
+  try {
+    await deleteObject(documentRow.r2Key);
+  } catch (error) {
+    captureError(error, { path: "deleteProductSpecificationPdf.r2", userId: actor.userId });
   }
 
   return { ok: true };

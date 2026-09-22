@@ -8,8 +8,10 @@ import {
   aiDocumentIssue,
   aiExtractionSession,
 } from "@/lib/db/schema";
+import { buildAiApplyPayload } from "@/lib/house-ai-apply";
 import { HOUSE_AI_FIELD_PATHS } from "@/lib/house-ai-field-catalog";
 import type { HouseAiReviewBlockCode } from "@/lib/house-ai-rules";
+import type { HouseAiDecision } from "@/lib/house-ai-schemas";
 import { captureError } from "@/lib/observability/errors";
 import { requireProducerActor } from "@/lib/producer-actor";
 
@@ -30,6 +32,9 @@ const decisionInputSchema = z
 
 const sessionIdSchema = z.string().uuid();
 const issueInputSchema = z.object({ sessionId: z.string().uuid(), issueId: z.string().uuid() }).strict();
+const applyInputSchema = z
+  .object({ sessionId: z.string().uuid(), expectedDecisionRevision: z.number().int().nonnegative() })
+  .strict();
 
 export interface HouseAiActionResult {
   ok: boolean;
@@ -37,6 +42,7 @@ export interface HouseAiActionResult {
   fieldVersion?: number;
   decisionRevision?: number;
   blockCodes?: HouseAiReviewBlockCode[];
+  productId?: string;
 }
 
 const GENERIC_ERROR = "Nie udało się zapisać zmiany. Odśwież stronę i spróbuj ponownie.";
@@ -198,5 +204,76 @@ export async function getAiReviewGate(sessionId: string): Promise<HouseAiActionR
   } catch (error) {
     captureError(error, { path: "getAiReviewGate", userId: actor.userId });
     return { ok: false, error: GENERIC_ERROR };
+  }
+}
+
+type DecisionRow = {
+  field_path: string;
+  entity_key: string | null;
+  parent_entity_key: string | null;
+  selected_candidate_id: string | null;
+  final_value: unknown;
+  decision_type: HouseAiDecision["decisionType"];
+  version: number;
+};
+
+// Zastosowanie zaakceptowanych decyzji do szkicu produktu (spec 0047 AC-13).
+// Payload jest zbudowany i zwalidowany tu, po stronie TypeScript
+// (lib/house-ai-apply.ts), a wielotabelowy zapis odbywa się atomowo w
+// apply_ai_extraction (drizzle/0027_apply_ai_extraction.sql) — ten sam wzorzec
+// co save_ai_field_decision/get_ai_review_gate, bo neon-http nie wspiera
+// db.transaction (lib/db/AGENTS.md).
+export async function applyAiExtraction(input: unknown): Promise<HouseAiActionResult> {
+  const actor = await requireProducerActor();
+  if (!actor) return { ok: false, error: NOT_FOUND_ERROR };
+  const parsed = applyInputSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: NOT_FOUND_ERROR };
+
+  const [owned] = await db
+    .select({ id: aiExtractionSession.id })
+    .from(aiExtractionSession)
+    .where(and(
+      eq(aiExtractionSession.id, parsed.data.sessionId),
+      eq(aiExtractionSession.producerId, actor.producerId),
+    ));
+  if (!owned) return { ok: false, error: NOT_FOUND_ERROR };
+
+  const decisionRows = await db.execute(sql`
+    SELECT DISTINCT ON (field_path, entity_key, parent_entity_key)
+      field_path, entity_key, parent_entity_key, selected_candidate_id, final_value, decision_type, version
+    FROM ai_field_decision
+    WHERE session_id = ${parsed.data.sessionId}::uuid
+    ORDER BY field_path, entity_key, parent_entity_key, version DESC
+  `);
+  const decisions: HouseAiDecision[] = rowsFromExecute<DecisionRow>(decisionRows).map((row) => ({
+    fieldPath: row.field_path as HouseAiDecision["fieldPath"],
+    entityKey: row.entity_key,
+    parentEntityKey: row.parent_entity_key,
+    selectedCandidateId: row.selected_candidate_id,
+    finalValue: row.final_value,
+    decisionType: row.decision_type,
+    version: row.version,
+  }));
+
+  const built = buildAiApplyPayload(decisions);
+  if (!built.ok) return { ok: false, error: built.error };
+
+  try {
+    const result = await db.execute(sql`
+      SELECT * FROM apply_ai_extraction(
+        ${parsed.data.sessionId}::uuid,
+        ${actor.producerId}::uuid,
+        ${parsed.data.expectedDecisionRevision}::integer,
+        ${JSON.stringify(built.payload)}::jsonb
+      )
+    `);
+    const [row] = rowsFromExecute<{ applied_product_id: string }>(result);
+    if (!row) return { ok: false, error: GENERIC_ERROR };
+    return { ok: true, productId: row.applied_product_id };
+  } catch {
+    // Błąd sterownika może zawierać treść pola z PDF w komunikacie; do
+    // obserwowalności trafia wyłącznie bezpieczny kod operacji.
+    captureError(new Error("HOUSE_AI_APPLY_FAILED"), { path: "applyAiExtraction", userId: actor.userId });
+    return { ok: false, error: "Nie udało się zastosować wyniku do szkicu. Odśwież stronę i spróbuj ponownie." };
   }
 }

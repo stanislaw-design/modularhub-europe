@@ -2,6 +2,7 @@ import { useTranslations } from "next-intl";
 import { Heading, Stack, Text } from "@/components/ui";
 import { ProducerFloorPlanUploadStep, type ProducerFloorPlan, type ProducerFloorPlanVariantOption } from "./ProducerFloorPlanUploadStep";
 import { ProducerProductPhotosStep, type ProducerProductPhoto } from "./ProducerProductPhotosStep";
+import { ProducerSpecificationPdfUploadStep, type ProducerSpecificationPdf } from "./ProducerSpecificationPdfUploadStep";
 
 interface ProjectWizardFilesStepProps {
   showValidation: boolean;
@@ -13,6 +14,10 @@ interface ProjectWizardFilesStepProps {
   // Puste dla ProjectWizard (nowy projekt, krok "warianty" jeszcze nie
   // wypełniony) — patrz komentarz w ProducerFloorPlanUploadStep.
   floorPlanVariantOptions?: ProducerFloorPlanVariantOption[];
+  // Jeden opcjonalny plik na produkt (spec 0049 AC-6), null dla ProjectWizard
+  // dopóki productId nie istnieje, jak floorPlans/photos wyżej.
+  specificationPdf: ProducerSpecificationPdf | null;
+  onSpecificationPdfChange: (specificationPdf: ProducerSpecificationPdf | null) => void;
 }
 
 // Rzuty przeszły na realne wgrywanie R2 (spec 0045 AC-7, Build plan zadanie 8),
@@ -28,6 +33,8 @@ export function ProjectWizardFilesStep({
   floorPlans,
   onFloorPlansChange,
   floorPlanVariantOptions = [],
+  specificationPdf,
+  onSpecificationPdfChange,
 }: ProjectWizardFilesStepProps) {
   const t = useTranslations("ProjectWizardFilesStep");
 
@@ -57,6 +64,17 @@ export function ProjectWizardFilesStep({
       ) : (
         <Text tone="muted">{t("photosUnavailable")}</Text>
       )}
+      <Stack gap={2}>
+        {productId ? (
+          <ProducerSpecificationPdfUploadStep
+            productId={productId}
+            specificationPdf={specificationPdf}
+            onSpecificationPdfChange={onSpecificationPdfChange}
+          />
+        ) : (
+          <Text tone="muted">{t("photosUnavailable")}</Text>
+        )}
+      </Stack>
     </Stack>
   );
 }

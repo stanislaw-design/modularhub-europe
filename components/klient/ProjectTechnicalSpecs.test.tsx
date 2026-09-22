@@ -8,23 +8,26 @@ describe("ProjectTechnicalSpecs", () => {
   it("renders every populated field as a row (spec 0020 AC-1)", async () => {
     const project = createMockProject({
       constructionSystem: "Prefabrykowany szkielet drewniany C24/KVH",
-      windResistance: "Strefa wiatrowa 1-3 (do 30 m/s)",
+      foundationOptions: "Płyta fundamentowa grzewcza",
       structuralWarrantyYears: 30,
     });
     render(await resolveAsyncTree(<ProjectTechnicalSpecs project={project} />));
 
     expect(screen.getByText("Prefabrykowany szkielet drewniany C24/KVH")).toBeInTheDocument();
-    expect(screen.getByText("Strefa wiatrowa 1-3 (do 30 m/s)")).toBeInTheDocument();
+    expect(screen.getByText("Płyta fundamentowa grzewcza")).toBeInTheDocument();
     expect(screen.getByText("30 lat")).toBeInTheDocument();
   });
 
+  // insulation/windowClass/wallBuildUp/fireResistance/windResistance usunięte
+  // z tej strony (spec 0049 AC-3); mechanizm "puste pole nie renderuje
+  // wiersza" (spec 0020 AC-4) sprawdzany teraz na polach, które zostają.
   it("omits a row whose source field is an empty string, without a placeholder (spec 0020 AC-4)", async () => {
-    const project = createMockProject({ insulation: "", windowClass: "Klasa energetyczna A" });
+    const project = createMockProject({ roofType: "", foundationOptions: "Płyta fundamentowa" });
     render(await resolveAsyncTree(<ProjectTechnicalSpecs project={project} />));
 
-    expect(screen.queryByText("Czy zimą będzie ciepło?")).not.toBeInTheDocument();
-    expect(screen.getByText("Jakie okna są zamontowane?")).toBeInTheDocument();
-    expect(screen.getByText("Klasa energetyczna A")).toBeInTheDocument();
+    expect(screen.queryByText("Jaki jest kąt nachylenia dachu?")).not.toBeInTheDocument();
+    expect(screen.getByText("Na czym stanie dom?")).toBeInTheDocument();
+    expect(screen.getByText("Płyta fundamentowa")).toBeInTheDocument();
   });
 
   it("trims whitespace-only values and treats them as absent", async () => {

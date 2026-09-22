@@ -27,8 +27,10 @@ function completeDraft(): ProjectDraft {
     description: "Opis projektu",
     nameEn: "",
     nameNl: "",
+    nameDe: "",
     descriptionEn: "",
     descriptionNl: "",
+    descriptionDe: "",
     family: "dom",
     category: "caloroczny",
     spaSubcategory: null,
@@ -164,7 +166,7 @@ describe("isStepComplete: techniczne", () => {
     expect(
       isStepComplete("techniczne", {
         ...completeDraft(),
-        technicalSpecs: { ...completeDraft().technicalSpecs, wallBuildUp: "" },
+        technicalSpecs: { ...completeDraft().technicalSpecs, heatSource: undefined },
       })
     ).toBe(false);
   });
@@ -304,7 +306,7 @@ describe("isStepComplete: podsumowanie", () => {
     expect(
       isStepComplete("podsumowanie", {
         ...completeDraft(),
-        technicalSpecs: { ...completeDraft().technicalSpecs, fireResistance: "" },
+        technicalSpecs: { ...completeDraft().technicalSpecs, heatSource: undefined },
       })
     ).toBe(false);
     expect(isStepComplete("podsumowanie", { ...completeDraft(), photoFiles: [] })).toBe(false);

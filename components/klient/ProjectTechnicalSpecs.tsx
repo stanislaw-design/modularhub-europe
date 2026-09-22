@@ -68,12 +68,13 @@ export async function ProjectTechnicalSpecs({ project }: ProjectTechnicalSpecsPr
       id: "construction" as const,
       title: t("groupConstructionTitle"),
       icon: ConstructionIcon,
+      // wallBuildUp usunięte (spec 0049 AC-3): rolę przejmuje jeden PDF
+      // specyfikacji, patrz sekcja pobierania niżej na stronie.
       rows: [
         { label: t("constructionSystem"), value: project.constructionSystem },
         { label: t("externalDimensions"), value: project.externalDimensions },
         { label: t("roofType"), value: project.roofType },
         { label: t("foundationOptions"), value: project.foundationOptions },
-        { label: t("wallBuildUp"), value: project.wallBuildUp },
         { label: t("customizationScope"), value: project.customizationScope },
       ],
     },
@@ -81,13 +82,13 @@ export async function ProjectTechnicalSpecs({ project }: ProjectTechnicalSpecsPr
       id: "energy" as const,
       title: t("groupEnergyTitle"),
       icon: EnergyEfficiencyIcon,
+      // insulation/windowClass usunięte (spec 0049 AC-3), heatTransferCoefficients/
+      // ventilation/heatSource zostają bez zmian (AC-4).
       rows: [
-        { label: t("insulation"), value: project.insulation },
         {
           label: t("heatTransferCoefficients"),
           value: project.heatTransferCoefficients,
         },
-        { label: t("windowClass"), value: project.windowClass },
         { label: t("ventilation"), value: project.ventilation },
         { label: t("heatSource"), value: project.heatSource },
       ],
@@ -96,9 +97,9 @@ export async function ProjectTechnicalSpecs({ project }: ProjectTechnicalSpecsPr
       id: "safety" as const,
       title: t("groupSafetyTitle"),
       icon: SafetyIcon,
+      // fireResistance/windResistance usunięte (spec 0049 AC-3), gwarancja
+      // konstrukcyjna zostaje bez zmian (AC-4).
       rows: [
-        { label: t("fireResistance"), value: project.fireResistance },
-        { label: t("windResistance"), value: project.windResistance },
         {
           label: t("warrantyLabel"),
           value: t("warrantyValue", { years: project.structuralWarrantyYears }),

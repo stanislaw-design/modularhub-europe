@@ -31,20 +31,16 @@ export const HOUSE_AI_FIELD_CATALOG = [
   { path: "product.bedrooms", labelKey: "productBedrooms", target: "product.bedrooms", valueKind: "integer", allowedOrigins: extractedInferred },
   { path: "product.countryOfProduction", labelKey: "productCountryOfProduction", target: "product.country_of_production", valueKind: "enum", allowedOrigins: extractedInferred },
   { path: "product.category", labelKey: "productCategory", target: "product.category", valueKind: "enum", allowedOrigins: extractedInferred },
-  { path: "technical.wallBuildUp", labelKey: "technicalWallBuildUp", target: "technical_specs.wallBuildUp", valueKind: "text", allowedOrigins: extractedInferred },
-  { path: "technical.insulation", labelKey: "technicalInsulation", target: "technical_specs.insulation", valueKind: "text", allowedOrigins: extractedInferred },
+  // wallBuildUp/insulation/windowClass/fireResistance/windResistance/
+  // serviceScopeDescription/transportDimensions/craneRequirements/
+  // minPlotWidthM usunięte z katalogu (spec 0049 AC-2): asystent AI już ich
+  // nie proponuje, ekran przeglądu ich nie pokazuje. Rolę przejmuje jeden PDF
+  // specyfikacji wgrywany przez producenta (AC-6).
   { path: "technical.energyClass", labelKey: "technicalEnergyClass", target: "technical_specs.heatTransferCoefficients", valueKind: "enum", allowedOrigins: extracted },
-  { path: "technical.windowClass", labelKey: "technicalWindowClass", target: "technical_specs.windowClass", valueKind: "text", allowedOrigins: extracted },
   { path: "technical.ventilation", labelKey: "technicalVentilation", target: "technical_specs.ventilation", valueKind: "enum", allowedOrigins: extractedInferred },
   { path: "technical.heatSource", labelKey: "technicalHeatSource", target: "technical_specs.heatSource", valueKind: "enum", allowedOrigins: extractedInferred },
-  { path: "technical.fireResistance", labelKey: "technicalFireResistance", target: "technical_specs.fireResistance", valueKind: "text", allowedOrigins: extracted },
-  { path: "technical.windResistance", labelKey: "technicalWindResistance", target: "technical_specs.windResistance", valueKind: "text", allowedOrigins: extracted },
   { path: "logistics.structuralWarrantyYears", labelKey: "logisticsStructuralWarranty", target: "product.structural_warranty_years", valueKind: "integer", allowedOrigins: extracted },
   { path: "logistics.installationWarrantyYears", labelKey: "logisticsInstallationWarranty", target: "product.installation_warranty_years", valueKind: "integer", allowedOrigins: extracted },
-  { path: "logistics.serviceScopeDescription", labelKey: "logisticsServiceScope", target: "product.service_scope_description", valueKind: "text", allowedOrigins: extracted },
-  { path: "logistics.transportDimensions", labelKey: "logisticsTransportDimensions", target: "product.transport_dimensions", valueKind: "text", allowedOrigins: extractedInferred, tolerance: 0.01 },
-  { path: "logistics.craneRequirements", labelKey: "logisticsCraneRequirements", target: "product.crane_requirements", valueKind: "text", allowedOrigins: extracted },
-  { path: "logistics.minPlotWidthM", labelKey: "logisticsMinPlotWidth", target: "product.min_plot_width_m", valueKind: "number", allowedOrigins: extractedInferred, tolerance: 0.01 },
   { path: "compliance.simplifiedPermitEligible", labelKey: "complianceSimplifiedPermit", target: "product.simplified_permit_eligible", valueKind: "boolean", allowedOrigins: extracted },
   { path: "rooms[].name", labelKey: "roomName", target: "product.room_layout[].name", valueKind: "text", allowedOrigins: extracted },
   { path: "rooms[].areaM2", labelKey: "roomArea", target: "product.room_layout[].areaM2", valueKind: "number", allowedOrigins: extractedInferred, tolerance: 0.1 },

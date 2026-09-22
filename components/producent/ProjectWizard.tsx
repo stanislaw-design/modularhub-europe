@@ -6,8 +6,8 @@ import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { Button, Heading, Stack, Text } from "@/components/ui";
 import type { Country, ProjectDraft } from "@/lib/data/types";
-import { createProducerProduct, updateProducerProduct } from "@/lib/producer-product-actions";
-import { WIZARD_STEPS, createEmptyDraft, getWizardSteps, isStepComplete, sanitizeDraftForSave } from "@/lib/producer-project-draft";
+import { createProducerProduct, type ProducerProductFields, updateProducerProduct } from "@/lib/producer-product-actions";
+import { WIZARD_STEPS, buildProducerSavePayload, createEmptyDraft, getWizardSteps, isStepComplete } from "@/lib/producer-project-draft";
 import { ProjectWizardBasicInfoStep } from "./ProjectWizardBasicInfoStep";
 import { ProjectWizardFaqStep } from "./ProjectWizardFaqStep";
 import { ProjectWizardFilesStep } from "./ProjectWizardFilesStep";
@@ -17,6 +17,7 @@ import { ProjectWizardTechnicalStep } from "./ProjectWizardTechnicalStep";
 import { ProjectWizardVariantsStep } from "./ProjectWizardVariantsStep";
 import type { ProducerFloorPlan } from "./ProducerFloorPlanUploadStep";
 import type { ProducerProductPhoto } from "./ProducerProductPhotosStep";
+import type { ProducerSpecificationPdf } from "./ProducerSpecificationPdfUploadStep";
 
 interface ProjectWizardProps {
   locale: string;
@@ -54,6 +55,10 @@ export function ProjectWizard({ locale, countries }: ProjectWizardProps) {
   const [productId, setProductId] = useState<string | null>(null);
   const [photos, setPhotos] = useState<ProducerProductPhoto[]>([]);
   const [floorPlans, setFloorPlans] = useState<ProducerFloorPlan[]>([]);
+  // Opcjonalny, nie sygnalizuje kompletności kroku (spec 0049 AC-6): brak
+  // odpowiednika floorPlanFiles na ProjectDraft, bo żadna AC nie wymaga go do
+  // publikacji.
+  const [specificationPdf, setSpecificationPdf] = useState<ProducerSpecificationPdf | null>(null);
   const [stepIndex, setStepIndex] = useState(0);
   const [maxReachedIndex, setMaxReachedIndex] = useState(0);
   const [showValidation, setShowValidation] = useState(false);
@@ -76,7 +81,7 @@ export function ProjectWizard({ locale, countries }: ProjectWizardProps) {
     );
   }
 
-  async function persistProgress(currentDraft: ProjectDraft, currentProductId: string | null): Promise<boolean> {
+  async function persistProgress(currentDraft: ProducerProductFields, currentProductId: string | null): Promise<boolean> {
     if (currentProductId === null) {
       const result = await createProducerProduct(currentDraft);
       if (!result.ok || !result.productId) {
@@ -108,7 +113,7 @@ export function ProjectWizard({ locale, countries }: ProjectWizardProps) {
     }
     setSaveError(null);
     setIsSaving(true);
-    const persisted = await persistProgress(sanitizeDraftForSave(currentDraft), productId);
+    const persisted = await persistProgress(buildProducerSavePayload(currentDraft, currentStepId), productId);
     setIsSaving(false);
     if (!persisted) return;
     const nextIndex = Math.min(stepIndex + 1, WIZARD_STEPS.length - 1);
@@ -130,7 +135,11 @@ export function ProjectWizard({ locale, countries }: ProjectWizardProps) {
     if (productId === null) return;
     setSaveError(null);
     setIsSaving(true);
-    const result = await updateProducerProduct(productId, sanitizeDraftForSave(form.getValues()), { publish: true });
+    const result = await updateProducerProduct(
+      productId,
+      buildProducerSavePayload(form.getValues(), currentStep.id),
+      { publish: true },
+    );
     setIsSaving(false);
     if (!result.ok) {
       setSaveError(result.error ?? t("saveError"));
@@ -165,6 +174,8 @@ export function ProjectWizard({ locale, countries }: ProjectWizardProps) {
               onPhotosChange={handlePhotosChange}
               floorPlans={floorPlans}
               onFloorPlansChange={handleFloorPlansChange}
+              specificationPdf={specificationPdf}
+              onSpecificationPdfChange={setSpecificationPdf}
             />
           )}
           {currentStep.id === "warianty" && <ProjectWizardVariantsStep productId={productId} />}

@@ -37,15 +37,21 @@ export type VentilationType = (typeof VENTILATION_TYPES)[number];
 export const ENERGY_CLASSES = ["A+", "A", "B", "C", "D", "nieznana"] as const;
 export type EnergyClass = (typeof ENERGY_CLASSES)[number];
 
+// wallBuildUp/insulation/windowClass/fireResistance/windResistance są
+// .optional(), nie usunięte (spec 0049 AC-1, AC-5): kreator, katalog AI i
+// strona klienta już ich nie zbierają ani nie pokazują, ale zostają w
+// schemacie .strict() tak, żeby ponowna walidacja/zapis produktów, które mają
+// te klucze zapisane z dawniej, nadal przechodziła bez odrzucenia jako
+// "nieznane pole".
 const domSpecsShape = {
-  wallBuildUp: z.string(),
-  insulation: z.string(),
+  wallBuildUp: z.string().optional(),
+  insulation: z.string().optional(),
   heatTransferCoefficients: z.enum(ENERGY_CLASSES),
-  windowClass: z.string(),
+  windowClass: z.string().optional(),
   ventilation: z.enum(VENTILATION_TYPES),
   heatSource: z.enum(HEAT_SOURCES),
-  fireResistance: z.string(),
-  windResistance: z.string(),
+  fireResistance: z.string().optional(),
+  windResistance: z.string().optional(),
 };
 
 export const SPA_HEATING_TYPES = ["electric", "heat-pump", "wood-fired"] as const;

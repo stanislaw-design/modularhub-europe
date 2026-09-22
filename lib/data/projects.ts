@@ -2,6 +2,7 @@ import { and, desc, eq, gte, inArray, isNull, lte, ne, or, sql } from "drizzle-o
 import { db } from "@/lib/db/client";
 import {
   costLineItem,
+  costLineItemLabelTranslation,
   document,
   favorite,
   producer,
@@ -12,6 +13,7 @@ import {
   productTimelineStage,
   productTranslation,
   productVariant,
+  productVariantTranslation,
 } from "@/lib/db/schema";
 import type { Locale } from "@/lib/i18n/routing";
 import type { EnergyClass, VentilationType } from "@/lib/product-technical-specs";
@@ -47,13 +49,15 @@ const TIMELINE_STAGE_ORDER: TimelineStageKey[] = [
   "wykonczenie",
 ];
 
-// Tylko te trzy wartości document_purpose dotyczą karty projektu klienta
-// (spec 0041 AC-9, spec 0042 AC-7); document_purpose ma też order_stage,
-// company_verification, producer_photo, które żyją poza tym ekranem.
+// Tylko te wartości document_purpose dotyczą karty projektu klienta (spec
+// 0041 AC-9, spec 0042 AC-7, spec 0049 AC-9); document_purpose ma też
+// order_stage, company_verification, producer_photo, ai_source_pdf, które
+// żyją poza tym ekranem.
 const CLIENT_DOCUMENT_PURPOSES: ProjectDocumentPurpose[] = [
   "product_photo",
   "product_floor_plan",
   "product_realization_photo",
+  "product_specification",
 ];
 
 interface ResolveVariantsOptions {
@@ -62,6 +66,22 @@ interface ResolveVariantsOptions {
    * czytają wyłącznie completionStandard/cenę/isDefault, więc pomijają obie
    * dodatkowe zapytania (domyślnie false). */
   withDetails?: boolean;
+  /** scopeSummary rozwiązywany z product_variant_translation dla en/nl/de,
+   * ten sam wzorzec fallbacku do polskiego co product.name/description
+   * (spec 0028 AC-6), rozszerzony na tę tabelę 2026-09-22 (dotąd czytana
+   * przez nikogo — spec 0028 Follow-up celowo zostawił to jako osobną
+   * decyzję, patrz komentarz przy resolveTranslatedOptionalText).
+   * costLineItem.label nie ma odpowiednika: brak tabeli tłumaczeń, poza
+   * zakresem tej zmiany, patrz docs/scope/produkcja.md. */
+  locale?: Locale;
+}
+
+// Ten sam wzorzec co resolveTranslatedText wyżej, ale zwraca `undefined`
+// zamiast pustego stringa gdy nic nie ma — dopasowane do ProjectVariant.
+// scopeSummary?: string (opcjonalne pole, nie zawsze obecny tekst źródłowy).
+function resolveTranslatedOptionalText(base: string | null, translated: string | null | undefined): string | undefined {
+  if (translated && translated.trim().length > 0) return translated;
+  return base ?? undefined;
 }
 
 // Warianty produktu, zgrupowane po product_id (spec 0041/0042): jedno
@@ -73,20 +93,47 @@ export async function resolveProductVariants(
 ): Promise<Map<string, ProjectVariant[]>> {
   if (productIds.length === 0) return new Map();
 
-  const variantRows = await db
-    .select({
-      id: productVariant.id,
-      productId: productVariant.productId,
-      completionStandard: productVariant.completionStandard,
-      variantLabel: productVariant.variantLabel,
-      priceMinCents: productVariant.priceMinCents,
-      priceMaxCents: productVariant.priceMaxCents,
-      scopeSummary: productVariant.scopeSummary,
-      isDefault: productVariant.isDefault,
-      sortOrder: productVariant.sortOrder,
-    })
-    .from(productVariant)
-    .where(and(inArray(productVariant.productId, productIds), isNull(productVariant.deletedAt)));
+  const locale = options?.locale ?? "pl";
+  const translateScopeSummary = locale === "en" || locale === "nl" || locale === "de";
+
+  const variantRows = translateScopeSummary
+    ? await db
+        .select({
+          id: productVariant.id,
+          productId: productVariant.productId,
+          completionStandard: productVariant.completionStandard,
+          variantLabel: productVariant.variantLabel,
+          priceMinCents: productVariant.priceMinCents,
+          priceMaxCents: productVariant.priceMaxCents,
+          scopeSummary: productVariant.scopeSummary,
+          translatedScopeSummary: productVariantTranslation.scopeSummary,
+          isDefault: productVariant.isDefault,
+          sortOrder: productVariant.sortOrder,
+        })
+        .from(productVariant)
+        .leftJoin(
+          productVariantTranslation,
+          and(
+            eq(productVariantTranslation.productVariantId, productVariant.id),
+            eq(productVariantTranslation.locale, locale),
+          ),
+        )
+        .where(and(inArray(productVariant.productId, productIds), isNull(productVariant.deletedAt)))
+    : await db
+        .select({
+          id: productVariant.id,
+          productId: productVariant.productId,
+          completionStandard: productVariant.completionStandard,
+          variantLabel: productVariant.variantLabel,
+          priceMinCents: productVariant.priceMinCents,
+          priceMaxCents: productVariant.priceMaxCents,
+          scopeSummary: productVariant.scopeSummary,
+          translatedScopeSummary: sql<string | null>`NULL`,
+          isDefault: productVariant.isDefault,
+          sortOrder: productVariant.sortOrder,
+        })
+        .from(productVariant)
+        .where(and(inArray(productVariant.productId, productIds), isNull(productVariant.deletedAt)));
 
   const variantIds = variantRows.map((row) => row.id);
   const costLineItemsByVariant = new Map<string, CostLineItem[]>();
@@ -94,17 +141,38 @@ export async function resolveProductVariants(
 
   if (options?.withDetails && variantIds.length > 0) {
     const [costRows, stageRows] = await Promise.all([
-      db
-        .select({
-          id: costLineItem.id,
-          productVariantId: costLineItem.productVariantId,
-          label: costLineItem.label,
-          status: costLineItem.status,
-          responsibleParty: costLineItem.responsibleParty,
-          sortOrder: costLineItem.sortOrder,
-        })
-        .from(costLineItem)
-        .where(inArray(costLineItem.productVariantId, variantIds)),
+      translateScopeSummary
+        ? db
+            .select({
+              id: costLineItem.id,
+              productVariantId: costLineItem.productVariantId,
+              label: costLineItem.label,
+              translatedLabel: costLineItemLabelTranslation.translatedLabel,
+              status: costLineItem.status,
+              responsibleParty: costLineItem.responsibleParty,
+              sortOrder: costLineItem.sortOrder,
+            })
+            .from(costLineItem)
+            .leftJoin(
+              costLineItemLabelTranslation,
+              and(
+                eq(costLineItemLabelTranslation.labelPl, costLineItem.label),
+                eq(costLineItemLabelTranslation.locale, locale),
+              ),
+            )
+            .where(inArray(costLineItem.productVariantId, variantIds))
+        : db
+            .select({
+              id: costLineItem.id,
+              productVariantId: costLineItem.productVariantId,
+              label: costLineItem.label,
+              translatedLabel: sql<string | null>`NULL`,
+              status: costLineItem.status,
+              responsibleParty: costLineItem.responsibleParty,
+              sortOrder: costLineItem.sortOrder,
+            })
+            .from(costLineItem)
+            .where(inArray(costLineItem.productVariantId, variantIds)),
       db
         .select({
           productVariantId: productTimelineStage.productVariantId,
@@ -132,7 +200,7 @@ export async function resolveProductVariants(
         variantId,
         sorted.map((row) => ({
           id: row.id,
-          label: row.label,
+          label: resolveTranslatedText(row.label, row.translatedLabel),
           status: row.status,
           responsibleParty: row.responsibleParty ?? undefined,
         })),
@@ -183,7 +251,7 @@ export async function resolveProductVariants(
         priceMin: row.priceMinCents !== null ? row.priceMinCents / 100 : undefined,
         priceMax: row.priceMaxCents !== null ? row.priceMaxCents / 100 : undefined,
         currency: "EUR",
-        scopeSummary: row.scopeSummary ?? undefined,
+        scopeSummary: resolveTranslatedOptionalText(row.scopeSummary, row.translatedScopeSummary),
         isDefault: row.isDefault,
         costLineItems: costLineItemsByVariant.get(row.id) ?? [],
         timelineStages: timelineStagesByVariant.get(row.id) ?? [],
@@ -311,10 +379,42 @@ interface TechnicalSpecsBridgeFields {
 interface ProductTranslationText {
   name: string | null;
   description: string | null;
+  // Tłumaczenie nazw pomieszczeń (product_translation.room_layout, AC-10),
+  // dodane 2026-09-22: dotąd czytane tylko przez kreator producenta
+  // (lib/producer-project-draft.ts#alignRoomLayoutTranslation, dopasowanie po
+  // `id`), nigdy przez stronę klienta. Surowy jsonb, kształt sprawdzany w
+  // resolveTranslatedRoomLayout niżej — wiersze sprzed spec 0045 (ręczny
+  // insert przez Neon MCP) mogą nie mieć `id`, więc dopasowanie tam spada na
+  // pozycję w tablicy zamiast na `id` (patrz komentarz przy tej funkcji).
+  roomLayout: unknown;
 }
 
 function resolveTranslatedText(base: string | null, translated: string | null | undefined): string {
   return translated && translated.trim().length > 0 ? translated : (base ?? "");
+}
+
+// Tylko `name` jest tłumaczony (areaM2/function/isMezzanine nie są
+// językozależne, ten sam wzorzec co roomLayoutTranslationRowSchema w
+// lib/product-room-layout.ts). Dopasowanie preferuje `id` (kreator producenta
+// zawsze go pisze od spec 0045), z fallbackiem na pozycję w tablicy dla
+// starszych wierszy bez `id` (patrz komentarz przy ProductTranslationText) —
+// bezpieczne tu, bo ten odczyt nigdy nie przechodzi przez Zod jak strona
+// edycji producenta, tylko przez to proste dopasowanie.
+function resolveTranslatedRoomLayout(base: RoomLayoutEntry[], translated: unknown): RoomLayoutEntry[] {
+  if (!Array.isArray(translated) || translated.length === 0) return base;
+  return base.map((room, index) => {
+    const roomId = (room as { id?: unknown }).id;
+    const byId =
+      typeof roomId === "string"
+        ? translated.find((entry) => entry && typeof entry === "object" && (entry as { id?: unknown }).id === roomId)
+        : undefined;
+    const candidate = byId ?? translated[index];
+    const translatedName =
+      candidate && typeof candidate === "object" && typeof (candidate as { name?: unknown }).name === "string"
+        ? ((candidate as { name: string }).name.trim())
+        : "";
+    return translatedName ? { ...room, name: translatedName } : room;
+  });
 }
 
 interface ProductDocumentPhotos {
@@ -430,7 +530,8 @@ function mapRowToProject(
   // domyślnego. AC-11 traktuje to dokładnie jak priceOnRequest, nigdy jako
   // "od undefined €".
   const priceOnRequest = Boolean(specs._priceOnRequest) || row.priceMinCents === null;
-  const roomLayout = (row.roomLayout as RoomLayoutEntry[] | null) ?? undefined;
+  const baseRoomLayout = (row.roomLayout as RoomLayoutEntry[] | null) ?? undefined;
+  const roomLayout = baseRoomLayout ? resolveTranslatedRoomLayout(baseRoomLayout, translation?.roomLayout) : undefined;
   const faq = (row.faq as ProjectFaqItem[] | null) ?? undefined;
 
   return {
@@ -577,6 +678,7 @@ export async function getProjects(filters?: GetProjectsFilters): Promise<Project
         producerName: producer.name,
         translationName: productTranslation.name,
         translationDescription: productTranslation.description,
+        translationRoomLayout: productTranslation.roomLayout,
       })
       .from(product)
       .innerJoin(producer, eq(product.producerId, producer.id))
@@ -589,6 +691,7 @@ export async function getProjects(filters?: GetProjectsFilters): Promise<Project
       mapRowToProject(row.product, row.producerName, {
         name: row.translationName,
         description: row.translationDescription,
+        roomLayout: row.translationRoomLayout,
       }),
     );
   } else {
@@ -618,7 +721,7 @@ export async function getProjects(filters?: GetProjectsFilters): Promise<Project
   const producerIds = [...new Set(projects.map((project) => project.producerId))];
   const [documentPhotos, variantsByProduct, certificationsByProducer] = await Promise.all([
     resolveProductDocumentPhotos(projectIds),
-    resolveProductVariants(projectIds),
+    resolveProductVariants(projectIds, { locale }),
     resolveProducerCertifications(producerIds),
   ]);
   return projects.map((project) =>
@@ -658,6 +761,7 @@ export async function getProjectById(id: string, locale: Locale = "pl"): Promise
         producerName: producer.name,
         translationName: productTranslation.name,
         translationDescription: productTranslation.description,
+        translationRoomLayout: productTranslation.roomLayout,
       })
       .from(product)
       .innerJoin(producer, eq(product.producerId, producer.id))
@@ -670,7 +774,7 @@ export async function getProjectById(id: string, locale: Locale = "pl"): Promise
     if (!row) return null;
     const [documentPhotos, variantsByProduct, documentsByProduct, certificationsByProducer] = await Promise.all([
       resolveProductDocumentPhotos([id]),
-      resolveProductVariants([id], { withDetails: true }),
+      resolveProductVariants([id], { withDetails: true, locale }),
       resolveProductDocuments([id]),
       resolveProducerCertifications([row.product.producerId]),
     ]);
@@ -681,6 +785,7 @@ export async function getProjectById(id: string, locale: Locale = "pl"): Promise
             mapRowToProject(row.product, row.producerName, {
               name: row.translationName,
               description: row.translationDescription,
+              roomLayout: row.translationRoomLayout,
             }),
             documentPhotos.get(id),
           ),
@@ -701,7 +806,7 @@ export async function getProjectById(id: string, locale: Locale = "pl"): Promise
   if (!row) return null;
   const [documentPhotos, variantsByProduct, documentsByProduct, certificationsByProducer] = await Promise.all([
     resolveProductDocumentPhotos([id]),
-    resolveProductVariants([id], { withDetails: true }),
+    resolveProductVariants([id], { withDetails: true, locale }),
     resolveProductDocuments([id]),
     resolveProducerCertifications([row.product.producerId]),
   ]);
@@ -730,6 +835,7 @@ export async function getFeaturedProjectByFamily(
         producerName: producer.name,
         translationName: productTranslation.name,
         translationDescription: productTranslation.description,
+        translationRoomLayout: productTranslation.roomLayout,
       })
       .from(product)
       .innerJoin(producer, eq(product.producerId, producer.id))
@@ -742,13 +848,14 @@ export async function getFeaturedProjectByFamily(
     if (!row) return null;
     const [documentPhotos, variantsByProduct] = await Promise.all([
       resolveProductDocumentPhotos([row.product.id]),
-      resolveProductVariants([row.product.id]),
+      resolveProductVariants([row.product.id], { locale }),
     ]);
     return applyVariants(
       applyDocumentPhotos(
         mapRowToProject(row.product, row.producerName, {
           name: row.translationName,
           description: row.translationDescription,
+          roomLayout: row.translationRoomLayout,
         }),
         documentPhotos.get(row.product.id),
       ),
@@ -765,7 +872,7 @@ export async function getFeaturedProjectByFamily(
   if (!row) return null;
   const [documentPhotos, variantsByProduct] = await Promise.all([
     resolveProductDocumentPhotos([row.product.id]),
-    resolveProductVariants([row.product.id]),
+    resolveProductVariants([row.product.id], { locale }),
   ]);
   return applyVariants(
     applyDocumentPhotos(mapRowToProject(row.product, row.producerName), documentPhotos.get(row.product.id)),
@@ -917,6 +1024,7 @@ export async function getVerifiedVolumeManufacturerProjects(
         producerName: producer.name,
         translationName: productTranslation.name,
         translationDescription: productTranslation.description,
+        translationRoomLayout: productTranslation.roomLayout,
       })
       .from(product)
       .innerJoin(producer, eq(product.producerId, producer.id))
@@ -931,6 +1039,7 @@ export async function getVerifiedVolumeManufacturerProjects(
         mapRowToProject(row.product, row.producerName, {
           name: row.translationName,
           description: row.translationDescription,
+          roomLayout: row.translationRoomLayout,
         }),
       );
       projectsByProducer.set(row.product.producerId, list);
@@ -951,7 +1060,7 @@ export async function getVerifiedVolumeManufacturerProjects(
   const allProjectIds = [...projectsByProducer.values()].flat().map((project) => project.id);
   const [documentPhotos, variantsByProduct] = await Promise.all([
     resolveProductDocumentPhotos(allProjectIds),
-    resolveProductVariants(allProjectIds),
+    resolveProductVariants(allProjectIds, { locale }),
   ]);
   for (const [producerId, list] of projectsByProducer) {
     projectsByProducer.set(

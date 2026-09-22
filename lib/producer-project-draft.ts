@@ -1,4 +1,5 @@
 import type { useTranslations } from "next-intl";
+import type { ProducerProductFields } from "./producer-product-actions";
 import type { FaqRow, FaqTranslationRow } from "./product-faq";
 import type { RoomLayoutRow, RoomLayoutTranslationRow } from "./product-room-layout";
 import { ENERGY_CLASSES, HEAT_SOURCES, VENTILATION_TYPES } from "./product-technical-specs";
@@ -179,19 +180,11 @@ export interface TechnicalFieldConfig {
 // nie samej family — patrz CONTAINER_TECHNICAL_FIELDS_BY_SUBCATEGORY i
 // getTechnicalFieldsFor niżej.
 export const TECHNICAL_FIELDS_BY_FAMILY: Record<Exclude<ProductFamily, "kontenery-modulowe">, TechnicalFieldConfig[]> = {
+  // wallBuildUp/insulation/windowClass/fireResistance/windResistance usunięte
+  // (spec 0049 AC-1, AC-5): dane 65 istniejących produktów zostają w bazie
+  // (technical_specs jsonb), ale kreator, katalog AI i strona klienta ich już
+  // nie zbierają/pokazują. Rolę przejmuje jeden PDF specyfikacji (AC-6).
   dom: [
-    {
-      key: "wallBuildUp",
-      label: "Układ ścian",
-      hint: "Warstwy ściany od zewnątrz do wewnątrz, np. konstrukcja, izolacja, poszycie",
-      type: "text",
-    },
-    {
-      key: "insulation",
-      label: "Izolacja",
-      hint: "Współczynnik U dla ścian i dachu (W/m²K)",
-      type: "text",
-    },
     {
       key: "heatTransferCoefficients",
       label: "Klasa energetyczna",
@@ -199,7 +192,6 @@ export const TECHNICAL_FIELDS_BY_FAMILY: Record<Exclude<ProductFamily, "kontener
       type: "select",
       options: ENERGY_CLASS_OPTIONS,
     },
-    { key: "windowClass", label: "Klasa okien", hint: "Klasa energetyczna i typ szyby", type: "text" },
     {
       key: "ventilation",
       label: "Wentylacja",
@@ -213,18 +205,6 @@ export const TECHNICAL_FIELDS_BY_FAMILY: Record<Exclude<ProductFamily, "kontener
       hint: "Główne źródło ogrzewania",
       type: "select",
       options: HEAT_SOURCE_OPTIONS,
-    },
-    {
-      key: "fireResistance",
-      label: "Odporność ogniowa",
-      hint: "Klasa odporności ogniowej konstrukcji, np. REI 30",
-      type: "text",
-    },
-    {
-      key: "windResistance",
-      label: "Odporność wiatrowa",
-      hint: "Strefa wiatrowa i maksymalna prędkość wiatru",
-      type: "text",
     },
   ],
   "spa-modulowe": [
@@ -409,8 +389,10 @@ export function createEmptyDraft(): ProjectDraft {
     description: "",
     nameEn: "",
     nameNl: "",
+    nameDe: "",
     descriptionEn: "",
     descriptionNl: "",
+    descriptionDe: "",
     family: null,
     category: null,
     spaSubcategory: null,
@@ -563,5 +545,35 @@ export function sanitizeDraftForSave(draft: ProjectDraft): ProjectDraft {
     faqEn: draft.faqEn.filter((row) => isNonEmpty(row.question) && isNonEmpty(row.answer)),
     faqNl: draft.faqNl.filter((row) => isNonEmpty(row.question) && isNonEmpty(row.answer)),
   };
+}
+
+// AC-15: pola tłumaczenia (name/description × en/nl/de) trafiają do payloadu
+// zapisu WYŁĄCZNIE z kroku, który pokazuje ich zakładki
+// (ProjectWizardBasicInfoStep, stepId "podstawowe"); każdy inny krok kreatora
+// (w tym finalny "Zapisz" z Podsumowania) wysyła te klucze jako nieobecne
+// (nie: puste), zamiast tego, co ostatnio było w lokalnym stanie
+// react-hook-form. react-hook-form trzyma cały formularz w pamięci
+// przeglądarki i nigdy nie odświeża go z bazy między krokami — bez tej
+// funkcji, przejście do kolejnego kroku (albo bezpośredni skok do
+// Podsumowania) resubmitowałoby wciąż nieodświeżony lokalnie nameEn/itd. i
+// mogłoby skasować tłumaczenie, które w międzyczasie dopisało AI
+// (generateMissingProductTranslations, lib/producer-product-actions.ts) —
+// dokładnie wyścig znaleziony przy cross checku tej funkcji (patrz spec 0028
+// rationale.md). Woła sanitizeDraftForSave wyżej, więc jest jedynym miejscem
+// kreator musi wywołać przed createProducerProduct/updateProducerProduct.
+function omitKeys<T extends object, K extends keyof T>(obj: T, keys: readonly K[]): Omit<T, K> {
+  const result = { ...obj };
+  for (const key of keys) delete result[key];
+  return result;
+}
+
+export function buildProducerSavePayload(draft: ProjectDraft, stepId: WizardStepId): ProducerProductFields {
+  const sanitized = sanitizeDraftForSave(draft);
+  const fields = omitKeys(sanitized, ["floorPlanFiles", "photoFiles", "variantsSummary"] as const);
+  if (stepId === "podstawowe") return fields;
+  return omitKeys(
+    fields,
+    ["nameEn", "nameNl", "nameDe", "descriptionEn", "descriptionNl", "descriptionDe"] as const,
+  );
 }
 

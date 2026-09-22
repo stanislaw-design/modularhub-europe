@@ -106,8 +106,10 @@ export interface ProducerProductForEdit {
   simplifiedPermitEligible: boolean | null;
   nameEn: string | null;
   nameNl: string | null;
+  nameDe: string | null;
   descriptionEn: string | null;
   descriptionNl: string | null;
+  descriptionDe: string | null;
   roomLayoutEn: unknown;
   roomLayoutNl: unknown;
   faqEn: unknown;
@@ -140,6 +142,9 @@ export async function getProducerProductForEdit(
     .where(eq(productTranslation.productId, productId));
   const en = translations.find((translation) => translation.locale === "en");
   const nl = translations.find((translation) => translation.locale === "nl");
+  // AC-16: zakładka DE czyta tylko name/description (nie roomLayout/faq — te
+  // tłumaczenia zostają EN/NL only, poza zakresem AI rozszerzenia spec 0028).
+  const de = translations.find((translation) => translation.locale === "de");
 
   return {
     id: row.id,
@@ -166,8 +171,10 @@ export async function getProducerProductForEdit(
     simplifiedPermitEligible: row.simplifiedPermitEligible,
     nameEn: en?.name ?? null,
     nameNl: nl?.name ?? null,
+    nameDe: de?.name ?? null,
     descriptionEn: en?.description ?? null,
     descriptionNl: nl?.description ?? null,
+    descriptionDe: de?.description ?? null,
     roomLayoutEn: en?.roomLayout ?? null,
     roomLayoutNl: nl?.roomLayout ?? null,
     faqEn: en?.faq ?? null,
@@ -541,6 +548,30 @@ export async function getProductFloorPlansForAdmin(productId: string): Promise<P
       sortOrder: row.sortOrder,
     }))
     .sort((a, b) => (a.sortOrder ?? Number.MAX_SAFE_INTEGER) - (b.sortOrder ?? Number.MAX_SAFE_INTEGER));
+}
+
+export interface ProductSpecificationPdfForEdit {
+  id: string;
+  url: string;
+  filename: string;
+}
+
+// Zasila krok "Pliki" kreatora (spec 0049 AC-6, AC-7, AC-8): jeden plik na
+// produkt, nie tablica jak zdjęcia/rzuty — document_one_specification_per_product
+// (lib/db/schema.ts) gwarantuje najwyżej jeden aktywny wiersz.
+export async function getProductSpecificationPdfForAdmin(productId: string): Promise<ProductSpecificationPdfForEdit | null> {
+  const [row] = await db
+    .select({ id: document.id, r2Key: document.r2Key, filename: document.filename })
+    .from(document)
+    .where(
+      and(
+        eq(document.productId, productId),
+        eq(document.purpose, "product_specification"),
+        isNull(document.deletedAt),
+      ),
+    );
+
+  return row ? { id: row.id, url: buildPublicUrl(row.r2Key), filename: row.filename } : null;
 }
 
 // ---------------------------------------------------------------------------

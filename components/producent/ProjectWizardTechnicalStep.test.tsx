@@ -18,11 +18,14 @@ function renderStep(defaultValues: ProjectDraft, showValidation: boolean) {
 }
 
 describe("ProjectWizardTechnicalStep: family dom", () => {
-  it("renders the five free-text dom fields as text inputs, none from the other families", () => {
+  // wallBuildUp/insulation/windowClass/fireResistance/windResistance usunięte
+  // z kreatora (spec 0049 AC-1): dom nie ma już żadnego wolnotekstowego pola
+  // technicznego, tylko trzy selecty sprawdzone w testach niżej.
+  it("renders none of the five retired free-text dom fields", () => {
     renderStep({ ...createEmptyDraft(), family: "dom" as const }, false);
 
     for (const label of ["Układ ścian", "Izolacja", "Klasa okien", "Odporność ogniowa", "Odporność wiatrowa"]) {
-      expect(screen.getByLabelText(new RegExp(label))).toBeInTheDocument();
+      expect(screen.queryByLabelText(new RegExp(label))).not.toBeInTheDocument();
     }
     expect(screen.queryByText("Typ dachu")).not.toBeInTheDocument();
     expect(screen.queryByText("Liczba miejsc")).not.toBeInTheDocument();
@@ -67,19 +70,22 @@ describe("ProjectWizardTechnicalStep: family dom", () => {
   it("merges a new field into technicalSpecs without dropping the other fields already entered", async () => {
     const user = userEvent.setup();
     const getForm = renderStep(
-      { ...createEmptyDraft(), family: "dom" as const, technicalSpecs: { insulation: "U = 0.15" } },
+      { ...createEmptyDraft(), family: "dom" as const, technicalSpecs: { ventilation: "rekuperacja" } },
       false,
     );
 
-    await user.type(screen.getByLabelText(/Układ ścian/), "S");
+    // ventilation ma już wartość, więc wśród przycisków wciąż pokazujących
+    // "Wybierz…" zostają tylko heatTransferCoefficients (0) i heatSource (1).
+    await user.click(screen.getAllByRole("button", { name: "Wybierz…" })[1]);
+    await user.click(screen.getByRole("option", { name: "Gazowe" }));
 
-    expect(getForm().getValues("technicalSpecs")).toEqual({ insulation: "U = 0.15", wallBuildUp: "S" });
+    expect(getForm().getValues("technicalSpecs")).toEqual({ ventilation: "rekuperacja", heatSource: "gazowe" });
   });
 
-  it("shows an inline error under an empty required field once showValidation is true", () => {
+  it("shows an inline error under an empty required select once showValidation is true", () => {
     renderStep({ ...createEmptyDraft(), family: "dom" as const }, true);
 
-    expect(screen.getByText("Podaj układ ścian.")).toBeInTheDocument();
+    expect(screen.getByText("Wybierz klasa energetyczna.")).toBeInTheDocument();
   });
 });
 

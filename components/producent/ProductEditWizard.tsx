@@ -8,7 +8,7 @@ import { Button, Heading, Stack, Text } from "@/components/ui";
 import type { Country, ProjectDraft } from "@/lib/data/types";
 import type { ProducerVariantForEdit } from "@/lib/db/queries";
 import { updateProducerProduct } from "@/lib/producer-product-actions";
-import { WIZARD_STEPS, getCompletionStandardOptions, getWizardSteps, isStepComplete, sanitizeDraftForSave } from "@/lib/producer-project-draft";
+import { WIZARD_STEPS, buildProducerSavePayload, getCompletionStandardOptions, getWizardSteps, isStepComplete } from "@/lib/producer-project-draft";
 import { ProjectWizardBasicInfoStep } from "./ProjectWizardBasicInfoStep";
 import { ProjectWizardFaqStep } from "./ProjectWizardFaqStep";
 import { ProjectWizardFilesStep } from "./ProjectWizardFilesStep";
@@ -18,6 +18,7 @@ import { ProjectWizardTechnicalStep } from "./ProjectWizardTechnicalStep";
 import { ProjectWizardVariantsStep } from "./ProjectWizardVariantsStep";
 import type { ProducerFloorPlan } from "./ProducerFloorPlanUploadStep";
 import type { ProducerProductPhoto } from "./ProducerProductPhotosStep";
+import type { ProducerSpecificationPdf } from "./ProducerSpecificationPdfUploadStep";
 
 interface ProductEditWizardProps {
   locale: string;
@@ -25,6 +26,7 @@ interface ProductEditWizardProps {
   initialDraft: ProjectDraft;
   initialPhotos: ProducerProductPhoto[];
   initialFloorPlans: ProducerFloorPlan[];
+  initialSpecificationPdf: ProducerSpecificationPdf | null;
   initialVariants: ProducerVariantForEdit[];
   countries: Country[];
 }
@@ -50,6 +52,7 @@ export function ProductEditWizard({
   initialDraft,
   initialPhotos,
   initialFloorPlans,
+  initialSpecificationPdf,
   initialVariants,
   countries,
 }: ProductEditWizardProps) {
@@ -61,6 +64,7 @@ export function ProductEditWizard({
   const values = useWatch({ control: form.control }) as ProjectDraft;
   const [photos, setPhotos] = useState<ProducerProductPhoto[]>(initialPhotos);
   const [floorPlans, setFloorPlans] = useState<ProducerFloorPlan[]>(initialFloorPlans);
+  const [specificationPdf, setSpecificationPdf] = useState<ProducerSpecificationPdf | null>(initialSpecificationPdf);
   const [stepIndex, setStepIndex] = useState(0);
   const [maxReachedIndex, setMaxReachedIndex] = useState(WIZARD_STEPS.length - 1);
   const [showValidation, setShowValidation] = useState(false);
@@ -107,7 +111,9 @@ export function ProductEditWizard({
     }
     setSaveError(null);
     setIsSaving(true);
-    const result = await updateProducerProduct(productId, sanitizeDraftForSave(currentDraft), { publish: false });
+    const result = await updateProducerProduct(productId, buildProducerSavePayload(currentDraft, currentStepId), {
+      publish: false,
+    });
     setIsSaving(false);
     if (!result.ok) {
       setSaveError(result.error ?? t("saveError"));
@@ -128,10 +134,21 @@ export function ProductEditWizard({
     goToStep(index);
   }
 
+  // Znany, zaakceptowany brzeg (spec 0028 AC-15): stepIndex startuje na
+  // "podstawowe" ale maxReachedIndex jest tu od razu w pełni otwarty (produkt
+  // już istnieje), więc producent może kliknąć bezpośrednio w "Podsumowanie" w
+  // pasku kroków, wpisawszy wcześniej tłumaczenie, ale nigdy nie naciskając
+  // "Dalej" na kroku podstawowym. Save woła buildProducerSavePayload z bieżącym
+  // krokiem ("podsumowanie"), więc taka niezapisana zmiana tłumaczenia nie
+  // trafi do bazy tym kliknięciem — trzeba wrócić na krok podstawowy i
+  // przejść "Dalej" przynajmniej raz. Świadomy koszt tej samej ochrony, która
+  // zapobiega nadpisaniu tłumaczenia dopisanego w międzyczasie przez AI.
   async function handleSave() {
     setSaveError(null);
     setIsSaving(true);
-    const result = await updateProducerProduct(productId, sanitizeDraftForSave(form.getValues()), { publish: true });
+    const result = await updateProducerProduct(productId, buildProducerSavePayload(form.getValues(), currentStep.id), {
+      publish: true,
+    });
     setIsSaving(false);
     if (!result.ok) {
       setSaveError(result.error ?? t("saveError"));
@@ -167,6 +184,8 @@ export function ProductEditWizard({
               floorPlans={floorPlans}
               onFloorPlansChange={handleFloorPlansChange}
               floorPlanVariantOptions={floorPlanVariantOptions}
+              specificationPdf={specificationPdf}
+              onSpecificationPdfChange={setSpecificationPdf}
             />
           )}
           {currentStep.id === "warianty" && (

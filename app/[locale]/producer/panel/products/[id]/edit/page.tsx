@@ -8,6 +8,7 @@ import {
   getProducerVariantsForEdit,
   getProductFloorPlansForAdmin,
   getProductPhotosForAdmin,
+  getProductSpecificationPdfForAdmin,
   type ProducerProductForEdit,
   type ProducerVariantForEdit,
 } from "@/lib/db/queries";
@@ -42,8 +43,10 @@ function producerProductToDraft(row: ProducerProductForEdit, variants: ProducerV
     description: row.description ?? "",
     nameEn: row.nameEn ?? "",
     nameNl: row.nameNl ?? "",
+    nameDe: row.nameDe ?? "",
     descriptionEn: row.descriptionEn ?? "",
     descriptionNl: row.descriptionNl ?? "",
+    descriptionDe: row.descriptionDe ?? "",
     family: row.family,
     category: row.category,
     spaSubcategory: row.spaSubcategory,
@@ -87,10 +90,11 @@ export default async function ProducerPanelEdytujProduktPage({
     redirect(`/${locale}/producer/panel/products`);
   }
 
-  const [countries, photos, floorPlans, variants] = await Promise.all([
+  const [countries, photos, floorPlans, specificationPdf, variants] = await Promise.all([
     getCountries(),
     getProductPhotosForAdmin(id),
     getProductFloorPlansForAdmin(id),
+    getProductSpecificationPdfForAdmin(id),
     getProducerVariantsForEdit(id),
   ]);
   const draft = producerProductToDraft(productRow, variants);
@@ -104,6 +108,7 @@ export default async function ProducerPanelEdytujProduktPage({
       initialDraft={draft}
       initialPhotos={photos.map((photo) => ({ id: photo.id, url: photo.url, filename: photo.filename, isCover: photo.isCover }))}
       initialFloorPlans={floorPlans.map((plan) => ({ id: plan.id, url: plan.url, filename: plan.filename, variantId: plan.productVariantId }))}
+      initialSpecificationPdf={specificationPdf}
       initialVariants={variants}
       countries={countries}
     />

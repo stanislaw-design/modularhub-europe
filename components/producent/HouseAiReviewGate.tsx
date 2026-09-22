@@ -15,7 +15,7 @@ const blockLabel: Record<HouseAiReviewBlockCode, string> = {
   DECISION_VALIDATION_ERROR: "Popraw wartość, która nie przechodzi walidacji.",
 };
 
-export function HouseAiReviewGate({ isReady, blockCodes, applied, applyEnabled = true, onApply }: { isReady: boolean; blockCodes: HouseAiReviewBlockCode[]; applied: boolean; applyEnabled?: boolean; onApply: () => void }) {
+export function HouseAiReviewGate({ isReady, blockCodes, applied, applyEnabled = true, isApplying = false, onApply }: { isReady: boolean; blockCodes: HouseAiReviewBlockCode[]; applied: boolean; applyEnabled?: boolean; isApplying?: boolean; onApply: () => void }) {
   return (
     <Card as="section" padding="lg" className={isReady ? "border-status-approved" : "border-status-conditional"}>
       <Stack gap={3}>
@@ -31,8 +31,8 @@ export function HouseAiReviewGate({ isReady, blockCodes, applied, applyEnabled =
             {blockCodes.map((code) => <li key={code} className="flex gap-brand-1"><AlertCircle className="mt-0.5 size-4 shrink-0 text-status-conditional" aria-hidden="true" /><Text as="span">{blockLabel[code]}</Text></li>)}
           </ul>
         )}
-        <Button type="button" className="w-fit" disabled={!isReady || applied || !applyEnabled} onClick={onApply}>
-          {applied ? "Zastosowano" : !applyEnabled ? "Zapis atomowy jest jeszcze wyłączony" : "Zastosuj zaakceptowane dane"}
+        <Button type="button" className="w-fit" disabled={!isReady || applied || !applyEnabled || isApplying} onClick={onApply}>
+          {applied ? "Zastosowano" : !applyEnabled ? "Zapis atomowy jest jeszcze wyłączony" : isApplying ? "Zapisujemy…" : "Zastosuj zaakceptowane dane"}
         </Button>
       </Stack>
     </Card>

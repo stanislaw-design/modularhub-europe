@@ -1,6 +1,12 @@
 "use server";
 
 import { and, eq, isNull } from "drizzle-orm";
+import { after } from "next/server";
+import {
+  generateProductTranslations,
+  type ProductTranslationField,
+  type ProductTranslationLocale,
+} from "@/lib/ai/product-translation";
 import type { ProjectDraft } from "@/lib/data/types";
 import { db } from "@/lib/db/client";
 import { document, product, productTranslation, productVariant } from "@/lib/db/schema";
@@ -16,7 +22,36 @@ import { requireProducerActor } from "@/lib/producer-actor";
 // na tabelę document, spec 0032 Key invariants). variantsSummary też nie: to
 // tylko migawka na potrzeby isStepComplete("warianty", ...) w kreatorze
 // (spec 0045), prawdziwy zapis idzie przez lib/producer-product-variant-actions.ts.
-export type ProducerProductFields = Omit<ProjectDraft, "floorPlanFiles" | "photoFiles" | "variantsSummary">;
+//
+// nameEn/nameNl/nameDe/descriptionEn/descriptionNl/descriptionDe są tu
+// opcjonalne (spec 0028 AC-15, Build plan zadanie 20), inaczej niż na
+// ProjectDraft (gdzie zawsze mają konkretną, choćby pustą, wartość string —
+// stan formularza w przeglądarce). Krok kreatora inny niż ten pokazujący
+// zakładki językowe (ProjectWizardBasicInfoStep) po prostu ich nie wysyła
+// (undefined, nie pusty string): translationRow/upsertTranslations niżej
+// dotykają kolumnę product_translation tylko wtedy, gdy jej klucz jest
+// obecny w fields, więc resubmisja nieodświeżonego draftu z wcześniejszego
+// kroku nigdy nie kasuje tłumaczenia, które w międzyczasie mogło dopisać AI
+// (generateMissingProductTranslations niżej).
+export type ProducerProductFields = Omit<
+  ProjectDraft,
+  | "floorPlanFiles"
+  | "photoFiles"
+  | "variantsSummary"
+  | "nameEn"
+  | "nameNl"
+  | "nameDe"
+  | "descriptionEn"
+  | "descriptionNl"
+  | "descriptionDe"
+> & {
+  nameEn?: string;
+  nameNl?: string;
+  nameDe?: string;
+  descriptionEn?: string;
+  descriptionNl?: string;
+  descriptionDe?: string;
+};
 
 interface ActionResult {
   ok: boolean;
@@ -66,39 +101,185 @@ function buildProductValues(fields: ProducerProductFields) {
   };
 }
 
-// Zawsze upsert obu wierszy (en/nl), nawet gdy oba pola puste (spada wtedy na
-// fallback do polskiego tekstu źródłowego, patrz komentarz przy
-// product_translation w schema.ts) — prostsze niż warunkowe wstawianie/usuwanie.
-function translationRow(productId: string, locale: "en" | "nl", fields: ProducerProductFields) {
-  return {
-    productId,
-    locale,
-    name: (locale === "en" ? fields.nameEn : fields.nameNl) || null,
-    description: (locale === "en" ? fields.descriptionEn : fields.descriptionNl) || null,
+// Wiersz do upsertu, budowany WARUNKOWO (spec 0028 AC-15, Build plan zadanie
+// 20): name/description/roomLayout/faq trafiają do zwróconego obiektu tylko
+// gdy odpowiadający klucz jest obecny w fields (nie tylko niepusty — pusty
+// string to jawne wyczyszczenie, undefined to "krok tego nie dotyczył").
+// upsertTranslations niżej robi z tego .set({...}) do onConflictDoUpdate, więc
+// kolumna, której klucz nie przyszedł w tym zapisie, zostaje nietknięta —
+// w szczególności nigdy nie kasuje tego, co generateMissingProductTranslations
+// mogło w międzyczasie dopisać do name/description. DE nie ma odpowiednika
+// roomLayout/faq (te tłumaczenia zostają EN/NL only, poza zakresem spec 0028
+// AI rozszerzenia) — locale "de" nigdy nie dotyka tych dwóch kolumn.
+function translationRow(
+  productId: string,
+  locale: ProductTranslationLocale,
+  fields: ProducerProductFields,
+): { productId: string; locale: ProductTranslationLocale } & Record<string, unknown> {
+  const row: Record<string, unknown> = { productId, locale };
+  const nameValue = locale === "en" ? fields.nameEn : locale === "nl" ? fields.nameNl : fields.nameDe;
+  if (nameValue !== undefined) row.name = nameValue || null;
+  const descriptionValue =
+    locale === "en" ? fields.descriptionEn : locale === "nl" ? fields.descriptionNl : fields.descriptionDe;
+  if (descriptionValue !== undefined) row.description = descriptionValue || null;
+  if (locale !== "de") {
     // AC-10: tłumaczenie roomLayout/faq dopasowane po stabilnym id z listy
     // polskiej (fields.roomLayout/faq), może być krótsze (tłumaczenie częściowe).
-    roomLayout: locale === "en" ? fields.roomLayoutEn : fields.roomLayoutNl,
-    faq: locale === "en" ? fields.faqEn : fields.faqNl,
-  };
+    const roomLayoutValue = locale === "en" ? fields.roomLayoutEn : fields.roomLayoutNl;
+    if (roomLayoutValue !== undefined) row.roomLayout = roomLayoutValue;
+    const faqValue = locale === "en" ? fields.faqEn : fields.faqNl;
+    if (faqValue !== undefined) row.faq = faqValue;
+  }
+  return row as { productId: string; locale: ProductTranslationLocale } & Record<string, unknown>;
 }
 
+const TRANSLATION_LOCALES: readonly ProductTranslationLocale[] = ["en", "nl", "de"];
+
 async function upsertTranslations(productId: string, fields: ProducerProductFields) {
-  await db.batch([
+  const statements = TRANSLATION_LOCALES.map((locale) =>
     db
       .insert(productTranslation)
-      .values(translationRow(productId, "en", fields))
+      .values(translationRow(productId, locale, fields))
       .onConflictDoUpdate({
         target: [productTranslation.productId, productTranslation.locale],
-        set: { ...translationRow(productId, "en", fields), updatedAt: new Date() },
+        set: { ...translationRow(productId, locale, fields), updatedAt: new Date() },
       }),
-    db
-      .insert(productTranslation)
-      .values(translationRow(productId, "nl", fields))
-      .onConflictDoUpdate({
-        target: [productTranslation.productId, productTranslation.locale],
-        set: { ...translationRow(productId, "nl", fields), updatedAt: new Date() },
-      }),
-  ]);
+  );
+  await db.batch(statements as [(typeof statements)[number], ...typeof statements]);
+}
+
+// Zeruje NULL/pusty/samobiały string do tej samej wartości porównania (spec
+// 0028 Feature design: "trim() || null"), ten sam wzorzec co `|| null` już
+// użyty w translationRow wyżej.
+function normalizeForCompare(value: string | null | undefined): string | null {
+  return value?.trim() || null;
+}
+
+const AI_TRANSLATION_FIELDS: readonly ProductTranslationField[] = ["name", "description"];
+
+// Automatyczne tłumaczenie AI (spec 0028 AC-11 do AC-14, AC-17, Build plan
+// zadanie 22): reguła regeneracji per (productId, locale, field), wywołana
+// przez after() na końcu createProducerProduct/updateProducerProduct — nigdy
+// nie blokuje ani nie cofa zapisu produktu, który już się powiódł (AC-14),
+// więc każdy błąd tu jest złapany i zgłoszony, nigdy rzucony dalej.
+//
+// "Własność" jest wyliczona, nie przechowywana jako osobna flaga (patrz
+// komentarz przy product_translation w schema.ts): pole jest "własnością AI"
+// dokładnie wtedy, gdy jego zapisana wartość (znormalizowana) równa się
+// odpowiedniej kolumnie ai_generated_* (też znormalizowanej). Wymaga
+// regeneracji, gdy do tego jeszcze nigdy nie było generowane
+// (ai_generated_* IS NULL, w tym pole dziś puste) albo polski tekst źródłowy
+// zmienił się od ostatniej generacji (ai_translated_from_* różni się od
+// aktualnego product.name/description).
+async function generateMissingProductTranslations(productId: string): Promise<void> {
+  try {
+    const [productRow] = await db
+      .select({ name: product.name, description: product.description })
+      .from(product)
+      .where(eq(product.id, productId));
+    if (!productRow) return;
+
+    const sourceName = normalizeForCompare(productRow.name);
+    const sourceDescription = normalizeForCompare(productRow.description);
+    // Nic do tłumaczenia, gdy polski tekst źródłowy jest jeszcze pusty
+    // (wczesny etap kreatora) — pole zostaje kandydatem do generacji przy
+    // następnym zapisie, kiedy source faktycznie ma treść.
+    if (sourceName === null && sourceDescription === null) return;
+
+    const existingRows = await db
+      .select({
+        locale: productTranslation.locale,
+        name: productTranslation.name,
+        description: productTranslation.description,
+        aiGeneratedName: productTranslation.aiGeneratedName,
+        aiGeneratedDescription: productTranslation.aiGeneratedDescription,
+        aiTranslatedFromName: productTranslation.aiTranslatedFromName,
+        aiTranslatedFromDescription: productTranslation.aiTranslatedFromDescription,
+      })
+      .from(productTranslation)
+      .where(eq(productTranslation.productId, productId));
+
+    const localesNeedingName: ProductTranslationLocale[] = [];
+    const localesNeedingDescription: ProductTranslationLocale[] = [];
+
+    for (const locale of TRANSLATION_LOCALES) {
+      const existing = existingRows.find((row) => row.locale === locale);
+
+      if (sourceName !== null) {
+        const isNameAiOwned = normalizeForCompare(existing?.name) === normalizeForCompare(existing?.aiGeneratedName);
+        const isStale =
+          normalizeForCompare(existing?.aiGeneratedName) === null ||
+          normalizeForCompare(existing?.aiTranslatedFromName) !== sourceName;
+        if (isNameAiOwned && isStale) localesNeedingName.push(locale);
+      }
+
+      if (sourceDescription !== null) {
+        const isDescriptionAiOwned =
+          normalizeForCompare(existing?.description) === normalizeForCompare(existing?.aiGeneratedDescription);
+        const isStale =
+          normalizeForCompare(existing?.aiGeneratedDescription) === null ||
+          normalizeForCompare(existing?.aiTranslatedFromDescription) !== sourceDescription;
+        if (isDescriptionAiOwned && isStale) localesNeedingDescription.push(locale);
+      }
+    }
+
+    if (localesNeedingName.length === 0 && localesNeedingDescription.length === 0) return;
+
+    const neededLocales = [...new Set([...localesNeedingName, ...localesNeedingDescription])];
+    const neededFields = AI_TRANSLATION_FIELDS.filter(
+      (field) =>
+        (field === "name" && localesNeedingName.length > 0) ||
+        (field === "description" && localesNeedingDescription.length > 0),
+    );
+
+    const result = await generateProductTranslations({
+      name: sourceName,
+      description: sourceDescription,
+      locales: neededLocales,
+      fields: neededFields,
+    });
+
+    const statements = TRANSLATION_LOCALES.filter(
+      (locale) => localesNeedingName.includes(locale) || localesNeedingDescription.includes(locale),
+    )
+      .map((locale) => {
+        const patch: Record<string, unknown> = {};
+        const generatedName = localesNeedingName.includes(locale) ? result.name?.[locale] : undefined;
+        if (generatedName) {
+          patch.name = generatedName;
+          patch.aiGeneratedName = generatedName;
+          patch.aiTranslatedFromName = sourceName;
+        }
+        const generatedDescription = localesNeedingDescription.includes(locale)
+          ? result.description?.[locale]
+          : undefined;
+        if (generatedDescription) {
+          patch.description = generatedDescription;
+          patch.aiGeneratedDescription = generatedDescription;
+          patch.aiTranslatedFromDescription = sourceDescription;
+        }
+        return Object.keys(patch).length > 0 ? { locale, patch } : null;
+      })
+      .filter((entry): entry is { locale: ProductTranslationLocale; patch: Record<string, unknown> } => entry !== null)
+      .map(({ locale, patch }) =>
+        db
+          .insert(productTranslation)
+          .values({ productId, locale, ...patch })
+          .onConflictDoUpdate({
+            target: [productTranslation.productId, productTranslation.locale],
+            set: { ...patch, updatedAt: new Date() },
+          }),
+      );
+
+    if (statements.length === 0) return;
+    await db.batch(statements as [(typeof statements)[number], ...typeof statements]);
+  } catch (error) {
+    // AC-14: awaria Azure OpenAI (lub błąd konfiguracji) nigdy nie cofa ani
+    // nie blokuje zapisu product/product_translation, który już się powiódł —
+    // ten kod działa wyłącznie wewnątrz after(), już po zwróconej odpowiedzi.
+    // Puste pole zostaje kandydatem do regeneracji przy następnym zapisie.
+    captureError(error, { path: "generateMissingProductTranslations" });
+  }
 }
 
 // AC-5, AC-6: forma jest walidowana Zod na granicy zapisu (nie tylko przy
@@ -207,6 +388,7 @@ export async function createProducerProduct(fields: ProducerProductFields): Prom
       .returning({ id: product.id });
 
     await upsertTranslations(inserted.id, fields);
+    after(() => generateMissingProductTranslations(inserted.id));
     return { ok: true, productId: inserted.id, published: false };
   } catch (error) {
     captureError(error, { path: "createProducerProduct", userId: actor.userId });
@@ -239,29 +421,22 @@ export async function updateProducerProduct(
   }
 
   try {
-    await db.batch([
-      db
-        .update(product)
-        .set({
-          ...buildProductValues(fields),
-          ...(options.publish && !publishError ? { status: "published" as const } : {}),
-        })
-        .where(eq(product.id, productId)),
-      db
-        .insert(productTranslation)
-        .values(translationRow(productId, "en", fields))
-        .onConflictDoUpdate({
-          target: [productTranslation.productId, productTranslation.locale],
-          set: { ...translationRow(productId, "en", fields), updatedAt: new Date() },
-        }),
-      db
-        .insert(productTranslation)
-        .values(translationRow(productId, "nl", fields))
-        .onConflictDoUpdate({
-          target: [productTranslation.productId, productTranslation.locale],
-          set: { ...translationRow(productId, "nl", fields), updatedAt: new Date() },
-        }),
-    ]);
+    // Refaktoryzowane na upsertTranslations (spec 0028 Build plan zadanie 20):
+    // dawniej wklejony tu db.batch duplikował translationRow/warunki obecności
+    // klucza, dwa miejsca do utrzymania w zgodzie z regułą własności AI. Nie
+    // jest to już jeden atomowy batch z aktualizacją product (ten sam
+    // kompromis co createProducerProduct obok, gdzie insert product i
+    // upsertTranslations też są dwoma osobnymi zapisami) — akceptowalne, bo
+    // reguła jest wtedy dokładnie jedna, nie dwie do rozjechania.
+    await db
+      .update(product)
+      .set({
+        ...buildProductValues(fields),
+        ...(options.publish && !publishError ? { status: "published" as const } : {}),
+      })
+      .where(eq(product.id, productId));
+    await upsertTranslations(productId, fields);
+    after(() => generateMissingProductTranslations(productId));
   } catch (error) {
     captureError(error, { path: "updateProducerProduct", userId: actor.userId });
     return { ok: false, error: GENERIC_ERROR };

@@ -501,13 +501,16 @@
     "descriptionLabel": "Beschrijving",
     "descriptionRequiredError": "Voer een projectbeschrijving in.",
     "translationsHeading": "Vertalingen (optioneel)",
-    "translationsHint": "Engels en Nederlands zijn optioneel — zonder vertaling zien buitenlandse klanten de Poolse tekst.",
+    "translationsHint": "Engels, Nederlands en Duits zijn optioneel — zonder vertaling zien buitenlandse klanten de Poolse tekst.",
     "translationTabEn": "Engels",
     "translationTabNl": "Nederlands",
+    "translationTabDe": "Duits",
     "nameEnLabel": "Naam (Engels)",
     "nameNlLabel": "Naam (Nederlands)",
+    "nameDeLabel": "Naam (Duits)",
     "descriptionEnLabel": "Beschrijving (Engels)",
     "descriptionNlLabel": "Beschrijving (Nederlands)",
+    "descriptionDeLabel": "Beschrijving (Duits)",
     "roomLayoutHeading": "Indeling van de ruimtes",
     "roomLayoutHint": "Voeg ruimtes toe met hun oppervlakte en functie — deze sectie is zichtbaar op de projectpagina van de klant.",
     "roomLayoutEmptyHint": "Er is nog geen ruimte toegevoegd.",
@@ -613,6 +616,16 @@
     "requiredError": "Voeg minstens één plattegrond toe.",
     "noFloorPlans": "Er is nog geen plattegrond geüpload.",
     "removeFloorPlan": "Plattegrond {name} verwijderen"
+  },
+  "ProducerSpecificationPdfUploadStep": {
+    "label": "Specificatie-PDF",
+    "chooseFile": "Bestand kiezen",
+    "replaceFile": "Bestand vervangen",
+    "hint": "PDF, max. 10 MB.",
+    "uploadError": "Het specificatiebestand kon niet worden geüpload. Probeer het opnieuw.",
+    "deleteError": "Het specificatiebestand kon niet worden verwijderd. Probeer het opnieuw.",
+    "noFile": "Er is nog geen specificatiebestand geüpload.",
+    "removeFile": "Specificatiebestand {name} verwijderen"
   },
   "ProjectWizardSummaryStep": {
     "heading": "Samenvatting",
@@ -931,6 +944,7 @@
     "heading": "Documenten en vragen",
     "documentsHeading": "Documenten",
     "documentsPlaceholder": "Technische fiches, garanties en andere formele documenten voor dit huis zijn nog niet door de producent aangeleverd.",
+    "downloadSpecificationLabel": "Download de specificatie-PDF",
     "questionsHeading": "Vragen en antwoorden",
     "questionsPlaceholder": "De producent heeft nog geen antwoorden toegevoegd op veelgestelde vragen over dit model.",
     "toBeCompleted": "Nog aan te vullen"

@@ -518,7 +518,7 @@ export default async function ProjektPage({
         )}
 
         <div id="dokumenty" className="scroll-mt-20">
-          <ProjectDocumentsAndFaq faq={project.faq} />
+          <ProjectDocumentsAndFaq faq={project.faq} documents={project.documents} />
         </div>
 
         {countryCode && eligibility && (

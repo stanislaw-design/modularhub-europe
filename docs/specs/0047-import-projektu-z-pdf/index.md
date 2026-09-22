@@ -1,6 +1,6 @@
 # 0047. Import projektu domu z PDF przez bezpiecznego asystenta AI
 
-**Status**: In Progress  
+**Status**: Superseded by [0050](../0050-uproszczone-dodawanie-projektu-domu/index.md)
 **Data**: 2026-09-19  
 **Tryb**: FEATURE  
 **Zakres**: panel producenta, kreator projektu, przetwarzanie asynchroniczne, Azure, prywatne przechowywanie dokumentów

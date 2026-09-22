@@ -190,6 +190,8 @@ export const paymentStatusEnum = pgEnum("payment_status", [
 
 // "product_realization_photo" dopisana przez ALTER TYPE ... ADD VALUE (spec
 // 0041 AC-9), odróżniona od "product_photo" (wizualizacje/marketing).
+// "product_specification" dopisana tak samo (spec 0049 AC-6): jeden plik PDF
+// specyfikacji na produkt, zawsze productVariantId = NULL.
 export const documentPurposeEnum = pgEnum("document_purpose", [
   "product_photo",
   "product_floor_plan",
@@ -198,6 +200,7 @@ export const documentPurposeEnum = pgEnum("document_purpose", [
   "producer_photo",
   "product_realization_photo",
   "ai_source_pdf",
+  "product_specification",
 ]);
 
 export const aiExtractionStatusEnum = pgEnum("ai_extraction_status", [
@@ -673,6 +676,33 @@ export const costLineItem = pgTable(
   (table) => [index("cost_line_item_product_variant_id_idx").on(table.productVariantId)],
 );
 
+// Tłumaczenie EN/NL/DE etykiet pozycji kosztowych, dodane 2026-09-22 (poza
+// zakresem spec 0028/0041, znalezione na żywo przez zamawiającego na stronie
+// klienta w /nl). `cost_line_item.label` jest świadomie wolnym tekstem bez
+// wspólnego słownika (spec 0041 Feature design) — ta tabela NIE zmienia tego,
+// pozostaje osobnym, opcjonalnym słownikiem tłumaczeń, dopasowywanym po
+// dokładnym tekście polskiej etykiety (label_pl), nie po id wiersza
+// cost_line_item: ten sam tekst etykiety powtarza się dziś w praktyce na
+// setkach wierszy w wielu produktach/wariantach (125 unikalnych etykiet na
+// 639 wierszy w żywym katalogu), więc jeden wpis słownika obsługuje wszystkie
+// wystąpienia naraz, zamiast tłumaczyć każdy wiersz osobno. To też zachowuje
+// istniejące dopasowanie wierszy między wariantami w
+// ProjectCostComparisonTable.tsx (po dokładnym tekście `label`) bez zmiany —
+// tłumaczenie podmienia się na poziomie odczytu (lib/data/projects.ts), więc
+// identyczne polskie etykiety wciąż dają identyczne przetłumaczone etykiety.
+export const costLineItemLabelTranslation = pgTable(
+  "cost_line_item_label_translation",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    labelPl: text("label_pl").notNull(),
+    locale: productTranslationLocaleEnum("locale").notNull(),
+    translatedLabel: text("translated_label").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex("cost_line_item_label_translation_label_pl_locale_idx").on(table.labelPl, table.locale)],
+);
+
 // Etapy harmonogramu, też per wariant, bo czas wykończenia zależy od standardu
 // (świadomy kompromis, spec 0041 Feature design: formalności/produkcja/transport
 // bywają identyczne między wariantami tego samego produktu, ale mimo to żyją
@@ -750,6 +780,24 @@ export const productTranslation = pgTable(
     // może być krótsza niż polska wersja (tłumaczenie częściowe).
     roomLayout: jsonb("room_layout"),
     faq: jsonb("faq"),
+    // Automatyczne tłumaczenie AI (spec 0028 AC-11 do AC-17, rozszerzenie
+    // 2026-09-22): "własność" pola (AI vs producent) jest wyliczona, nie
+    // przechowywana jako osobna flaga — patrz lib/producer-product-actions.ts
+    // (generateMissingProductTranslations). ai_generated_* to dokładny tekst,
+    // jaki AI ostatnio wpisało do name/description; ai_translated_from_* to
+    // polski product.name/description użyty jako wejście tej generacji. Pole
+    // jest "własnością AI" dokładnie wtedy, gdy jego zapisana wartość
+    // (znormalizowana, trim() || null) równa się odpowiedniej ai_generated_*
+    // (też znormalizowanej); producent zapisujący inną wartość automatycznie
+    // przełącza je na "własność producenta", bez jawnego zerowania flagi.
+    // Addytywne, nullable: każdy wiersz sprzed tej funkcji dostaje NULL, co z
+    // definicji wyżej czyni go "własnością producenta" — bezpieczny domyślny
+    // stan, żadne istniejące tłumaczenie nie zaczyna się nagle automatycznie
+    // zmieniać.
+    aiGeneratedName: text("ai_generated_name"),
+    aiGeneratedDescription: text("ai_generated_description"),
+    aiTranslatedFromName: text("ai_translated_from_name"),
+    aiTranslatedFromDescription: text("ai_translated_from_description"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
@@ -1320,6 +1368,12 @@ export const document = pgTable(
     uniqueIndex("document_one_cover_per_product")
       .on(table.productId)
       .where(sql`${table.isCover} AND ${table.purpose} = 'product_photo' AND ${table.deletedAt} IS NULL`),
+    // Najwyżej jeden aktywny plik specyfikacji na produkt (spec 0049 AC-6,
+    // AC-7): ten sam wzorzec co document_one_cover_per_product, bez filtru
+    // is_cover bo ten purpose nigdy go nie ustawia.
+    uniqueIndex("document_one_specification_per_product")
+      .on(table.productId)
+      .where(sql`${table.purpose} = 'product_specification' AND ${table.deletedAt} IS NULL`),
   ],
 );
 

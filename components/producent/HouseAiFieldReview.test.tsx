@@ -32,20 +32,20 @@ describe("HouseAiFieldReview", () => {
     const source = HOUSE_AI_REVIEW_FIXTURES.review.fields[0];
     const field = {
       ...source,
-      fieldPath: "technical.windowClass" as const,
-      candidates: source.candidates.map((candidate) => ({ ...candidate, fieldPath: "technical.windowClass" as const })),
+      fieldPath: "product.description" as const,
+      candidates: source.candidates.map((candidate) => ({ ...candidate, fieldPath: "product.description" as const })),
     };
 
     render(<HouseAiFieldReview field={field} decision={null} hasConflict={false} onInspect={vi.fn()} onSelect={vi.fn()} onManualValue={vi.fn()} onReject={vi.fn()} />);
 
-    expect(screen.getByRole("heading", { name: "Klasa okien" })).toBeInTheDocument();
-    expect(screen.queryByText("technical.windowClass")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Opis projektu" })).toBeInTheDocument();
+    expect(screen.queryByText("product.description")).not.toBeInTheDocument();
   });
 
   it("lets the producer type their own value when no proposal matches", async () => {
     const user = userEvent.setup();
     const source = HOUSE_AI_REVIEW_FIXTURES.review.fields[0];
-    const field = { ...source, fieldPath: "technical.wallBuildUp" as const, candidates: source.candidates.map((candidate) => ({ ...candidate, fieldPath: "technical.wallBuildUp" as const })) };
+    const field = { ...source, fieldPath: "product.description" as const, candidates: source.candidates.map((candidate) => ({ ...candidate, fieldPath: "product.description" as const })) };
     const onManualValue = vi.fn();
     render(<HouseAiFieldReview field={field} decision={null} hasConflict={false} onInspect={vi.fn()} onSelect={vi.fn()} onManualValue={onManualValue} onReject={vi.fn()} />);
 
@@ -58,8 +58,8 @@ describe("HouseAiFieldReview", () => {
 
   it("shows the previously saved manual value and lets the producer edit it again", () => {
     const source = HOUSE_AI_REVIEW_FIXTURES.review.fields[0];
-    const field = { ...source, fieldPath: "technical.wallBuildUp" as const, candidates: source.candidates.map((candidate) => ({ ...candidate, fieldPath: "technical.wallBuildUp" as const })) };
-    const decision = { fieldPath: "technical.wallBuildUp" as const, entityKey: null, parentEntityKey: null, selectedCandidateId: null, finalValue: "Rama drewniana 45 cm", decisionType: "manual" as const, version: 1 };
+    const field = { ...source, fieldPath: "product.description" as const, candidates: source.candidates.map((candidate) => ({ ...candidate, fieldPath: "product.description" as const })) };
+    const decision = { fieldPath: "product.description" as const, entityKey: null, parentEntityKey: null, selectedCandidateId: null, finalValue: "Rama drewniana 45 cm", decisionType: "manual" as const, version: 1 };
 
     render(<HouseAiFieldReview field={field} decision={decision} hasConflict={false} onInspect={vi.fn()} onSelect={vi.fn()} onManualValue={vi.fn()} onReject={vi.fn()} />);
 

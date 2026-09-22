@@ -1,0 +1,2 @@
+ALTER TYPE "public"."document_purpose" ADD VALUE 'product_specification';--> statement-breakpoint
+CREATE UNIQUE INDEX "document_one_specification_per_product" ON "document" USING btree ("product_id") WHERE "document"."purpose" = 'product_specification' AND "document"."deleted_at" IS NULL;
