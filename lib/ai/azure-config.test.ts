@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { AzureAiConfigurationError, getAzureAiConfig } from "./azure-config";
 
 const validEnvironment = {
-  AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: "https://document.example.com/",
   AZURE_OPENAI_ENDPOINT: "https://openai.example.com/",
   AZURE_OPENAI_DEPLOYMENT: "gpt-5-mini-dev",
   AZURE_OPENAI_MODEL_SNAPSHOT: "2025-08-07",
@@ -11,7 +10,6 @@ const validEnvironment = {
 describe("getAzureAiConfig", () => {
   it("normalizes endpoints and returns the pinned deployment", () => {
     expect(getAzureAiConfig(validEnvironment)).toEqual({
-      documentIntelligenceEndpoint: "https://document.example.com",
       openAiEndpoint: "https://openai.example.com",
       openAiDeployment: "gpt-5-mini-dev",
       openAiModelSnapshot: "2025-08-07",

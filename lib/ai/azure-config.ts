@@ -2,7 +2,6 @@ import { z } from "zod";
 
 const azureAiConfigSchema = z
   .object({
-    AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: z.string().url(),
     AZURE_OPENAI_ENDPOINT: z.string().url(),
     AZURE_OPENAI_DEPLOYMENT: z.string().min(1),
     AZURE_OPENAI_MODEL_SNAPSHOT: z.string().min(1),
@@ -10,7 +9,6 @@ const azureAiConfigSchema = z
   .strict();
 
 export interface AzureAiConfig {
-  documentIntelligenceEndpoint: string;
   openAiEndpoint: string;
   openAiDeployment: string;
   openAiModelSnapshot: string;
@@ -29,7 +27,6 @@ export function getAzureAiConfig(
   environment: Readonly<Record<string, string | undefined>> = process.env,
 ): AzureAiConfig {
   const parsed = azureAiConfigSchema.safeParse({
-    AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: environment.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT,
     AZURE_OPENAI_ENDPOINT: environment.AZURE_OPENAI_ENDPOINT,
     AZURE_OPENAI_DEPLOYMENT: environment.AZURE_OPENAI_DEPLOYMENT,
     AZURE_OPENAI_MODEL_SNAPSHOT: environment.AZURE_OPENAI_MODEL_SNAPSHOT,
@@ -43,7 +40,6 @@ export function getAzureAiConfig(
   }
 
   return {
-    documentIntelligenceEndpoint: parsed.data.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT.replace(/\/+$/, ""),
     openAiEndpoint: parsed.data.AZURE_OPENAI_ENDPOINT.replace(/\/+$/, ""),
     openAiDeployment: parsed.data.AZURE_OPENAI_DEPLOYMENT,
     openAiModelSnapshot: parsed.data.AZURE_OPENAI_MODEL_SNAPSHOT,
