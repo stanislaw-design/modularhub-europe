@@ -4,6 +4,8 @@
 // Feature design for the full rationale and per-table notes.
 import { sql } from "drizzle-orm";
 import type { PendingRegistrationPayload } from "@/lib/auth-shared";
+import type { FxNormalizationMetadata } from "@/lib/house-ai-schemas";
+import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import {
   bigint,
   boolean,
@@ -13,12 +15,14 @@ import {
   index,
   integer,
   jsonb,
+  numeric,
   pgEnum,
   pgTable,
   primaryKey,
   real,
   text,
   timestamp,
+  unique,
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
@@ -115,6 +119,48 @@ export const eligibilityStatusEnum = pgEnum("eligibility_status", [
 
 export const inquiryStatusEnum = pgEnum("inquiry_status", ["open", "offered", "closed"]);
 
+// Zarządzany przepływ doradczy (spec 0048). `stage` to maszyna stanów sprawy,
+// `legacy_direct` to dotychczasowe zapytania wysyłane prosto do producenta.
+export const caseStageEnum = pgEnum("case_stage", [
+  "nowe",
+  "rozmowa",
+  "brief_do_zatwierdzenia",
+  "producenci_odpowiadaja",
+  "porownanie_w_przygotowaniu",
+  "porownanie_gotowe",
+  "finalista_wybrany",
+  "wspolne_ustalenia",
+  "zamkniete_bez_wyboru",
+  "legacy_direct",
+]);
+
+export const caseWaitingOnEnum = pgEnum("case_waiting_on", ["client", "advisor", "producer"]);
+
+export const caseClosedReasonEnum = pgEnum("case_closed_reason", [
+  "brak_ofert",
+  "klient_zrezygnowal",
+  "poza_obszarem",
+  "do_b2b",
+  "inny",
+]);
+
+export const channelKindEnum = pgEnum("channel_kind", ["klient_doradca", "producent_doradca", "wspolny"]);
+
+export const messageAuthorKindEnum = pgEnum("message_author_kind", ["client", "advisor", "producer", "system"]);
+
+export const messageTypeEnum = pgEnum("message_type", [
+  "text",
+  "question_card",
+  "answer",
+  "file_request",
+  "file",
+  "brief_preview",
+  "brief_approval",
+  "consent",
+  "alternative_proposal",
+  "system_notice",
+]);
+
 export const offerStatusEnum = pgEnum("offer_status", [
   "active",
   "accepted",
@@ -151,7 +197,72 @@ export const documentPurposeEnum = pgEnum("document_purpose", [
   "company_verification",
   "producer_photo",
   "product_realization_photo",
+  "ai_source_pdf",
 ]);
+
+export const aiExtractionStatusEnum = pgEnum("ai_extraction_status", [
+  "uploading",
+  "queued",
+  "scanning",
+  "extracting",
+  "normalizing",
+  "review_ready",
+  "applying",
+  "applied",
+  "cancel_requested",
+  "cancelled",
+  "failed",
+]);
+
+export const aiExtractionStageEnum = pgEnum("ai_extraction_stage", [
+  "upload",
+  "queue",
+  "security_scan",
+  "document_intelligence",
+  "model_extraction",
+  "normalization",
+  "review",
+  "apply",
+]);
+
+export const aiPdfKindEnum = pgEnum("ai_pdf_kind", ["text", "scan", "mixed"]);
+export const aiOcrStatusEnum = pgEnum("ai_ocr_status", ["pending", "processing", "ready", "failed"]);
+export const aiCandidateOriginEnum = pgEnum("ai_candidate_origin", [
+  "extracted",
+  "inferred",
+  "generated",
+  "translated",
+]);
+export const aiConfidenceEnum = pgEnum("ai_confidence", ["high", "medium", "low"]);
+export const aiEvidenceTypeEnum = pgEnum("ai_evidence_type", ["source", "context"]);
+export const aiDecisionTypeEnum = pgEnum("ai_decision_type", [
+  "accepted",
+  "manual",
+  "rejected",
+  "not_applicable",
+  "keep_current",
+  "overwrite_changed",
+]);
+export const aiTranslationStatusEnum = pgEnum("ai_translation_status", [
+  "queued",
+  "processing",
+  "ready",
+  "failed",
+  "superseded",
+]);
+export const aiTranslationLocaleEnum = pgEnum("ai_translation_locale", ["en", "de", "nl"]);
+export const aiDocumentIssueStageEnum = pgEnum("ai_document_issue_stage", [
+  "security_scan",
+  "document_intelligence",
+  "model_extraction",
+  "normalization",
+]);
+export const aiObservationReviewStatusEnum = pgEnum("ai_observation_review_status", [
+  "unreviewed",
+  "acknowledged",
+  "dismissed",
+]);
+export const aiSupportAccessResultEnum = pgEnum("ai_support_access_result", ["granted", "denied", "used", "failed"]);
 
 export const auditActionEnum = pgEnum("audit_action", ["create", "update", "delete"]);
 
@@ -733,6 +844,27 @@ export const inquiry = pgTable("inquiry", {
   // wysłanie z tym samym kluczem po błędzie nie tworzy drugiego wiersza
   // (spec 0023 AC-7, AC-8).
   idempotencyKey: text("idempotency_key").unique(),
+  // Zarządzany przepływ doradczy (spec 0048). Wszystko nullable albo z
+  // domyślną wartością, więc wiersze sprzed zmiany dostają stage =
+  // 'legacy_direct' i działają jak dotąd. Pełny adres działki jest wymagany
+  // przez akcję dla nowych spraw, nie przez bazę.
+  plotStreet: text("plot_street"),
+  plotPostalCode: text("plot_postal_code"),
+  plotCity: text("plot_city"),
+  plotRegion: text("plot_region"),
+  clientMessage: text("client_message"),
+  assignedAdvisorId: text("assigned_advisor_id").references(() => users.id),
+  stage: caseStageEnum("stage").notNull().default("legacy_direct"),
+  waitingOn: caseWaitingOnEnum("waiting_on"),
+  // Bez klucza obcego do offer w tej migracji: offer.inquiry_id już wskazuje
+  // na inquiry, więc FK w drugą stronę zamknąłby cykl. Relację dokłada
+  // migracja z ofertą we wspólnym formacie (spec 0048 krok 10).
+  finalistOfferId: uuid("finalist_offer_id"),
+  finalistSelectedAt: timestamp("finalist_selected_at", { withTimezone: true }),
+  closedReason: caseClosedReasonEnum("closed_reason"),
+  closedAt: timestamp("closed_at", { withTimezone: true }),
+  lastClientActivityAt: timestamp("last_client_activity_at", { withTimezone: true }),
+  lastAdvisorActivityAt: timestamp("last_advisor_activity_at", { withTimezone: true }),
 });
 
 export const inquiryItem = pgTable(
@@ -747,6 +879,87 @@ export const inquiryItem = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [primaryKey({ columns: [table.inquiryId, table.productId] })],
+);
+
+// ---------------------------------------------------------------------------
+// Komunikator sprawy doradczej (spec 0048): kanały, wiadomości, stan
+// przeczytania. Dostęp wylicza lib/cases/access.ts z rodzaju kanału i roli.
+// ---------------------------------------------------------------------------
+
+export const channel = pgTable(
+  "channel",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    inquiryId: uuid("inquiry_id")
+      .notNull()
+      .references(() => inquiry.id),
+    kind: channelKindEnum("kind").notNull(),
+    // Wymagane dla producent_doradca i wspolny, puste dla klient_doradca.
+    producerId: uuid("producer_id").references(() => producer.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    check(
+      "channel_producer_matches_kind",
+      sql`(${table.kind} = 'klient_doradca' AND ${table.producerId} IS NULL) OR (${table.kind} <> 'klient_doradca' AND ${table.producerId} IS NOT NULL)`,
+    ),
+    // coalesce, bo NULL w indeksie unikalnym nie koliduje: bez tego sprawa
+    // mogłaby mieć dwa kanały klient_doradca.
+    uniqueIndex("channel_unique_per_inquiry_kind_producer").on(
+      table.inquiryId,
+      table.kind,
+      sql`coalesce(${table.producerId}, '00000000-0000-0000-0000-000000000000'::uuid)`,
+    ),
+    // Wybór finalisty jest jednokrotny: druga próba otwarcia kanału wspólnego
+    // na tej samej sprawie kończy się błędem (spec 0048 Key invariants).
+    uniqueIndex("channel_one_wspolny_per_inquiry")
+      .on(table.inquiryId)
+      .where(sql`${table.kind} = 'wspolny'`),
+  ],
+);
+
+export const message = pgTable(
+  "message",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    channelId: uuid("channel_id")
+      .notNull()
+      .references(() => channel.id),
+    // NULL dla wiadomości systemowych.
+    authorUserId: text("author_user_id").references(() => users.id),
+    authorKind: messageAuthorKindEnum("author_kind").notNull(),
+    type: messageTypeEnum("type").notNull().default("text"),
+    // Wiadomości są niezmienne (trigger message_immutable), jedyny wyjątek to
+    // redakcja na prośbę klienta: body i payload na NULL, redacted_at ustawione.
+    body: text("body"),
+    payload: jsonb("payload"),
+    locale: text("locale").notNull(),
+    idempotencyKey: text("idempotency_key"),
+    redactedAt: timestamp("redacted_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("message_channel_created_idx").on(table.channelId, table.createdAt, table.id),
+    // Jedno idempotency_key na kanał; NULL nie koliduje.
+    unique("message_idempotency_per_channel").on(table.channelId, table.idempotencyKey),
+  ],
+);
+
+export const channelReadState = pgTable(
+  "channel_read_state",
+  {
+    channelId: uuid("channel_id")
+      .notNull()
+      .references(() => channel.id),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id),
+    lastReadAt: timestamp("last_read_at", { withTimezone: true }),
+    // Ostatni poll, do reguły "bez e maila dla aktywnego odbiorcy" (AC-10).
+    lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
+    lastEmailAt: timestamp("last_email_at", { withTimezone: true }),
+  },
+  (table) => [primaryKey({ columns: [table.channelId, table.userId] })],
 );
 
 // Klucz (clientId, productId) unikalny (spec 0024 Feature design): jeden
@@ -1108,6 +1321,327 @@ export const document = pgTable(
       .on(table.productId)
       .where(sql`${table.isCover} AND ${table.purpose} = 'product_photo' AND ${table.deletedAt} IS NULL`),
   ],
+);
+
+// ---------------------------------------------------------------------------
+// Import projektu domu z PDF, spec 0047. Te tabele przechowują wyłącznie
+// zwalidowane dane przeglądu. Pełny OCR i surowa odpowiedź modelu nigdy nie
+// trafiają do bazy.
+// ---------------------------------------------------------------------------
+
+export const aiExtractionSession = pgTable(
+  "ai_extraction_session",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => product.id, { onDelete: "cascade" }),
+    producerId: uuid("producer_id")
+      .notNull()
+      .references(() => producer.id),
+    createdByUserId: text("created_by_user_id")
+      .notNull()
+      .references(() => users.id),
+    status: aiExtractionStatusEnum("status").notNull().default("uploading"),
+    currentStage: aiExtractionStageEnum("current_stage").notNull().default("upload"),
+    progress: integer("progress").notNull().default(0),
+    attemptCount: integer("attempt_count").notNull().default(0),
+    lastHeartbeatAt: timestamp("last_heartbeat_at", { withTimezone: true }),
+    decisionRevision: integer("decision_revision").notNull().default(0),
+    schemaVersion: text("schema_version").notNull(),
+    baseLocale: text("base_locale").notNull().default("pl"),
+    targetLocales: text("target_locales").array().notNull().default(sql`ARRAY['en', 'de', 'nl']::text[]`),
+    provider: text("provider").notNull().default("azure"),
+    model: text("model").notNull(),
+    safeErrorCode: text("safe_error_code"),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    retentionDueAt: timestamp("retention_due_at", { withTimezone: true }),
+    purgedAt: timestamp("purged_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("ai_extraction_session_product_created_idx").on(table.productId, table.createdAt),
+    index("ai_extraction_session_producer_created_idx").on(table.producerId, table.createdAt),
+    uniqueIndex("ai_extraction_session_one_active_per_producer")
+      .on(table.producerId)
+      .where(sql`${table.status} IN ('uploading', 'queued', 'scanning', 'extracting', 'normalizing', 'applying', 'cancel_requested')`),
+    check("ai_extraction_session_progress_range", sql`${table.progress} BETWEEN 0 AND 100`),
+    check("ai_extraction_session_attempt_nonnegative", sql`${table.attemptCount} >= 0`),
+    check("ai_extraction_session_locale_contract", sql`${table.baseLocale} = 'pl' AND ${table.targetLocales} = ARRAY['en', 'de', 'nl']::text[]`),
+  ],
+);
+
+export const aiSourceDocument = pgTable(
+  "ai_source_document",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    sessionId: uuid("session_id")
+      .notNull()
+      .references(() => aiExtractionSession.id, { onDelete: "cascade" }),
+    documentId: uuid("document_id")
+      .notNull()
+      .references(() => document.id),
+    safeFilename: text("safe_filename").notNull(),
+    sha256: text("sha256").notNull(),
+    pageCount: integer("page_count").notNull(),
+    detectedLanguage: text("detected_language"),
+    pdfKind: aiPdfKindEnum("pdf_kind").notNull(),
+    ocrStatus: aiOcrStatusEnum("ocr_status").notNull().default("pending"),
+    sortOrder: integer("sort_order").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("ai_source_document_session_sha_unique").on(table.sessionId, table.sha256),
+    uniqueIndex("ai_source_document_session_sort_unique").on(table.sessionId, table.sortOrder),
+    uniqueIndex("ai_source_document_document_unique").on(table.documentId),
+    check("ai_source_document_page_count_positive", sql`${table.pageCount} > 0`),
+    check("ai_source_document_sort_nonnegative", sql`${table.sortOrder} >= 0`),
+  ],
+);
+
+export const aiFieldCandidate = pgTable(
+  "ai_field_candidate",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    sessionId: uuid("session_id")
+      .notNull()
+      .references(() => aiExtractionSession.id, { onDelete: "cascade" }),
+    sourceCandidateId: uuid("source_candidate_id").references((): AnyPgColumn => aiFieldCandidate.id),
+    fieldPath: text("field_path").notNull(),
+    entityKey: text("entity_key"),
+    parentEntityKey: text("parent_entity_key"),
+    rawValue: jsonb("raw_value").notNull(),
+    normalizedValue: jsonb("normalized_value").notNull(),
+    normalizationMetadata: jsonb("normalization_metadata").$type<FxNormalizationMetadata>(),
+    origin: aiCandidateOriginEnum("origin").notNull(),
+    confidence: aiConfidenceEnum("confidence").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index("ai_field_candidate_session_field_idx").on(table.sessionId, table.fieldPath)],
+);
+
+export const aiCandidateEvidence = pgTable(
+  "ai_candidate_evidence",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    candidateId: uuid("candidate_id")
+      .notNull()
+      .references(() => aiFieldCandidate.id, { onDelete: "cascade" }),
+    sourceDocumentId: uuid("source_document_id")
+      .notNull()
+      .references(() => aiSourceDocument.id, { onDelete: "cascade" }),
+    evidenceType: aiEvidenceTypeEnum("evidence_type").notNull(),
+    pageNumber: integer("page_number"),
+    excerpt: text("excerpt"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("ai_candidate_evidence_candidate_idx").on(table.candidateId),
+    check("ai_candidate_evidence_page_positive", sql`${table.pageNumber} IS NULL OR ${table.pageNumber} > 0`),
+  ],
+);
+
+export const aiFieldSnapshot = pgTable(
+  "ai_field_snapshot",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    sessionId: uuid("session_id")
+      .notNull()
+      .references(() => aiExtractionSession.id, { onDelete: "cascade" }),
+    fieldPath: text("field_path").notNull(),
+    entityKey: text("entity_key"),
+    parentEntityKey: text("parent_entity_key"),
+    snapshotValue: jsonb("snapshot_value").notNull(),
+    valueHash: text("value_hash").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    unique("ai_field_snapshot_identity_unique")
+      .on(table.sessionId, table.fieldPath, table.entityKey, table.parentEntityKey)
+      .nullsNotDistinct(),
+  ],
+);
+
+export const aiFieldDecision = pgTable(
+  "ai_field_decision",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    sessionId: uuid("session_id")
+      .notNull()
+      .references(() => aiExtractionSession.id, { onDelete: "cascade" }),
+    selectedCandidateId: uuid("selected_candidate_id").references(() => aiFieldCandidate.id),
+    previousDecisionId: uuid("previous_decision_id").references((): AnyPgColumn => aiFieldDecision.id),
+    fieldPath: text("field_path").notNull(),
+    entityKey: text("entity_key"),
+    parentEntityKey: text("parent_entity_key"),
+    finalValue: jsonb("final_value").notNull(),
+    decisionType: aiDecisionTypeEnum("decision_type").notNull(),
+    version: integer("version").notNull(),
+    comparedValueHash: text("compared_value_hash"),
+    decidedByUserId: text("decided_by_user_id")
+      .notNull()
+      .references(() => users.id),
+    decidedAt: timestamp("decided_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    unique("ai_field_decision_identity_version_unique")
+      .on(table.sessionId, table.fieldPath, table.entityKey, table.parentEntityKey, table.version)
+      .nullsNotDistinct(),
+    index("ai_field_decision_session_decided_idx").on(table.sessionId, table.decidedAt),
+    check("ai_field_decision_version_positive", sql`${table.version} > 0`),
+  ],
+);
+
+export const aiTranslationRequest = pgTable(
+  "ai_translation_request",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    sessionId: uuid("session_id")
+      .notNull()
+      .references(() => aiExtractionSession.id, { onDelete: "cascade" }),
+    fieldPath: text("field_path").notNull(),
+    entityKey: text("entity_key"),
+    parentEntityKey: text("parent_entity_key"),
+    sourceDecisionId: uuid("source_decision_id")
+      .notNull()
+      .references(() => aiFieldDecision.id),
+    targetLocale: aiTranslationLocaleEnum("target_locale").notNull(),
+    status: aiTranslationStatusEnum("status").notNull().default("queued"),
+    candidateId: uuid("candidate_id").references(() => aiFieldCandidate.id),
+    safeErrorCode: text("safe_error_code"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("ai_translation_request_source_locale_unique").on(table.sourceDecisionId, table.targetLocale),
+    index("ai_translation_request_session_status_idx").on(table.sessionId, table.status),
+  ],
+);
+
+export const aiDocumentIssue = pgTable(
+  "ai_document_issue",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    sessionId: uuid("session_id")
+      .notNull()
+      .references(() => aiExtractionSession.id, { onDelete: "cascade" }),
+    sourceDocumentId: uuid("source_document_id")
+      .notNull()
+      .references(() => aiSourceDocument.id, { onDelete: "cascade" }),
+    pageFrom: integer("page_from"),
+    pageTo: integer("page_to"),
+    issueCode: text("issue_code").notNull(),
+    stage: aiDocumentIssueStageEnum("stage").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("ai_document_issue_session_idx").on(table.sessionId),
+    check("ai_document_issue_page_range", sql`(${table.pageFrom} IS NULL AND ${table.pageTo} IS NULL) OR (${table.pageFrom} > 0 AND ${table.pageTo} >= ${table.pageFrom})`),
+  ],
+);
+
+export const aiDocumentAcknowledgement = pgTable(
+  "ai_document_acknowledgement",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    sessionId: uuid("session_id")
+      .notNull()
+      .references(() => aiExtractionSession.id, { onDelete: "cascade" }),
+    documentIssueId: uuid("document_issue_id")
+      .notNull()
+      .references(() => aiDocumentIssue.id, { onDelete: "cascade" }),
+    acknowledgedByUserId: text("acknowledged_by_user_id")
+      .notNull()
+      .references(() => users.id),
+    acknowledgedAt: timestamp("acknowledged_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex("ai_document_acknowledgement_issue_unique").on(table.sessionId, table.documentIssueId)],
+);
+
+export const aiAdditionalObservation = pgTable(
+  "ai_additional_observation",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    sessionId: uuid("session_id")
+      .notNull()
+      .references(() => aiExtractionSession.id, { onDelete: "cascade" }),
+    sourceDocumentId: uuid("source_document_id")
+      .notNull()
+      .references(() => aiSourceDocument.id, { onDelete: "cascade" }),
+    pageNumber: integer("page_number").notNull(),
+    label: text("label").notNull(),
+    value: text("value").notNull(),
+    excerpt: text("excerpt").notNull(),
+    confidence: aiConfidenceEnum("confidence").notNull(),
+    reviewStatus: aiObservationReviewStatusEnum("review_status").notNull().default("unreviewed"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("ai_additional_observation_session_idx").on(table.sessionId),
+    check("ai_additional_observation_page_positive", sql`${table.pageNumber} > 0`),
+  ],
+);
+
+export const aiUsageEvent = pgTable(
+  "ai_usage_event",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    sessionId: uuid("session_id")
+      .notNull()
+      .references(() => aiExtractionSession.id, { onDelete: "cascade" }),
+    provider: text("provider").notNull(),
+    service: text("service").notNull(),
+    region: text("region").notNull(),
+    meter: text("meter").notNull(),
+    quantity: numeric("quantity", { precision: 18, scale: 6 }).notNull(),
+    unit: text("unit").notNull(),
+    currency: text("currency").notNull().default("USD"),
+    unitPrice: numeric("unit_price", { precision: 18, scale: 8 }).notNull(),
+    rateRetrievedAt: timestamp("rate_retrieved_at", { withTimezone: true }).notNull(),
+    estimatedCost: numeric("estimated_cost", { precision: 18, scale: 8 }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index("ai_usage_event_session_idx").on(table.sessionId)],
+);
+
+export const aiSupportAccessGrant = pgTable(
+  "ai_support_access_grant",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    administratorUserId: text("administrator_user_id")
+      .notNull()
+      .references(() => users.id),
+    sessionId: uuid("session_id")
+      .notNull()
+      .references(() => aiExtractionSession.id, { onDelete: "cascade" }),
+    sourceDocumentId: uuid("source_document_id")
+      .notNull()
+      .references(() => aiSourceDocument.id, { onDelete: "cascade" }),
+    reason: text("reason").notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index("ai_support_access_grant_expiry_idx").on(table.expiresAt)],
+);
+
+export const aiSupportAccessAudit = pgTable(
+  "ai_support_access_audit",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    actorUserId: text("actor_user_id")
+      .notNull()
+      .references(() => users.id),
+    actorRole: roleEnum("actor_role").notNull(),
+    sessionId: uuid("session_id").references(() => aiExtractionSession.id, { onDelete: "set null" }),
+    sourceDocumentId: uuid("source_document_id").references(() => aiSourceDocument.id, { onDelete: "set null" }),
+    action: text("action").notNull(),
+    reason: text("reason").notNull(),
+    result: aiSupportAccessResultEnum("result").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index("ai_support_access_audit_created_idx").on(table.createdAt)],
 );
 
 // ---------------------------------------------------------------------------

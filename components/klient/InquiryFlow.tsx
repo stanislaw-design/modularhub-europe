@@ -1,102 +1,67 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { type FormEvent, useState, useTransition } from "react";
-import { Button, Heading, Input, Label, ScrollReveal, Select, Stack, Text } from "@/components/ui";
+import { Button, Heading, Input, Label, Select, Stack, Text, Textarea } from "@/components/ui";
+import { submitAdvisoryInquiry } from "@/lib/case-actions";
 import type { Country, CountryCode, Project } from "@/lib/data/types";
-import type { InquiryContact } from "@/lib/inquiry";
-import { submitInquiry } from "@/lib/inquiry-actions";
-import { InquiryConfirmationCard } from "./InquiryConfirmationCard";
 
 interface InquiryFlowProps {
   projects: Project[];
   resultsHref: string;
-  dzialkaHref: string;
   countries: Country[];
-  initialContact: InquiryContact;
   initialCountryCode: CountryCode | null;
 }
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-export function InquiryFlow({
-  projects,
-  resultsHref,
-  dzialkaHref,
-  countries,
-  initialContact,
-  initialCountryCode,
-}: InquiryFlowProps) {
+// Formularz zapytania do ModularHub (spec 0048 AC-1, AC-2): wybrane domy tylko
+// do odczytu, pełny adres działki, kraj z listy obsługiwanych, wolny tekst.
+// Bez budżetu, terminu i usług: te pytania zadaje doradca w rozmowie.
+export function InquiryFlow({ projects, resultsHref, countries, initialCountryCode }: InquiryFlowProps) {
   const t = useTranslations("InquiryFlow");
-  const productNoun = t(`productNoun.${projects.length === 1 ? "one" : "other"}`);
-  const [phase, setPhase] = useState<"form" | "sent">("form");
-  const [contact, setContact] = useState<InquiryContact>(initialContact);
-  const [deliveryCountryCode, setDeliveryCountryCode] = useState<CountryCode | null>(initialCountryCode);
-  const [emailTouched, setEmailTouched] = useState(false);
-  const [sentAt, setSentAt] = useState<Date | null>(null);
+  const locale = useLocale();
+  const router = useRouter();
+  const [street, setStreet] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [city, setCity] = useState("");
+  const [countryCode, setCountryCode] = useState<CountryCode | null>(initialCountryCode);
+  const [message, setMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  // Wygenerowany raz, przy otwarciu formularza (spec 0023 AC-7, AC-8): ponów po
-  // błędzie wysyła ten sam klucz, więc serwer nie tworzy drugiego wiersza.
+  // Wygenerowany raz, przy otwarciu formularza: ponowienie po błędzie wysyła
+  // ten sam klucz, więc serwer zwraca tę samą sprawę (AC-3).
   const [idempotencyKey] = useState(() => crypto.randomUUID());
 
-  const emailValid = EMAIL_PATTERN.test(contact.email);
   const canSubmit =
-    contact.name.trim().length > 0 &&
-    emailValid &&
-    contact.phone.trim().length > 0 &&
-    deliveryCountryCode !== null &&
-    !isPending;
+    street.trim().length > 0 && postalCode.trim().length > 0 && city.trim().length > 0 && countryCode !== null && !isPending;
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!canSubmit || deliveryCountryCode === null) return;
+    if (!canSubmit || countryCode === null) return;
     setError(null);
 
     startTransition(async () => {
-      const result = await submitInquiry({
-        contact,
-        deliveryCountryCode,
+      const result = await submitAdvisoryInquiry({
         projectIds: projects.map((project) => project.id),
+        plot: { street, postalCode, city, countryCode },
+        message: message.trim() || undefined,
         idempotencyKey,
+        locale,
       });
 
-      if (!result.ok) {
-        setError(result.error ?? t("genericSendError"));
+      if (!result.ok || !result.inquiryId) {
+        setError(
+          result.error === "unsupported_country"
+            ? t("unsupportedCountryError")
+            : result.error === "auth"
+              ? t("authError")
+              : t("genericSendError"),
+        );
         return;
       }
 
-      setSentAt(new Date());
-      setPhase("sent");
+      router.push(`/${locale}/panel/inquiries/${result.inquiryId}`);
     });
-  }
-
-  if (phase === "sent" && sentAt) {
-    return (
-      <Stack gap={4}>
-        <Heading level="h1" surface="v5">
-          {t("sentHeading")}
-        </Heading>
-        <Text tone="muted" surface="v5">
-          {t("sentConfirmation", { count: projects.length, noun: productNoun })}
-        </Text>
-        <Stack gap={3}>
-          {projects.map((project, index) => (
-            <ScrollReveal key={project.id} style={{ transitionDelay: `${Math.min(index * 80, 480)}ms` }}>
-              <InquiryConfirmationCard project={project} sentAt={sentAt} />
-            </ScrollReveal>
-          ))}
-        </Stack>
-        <Stack direction="row" gap={2}>
-          <Button as="a" href={dzialkaHref} surface="v5" className="w-fit">
-            {t("checkPlot")}
-          </Button>
-          <Button as="a" href={resultsHref} variant="secondary" surface="v5" className="w-fit">
-            {t("backToResults")}
-          </Button>
-        </Stack>
-      </Stack>
-    );
   }
 
   const countryOptions = countries.map((country) => ({ value: country.code, label: country.name }));
@@ -106,77 +71,95 @@ export function InquiryFlow({
       <Heading level="h1" surface="v5">
         {t("heading")}
       </Heading>
-      <Text tone="muted" surface="v5">
-        {t("intro", {
-          count: projects.length,
-          noun: productNoun,
-          names: projects.map((project) => project.name).join(", "),
-        })}
-      </Text>
+      <div className="max-w-xl rounded-v5-card border border-brand-v5-line p-brand-3">
+        <Text as="p" surface="v5" className="font-medium">
+          {t("howItWorksTitle")}
+        </Text>
+        <Text tone="muted" surface="v5">
+          {t("howItWorksBody")}
+        </Text>
+      </div>
       <form onSubmit={handleSubmit} className="flex max-w-md flex-col gap-brand-3" noValidate>
         <Stack gap={1}>
-          <Label htmlFor="inquiry-name" required surface="v5">
-            {t("nameLabel")}
+          <Text as="p" surface="v5" className="font-medium">
+            {t("selectedHomesLabel")}
+          </Text>
+          <ul className="flex flex-col gap-1">
+            {projects.map((project) => (
+              <li key={project.id}>
+                <Text surface="v5">{project.name}</Text>
+              </li>
+            ))}
+          </ul>
+        </Stack>
+        <Stack gap={1}>
+          <Label htmlFor="inquiry-street" required surface="v5">
+            {t("streetLabel")}
           </Label>
           <Input
-            id="inquiry-name"
-            name="name"
+            id="inquiry-street"
+            name="street"
             type="text"
-            autoComplete="name"
+            autoComplete="street-address"
             required
             surface="v5"
-            value={contact.name}
-            onChange={(event) => setContact((prev) => ({ ...prev, name: event.target.value }))}
+            value={street}
+            onChange={(event) => setStreet(event.target.value)}
           />
         </Stack>
         <Stack gap={1}>
-          <Label htmlFor="inquiry-email" required surface="v5">
-            E-mail
+          <Label htmlFor="inquiry-postal-code" required surface="v5">
+            {t("postalCodeLabel")}
           </Label>
           <Input
-            id="inquiry-email"
-            name="email"
-            type="email"
-            autoComplete="email"
+            id="inquiry-postal-code"
+            name="postalCode"
+            type="text"
+            autoComplete="postal-code"
             required
             surface="v5"
-            invalid={emailTouched && contact.email.length > 0 && !emailValid}
-            aria-describedby={emailTouched && contact.email.length > 0 && !emailValid ? "inquiry-email-error" : undefined}
-            value={contact.email}
-            onChange={(event) => setContact((prev) => ({ ...prev, email: event.target.value }))}
-            onBlur={() => setEmailTouched(true)}
+            value={postalCode}
+            onChange={(event) => setPostalCode(event.target.value)}
           />
-          {emailTouched && contact.email.length > 0 && !emailValid && (
-            <p id="inquiry-email-error" className="font-sans text-body text-status-blocked">
-              {t("emailInvalidError")}
-            </p>
-          )}
         </Stack>
         <Stack gap={1}>
-          <Label htmlFor="inquiry-phone" required surface="v5">
-            {t("phoneLabel")}
+          <Label htmlFor="inquiry-city" required surface="v5">
+            {t("cityLabel")}
           </Label>
           <Input
-            id="inquiry-phone"
-            name="phone"
-            type="tel"
-            autoComplete="tel"
+            id="inquiry-city"
+            name="city"
+            type="text"
+            autoComplete="address-level2"
             required
             surface="v5"
-            value={contact.phone}
-            onChange={(event) => setContact((prev) => ({ ...prev, phone: event.target.value }))}
+            value={city}
+            onChange={(event) => setCity(event.target.value)}
           />
         </Stack>
         <Stack gap={1}>
           <Label id="inquiry-country-label" required surface="v5">
-            {t("deliveryCountryLabel")}
+            {t("countryLabel")}
           </Label>
           <Select
-            value={deliveryCountryCode}
-            onChange={setDeliveryCountryCode}
+            value={countryCode}
+            onChange={setCountryCode}
             options={countryOptions}
             aria-labelledby="inquiry-country-label"
             surface="v5"
+          />
+        </Stack>
+        <Stack gap={1}>
+          <Label htmlFor="inquiry-message" surface="v5">
+            {t("messageLabel")}
+          </Label>
+          <Textarea
+            id="inquiry-message"
+            name="message"
+            maxLength={4000}
+            surface="v5"
+            value={message}
+            onChange={(event) => setMessage(event.target.value)}
           />
         </Stack>
         {error && (
@@ -184,9 +167,14 @@ export function InquiryFlow({
             {error}
           </p>
         )}
-        <Button type="submit" disabled={!canSubmit} surface="v5" className="w-fit">
-          {isPending ? t("sendingLabel") : error ? t("retrySendLabel") : t("sendLabel")}
-        </Button>
+        <Stack direction="row" gap={2}>
+          <Button type="submit" disabled={!canSubmit} surface="v5" className="w-fit">
+            {isPending ? t("sendingLabel") : error ? t("retrySendLabel") : t("sendLabel")}
+          </Button>
+          <Button as="a" href={resultsHref} variant="secondary" surface="v5" className="w-fit">
+            {t("backToResults")}
+          </Button>
+        </Stack>
       </form>
     </Stack>
   );

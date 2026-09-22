@@ -1,0 +1,19 @@
+{
+  "name": "modularhub-house-import-worker",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/functions/*.js",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "npm --prefix ../.. run build:house-import-function",
+    "start": "npm run build && func start"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.16.5",
+    "@azure/functions-extensions-servicebus": "^0.5.1",
+    "@azure/identity": "^4.13.3",
+    "@azure/service-bus": "^7.9.5"
+  }
+}

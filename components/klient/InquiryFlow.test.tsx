@@ -1,102 +1,81 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { submitAdvisoryInquiry } from "@/lib/case-actions";
 import type { Country, Project } from "@/lib/data/types";
-import { submitInquiry } from "@/lib/inquiry-actions";
 import { createMockProject } from "@/test/fixtures/project";
 import { InquiryFlow } from "./InquiryFlow";
 
-vi.mock("@/lib/inquiry-actions", () => ({
-  submitInquiry: vi.fn(),
+vi.mock("@/lib/case-actions", () => ({
+  submitAdvisoryInquiry: vi.fn(),
 }));
 
-const mockedSubmitInquiry = vi.mocked(submitInquiry);
+const push = vi.fn();
+vi.mock("next/navigation", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/navigation")>()),
+  useRouter: () => ({ push }),
+}));
 
-function makeProject(id: string, name: string, producerName: string): Project {
-  return createMockProject({ id, producerId: "prod-1", producerName, name, floorAreaM2: 80, priceMin: 100000, priceMax: 120000 });
+const mockedSubmit = vi.mocked(submitAdvisoryInquiry);
+
+function makeProject(id: string, name: string): Project {
+  return createMockProject({ id, producerId: "prod-1", producerName: "Producent", name, floorAreaM2: 80, priceMin: 100000, priceMax: 120000 });
 }
 
-const oneProject = [makeProject("id1", "Dom Jeden", "Producent Jeden")];
-const twoProjects = [
-  makeProject("id1", "Dom Jeden", "Producent Jeden"),
-  makeProject("id2", "Dom Dwa", "Producent Dwa"),
-];
-
+const twoProjects = [makeProject("id1", "Dom Jeden"), makeProject("id2", "Dom Dwa")];
 const countries: Country[] = [
   { code: "PL", name: "Polska" },
   { code: "DE", name: "Niemcy" },
 ];
 
-const emptyContact = { name: "", email: "", phone: "" };
+function renderFlow(initialCountryCode: "PL" | "DE" | null = null) {
+  render(
+    <InquiryFlow projects={twoProjects} resultsHref="/pl/results" countries={countries} initialCountryCode={initialCountryCode} />,
+  );
+}
 
-async function fillValidContact(user: ReturnType<typeof userEvent.setup>) {
-  await user.type(screen.getByLabelText(/imię i nazwisko/i), "Jan Kowalski");
-  await user.type(screen.getByLabelText(/e-mail/i), "jan@example.com");
-  await user.type(screen.getByLabelText(/telefon/i), "600123456");
-  await user.click(screen.getByRole("button", { name: "Wybierz…" }));
-  await user.click(screen.getByRole("option", { name: "Polska" }));
+async function fillAddress(user: ReturnType<typeof userEvent.setup>) {
+  await user.type(screen.getByLabelText(/ulica i numer/i), "Leśna 5");
+  await user.type(screen.getByLabelText(/kod pocztowy/i), "30-001");
+  await user.type(screen.getByLabelText(/miejscowość/i), "Kraków");
 }
 
 beforeEach(() => {
-  mockedSubmitInquiry.mockReset();
+  mockedSubmit.mockReset();
+  push.mockReset();
 });
 
-describe("InquiryFlow", () => {
-  it("renders exactly one H1 and the contact form fields, all required (AC-6, AC-9)", () => {
-    render(
-      <InquiryFlow
-        projects={oneProject}
-        resultsHref="/pl/results"
-        dzialkaHref="/pl/plot?projects=id1"
-        countries={countries}
-        initialContact={emptyContact}
-        initialCountryCode={null}
-      />
-    );
+describe("InquiryFlow (spec 0048 AC-1, AC-2)", () => {
+  it("renders one H1 with the ModularHub call to action and explains the request goes to ModularHub first (AC-1)", () => {
+    renderFlow();
 
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
-    expect(screen.getByLabelText(/imię i nazwisko/i)).toBeRequired();
-    expect(screen.getByLabelText(/e-mail/i)).toBeRequired();
-    expect(screen.getByLabelText(/telefon/i)).toBeRequired();
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Poproś ModularHub o przygotowanie ofert");
+    expect(screen.getByText(/nie od razu do producentów/i)).toBeInTheDocument();
   });
 
-  it("prefills contact fields from the logged-in client's account", () => {
-    render(
-      <InquiryFlow
-        projects={oneProject}
-        resultsHref="/pl/results"
-        dzialkaHref="/pl/plot?projects=id1"
-        countries={countries}
-        initialContact={{ name: "Jan Kowalski", email: "jan@example.com", phone: "600123456" }}
-        initialCountryCode="DE"
-      />
-    );
+  it("lists the selected homes read only and has no budget, deadline or services fields (AC-2)", () => {
+    renderFlow();
 
-    expect(screen.getByLabelText(/imię i nazwisko/i)).toHaveValue("Jan Kowalski");
-    expect(screen.getByLabelText(/e-mail/i)).toHaveValue("jan@example.com");
-    expect(screen.getByLabelText(/telefon/i)).toHaveValue("600123456");
-    expect(screen.getByText("Niemcy")).toBeInTheDocument();
+    expect(screen.getByText("Dom Jeden")).toBeInTheDocument();
+    expect(screen.getByText("Dom Dwa")).toBeInTheDocument();
+    expect(screen.queryByLabelText(/budżet/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/termin/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/usług/i)).not.toBeInTheDocument();
   });
 
-  it("keeps the submit button disabled until every field, including delivery country, is filled (AC-6)", async () => {
+  it("requires the full plot address and a country, the free text stays optional (AC-2)", async () => {
     const user = userEvent.setup();
-    render(
-      <InquiryFlow
-        projects={oneProject}
-        resultsHref="/pl/results"
-        dzialkaHref="/pl/plot?projects=id1"
-        countries={countries}
-        initialContact={emptyContact}
-        initialCountryCode={null}
-      />
-    );
+    renderFlow();
 
-    const submit = screen.getByRole("button", { name: "Wyślij zapytanie" });
+    const submit = screen.getByRole("button", { name: "Wyślij zapytanie do ModularHub" });
+    expect(screen.getByLabelText(/ulica i numer/i)).toBeRequired();
+    expect(screen.getByLabelText(/kod pocztowy/i)).toBeRequired();
+    expect(screen.getByLabelText(/miejscowość/i)).toBeRequired();
+    expect(screen.getByLabelText(/własnymi słowami/i)).not.toBeRequired();
     expect(submit).toBeDisabled();
 
-    await user.type(screen.getByLabelText(/imię i nazwisko/i), "Jan Kowalski");
-    await user.type(screen.getByLabelText(/telefon/i), "600123456");
-    await user.type(screen.getByLabelText(/e-mail/i), "jan@example.com");
+    await fillAddress(user);
     expect(submit).toBeDisabled();
 
     await user.click(screen.getByRole("button", { name: "Wybierz…" }));
@@ -104,172 +83,47 @@ describe("InquiryFlow", () => {
     expect(submit).toBeEnabled();
   });
 
-  it("keeps the submit button disabled while the email is present but not validly formatted (AC-6)", async () => {
+  it("submits the homes, the address and the idempotency key, then opens the case page (AC-3)", async () => {
+    mockedSubmit.mockResolvedValue({ ok: true, inquiryId: "inq-1" });
     const user = userEvent.setup();
-    render(
-      <InquiryFlow
-        projects={oneProject}
-        resultsHref="/pl/results"
-        dzialkaHref="/pl/plot?projects=id1"
-        countries={countries}
-        initialContact={emptyContact}
-        initialCountryCode="PL"
-      />
-    );
+    renderFlow("PL");
 
-    await user.type(screen.getByLabelText(/imię i nazwisko/i), "Jan Kowalski");
-    await user.type(screen.getByLabelText(/telefon/i), "600123456");
-    await user.type(screen.getByLabelText(/e-mail/i), "not-an-email");
+    await fillAddress(user);
+    await user.type(screen.getByLabelText(/własnymi słowami/i), "Szukam domu na jesień");
+    await user.click(screen.getByRole("button", { name: "Wyślij zapytanie do ModularHub" }));
 
-    expect(screen.getByRole("button", { name: "Wyślij zapytanie" })).toBeDisabled();
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/pl/panel/inquiries/inq-1"));
+    expect(mockedSubmit).toHaveBeenCalledTimes(1);
+    const input = mockedSubmit.mock.calls[0][0];
+    expect(input.projectIds).toEqual(["id1", "id2"]);
+    expect(input.plot).toEqual({ street: "Leśna 5", postalCode: "30-001", city: "Kraków", countryCode: "PL" });
+    expect(input.message).toBe("Szukam domu na jesień");
+    expect(input.idempotencyKey).toMatch(/[0-9a-f-]{36}/);
   });
 
-  it("submits the selected project ids, contact, and delivery country, then shows confirmation (AC-6)", async () => {
-    mockedSubmitInquiry.mockResolvedValue({ ok: true, inquiryId: "inq-1" });
+  it("retries with the same idempotency key after a failure (AC-3)", async () => {
+    mockedSubmit.mockResolvedValueOnce({ ok: false, error: "generic" }).mockResolvedValueOnce({ ok: true, inquiryId: "inq-1" });
     const user = userEvent.setup();
-    render(
-      <InquiryFlow
-        projects={twoProjects}
-        resultsHref="/pl/results"
-        dzialkaHref="/pl/plot?projects=id1"
-        countries={countries}
-        initialContact={emptyContact}
-        initialCountryCode={null}
-      />
-    );
+    renderFlow("PL");
 
-    await fillValidContact(user);
-    await user.click(screen.getByRole("button", { name: "Wyślij zapytanie" }));
+    await fillAddress(user);
+    await user.click(screen.getByRole("button", { name: "Wyślij zapytanie do ModularHub" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Nie udało się wysłać zapytania");
 
-    await waitFor(() => {
-      expect(screen.getByRole("heading", { level: 1, name: "Zapytanie wysłane" })).toBeInTheDocument();
-    });
-
-    expect(mockedSubmitInquiry).toHaveBeenCalledWith(
-      expect.objectContaining({
-        contact: { name: "Jan Kowalski", email: "jan@example.com", phone: "600123456" },
-        deliveryCountryCode: "PL",
-        projectIds: ["id1", "id2"],
-        idempotencyKey: expect.any(String),
-      })
-    );
-    expect(screen.getByText("Dom Jeden")).toBeInTheDocument();
-    expect(screen.getByText("Dom Dwa")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Ponów wysyłanie" }));
+    await waitFor(() => expect(push).toHaveBeenCalled());
+    expect(mockedSubmit.mock.calls[1][0].idempotencyKey).toBe(mockedSubmit.mock.calls[0][0].idempotencyKey);
   });
 
-  it("shows an inline error and keeps the filled form when the server action fails, without losing the idempotency key (AC-7)", async () => {
-    mockedSubmitInquiry.mockResolvedValueOnce({ ok: false, error: "Nie udało się zapisać zapytania. Spróbuj ponownie." });
+  it("shows a specific message for an unsupported country", async () => {
+    mockedSubmit.mockResolvedValue({ ok: false, error: "unsupported_country" });
     const user = userEvent.setup();
-    render(
-      <InquiryFlow
-        projects={oneProject}
-        resultsHref="/pl/results"
-        dzialkaHref="/pl/plot?projects=id1"
-        countries={countries}
-        initialContact={emptyContact}
-        initialCountryCode={null}
-      />
-    );
+    renderFlow("PL");
 
-    await fillValidContact(user);
-    await user.click(screen.getByRole("button", { name: "Wyślij zapytanie" }));
+    await fillAddress(user);
+    await user.click(screen.getByRole("button", { name: "Wyślij zapytanie do ModularHub" }));
 
-    await waitFor(() => {
-      expect(screen.getByRole("alert")).toHaveTextContent(/nie udało się zapisać zapytania/i);
-    });
-    expect(screen.getByLabelText(/imię i nazwisko/i)).toHaveValue("Jan Kowalski");
-
-    mockedSubmitInquiry.mockResolvedValueOnce({ ok: true, inquiryId: "inq-1" });
-    const retryButton = await screen.findByRole("button", { name: "Ponów wysyłanie" });
-    await user.click(retryButton);
-
-    await waitFor(() => {
-      expect(screen.getByRole("heading", { level: 1, name: "Zapytanie wysłane" })).toBeInTheDocument();
-    });
-
-    const [firstCall, secondCall] = mockedSubmitInquiry.mock.calls;
-    expect(firstCall[0].idempotencyKey).toBe(secondCall[0].idempotencyKey);
-  });
-
-  it("does not submit and stays on the form when the button is clicked while invalid (AC-6)", async () => {
-    const user = userEvent.setup();
-    render(
-      <InquiryFlow
-        projects={oneProject}
-        resultsHref="/pl/results"
-        dzialkaHref="/pl/plot?projects=id1"
-        countries={countries}
-        initialContact={emptyContact}
-        initialCountryCode={null}
-      />
-    );
-
-    await user.click(screen.getByRole("button", { name: "Wyślij zapytanie" }));
-
-    expect(mockedSubmitInquiry).not.toHaveBeenCalled();
-    expect(screen.queryByText("Zapytanie wysłane")).not.toBeInTheDocument();
-    expect(screen.getByLabelText(/imię i nazwisko/i)).toBeInTheDocument();
-  });
-
-  it("shows a 'Sprawdź działkę' link to dzialkaHref alongside the results link after sending (spec 0006 AC-2)", async () => {
-    mockedSubmitInquiry.mockResolvedValue({ ok: true, inquiryId: "inq-1" });
-    const user = userEvent.setup();
-    render(
-      <InquiryFlow
-        projects={oneProject}
-        resultsHref="/pl/results?country=DE&sizeMin=50"
-        dzialkaHref="/pl/plot?projects=id1&country=DE&sizeMin=50"
-        countries={countries}
-        initialContact={emptyContact}
-        initialCountryCode={null}
-      />
-    );
-
-    await fillValidContact(user);
-    await user.click(screen.getByRole("button", { name: "Wyślij zapytanie" }));
-
-    const dzialkaLink = await screen.findByRole("link", { name: "Sprawdź działkę" });
-    expect(dzialkaLink).toHaveAttribute("href", "/pl/plot?projects=id1&country=DE&sizeMin=50");
-  });
-
-  it("shows a single secondary 'Wróć do wyników' link to resultsHref after sending, with no way back to the form (AC-8)", async () => {
-    mockedSubmitInquiry.mockResolvedValue({ ok: true, inquiryId: "inq-1" });
-    const user = userEvent.setup();
-    render(
-      <InquiryFlow
-        projects={oneProject}
-        resultsHref="/pl/results?country=DE&sizeMin=50"
-        dzialkaHref="/pl/plot?projects=id1&country=DE&sizeMin=50"
-        countries={countries}
-        initialContact={emptyContact}
-        initialCountryCode={null}
-      />
-    );
-
-    await fillValidContact(user);
-    await user.click(screen.getByRole("button", { name: "Wyślij zapytanie" }));
-
-    const backLinks = await screen.findAllByRole("link", { name: "Wróć do wyników" });
-    expect(backLinks).toHaveLength(1);
-    expect(backLinks[0]).toHaveAttribute("href", "/pl/results?country=DE&sizeMin=50");
-    expect(screen.queryByLabelText(/imię i nazwisko/i)).not.toBeInTheDocument();
-  });
-
-  it("gives every interactive element the visible focus-ring class (AC-9)", () => {
-    render(
-      <InquiryFlow
-        projects={oneProject}
-        resultsHref="/pl/results"
-        dzialkaHref="/pl/plot?projects=id1"
-        countries={countries}
-        initialContact={emptyContact}
-        initialCountryCode={null}
-      />
-    );
-
-    expect(screen.getByLabelText(/imię i nazwisko/i)).toHaveClass("focus-ring");
-    expect(screen.getByLabelText(/e-mail/i)).toHaveClass("focus-ring");
-    expect(screen.getByLabelText(/telefon/i)).toHaveClass("focus-ring");
-    expect(screen.getByRole("button", { name: "Wyślij zapytanie" })).toHaveClass("focus-ring");
+    expect(await screen.findByRole("alert")).toHaveTextContent("nie jest jeszcze obsługiwany");
+    expect(push).not.toHaveBeenCalled();
   });
 });

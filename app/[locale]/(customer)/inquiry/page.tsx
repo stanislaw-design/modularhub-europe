@@ -22,19 +22,6 @@ function buildResultsHref(
   return `/${locale}/results${query ? `?${query}` : ""}`;
 }
 
-function buildDzialkaHref(
-  locale: string,
-  projectIds: string[],
-  searchParams: { [key: string]: string | string[] | undefined }
-): string {
-  const params = new URLSearchParams({ projects: projectIds.join(",") });
-  for (const key of ["country", "sizeMin", "sizeMax"] as const) {
-    const value = searchParams[key];
-    if (typeof value === "string") params.set(key, value);
-  }
-  return `/${locale}/plot?${params.toString()}`;
-}
-
 // Zachowuje dokładnie ten sam URL (wliczając projects=), żeby po zalogowaniu
 // klient wrócił na ten sam wybór produktów (spec 0023 AC-5).
 function buildSelfHref(
@@ -81,7 +68,6 @@ export default async function ZapytaniePage({
   const selectedProjects = (
     await Promise.all(projectIds.map((id) => getProjectById(id, locale as Locale)))
   ).filter((project): project is Project => project !== null);
-  const dzialkaHref = buildDzialkaHref(locale, projectIds, rawSearchParams);
 
   const rawCountry = rawSearchParams.country;
   const initialCountryCode =
@@ -93,13 +79,7 @@ export default async function ZapytaniePage({
     <InquiryFlow
       projects={selectedProjects}
       resultsHref={resultsHref}
-      dzialkaHref={dzialkaHref}
       countries={countries}
-      initialContact={{
-        name: session.user.name ?? "",
-        email: session.user.email ?? "",
-        phone: session.user.phone ?? "",
-      }}
       initialCountryCode={initialCountryCode}
     />
   );

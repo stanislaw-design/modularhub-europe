@@ -14,8 +14,11 @@ interface FileUploadProps {
   label: string;
   files: MockUploadedFile[];
   onFilesChange: (files: MockUploadedFile[]) => void;
+  nativeFiles?: File[];
+  onNativeFilesChange?: (files: File[]) => void;
   accept?: string;
   required?: boolean;
+  notice?: string;
 }
 
 function formatFileSize(bytes: number): string {
@@ -24,7 +27,17 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function FileUpload({ id, label, files, onFilesChange, accept, required }: FileUploadProps) {
+export function FileUpload({
+  id,
+  label,
+  files,
+  onFilesChange,
+  nativeFiles,
+  onNativeFilesChange,
+  accept,
+  required,
+  notice,
+}: FileUploadProps) {
   const t = useTranslations("FileUpload");
   const inputRef = useRef<HTMLInputElement>(null);
   const listId = `${id}-list`;
@@ -36,12 +49,20 @@ export function FileUpload({ id, label, files, onFilesChange, accept, required }
       name: file.name,
       sizeBytes: file.size,
     }));
-    onFilesChange([...files, ...next]);
+    if (nativeFiles && onNativeFilesChange) {
+      onNativeFilesChange([...nativeFiles, ...Array.from(selected)]);
+    } else {
+      onFilesChange([...files, ...next]);
+    }
     event.target.value = "";
   }
 
   function handleRemove(index: number) {
-    onFilesChange(files.filter((_, fileIndex) => fileIndex !== index));
+    if (nativeFiles && onNativeFilesChange) {
+      onNativeFilesChange(nativeFiles.filter((_, fileIndex) => fileIndex !== index));
+    } else {
+      onFilesChange(files.filter((_, fileIndex) => fileIndex !== index));
+    }
   }
 
   return (
@@ -71,7 +92,7 @@ export function FileUpload({ id, label, files, onFilesChange, accept, required }
           {t("chooseFiles")}
         </Button>
         <Text as="span" variant="label" tone="muted">
-          {t("mockNotice")}
+          {notice ?? t("mockNotice")}
         </Text>
       </Stack>
       <ul id={listId} className="flex flex-col gap-1">

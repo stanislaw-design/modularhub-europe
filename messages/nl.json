@@ -76,10 +76,6 @@
   "ProjectCertifications": {
     "heading": "Certificeringen"
   },
-  "InquiryConfirmationCard": {
-    "message": "De klant vraagt om een aanbod voor dit project, inclusief woning, transport en montage.",
-    "sentAt": "Verzonden {date}"
-  },
   "PopularHomeCard": {
     "coverAlt": "{name}, een modulaire woning",
     "summary": "{area} m² · {rooms} kamers",
@@ -679,7 +675,20 @@
     "statusOpen": "Wacht op antwoord",
     "statusOffered": "Aanbod ontvangen",
     "statusClosed": "Gesloten",
-    "unreadOfferLabel": "Nieuw aanbod"
+    "unreadOfferLabel": "Nieuw aanbod",
+    "advisoryHeading": "Aanvragen bij ModularHub",
+    "caseStage": {
+      "nowe": "Nieuwe aanvraag",
+      "rozmowa": "Gesprek met de adviseur",
+      "brief_do_zatwierdzenia": "Briefing ter goedkeuring",
+      "producenci_odpowiadaja": "Fabrikanten bereiden antwoorden voor",
+      "porownanie_w_przygotowaniu": "ModularHub vergelijkt de offertes",
+      "porownanie_gotowe": "Vergelijking klaar",
+      "finalista_wybrany": "Fabrikant gekozen",
+      "wspolne_ustalenia": "Gezamenlijke afspraken",
+      "zamkniete_bez_wyboru": "Afgesloten zonder keuze",
+      "legacy_direct": "Directe aanvraag"
+    }
   },
   "KlientPanelUlubionePage": {
     "heading": "Favorieten",
@@ -695,7 +704,7 @@
     "priceOnRequestHint": "De prijs wordt rechtstreeks met de producent afgesproken na uw aanvraag.",
     "estimatedPackage": "Geschat pakket",
     "packageIncludes": "Woning",
-    "sendInquiry": "Aanvraag versturen",
+    "sendInquiry": "Vraag ModularHub om offertes voor te bereiden",
     "warrantyYears": "{years} jaar constructiegarantie",
     "warrantyYearsValue": "{years} jaar",
     "certifiedCount": {
@@ -1089,24 +1098,22 @@
     "energyClassA": "Klasse A+"
   },
   "InquiryFlow": {
-    "sentHeading": "Aanvraag verstuurd",
-    "productNoun": {
-      "one": "woning",
-      "other": "woningen"
-    },
-    "sentConfirmation": "Bevestiging van uw aanvraag voor {count} {noun} hieronder.",
-    "checkPlot": "Perceel controleren",
-    "backToResults": "Terug naar resultaten",
-    "heading": "Aanvraag voor de geselecteerde woningen",
-    "intro": "U stuurt één aanvraag voor {count} {noun}: {names}. Vul uw contactgegevens in zodat producenten contact met u kunnen opnemen.",
-    "nameLabel": "Volledige naam",
-    "emailInvalidError": "Voer een geldig e-mailadres in.",
-    "phoneLabel": "Telefoon",
-    "deliveryCountryLabel": "Leverland",
-    "sendingLabel": "Versturen…",
-    "retrySendLabel": "Opnieuw versturen",
-    "sendLabel": "Aanvraag versturen",
-    "genericSendError": "Kon de aanvraag niet versturen. Probeer het opnieuw."
+    "heading": "Vraag ModularHub om offertes voor te bereiden",
+    "howItWorksTitle": "Zo werkt het",
+    "howItWorksBody": "Uw aanvraag gaat naar ModularHub en niet meteen naar de fabrikanten. Een adviseur spreekt met u, maakt een briefing en legt die aan u voor ter goedkeuring. Fabrikanten ontvangen de briefing pas nadat u akkoord bent gegaan.",
+    "selectedHomesLabel": "Gekozen woningen",
+    "streetLabel": "Straat en huisnummer",
+    "postalCodeLabel": "Postcode",
+    "cityLabel": "Plaats",
+    "countryLabel": "Land van het perceel",
+    "messageLabel": "In eigen woorden: wat zoekt u? (optioneel)",
+    "sendingLabel": "Verzenden…",
+    "retrySendLabel": "Opnieuw verzenden",
+    "sendLabel": "Aanvraag naar ModularHub sturen",
+    "backToResults": "Terug naar de resultaten",
+    "genericSendError": "De aanvraag kon niet worden verzonden. Probeer het opnieuw.",
+    "unsupportedCountryError": "Dit land wordt nog niet ondersteund.",
+    "authError": "Log in als klant om een aanvraag te versturen."
   },
   "ProfileForm": {
     "nameLabel": "Volledige naam",
@@ -1260,7 +1267,7 @@
   },
   "ShortlistActionBar": {
     "selectedCount": "Geselecteerd: {count}/{max}",
-    "sendInquiry": "Aanvraag versturen"
+    "sendInquiry": "Vraag ModularHub om offertes voor te bereiden"
   },
   "CompareSelectionBar": {
     "selectedCount": "Geselecteerd om te vergelijken: {count}/{max}",
@@ -1570,6 +1577,88 @@
     "sentBody": "De producent heeft uw aanvraag ontvangen en reageert per e mail met een offerte.",
     "close": "Sluiten"
   },
+  "HouseAiFieldReview": {
+    "conflict": "Conflict",
+    "currentValue": "Huidige conceptwaarde: {value}",
+    "chooseProposal": "Kies een voorstel voor {field}",
+    "yes": "Ja",
+    "no": "Nee",
+    "selected": "Geselecteerd",
+    "editManually": "Eigen waarde invoeren",
+    "manualValueLabel": "Handmatige waarde",
+    "chooseValue": "Kies een waarde",
+    "saveManualValue": "Waarde opslaan",
+    "cancelManualEdit": "Annuleren",
+    "reject": "Niet nodig voor dit project",
+    "rejected": "Afgewezen",
+    "exchangeRateSource": "Bron: {amount} {currency} netto, ECB-koers {rate} van {date}",
+    "showEvidence": "Bewijs tonen",
+    "roomGroupEyebrow": "Ruimte",
+    "roomGroupTitle": "{label}",
+    "roomGroupFallback": "Ruimte {number}",
+    "variantGroupEyebrow": "Pakket binnen een opleveringsniveau",
+    "variantGroupTitle": "Variant {label}",
+    "variantGroupFallback": "Variant {number}",
+    "origins": {
+      "extracted": "Geëxtraheerd",
+      "inferred": "Afgeleid",
+      "generated": "Gegenereerd",
+      "translated": "Vertaald"
+    },
+    "confidence": {
+      "high": "Hoge zekerheid",
+      "medium": "Gemiddelde zekerheid",
+      "low": "Lage zekerheid"
+    },
+    "fieldLabels": {
+      "productName": "Modelnaam",
+      "productDescription": "Projectbeschrijving",
+      "productFloorArea": "Gebruiksoppervlakte",
+      "productBedrooms": "Aantal slaapkamers",
+      "productCountryOfProduction": "Productieland",
+      "productCategory": "Projectcategorie",
+      "technicalWallBuildUp": "Wandopbouw",
+      "technicalInsulation": "Isolatie",
+      "technicalEnergyClass": "Energieklasse",
+      "technicalWindowClass": "Raamklasse",
+      "technicalVentilation": "Ventilatie",
+      "technicalHeatSource": "Warmtebron",
+      "technicalFireResistance": "Brandwerendheid",
+      "technicalWindResistance": "Windbestendigheid",
+      "logisticsStructuralWarranty": "Constructieve garantie",
+      "logisticsInstallationWarranty": "Installatiegarantie",
+      "logisticsServiceScope": "Dienstverleningsomvang",
+      "logisticsTransportDimensions": "Transportafmetingen",
+      "logisticsCraneRequirements": "Kraanvereisten",
+      "logisticsMinPlotWidth": "Minimale perceelbreedte",
+      "complianceSimplifiedPermit": "Geschiktheid voor vereenvoudigde vergunning",
+      "roomName": "Naam van de ruimte",
+      "roomArea": "Oppervlakte van de ruimte",
+      "roomFunction": "Functie van de ruimte",
+      "roomIsMezzanine": "Entresol",
+      "variantCompletionStandard": "Opleveringsniveau",
+      "variantLabel": "Variantnaam",
+      "variantPriceMin": "Minimumprijs van de variant",
+      "variantPriceMax": "Maximumprijs van de variant",
+      "variantScopeSummary": "Omvang van de variant",
+      "costItemLabel": "Kostenpost",
+      "costItemStatus": "Status van de kostenpost",
+      "costItemResponsibleParty": "Verantwoordelijke voor de kostenpost",
+      "timelineStage": "Planningsfase",
+      "timelineDurationMin": "Minimale duur van de fase",
+      "timelineDurationMax": "Maximale duur van de fase",
+      "timelineStartsFrom": "Startpunt van de fase",
+      "timelineResponsibleParty": "Verantwoordelijke voor de fase",
+      "faqQuestion": "FAQ-vraag",
+      "faqAnswer": "FAQ-antwoord",
+      "translationName": "Vertaling van de modelnaam",
+      "translationDescription": "Vertaling van de projectbeschrijving",
+      "translationRoomName": "Vertaling van de ruimtenaam",
+      "translationFaqQuestion": "Vertaling van de FAQ-vraag",
+      "translationFaqAnswer": "Vertaling van het FAQ-antwoord",
+      "translationVariantScope": "Vertaling van de variantomvang"
+    }
+  },
   "ProducerPanelSidebar": {
     "navAriaLabel": "Fabrikantenpaneel",
     "konto": "Account",
@@ -1580,6 +1669,66 @@
     "signOut": "Uitloggen",
     "openMenu": "Menu openen",
     "closeMenu": "Menu sluiten",
-    "menu": "Menu"
+    "menu": "Menu",
+    "collapseSidebar": "Menu inklappen",
+    "expandSidebar": "Menu uitklappen"
+  },
+  "CaseChat": {
+    "heading": "Gesprek met de adviseur",
+    "draftLabel": "Uw bericht",
+    "empty": "Nog geen berichten.",
+    "send": "Verzenden",
+    "sending": "Verzenden…",
+    "retry": "Opnieuw verzenden",
+    "sendError": "Het bericht kon niet worden verzonden. Probeer het opnieuw.",
+    "pollError": "Het gesprek kan niet worden ververst. We proberen het opnieuw.",
+    "redacted": "Inhoud verwijderd op verzoek van de klant.",
+    "authorYou": "U",
+    "authorClient": "Klant",
+    "authorAdvisor": "ModularHub-adviseur",
+    "authorProducer": "Fabrikant",
+    "authorSystem": "ModularHub"
+  },
+  "CaseStatus": {
+    "title": "Uw aanvraag",
+    "stageLabel": "Fase",
+    "nextMoveLabel": "Volgende stap",
+    "plotLabel": "Perceel",
+    "sentLabel": "Verzonden",
+    "yourMessageLabel": "Uw bericht",
+    "firstReplyExpectation": "Op het eerste antwoord van de adviseur wacht u meestal maximaal één werkdag.",
+    "commissionNotice": "ModularHub ontvangt een commissie van de fabrikant.",
+    "stage": {
+      "nowe": "Nieuwe aanvraag",
+      "rozmowa": "Gesprek met de adviseur",
+      "brief_do_zatwierdzenia": "Briefing ter goedkeuring",
+      "producenci_odpowiadaja": "Fabrikanten bereiden antwoorden voor",
+      "porownanie_w_przygotowaniu": "ModularHub vergelijkt de offertes",
+      "porownanie_gotowe": "Vergelijking klaar",
+      "finalista_wybrany": "Fabrikant gekozen",
+      "wspolne_ustalenia": "Gezamenlijke afspraken",
+      "zamkniete_bez_wyboru": "Afgesloten zonder keuze",
+      "legacy_direct": "Directe aanvraag"
+    },
+    "waiting": {
+      "client": "De volgende stap ligt bij u",
+      "advisor": "De volgende stap ligt bij de ModularHub-adviseur",
+      "producer": "De volgende stap ligt bij de fabrikant"
+    },
+    "waitingShort": {
+      "client": "Klant",
+      "advisor": "Adviseur",
+      "producer": "Fabrikant"
+    }
+  },
+  "CaseEmail": {
+    "newCaseSubject": "Nieuw dossier bij ModularHub",
+    "newCaseBody": "Een klant heeft een nieuwe aanvraag over woningen gestuurd. Open het dossier om te antwoorden.",
+    "newMessageSubject": "Nieuw bericht in uw ModularHub-dossier",
+    "newMessageBodyClient": "Uw ModularHub-adviseur heeft u geschreven in het gesprek. Open het dossier om het bericht te lezen.",
+    "newMessageBodyAdvisor": "De klant heeft in het gesprek geschreven. Open het dossier om te antwoorden."
+  },
+  "CaseSystem": {
+    "caseReceived": "Wij hebben uw aanvraag ontvangen. We hebben die nog niet naar de fabrikanten gestuurd."
   }
 }

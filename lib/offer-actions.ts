@@ -18,6 +18,12 @@ const GENERIC_ERROR = "Nie udało się zapisać oferty. Spróbuj ponownie.";
 const ALREADY_ACCEPTED_ERROR = "Klient już przyjął wcześniejszą ofertę na to zapytanie — nie można jej zastąpić.";
 const RACE_ERROR = "Ta oferta nie jest już aktywna — mogła zostać właśnie zastąpiona lub jej stan się zmienił. Odśwież stronę.";
 
+// Zarządzany przepływ doradczy (spec 0048 AC-34): każda akcja poniżej dotyczy
+// wyłącznie zapytań bezpośredniego przepływu. Sprawa nowego przepływu jest dla
+// nich niewidoczna, więc nie da się na nią złożyć oferty ani jej przyjąć starą
+// ścieżką, a inquiry.status zostaje zamrożone na 'open'.
+const LEGACY_STAGE = "legacy_direct" as const;
+
 function toPriceCents(value: number): number {
   return Math.round(value * 100);
 }
@@ -35,6 +41,9 @@ function isUniqueViolation(error: unknown): boolean {
 // producent, który nigdy nie złożył oferty, nigdy formalnie nie osiąga stanu
 // końcowego (znana, zaakceptowana granica tej funkcji, patrz spec Key invariants).
 async function recomputeInquiryStatus(inquiryId: string): Promise<void> {
+  const [stageRow] = await db.select({ stage: inquiry.stage }).from(inquiry).where(eq(inquiry.id, inquiryId));
+  if (stageRow?.stage !== LEGACY_STAGE) return;
+
   const [producerRows, offerRows] = await Promise.all([
     db
       .selectDistinct({ producerId: product.producerId })
@@ -111,6 +120,7 @@ export async function submitOffer(input: SubmitOfferInput): Promise<ActionResult
     .select({ productId: product.id })
     .from(inquiryItem)
     .innerJoin(product, and(eq(product.id, inquiryItem.productId), eq(product.producerId, producerId)))
+    .innerJoin(inquiry, and(eq(inquiry.id, inquiryItem.inquiryId), eq(inquiry.stage, LEGACY_STAGE)))
     .where(eq(inquiryItem.inquiryId, input.inquiryId));
   const ownProductIds = new Set(ownItemRows.map((row) => row.productId));
   if (ownProductIds.size === 0) {
@@ -190,7 +200,7 @@ export async function respondToOffer(offerId: string, decision: "accepted" | "re
     .select({ id: offer.id, inquiryId: offer.inquiryId, status: offer.status })
     .from(offer)
     .innerJoin(inquiry, eq(inquiry.id, offer.inquiryId))
-    .where(and(eq(offer.id, offerId), eq(inquiry.clientId, clientId)));
+    .where(and(eq(offer.id, offerId), eq(inquiry.clientId, clientId), eq(inquiry.stage, LEGACY_STAGE)));
   if (!offerRow) {
     return { ok: false, error: "Nie znaleziono oferty." };
   }
@@ -251,7 +261,7 @@ export async function markOfferViewedByClient(inquiryId: string): Promise<void> 
   const [inquiryRow] = await db
     .select({ id: inquiry.id })
     .from(inquiry)
-    .where(and(eq(inquiry.id, inquiryId), eq(inquiry.clientId, clientId)));
+    .where(and(eq(inquiry.id, inquiryId), eq(inquiry.clientId, clientId), eq(inquiry.stage, LEGACY_STAGE)));
   if (!inquiryRow) return;
 
   await db
@@ -267,6 +277,12 @@ export async function markOfferDecisionViewedByProducer(inquiryId: string): Prom
   if (!session || session.user.role !== "producer") return;
   const producerId = await getProducerIdForUser(session.user.id);
   if (!producerId) return;
+
+  const [legacyRow] = await db
+    .select({ id: inquiry.id })
+    .from(inquiry)
+    .where(and(eq(inquiry.id, inquiryId), eq(inquiry.stage, LEGACY_STAGE)));
+  if (!legacyRow) return;
 
   await db
     .update(offer)

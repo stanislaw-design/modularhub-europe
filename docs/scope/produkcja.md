@@ -53,6 +53,8 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 36 | Model danych karty projektu: warianty, koszty, harmonogram | Slice 2 | done |
 | 37 | Nowy układ strony projektu (klient) | Slice 2 | in progress |
 | 39 | Tryb ciemny dla panelu producenta | Slice 2b | in progress |
+| 40 | Import projektu domu z PDF przez bezpiecznego asystenta AI | Slice 2b | in progress |
+| 41 | Zarządzany przepływ doradczy: klient, ModularHub i producent | Slice 3b | in progress |
 
 ## Foundations
 
@@ -336,6 +338,20 @@ Kreator projektów producenta (funkcja 12) nigdy nie doganiał modelu danych z f
 - [ ] Zweryfikuj: `/check verify przebudowa kreatora projektów`
 - [ ] Testuj: `/test przebudowa kreatora projektów`
 
+### 40. Import projektu domu z PDF przez bezpiecznego asystenta AI · full · in progress
+Producent rozpoczyna szkic projektu domu od maksymalnie pięciu ofertowych PDF, także skanów. Asynchroniczny pipeline Azure rozpoznaje dokument, proponuje dane bez automatycznej publikacji i pokazuje przy każdym polu pochodzenie, dowód oraz poziom pewności. Producent rozstrzyga konflikty, poprawia wartości i zatwierdza je w istniejącym kreatorze. Dokumenty pozostają prywatne, dostęp wsparcia jest audytowany, a worker AI nie ma prawa bezpośrednio zmieniać produktu. Funkcja dodana z [spec 0047](../specs/0047-import-projektu-z-pdf/index.md).
+**Done when:** producent może wgrać tekstowe lub skanowane PDF w językach PL, EN, DE i NL, wrócić do ukończonej analizy, przejrzeć wszystkie propozycje wraz ze źródłami, rozstrzygnąć blokady i atomowo zastosować zaakceptowane dane wyłącznie do szkicu; izolacja producentów, prywatne przechowywanie, retencja, retry, koszty i alerty przechodzą testy bezpieczeństwa oraz awarii.
+- [x] Zaprojektuj (spec): [0047](../specs/0047-import-projektu-z-pdf/index.md) (Azure Document Intelligence Layout, Azure OpenAI GPT 5 mini Data Zone Standard, Functions i Service Bus; prywatny R2; producent zawsze zatwierdza; szczegółowy katalog pól w `field-catalog.md`)
+- [ ] Zbuduj: `/develop import projektu domu z PDF`
+  - [ ] Fasada przeglądu i kontrakt pól: wejście z kreatora, postęp, znaczniki pochodzenia, dowody, konflikty, dostępność, `HOUSE_AI_FIELD_CATALOG` i złoty zestaw PDF, satisfies AC-1, AC-5 do AC-12, AC-15, AC-20 (kod fasady i kontraktu w `app/[locale]/producer/panel/project/import/`, `components/producent/House*.tsx`, `lib/house-ai-*.ts`, `lib/data/house-ai-import.ts`; do zamknięcia pozostaje legalny złoty zestaw PDF)
+  - [ ] Dane i prywatne dokumenty: migracja tabel AI, snapshoty pól, prywatny R2 z kwarantanną, walidacja PDF, ClamAV, izolacja producentów, granty wsparcia i audyt, satisfies AC-2, AC-3, AC-13, AC-14, AC-16 do AC-18, AC-21 do AC-23
+  - [ ] Pipeline Azure: infrastruktura jako kod, Service Bus z DLQ, worker z lease i heartbeat, Document Intelligence, GPT 5 mini, kandydaci, problemy stron i dodatkowe obserwacje, satisfies AC-4 do AC-10, AC-15, AC-19 do AC-21, AC-24, AC-25
+  - [ ] Decyzje i zastosowanie: autosave z kontrolą wersji, deterministyczna bramka przeglądu, tłumaczenia po akceptacji polskiej bazy i atomowa funkcja Postgres zapisująca tylko szkic, satisfies AC-6 do AC-14, AC-16, AC-21
+  - [ ] Utwardzenie i rollout: redakcja logów, usage i snapshot stawek, retencja, idempotentne czyszczenie, alerty, testy awarii, pilotaż wewnętrzny i stopniowe włączenie flagi, satisfies AC-4, AC-17, AC-19, AC-22 do AC-25
+- [ ] Zweryfikuj: `/check verify import projektu domu z PDF`
+- [ ] Testuj: `/test import projektu domu z PDF`
+- [ ] Przejrzyj świeżym modelem: `/check review import projektu domu z PDF`
+
 ## Slice 3: oferta
 
 ### 11. Realna oferta i jej przyjęcie · done
@@ -350,6 +366,21 @@ Producent odpowiada na zapytanie prawdziwą ofertą zapisaną w bazie; klient j�
   - [x] Sprzątanie starych mocków (i trzech dzisiejszych odnośników do nich) i rozwijane szczegóły oferty w panelu administratora, satisfies AC-16, AC-17
 - [x] Zweryfikuj: `/check verify realna oferta i jej przyjęcie`
 - [x] Testuj: `/test realna oferta i jej przyjęcie` (`lib/offer-actions.test.ts`, `lib/db/queries.test.ts`, `components/producent/OfferForm.test.tsx`, `components/klient/OfferCard.test.tsx`, `components/{producent,klient}/MarkOffer*Viewed.test.tsx`)
+
+## Slice 3b: zarządzany przepływ doradczy
+
+### 41. Zarządzany przepływ doradczy: klient, ModularHub i producent · full · in progress
+Zapytanie klienta o pojedyncze domy trafia wyłącznie do ModularHub, nie do producentów. Doradca zbiera potrzeby w komunikatorze na stronie, przygotowuje brief, który klient zatwierdza, brief idzie do producentów, oni odpowiadają we wspólnym formacie oferty, ModularHub kontroluje oferty i buduje porównanie, a klient wybiera finalistę i wchodzi z nim we wspólną rozmowę trójstronną. Zastępuje dla pojedynczych domów dzisiejszy bezpośredni przepływ z funkcji 7 i 11 (stare zapytania zostają jako `legacy_direct`). Kontrakt, utworzenie zamówienia, transport i przewoźnicy zostają poza zakresem. Funkcja dodana ze [spec 0048](../specs/0048-zarzadzany-przeplyw-doradczy/index.md).
+**Done when:** klient wysyła zapytanie z pełnym adresem działki do ModularHub, rozmawia z doradcą i zatwierdza brief, dwaj producenci dostają zaproszenia i składają oferty, doradca publikuje porównanie, klient wybiera finalistę i wchodzi do wspólnej rozmowy; producent nigdy nie widzi danych klienta ani cudzych ofert przed zgodą klienta, a stare zapytania i ścieżka B2B działają bez zmian.
+- [x] Zaprojektuj (spec): [0048](../specs/0048-zarzadzany-przeplyw-doradczy/index.md) (rozszerzone `inquiry` jako korzeń sprawy; własny komunikator w Neon z pollingiem co 5 sekund; brief, oferta i porównanie jako niezmienne wersje; prywatny bucket R2 na pliki rozmów; osłona `legacy_direct` na starych zapytaniach producenta)
+- [ ] Zbuduj: `/develop zarządzany przepływ doradczy`
+  - [x] Fundament i osłona: migracja kanałów i wiadomości, filtr `legacy_direct` na starych zapytaniach i akcjach producenta, `requireCaseAccess` i moduł zapytań producenta bez danych osobowych, satisfies AC-3, AC-4, AC-6, AC-8, AC-31, AC-32, AC-34 (code in `lib/cases/`, `lib/case-producer-queries.ts`, `drizzle/0026_case_channels_messages.sql`)
+  - [x] Cienki wątek: formularz zapytania z adresem, sprawa i kanał, czat z pollingiem, widok sprawy doradcy, powiadomienia e mail i zdarzenia, satisfies AC-1, AC-2, AC-3, AC-5, AC-6, AC-10, AC-11, AC-33 (code in `lib/case-actions.ts`, `lib/cases/{create,messaging,notify,queries}.ts`, `components/klient/{InquiryFlow,CaseChat,CaseStatusPanel}.tsx`, `app/[locale]/internal/cases/`)
+  - [ ] Karty, pliki, brief i zgoda: podsumowanie potrzeb, ocena gotowości, prywatny bucket, brief z zatwierdzeniem i wersjami, satisfies AC-7, AC-9, AC-12 do AC-16
+  - [ ] Zaproszenia, oferta i porównanie: zaproszenia producentów i ich panel, wspólny format oferty, kontrola doradcy, porównanie z obsługą braku ofert, satisfies AC-17 do AC-24, AC-35
+  - [ ] Finalista, kolejka i zgodność: wybór finalisty i kanał wspólny, prowizja jawnie, kolejka doradcy w panelu administratora, wycofanie zgody, wznowienie, usunięcie treści, satisfies AC-25 do AC-30, AC-36, AC-37
+- [ ] Zweryfikuj: `/check verify zarządzany przepływ doradczy`
+- [ ] Testuj: `/test zarządzany przepływ doradczy`
 
 ## Slice 4: płatności
 
@@ -486,6 +517,10 @@ Poza zakresem tej epiki, świadomie odłożone.
 - **Statystyki/analityka dla producenta** w panelu (np. liczba zapytań w czasie, popularność produktów) (from spec 0032) · needs a decision
 - **Edycja profilu firmy przez producenta** (nazwa, telefon, kraje dostawy): panel producenta dziś pokazuje wyłącznie podgląd (from spec 0032) · needs a decision
 - **Prawdziwy "konfigurator" zapytania o model w większej ilości**: ekran przeglądania producentów (spec 0038, funkcja 33) dostaje na razie prosty modal na `/project/[id]`; docelowy, bardziej prowadzący konfigurator to osobna decyzja (from spec 0038) · needs a decision
+- **Kontrakt i utworzenie zamówienia po wyborze finalisty**: w przepływie doradczym wybór finalisty nie tworzy `order`, zamówienie powstanie dopiero przy podpisanym kontrakcie (from spec 0048) · needs a decision · full weight
+- **Automatyczne przypomnienia i wygaszanie zaproszeń producentów**: wymaga zadania w tle (Vercel Cron w planie Pro albo zaplanowany workflow GitHub Actions), dziś ręcznie przez doradcę (from spec 0048) · needs a decision
+- **Ping na żywo w komunikatorze** (Ably, Pusher lub Cloudflare): dziś polling co 5 sekund, dane gotowe pod dodanie sygnału bez migracji; wcześniej zweryfikować ceny, regiony danych i wsparcie WebSocket na Vercel (from spec 0048) · needs a decision
+- **Automatyczna anonimizacja rozmów po 24 miesiącach od zamknięcia sprawy** i tłumaczenie maszynowe wiadomości; pierwsza retencja dojrzeje za około dwa lata, dziś usunięcie na prośbę klienta akcją administratora (from spec 0048) · needs a decision
 
 ## References
 

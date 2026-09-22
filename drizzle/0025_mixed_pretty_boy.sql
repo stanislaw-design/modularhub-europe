@@ -1,0 +1,1 @@
+ALTER TABLE "ai_field_candidate" ADD COLUMN "normalization_metadata" jsonb;

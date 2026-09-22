@@ -76,10 +76,6 @@
   "ProjectCertifications": {
     "heading": "Certyfikaty"
   },
-  "InquiryConfirmationCard": {
-    "message": "Klient prosi o przygotowanie oferty na ten projekt, uwzględniającej dom, transport i montaż.",
-    "sentAt": "Wysłano {date}"
-  },
   "PopularHomeCard": {
     "coverAlt": "{name}, dom modułowy",
     "summary": "{area} m² · {rooms} pokoi",
@@ -679,7 +675,20 @@
     "statusOpen": "Oczekuje na odpowiedź",
     "statusOffered": "Otrzymano ofertę",
     "statusClosed": "Zamknięte",
-    "unreadOfferLabel": "Nowa oferta"
+    "unreadOfferLabel": "Nowa oferta",
+    "advisoryHeading": "Zapytania do ModularHub",
+    "caseStage": {
+      "nowe": "Nowe zapytanie",
+      "rozmowa": "Rozmowa z doradcą",
+      "brief_do_zatwierdzenia": "Brief do zatwierdzenia",
+      "producenci_odpowiadaja": "Producenci przygotowują odpowiedzi",
+      "porownanie_w_przygotowaniu": "ModularHub porównuje oferty",
+      "porownanie_gotowe": "Porównanie gotowe",
+      "finalista_wybrany": "Producent wybrany",
+      "wspolne_ustalenia": "Wspólne ustalenia",
+      "zamkniete_bez_wyboru": "Zakończone bez wyboru",
+      "legacy_direct": "Zapytanie bezpośrednie"
+    }
   },
   "ClientInquiryDetailPage": {
     "heading": "Szczegóły zapytania",
@@ -702,7 +711,7 @@
     "priceOnRequestHint": "Cena ustalana bezpośrednio z producentem po zgłoszeniu zapytania.",
     "estimatedPackage": "Szacowany pakiet",
     "packageIncludes": "Dom",
-    "sendInquiry": "Wyślij zapytanie",
+    "sendInquiry": "Poproś ModularHub o przygotowanie ofert",
     "warrantyYears": "{years} lat gwarancji konstrukcyjnej",
     "warrantyYearsValue": "{years} lat",
     "certifiedCount": {
@@ -1096,24 +1105,22 @@
     "energyClassA": "Klasa A+"
   },
   "InquiryFlow": {
-    "sentHeading": "Zapytanie wysłane",
-    "productNoun": {
-      "one": "dom",
-      "other": "domy"
-    },
-    "sentConfirmation": "Potwierdzenie zapytania o {count} {noun} poniżej.",
-    "checkPlot": "Sprawdź działkę",
-    "backToResults": "Wróć do wyników",
-    "heading": "Zapytanie o wybrane domy",
-    "intro": "Wysyłasz jedno zapytanie o {count} {noun}: {names}. Podaj dane kontaktowe, żeby producenci mogli się z Tobą skontaktować.",
-    "nameLabel": "Imię i nazwisko",
-    "emailInvalidError": "Podaj prawidłowy adres e-mail.",
-    "phoneLabel": "Telefon",
-    "deliveryCountryLabel": "Kraj dostawy",
+    "heading": "Poproś ModularHub o przygotowanie ofert",
+    "howItWorksTitle": "Jak to działa",
+    "howItWorksBody": "Twoje zapytanie trafia do ModularHub, a nie od razu do producentów. Doradca porozmawia z Tobą, przygotuje brief i pokaże Ci go do zatwierdzenia. Producenci dostaną go dopiero po Twojej zgodzie.",
+    "selectedHomesLabel": "Wybrane domy",
+    "streetLabel": "Ulica i numer",
+    "postalCodeLabel": "Kod pocztowy",
+    "cityLabel": "Miejscowość",
+    "countryLabel": "Kraj działki",
+    "messageLabel": "Własnymi słowami: czego szukasz? (opcjonalnie)",
     "sendingLabel": "Wysyłanie…",
     "retrySendLabel": "Ponów wysyłanie",
-    "sendLabel": "Wyślij zapytanie",
-    "genericSendError": "Nie udało się wysłać zapytania. Spróbuj ponownie."
+    "sendLabel": "Wyślij zapytanie do ModularHub",
+    "backToResults": "Wróć do wyników",
+    "genericSendError": "Nie udało się wysłać zapytania. Spróbuj ponownie.",
+    "unsupportedCountryError": "Ten kraj nie jest jeszcze obsługiwany.",
+    "authError": "Zaloguj się jako klient, żeby wysłać zapytanie."
   },
   "ProfileForm": {
     "nameLabel": "Imię i nazwisko",
@@ -1267,7 +1274,7 @@
   },
   "ShortlistActionBar": {
     "selectedCount": "Zaznaczono: {count}/{max}",
-    "sendInquiry": "Wyślij zapytanie"
+    "sendInquiry": "Poproś ModularHub o przygotowanie ofert"
   },
   "CompareSelectionBar": {
     "selectedCount": "Do porównania: {count}/{max}",
@@ -1570,6 +1577,88 @@
     "sentBody": "Producent otrzymał Twoje zapytanie i odpowie wyceną e mailem.",
     "close": "Zamknij"
   },
+  "HouseAiFieldReview": {
+    "conflict": "Konflikt",
+    "currentValue": "Wartość w szkicu: {value}",
+    "chooseProposal": "Wybierz propozycję dla pola {field}",
+    "yes": "Tak",
+    "no": "Nie",
+    "selected": "Wybrano",
+    "editManually": "Wpisz własną wartość",
+    "manualValueLabel": "Wartość ręczna",
+    "chooseValue": "Wybierz wartość",
+    "saveManualValue": "Zapisz wartość",
+    "cancelManualEdit": "Anuluj",
+    "reject": "Niepotrzebne w tym projekcie",
+    "rejected": "Odrzucone",
+    "exchangeRateSource": "Źródło: {amount} {currency} netto, kurs EBC {rate} z {date}",
+    "showEvidence": "Pokaż dowód",
+    "roomGroupEyebrow": "Pomieszczenie",
+    "roomGroupTitle": "{label}",
+    "roomGroupFallback": "Pomieszczenie {number}",
+    "variantGroupEyebrow": "Pakiet w standardzie wykonania",
+    "variantGroupTitle": "Wariant {label}",
+    "variantGroupFallback": "Wariant {number}",
+    "origins": {
+      "extracted": "Wyodrębnione",
+      "inferred": "Dedukcja",
+      "generated": "Wygenerowane",
+      "translated": "Tłumaczenie"
+    },
+    "confidence": {
+      "high": "Wysoka pewność",
+      "medium": "Średnia pewność",
+      "low": "Niska pewność"
+    },
+    "fieldLabels": {
+      "productName": "Nazwa modelu",
+      "productDescription": "Opis projektu",
+      "productFloorArea": "Powierzchnia użytkowa",
+      "productBedrooms": "Liczba sypialni",
+      "productCountryOfProduction": "Kraj produkcji",
+      "productCategory": "Kategoria projektu",
+      "technicalWallBuildUp": "Budowa ściany",
+      "technicalInsulation": "Izolacja",
+      "technicalEnergyClass": "Klasa energetyczna",
+      "technicalWindowClass": "Klasa okien",
+      "technicalVentilation": "Wentylacja",
+      "technicalHeatSource": "Źródło ciepła",
+      "technicalFireResistance": "Odporność ogniowa",
+      "technicalWindResistance": "Odporność na wiatr",
+      "logisticsStructuralWarranty": "Gwarancja konstrukcyjna",
+      "logisticsInstallationWarranty": "Gwarancja montażowa",
+      "logisticsServiceScope": "Zakres usług",
+      "logisticsTransportDimensions": "Wymiary transportowe",
+      "logisticsCraneRequirements": "Wymagania dotyczące dźwigu",
+      "logisticsMinPlotWidth": "Minimalna szerokość działki",
+      "complianceSimplifiedPermit": "Możliwość uproszczonego pozwolenia",
+      "roomName": "Nazwa pomieszczenia",
+      "roomArea": "Powierzchnia pomieszczenia",
+      "roomFunction": "Funkcja pomieszczenia",
+      "roomIsMezzanine": "Antresola",
+      "variantCompletionStandard": "Standard wykończenia",
+      "variantLabel": "Nazwa wariantu",
+      "variantPriceMin": "Cena minimalna wariantu",
+      "variantPriceMax": "Cena maksymalna wariantu",
+      "variantScopeSummary": "Zakres wariantu",
+      "costItemLabel": "Pozycja kosztowa",
+      "costItemStatus": "Status pozycji kosztowej",
+      "costItemResponsibleParty": "Odpowiedzialny za pozycję kosztową",
+      "timelineStage": "Etap harmonogramu",
+      "timelineDurationMin": "Minimalny czas etapu",
+      "timelineDurationMax": "Maksymalny czas etapu",
+      "timelineStartsFrom": "Początek etapu",
+      "timelineResponsibleParty": "Odpowiedzialny za etap",
+      "faqQuestion": "Pytanie FAQ",
+      "faqAnswer": "Odpowiedź FAQ",
+      "translationName": "Tłumaczenie nazwy modelu",
+      "translationDescription": "Tłumaczenie opisu projektu",
+      "translationRoomName": "Tłumaczenie nazwy pomieszczenia",
+      "translationFaqQuestion": "Tłumaczenie pytania FAQ",
+      "translationFaqAnswer": "Tłumaczenie odpowiedzi FAQ",
+      "translationVariantScope": "Tłumaczenie zakresu wariantu"
+    }
+  },
   "ProducerPanelSidebar": {
     "navAriaLabel": "Panel producenta",
     "konto": "Konto",
@@ -1580,6 +1669,66 @@
     "signOut": "Wyloguj",
     "openMenu": "Otwórz menu",
     "closeMenu": "Zamknij menu",
-    "menu": "Menu"
+    "menu": "Menu",
+    "collapseSidebar": "Zwiń menu",
+    "expandSidebar": "Rozwiń menu"
+  },
+  "CaseChat": {
+    "heading": "Rozmowa z doradcą",
+    "draftLabel": "Twoja wiadomość",
+    "empty": "Brak wiadomości.",
+    "send": "Wyślij",
+    "sending": "Wysyłanie…",
+    "retry": "Ponów wysyłanie",
+    "sendError": "Nie udało się wysłać wiadomości. Spróbuj ponownie.",
+    "pollError": "Nie możemy odświeżyć rozmowy. Próbujemy ponownie.",
+    "redacted": "Treść usunięta na prośbę klienta.",
+    "authorYou": "Ty",
+    "authorClient": "Klient",
+    "authorAdvisor": "Doradca ModularHub",
+    "authorProducer": "Producent",
+    "authorSystem": "ModularHub"
+  },
+  "CaseStatus": {
+    "title": "Twoje zapytanie",
+    "stageLabel": "Etap",
+    "nextMoveLabel": "Następny ruch",
+    "plotLabel": "Działka",
+    "sentLabel": "Wysłano",
+    "yourMessageLabel": "Twoja wiadomość",
+    "firstReplyExpectation": "Na pierwszą odpowiedź doradcy zwykle czekasz do jednego dnia roboczego.",
+    "commissionNotice": "ModularHub otrzymuje prowizję od producenta.",
+    "stage": {
+      "nowe": "Nowe zapytanie",
+      "rozmowa": "Rozmowa z doradcą",
+      "brief_do_zatwierdzenia": "Brief do zatwierdzenia",
+      "producenci_odpowiadaja": "Producenci przygotowują odpowiedzi",
+      "porownanie_w_przygotowaniu": "ModularHub porównuje oferty",
+      "porownanie_gotowe": "Porównanie gotowe",
+      "finalista_wybrany": "Producent wybrany",
+      "wspolne_ustalenia": "Wspólne ustalenia",
+      "zamkniete_bez_wyboru": "Zakończone bez wyboru",
+      "legacy_direct": "Zapytanie bezpośrednie"
+    },
+    "waiting": {
+      "client": "Ruch po Twojej stronie",
+      "advisor": "Ruch po stronie doradcy ModularHub",
+      "producer": "Ruch po stronie producenta"
+    },
+    "waitingShort": {
+      "client": "Klient",
+      "advisor": "Doradca",
+      "producer": "Producent"
+    }
+  },
+  "CaseEmail": {
+    "newCaseSubject": "Nowa sprawa w ModularHub",
+    "newCaseBody": "Klient wysłał nowe zapytanie o domy. Otwórz sprawę, żeby odpisać.",
+    "newMessageSubject": "Nowa wiadomość w sprawie w ModularHub",
+    "newMessageBodyClient": "Doradca ModularHub napisał do Ciebie w rozmowie. Otwórz sprawę, żeby przeczytać wiadomość.",
+    "newMessageBodyAdvisor": "Klient napisał w rozmowie. Otwórz sprawę, żeby odpisać."
+  },
+  "CaseSystem": {
+    "caseReceived": "Otrzymaliśmy Twoje zapytanie. Nie wysłaliśmy go jeszcze do producentów."
   }
 }

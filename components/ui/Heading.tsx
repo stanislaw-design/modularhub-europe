@@ -9,6 +9,7 @@ const heading = tv({
       h1: "text-h1",
       h2: "text-h2",
       h3: "text-h3",
+      h4: "text-body-l",
     },
     surface: {
       v3: "",
@@ -26,6 +27,7 @@ const tagByLevel = {
   h1: "h1",
   h2: "h2",
   h3: "h3",
+  h4: "h4",
 } as const;
 
 interface HeadingProps extends VariantProps<typeof heading> {

@@ -56,9 +56,14 @@ export function ProducerProductList({ locale, products }: ProducerProductListPro
     <Stack gap={4}>
       <div className="flex flex-wrap items-center justify-between gap-brand-2">
         <Heading level="h1">{t("heading")}</Heading>
-        <Button as="a" href={`/${locale}/producer/panel/project`} className="w-fit">
-          {t("addProduct")}
-        </Button>
+        <div className="flex flex-wrap gap-brand-2">
+          <Button as="a" href={`/${locale}/producer/panel/project/import`} variant="secondary" className="w-fit">
+            Uzupełnij z PDF
+          </Button>
+          <Button as="a" href={`/${locale}/producer/panel/project`} className="w-fit">
+            {t("addProduct")}
+          </Button>
+        </div>
       </div>
 
       {error && (
@@ -71,9 +76,14 @@ export function ProducerProductList({ locale, products }: ProducerProductListPro
         <Card as="div" padding="md">
           <Stack gap={2} align="start">
             <Text tone="muted">{t("emptyMessage")}</Text>
-            <Button as="a" href={`/${locale}/producer/panel/project`} variant="secondary">
-              {t("addFirstProduct")}
-            </Button>
+            <div className="flex flex-wrap gap-brand-2">
+              <Button as="a" href={`/${locale}/producer/panel/project/import`} variant="secondary">
+                Uzupełnij z PDF
+              </Button>
+              <Button as="a" href={`/${locale}/producer/panel/project`}>
+                {t("addFirstProduct")}
+              </Button>
+            </div>
           </Stack>
         </Card>
       ) : (

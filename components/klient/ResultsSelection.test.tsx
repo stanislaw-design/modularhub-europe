@@ -98,7 +98,7 @@ describe("ResultsSelection", () => {
     expect(firstCheckbox).toBeChecked();
   });
 
-  it("navigates with the selected project ids when 'Wyślij zapytanie' is clicked (AC-4)", async () => {
+  it("navigates with the selected project ids when the ModularHub request button is clicked (AC-4)", async () => {
     const user = userEvent.setup();
     render(
       <ResultsSelection
@@ -114,7 +114,7 @@ describe("ResultsSelection", () => {
 
     await user.click(screen.getByRole("checkbox", { name: "Zaznacz Dom Jeden do zapytania" }));
     await user.click(screen.getByRole("checkbox", { name: "Zaznacz Dom Dwa do zapytania" }));
-    await user.click(screen.getByRole("button", { name: "Wyślij zapytanie" }));
+    await user.click(screen.getByRole("button", { name: "Poproś ModularHub o przygotowanie ofert" }));
 
     expect(push).toHaveBeenCalledWith(
       "/pl/inquiry?projects=id1%2Cid2&country=DE&sizeMin=50&sizeMax=100"

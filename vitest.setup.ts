@@ -96,7 +96,11 @@ function createTestTranslator(namespace?: string) {
 
 vi.mock("next-intl", async (importOriginal) => {
   const actual = await importOriginal<typeof import("next-intl")>();
-  return { ...actual, useTranslations: (namespace?: string) => createTestTranslator(namespace) };
+  return {
+    ...actual,
+    useLocale: () => "pl",
+    useTranslations: (namespace?: string) => createTestTranslator(namespace),
+  };
 });
 
 vi.mock("next-intl/server", async (importOriginal) => {

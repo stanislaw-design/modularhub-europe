@@ -1,8 +1,12 @@
 import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { CaseChat } from "@/components/klient/CaseChat";
+import { CaseCommissionFooter, CaseStatusPanel } from "@/components/klient/CaseStatusPanel";
 import { MarkOfferViewed } from "@/components/klient/MarkOfferViewed";
 import { OfferCard } from "@/components/klient/OfferCard";
 import { Heading, Stack, Text } from "@/components/ui";
+import { getCaseActor } from "@/lib/cases/actor";
+import { getCaseView } from "@/lib/cases/queries";
 import { getClientIdForUser, getInquiryDetailForClient } from "@/lib/db/queries";
 import { requirePanelClientSession } from "@/lib/panel-session";
 
@@ -23,6 +27,20 @@ export default async function ClientInquiryDetailPage({
     requirePanelClientSession(locale, selfHref),
     getTranslations("ClientInquiryDetailPage"),
   ]);
+
+  // Sprawa zarządzanego przepływu doradczego (spec 0048) ma własny widok;
+  // getCaseView zwraca null dla starych zapytań i dla cudzych spraw.
+  const actor = await getCaseActor();
+  const caseView = actor ? await getCaseView(actor, id) : null;
+  if (caseView) {
+    return (
+      <Stack gap={4}>
+        <CaseStatusPanel view={caseView} dateLabel={dateFormatter.format(caseView.receivedAt)} />
+        <CaseChat inquiryId={caseView.id} channelId={caseView.channelId} viewer="client" initialMessages={caseView.messages} />
+        <CaseCommissionFooter />
+      </Stack>
+    );
+  }
 
   const clientId = await getClientIdForUser(session.user.id);
   const detail = clientId ? await getInquiryDetailForClient(id, clientId) : null;

@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
-import { Inbox, LogOut, Menu, Package, User, X, type LucideIcon } from "lucide-react";
+import { ChevronsLeft, ChevronsRight, House, Inbox, LogOut, Menu, Package, User, X, type LucideIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -15,6 +15,8 @@ interface ProducerPanelSidebarProps {
   // Zbiorczy sygnał nieprzeczytane przy "Zapytania" (spec 0033 AC-12).
   hasUnreadZapytania?: boolean;
 }
+
+const LABEL_FADE = "transition-opacity duration-200 ease-out motion-reduce:transition-none";
 
 interface PanelNavItem {
   key: string;
@@ -34,6 +36,10 @@ export function ProducerPanelSidebar({ locale, hasUnreadZapytania }: ProducerPan
   const t = useTranslations("ProducerPanelSidebar");
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  // Zwijanie dotyczy tylko stałego panelu na desktopie; szuflada mobilna zawsze
+  // renderuje pełną wersję. Layout nie remontuje się między podstronami panelu,
+  // więc stan przeżywa nawigację.
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const navItems: PanelNavItem[] = [
     { key: "konto", path: "", label: t("konto"), icon: User },
@@ -41,7 +47,7 @@ export function ProducerPanelSidebar({ locale, hasUnreadZapytania }: ProducerPan
     { key: "zapytania", path: "inquiries", label: t("zapytania"), icon: Inbox },
   ];
 
-  const renderNav = (onNavigate?: () => void) => (
+  const renderNav = (onNavigate?: () => void, collapsed = false) => (
     <nav aria-label={t("navAriaLabel")} className="flex flex-col gap-1">
       {navItems.map((item) => {
         const href = `/${locale}/producer/panel${item.path ? `/${item.path}` : ""}`;
@@ -55,17 +61,22 @@ export function ProducerPanelSidebar({ locale, hasUnreadZapytania }: ProducerPan
             href={href}
             onClick={onNavigate}
             aria-current={isCurrent ? "page" : undefined}
-            className={`focus-ring flex items-center gap-2 rounded-data px-brand-2 py-brand-2 text-body font-medium transition-colors ${
+            title={collapsed ? item.label : undefined}
+            className={`focus-ring relative flex items-center gap-2 rounded-data px-brand-2 py-brand-2 text-body font-medium transition-colors ${
               isCurrent
                 ? "bg-brand-passage-blue/10 text-brand-foundation-navy"
                 : "text-brand-technical-graphite hover:bg-brand-steel/30 hover:text-brand-foundation-navy"
             }`}
           >
             <Icon className="size-4 shrink-0" aria-hidden="true" />
-            {item.label}
+            <span className={`overflow-hidden whitespace-nowrap ${LABEL_FADE} ${collapsed ? "opacity-0" : "opacity-100"}`}>
+              {item.label}
+            </span>
             {item.key === "zapytania" && hasUnreadZapytania && (
               <span
-                className="ml-auto inline-block size-2 shrink-0 rounded-full bg-brand-passage-blue"
+                className={`inline-block size-2 shrink-0 rounded-full bg-brand-passage-blue transition-all duration-300 ${
+                  collapsed ? "absolute right-1 top-1" : "ml-auto"
+                }`}
                 role="img"
                 aria-label={t("unreadBadgeLabel")}
               />
@@ -76,17 +87,20 @@ export function ProducerPanelSidebar({ locale, hasUnreadZapytania }: ProducerPan
     </nav>
   );
 
-  const renderFooter = (onNavigate?: () => void) => (
+  const renderFooter = (onNavigate?: () => void, collapsed = false) => (
     <div className="flex flex-col gap-brand-3 border-t border-brand-steel pt-brand-3">
-      <div className="flex items-center justify-between">
+      <div className={`flex gap-brand-2 ${collapsed ? "flex-col items-center" : "items-center justify-between"}`}>
         <Link
           href={`/${locale}`}
           onClick={onNavigate}
-          className="focus-ring rounded-data text-body font-medium text-brand-technical-graphite hover:text-brand-foundation-navy"
+          aria-label={collapsed ? t("home") : undefined}
+          title={collapsed ? t("home") : undefined}
+          className="focus-ring flex items-center gap-2 rounded-data text-body font-medium text-brand-technical-graphite hover:text-brand-foundation-navy"
         >
-          {t("home")}
+          {collapsed && <House className="size-4 shrink-0" aria-hidden="true" />}
+          <span className={collapsed ? "sr-only" : undefined}>{t("home")}</span>
         </Link>
-        <div className="flex items-center gap-brand-1">
+        <div className={`flex items-center gap-brand-1 ${collapsed ? "flex-col" : ""}`}>
           <ThemeToggle className="text-brand-technical-graphite" />
           <LanguageSwitcher locale={locale} triggerClassName="text-brand-technical-graphite" />
         </div>
@@ -94,10 +108,13 @@ export function ProducerPanelSidebar({ locale, hasUnreadZapytania }: ProducerPan
       <form action={signOutAction}>
         <button
           type="submit"
-          className="focus-ring flex items-center gap-1 rounded-data text-body font-medium text-brand-technical-graphite transition-colors hover:text-brand-foundation-navy"
+          title={collapsed ? t("signOut") : undefined}
+          className={`focus-ring flex items-center gap-1 rounded-data text-body font-medium text-brand-technical-graphite transition-colors hover:text-brand-foundation-navy ${
+            collapsed ? "mx-auto" : ""
+          }`}
         >
-          <LogOut className="size-4" aria-hidden="true" />
-          {t("signOut")}
+          <LogOut className="size-4 shrink-0" aria-hidden="true" />
+          <span className={collapsed ? "sr-only" : undefined}>{t("signOut")}</span>
         </button>
       </form>
     </div>
@@ -105,14 +122,44 @@ export function ProducerPanelSidebar({ locale, hasUnreadZapytania }: ProducerPan
 
   return (
     <>
-      <aside className="hidden shrink-0 flex-col justify-between gap-brand-4 border-r border-brand-steel p-brand-3 md:flex md:w-64">
+      <aside
+        data-collapsed={isCollapsed}
+        className={`hidden shrink-0 flex-col justify-between gap-brand-4 overflow-x-hidden overflow-y-auto border-r border-brand-steel p-brand-3 transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none md:sticky md:top-0 md:flex md:h-screen md:self-start ${
+          isCollapsed ? "md:w-[calc(2*(var(--spacing-brand-3)+var(--spacing-brand-2)+0.5rem)+1px)]" : "md:w-64"
+        }`}
+      >
         <div className="flex flex-col gap-brand-4">
-          <Link href={`/${locale}/producer`} aria-label="ModularHub Europe" className="focus-ring w-fit rounded-data">
-            <BrandLogo className="text-[0.72rem]" />
-          </Link>
-          {renderNav()}
+          <div className="flex h-8 items-center justify-between">
+            <Link
+              href={`/${locale}/producer`}
+              aria-label="ModularHub Europe"
+              tabIndex={isCollapsed ? -1 : undefined}
+              aria-hidden={isCollapsed || undefined}
+              className={`focus-ring w-fit shrink-0 rounded-data transition-opacity duration-200 ${
+                isCollapsed ? "pointer-events-none w-0 overflow-hidden opacity-0" : "opacity-100"
+              }`}
+            >
+              <BrandLogo className="text-[0.72rem]" />
+            </Link>
+            <button
+              type="button"
+              onClick={() => setIsCollapsed((v) => !v)}
+              aria-label={isCollapsed ? t("expandSidebar") : t("collapseSidebar")}
+              aria-expanded={!isCollapsed}
+              className={`focus-ring flex size-8 shrink-0 items-center justify-center rounded-data text-brand-technical-graphite transition-colors hover:bg-brand-steel/30 hover:text-brand-foundation-navy ${
+                isCollapsed ? "mx-auto" : ""
+              }`}
+            >
+              {isCollapsed ? (
+                <ChevronsRight className="size-4" aria-hidden="true" />
+              ) : (
+                <ChevronsLeft className="size-4" aria-hidden="true" />
+              )}
+            </button>
+          </div>
+          {renderNav(undefined, isCollapsed)}
         </div>
-        {renderFooter()}
+        {renderFooter(undefined, isCollapsed)}
       </aside>
 
       <div className="flex items-center justify-between border-b border-brand-steel p-brand-2 md:hidden">

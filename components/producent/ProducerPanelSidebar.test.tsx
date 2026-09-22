@@ -30,6 +30,13 @@ function renderSidebar() {
 // spec 0046 AC-1: the theme switcher sits in the sidebar footer next to the
 // existing LanguageSwitcher, reused unchanged from spec 0043's ThemeToggle.
 describe("ProducerPanelSidebar theme toggle (spec 0046)", () => {
+  it("keeps the desktop navigation constrained to the viewport", () => {
+    const { container } = renderSidebar();
+    const sidebar = container.querySelector("aside");
+
+    expect(sidebar).toHaveClass("md:sticky", "md:top-0", "md:h-screen", "md:self-start", "overflow-y-auto");
+  });
+
   it("renders the theme toggle next to the language switcher", () => {
     renderSidebar();
 

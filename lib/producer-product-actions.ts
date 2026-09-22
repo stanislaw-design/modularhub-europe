@@ -1,16 +1,15 @@
 "use server";
 
 import { and, eq, isNull } from "drizzle-orm";
-import { auth } from "@/auth";
 import type { ProjectDraft } from "@/lib/data/types";
 import { db } from "@/lib/db/client";
-import { getProducerIdForUser } from "@/lib/db/queries";
 import { document, product, productTranslation, productVariant } from "@/lib/db/schema";
 import { captureError } from "@/lib/observability/errors";
 import { trackEvent } from "@/lib/observability";
 import { faqSchema, faqTranslationSchema } from "@/lib/product-faq";
 import { roomLayoutSchema, roomLayoutTranslationSchema } from "@/lib/product-room-layout";
 import { getTechnicalSpecsSchema } from "@/lib/product-technical-specs";
+import { requireProducerActor } from "@/lib/producer-actor";
 
 // Pola kreatora zapisywane do bazy; floorPlanFiles/photoFiles nie mają tu
 // odpowiednika (rzuty zostają mockiem, zdjęcia idą przez lib/product-photo-actions.ts
@@ -31,14 +30,6 @@ export interface SaveProducerProductResult extends ActionResult {
 
 const GENERIC_ERROR = "Nie udało się zapisać produktu. Spróbuj ponownie.";
 const DENIED_ERROR = "Musisz być zalogowany jako producent.";
-
-async function requireProducerActor(): Promise<{ userId: string; producerId: string } | null> {
-  const session = await auth();
-  if (!session || session.user.role !== "producer") return null;
-  const producerId = await getProducerIdForUser(session.user.id);
-  if (!producerId) return null;
-  return { userId: session.user.id, producerId };
-}
 
 // AC-17: housePriceMinCents/priceMinCents/completionStandard nie są już
 // pisane wprost stąd — priceMinCents/priceMaxCents są od spec 0041 pochodną

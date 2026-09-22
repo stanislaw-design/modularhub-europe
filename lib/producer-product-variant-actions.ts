@@ -1,12 +1,11 @@
 "use server";
 
 import { and, eq, isNull, sql } from "drizzle-orm";
-import { auth } from "@/auth";
 import type { CompletionStandard, CostLineItemStatus, TimelineStageKey } from "@/lib/data/types";
 import { db } from "@/lib/db/client";
-import { getProducerIdForUser } from "@/lib/db/queries";
 import { costLineItem, product, productTimelineStage, productVariant, productVariantTranslation } from "@/lib/db/schema";
 import { captureError } from "@/lib/observability/errors";
+import { requireProducerActor } from "@/lib/producer-actor";
 
 interface ActionResult {
   ok: boolean;
@@ -17,18 +16,6 @@ const GENERIC_ERROR = "Nie udało się zapisać zmian. Spróbuj ponownie.";
 const DENIED_ERROR = "Musisz być zalogowany jako producent.";
 const DUPLICATE_STANDARD_ERROR = "Ten standard wykończenia już ma wariant.";
 const MAX_VARIANTS_PER_PRODUCT = 3;
-
-// Mirror requireProducerActor z lib/producer-product-actions.ts: ta sama
-// bramka sesji, świadomie zduplikowana (żaden z istniejących plików akcji w
-// tym repo nie eksportuje wspólnej wersji, patrz też requirePhotoActor w
-// lib/product-photo-actions.ts).
-async function requireProducerActor(): Promise<{ userId: string; producerId: string } | null> {
-  const session = await auth();
-  if (!session || session.user.role !== "producer") return null;
-  const producerId = await getProducerIdForUser(session.user.id);
-  if (!producerId) return null;
-  return { userId: session.user.id, producerId };
-}
 
 function toPriceCents(value: number | null): number | null {
   return value === null ? null : Math.round(value * 100);

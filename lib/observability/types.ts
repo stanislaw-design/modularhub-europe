@@ -24,4 +24,12 @@ export type EventName =
   | "project_request_submitted"
   | "bulk_product_inquiry_submitted"
   | "project_quote_submitted"
-  | "project_quote_accepted";
+  | "project_quote_accepted"
+  | "case_created"
+  | "case_first_advisor_reply"
+  | "case_brief_approved"
+  | "case_invitation_sent"
+  | "case_offer_submitted"
+  | "case_comparison_published"
+  | "case_finalist_selected"
+  | "case_closed_no_choice";

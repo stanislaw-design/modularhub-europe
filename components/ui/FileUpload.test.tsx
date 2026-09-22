@@ -63,6 +63,28 @@ describe("FileUpload", () => {
     ]);
   });
 
+  it("can hand real File objects to a secure upload flow without changing mock consumers", async () => {
+    const user = userEvent.setup();
+    const onNativeFilesChange = vi.fn();
+    render(
+      <FileUpload
+        id="pdf"
+        label="PDF"
+        files={[]}
+        onFilesChange={vi.fn()}
+        nativeFiles={[]}
+        onNativeFilesChange={onNativeFilesChange}
+        notice="Plik zostanie wysłany po zatwierdzeniu."
+      />,
+    );
+
+    const selected = makeFile("offer.pdf", 512, "%PDF-1.7");
+    await user.upload(document.getElementById("pdf") as HTMLInputElement, selected);
+
+    expect(onNativeFilesChange).toHaveBeenCalledWith([selected]);
+    expect(screen.getByText("Plik zostanie wysłany po zatwierdzeniu.")).toBeInTheDocument();
+  });
+
   it("removes only the clicked file, keeping the rest, via its named remove button", async () => {
     const user = userEvent.setup();
     const onFilesChange = vi.fn();

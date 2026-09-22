@@ -38,6 +38,9 @@ export default async function InternalZapytaniaPage({
     <Container className="py-brand-6">
       <Stack gap={4}>
         <Heading level="h1">Zapytania</Heading>
+        <Text tone="muted">
+          Sprawy zarządzanego przepływu doradczego: <a href={`/${locale}/internal/cases`} className="focus-ring text-brand-passage-blue underline">Sprawy doradcze</a>.
+        </Text>
         {inquiries.length === 0 ? (
           <Text tone="muted">Brak wysłanych zapytań.</Text>
         ) : (

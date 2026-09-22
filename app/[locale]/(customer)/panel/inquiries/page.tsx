@@ -8,6 +8,7 @@ import {
   getUnreadOfferInquiryIds,
   type InquiryWithItems,
 } from "@/lib/db/queries";
+import { listCasesForClient } from "@/lib/cases/queries";
 import { requirePanelClientSession } from "@/lib/panel-session";
 
 const dateFormatter = new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium", timeStyle: "short" });
@@ -33,16 +34,38 @@ export default async function ZapytaniaPanelPage({
   };
 
   const clientId = await getClientIdForUser(session.user.id);
-  const [inquiries, unreadOfferIds] = clientId
-    ? await Promise.all([getInquiriesForClient(clientId), getUnreadOfferInquiryIds(clientId)])
-    : [[], new Set<string>()];
+  const [inquiries, unreadOfferIds, cases] = clientId
+    ? await Promise.all([getInquiriesForClient(clientId), getUnreadOfferInquiryIds(clientId), listCasesForClient(clientId)])
+    : [[], new Set<string>(), []];
 
   return (
     <Stack gap={4}>
       <Heading level="h1" surface="v5">
         {t("heading")}
       </Heading>
-      {inquiries.length === 0 ? (
+      {cases.length > 0 && (
+        <Stack gap={2}>
+          <Heading level="h2" surface="v5">
+            {t("advisoryHeading")}
+          </Heading>
+          <ul className="flex flex-col gap-brand-2">
+            {cases.map((row) => (
+              <li key={row.id} className="rounded-v5-card border border-brand-v5-line p-brand-2">
+                <Link
+                  href={`/${locale}/panel/inquiries/${row.id}`}
+                  className="focus-ring rounded-data font-medium text-brand-v5-amber-strong hover:underline"
+                >
+                  {row.productNames.join(", ") || "—"}
+                </Link>
+                <Text surface="v5" tone="muted">
+                  {t(`caseStage.${row.stage}`)} · {dateFormatter.format(row.receivedAt)}
+                </Text>
+              </li>
+            ))}
+          </ul>
+        </Stack>
+      )}
+      {inquiries.length === 0 && cases.length > 0 ? null : inquiries.length === 0 ? (
         <PanelEmptyState locale={locale} title={t("emptyTitle")} description={t("emptyDescription")} />
       ) : (
         <div className="overflow-x-auto rounded-v5-card border border-brand-v5-line">

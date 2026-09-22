@@ -21,6 +21,12 @@ import {
   productVariantTranslation,
 } from "./schema";
 
+// Zarządzany przepływ doradczy (spec 0048 AC-34): stare zapytania i akcje
+// bezpośredniego przepływu producent-klient działają wyłącznie na sprawach
+// z tym etapem. Sprawy nowego przepływu producent czyta tylko przez
+// lib/case-producer-queries.ts.
+const LEGACY_STAGE = "legacy_direct" as const;
+
 // Wzorzec autoryzacji na poziomie aplikacji (spec 0018, AC-5): każde
 // zapytanie filtruje po producer_id/client_id/user_id uwierzytelnionego
 // konta, nie przez Row Level Security. isNull(deletedAt) (spec 0032 Build
@@ -341,6 +347,7 @@ export async function getAllInquiriesWithItems(): Promise<InquiryWithItems[]> {
     .from(inquiry)
     .leftJoin(inquiryItem, eq(inquiryItem.inquiryId, inquiry.id))
     .leftJoin(product, eq(product.id, inquiryItem.productId))
+    .where(eq(inquiry.stage, LEGACY_STAGE))
     .orderBy(desc(inquiry.receivedAt));
 
   return groupInquiryRows(rows);
@@ -364,7 +371,7 @@ export async function getInquiriesForClient(clientId: string): Promise<InquiryWi
     .from(inquiry)
     .leftJoin(inquiryItem, eq(inquiryItem.inquiryId, inquiry.id))
     .leftJoin(product, eq(product.id, inquiryItem.productId))
-    .where(eq(inquiry.clientId, clientId))
+    .where(and(eq(inquiry.clientId, clientId), eq(inquiry.stage, LEGACY_STAGE)))
     .orderBy(desc(inquiry.receivedAt));
 
   return groupInquiryRows(rows);
@@ -390,6 +397,7 @@ export async function getInquiriesForProducer(producerId: string): Promise<Inqui
     .from(inquiry)
     .innerJoin(inquiryItem, eq(inquiryItem.inquiryId, inquiry.id))
     .innerJoin(product, and(eq(product.id, inquiryItem.productId), eq(product.producerId, producerId)))
+    .where(eq(inquiry.stage, LEGACY_STAGE))
     .orderBy(desc(inquiry.receivedAt));
 
   return groupInquiryRows(rows);
@@ -606,7 +614,7 @@ export async function getInquiryDetailForProducer(
       receivedAt: inquiry.receivedAt,
     })
     .from(inquiry)
-    .where(eq(inquiry.id, inquiryId));
+    .where(and(eq(inquiry.id, inquiryId), eq(inquiry.stage, LEGACY_STAGE)));
   if (!inquiryRow) return null;
 
   const itemRows = await db
@@ -679,6 +687,7 @@ export async function getInquiryDetailForClient(
       deliveryCountryCode: inquiry.deliveryCountryCode,
       status: inquiry.status,
       receivedAt: inquiry.receivedAt,
+      stage: inquiry.stage,
     })
     .from(inquiry)
     .where(and(eq(inquiry.id, inquiryId), eq(inquiry.clientId, clientId)));
@@ -690,21 +699,27 @@ export async function getInquiryDetailForClient(
     .innerJoin(product, eq(product.id, inquiryItem.productId))
     .where(eq(inquiryItem.inquiryId, inquiryId));
 
-  const offerRows = await db
-    .select({
-      id: offer.id,
-      producerId: offer.producerId,
-      producerName: producer.name,
-      status: offer.status,
-      transportPriceCents: offer.transportPriceCents,
-      installationPriceCents: offer.installationPriceCents,
-      submittedAt: offer.submittedAt,
-      clientViewedAt: offer.clientViewedAt,
-    })
-    .from(offer)
-    .innerJoin(producer, eq(producer.id, offer.producerId))
-    .where(eq(offer.inquiryId, inquiryId))
-    .orderBy(desc(offer.submittedAt));
+  // Oferty sprawy nowego przepływu (w kontroli, nieopublikowane) nie mogą
+  // trafić na stary ekran klienta (spec 0048 AC-23); nowy widok sprawy
+  // przychodzi z krokiem 4 i porównaniem z krokiem 11.
+  const offerRows =
+    inquiryRow.stage !== LEGACY_STAGE
+      ? []
+      : await db
+          .select({
+            id: offer.id,
+            producerId: offer.producerId,
+            producerName: producer.name,
+            status: offer.status,
+            transportPriceCents: offer.transportPriceCents,
+            installationPriceCents: offer.installationPriceCents,
+            submittedAt: offer.submittedAt,
+            clientViewedAt: offer.clientViewedAt,
+          })
+          .from(offer)
+          .innerJoin(producer, eq(producer.id, offer.producerId))
+          .where(eq(offer.inquiryId, inquiryId))
+          .orderBy(desc(offer.submittedAt));
 
   const offersWithItems = await attachOfferItems(offerRows);
   const offers: ClientOfferSummary[] = offersWithItems.map((offerWithItems, index) => ({
@@ -735,7 +750,14 @@ export async function getUnreadOfferInquiryIds(clientId: string): Promise<Set<st
     .select({ inquiryId: offer.inquiryId })
     .from(offer)
     .innerJoin(inquiry, eq(inquiry.id, offer.inquiryId))
-    .where(and(eq(inquiry.clientId, clientId), eq(offer.status, "active"), isNull(offer.clientViewedAt)));
+    .where(
+      and(
+        eq(inquiry.clientId, clientId),
+        eq(inquiry.stage, LEGACY_STAGE),
+        eq(offer.status, "active"),
+        isNull(offer.clientViewedAt),
+      ),
+    );
   return new Set(rows.map((row) => row.inquiryId));
 }
 
@@ -746,9 +768,11 @@ export async function getUnreadDecisionInquiryIds(producerId: string): Promise<S
   const rows = await db
     .select({ inquiryId: offer.inquiryId })
     .from(offer)
+    .innerJoin(inquiry, eq(inquiry.id, offer.inquiryId))
     .where(
       and(
         eq(offer.producerId, producerId),
+        eq(inquiry.stage, LEGACY_STAGE),
         inArray(offer.status, ["accepted", "rejected"]),
         isNull(offer.producerDecisionViewedAt),
       ),

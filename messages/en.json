@@ -76,10 +76,6 @@
   "ProjectCertifications": {
     "heading": "Certifications"
   },
-  "InquiryConfirmationCard": {
-    "message": "The customer is requesting an offer for this project, covering the house, transport, and assembly.",
-    "sentAt": "Sent {date}"
-  },
   "PopularHomeCard": {
     "coverAlt": "{name}, a modular house",
     "summary": "{area} m² · {rooms} rooms",
@@ -679,7 +675,20 @@
     "statusOpen": "Awaiting response",
     "statusOffered": "Offer received",
     "statusClosed": "Closed",
-    "unreadOfferLabel": "New offer"
+    "unreadOfferLabel": "New offer",
+    "advisoryHeading": "Requests to ModularHub",
+    "caseStage": {
+      "nowe": "New request",
+      "rozmowa": "Conversation with advisor",
+      "brief_do_zatwierdzenia": "Brief awaiting approval",
+      "producenci_odpowiadaja": "Manufacturers are preparing replies",
+      "porownanie_w_przygotowaniu": "ModularHub is comparing offers",
+      "porownanie_gotowe": "Comparison ready",
+      "finalista_wybrany": "Manufacturer selected",
+      "wspolne_ustalenia": "Joint arrangements",
+      "zamkniete_bez_wyboru": "Closed without a choice",
+      "legacy_direct": "Direct request"
+    }
   },
   "KlientPanelUlubionePage": {
     "heading": "Favorites",
@@ -695,7 +704,7 @@
     "priceOnRequestHint": "Price is agreed directly with the producer after you send an inquiry.",
     "estimatedPackage": "Estimated package",
     "packageIncludes": "House",
-    "sendInquiry": "Send inquiry",
+    "sendInquiry": "Ask ModularHub to prepare offers",
     "warrantyYears": "{years}-year structural warranty",
     "warrantyYearsValue": "{years} yrs",
     "certifiedCount": {
@@ -1089,24 +1098,22 @@
     "energyClassA": "Class A+"
   },
   "InquiryFlow": {
-    "sentHeading": "Inquiry sent",
-    "productNoun": {
-      "one": "house",
-      "other": "houses"
-    },
-    "sentConfirmation": "Confirmation of your inquiry for {count} {noun} below.",
-    "checkPlot": "Check the plot",
-    "backToResults": "Back to results",
-    "heading": "Inquiry about the selected houses",
-    "intro": "You're sending one inquiry about {count} {noun}: {names}. Enter your contact details so producers can reach you.",
-    "nameLabel": "Full name",
-    "emailInvalidError": "Enter a valid e-mail address.",
-    "phoneLabel": "Phone",
-    "deliveryCountryLabel": "Delivery country",
+    "heading": "Ask ModularHub to prepare offers",
+    "howItWorksTitle": "How it works",
+    "howItWorksBody": "Your request goes to ModularHub, not straight to the manufacturers. An advisor will talk with you, prepare a brief and show it to you for approval. Manufacturers only receive it after you agree.",
+    "selectedHomesLabel": "Selected homes",
+    "streetLabel": "Street and number",
+    "postalCodeLabel": "Postal code",
+    "cityLabel": "City",
+    "countryLabel": "Plot country",
+    "messageLabel": "In your own words: what are you looking for? (optional)",
     "sendingLabel": "Sending…",
-    "retrySendLabel": "Retry sending",
-    "sendLabel": "Send inquiry",
-    "genericSendError": "Couldn't send the inquiry. Please try again."
+    "retrySendLabel": "Try sending again",
+    "sendLabel": "Send request to ModularHub",
+    "backToResults": "Back to results",
+    "genericSendError": "We could not send your request. Please try again.",
+    "unsupportedCountryError": "This country is not supported yet.",
+    "authError": "Log in as a client to send a request."
   },
   "ProfileForm": {
     "nameLabel": "Full name",
@@ -1260,7 +1267,7 @@
   },
   "ShortlistActionBar": {
     "selectedCount": "Selected: {count}/{max}",
-    "sendInquiry": "Send inquiry"
+    "sendInquiry": "Ask ModularHub to prepare offers"
   },
   "CompareSelectionBar": {
     "selectedCount": "Selected to compare: {count}/{max}",
@@ -1570,6 +1577,88 @@
     "sentBody": "The producer received your request and will reply with a quote by email.",
     "close": "Close"
   },
+  "HouseAiFieldReview": {
+    "conflict": "Conflict",
+    "currentValue": "Current draft value: {value}",
+    "chooseProposal": "Choose a proposal for {field}",
+    "yes": "Yes",
+    "no": "No",
+    "selected": "Selected",
+    "editManually": "Enter your own value",
+    "manualValueLabel": "Manual value",
+    "chooseValue": "Choose a value",
+    "saveManualValue": "Save value",
+    "cancelManualEdit": "Cancel",
+    "reject": "Not needed for this project",
+    "rejected": "Rejected",
+    "exchangeRateSource": "Source: {amount} {currency} net, ECB rate {rate} dated {date}",
+    "showEvidence": "Show evidence",
+    "roomGroupEyebrow": "Room",
+    "roomGroupTitle": "{label}",
+    "roomGroupFallback": "Room {number}",
+    "variantGroupEyebrow": "Package within a completion standard",
+    "variantGroupTitle": "Variant {label}",
+    "variantGroupFallback": "Variant {number}",
+    "origins": {
+      "extracted": "Extracted",
+      "inferred": "Inferred",
+      "generated": "Generated",
+      "translated": "Translated"
+    },
+    "confidence": {
+      "high": "High confidence",
+      "medium": "Medium confidence",
+      "low": "Low confidence"
+    },
+    "fieldLabels": {
+      "productName": "Model name",
+      "productDescription": "Project description",
+      "productFloorArea": "Usable floor area",
+      "productBedrooms": "Number of bedrooms",
+      "productCountryOfProduction": "Country of production",
+      "productCategory": "Project category",
+      "technicalWallBuildUp": "Wall construction",
+      "technicalInsulation": "Insulation",
+      "technicalEnergyClass": "Energy class",
+      "technicalWindowClass": "Window class",
+      "technicalVentilation": "Ventilation",
+      "technicalHeatSource": "Heat source",
+      "technicalFireResistance": "Fire resistance",
+      "technicalWindResistance": "Wind resistance",
+      "logisticsStructuralWarranty": "Structural warranty",
+      "logisticsInstallationWarranty": "Installation warranty",
+      "logisticsServiceScope": "Service scope",
+      "logisticsTransportDimensions": "Transport dimensions",
+      "logisticsCraneRequirements": "Crane requirements",
+      "logisticsMinPlotWidth": "Minimum plot width",
+      "complianceSimplifiedPermit": "Simplified permit eligibility",
+      "roomName": "Room name",
+      "roomArea": "Room area",
+      "roomFunction": "Room function",
+      "roomIsMezzanine": "Mezzanine",
+      "variantCompletionStandard": "Completion standard",
+      "variantLabel": "Variant name",
+      "variantPriceMin": "Minimum variant price",
+      "variantPriceMax": "Maximum variant price",
+      "variantScopeSummary": "Variant scope",
+      "costItemLabel": "Cost item",
+      "costItemStatus": "Cost item status",
+      "costItemResponsibleParty": "Party responsible for cost item",
+      "timelineStage": "Timeline stage",
+      "timelineDurationMin": "Minimum stage duration",
+      "timelineDurationMax": "Maximum stage duration",
+      "timelineStartsFrom": "Stage starting point",
+      "timelineResponsibleParty": "Party responsible for stage",
+      "faqQuestion": "FAQ question",
+      "faqAnswer": "FAQ answer",
+      "translationName": "Model name translation",
+      "translationDescription": "Project description translation",
+      "translationRoomName": "Room name translation",
+      "translationFaqQuestion": "FAQ question translation",
+      "translationFaqAnswer": "FAQ answer translation",
+      "translationVariantScope": "Variant scope translation"
+    }
+  },
   "ProducerPanelSidebar": {
     "navAriaLabel": "Producer panel",
     "konto": "Account",
@@ -1580,6 +1669,66 @@
     "signOut": "Sign out",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
-    "menu": "Menu"
+    "menu": "Menu",
+    "collapseSidebar": "Collapse sidebar",
+    "expandSidebar": "Expand sidebar"
+  },
+  "CaseChat": {
+    "heading": "Conversation with your advisor",
+    "draftLabel": "Your message",
+    "empty": "No messages yet.",
+    "send": "Send",
+    "sending": "Sending…",
+    "retry": "Try sending again",
+    "sendError": "We could not send the message. Please try again.",
+    "pollError": "We cannot refresh the conversation. Trying again.",
+    "redacted": "Content removed at the client's request.",
+    "authorYou": "You",
+    "authorClient": "Client",
+    "authorAdvisor": "ModularHub advisor",
+    "authorProducer": "Manufacturer",
+    "authorSystem": "ModularHub"
+  },
+  "CaseStatus": {
+    "title": "Your request",
+    "stageLabel": "Stage",
+    "nextMoveLabel": "Next move",
+    "plotLabel": "Plot",
+    "sentLabel": "Sent",
+    "yourMessageLabel": "Your message",
+    "firstReplyExpectation": "You can usually expect the advisor's first reply within one business day.",
+    "commissionNotice": "ModularHub receives a commission from the manufacturer.",
+    "stage": {
+      "nowe": "New request",
+      "rozmowa": "Conversation with advisor",
+      "brief_do_zatwierdzenia": "Brief awaiting approval",
+      "producenci_odpowiadaja": "Manufacturers are preparing replies",
+      "porownanie_w_przygotowaniu": "ModularHub is comparing offers",
+      "porownanie_gotowe": "Comparison ready",
+      "finalista_wybrany": "Manufacturer selected",
+      "wspolne_ustalenia": "Joint arrangements",
+      "zamkniete_bez_wyboru": "Closed without a choice",
+      "legacy_direct": "Direct request"
+    },
+    "waiting": {
+      "client": "Your move",
+      "advisor": "The ModularHub advisor's move",
+      "producer": "The manufacturer's move"
+    },
+    "waitingShort": {
+      "client": "Client",
+      "advisor": "Advisor",
+      "producer": "Manufacturer"
+    }
+  },
+  "CaseEmail": {
+    "newCaseSubject": "New case in ModularHub",
+    "newCaseBody": "A client sent a new request about homes. Open the case to reply.",
+    "newMessageSubject": "New message in your ModularHub case",
+    "newMessageBodyClient": "Your ModularHub advisor wrote to you in the conversation. Open the case to read the message.",
+    "newMessageBodyAdvisor": "The client wrote in the conversation. Open the case to reply."
+  },
+  "CaseSystem": {
+    "caseReceived": "We received your request. We have not sent it to the manufacturers yet."
   }
 }

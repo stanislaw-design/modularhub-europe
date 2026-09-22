@@ -1,9 +1,3 @@
-export interface InquiryContact {
-  name: string;
-  email: string;
-  phone: string;
-}
-
 const MAX_PROJECTS = 3;
 
 // Dedupes, drops ids not present in knownIds, and accepts only when 1 to 3 remain;
