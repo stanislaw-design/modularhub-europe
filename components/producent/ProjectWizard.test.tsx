@@ -28,6 +28,12 @@ vi.mock("@/lib/producer-product-actions", () => ({
   updateProducerProduct: vi.fn(),
 }));
 
+// Same server-action-chain gap as above (spec 0050 AC-4): ProjectWizardBasicInfoStep
+// now imports recognizeRoomLayout ("use server" -> @/auth) at module scope.
+vi.mock("@/lib/producer-room-layout-actions", () => ({
+  recognizeRoomLayout: vi.fn(),
+}));
+
 // ProjectWizardVariantsStep pulls in the same @/auth -> next-auth chain as
 // ProducerProductPhotosStep above; no test here reaches the "warianty" step.
 vi.mock("@/lib/producer-product-variant-actions", () => ({

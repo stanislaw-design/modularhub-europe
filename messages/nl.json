@@ -528,7 +528,18 @@
     "removeRoomLabel": "Ruimte verwijderen",
     "roomTranslationsHeading": "Vertalingen van ruimtenamen (optioneel)",
     "roomNameTranslationLabel": "Naam van ruimte {index}",
-    "addRoomButton": "Ruimte toevoegen"
+    "addRoomButton": "Ruimte toevoegen",
+    "recognizeHeading": "Indeling van ruimtes herkennen uit plattegronden",
+    "recognizeHint": "Kies maximaal vijf geüploade plattegronden; AI stelt een lijst met ruimtes voor om te controleren.",
+    "recognizeNoFloorPlansHint": "Upload plattegronden in de stap „Bestanden” om de indeling automatisch te herkennen.",
+    "recognizeAction": "Ruimtes herkennen",
+    "recognizePending": "Bezig met herkennen…",
+    "recognizeError": "Herkenning is mislukt. Probeer het opnieuw of vul de lijst handmatig in.",
+    "confidenceBadge": {
+      "low": "lage zekerheid",
+      "high": "hoge zekerheid",
+      "needs-check": "controleren"
+    }
   },
   "ProjectWizardTechnicalStep": {
     "heading": "Technische gegevens",

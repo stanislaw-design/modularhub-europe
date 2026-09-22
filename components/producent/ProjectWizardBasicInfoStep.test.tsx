@@ -1,10 +1,18 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { UseFormReturn } from "react-hook-form";
 import type { Country, ProjectDraft } from "@/lib/data/types";
 import { createEmptyDraft } from "@/lib/producer-project-draft";
-import { ProjectWizardBasicInfoStep } from "./ProjectWizardBasicInfoStep";
+
+// recognizeRoomLayout ("use server" -> @/auth -> next-auth) doesn't resolve
+// under Vitest/jsdom, same gap as ProjectWizardFilesStep.test.tsx.
+vi.mock("@/lib/producer-room-layout-actions", () => ({
+  recognizeRoomLayout: vi.fn(),
+}));
+
+import { recognizeRoomLayout } from "@/lib/producer-room-layout-actions";
+import { ProjectWizardBasicInfoStep, type ProjectWizardBasicInfoStepFloorPlan } from "./ProjectWizardBasicInfoStep";
 import { WizardFormHarness } from "./wizardFormTestUtils";
 
 const countries: Country[] = [
@@ -13,11 +21,21 @@ const countries: Country[] = [
   { code: "NL", name: "Holandia" },
 ];
 
-function renderStep(defaultValues: ProjectDraft, showValidation: boolean, familyLocked = false) {
+function renderStep(
+  defaultValues: ProjectDraft,
+  showValidation: boolean,
+  familyLocked = false,
+  aiProps: { productId?: string | null; floorPlans?: ProjectWizardBasicInfoStepFloorPlan[] } = {},
+) {
   let form!: UseFormReturn<ProjectDraft>;
   render(
     <WizardFormHarness defaultValues={defaultValues} onFormReady={(f) => (form = f)}>
-      <ProjectWizardBasicInfoStep countries={countries} showValidation={showValidation} familyLocked={familyLocked} />
+      <ProjectWizardBasicInfoStep
+        countries={countries}
+        showValidation={showValidation}
+        familyLocked={familyLocked}
+        {...aiProps}
+      />
     </WizardFormHarness>,
   );
   return () => form;
@@ -97,5 +115,89 @@ describe("ProjectWizardBasicInfoStep", () => {
     await user.click(screen.getByRole("option", { name: "Niemcy" }));
 
     expect(getForm().getValues("countryOfProduction")).toBe("DE");
+  });
+
+  describe("room layout recognition (spec 0050 AC-4 to AC-12)", () => {
+    it("does not render the recognition section when floorPlans is not provided (edit wizard, AC-41)", () => {
+      renderStep(createEmptyDraft(), false);
+      expect(screen.queryByText("Rozpoznaj układ pomieszczeń z rzutów")).not.toBeInTheDocument();
+    });
+
+    it("shows a hint instead of the picker when no floor plans are uploaded yet", () => {
+      renderStep(createEmptyDraft(), false, false, { productId: "p1", floorPlans: [] });
+      expect(screen.getByText("Rozpoznaj układ pomieszczeń z rzutów")).toBeInTheDocument();
+      expect(screen.getByText(/Wgraj rzuty w kroku/)).toBeInTheDocument();
+    });
+
+    it("shows a hint instead of the picker when the product does not exist yet (productId null)", () => {
+      renderStep(createEmptyDraft(), false, false, {
+        productId: null,
+        floorPlans: [{ id: "f1", filename: "rzut.jpg" }],
+      });
+      expect(screen.getByText(/Wgraj rzuty w kroku/)).toBeInTheDocument();
+    });
+
+    it("lists every floor plan as a checkbox, pre-selecting up to five", async () => {
+      const floorPlans = Array.from({ length: 6 }, (_, i) => ({ id: `f${i}`, filename: `rzut-${i}.jpg` }));
+      renderStep(createEmptyDraft(), false, false, { productId: "p1", floorPlans });
+
+      for (const plan of floorPlans) {
+        expect(screen.getByLabelText(plan.filename)).toBeInTheDocument();
+      }
+      expect(screen.getByLabelText("rzut-0.jpg")).toBeChecked();
+      expect(screen.getByLabelText("rzut-4.jpg")).toBeChecked();
+      expect(screen.getByLabelText("rzut-5.jpg")).not.toBeChecked();
+      expect(screen.getByLabelText("rzut-5.jpg")).toBeDisabled();
+    });
+
+    it("calls recognizeRoomLayout with the productId and selected ids, then appends new rooms on success", async () => {
+      const user = userEvent.setup();
+      vi.mocked(recognizeRoomLayout).mockResolvedValue({
+        ok: true,
+        rooms: [{ name: "Salon", areaM2: 28, floorLevel: "parter", confidence: "high" }],
+      });
+      const floorPlans = [{ id: "f1", filename: "rzut.jpg" }];
+      const getForm = renderStep(createEmptyDraft(), false, false, { productId: "p1", floorPlans });
+
+      await user.click(screen.getByRole("button", { name: "Rozpoznaj pomieszczenia" }));
+
+      expect(recognizeRoomLayout).toHaveBeenCalledWith("p1", ["f1"]);
+      await screen.findByDisplayValue("Salon");
+      await screen.findByText("wysoka pewność");
+      expect(getForm().getValues("roomLayout")).toHaveLength(1);
+      expect(getForm().getValues("roomLayout.0.floorLevel")).toBe("parter");
+    });
+
+    it("shows an error and leaves the form untouched when recognition fails", async () => {
+      const user = userEvent.setup();
+      vi.mocked(recognizeRoomLayout).mockResolvedValue({ ok: false, error: "Rozpoznawanie nie powiodło się." });
+      const floorPlans = [{ id: "f1", filename: "rzut.jpg" }];
+      const getForm = renderStep(createEmptyDraft(), false, false, { productId: "p1", floorPlans });
+
+      await user.click(screen.getByRole("button", { name: "Rozpoznaj pomieszczenia" }));
+
+      expect(await screen.findByRole("alert")).toHaveTextContent("Rozpoznawanie nie powiodło się.");
+      expect(getForm().getValues("roomLayout")).toHaveLength(0);
+    });
+
+    it("flags an already existing room as needs-check instead of overwriting it when the recognized floor level differs", async () => {
+      const user = userEvent.setup();
+      vi.mocked(recognizeRoomLayout).mockResolvedValue({
+        ok: true,
+        rooms: [{ name: "Salon", areaM2: 28, floorLevel: "pietro", confidence: "high" }],
+      });
+      const floorPlans = [{ id: "f1", filename: "rzut.jpg" }];
+      const existing = {
+        ...createEmptyDraft(),
+        roomLayout: [{ id: "r1", name: "Salon", areaM2: 28, function: "Dzienna", floorLevel: "parter" as const }],
+      };
+      const getForm = renderStep(existing, false, false, { productId: "p1", floorPlans });
+
+      await user.click(screen.getByRole("button", { name: "Rozpoznaj pomieszczenia" }));
+
+      await screen.findByText("do sprawdzenia");
+      expect(getForm().getValues("roomLayout")).toHaveLength(1); // not duplicated
+      expect(getForm().getValues("roomLayout.0.floorLevel")).toBe("parter"); // not silently overwritten
+    });
   });
 });

@@ -528,7 +528,18 @@
     "removeRoomLabel": "Usuń pomieszczenie",
     "roomTranslationsHeading": "Tłumaczenia nazw pomieszczeń (opcjonalnie)",
     "roomNameTranslationLabel": "Nazwa pomieszczenia {index}",
-    "addRoomButton": "Dodaj pomieszczenie"
+    "addRoomButton": "Dodaj pomieszczenie",
+    "recognizeHeading": "Rozpoznaj układ pomieszczeń z rzutów",
+    "recognizeHint": "Wybierz maksymalnie pięć wgranych rzutów, a AI zaproponuje listę pomieszczeń do sprawdzenia.",
+    "recognizeNoFloorPlansHint": "Wgraj rzuty w kroku „Pliki”, żeby móc rozpoznać układ pomieszczeń automatycznie.",
+    "recognizeAction": "Rozpoznaj pomieszczenia",
+    "recognizePending": "Rozpoznawanie…",
+    "recognizeError": "Rozpoznawanie nie powiodło się. Spróbuj ponownie albo wypełnij listę ręcznie.",
+    "confidenceBadge": {
+      "low": "niska pewność",
+      "high": "wysoka pewność",
+      "needs-check": "do sprawdzenia"
+    }
   },
   "ProjectWizardTechnicalStep": {
     "heading": "Dane techniczne",

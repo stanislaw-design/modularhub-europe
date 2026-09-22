@@ -528,7 +528,18 @@
     "removeRoomLabel": "Remove room",
     "roomTranslationsHeading": "Room name translations (optional)",
     "roomNameTranslationLabel": "Room name {index}",
-    "addRoomButton": "Add room"
+    "addRoomButton": "Add room",
+    "recognizeHeading": "Recognize room layout from floor plans",
+    "recognizeHint": "Pick up to five uploaded floor plans, and AI will propose a room list to review.",
+    "recognizeNoFloorPlansHint": "Upload floor plans in the \"Files\" step to recognize the room layout automatically.",
+    "recognizeAction": "Recognize rooms",
+    "recognizePending": "Recognizing…",
+    "recognizeError": "Recognition failed. Try again or fill in the list manually.",
+    "confidenceBadge": {
+      "low": "low confidence",
+      "high": "high confidence",
+      "needs-check": "needs check"
+    }
   },
   "ProjectWizardTechnicalStep": {
     "heading": "Technical data",

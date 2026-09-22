@@ -41,6 +41,14 @@ vi.mock("@/lib/producer-product-variant-actions", () => ({
   upsertTimelineStage: vi.fn(),
 }));
 
+// Same server-action-chain gap as above (spec 0050 AC-4): ProjectWizardBasicInfoStep
+// now imports recognizeRoomLayout ("use server" -> @/auth) at module scope,
+// even though ProductEditWizard never passes it the props that would render
+// the AI section (AC-41, no room recognition on an existing product's edit).
+vi.mock("@/lib/producer-room-layout-actions", () => ({
+  recognizeRoomLayout: vi.fn(),
+}));
+
 vi.mock("next/navigation", async (importOriginal) => {
   const actual = await importOriginal<typeof import("next/navigation")>();
   return { ...actual, useRouter: () => ({ push: vi.fn() }) };

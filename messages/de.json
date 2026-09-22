@@ -528,7 +528,18 @@
     "removeRoomLabel": "Raum entfernen",
     "roomTranslationsHeading": "Übersetzungen der Raumnamen (optional)",
     "roomNameTranslationLabel": "Raumname {index}",
-    "addRoomButton": "Raum hinzufügen"
+    "addRoomButton": "Raum hinzufügen",
+    "recognizeHeading": "Raumaufteilung aus Grundrissen erkennen",
+    "recognizeHint": "Wählen Sie bis zu fünf hochgeladene Grundrisse aus, die KI schlägt eine zu prüfende Raumliste vor.",
+    "recognizeNoFloorPlansHint": "Laden Sie Grundrisse im Schritt „Dateien“ hoch, um die Raumaufteilung automatisch zu erkennen.",
+    "recognizeAction": "Räume erkennen",
+    "recognizePending": "Erkennung läuft…",
+    "recognizeError": "Erkennung fehlgeschlagen. Versuchen Sie es erneut oder füllen Sie die Liste manuell aus.",
+    "confidenceBadge": {
+      "low": "niedrige Sicherheit",
+      "high": "hohe Sicherheit",
+      "needs-check": "zu prüfen"
+    }
   },
   "ProjectWizardTechnicalStep": {
     "heading": "Technische Daten",

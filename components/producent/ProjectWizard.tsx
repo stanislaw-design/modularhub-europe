@@ -163,7 +163,12 @@ export function ProjectWizard({ locale, countries }: ProjectWizardProps) {
         />
         <Stack gap={4}>
           {currentStep.id === "podstawowe" && (
-            <ProjectWizardBasicInfoStep countries={countries} showValidation={showValidation} />
+            <ProjectWizardBasicInfoStep
+              countries={countries}
+              showValidation={showValidation}
+              productId={productId}
+              floorPlans={floorPlans}
+            />
           )}
           {currentStep.id === "techniczne" && <ProjectWizardTechnicalStep showValidation={showValidation} />}
           {currentStep.id === "pliki" && (
