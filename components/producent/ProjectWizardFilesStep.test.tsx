@@ -16,6 +16,9 @@ vi.mock("./ProducerFloorPlanUploadStep", () => ({
 vi.mock("./ProducerSpecificationPdfUploadStep", () => ({
   ProducerSpecificationPdfUploadStep: () => <div>specification-pdf-step</div>,
 }));
+vi.mock("./ProducerSalesPdfUploadStep", () => ({
+  ProducerSalesPdfUploadStep: () => <div>sales-pdf-step</div>,
+}));
 
 describe("ProjectWizardFilesStep", () => {
   it("shows a placeholder instead of any real uploader when no productId exists yet", () => {
@@ -29,16 +32,19 @@ describe("ProjectWizardFilesStep", () => {
         onFloorPlansChange={vi.fn()}
         specificationPdf={null}
         onSpecificationPdfChange={vi.fn()}
+        salesPdf={null}
+        onSalesPdfChange={vi.fn()}
       />,
     );
 
     expect(screen.queryByText("photos-step")).not.toBeInTheDocument();
     expect(screen.queryByText("floor-plan-step")).not.toBeInTheDocument();
     expect(screen.queryByText("specification-pdf-step")).not.toBeInTheDocument();
-    expect(screen.getAllByText(/zapisz najpierw podstawowe informacje/i)).toHaveLength(3);
+    expect(screen.queryByText("sales-pdf-step")).not.toBeInTheDocument();
+    expect(screen.getAllByText(/zapisz najpierw podstawowe informacje/i)).toHaveLength(4);
   });
 
-  it("renders all three real upload components once a productId exists (spec 0045 AC-7, spec 0049 AC-6)", () => {
+  it("renders all four real upload components once a productId exists (spec 0045 AC-7, spec 0049 AC-6, spec 0050 AC-25)", () => {
     render(
       <ProjectWizardFilesStep
         showValidation={false}
@@ -49,11 +55,14 @@ describe("ProjectWizardFilesStep", () => {
         onFloorPlansChange={vi.fn()}
         specificationPdf={null}
         onSpecificationPdfChange={vi.fn()}
+        salesPdf={null}
+        onSalesPdfChange={vi.fn()}
       />,
     );
 
     expect(screen.getByText("photos-step")).toBeInTheDocument();
     expect(screen.getByText("floor-plan-step")).toBeInTheDocument();
     expect(screen.getByText("specification-pdf-step")).toBeInTheDocument();
+    expect(screen.getByText("sales-pdf-step")).toBeInTheDocument();
   });
 });

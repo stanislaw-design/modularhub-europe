@@ -668,6 +668,16 @@
     "noFile": "Er is nog geen specificatiebestand geüpload.",
     "removeFile": "Specificatiebestand {name} verwijderen"
   },
+  "ProducerSalesPdfUploadStep": {
+    "label": "Verkoop-PDF (optioneel)",
+    "chooseFile": "Bestand kiezen",
+    "replaceFile": "Bestand vervangen",
+    "hint": "PDF, max. 10 MB.",
+    "uploadError": "Het verkoopbestand kon niet worden geüpload. Probeer het opnieuw.",
+    "deleteError": "Het verkoopbestand kon niet worden verwijderd. Probeer het opnieuw.",
+    "noFile": "Er is nog geen verkoopbestand geüpload.",
+    "removeFile": "Verkoopbestand {name} verwijderen"
+  },
   "ProjectWizardSummaryStep": {
     "heading": "Samenvatting",
     "intro": "Controleer alle gegevens voordat je het project opslaat.",

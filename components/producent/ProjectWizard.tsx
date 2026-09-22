@@ -17,6 +17,7 @@ import { ProjectWizardTechnicalStep } from "./ProjectWizardTechnicalStep";
 import { ProjectWizardVariantsStep } from "./ProjectWizardVariantsStep";
 import type { ProducerFloorPlan } from "./ProducerFloorPlanUploadStep";
 import type { ProducerProductPhoto } from "./ProducerProductPhotosStep";
+import type { ProducerSalesPdf } from "./ProducerSalesPdfUploadStep";
 import type { ProducerSpecificationPdf } from "./ProducerSpecificationPdfUploadStep";
 
 interface ProjectWizardProps {
@@ -59,6 +60,8 @@ export function ProjectWizard({ locale, countries }: ProjectWizardProps) {
   // odpowiednika floorPlanFiles na ProjectDraft, bo żadna AC nie wymaga go do
   // publikacji.
   const [specificationPdf, setSpecificationPdf] = useState<ProducerSpecificationPdf | null>(null);
+  // Opcjonalny, ten sam wzorzec co specificationPdf wyżej (spec 0050 AC-25, AC-26).
+  const [salesPdf, setSalesPdf] = useState<ProducerSalesPdf | null>(null);
   const [stepIndex, setStepIndex] = useState(0);
   const [maxReachedIndex, setMaxReachedIndex] = useState(0);
   const [showValidation, setShowValidation] = useState(false);
@@ -181,6 +184,8 @@ export function ProjectWizard({ locale, countries }: ProjectWizardProps) {
               onFloorPlansChange={handleFloorPlansChange}
               specificationPdf={specificationPdf}
               onSpecificationPdfChange={setSpecificationPdf}
+              salesPdf={salesPdf}
+              onSalesPdfChange={setSalesPdf}
             />
           )}
           {currentStep.id === "warianty" && (

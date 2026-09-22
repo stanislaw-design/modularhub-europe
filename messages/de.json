@@ -668,6 +668,16 @@
     "noFile": "Es wurde noch keine Spezifikationsdatei hochgeladen.",
     "removeFile": "Spezifikationsdatei {name} entfernen"
   },
+  "ProducerSalesPdfUploadStep": {
+    "label": "Verkaufs-PDF (optional)",
+    "chooseFile": "Datei auswählen",
+    "replaceFile": "Datei ersetzen",
+    "hint": "PDF, max. 10 MB.",
+    "uploadError": "Die Verkaufsdatei konnte nicht hochgeladen werden. Bitte versuchen Sie es erneut.",
+    "deleteError": "Die Verkaufsdatei konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.",
+    "noFile": "Es wurde noch keine Verkaufsdatei hochgeladen.",
+    "removeFile": "Verkaufsdatei {name} entfernen"
+  },
   "ProjectWizardSummaryStep": {
     "heading": "Zusammenfassung",
     "intro": "Überprüfen Sie alle Angaben, bevor Sie das Projekt speichern.",

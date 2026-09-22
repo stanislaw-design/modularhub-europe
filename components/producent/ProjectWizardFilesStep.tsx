@@ -2,6 +2,7 @@ import { useTranslations } from "next-intl";
 import { Heading, Stack, Text } from "@/components/ui";
 import { ProducerFloorPlanUploadStep, type ProducerFloorPlan, type ProducerFloorPlanVariantOption } from "./ProducerFloorPlanUploadStep";
 import { ProducerProductPhotosStep, type ProducerProductPhoto } from "./ProducerProductPhotosStep";
+import { ProducerSalesPdfUploadStep, type ProducerSalesPdf } from "./ProducerSalesPdfUploadStep";
 import { ProducerSpecificationPdfUploadStep, type ProducerSpecificationPdf } from "./ProducerSpecificationPdfUploadStep";
 
 interface ProjectWizardFilesStepProps {
@@ -18,6 +19,10 @@ interface ProjectWizardFilesStepProps {
   // dopóki productId nie istnieje, jak floorPlans/photos wyżej.
   specificationPdf: ProducerSpecificationPdf | null;
   onSpecificationPdfChange: (specificationPdf: ProducerSpecificationPdf | null) => void;
+  // Drugi, opcjonalny PDF (spec 0050 AC-25, AC-26), ten sam wzorzec co
+  // specificationPdf wyżej.
+  salesPdf: ProducerSalesPdf | null;
+  onSalesPdfChange: (salesPdf: ProducerSalesPdf | null) => void;
 }
 
 // Rzuty przeszły na realne wgrywanie R2 (spec 0045 AC-7, Build plan zadanie 8),
@@ -35,6 +40,8 @@ export function ProjectWizardFilesStep({
   floorPlanVariantOptions = [],
   specificationPdf,
   onSpecificationPdfChange,
+  salesPdf,
+  onSalesPdfChange,
 }: ProjectWizardFilesStepProps) {
   const t = useTranslations("ProjectWizardFilesStep");
 
@@ -71,6 +78,13 @@ export function ProjectWizardFilesStep({
             specificationPdf={specificationPdf}
             onSpecificationPdfChange={onSpecificationPdfChange}
           />
+        ) : (
+          <Text tone="muted">{t("photosUnavailable")}</Text>
+        )}
+      </Stack>
+      <Stack gap={2}>
+        {productId ? (
+          <ProducerSalesPdfUploadStep productId={productId} salesPdf={salesPdf} onSalesPdfChange={onSalesPdfChange} />
         ) : (
           <Text tone="muted">{t("photosUnavailable")}</Text>
         )}

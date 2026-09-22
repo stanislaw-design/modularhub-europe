@@ -1,4 +1,4 @@
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 import type { Session } from "next-auth";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
@@ -39,9 +39,12 @@ import { auditLog, document, producer, product, users } from "@/lib/db/schema";
 import { captureError } from "@/lib/observability/errors";
 import {
   deleteProductPhoto,
+  deleteProductSalesPdf,
   reorderProductPhotos,
   setCoverPhoto,
   uploadProductPhoto,
+  uploadProductSalesPdf,
+  uploadProductSpecificationPdf,
 } from "./product-photo-actions";
 
 function jpegBytes(): ArrayBuffer {
@@ -54,6 +57,15 @@ function jpegFile(name = "photo.jpg"): File {
 
 function garbageFile(name = "photo.jpg"): File {
   return new File(["not a real image"], name, { type: "image/jpeg" });
+}
+
+function pdfBytes(): ArrayBuffer {
+  const bytes = Buffer.from("%PDF-1.7\n1 0 obj\n/Type /Page\nBT sample ET\nendobj\n%%EOF", "latin1");
+  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+}
+
+function pdfFile(name = "sales.pdf"): File {
+  return new File([pdfBytes()], name, { type: "application/pdf" });
 }
 
 function sessionAs(userId: string, role: "admin" | "producer" | "client"): Session {
@@ -391,6 +403,92 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/product-photo-actions: real DB, 
       expect(captureError).toHaveBeenCalled();
       const [row] = await db.select().from(document).where(eq(document.id, doc.id));
       expect(row.deletedAt).not.toBeNull();
+    });
+  });
+
+  // Spec 0050 AC-25, AC-26: dokładnie ten sam wzorzec co spec 0049's
+  // uploadProductSpecificationPdf (nadal bez własnych testów tutaj), teraz
+  // dwa niezależne purpose (product_specification/product_sales_pdf) mogą
+  // koegzystować dla tego samego productId bez kolizji.
+  describe("uploadProductSalesPdf", () => {
+    it("uploads a valid PDF and inserts a document row with purpose product_sales_pdf", async () => {
+      authMock.mockResolvedValue(sessionAs(adminUserId, "admin"));
+      const result = await uploadProductSalesPdf(productAId, pdfFile());
+
+      expect(result.ok).toBe(true);
+      expect(result.documentId).toBeTruthy();
+      expect(uploadObjectMock).toHaveBeenCalledWith(expect.any(String), expect.any(Buffer), "application/pdf");
+      const [row] = await db.select().from(document).where(eq(document.id, result.documentId!));
+      expect(row.purpose).toBe("product_sales_pdf");
+      expect(row.productVariantId).toBeNull();
+    });
+
+    it("replaces a previous sales PDF atomically, soft-deleting the old row", async () => {
+      authMock.mockResolvedValue(sessionAs(adminUserId, "admin"));
+      const first = await uploadProductSalesPdf(productAId, pdfFile("first.pdf"));
+      const second = await uploadProductSalesPdf(productAId, pdfFile("second.pdf"));
+
+      expect(second.ok).toBe(true);
+      const [firstRow] = await db.select().from(document).where(eq(document.id, first.documentId!));
+      expect(firstRow.deletedAt).not.toBeNull();
+      const active = await db
+        .select()
+        .from(document)
+        .where(and(eq(document.productId, productAId), eq(document.purpose, "product_sales_pdf"), isNull(document.deletedAt)));
+      expect(active).toHaveLength(1);
+      expect(active[0]!.id).toBe(second.documentId);
+    });
+
+    it("rejects a file that isn't a real PDF regardless of its declared type", async () => {
+      authMock.mockResolvedValue(sessionAs(adminUserId, "admin"));
+      const result = await uploadProductSalesPdf(productAId, garbageFile("fake.pdf"));
+      expect(result.ok).toBe(false);
+      expect(uploadObjectMock).not.toHaveBeenCalled();
+    });
+
+    it("rejects a producer uploading to another producer's product", async () => {
+      authMock.mockResolvedValue(sessionAs(otherProducerUserId, "producer"));
+      const result = await uploadProductSalesPdf(productAId, pdfFile());
+      expect(result.ok).toBe(false);
+      expect(uploadObjectMock).not.toHaveBeenCalled();
+    });
+
+    it("does not collide with an existing specification PDF on the same product (different purpose)", async () => {
+      authMock.mockResolvedValue(sessionAs(adminUserId, "admin"));
+      const spec = await uploadProductSpecificationPdf(productAId, pdfFile("spec.pdf"));
+      const sales = await uploadProductSalesPdf(productAId, pdfFile("sales.pdf"));
+
+      expect(spec.ok).toBe(true);
+      expect(sales.ok).toBe(true);
+      const [specRow] = await db.select().from(document).where(eq(document.id, spec.documentId!));
+      const [salesRow] = await db.select().from(document).where(eq(document.id, sales.documentId!));
+      expect(specRow.deletedAt).toBeNull();
+      expect(salesRow.deletedAt).toBeNull();
+    });
+  });
+
+  describe("deleteProductSalesPdf", () => {
+    it("soft-deletes the row and calls deleteObject with its r2Key", async () => {
+      authMock.mockResolvedValue(sessionAs(adminUserId, "admin"));
+      const uploaded = await uploadProductSalesPdf(productAId, pdfFile());
+      deleteObjectMock.mockClear();
+
+      const result = await deleteProductSalesPdf(uploaded.documentId!);
+
+      expect(result.ok).toBe(true);
+      expect(deleteObjectMock).toHaveBeenCalledOnce();
+      const [row] = await db.select().from(document).where(eq(document.id, uploaded.documentId!));
+      expect(row.deletedAt).not.toBeNull();
+    });
+
+    it("rejects deleting another producer's sales PDF", async () => {
+      authMock.mockResolvedValue(sessionAs(adminUserId, "admin"));
+      const uploaded = await uploadProductSalesPdf(productAId, pdfFile());
+
+      authMock.mockResolvedValue(sessionAs(otherProducerUserId, "producer"));
+      const result = await deleteProductSalesPdf(uploaded.documentId!);
+
+      expect(result.ok).toBe(false);
     });
   });
 });

@@ -18,6 +18,7 @@ import { ProjectWizardTechnicalStep } from "./ProjectWizardTechnicalStep";
 import { ProjectWizardVariantsStep } from "./ProjectWizardVariantsStep";
 import type { ProducerFloorPlan } from "./ProducerFloorPlanUploadStep";
 import type { ProducerProductPhoto } from "./ProducerProductPhotosStep";
+import type { ProducerSalesPdf } from "./ProducerSalesPdfUploadStep";
 import type { ProducerSpecificationPdf } from "./ProducerSpecificationPdfUploadStep";
 
 interface ProductEditWizardProps {
@@ -27,6 +28,8 @@ interface ProductEditWizardProps {
   initialPhotos: ProducerProductPhoto[];
   initialFloorPlans: ProducerFloorPlan[];
   initialSpecificationPdf: ProducerSpecificationPdf | null;
+  // Opcjonalny, ten sam wzorzec co initialSpecificationPdf wyżej (spec 0050 AC-25, AC-26).
+  initialSalesPdf: ProducerSalesPdf | null;
   initialVariants: ProducerVariantForEdit[];
   countries: Country[];
 }
@@ -53,6 +56,7 @@ export function ProductEditWizard({
   initialPhotos,
   initialFloorPlans,
   initialSpecificationPdf,
+  initialSalesPdf,
   initialVariants,
   countries,
 }: ProductEditWizardProps) {
@@ -65,6 +69,7 @@ export function ProductEditWizard({
   const [photos, setPhotos] = useState<ProducerProductPhoto[]>(initialPhotos);
   const [floorPlans, setFloorPlans] = useState<ProducerFloorPlan[]>(initialFloorPlans);
   const [specificationPdf, setSpecificationPdf] = useState<ProducerSpecificationPdf | null>(initialSpecificationPdf);
+  const [salesPdf, setSalesPdf] = useState<ProducerSalesPdf | null>(initialSalesPdf);
   const [stepIndex, setStepIndex] = useState(0);
   const [maxReachedIndex, setMaxReachedIndex] = useState(WIZARD_STEPS.length - 1);
   const [showValidation, setShowValidation] = useState(false);
@@ -186,6 +191,8 @@ export function ProductEditWizard({
               floorPlanVariantOptions={floorPlanVariantOptions}
               specificationPdf={specificationPdf}
               onSpecificationPdfChange={setSpecificationPdf}
+              salesPdf={salesPdf}
+              onSalesPdfChange={setSalesPdf}
             />
           )}
           {currentStep.id === "warianty" && (

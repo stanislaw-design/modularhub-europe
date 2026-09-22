@@ -8,6 +8,7 @@ import {
   getProducerVariantsForEdit,
   getProductFloorPlansForAdmin,
   getProductPhotosForAdmin,
+  getProductSalesPdfForAdmin,
   getProductSpecificationPdfForAdmin,
   type ProducerProductForEdit,
   type ProducerVariantForEdit,
@@ -90,11 +91,12 @@ export default async function ProducerPanelEdytujProduktPage({
     redirect(`/${locale}/producer/panel/products`);
   }
 
-  const [countries, photos, floorPlans, specificationPdf, variants] = await Promise.all([
+  const [countries, photos, floorPlans, specificationPdf, salesPdf, variants] = await Promise.all([
     getCountries(),
     getProductPhotosForAdmin(id),
     getProductFloorPlansForAdmin(id),
     getProductSpecificationPdfForAdmin(id),
+    getProductSalesPdfForAdmin(id),
     getProducerVariantsForEdit(id),
   ]);
   const draft = producerProductToDraft(productRow, variants);
@@ -109,6 +111,7 @@ export default async function ProducerPanelEdytujProduktPage({
       initialPhotos={photos.map((photo) => ({ id: photo.id, url: photo.url, filename: photo.filename, isCover: photo.isCover }))}
       initialFloorPlans={floorPlans.map((plan) => ({ id: plan.id, url: plan.url, filename: plan.filename, variantId: plan.productVariantId }))}
       initialSpecificationPdf={specificationPdf}
+      initialSalesPdf={salesPdf}
       initialVariants={variants}
       countries={countries}
     />

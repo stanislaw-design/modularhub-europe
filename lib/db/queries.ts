@@ -578,6 +578,24 @@ export async function getProductSpecificationPdfForAdmin(productId: string): Pro
   return row ? { id: row.id, url: buildPublicUrl(row.r2Key), filename: row.filename } : null;
 }
 
+export interface ProductSalesPdfForEdit {
+  id: string;
+  url: string;
+  filename: string;
+}
+
+// Zasila krok "Pliki" kreatora (spec 0050 AC-25, AC-26), ten sam wzorzec co
+// getProductSpecificationPdfForAdmin wyżej — document_one_sales_pdf_per_product
+// gwarantuje najwyżej jeden aktywny wiersz.
+export async function getProductSalesPdfForAdmin(productId: string): Promise<ProductSalesPdfForEdit | null> {
+  const [row] = await db
+    .select({ id: document.id, r2Key: document.r2Key, filename: document.filename })
+    .from(document)
+    .where(and(eq(document.productId, productId), eq(document.purpose, "product_sales_pdf"), isNull(document.deletedAt)));
+
+  return row ? { id: row.id, url: buildPublicUrl(row.r2Key), filename: row.filename } : null;
+}
+
 // ---------------------------------------------------------------------------
 // Zapytanie -> oferta -> zamówienie (spec 0033)
 // ---------------------------------------------------------------------------

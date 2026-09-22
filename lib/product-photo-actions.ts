@@ -394,8 +394,15 @@ export async function uploadProductSpecificationPdf(productId: string, file: Fil
         and(eq(document.productId, productId), eq(document.purpose, "product_specification"), isNull(document.deletedAt)),
       );
 
+    // Usunięcie starego wiersza MUSI iść przed wstawieniem nowego: partial
+    // unique index (document_one_specification_per_product) nie jest
+    // deferrable (to zwykły CREATE UNIQUE INDEX, nie ADD CONSTRAINT), więc
+    // Postgres sprawdza go natychmiast po każdej instrukcji w batchu, nie
+    // dopiero po całym batchu — insert przed update chwilowo dałby dwa
+    // aktywne wiersze naraz i złamał ten indeks.
     const newDocumentId = randomUUID();
     const statements = [
+      ...existing.map((row) => db.update(document).set({ deletedAt: new Date() }).where(eq(document.id, row.id))),
       db.insert(document).values({
         id: newDocumentId,
         r2Key,
@@ -407,7 +414,6 @@ export async function uploadProductSpecificationPdf(productId: string, file: Fil
         productId,
         productVariantId: null,
       }),
-      ...existing.map((row) => db.update(document).set({ deletedAt: new Date() }).where(eq(document.id, row.id))),
     ];
     await db.batch(statements as [(typeof statements)[number], ...typeof statements]);
 
@@ -440,6 +446,99 @@ export async function deleteProductSpecificationPdf(documentId: string): Promise
     await deleteObject(documentRow.r2Key);
   } catch (error) {
     captureError(error, { path: "deleteProductSpecificationPdf.r2", userId: actor.userId });
+  }
+
+  return { ok: true };
+}
+
+export interface UploadProductSalesPdfResult extends ActionResult {
+  documentId?: string;
+  url?: string;
+}
+
+// PDF sprzedażowy, opcjonalne dodatkowe źródło informacji obok specyfikacji
+// (spec 0050 AC-25, AC-26): dokładnie ten sam wzorzec co
+// uploadProductSpecificationPdf/deleteProductSpecificationPdf wyżej (spec
+// 0049) — najwyżej jeden plik na produkt, zastąpienie atomowe w jednym
+// db.batch, productVariantId zawsze null. AC-27: nie tłumaczony, zostaje w
+// języku wgrania.
+export async function uploadProductSalesPdf(productId: string, file: File): Promise<UploadProductSalesPdfResult> {
+  const actor = await requirePhotoActor();
+  if (!actor) return { ok: false, error: DENIED_ERROR };
+  const ownership = await resolveProductOwnership(actor, productId);
+  if (ownership === "not_found") return { ok: false, error: PRODUCT_NOT_FOUND_ERROR };
+  if (ownership === "denied") return { ok: false, error: DENIED_ERROR };
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const validation = validateDocumentPdf(buffer);
+  if (!validation.ok) {
+    return { ok: false, error: validation.error ?? "Nieprawidłowy plik PDF." };
+  }
+
+  const r2Key = buildR2Key(file.name);
+  try {
+    await uploadObject(r2Key, buffer, "application/pdf");
+  } catch (error) {
+    captureError(error, { path: "uploadProductSalesPdf", userId: actor.userId });
+    return { ok: false, error: "Nie udało się wgrać pliku do magazynu. Spróbuj ponownie." };
+  }
+
+  try {
+    const existing = await db
+      .select({ id: document.id })
+      .from(document)
+      .where(and(eq(document.productId, productId), eq(document.purpose, "product_sales_pdf"), isNull(document.deletedAt)));
+
+    // Kolejność jak w uploadProductSpecificationPdf wyżej: usunięcie starego
+    // wiersza przed wstawieniem nowego, bo document_one_sales_pdf_per_product
+    // (zwykły CREATE UNIQUE INDEX, nie deferrable) jest sprawdzany
+    // natychmiast po każdej instrukcji w batchu.
+    const newDocumentId = randomUUID();
+    const statements = [
+      ...existing.map((row) => db.update(document).set({ deletedAt: new Date() }).where(eq(document.id, row.id))),
+      db.insert(document).values({
+        id: newDocumentId,
+        r2Key,
+        filename: file.name,
+        mimeType: "application/pdf",
+        sizeBytes: buffer.byteLength,
+        purpose: "product_sales_pdf",
+        ownerUserId: actor.userId,
+        productId,
+        productVariantId: null,
+      }),
+    ];
+    await db.batch(statements as [(typeof statements)[number], ...typeof statements]);
+
+    return { ok: true, documentId: newDocumentId, url: buildPublicUrl(r2Key) };
+  } catch (error) {
+    captureError(error, { path: "uploadProductSalesPdf", userId: actor.userId });
+    return { ok: false, error: "Plik trafił do magazynu, ale zapis w bazie się nie powiódł. Spróbuj ponownie." };
+  }
+}
+
+export async function deleteProductSalesPdf(documentId: string): Promise<ActionResult> {
+  const actor = await requirePhotoActor();
+  if (!actor) return { ok: false, error: DENIED_ERROR };
+
+  const [documentRow] = await db
+    .select({ id: document.id, r2Key: document.r2Key, productId: document.productId })
+    .from(document)
+    .where(and(eq(document.id, documentId), isNull(document.deletedAt)));
+  if (!documentRow) return { ok: false, error: "Nie znaleziono pliku sprzedażowego." };
+  if (!(await actorOwnsProduct(actor, documentRow.productId))) return { ok: false, error: DENIED_ERROR };
+
+  try {
+    await db.update(document).set({ deletedAt: new Date() }).where(eq(document.id, documentId));
+  } catch (error) {
+    captureError(error, { path: "deleteProductSalesPdf", userId: actor.userId });
+    return { ok: false, error: "Nie udało się usunąć pliku sprzedażowego. Spróbuj ponownie." };
+  }
+
+  try {
+    await deleteObject(documentRow.r2Key);
+  } catch (error) {
+    captureError(error, { path: "deleteProductSalesPdf.r2", userId: actor.userId });
   }
 
   return { ok: true };

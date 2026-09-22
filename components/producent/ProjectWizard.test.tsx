@@ -23,6 +23,10 @@ vi.mock("./ProducerSpecificationPdfUploadStep", () => ({
   ProducerSpecificationPdfUploadStep: () => null,
 }));
 
+vi.mock("./ProducerSalesPdfUploadStep", () => ({
+  ProducerSalesPdfUploadStep: () => null,
+}));
+
 vi.mock("@/lib/producer-product-actions", () => ({
   createProducerProduct: vi.fn(),
   updateProducerProduct: vi.fn(),

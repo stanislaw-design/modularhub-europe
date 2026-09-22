@@ -668,6 +668,16 @@
     "noFile": "No specification file has been uploaded yet.",
     "removeFile": "Remove specification file {name}"
   },
+  "ProducerSalesPdfUploadStep": {
+    "label": "Sales PDF (optional)",
+    "chooseFile": "Choose file",
+    "replaceFile": "Replace file",
+    "hint": "PDF, max. 10 MB.",
+    "uploadError": "Couldn't upload the sales file. Please try again.",
+    "deleteError": "Couldn't delete the sales file. Please try again.",
+    "noFile": "No sales file has been uploaded yet.",
+    "removeFile": "Remove sales file {name}"
+  },
   "ProjectWizardSummaryStep": {
     "heading": "Summary",
     "intro": "Review all the details before saving the project.",

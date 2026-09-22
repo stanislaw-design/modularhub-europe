@@ -668,6 +668,16 @@
     "noFile": "Nie wgrano jeszcze pliku specyfikacji.",
     "removeFile": "Usuń plik specyfikacji {name}"
   },
+  "ProducerSalesPdfUploadStep": {
+    "label": "PDF sprzedażowy (opcjonalnie)",
+    "chooseFile": "Wybierz plik",
+    "replaceFile": "Zastąp plik",
+    "hint": "PDF, maks. 10 MB.",
+    "uploadError": "Nie udało się wgrać pliku sprzedażowego. Spróbuj ponownie.",
+    "deleteError": "Nie udało się usunąć pliku sprzedażowego. Spróbuj ponownie.",
+    "noFile": "Nie wgrano jeszcze pliku sprzedażowego.",
+    "removeFile": "Usuń plik sprzedażowy {name}"
+  },
   "ProjectWizardSummaryStep": {
     "heading": "Podsumowanie",
     "intro": "Sprawdź wszystkie dane przed zapisaniem projektu.",

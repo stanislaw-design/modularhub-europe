@@ -23,6 +23,10 @@ vi.mock("./ProducerSpecificationPdfUploadStep", () => ({
   ProducerSpecificationPdfUploadStep: () => null,
 }));
 
+vi.mock("./ProducerSalesPdfUploadStep", () => ({
+  ProducerSalesPdfUploadStep: () => null,
+}));
+
 vi.mock("@/lib/producer-product-actions", () => ({
   updateProducerProduct: vi.fn(),
 }));
@@ -86,6 +90,7 @@ describe("ProductEditWizard", () => {
         initialPhotos={[]}
         initialFloorPlans={[]}
         initialSpecificationPdf={null}
+        initialSalesPdf={null}
         initialVariants={[]}
         countries={countries}
       />,
@@ -108,6 +113,7 @@ describe("ProductEditWizard", () => {
         initialPhotos={[]}
         initialFloorPlans={[]}
         initialSpecificationPdf={null}
+        initialSalesPdf={null}
         initialVariants={[]}
         countries={countries}
       />,
@@ -130,6 +136,7 @@ describe("ProductEditWizard", () => {
         initialPhotos={[]}
         initialFloorPlans={[]}
         initialSpecificationPdf={null}
+        initialSalesPdf={null}
         initialVariants={[]}
         countries={countries}
       />,
