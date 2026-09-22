@@ -183,7 +183,9 @@ export function ProjectWizard({ locale, countries }: ProjectWizardProps) {
               onSpecificationPdfChange={setSpecificationPdf}
             />
           )}
-          {currentStep.id === "warianty" && <ProjectWizardVariantsStep productId={productId} />}
+          {currentStep.id === "warianty" && (
+            <ProjectWizardVariantsStep productId={productId} enableStandardsExtraction />
+          )}
           {currentStep.id === "faq" && <ProjectWizardFaqStep />}
           {isSummaryStep && <ProjectWizardSummaryStep draft={values} countries={countries} />}
         </Stack>

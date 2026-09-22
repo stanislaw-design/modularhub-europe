@@ -596,7 +596,30 @@
     "stageDurationMaxLabel": "Dni do",
     "stageResponsiblePartyLabel": "Odpowiada",
     "saveVariantButton": "Zapisz wariant",
-    "savedHint": "Zapisano."
+    "savedHint": "Zapisano.",
+    "extractHeading": "Rozpoznaj standardy z materiału",
+    "extractHint": "Wklej tekst albo tabelę z cennika, albo wgraj zrzut ekranu, obraz lub dokument — AI zaproponuje jeden lub kilka standardów do sprawdzenia.",
+    "extractExampleHint": "Przykład: „Standard Comfort: 320 000–350 000 zł, w cenie ściany, dach, okna, bez fundamentu i przyłączy”.",
+    "materialModeLabel": "Rodzaj materiału",
+    "materialModeTextTab": "Tekst",
+    "materialModeFileTab": "Plik",
+    "materialTextLabel": "Wklejony tekst albo tabela",
+    "materialFileLabel": "Zrzut ekranu, obraz albo dokument",
+    "materialChooseFileButton": "Wybierz plik",
+    "materialNotSavedNotice": "Ten plik nie zostanie zapisany — trafia tylko do jednorazowego rozpoznania.",
+    "extractAction": "Rozpoznaj standardy",
+    "extractPending": "Rozpoznawanie…",
+    "extractError": "Rozpoznawanie nie powiodło się. Spróbuj ponownie albo wypełnij dane ręcznie.",
+    "maxVariantsReachedError": "Masz już 3 warianty — wybierz istniejący standard, żeby połączyć z nim tę propozycję, albo pomiń.",
+    "proposalsHeading": "Propozycje do sprawdzenia",
+    "proposalStandardLabel": "Standard wykończenia",
+    "proposalNameLabel": "Nazwa wariantu (opcjonalnie)",
+    "applyProposalButton": "Zastosuj",
+    "skipProposalButton": "Pomiń",
+    "confidenceBadge": {
+      "low": "niska pewność",
+      "high": "wysoka pewność"
+    }
   },
   "ProjectWizardFaqStep": {
     "heading": "FAQ",

@@ -596,7 +596,30 @@
     "stageDurationMaxLabel": "Dagen tot",
     "stageResponsiblePartyLabel": "Verantwoordelijke",
     "saveVariantButton": "Variant opslaan",
-    "savedHint": "Opgeslagen."
+    "savedHint": "Opgeslagen.",
+    "extractHeading": "Standaarden herkennen uit materiaal",
+    "extractHint": "Plak tekst of een tabel uit een prijslijst, of upload een screenshot, afbeelding of document — AI stelt een of meerdere te controleren standaarden voor.",
+    "extractExampleHint": "Voorbeeld: „Standaard Comfort: 75.000-82.000 EUR, inclusief wanden, dak, ramen, exclusief fundering en aansluitingen.”",
+    "materialModeLabel": "Type materiaal",
+    "materialModeTextTab": "Tekst",
+    "materialModeFileTab": "Bestand",
+    "materialTextLabel": "Geplakte tekst of tabel",
+    "materialFileLabel": "Screenshot, afbeelding of document",
+    "materialChooseFileButton": "Bestand kiezen",
+    "materialNotSavedNotice": "Dit bestand wordt niet opgeslagen — het wordt alleen gebruikt voor deze eenmalige herkenning.",
+    "extractAction": "Standaarden herkennen",
+    "extractPending": "Bezig met herkennen…",
+    "extractError": "Herkenning is mislukt. Probeer het opnieuw of vul de gegevens handmatig in.",
+    "maxVariantsReachedError": "U heeft al 3 varianten — kies een bestaande standaard om dit voorstel mee te combineren, of sla het over.",
+    "proposalsHeading": "Voorstellen om te controleren",
+    "proposalStandardLabel": "Afwerkingsstandaard",
+    "proposalNameLabel": "Variantnaam (optioneel)",
+    "applyProposalButton": "Toepassen",
+    "skipProposalButton": "Overslaan",
+    "confidenceBadge": {
+      "low": "lage zekerheid",
+      "high": "hoge zekerheid"
+    }
   },
   "ProjectWizardFaqStep": {
     "heading": "FAQ",

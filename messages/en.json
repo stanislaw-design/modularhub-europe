@@ -596,7 +596,30 @@
     "stageDurationMaxLabel": "Days to",
     "stageResponsiblePartyLabel": "Responsible",
     "saveVariantButton": "Save variant",
-    "savedHint": "Saved."
+    "savedHint": "Saved.",
+    "extractHeading": "Recognize standards from material",
+    "extractHint": "Paste text or a table from a price list, or upload a screenshot, image or document — AI will propose one or more standards to review.",
+    "extractExampleHint": "Example: \"Comfort standard: EUR 75,000-82,000, includes walls, roof, windows, excludes foundation and connections.\"",
+    "materialModeLabel": "Material type",
+    "materialModeTextTab": "Text",
+    "materialModeFileTab": "File",
+    "materialTextLabel": "Pasted text or table",
+    "materialFileLabel": "Screenshot, image or document",
+    "materialChooseFileButton": "Choose file",
+    "materialNotSavedNotice": "This file will not be saved — it's used only for this one-time recognition.",
+    "extractAction": "Recognize standards",
+    "extractPending": "Recognizing…",
+    "extractError": "Recognition failed. Try again or fill in the details manually.",
+    "maxVariantsReachedError": "You already have 3 variants — pick an existing standard to merge this proposal into, or skip it.",
+    "proposalsHeading": "Proposals to review",
+    "proposalStandardLabel": "Completion standard",
+    "proposalNameLabel": "Variant name (optional)",
+    "applyProposalButton": "Apply",
+    "skipProposalButton": "Skip",
+    "confidenceBadge": {
+      "low": "low confidence",
+      "high": "high confidence"
+    }
   },
   "ProjectWizardFaqStep": {
     "heading": "FAQ",

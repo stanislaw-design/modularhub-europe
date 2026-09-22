@@ -1,9 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ChevronDown, ChevronUp, Copy, Plus, Star, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Copy, Plus, Star, Trash2, Upload } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Controller, useFieldArray, useForm, useFormContext, useWatch, type UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import { Button, Card, Checkbox, Heading, Input, Label, Radio, Select, Stack, Text, Textarea } from "@/components/ui";
@@ -26,6 +26,7 @@ import {
   upsertCostLineItem,
   upsertTimelineStage,
 } from "@/lib/producer-product-variant-actions";
+import { extractStandardsFromMaterial, type ExtractedStandard } from "@/lib/producer-standards-extraction-actions";
 
 const COMPLETION_STANDARDS: CompletionStandard[] = ["surowy-zamkniety", "deweloperski", "pod-klucz"];
 const MAX_VARIANTS = 3;
@@ -150,7 +151,13 @@ interface ProjectWizardVariantsStepProps {
   // ProjectWizard (nowy projekt) zostawia to puste, bo produkt jeszcze nie ma
   // żadnego wariantu.
   initialVariants?: ProducerVariantForEdit[];
+  // Wydobywanie standardów z materiału (spec 0050 AC-13 do AC-19) istnieje
+  // wyłącznie w kreatorze nowego projektu (AC-41) — ProductEditWizard nie
+  // ustawia tego na true, więc sekcja materiału się nie renderuje.
+  enableStandardsExtraction?: boolean;
 }
+
+type StandardProposal = ExtractedStandard & { targetStandard: CompletionStandard };
 
 // Krok "Warianty i cennik" (spec 0045 AC-1, AC-2, AC-10, Build plan zadanie
 // 5), zastępujący dawny krok "Cena" (usunięty w zadaniu 12, patrz komentarz
@@ -166,7 +173,11 @@ interface ProjectWizardVariantsStepProps {
 // Do rodzica (ProjectWizard) wraca tylko lekka migawka przez setValue na
 // draft.variantsSummary — patrz onVariantsSummaryChange niżej — żeby
 // isStepComplete("warianty", ...) miało co sprawdzić bez czytania bazy.
-export function ProjectWizardVariantsStep({ productId, initialVariants = [] }: ProjectWizardVariantsStepProps) {
+export function ProjectWizardVariantsStep({
+  productId,
+  initialVariants = [],
+  enableStandardsExtraction = false,
+}: ProjectWizardVariantsStepProps) {
   const t = useTranslations("ProjectWizardVariantsStep");
   const tOptions = useTranslations("ProjectOptions");
   const outerForm = useFormContext<ProjectDraft>();
@@ -182,6 +193,19 @@ export function ProjectWizardVariantsStep({ productId, initialVariants = [] }: P
   const [addStandard, setAddStandard] = useState<CompletionStandard | null>(null);
   const [cloneSourceIndex, setCloneSourceIndex] = useState<number | null>(null);
   const [cloneStandard, setCloneStandard] = useState<CompletionStandard | null>(null);
+
+  // Wydobywanie standardów z materiału (spec 0050 AC-13 do AC-19): materiał
+  // (tekst wklejony albo plik) nigdy nie jest zapisywany (AC-17) — po
+  // wywołaniu extractStandardsFromMaterial żyje tylko w tym stanie, jako
+  // lista propozycji do ręcznego zatwierdzenia/pominięcia (AC-15), nigdy
+  // zapisywanych automatycznie.
+  const [materialMode, setMaterialMode] = useState<"text" | "file">("text");
+  const [materialText, setMaterialText] = useState("");
+  const [materialFile, setMaterialFile] = useState<File | null>(null);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [extractionError, setExtractionError] = useState<string | null>(null);
+  const [proposals, setProposals] = useState<StandardProposal[]>([]);
+  const materialFileInputRef = useRef<HTMLInputElement>(null);
 
   const watchedVariants = useWatch({ control, name: "variants" });
 
@@ -276,6 +300,109 @@ export function ProjectWizardVariantsStep({ productId, initialVariants = [] }: P
     setCloneStandard(null);
   }
 
+  async function handleExtractStandards() {
+    if (!productId) return;
+    const material =
+      materialMode === "text" ? { kind: "text" as const, text: materialText } : materialFile ? { kind: "file" as const, file: materialFile } : null;
+    if (!material) return;
+    setIsExtracting(true);
+    setExtractionError(null);
+    const result = await extractStandardsFromMaterial(productId, material);
+    setIsExtracting(false);
+    if (!result.ok || !result.standards) {
+      setExtractionError(result.error ?? t("extractError"));
+      return;
+    }
+    setProposals((current) => [
+      ...current,
+      ...result.standards!.map((standard) => ({ ...standard, targetStandard: standard.proposedStandard })),
+    ]);
+    setMaterialText("");
+    setMaterialFile(null);
+  }
+
+  function handleProposalChange(proposalIndex: number, patch: Partial<StandardProposal>) {
+    setProposals((current) => current.map((proposal, index) => (index === proposalIndex ? { ...proposal, ...patch } : proposal)));
+  }
+
+  function handleSkipProposal(proposalIndex: number) {
+    setProposals((current) => current.filter((_, index) => index !== proposalIndex));
+  }
+
+  // AC-15: dopasowana pozycja (po proposal.targetStandard, który producent
+  // zawsze może poprawić przed zatwierdzeniem) dostaje nowe wartości przez
+  // updateVariant; brak dopasowania i wolny slot tworzy nowy wariant przez
+  // createVariant + updateVariant (createVariant przyjmuje tylko standard, nie
+  // resztę pól). Nigdy nie zapisuje się automatycznie — tylko na to kliknięcie.
+  async function handleApplyProposal(proposalIndex: number) {
+    if (!productId) return;
+    const proposal = proposals[proposalIndex];
+    if (!proposal) return;
+    setPendingAction(true);
+    setListError(null);
+
+    const existingIndex = fields.findIndex((field) => field.completionStandard === proposal.targetStandard);
+    const updateFields = {
+      priceMinEur: proposal.priceMinEur,
+      priceMaxEur: proposal.priceMaxEur,
+      priceOnRequest: proposal.priceOnRequest,
+      scopeSummary: proposal.scopeSummary,
+      excludedScope: proposal.excludedScope,
+      variantLabel: proposal.name ?? "",
+    };
+
+    if (existingIndex !== -1) {
+      const existing = getValues(`variants.${existingIndex}`);
+      const result = await updateVariant(existing.variantId, updateFields);
+      setPendingAction(false);
+      if (!result.ok) {
+        setListError(result.error ?? t("genericError"));
+        return;
+      }
+      update(existingIndex, {
+        ...existing,
+        priceMinEur: proposal.priceMinEur,
+        priceMaxEur: proposal.priceMaxEur,
+        priceOnRequest: proposal.priceOnRequest,
+        scopeSummaryPl: proposal.scopeSummary,
+        excludedScope: proposal.excludedScope,
+      });
+    } else {
+      if (fields.length >= MAX_VARIANTS) {
+        setPendingAction(false);
+        setListError(t("maxVariantsReachedError"));
+        return;
+      }
+      const created = await createVariant(productId, proposal.targetStandard);
+      if (!created.ok || !created.variantId) {
+        setPendingAction(false);
+        setListError(created.error ?? t("genericError"));
+        return;
+      }
+      const updated = await updateVariant(created.variantId, updateFields);
+      setPendingAction(false);
+      if (!updated.ok) {
+        setListError(updated.error ?? t("genericError"));
+        return;
+      }
+      append({
+        variantId: created.variantId,
+        completionStandard: proposal.targetStandard,
+        isDefault: fields.length === 0,
+        priceMinEur: proposal.priceMinEur,
+        priceMaxEur: proposal.priceMaxEur,
+        priceOnRequest: proposal.priceOnRequest,
+        scopeSummaryPl: proposal.scopeSummary,
+        excludedScope: proposal.excludedScope,
+        scopeSummaryEn: "",
+        scopeSummaryNl: "",
+        costLineItems: [],
+        timelineStages: emptyTimelineStages(),
+      });
+    }
+    setProposals((current) => current.filter((_, index) => index !== proposalIndex));
+  }
+
   async function handleSetDefault(index: number) {
     const variant = getValues(`variants.${index}`);
     if (variant.isDefault) return;
@@ -316,6 +443,204 @@ export function ProjectWizardVariantsStep({ productId, initialVariants = [] }: P
         <p role="alert" className="rounded-data bg-status-blocked/10 px-brand-2 py-1 text-body text-status-blocked">
           {listError}
         </p>
+      )}
+
+      {enableStandardsExtraction && (
+        <Card padding="sm">
+          <Stack gap={2}>
+            <Text as="span" variant="label">
+              {t("extractHeading")}
+            </Text>
+            <Text tone="muted">{t("extractHint")}</Text>
+            <Text tone="muted" className="text-data">
+              {t("extractExampleHint")}
+            </Text>
+
+            <div role="tablist" aria-label={t("materialModeLabel")} className="flex gap-brand-1">
+              <Button
+                type="button"
+                role="tab"
+                aria-selected={materialMode === "text"}
+                variant={materialMode === "text" ? "primary" : "secondary"}
+                size="sm"
+                onClick={() => setMaterialMode("text")}
+              >
+                {t("materialModeTextTab")}
+              </Button>
+              <Button
+                type="button"
+                role="tab"
+                aria-selected={materialMode === "file"}
+                variant={materialMode === "file" ? "primary" : "secondary"}
+                size="sm"
+                onClick={() => setMaterialMode("file")}
+              >
+                {t("materialModeFileTab")}
+              </Button>
+            </div>
+
+            {materialMode === "text" ? (
+              <Stack gap={1}>
+                <Label htmlFor="wizard-standards-material-text">{t("materialTextLabel")}</Label>
+                <Textarea
+                  id="wizard-standards-material-text"
+                  rows={5}
+                  value={materialText}
+                  onChange={(event) => setMaterialText(event.target.value)}
+                />
+              </Stack>
+            ) : (
+              <Stack gap={1}>
+                <Label htmlFor="wizard-standards-material-file">{t("materialFileLabel")}</Label>
+                <div className="flex items-center gap-brand-2">
+                  <input
+                    ref={materialFileInputRef}
+                    id="wizard-standards-material-file"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,application/pdf"
+                    onChange={(event) => setMaterialFile(event.target.files?.[0] ?? null)}
+                    className="sr-only"
+                  />
+                  <Button type="button" variant="secondary" size="sm" onClick={() => materialFileInputRef.current?.click()}>
+                    <Upload className="size-4" aria-hidden="true" />
+                    {t("materialChooseFileButton")}
+                  </Button>
+                  {materialFile && <Text as="span">{materialFile.name}</Text>}
+                </div>
+              </Stack>
+            )}
+            <Text tone="muted" className="text-data">
+              {t("materialNotSavedNotice")}
+            </Text>
+
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="w-fit"
+              disabled={
+                isExtracting ||
+                !productId ||
+                (materialMode === "text" ? materialText.trim().length === 0 : materialFile === null)
+              }
+              onClick={handleExtractStandards}
+            >
+              {isExtracting ? t("extractPending") : t("extractAction")}
+            </Button>
+            {extractionError && (
+              <p role="alert" className="rounded-data bg-status-blocked/10 px-brand-2 py-1 text-body text-status-blocked">
+                {extractionError}
+              </p>
+            )}
+          </Stack>
+        </Card>
+      )}
+
+      {proposals.length > 0 && (
+        <Stack gap={3}>
+          <Text as="span" variant="label">
+            {t("proposalsHeading")}
+          </Text>
+          {proposals.map((proposal, proposalIndex) => {
+            const proposalTargetOptions =
+              fields.length >= MAX_VARIANTS ? standardOptions.filter((option) => usedStandards.has(option.value)) : standardOptions;
+            return (
+              <Card key={proposalIndex} padding="sm">
+                <Stack gap={2}>
+                  <Text as="span" tone="muted" className="text-data">
+                    {t(`confidenceBadge.${proposal.confidence}`)}
+                  </Text>
+                  <Stack gap={1} className="min-w-48">
+                    <Label id={`proposal-${proposalIndex}-standard-label`}>{t("proposalStandardLabel")}</Label>
+                    <Select
+                      value={proposal.targetStandard}
+                      onChange={(value) => handleProposalChange(proposalIndex, { targetStandard: value as CompletionStandard })}
+                      options={proposalTargetOptions}
+                      aria-labelledby={`proposal-${proposalIndex}-standard-label`}
+                    />
+                  </Stack>
+                  <Stack gap={1}>
+                    <Label htmlFor={`proposal-${proposalIndex}-name`}>{t("proposalNameLabel")}</Label>
+                    <Input
+                      id={`proposal-${proposalIndex}-name`}
+                      value={proposal.name ?? ""}
+                      onChange={(event) => handleProposalChange(proposalIndex, { name: event.target.value })}
+                    />
+                  </Stack>
+                  <Stack direction="row" gap={3} className="flex-wrap">
+                    <Stack gap={1} className="min-w-40 flex-1">
+                      <Label htmlFor={`proposal-${proposalIndex}-price-min`}>{t("priceMinLabel")}</Label>
+                      <Input
+                        id={`proposal-${proposalIndex}-price-min`}
+                        type="number"
+                        min={0}
+                        disabled={proposal.priceOnRequest}
+                        value={proposal.priceMinEur ?? ""}
+                        onChange={(event) =>
+                          handleProposalChange(proposalIndex, {
+                            priceMinEur: event.target.value === "" ? null : Number(event.target.value),
+                          })
+                        }
+                      />
+                    </Stack>
+                    <Stack gap={1} className="min-w-40 flex-1">
+                      <Label htmlFor={`proposal-${proposalIndex}-price-max`}>{t("priceMaxLabel")}</Label>
+                      <Input
+                        id={`proposal-${proposalIndex}-price-max`}
+                        type="number"
+                        min={0}
+                        disabled={proposal.priceOnRequest}
+                        value={proposal.priceMaxEur ?? ""}
+                        onChange={(event) =>
+                          handleProposalChange(proposalIndex, {
+                            priceMaxEur: event.target.value === "" ? null : Number(event.target.value),
+                          })
+                        }
+                      />
+                    </Stack>
+                  </Stack>
+                  <label className="flex w-fit items-center gap-2 text-body">
+                    <Checkbox
+                      checked={proposal.priceOnRequest}
+                      onChange={(event) => handleProposalChange(proposalIndex, { priceOnRequest: event.target.checked })}
+                    />
+                    {t("priceOnRequestLabel")}
+                  </label>
+                  <Stack gap={1}>
+                    <Label htmlFor={`proposal-${proposalIndex}-scope`}>{t("scopeSummaryLabel")}</Label>
+                    <Textarea
+                      id={`proposal-${proposalIndex}-scope`}
+                      value={proposal.scopeSummary}
+                      onChange={(event) => handleProposalChange(proposalIndex, { scopeSummary: event.target.value })}
+                    />
+                  </Stack>
+                  <Stack gap={1}>
+                    <Label htmlFor={`proposal-${proposalIndex}-excluded`}>{t("excludedScopeLabel")}</Label>
+                    <Textarea
+                      id={`proposal-${proposalIndex}-excluded`}
+                      value={proposal.excludedScope}
+                      onChange={(event) => handleProposalChange(proposalIndex, { excludedScope: event.target.value })}
+                    />
+                  </Stack>
+                  <Stack direction="row" gap={2}>
+                    <Button type="button" size="sm" disabled={pendingAction} onClick={() => handleApplyProposal(proposalIndex)}>
+                      {t("applyProposalButton")}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      disabled={pendingAction}
+                      onClick={() => handleSkipProposal(proposalIndex)}
+                    >
+                      {t("skipProposalButton")}
+                    </Button>
+                  </Stack>
+                </Stack>
+              </Card>
+            );
+          })}
+        </Stack>
       )}
 
       {fields.length === 0 && <Text tone="muted">{t("emptyHint")}</Text>}

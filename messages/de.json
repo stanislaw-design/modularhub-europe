@@ -596,7 +596,30 @@
     "stageDurationMaxLabel": "Tage bis",
     "stageResponsiblePartyLabel": "Verantwortlich",
     "saveVariantButton": "Variante speichern",
-    "savedHint": "Gespeichert."
+    "savedHint": "Gespeichert.",
+    "extractHeading": "Standards aus Material erkennen",
+    "extractHint": "Fügen Sie Text oder eine Tabelle aus einer Preisliste ein, oder laden Sie einen Screenshot, ein Bild oder ein Dokument hoch — die KI schlägt einen oder mehrere zu prüfende Standards vor.",
+    "extractExampleHint": "Beispiel: „Standard Comfort: 75.000-82.000 EUR, inklusive Wände, Dach, Fenster, ohne Fundament und Anschlüsse.“",
+    "materialModeLabel": "Materialart",
+    "materialModeTextTab": "Text",
+    "materialModeFileTab": "Datei",
+    "materialTextLabel": "Eingefügter Text oder Tabelle",
+    "materialFileLabel": "Screenshot, Bild oder Dokument",
+    "materialChooseFileButton": "Datei auswählen",
+    "materialNotSavedNotice": "Diese Datei wird nicht gespeichert — sie wird nur für diese einmalige Erkennung verwendet.",
+    "extractAction": "Standards erkennen",
+    "extractPending": "Erkennung läuft…",
+    "extractError": "Erkennung fehlgeschlagen. Versuchen Sie es erneut oder füllen Sie die Angaben manuell aus.",
+    "maxVariantsReachedError": "Sie haben bereits 3 Varianten — wählen Sie einen bestehenden Standard, um diesen Vorschlag damit zu verbinden, oder überspringen Sie ihn.",
+    "proposalsHeading": "Vorschläge zur Prüfung",
+    "proposalStandardLabel": "Ausbaustandard",
+    "proposalNameLabel": "Variantenname (optional)",
+    "applyProposalButton": "Übernehmen",
+    "skipProposalButton": "Überspringen",
+    "confidenceBadge": {
+      "low": "niedrige Sicherheit",
+      "high": "hohe Sicherheit"
+    }
   },
   "ProjectWizardFaqStep": {
     "heading": "FAQ",
