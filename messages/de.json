@@ -231,6 +231,11 @@
       "spa-modulowe": "Modulares Spa",
       "kontenery-modulowe": "Modularcontainer"
     },
+    "floorLevel": {
+      "parter": "Erdgeschoss",
+      "pietro": "Obergeschoss",
+      "poddasze": "Dachgeschoss"
+    },
     "category": {
       "caloroczny": "Ganzjährig",
       "rekreacyjny-caloroczny": "Freizeit, ganzjährig nutzbar",
@@ -517,7 +522,7 @@
     "roomNameLabel": "Raumname",
     "roomAreaLabel": "Fläche (m²)",
     "roomFunctionLabel": "Funktion",
-    "roomMezzanineLabel": "Empore",
+    "roomFloorLevelLabel": "Geschoss",
     "moveUpLabel": "Nach oben verschieben",
     "moveDownLabel": "Nach unten verschieben",
     "removeRoomLabel": "Raum entfernen",
@@ -901,7 +906,10 @@
     "tableCaption": "Raumliste mit Fläche",
     "nameColumn": "Raum",
     "areaColumn": "Fläche",
-    "mezzanineBadge": "Empore",
+    "floorLevelBadge": {
+      "pietro": "Obergeschoss",
+      "poddasze": "Dachgeschoss"
+    },
     "areaValue": "{area} m²",
     "emptyHint": "Die Raumaufteilung wurde vom Hersteller noch nicht übermittelt.",
     "totalAreaLabel": "Nutzfläche",

@@ -56,9 +56,9 @@ function RoomTableBody({ rooms, t, isLastGroup }: RoomTableBodyProps) {
             <Text as="span" surface="v5" className="font-medium">
               {room.name}
             </Text>
-            {room.isMezzanine && (
+            {room.floorLevel && room.floorLevel !== "parter" && (
               <Text as="span" tone="muted" surface="v5" className="ml-brand-1 text-data">
-                {t("mezzanineBadge")}
+                {t(`floorLevelBadge.${room.floorLevel}`)}
               </Text>
             )}
           </td>

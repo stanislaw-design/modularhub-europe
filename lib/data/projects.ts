@@ -393,7 +393,19 @@ function resolveTranslatedText(base: string | null, translated: string | null | 
   return translated && translated.trim().length > 0 ? translated : (base ?? "");
 }
 
-// Tylko `name` jest tłumaczony (areaM2/function/isMezzanine nie są
+// floorLevel zastępuje isMezzanine (spec 0050 AC-8): migracja jednorazowa, na
+// granicy aplikacji, tego samego typu co roomLayoutRowSchema w
+// lib/product-room-layout.ts, ale bez .strict() Zod — ten odczyt (w
+// odróżnieniu od strony edycji producenta) musi tolerować stare wiersze bez
+// stabilnego `id` (patrz komentarz przy ProjectRow.roomLayout), które strict
+// parse odrzuciłby w całości.
+function migrateRoomLayoutEntry(room: RoomLayoutEntry & { isMezzanine?: boolean }): RoomLayoutEntry {
+  if (room.floorLevel) return room;
+  const { isMezzanine, ...rest } = room;
+  return { ...rest, floorLevel: isMezzanine ? "poddasze" : "parter" };
+}
+
+// Tylko `name` jest tłumaczony (areaM2/function/floorLevel nie są
 // językozależne, ten sam wzorzec co roomLayoutTranslationRowSchema w
 // lib/product-room-layout.ts). Dopasowanie preferuje `id` (kreator producenta
 // zawsze go pisze od spec 0045), z fallbackiem na pozycję w tablicy dla
@@ -530,7 +542,8 @@ function mapRowToProject(
   // domyślnego. AC-11 traktuje to dokładnie jak priceOnRequest, nigdy jako
   // "od undefined €".
   const priceOnRequest = Boolean(specs._priceOnRequest) || row.priceMinCents === null;
-  const baseRoomLayout = (row.roomLayout as RoomLayoutEntry[] | null) ?? undefined;
+  const rawRoomLayout = (row.roomLayout as (RoomLayoutEntry & { isMezzanine?: boolean })[] | null) ?? undefined;
+  const baseRoomLayout = rawRoomLayout?.map(migrateRoomLayoutEntry);
   const roomLayout = baseRoomLayout ? resolveTranslatedRoomLayout(baseRoomLayout, translation?.roomLayout) : undefined;
   const faq = (row.faq as ProjectFaqItem[] | null) ?? undefined;
 

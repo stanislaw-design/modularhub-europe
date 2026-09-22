@@ -1,7 +1,7 @@
 import type { useTranslations } from "next-intl";
 import type { ProducerProductFields } from "./producer-product-actions";
 import type { FaqRow, FaqTranslationRow } from "./product-faq";
-import type { RoomLayoutRow, RoomLayoutTranslationRow } from "./product-room-layout";
+import { FLOOR_LEVELS, type FloorLevel, type RoomLayoutRow, type RoomLayoutTranslationRow } from "./product-room-layout";
 import { ENERGY_CLASSES, HEAT_SOURCES, VENTILATION_TYPES } from "./product-technical-specs";
 import type {
   CompletionStandard,
@@ -75,6 +75,11 @@ export function getProductFamilyOptions(t: Translate): { value: ProductFamily; l
     { value: "spa-modulowe", label: t("family.spa-modulowe") },
     { value: "kontenery-modulowe", label: t("family.kontenery-modulowe") },
   ];
+}
+
+// Spec 0050 AC-5, AC-8: kondygnacja pomieszczenia, zastępuje dawne isMezzanine.
+export function getFloorLevelOptions(t: Translate): { value: FloorLevel; label: string }[] {
+  return FLOOR_LEVELS.map((value) => ({ value, label: t(`floorLevel.${value}`) }));
 }
 
 export function getProjectCategoryOptions(t: Translate): { value: ProjectCategory; label: string }[] {

@@ -2,7 +2,7 @@ import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Controller, useFieldArray, useFormContext, useWatch } from "react-hook-form";
-import { Button, Card, Checkbox, Heading, Input, Label, Select, Stack, Text, Textarea } from "@/components/ui";
+import { Button, Card, Heading, Input, Label, Select, Stack, Text, Textarea } from "@/components/ui";
 import type { Country, ProjectDraft } from "@/lib/data/types";
 import {
   BEDROOMS_MAX,
@@ -10,6 +10,7 @@ import {
   FLOOR_AREA_MAX_M2,
   FLOOR_AREA_MIN_M2,
   getContainerSubcategoryOptions,
+  getFloorLevelOptions,
   getProductFamilyOptions,
   getProjectCategoryOptions,
   getSpaSubcategoryOptions,
@@ -65,11 +66,12 @@ export function ProjectWizardBasicInfoStep({
 
   const countryOptions = countries.map((country) => ({ value: country.code, label: country.name }));
   const familyOptions = getProductFamilyOptions(tOptions);
+  const floorLevelOptions = getFloorLevelOptions(tOptions);
   const familyLabel = familyOptions.find((option) => option.value === values.family)?.label ?? "—";
 
   function handleAddRoom() {
     const id = crypto.randomUUID();
-    roomLayoutArray.append({ id, name: "", areaM2: 0, function: "", isMezzanine: false });
+    roomLayoutArray.append({ id, name: "", areaM2: 0, function: "", floorLevel: "parter" });
     roomLayoutEnArray.append({ id, name: "" });
     roomLayoutNlArray.append({ id, name: "" });
   }
@@ -412,10 +414,21 @@ export function ProjectWizardBasicInfoStep({
                     </Label>
                     <Input id={`room-${index}-function`} required {...register(`roomLayout.${index}.function`)} />
                   </Stack>
-                  <div className="flex items-center gap-brand-1 pb-2">
-                    <Checkbox id={`room-${index}-mezzanine`} {...register(`roomLayout.${index}.isMezzanine`)} />
-                    <Label htmlFor={`room-${index}-mezzanine`}>{t("roomMezzanineLabel")}</Label>
-                  </div>
+                  <Stack gap={1} className="min-w-32">
+                    <Label id={`room-${index}-floor-level-label`}>{t("roomFloorLevelLabel")}</Label>
+                    <Controller
+                      name={`roomLayout.${index}.floorLevel`}
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                          value={field.value}
+                          onChange={field.onChange}
+                          options={floorLevelOptions}
+                          aria-labelledby={`room-${index}-floor-level-label`}
+                        />
+                      )}
+                    />
+                  </Stack>
                   <Stack direction="row" gap={1} className="items-center pb-2">
                     {index > 0 && (
                       <button

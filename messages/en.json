@@ -231,6 +231,11 @@
       "spa-modulowe": "Modular spa",
       "kontenery-modulowe": "Modular containers"
     },
+    "floorLevel": {
+      "parter": "Ground floor",
+      "pietro": "Upper floor",
+      "poddasze": "Attic"
+    },
     "category": {
       "caloroczny": "Year-round",
       "rekreacyjny-caloroczny": "Year-round recreational",
@@ -517,7 +522,7 @@
     "roomNameLabel": "Room name",
     "roomAreaLabel": "Area (m²)",
     "roomFunctionLabel": "Function",
-    "roomMezzanineLabel": "Mezzanine",
+    "roomFloorLevelLabel": "Floor level",
     "moveUpLabel": "Move up",
     "moveDownLabel": "Move down",
     "removeRoomLabel": "Remove room",
@@ -894,7 +899,10 @@
     "tableCaption": "List of rooms with area",
     "nameColumn": "Room",
     "areaColumn": "Area",
-    "mezzanineBadge": "mezzanine",
+    "floorLevelBadge": {
+      "pietro": "upper floor",
+      "poddasze": "attic"
+    },
     "areaValue": "{area} m²",
     "emptyHint": "The room layout has not been provided by the producer yet.",
     "totalAreaLabel": "Usable floor area",

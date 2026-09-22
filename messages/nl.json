@@ -231,6 +231,11 @@
       "spa-modulowe": "Modulaire spa",
       "kontenery-modulowe": "Modulaire containers"
     },
+    "floorLevel": {
+      "parter": "Begane grond",
+      "pietro": "Verdieping",
+      "poddasze": "Zolder"
+    },
     "category": {
       "caloroczny": "Het hele jaar bewoonbaar",
       "rekreacyjny-caloroczny": "Recreatief, het hele jaar bruikbaar",
@@ -517,7 +522,7 @@
     "roomNameLabel": "Naam van de ruimte",
     "roomAreaLabel": "Oppervlakte (m²)",
     "roomFunctionLabel": "Functie",
-    "roomMezzanineLabel": "Vide",
+    "roomFloorLevelLabel": "Verdieping",
     "moveUpLabel": "Omhoog verplaatsen",
     "moveDownLabel": "Omlaag verplaatsen",
     "removeRoomLabel": "Ruimte verwijderen",
@@ -894,7 +899,10 @@
     "tableCaption": "Lijst van ruimtes met oppervlakte",
     "nameColumn": "Ruimte",
     "areaColumn": "Oppervlakte",
-    "mezzanineBadge": "vide",
+    "floorLevelBadge": {
+      "pietro": "verdieping",
+      "poddasze": "zolder"
+    },
     "areaValue": "{area} m²",
     "emptyHint": "De indeling is nog niet door de producent aangeleverd.",
     "totalAreaLabel": "Bruikbare vloeroppervlakte",

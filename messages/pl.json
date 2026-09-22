@@ -231,6 +231,11 @@
       "spa-modulowe": "Spa modułowe",
       "kontenery-modulowe": "Kontenery modułowe"
     },
+    "floorLevel": {
+      "parter": "Parter",
+      "pietro": "Piętro",
+      "poddasze": "Poddasze"
+    },
     "category": {
       "caloroczny": "Całoroczny",
       "rekreacyjny-caloroczny": "Rekreacyjny całoroczny",
@@ -517,7 +522,7 @@
     "roomNameLabel": "Nazwa pomieszczenia",
     "roomAreaLabel": "Powierzchnia (m²)",
     "roomFunctionLabel": "Funkcja",
-    "roomMezzanineLabel": "Antresola",
+    "roomFloorLevelLabel": "Kondygnacja",
     "moveUpLabel": "Przesuń w górę",
     "moveDownLabel": "Przesuń w dół",
     "removeRoomLabel": "Usuń pomieszczenie",
@@ -901,7 +906,10 @@
     "tableCaption": "Lista pomieszczeń z metrażem",
     "nameColumn": "Pomieszczenie",
     "areaColumn": "Powierzchnia",
-    "mezzanineBadge": "antresola",
+    "floorLevelBadge": {
+      "pietro": "piętro",
+      "poddasze": "poddasze"
+    },
     "areaValue": "{area} m²",
     "emptyHint": "Układ pomieszczeń nie został jeszcze przekazany przez producenta.",
     "totalAreaLabel": "Powierzchnia użytkowa",

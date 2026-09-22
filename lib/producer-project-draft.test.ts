@@ -332,14 +332,14 @@ describe("isStepComplete: faq", () => {
 // puste wpisy tam, gdzie tłumaczenie jeszcze nie istnieje (edycja produktu).
 describe("alignRoomLayoutTranslation / alignFaqTranslation", () => {
   it("fills a missing translation with an empty placeholder sharing the same id", () => {
-    const rows = [{ id: "a", name: "Salon", areaM2: 30, function: "dzienna", isMezzanine: false }];
+    const rows = [{ id: "a", name: "Salon", areaM2: 30, function: "dzienna", floorLevel: "parter" as const }];
     expect(alignRoomLayoutTranslation(rows, [])).toEqual([{ id: "a", name: "" }]);
   });
 
   it("keeps an existing translation matched by id, ignoring array position", () => {
     const rows = [
-      { id: "a", name: "Salon", areaM2: 30, function: "dzienna", isMezzanine: false },
-      { id: "b", name: "Sypialnia", areaM2: 12, function: "nocna", isMezzanine: false },
+      { id: "a", name: "Salon", areaM2: 30, function: "dzienna", floorLevel: "parter" as const },
+      { id: "b", name: "Sypialnia", areaM2: 12, function: "nocna", floorLevel: "parter" as const },
     ];
     const translation = [{ id: "b", name: "Bedroom" }];
     expect(alignRoomLayoutTranslation(rows, translation)).toEqual([

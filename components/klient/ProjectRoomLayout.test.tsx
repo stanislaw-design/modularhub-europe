@@ -26,7 +26,7 @@ describe("ProjectRoomLayout", () => {
         rooms={[
           { name: "Salon", areaM2: 28 },
           { name: "Łazienka", areaM2: 4 },
-          { name: "Antresola", isMezzanine: true },
+          { name: "Antresola", floorLevel: "poddasze" },
         ]}
       />,
     );
@@ -41,7 +41,7 @@ describe("ProjectRoomLayout", () => {
     expect(screen.getByText("Salon")).toBeInTheDocument();
     expect(screen.getByText("Łazienka")).toBeInTheDocument();
     expect(screen.getByText("Antresola")).toBeInTheDocument();
-    expect(screen.getByText("antresola")).toBeInTheDocument();
+    expect(screen.getByText("poddasze")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Pokaż/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });

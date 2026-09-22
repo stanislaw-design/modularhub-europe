@@ -1,5 +1,5 @@
 import type { FaqRow, FaqTranslationRow } from "../product-faq";
-import type { RoomLayoutRow, RoomLayoutTranslationRow } from "../product-room-layout";
+import type { FloorLevel, RoomLayoutRow, RoomLayoutTranslationRow } from "../product-room-layout";
 
 export type CountryCode = "PL" | "DE" | "NL";
 
@@ -132,7 +132,10 @@ export interface RoomLayoutEntry {
   name: string;
   areaM2?: number;
   function?: string;
-  isMezzanine?: boolean;
+  // Zastępuje dawne isMezzanine (spec 0050 AC-8): migracja starych wierszy
+  // (isMezzanine: true -> floorLevel: "poddasze") dzieje się przy odczycie w
+  // lib/data/projects.ts, ten typ widzi już tylko wynik.
+  floorLevel?: FloorLevel;
 }
 
 export interface ProjectFaqItem {

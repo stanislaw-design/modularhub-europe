@@ -857,8 +857,8 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: verified volume m
     it("reads roomLayout from product.room_layout, undefined when empty (spec 0042 AC-4)", async () => {
       const withRooms = await getProjectById(variantsProductId);
       expect(withRooms?.roomLayout).toEqual([
-        { name: "Salon", areaM2: 28, function: "Dzienna" },
-        { name: "Antresola", function: "Sypialnia", isMezzanine: true },
+        { name: "Salon", areaM2: 28, function: "Dzienna", floorLevel: "parter" },
+        { name: "Antresola", function: "Sypialnia", floorLevel: "poddasze" },
       ]);
 
       const withoutRooms = await getProjectById(noVariantProductId);
