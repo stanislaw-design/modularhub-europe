@@ -203,7 +203,9 @@ export interface ProducerVariantForEdit {
   isDefault: boolean;
   priceMinCents: number | null;
   priceMaxCents: number | null;
+  priceOnRequest: boolean;
   scopeSummary: string | null;
+  excludedScope: string | null;
   scopeSummaryEn: string | null;
   scopeSummaryNl: string | null;
   costLineItems: ProducerVariantCostLineItemForEdit[];
@@ -236,7 +238,9 @@ export async function getProducerVariantsForEdit(productId: string): Promise<Pro
     isDefault: variant.isDefault,
     priceMinCents: variant.priceMinCents,
     priceMaxCents: variant.priceMaxCents,
+    priceOnRequest: variant.priceOnRequest,
     scopeSummary: variant.scopeSummary,
+    excludedScope: variant.excludedScope,
     scopeSummaryEn: translationRows.find((row) => row.productVariantId === variant.id && row.locale === "en")?.scopeSummary ?? null,
     scopeSummaryNl: translationRows.find((row) => row.productVariantId === variant.id && row.locale === "nl")?.scopeSummary ?? null,
     costLineItems: costItemRows

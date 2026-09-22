@@ -170,7 +170,9 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/producer-product-variant-actions
       const result = await updateVariant(created.variantId!, {
         priceMinEur: 100000,
         priceMaxEur: 120000,
+        priceOnRequest: false,
         scopeSummary: "Zakres podstawowy",
+        excludedScope: "",
         variantLabel: "Comfort",
       });
       expect(result.ok).toBe(true);
@@ -186,7 +188,9 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/producer-product-variant-actions
       const result = await updateVariant(created.variantId!, {
         priceMinEur: 100000,
         priceMaxEur: 50000,
+        priceOnRequest: false,
         scopeSummary: "",
+        excludedScope: "",
         variantLabel: "",
       });
       expect(result.ok).toBe(false);
@@ -199,10 +203,31 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/producer-product-variant-actions
       const result = await updateVariant(created.variantId!, {
         priceMinEur: 1,
         priceMaxEur: 2,
+        priceOnRequest: false,
         scopeSummary: "",
+        excludedScope: "",
         variantLabel: "",
       });
       expect(result.ok).toBe(false);
+    });
+
+    it("nulls both prices when priceOnRequest is true, even if price fields are set (spec 0050 AC-13, AC-37)", async () => {
+      authMock.mockResolvedValue(sessionAs(producerUserId, "producer"));
+      const created = await createVariant(productId, "deweloperski");
+      const result = await updateVariant(created.variantId!, {
+        priceMinEur: 100000,
+        priceMaxEur: 120000,
+        priceOnRequest: true,
+        scopeSummary: "",
+        excludedScope: "Fundament nie wliczony",
+        variantLabel: "",
+      });
+      expect(result.ok).toBe(true);
+      const [row] = await db.select().from(productVariant).where(eq(productVariant.id, created.variantId!));
+      expect(row.priceMinCents).toBeNull();
+      expect(row.priceMaxCents).toBeNull();
+      expect(row.priceOnRequest).toBe(true);
+      expect(row.excludedScope).toBe("Fundament nie wliczony");
     });
   });
 

@@ -131,7 +131,9 @@ export interface ClonedVariant {
   variantId: string;
   priceMinCents: number | null;
   priceMaxCents: number | null;
+  priceOnRequest: boolean;
   scopeSummary: string | null;
+  excludedScope: string | null;
   costLineItems: ClonedCostLineItem[];
   timelineStages: ClonedTimelineStage[];
 }
@@ -192,7 +194,9 @@ export async function cloneVariant(
       completionStandard: newCompletionStandard,
       priceMinCents: source.priceMinCents,
       priceMaxCents: source.priceMaxCents,
+      priceOnRequest: source.priceOnRequest,
       scopeSummary: source.scopeSummary,
+      excludedScope: source.excludedScope,
       isDefault: false,
       sortOrder: maxSortOrder + 1,
     }),
@@ -228,7 +232,9 @@ export async function cloneVariant(
         variantId: newVariantId,
         priceMinCents: source.priceMinCents,
         priceMaxCents: source.priceMaxCents,
+        priceOnRequest: source.priceOnRequest,
         scopeSummary: source.scopeSummary,
+        excludedScope: source.excludedScope,
         costLineItems: newCostItems.map((item) => ({
           id: item.id,
           label: item.label,
@@ -253,7 +259,15 @@ export async function cloneVariant(
 export interface UpdateVariantFields {
   priceMinEur: number | null;
   priceMaxEur: number | null;
+  // Wycena indywidualna (spec 0050 AC-13, AC-37): jawna flaga, nigdy
+  // wyliczana z braku ceny. true wymusza obie ceny na null (CHECK
+  // product_variant_price_on_request w schema.ts), ten sam wzorzec co
+  // priceOnRequest === false gdyby ceny nie były podane.
+  priceOnRequest: boolean;
   scopeSummary: string;
+  // Co nie wchodzi w cenę tego standardu (spec 0050 AC-13, AC-24), osobny
+  // krótki opis, nie łączony z product.clientRequirements.
+  excludedScope: string;
   variantLabel: string;
 }
 
@@ -264,8 +278,8 @@ export async function updateVariant(variantId: string, fields: UpdateVariantFiel
   if (ownership.status === "not_found") return { ok: false, error: "Nie znaleziono wariantu." };
   if (ownership.status === "denied") return { ok: false, error: DENIED_ERROR };
 
-  const priceMinCents = toPriceCents(fields.priceMinEur);
-  const priceMaxCents = toPriceCents(fields.priceMaxEur);
+  const priceMinCents = fields.priceOnRequest ? null : toPriceCents(fields.priceMinEur);
+  const priceMaxCents = fields.priceOnRequest ? null : toPriceCents(fields.priceMaxEur);
   if (priceMinCents !== null && priceMaxCents !== null && priceMaxCents < priceMinCents) {
     return { ok: false, error: "Cena maksymalna nie może być niższa niż minimalna." };
   }
@@ -276,7 +290,9 @@ export async function updateVariant(variantId: string, fields: UpdateVariantFiel
       .set({
         priceMinCents,
         priceMaxCents,
+        priceOnRequest: fields.priceOnRequest,
         scopeSummary: fields.scopeSummary || null,
+        excludedScope: fields.excludedScope || null,
         variantLabel: fields.variantLabel || null,
         updatedAt: new Date(),
       })

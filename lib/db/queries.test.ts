@@ -519,6 +519,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: getProducerVariantsF
         priceMinCents: 10_000_000,
         priceMaxCents: 12_000_000,
         scopeSummary: "Zakres podstawowy",
+        excludedScope: "Fundament we własnym zakresie klienta",
         sortOrder: 0,
       },
       {
@@ -566,7 +567,9 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: getProducerVariantsF
       isDefault: true,
       priceMinCents: 10_000_000,
       priceMaxCents: 12_000_000,
+      priceOnRequest: false,
       scopeSummary: "Zakres podstawowy",
+      excludedScope: "Fundament we własnym zakresie klienta",
       scopeSummaryEn: "Base scope",
       scopeSummaryNl: "Basisomvang",
     });

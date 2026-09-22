@@ -49,7 +49,9 @@ function editVariantFixture(overrides: Partial<ProducerVariantForEdit> = {}): Pr
     isDefault: true,
     priceMinCents: 10_000_000,
     priceMaxCents: 12_000_000,
+    priceOnRequest: false,
     scopeSummary: "Zakres podstawowy",
+    excludedScope: null,
     scopeSummaryEn: "Base scope",
     scopeSummaryNl: null,
     costLineItems: [{ id: "item-1", label: "Fundament", status: "w-cenie", responsibleParty: null }],
@@ -124,7 +126,9 @@ describe("ProjectWizardVariantsStep", () => {
     expect(updateVariant).toHaveBeenCalledWith("variant-1", {
       priceMinEur: 100000,
       priceMaxEur: 120000,
+      priceOnRequest: false,
       scopeSummary: "",
+      excludedScope: "",
       variantLabel: "",
     });
     expect(updateVariantTranslation).toHaveBeenCalledWith("variant-1", "en", "");
@@ -230,7 +234,9 @@ describe("ProjectWizardVariantsStep", () => {
       expect(updateVariant).toHaveBeenCalledWith("variant-existing-1", {
         priceMinEur: 100000,
         priceMaxEur: 120000,
+        priceOnRequest: false,
         scopeSummary: "Zakres podstawowy",
+        excludedScope: "",
         variantLabel: "",
       });
       expect(upsertCostLineItem).toHaveBeenCalledWith("variant-existing-1", {

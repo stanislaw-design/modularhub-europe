@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { Controller, useFieldArray, useForm, useFormContext, useWatch, type UseFormReturn } from "react-hook-form";
 import { z } from "zod";
-import { Button, Card, Heading, Input, Label, Radio, Select, Stack, Text, Textarea } from "@/components/ui";
+import { Button, Card, Checkbox, Heading, Input, Label, Radio, Select, Stack, Text, Textarea } from "@/components/ui";
 import type { CompletionStandard, CostLineItemStatus, ProjectDraft, TimelineStageKey } from "@/lib/data/types";
 import type { ProducerVariantForEdit } from "@/lib/db/queries";
 import {
@@ -51,7 +51,14 @@ interface VariantFormValue {
   isDefault: boolean;
   priceMinEur: number | null;
   priceMaxEur: number | null;
+  // Wycena indywidualna (spec 0050 AC-13, AC-37): jawna flaga, wyklucza
+  // priceMinEur/priceMaxEur (CHECK product_variant_price_on_request).
+  priceOnRequest: boolean;
   scopeSummaryPl: string;
+  // Co nie wchodzi w cenę tego standardu (spec 0050 AC-13, AC-24), osobny
+  // krótki opis, nie tłumaczony (jak scopeSummaryEn/Nl niżej) w tym etapie —
+  // tłumaczenia trafiają do skonsolidowanego etapu "Tłumaczenia" (zadanie 9).
+  excludedScope: string;
   scopeSummaryEn: string;
   scopeSummaryNl: string;
   costLineItems: CostItemFormValue[];
@@ -83,7 +90,9 @@ const variantSchema = z.object({
   isDefault: z.boolean(),
   priceMinEur: z.number().nullable(),
   priceMaxEur: z.number().nullable(),
+  priceOnRequest: z.boolean(),
   scopeSummaryPl: z.string(),
+  excludedScope: z.string(),
   scopeSummaryEn: z.string(),
   scopeSummaryNl: z.string(),
   costLineItems: z.array(costItemSchema),
@@ -109,7 +118,9 @@ function initialVariantsToFormValues(initialVariants: ProducerVariantForEdit[]):
     isDefault: variant.isDefault,
     priceMinEur: variant.priceMinCents === null ? null : variant.priceMinCents / 100,
     priceMaxEur: variant.priceMaxCents === null ? null : variant.priceMaxCents / 100,
+    priceOnRequest: variant.priceOnRequest,
     scopeSummaryPl: variant.scopeSummary ?? "",
+    excludedScope: variant.excludedScope ?? "",
     scopeSummaryEn: variant.scopeSummaryEn ?? "",
     scopeSummaryNl: variant.scopeSummaryNl ?? "",
     costLineItems: variant.costLineItems.map((item) => ({
@@ -210,7 +221,9 @@ export function ProjectWizardVariantsStep({ productId, initialVariants = [] }: P
       isDefault: fields.length === 0,
       priceMinEur: null,
       priceMaxEur: null,
+      priceOnRequest: false,
       scopeSummaryPl: "",
+      excludedScope: "",
       scopeSummaryEn: "",
       scopeSummaryNl: "",
       costLineItems: [],
@@ -237,7 +250,9 @@ export function ProjectWizardVariantsStep({ productId, initialVariants = [] }: P
       isDefault: false,
       priceMinEur: cloned.priceMinCents === null ? null : cloned.priceMinCents / 100,
       priceMaxEur: cloned.priceMaxCents === null ? null : cloned.priceMaxCents / 100,
+      priceOnRequest: cloned.priceOnRequest,
       scopeSummaryPl: cloned.scopeSummary ?? "",
+      excludedScope: cloned.excludedScope ?? "",
       scopeSummaryEn: "",
       scopeSummaryNl: "",
       costLineItems: cloned.costLineItems.map((item) => ({
@@ -434,7 +449,9 @@ function VariantCard({ form, index, isFirst, isLast, onMoveUp, onMoveDown, onSet
     const variantResult = await updateVariant(current.variantId, {
       priceMinEur: current.priceMinEur,
       priceMaxEur: current.priceMaxEur,
+      priceOnRequest: current.priceOnRequest,
       scopeSummary: current.scopeSummaryPl,
+      excludedScope: current.excludedScope,
       variantLabel: "",
     });
     if (!variantResult.ok) {
@@ -543,6 +560,7 @@ function VariantCard({ form, index, isFirst, isLast, onMoveUp, onMoveDown, onSet
               id={`variant-${index}-price-min`}
               type="number"
               min={0}
+              disabled={variant.priceOnRequest}
               {...register(`variants.${index}.priceMinEur`, { setValueAs: (value) => (value === "" ? null : Number(value)) })}
             />
           </Stack>
@@ -552,14 +570,25 @@ function VariantCard({ form, index, isFirst, isLast, onMoveUp, onMoveDown, onSet
               id={`variant-${index}-price-max`}
               type="number"
               min={0}
+              disabled={variant.priceOnRequest}
               {...register(`variants.${index}.priceMaxEur`, { setValueAs: (value) => (value === "" ? null : Number(value)) })}
             />
           </Stack>
         </Stack>
 
+        <label className="flex w-fit items-center gap-2 text-body">
+          <Checkbox id={`variant-${index}-price-on-request`} {...register(`variants.${index}.priceOnRequest`)} />
+          {t("priceOnRequestLabel")}
+        </label>
+
         <Stack gap={1}>
           <Label htmlFor={`variant-${index}-scope-pl`}>{t("scopeSummaryLabel")}</Label>
           <Textarea id={`variant-${index}-scope-pl`} {...register(`variants.${index}.scopeSummaryPl`)} />
+        </Stack>
+
+        <Stack gap={1}>
+          <Label htmlFor={`variant-${index}-excluded-scope`}>{t("excludedScopeLabel")}</Label>
+          <Textarea id={`variant-${index}-excluded-scope`} {...register(`variants.${index}.excludedScope`)} />
         </Stack>
 
         <Stack gap={2}>
