@@ -192,6 +192,12 @@ export const paymentStatusEnum = pgEnum("payment_status", [
 // 0041 AC-9), odróżniona od "product_photo" (wizualizacje/marketing).
 // "product_specification" dopisana tak samo (spec 0049 AC-6): jeden plik PDF
 // specyfikacji na produkt, zawsze productVariantId = NULL.
+// "ai_source_pdf" jest martwa od spec 0050 (AC-38 do AC-40): Postgres nie
+// pozwala usunąć pojedynczej wartości enum bez przebudowy typu, więc zostaje
+// w typie na stałe, ale nowy kreator już jej nie zapisuje.
+// "product_sales_pdf" dopisana tak samo jak "product_specification" (spec
+// 0050 AC-25, AC-26): opcjonalny PDF sprzedażowy, ten sam wzorzec co
+// specyfikacja (najwyżej jeden aktywny plik na produkt).
 export const documentPurposeEnum = pgEnum("document_purpose", [
   "product_photo",
   "product_floor_plan",
@@ -201,6 +207,7 @@ export const documentPurposeEnum = pgEnum("document_purpose", [
   "product_realization_photo",
   "ai_source_pdf",
   "product_specification",
+  "product_sales_pdf",
 ]);
 
 export const aiExtractionStatusEnum = pgEnum("ai_extraction_status", [
@@ -562,6 +569,11 @@ export const product = pgTable(
     // sam wzorzec co roomLayout wyżej (jsonb bez własnej tabeli; walidacja
     // Zod na granicy aplikacji jest otwartym Follow-up, tak jak roomLayout).
     faq: jsonb("faq"),
+    // Co musi zapewnić klient niezależnie od standardu (spec 0050 AC-23):
+    // tablica {id, key, label, custom}[], jeden raz na produkt. `key` istnieje
+    // tylko dla pozycji z katalogu w kodzie (custom: false); `id` stabilny per
+    // wpis, ten sam wzorzec dopasowania co roomLayout wyżej (spec 0042/0045).
+    clientRequirements: jsonb("client_requirements"),
     featured: boolean("featured").notNull().default(false),
     // Tymczasowe: zwykły URL zewnętrzny, zastąpione realnym przechowywaniem
     // plików (Cloudflare R2) w Slice 5 (spec 0023 Context, Follow-up).
@@ -631,6 +643,13 @@ export const productVariant = pgTable(
     priceMinCents: integer("price_min_cents"),
     priceMaxCents: integer("price_max_cents"),
     scopeSummary: text("scope_summary"),
+    // Wycena indywidualna zamiast liczby (spec 0050 AC-13, AC-37): jawna flaga,
+    // nigdy wyliczana z braku ceny. Patrz CHECK product_variant_price_on_request
+    // niżej: nie może współistnieć z żadną z dwóch cen.
+    priceOnRequest: boolean("price_on_request").notNull().default(false),
+    // Co nie wchodzi w cenę tego standardu (spec 0050 AC-13, AC-24): osobny,
+    // krótki opis, nie łączony z product.clientRequirements wyżej.
+    excludedScope: text("excluded_scope"),
     isDefault: boolean("is_default").notNull().default(false),
     sortOrder: integer("sort_order"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -641,6 +660,10 @@ export const productVariant = pgTable(
     check(
       "product_variant_price_order",
       sql`${table.priceMinCents} IS NULL OR ${table.priceMaxCents} IS NULL OR ${table.priceMaxCents} >= ${table.priceMinCents}`,
+    ),
+    check(
+      "product_variant_price_on_request",
+      sql`${table.priceOnRequest} = false OR (${table.priceMinCents} IS NULL AND ${table.priceMaxCents} IS NULL)`,
     ),
     // Co najwyżej jeden aktywny wariant na (product, standard); indeks
     // częściowy tak, żeby usunięty miękko wariant nie blokował ponownego
@@ -780,6 +803,10 @@ export const productTranslation = pgTable(
     // może być krótsza niż polska wersja (tłumaczenie częściowe).
     roomLayout: jsonb("room_layout"),
     faq: jsonb("faq"),
+    // Tłumaczenie pozycji własnych product.clientRequirements (custom: true,
+    // spec 0050 AC-28): tablica {id, label}[] dopasowana po id; pozycje z
+    // katalogu (custom: false) tłumaczą się z katalogu opcji, nie stąd.
+    clientRequirements: jsonb("client_requirements"),
     // Automatyczne tłumaczenie AI (spec 0028 AC-11 do AC-17, rozszerzenie
     // 2026-09-22): "własność" pola (AI vs producent) jest wyliczona, nie
     // przechowywana jako osobna flaga — patrz lib/producer-product-actions.ts
@@ -817,6 +844,9 @@ export const productVariantTranslation = pgTable(
       .references(() => productVariant.id),
     locale: productTranslationLocaleEnum("locale").notNull(),
     scopeSummary: text("scope_summary"),
+    // Tłumaczenie productVariant.excludedScope (spec 0050 AC-28), ten sam
+    // wzorzec co scopeSummary wyżej.
+    excludedScope: text("excluded_scope"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
@@ -1374,6 +1404,11 @@ export const document = pgTable(
     uniqueIndex("document_one_specification_per_product")
       .on(table.productId)
       .where(sql`${table.purpose} = 'product_specification' AND ${table.deletedAt} IS NULL`),
+    // Najwyżej jeden aktywny PDF sprzedażowy na produkt (spec 0050 AC-25,
+    // AC-26), dokładnie ten sam wzorzec co specyfikacja wyżej.
+    uniqueIndex("document_one_sales_pdf_per_product")
+      .on(table.productId)
+      .where(sql`${table.purpose} = 'product_sales_pdf' AND ${table.deletedAt} IS NULL`),
   ],
 );
 
