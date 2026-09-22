@@ -57,9 +57,6 @@ export function ProducerProductList({ locale, products }: ProducerProductListPro
       <div className="flex flex-wrap items-center justify-between gap-brand-2">
         <Heading level="h1">{t("heading")}</Heading>
         <div className="flex flex-wrap gap-brand-2">
-          <Button as="a" href={`/${locale}/producer/panel/project/import`} variant="secondary" className="w-fit">
-            Uzupełnij z PDF
-          </Button>
           <Button as="a" href={`/${locale}/producer/panel/project`} className="w-fit">
             {t("addProduct")}
           </Button>
@@ -77,9 +74,6 @@ export function ProducerProductList({ locale, products }: ProducerProductListPro
           <Stack gap={2} align="start">
             <Text tone="muted">{t("emptyMessage")}</Text>
             <div className="flex flex-wrap gap-brand-2">
-              <Button as="a" href={`/${locale}/producer/panel/project/import`} variant="secondary">
-                Uzupełnij z PDF
-              </Button>
               <Button as="a" href={`/${locale}/producer/panel/project`}>
                 {t("addFirstProduct")}
               </Button>

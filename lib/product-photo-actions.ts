@@ -234,9 +234,30 @@ export interface UploadFloorPlanResult extends ActionResult {
   url?: string;
 }
 
-// AC-7: prawdziwe wgrywanie rzutów architektonicznych, tym samym mechanizmem
-// R2 co zdjęcia produktu wyżej (spec 0045 Build plan zadanie 8) — ten sam
-// walidator magic-bytes (JPEG/PNG/WebP), ta sama tabela document z
+interface FloorPlanValidationResult {
+  ok: boolean;
+  mimeType?: "image/jpeg" | "image/png" | "image/webp" | "application/pdf";
+  error?: string;
+}
+
+// Rzuty akceptują obraz (JPEG/PNG/WebP, jak dotychczas) albo PDF (spec 0050
+// AC-3, nowość), do 10 MB, wykryte po rzeczywistej sygnaturze bajtowej pliku,
+// nie po rozszerzeniu ani zgłoszonym Content-Type (ten sam powód co
+// validateProductPhotoFile/validateDocumentPdf, które ta funkcja łączy).
+function validateFloorPlanFile(bytes: Uint8Array): FloorPlanValidationResult {
+  const imageValidation = validateProductPhotoFile(bytes);
+  if (imageValidation.ok && imageValidation.mimeType) {
+    return { ok: true, mimeType: imageValidation.mimeType };
+  }
+  const pdfValidation = validateDocumentPdf(bytes);
+  if (pdfValidation.ok) {
+    return { ok: true, mimeType: "application/pdf" };
+  }
+  return { ok: false, error: "Dozwolone są tylko pliki JPEG, PNG, WebP albo PDF, maksymalnie 10 MB." };
+}
+
+// AC-7 (spec 0045): prawdziwe wgrywanie rzutów architektonicznych, tym samym
+// mechanizmem R2 co zdjęcia produktu wyżej. Ta sama tabela document z
 // purpose="product_floor_plan" zamiast "product_photo". variantId opcjonalny:
 // puste znaczy "dotyczy wszystkich wariantów" (spec 0041 Feature design);
 // podany variantId jest sprawdzony jako należący do tego samego productId,
@@ -261,7 +282,7 @@ export async function uploadFloorPlan(
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
-  const validation = validateProductPhotoFile(buffer);
+  const validation = validateFloorPlanFile(buffer);
   if (!validation.ok || !validation.mimeType) {
     return { ok: false, error: validation.error ?? "Nieprawidłowy plik." };
   }

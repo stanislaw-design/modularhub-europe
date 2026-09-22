@@ -4,7 +4,6 @@
 // Feature design for the full rationale and per-table notes.
 import { sql } from "drizzle-orm";
 import type { PendingRegistrationPayload } from "@/lib/auth-shared";
-import type { FxNormalizationMetadata } from "@/lib/house-ai-schemas";
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import {
   bigint,
@@ -1488,6 +1487,22 @@ export const aiSourceDocument = pgTable(
     check("ai_source_document_sort_nonnegative", sql`${table.sortOrder} >= 0`),
   ],
 );
+
+// Kształt jsonb normalization_metadata niżej, dawniej importowany z
+// lib/house-ai-schemas.ts (usunięty razem z resztą kodu spec 0047, patrz
+// spec 0050 AC-39); tabela sama zostaje aż do migracji usuwającej (zadanie 11).
+type FxNormalizationMetadata = {
+  kind: "fx";
+  provider: "ECB";
+  series: string;
+  sourceAmount: string;
+  sourceCurrency: string;
+  targetCurrency: "EUR";
+  rate: string;
+  rateDate: string;
+  retrievedAt: string;
+  rounding: "HALF_UP_2";
+};
 
 export const aiFieldCandidate = pgTable(
   "ai_field_candidate",

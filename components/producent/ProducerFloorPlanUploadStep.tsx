@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { type ChangeEvent, useRef, useState, useTransition } from "react";
-import { Trash2, Upload } from "lucide-react";
+import { FileText, Trash2, Upload } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button, Label, Select, Text } from "@/components/ui";
 import { deleteFloorPlan, uploadFloorPlan } from "@/lib/product-photo-actions";
@@ -90,6 +90,14 @@ export function ProducerFloorPlanUploadStep({
     return variants.find((variant) => variant.id === variantId)?.label ?? t("allVariants");
   }
 
+  // Rzuty akceptują teraz obraz albo PDF (spec 0050 AC-3): rozpoznanie po
+  // rozszerzeniu wystarcza tylko do wyboru miniatury kontra ikona pliku w tej
+  // liście, prawdziwa walidacja typu jest po sygnaturze bajtowej na serwerze
+  // (validateFloorPlanFile, lib/product-photo-actions.ts).
+  function isPdfFilename(filename: string): boolean {
+    return filename.toLowerCase().endsWith(".pdf");
+  }
+
   return (
     <div className="flex flex-col gap-brand-2">
       <Label htmlFor="wizard-floor-plans" required>
@@ -112,7 +120,7 @@ export function ProducerFloorPlanUploadStep({
           id="wizard-floor-plans"
           type="file"
           multiple
-          accept="image/jpeg,image/png,image/webp"
+          accept="image/jpeg,image/png,image/webp,application/pdf"
           onChange={handleUpload}
           className="sr-only"
           disabled={isPending}
@@ -142,14 +150,18 @@ export function ProducerFloorPlanUploadStep({
               key={plan.id}
               className="flex items-center gap-brand-2 rounded-data border border-brand-steel px-brand-2 py-brand-1"
             >
-              <Image
-                src={plan.url}
-                alt={plan.filename}
-                width={64}
-                height={64}
-                className="size-16 shrink-0 rounded-data object-cover"
-                unoptimized
-              />
+              {isPdfFilename(plan.filename) ? (
+                <FileText className="size-16 shrink-0 rounded-data p-2 text-brand-technical-graphite" aria-hidden="true" />
+              ) : (
+                <Image
+                  src={plan.url}
+                  alt={plan.filename}
+                  width={64}
+                  height={64}
+                  className="size-16 shrink-0 rounded-data object-cover"
+                  unoptimized
+                />
+              )}
               <div className="flex min-w-0 flex-1 flex-col">
                 <Text as="span" className="truncate">
                   {plan.filename}
