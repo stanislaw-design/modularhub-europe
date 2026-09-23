@@ -1,7 +1,8 @@
 import { getTranslations } from "next-intl/server";
-import { HardHat, Ruler } from "lucide-react";
+import { HardHat, ListChecks, Ruler } from "lucide-react";
 import { Heading, StatusPill, Text } from "@/components/ui";
 import type { Project } from "@/lib/data/types";
+import { getClientRequirementCatalogOptions } from "@/lib/producer-project-draft";
 
 interface ProjectLogisticsProps {
   project: Project;
@@ -14,12 +15,20 @@ interface ProjectLogisticsProps {
 // jednej prostej siatki dwóch pozostałych pól. Sekcja renderuje się zawsze;
 // pole bez wartości pokazuje jawny placeholder zamiast znikać (AC-4).
 export async function ProjectLogistics({ project }: ProjectLogisticsProps) {
-  const t = await getTranslations("ProjectLogistics");
+  const [t, tOptions] = await Promise.all([getTranslations("ProjectLogistics"), getTranslations("ProjectOptions")]);
 
   const fields = [
     { icon: Ruler, label: "externalDimensionsLabel", value: project.externalDimensions },
     { icon: HardHat, label: "foundationOptionsLabel", value: project.foundationOptions },
   ];
+
+  // Spec 0050 AC-23, AC-35: puste lub brak → blok w ogóle się nie renderuje
+  // (w odróżnieniu od pól wyżej, które zawsze pokazują siebie albo
+  // placeholder). Pozycje katalogowe (custom: false) tłumaczą się przez `key`
+  // i ten sam katalog opcji co kreator producenta; pozycje własne (custom:
+  // true) niosą już rozwiązaną etykietę z lib/data/projects.ts.
+  const catalogLabels = new Map(getClientRequirementCatalogOptions(tOptions).map((option) => [option.value, option.label]));
+  const clientRequirements = project.clientRequirements ?? [];
 
   return (
     <div className="flex flex-col gap-brand-3">
@@ -42,6 +51,29 @@ export async function ProjectLogistics({ project }: ProjectLogisticsProps) {
             </div>
           ))}
         </div>
+        {clientRequirements.length > 0 && (
+          <div className="flex min-w-0 items-start gap-brand-2 border-t border-brand-v5-line pt-brand-4">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-data bg-brand-v5-amber/10">
+              <ListChecks className="size-6 text-brand-v5-amber-strong" aria-hidden="true" />
+            </span>
+            <div className="flex min-w-0 flex-col gap-1">
+              <Text variant="label" tone="muted" surface="v5" className="font-semibold">
+                {t("clientRequirementsHeading")}
+              </Text>
+              <ul className="flex flex-col gap-1">
+                {clientRequirements.map((requirement) => (
+                  <li key={requirement.id}>
+                    <Text surface="v5">
+                      {requirement.custom || requirement.key === null
+                        ? requirement.label
+                        : (catalogLabels.get(requirement.key) ?? requirement.label)}
+                    </Text>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

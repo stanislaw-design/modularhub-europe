@@ -795,6 +795,7 @@
     "price": "Cena",
     "priceOnRequest": "Wycena indywidualna",
     "priceOnRequestHint": "Cena ustalana bezpośrednio z producentem po zgłoszeniu zapytania.",
+    "excludedScopeLabel": "Nie obejmuje: {text}",
     "estimatedPackage": "Szacowany pakiet",
     "packageIncludes": "Dom",
     "sendInquiry": "Poproś ModularHub o przygotowanie ofert",
@@ -911,6 +912,7 @@
     "lineItemColumn": "Pozycja",
     "priceFrom": "od {price} €",
     "priceOnRequest": "Wycena indywidualna",
+    "excludedScopeLabel": "Nie obejmuje: {text}",
     "notIncluded": "Nie dotyczy",
     "noCostLineItems": "Pozycje kosztowe: do uzupełnienia przez producenta.",
     "toBeCompleted": "Do uzupełnienia",
@@ -1004,7 +1006,8 @@
     "foundationOptionsLabel": "Wymagania fundamentu",
     "transportDimensionsLabel": "Wymiary transportowe",
     "craneRequirementsLabel": "Wymagania dźwigu",
-    "toBeCompleted": "Do uzupełnienia"
+    "toBeCompleted": "Do uzupełnienia",
+    "clientRequirementsHeading": "Co musi zapewnić klient"
   },
   "ProjectTimeline": {
     "heading": "Harmonogram realizacji",

@@ -354,4 +354,29 @@ describe("sortResults", () => {
     expect(input).toEqual([mid, cheap]);
     expect(result).not.toBe(input);
   });
+
+  // Spec 0050 AC-37: priceMin is 0 (not "no price"), so it would otherwise
+  // sort as the cheapest item, distorting other products' price range.
+  const onRequest = createMockProject({
+    id: "on-request",
+    priceMin: 0,
+    floorAreaM2: 70,
+    featured: false,
+    priceOnRequest: true,
+  });
+
+  it("always sorts priceOnRequest projects last for price-asc (AC-37)", () => {
+    const result = sortResults([onRequest, mid, cheap], "price-asc");
+    expect(result.map((p) => p.id)).toEqual(["cheap", "mid", "on-request"]);
+  });
+
+  it("always sorts priceOnRequest projects last for price-desc, not first (AC-37)", () => {
+    const result = sortResults([onRequest, cheap, mid], "price-desc");
+    expect(result.map((p) => p.id)).toEqual(["mid", "cheap", "on-request"]);
+  });
+
+  it("keeps priceOnRequest projects last even in the default featured-then-price order (AC-37)", () => {
+    const result = sortResults([onRequest, mid, cheap], undefined);
+    expect(result.map((p) => p.id)).toEqual(["cheap", "mid", "on-request"]);
+  });
 });

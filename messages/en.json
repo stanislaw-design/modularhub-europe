@@ -788,6 +788,7 @@
     "price": "Price",
     "priceOnRequest": "Custom quote",
     "priceOnRequestHint": "Price is agreed directly with the producer after you send an inquiry.",
+    "excludedScopeLabel": "Not included: {text}",
     "estimatedPackage": "Estimated package",
     "packageIncludes": "House",
     "sendInquiry": "Ask ModularHub to prepare offers",
@@ -904,6 +905,7 @@
     "lineItemColumn": "Line item",
     "priceFrom": "from €{price}",
     "priceOnRequest": "Custom quote",
+    "excludedScopeLabel": "Not included: {text}",
     "notIncluded": "Not applicable",
     "noCostLineItems": "Cost line items: to be completed by the producer.",
     "toBeCompleted": "To be completed",
@@ -997,7 +999,8 @@
     "foundationOptionsLabel": "Foundation requirements",
     "transportDimensionsLabel": "Transport dimensions",
     "craneRequirementsLabel": "Crane requirements",
-    "toBeCompleted": "To be completed"
+    "toBeCompleted": "To be completed",
+    "clientRequirementsHeading": "What the client must provide"
   },
   "ProjectTimeline": {
     "heading": "Build timeline",

@@ -207,6 +207,11 @@ export function ProjectCostComparisonTable({ variants }: ProjectCostComparisonTa
                           {variant.scopeSummary}
                         </Text>
                       )}
+                      {variant.excludedScope && (
+                        <Text tone="muted" surface="v5" className="mt-1 block text-data font-normal">
+                          {t("excludedScopeLabel", { text: variant.excludedScope })}
+                        </Text>
+                      )}
                     </>
                   )}
                 </th>

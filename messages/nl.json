@@ -788,6 +788,7 @@
     "price": "Prijs",
     "priceOnRequest": "Prijs op aanvraag",
     "priceOnRequestHint": "De prijs wordt rechtstreeks met de producent afgesproken na uw aanvraag.",
+    "excludedScopeLabel": "Niet inbegrepen: {text}",
     "estimatedPackage": "Geschat pakket",
     "packageIncludes": "Woning",
     "sendInquiry": "Vraag ModularHub om offertes voor te bereiden",
@@ -904,6 +905,7 @@
     "lineItemColumn": "Post",
     "priceFrom": "vanaf {price} €",
     "priceOnRequest": "Prijs op aanvraag",
+    "excludedScopeLabel": "Niet inbegrepen: {text}",
     "notIncluded": "Niet van toepassing",
     "noCostLineItems": "Kostenposten: nog aan te vullen door de producent.",
     "toBeCompleted": "Nog aan te vullen",
@@ -997,7 +999,8 @@
     "foundationOptionsLabel": "Funderingseisen",
     "transportDimensionsLabel": "Transportafmetingen",
     "craneRequirementsLabel": "Kraanvereisten",
-    "toBeCompleted": "Nog aan te vullen"
+    "toBeCompleted": "Nog aan te vullen",
+    "clientRequirementsHeading": "Wat de klant moet regelen"
   },
   "ProjectTimeline": {
     "heading": "Bouwplanning",

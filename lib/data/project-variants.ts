@@ -29,6 +29,7 @@ export function getDisplayProjectVariants(project: Project): ProjectVariant[] {
       id: `placeholder-${completionStandard}`,
       completionStandard,
       currency: "EUR",
+      priceOnRequest: false,
       isDefault: false,
       costLineItems: [],
       timelineStages: [],
@@ -54,7 +55,11 @@ export type ProjectPriceDisplay =
 // nigdy-placeholder wariant zamiast każde po swojemu zgadywać cenę.
 export function getProjectPriceDisplay(project: Project): ProjectPriceDisplay {
   const variant = getDefaultProjectVariant(project);
-  if (project.priceOnRequest || !variant || variant.priceMin === undefined) {
+  // Spec 0050 AC-37: `variant.priceOnRequest` sprawdzany jawnie, nie tylko
+  // wywnioskowany z `priceMin === undefined` (choć CHECK product_variant_
+  // price_on_request gwarantuje dziś to samo) — jasny sygnał zamiast efektu
+  // ubocznego innej kolumny.
+  if (project.priceOnRequest || !variant || variant.priceOnRequest || variant.priceMin === undefined) {
     return { priceOnRequest: true };
   }
   // TS narrows `variant.priceMin` at this point but not the `variant`

@@ -206,6 +206,17 @@ export function matchesResultsFilter(
   return true;
 }
 
+// Spec 0050 AC-37: wycena indywidualna nigdy nie zniekształca sortowania po
+// cenie (priceMin jest wtedy 0, nie "brak ceny") — zamiast to porównywać,
+// projekty priceOnRequest zawsze lądują na końcu, niezależnie od kierunku,
+// ten sam wzorzec tie-breaku co `featured` niżej.
+function comparePriceOnRequestLast(a: Project, b: Project): number {
+  const aOnRequest = Boolean(a.priceOnRequest);
+  const bOnRequest = Boolean(b.priceOnRequest);
+  if (aOnRequest === bOnRequest) return 0;
+  return aOnRequest ? 1 : -1;
+}
+
 // Jedyne miejsce sortowania (spec 0026 Feature design, API surface): brak lub
 // nierozpoznany sort → dzisiejsze domyślne zachowanie, wyróżnione projekty najpierw,
 // potem rosnąco po cenie od. Reużywany przez stronę serwerową, ResultsSelection po
@@ -213,9 +224,9 @@ export function matchesResultsFilter(
 export function sortResults(projects: Project[], sort?: SortOption): Project[] {
   switch (sort) {
     case "price-asc":
-      return [...projects].sort((a, b) => a.priceMin - b.priceMin);
+      return [...projects].sort((a, b) => comparePriceOnRequestLast(a, b) || a.priceMin - b.priceMin);
     case "price-desc":
-      return [...projects].sort((a, b) => b.priceMin - a.priceMin);
+      return [...projects].sort((a, b) => comparePriceOnRequestLast(a, b) || b.priceMin - a.priceMin);
     case "size-asc":
       return [...projects].sort((a, b) => a.floorAreaM2 - b.floorAreaM2);
     case "size-desc":
@@ -223,7 +234,7 @@ export function sortResults(projects: Project[], sort?: SortOption): Project[] {
     default:
       return [...projects].sort((a, b) => {
         if (a.featured !== b.featured) return a.featured ? -1 : 1;
-        return a.priceMin - b.priceMin;
+        return comparePriceOnRequestLast(a, b) || a.priceMin - b.priceMin;
       });
   }
 }

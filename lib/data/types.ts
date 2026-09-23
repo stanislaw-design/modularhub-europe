@@ -126,6 +126,14 @@ export interface ProjectVariant {
   priceMax?: number;
   currency: "EUR";
   scopeSummary?: string;
+  // Spec 0050 AC-13, AC-37: gdy true, priceMin/priceMax są zawsze undefined
+  // (wymuszone CHECK-em product_variant_price_on_request), karta klienta
+  // pokazuje "wycena indywidualna" zamiast liczby i wariant jest wykluczony z
+  // filtrowania/sortowania po cenie (lib/results-filters.ts#sortResults).
+  priceOnRequest: boolean;
+  // Spec 0050 AC-13, AC-24, AC-36: co nie wchodzi w cenę tego standardu,
+  // zawsze osobny tekst od scopeSummary wyżej, nigdy z nim łączony.
+  excludedScope?: string;
   isDefault: boolean;
   costLineItems: CostLineItem[];
   timelineStages: TimelineStage[];
@@ -212,6 +220,13 @@ export interface Project {
    * na karcie projektu). Puste lub brak → sekcja pokazuje placeholder "do
    * uzupełnienia", ten sam wzorzec co roomLayout wyżej. */
   faq?: ProjectFaqItem[];
+  /** Co musi zapewnić klient, niezależnie od standardu (spec 0050 AC-23,
+   * AC-35): puste lub brak → sekcja nie renderuje się, ten sam wzorzec co
+   * roomLayout/faq wyżej. `label` jest już rozwiązane pod aktywny locale dla
+   * pozycji własnych (custom: true); pozycje katalogowe (custom: false)
+   * tłumaczy strona klienta przez `key` i katalog opcji (ProjectOptions),
+   * ten sam wzorzec co inne katalogowe etykiety w tym pliku. */
+  clientRequirements?: ClientRequirementRow[];
   /** Logistyka i serwis (spec 0041 AC-9), każde pole renderuje się niezależnie
    * tylko gdy jest wypełnione (spec 0042 AC-5). */
   installationWarrantyYears?: number;

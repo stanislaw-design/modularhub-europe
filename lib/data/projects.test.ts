@@ -724,6 +724,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: verified volume m
     const variantsProductId = crypto.randomUUID();
     const rawVariantId = crypto.randomUUID();
     const turnkeyVariantId = crypto.randomUUID();
+    const onRequestVariantId = crypto.randomUUID();
     const noVariantProductId = crypto.randomUUID();
 
     beforeAll(async () => {
@@ -750,6 +751,11 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: verified volume m
             { name: "Salon", areaM2: 28, function: "Dzienna" },
             { name: "Antresola", function: "Sypialnia", isMezzanine: true },
           ],
+          // Spec 0050 AC-23, AC-35.
+          clientRequirements: [
+            { id: "req-fundament", key: "fundament", label: "Fundament", custom: false },
+            { id: "req-custom-1", key: null, label: "Wyburzenie starej szopy", custom: true },
+          ],
           currency: "EUR",
         },
         {
@@ -770,6 +776,8 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: verified volume m
           priceMinCents: 13800000,
           priceMaxCents: 16800000,
           scopeSummary: "Bryła zamknięta.",
+          // Spec 0050 AC-13, AC-24, AC-36.
+          excludedScope: "Przyłącza mediów i instalacja fotowoltaiczna.",
           isDefault: false,
           sortOrder: 1,
         },
@@ -782,6 +790,18 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: verified volume m
           scopeSummary: "Gotowy do zamieszkania.",
           isDefault: true,
           sortOrder: 2,
+        },
+        {
+          id: onRequestVariantId,
+          productId: variantsProductId,
+          completionStandard: "deweloperski",
+          // Spec 0050 AC-13, AC-37: CHECK product_variant_price_on_request wymaga
+          // NULL cen, gdy priceOnRequest = true.
+          priceMinCents: null,
+          priceMaxCents: null,
+          priceOnRequest: true,
+          isDefault: false,
+          sortOrder: 3,
         },
       ]);
       await db.insert(costLineItem).values([
@@ -819,7 +839,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: verified volume m
       await db.delete(document).where(inArray(document.productId, [variantsProductId, noVariantProductId]));
       await db.delete(productTimelineStage).where(inArray(productTimelineStage.productVariantId, [rawVariantId, turnkeyVariantId]));
       await db.delete(costLineItem).where(inArray(costLineItem.productVariantId, [rawVariantId, turnkeyVariantId]));
-      await db.delete(productVariant).where(inArray(productVariant.id, [rawVariantId, turnkeyVariantId]));
+      await db.delete(productVariant).where(inArray(productVariant.id, [rawVariantId, turnkeyVariantId, onRequestVariantId]));
       await db.delete(product).where(inArray(product.id, [variantsProductId, noVariantProductId]));
       await db.delete(producer).where(eq(producer.id, variantsProducerId));
       await db.delete(users).where(eq(users.id, variantsUserId));
@@ -830,6 +850,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: verified volume m
       expect(project?.variants.map((variant) => variant.completionStandard)).toEqual([
         "surowy-zamkniety",
         "pod-klucz",
+        "deweloperski",
       ]);
 
       const rawVariant = project?.variants.find((variant) => variant.completionStandard === "surowy-zamkniety");
@@ -845,6 +866,32 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: verified volume m
       // Kolejność stała (formalności/produkcja/transport/montaż/wykończenie),
       // nie kolejność wstawienia (spec 0042 AC-6).
       expect(turnkeyVariant?.timelineStages.map((stage) => stage.stageKey)).toEqual(["produkcja", "montaz"]);
+    });
+
+    // Spec 0050 AC-13, AC-24, AC-36, AC-37.
+    it("reads priceOnRequest and excludedScope per variant", async () => {
+      const project = await getProjectById(variantsProductId);
+
+      const rawVariant = project?.variants.find((variant) => variant.completionStandard === "surowy-zamkniety");
+      expect(rawVariant?.priceOnRequest).toBe(false);
+      expect(rawVariant?.excludedScope).toBe("Przyłącza mediów i instalacja fotowoltaiczna.");
+
+      const onRequestVariant = project?.variants.find((variant) => variant.completionStandard === "deweloperski");
+      expect(onRequestVariant?.priceOnRequest).toBe(true);
+      expect(onRequestVariant?.priceMin).toBeUndefined();
+      expect(onRequestVariant?.priceMax).toBeUndefined();
+    });
+
+    // Spec 0050 AC-23, AC-35.
+    it("reads clientRequirements from product.client_requirements, undefined when empty", async () => {
+      const withRequirements = await getProjectById(variantsProductId);
+      expect(withRequirements?.clientRequirements).toEqual([
+        { id: "req-fundament", key: "fundament", label: "Fundament", custom: false },
+        { id: "req-custom-1", key: null, label: "Wyburzenie starej szopy", custom: true },
+      ]);
+
+      const withoutRequirements = await getProjectById(noVariantProductId);
+      expect(withoutRequirements?.clientRequirements).toBeUndefined();
     });
 
     it("mirrors the trigger-derived product.price_min/max_cents at the top level, matching the default variant", async () => {

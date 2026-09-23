@@ -795,6 +795,7 @@
     "price": "Preis",
     "priceOnRequest": "Preis auf Anfrage",
     "priceOnRequestHint": "Der Preis wird nach Ihrer Anfrage direkt mit dem Hersteller vereinbart.",
+    "excludedScopeLabel": "Nicht enthalten: {text}",
     "estimatedPackage": "Geschätztes Paket",
     "packageIncludes": "Haus",
     "sendInquiry": "ModularHub um Angebote bitten",
@@ -911,6 +912,7 @@
     "lineItemColumn": "Position",
     "priceFrom": "ab {price} €",
     "priceOnRequest": "Preis auf Anfrage",
+    "excludedScopeLabel": "Nicht enthalten: {text}",
     "notIncluded": "Nicht zutreffend",
     "noCostLineItems": "Kostenpositionen: vom Hersteller noch zu ergänzen.",
     "toBeCompleted": "Noch zu ergänzen",
@@ -1004,7 +1006,8 @@
     "foundationOptionsLabel": "Fundamentanforderungen",
     "transportDimensionsLabel": "Transportmaße",
     "craneRequirementsLabel": "Kraneinsatz erforderlich",
-    "toBeCompleted": "Noch zu ergänzen"
+    "toBeCompleted": "Noch zu ergänzen",
+    "clientRequirementsHeading": "Was der Kunde bereitstellen muss"
   },
   "ProjectTimeline": {
     "heading": "Bauzeitplan",

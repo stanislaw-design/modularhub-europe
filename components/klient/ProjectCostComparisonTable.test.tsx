@@ -12,6 +12,7 @@ const variants: ProjectVariant[] = [
     priceMax: 168000,
     currency: "EUR",
     scopeSummary: "Bryła zamknięta, bez instalacji.",
+    priceOnRequest: false,
     isDefault: false,
     costLineItems: [
       { id: "c1", label: "Fundament", status: "po-stronie-klienta" },
@@ -25,6 +26,7 @@ const variants: ProjectVariant[] = [
     priceMin: 207000,
     priceMax: 220000,
     currency: "EUR",
+    priceOnRequest: false,
     isDefault: true,
     costLineItems: [
       { id: "c3", label: "Transport", status: "w-cenie" },
@@ -49,6 +51,13 @@ describe("ProjectCostComparisonTable", () => {
     expect(screen.getByText("138 000–168 000 €")).toBeInTheDocument();
     expect(screen.getByText("207 000–220 000 €")).toBeInTheDocument();
     expect(screen.getByText("Bryła zamknięta, bez instalacji.")).toBeInTheDocument();
+  });
+
+  // Spec 0050 AC-36: excludedScope is its own text, never merged into scopeSummary.
+  it("shows excludedScope next to scopeSummary, prefixed, when present (AC-36)", () => {
+    const variantsWithExcludedScope: ProjectVariant[] = [{ ...variants[0], excludedScope: "Przyłącza mediów." }];
+    render(<ProjectCostComparisonTable variants={variantsWithExcludedScope} />);
+    expect(screen.getByText("Nie obejmuje: Przyłącza mediów.")).toBeInTheDocument();
   });
 
   it("shows 'od X €' instead of a redundant X–X € range when priceMin equals priceMax", () => {
@@ -91,6 +100,7 @@ describe("ProjectCostComparisonTable", () => {
         id: "placeholder-deweloperski",
         completionStandard: "deweloperski",
         currency: "EUR",
+        priceOnRequest: false,
         isDefault: false,
         costLineItems: [],
         timelineStages: [],

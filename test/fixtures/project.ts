@@ -42,6 +42,7 @@ export function createMockProject(overrides: Partial<Project> = {}): Project {
         priceMax: 142000,
         currency: "EUR",
         scopeSummary: "Dom w standardzie deweloperskim, gotowy do wykończenia.",
+        priceOnRequest: false,
         isDefault: true,
         costLineItems: [],
         // Dni zamiast dawnych tygodni (spec 0041/0042): 12–16 tyg. produkcji

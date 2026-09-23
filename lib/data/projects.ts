@@ -19,6 +19,7 @@ import type { Locale } from "@/lib/i18n/routing";
 import type { EnergyClass, VentilationType } from "@/lib/product-technical-specs";
 import { captureError } from "@/lib/observability/errors";
 import { resolveFamilies, type FamilyFilterValue } from "@/lib/product-family-groups";
+import { clientRequirementsSchema, type ClientRequirementRow } from "@/lib/product-client-requirements";
 import { resolveHeatSourceValues, type HeatSourceFilterValue, type PriceThreshold, type StoreysFilter } from "@/lib/results-filters";
 import { buildPublicUrl } from "@/lib/storage/r2-client";
 import type {
@@ -105,8 +106,11 @@ export async function resolveProductVariants(
           variantLabel: productVariant.variantLabel,
           priceMinCents: productVariant.priceMinCents,
           priceMaxCents: productVariant.priceMaxCents,
+          priceOnRequest: productVariant.priceOnRequest,
           scopeSummary: productVariant.scopeSummary,
           translatedScopeSummary: productVariantTranslation.scopeSummary,
+          excludedScope: productVariant.excludedScope,
+          translatedExcludedScope: productVariantTranslation.excludedScope,
           isDefault: productVariant.isDefault,
           sortOrder: productVariant.sortOrder,
         })
@@ -127,8 +131,11 @@ export async function resolveProductVariants(
           variantLabel: productVariant.variantLabel,
           priceMinCents: productVariant.priceMinCents,
           priceMaxCents: productVariant.priceMaxCents,
+          priceOnRequest: productVariant.priceOnRequest,
           scopeSummary: productVariant.scopeSummary,
           translatedScopeSummary: sql<string | null>`NULL`,
+          excludedScope: productVariant.excludedScope,
+          translatedExcludedScope: sql<string | null>`NULL`,
           isDefault: productVariant.isDefault,
           sortOrder: productVariant.sortOrder,
         })
@@ -252,6 +259,8 @@ export async function resolveProductVariants(
         priceMax: row.priceMaxCents !== null ? row.priceMaxCents / 100 : undefined,
         currency: "EUR",
         scopeSummary: resolveTranslatedOptionalText(row.scopeSummary, row.translatedScopeSummary),
+        priceOnRequest: row.priceOnRequest,
+        excludedScope: resolveTranslatedOptionalText(row.excludedScope, row.translatedExcludedScope),
         isDefault: row.isDefault,
         costLineItems: costLineItemsByVariant.get(row.id) ?? [],
         timelineStages: timelineStagesByVariant.get(row.id) ?? [],
@@ -387,6 +396,15 @@ interface ProductTranslationText {
   // insert przez Neon MCP) mogą nie mieć `id`, więc dopasowanie tam spada na
   // pozycję w tablicy zamiast na `id` (patrz komentarz przy tej funkcji).
   roomLayout: unknown;
+  // Tłumaczenie pozycji własnych "Co musi zapewnić klient"
+  // (product_translation.client_requirements, spec 0050 AC-28, AC-35): tylko
+  // custom: true wpisy mają tu odpowiednik, ten sam wzorzec dopasowania po
+  // `id` co roomLayout wyżej. Pozycje katalogowe (custom: false) tłumaczy
+  // strona klienta przez `key` i katalog opcji, nie przez tę kolumnę.
+  // Opcjonalne: tylko getProjectById (karta projektu, AC-35) go selectuje —
+  // getProjects/getFeaturedProjectByFamily (listy/teaser) nigdy nie renderują
+  // tej sekcji, więc nie płacą za dodatkowy JOIN.
+  clientRequirements?: unknown;
 }
 
 function resolveTranslatedText(base: string | null, translated: string | null | undefined): string {
@@ -426,6 +444,25 @@ function resolveTranslatedRoomLayout(base: RoomLayoutEntry[], translated: unknow
         ? ((candidate as { name: string }).name.trim())
         : "";
     return translatedName ? { ...room, name: translatedName } : room;
+  });
+}
+
+// Ten sam wzorzec dopasowania po `id` co resolveTranslatedRoomLayout wyżej,
+// ale tylko dla custom: true (pozycje katalogowe trzymają swoją bazową,
+// polską label — strona klienta re-derywuje ich etykietę z katalogu opcji
+// przez `key`, patrz komentarz przy ProductTranslationText.clientRequirements).
+function resolveTranslatedClientRequirements(base: ClientRequirementRow[], translated: unknown): ClientRequirementRow[] {
+  if (!Array.isArray(translated) || translated.length === 0) return base;
+  return base.map((requirement) => {
+    if (!requirement.custom) return requirement;
+    const candidate = translated.find(
+      (entry) => entry && typeof entry === "object" && (entry as { id?: unknown }).id === requirement.id,
+    );
+    const translatedLabel =
+      candidate && typeof candidate === "object" && typeof (candidate as { label?: unknown }).label === "string"
+        ? (candidate as { label: string }).label.trim()
+        : "";
+    return translatedLabel ? { ...requirement, label: translatedLabel } : requirement;
   });
 }
 
@@ -546,6 +583,15 @@ function mapRowToProject(
   const baseRoomLayout = rawRoomLayout?.map(migrateRoomLayoutEntry);
   const roomLayout = baseRoomLayout ? resolveTranslatedRoomLayout(baseRoomLayout, translation?.roomLayout) : undefined;
   const faq = (row.faq as ProjectFaqItem[] | null) ?? undefined;
+  // Spec 0050 AC-23, AC-35: safeParse zamiast rzucającego parse, bo ten sam
+  // wzorzec co reszta tego mappera toleruje niekompletne/legacy wiersze
+  // (nigdy nie blokuje renderu całej karty projektu przez jedno złe pole jsonb).
+  const clientRequirementsResult = clientRequirementsSchema.safeParse(row.clientRequirements ?? []);
+  const baseClientRequirements = clientRequirementsResult.success ? clientRequirementsResult.data : [];
+  const clientRequirements =
+    baseClientRequirements.length > 0
+      ? resolveTranslatedClientRequirements(baseClientRequirements, translation?.clientRequirements)
+      : [];
 
   return {
     id: row.id,
@@ -584,6 +630,7 @@ function mapRowToProject(
     roomLayout: roomLayout && roomLayout.length > 0 ? roomLayout : undefined,
     documents: related?.documents ?? [],
     faq: faq && faq.length > 0 ? faq : undefined,
+    clientRequirements: clientRequirements.length > 0 ? clientRequirements : undefined,
     installationWarrantyYears: row.installationWarrantyYears ?? undefined,
     serviceScopeDescription: row.serviceScopeDescription ?? undefined,
     transportDimensions: row.transportDimensions ?? undefined,
@@ -775,6 +822,7 @@ export async function getProjectById(id: string, locale: Locale = "pl"): Promise
         translationName: productTranslation.name,
         translationDescription: productTranslation.description,
         translationRoomLayout: productTranslation.roomLayout,
+        translationClientRequirements: productTranslation.clientRequirements,
       })
       .from(product)
       .innerJoin(producer, eq(product.producerId, producer.id))
@@ -799,6 +847,7 @@ export async function getProjectById(id: string, locale: Locale = "pl"): Promise
               name: row.translationName,
               description: row.translationDescription,
               roomLayout: row.translationRoomLayout,
+              clientRequirements: row.translationClientRequirements,
             }),
             documentPhotos.get(id),
           ),

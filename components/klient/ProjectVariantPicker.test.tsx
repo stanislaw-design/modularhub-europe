@@ -14,6 +14,7 @@ function makeVariant(overrides: Partial<ProjectVariant>): ProjectVariant {
     id: "v1",
     completionStandard: "deweloperski",
     currency: "EUR",
+    priceOnRequest: false,
     isDefault: false,
     costLineItems: [],
     timelineStages: [],

@@ -279,7 +279,11 @@ export default async function ProjektPage({
               />
 
               <Card padding="lg" surface="v5" className="flex flex-col gap-brand-3 border-brand-v5-amber-strong/30">
-                {project.priceOnRequest ? (
+                {/* Spec 0050 AC-13, AC-37: wariant może być priceOnRequest niezależnie
+                    od flagi produktu wyżej — sprawdzany tu jawnie, inaczej wpadałby w
+                    gałąź "do uzupełnienia" niżej (selectedVariant.priceMin też undefined,
+                    ale z innego powodu). */}
+                {project.priceOnRequest || selectedVariant?.priceOnRequest ? (
                   <>
                     <Text variant="label" tone="muted" surface="v5">
                       {t("price")}
@@ -290,6 +294,16 @@ export default async function ProjektPage({
                     <Text tone="muted" surface="v5" className="text-data">
                       {t("priceOnRequestHint")}
                     </Text>
+                    {selectedVariant?.scopeSummary && (
+                      <Text tone="muted" surface="v5" className="text-data">
+                        {selectedVariant.scopeSummary}
+                      </Text>
+                    )}
+                    {selectedVariant?.excludedScope && (
+                      <Text tone="muted" surface="v5" className="text-data">
+                        {t("excludedScopeLabel", { text: selectedVariant.excludedScope })}
+                      </Text>
+                    )}
                   </>
                 ) : selectedVariant?.priceMin !== undefined && selectedVariant?.priceMax !== undefined ? (
                   <>
@@ -308,6 +322,11 @@ export default async function ProjektPage({
                     {selectedVariant.scopeSummary && (
                       <Text tone="muted" surface="v5" className="text-data">
                         {selectedVariant.scopeSummary}
+                      </Text>
+                    )}
+                    {selectedVariant.excludedScope && (
+                      <Text tone="muted" surface="v5" className="text-data">
+                        {t("excludedScopeLabel", { text: selectedVariant.excludedScope })}
                       </Text>
                     )}
                     {(() => {
@@ -549,7 +568,7 @@ export default async function ProjektPage({
           zapytanie" już w treści. */}
       <div className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-brand-2 border-t-2 border-brand-v5-ink bg-brand-v5-surface px-brand-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-brand-3 lg:hidden">
         <div className="flex min-w-0 flex-col">
-          {project.priceOnRequest ? (
+          {project.priceOnRequest || selectedVariant?.priceOnRequest ? (
             <DataText surface="v5" className="truncate text-body-l font-semibold">
               {t("priceOnRequest")}
             </DataText>
