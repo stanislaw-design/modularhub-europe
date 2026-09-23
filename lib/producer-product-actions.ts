@@ -12,6 +12,7 @@ import { db } from "@/lib/db/client";
 import { document, product, productTranslation, productVariant } from "@/lib/db/schema";
 import { captureError } from "@/lib/observability/errors";
 import { trackEvent } from "@/lib/observability";
+import { clientRequirementsSchema } from "@/lib/product-client-requirements";
 import { faqSchema, faqTranslationSchema } from "@/lib/product-faq";
 import { roomLayoutSchema, roomLayoutTranslationSchema } from "@/lib/product-room-layout";
 import { getTechnicalSpecsSchema } from "@/lib/product-technical-specs";
@@ -89,6 +90,10 @@ function buildProductValues(fields: ProducerProductFields) {
     roomLayout: fields.roomLayout,
     // AC-6.
     faq: fields.faq,
+    // Co musi zapewnić klient, niezależnie od standardu (spec 0050 AC-23):
+    // ten sam wzorzec co roomLayout/faq wyżej, walidacja kształtu przez
+    // clientRequirementsSchema w validateContentShape niżej.
+    clientRequirements: fields.clientRequirements,
     structuralWarrantyYears: fields.structuralWarrantyYears,
     // AC-8: logistyka i zgodność, czysto deklaratywne, bez reguły wyliczającej.
     installationWarrantyYears: fields.installationWarrantyYears,
@@ -304,6 +309,9 @@ function validateContentShape(fields: ProducerProductFields): string | null {
   }
   if (!faqTranslationSchema.safeParse(fields.faqNl).success) {
     return "Nieprawidłowe tłumaczenie FAQ (niderlandzki).";
+  }
+  if (!clientRequirementsSchema.safeParse(fields.clientRequirements).success) {
+    return "Nieprawidłowa lista wymagań wobec klienta.";
   }
   return null;
 }

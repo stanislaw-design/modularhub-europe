@@ -1,3 +1,4 @@
+import type { ClientRequirementRow } from "../product-client-requirements";
 import type { FaqRow, FaqTranslationRow } from "../product-faq";
 import type { FloorLevel, RoomLayoutRow, RoomLayoutTranslationRow } from "../product-room-layout";
 
@@ -323,6 +324,11 @@ export interface ProjectDraft {
   faq: FaqRow[];
   faqEn: FaqTranslationRow[];
   faqNl: FaqTranslationRow[];
+  // Co musi zapewnic klient, niezaleznie od wybranego standardu (spec 0050
+  // AC-23): zapisywany do product.client_requirements, ten sam wzorzec co
+  // roomLayout/faq wyzej. Tlumaczenie wlasnych pozycji (AC-28) buduje sie w
+  // zadaniu 9, nie tutaj.
+  clientRequirements: ClientRequirementRow[];
   floorPlanFiles: MockUploadedFile[];
   photoFiles: MockUploadedFile[];
   // Gwarancja konstrukcyjna (dom/materialy), niezalezna od

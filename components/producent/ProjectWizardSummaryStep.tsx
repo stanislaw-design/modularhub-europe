@@ -131,6 +131,7 @@ export function ProjectWizardSummaryStep({ draft, countries }: ProjectWizardSumm
       <SummaryGroup title={t("groupContent")}>
         <SummaryRow label={t("rowRoomCount")} value={String(draft.roomLayout.length)} />
         <SummaryRow label={t("rowFaqCount")} value={String(draft.faq.length)} />
+        <SummaryRow label={t("rowClientRequirementsCount")} value={String(draft.clientRequirements.length)} />
       </SummaryGroup>
 
       <Stack gap={2}>

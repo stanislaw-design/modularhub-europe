@@ -251,6 +251,15 @@
       "uslugowe": "Usługowy",
       "mieszkalne": "Mieszkalny"
     },
+    "clientRequirementCatalog": {
+      "fundament": "Fundament",
+      "przygotowanie-dzialki": "Przygotowanie działki",
+      "dojazd-dla-transportu": "Dojazd dla transportu",
+      "miejsce-dla-dzwigu": "Miejsce dla dźwigu",
+      "przylacza": "Przyłącza",
+      "formalnosci": "Formalności",
+      "prace-poza-zakresem-producenta": "Prace niewchodzące w zakres producenta"
+    },
     "completionStandard": {
       "surowy-zamkniety": "Stan surowy zamknięty",
       "deweloperski": "Standard deweloperski",
@@ -566,7 +575,12 @@
     "minPlotWidthLabel": "Minimalna szerokość działki (m)",
     "serviceScopeLabel": "Opis zakresu serwisu",
     "transportDimensionsLabel": "Wymiary transportowe",
-    "craneRequirementsLabel": "Wymagania dotyczące żurawia"
+    "craneRequirementsLabel": "Wymagania dotyczące żurawia",
+    "clientRequirementsHeading": "Co musi zapewnić klient",
+    "clientRequirementsHint": "Zaznacz gotowe pozycje albo dodaj własne — sekcja jest wspólna dla wszystkich standardów tego projektu.",
+    "customRequirementLabel": "Własna pozycja",
+    "addCustomRequirementButton": "Dodaj pozycję",
+    "removeCustomRequirementLabel": "Usuń pozycję {label}"
   },
   "ProjectWizardVariantsStep": {
     "heading": "Warianty i cennik",
@@ -710,6 +724,7 @@
     "groupContent": "Treść karty projektu",
     "rowRoomCount": "Liczba pomieszczeń",
     "rowFaqCount": "Liczba pytań FAQ",
+    "rowClientRequirementsCount": "Liczba pozycji \"Co musi zapewnić klient\"",
     "groupFiles": "Pliki",
     "floorPlanCount": "Rzuty ({count})",
     "photoCount": "Zdjęcia ({count})",

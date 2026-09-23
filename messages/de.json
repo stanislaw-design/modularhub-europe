@@ -251,6 +251,15 @@
       "uslugowe": "Dienstleistung",
       "mieszkalne": "Wohnen"
     },
+    "clientRequirementCatalog": {
+      "fundament": "Fundament",
+      "przygotowanie-dzialki": "Grundstücksvorbereitung",
+      "dojazd-dla-transportu": "Zufahrt für Transport",
+      "miejsce-dla-dzwigu": "Platz für einen Kran",
+      "przylacza": "Anschlüsse",
+      "formalnosci": "Formalitäten",
+      "prace-poza-zakresem-producenta": "Arbeiten außerhalb des Leistungsumfangs des Herstellers"
+    },
     "costLineItemStatus": {
       "w-cenie": "Im Preis enthalten",
       "obowiazkowa-doplata": "Verpflichtender Aufpreis",
@@ -566,7 +575,12 @@
     "minPlotWidthLabel": "Mindestgrundstücksbreite (m)",
     "serviceScopeLabel": "Beschreibung des Serviceumfangs",
     "transportDimensionsLabel": "Transportabmessungen",
-    "craneRequirementsLabel": "Krananforderungen"
+    "craneRequirementsLabel": "Krananforderungen",
+    "clientRequirementsHeading": "Was der Kunde bereitstellen muss",
+    "clientRequirementsHint": "Wählen Sie die vorgefertigten Punkte aus oder fügen Sie eigene hinzu — dieser Abschnitt gilt für alle Standards dieses Projekts.",
+    "customRequirementLabel": "Eigener Punkt",
+    "addCustomRequirementButton": "Punkt hinzufügen",
+    "removeCustomRequirementLabel": "Punkt {label} entfernen"
   },
   "ProjectWizardVariantsStep": {
     "heading": "Varianten und Preise",
@@ -710,6 +724,7 @@
     "groupContent": "Inhalt der Projektseite",
     "rowRoomCount": "Anzahl der Räume",
     "rowFaqCount": "Anzahl der FAQ-Einträge",
+    "rowClientRequirementsCount": "Anzahl der Punkte \"Was der Kunde bereitstellen muss\"",
     "groupFiles": "Dateien",
     "floorPlanCount": "Grundrisse ({count})",
     "photoCount": "Fotos ({count})",

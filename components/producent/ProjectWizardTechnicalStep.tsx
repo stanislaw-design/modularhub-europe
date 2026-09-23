@@ -1,9 +1,10 @@
 import { useTranslations } from "next-intl";
-import { useEffect } from "react";
-import { Controller, type Path, useFormContext, useWatch } from "react-hook-form";
-import { Checkbox, Heading, Input, Label, Select, Stack } from "@/components/ui";
+import { useEffect, useState } from "react";
+import { Trash2 } from "lucide-react";
+import { Controller, type Path, useFieldArray, useFormContext, useWatch } from "react-hook-form";
+import { Button, Checkbox, Heading, Input, Label, Select, Stack, Text } from "@/components/ui";
 import type { ProjectDraft } from "@/lib/data/types";
-import { getTechnicalFieldsFor } from "@/lib/producer-project-draft";
+import { getClientRequirementCatalogOptions, getTechnicalFieldsFor } from "@/lib/producer-project-draft";
 import { ProjectWizardTechnicalField } from "./ProjectWizardTechnicalField";
 
 interface ProjectWizardTechnicalStepProps {
@@ -28,6 +29,30 @@ export function ProjectWizardTechnicalStep({ showValidation }: ProjectWizardTech
   const warrantyInvalid =
     showValidation &&
     (structuralWarrantyYears === null || !Number.isInteger(structuralWarrantyYears) || structuralWarrantyYears < 0);
+
+  // "Co musi zapewnić klient" (spec 0050 AC-23): raz na produkt, niezależnie
+  // od wybranego standardu — stąd tutaj, w kroku technicznym, nie w
+  // ProjectWizardVariantsStep. excludedScope per standard (AC-24) zostaje
+  // osobnym polem tam, nigdy łączonym z tym katalogiem.
+  const clientRequirementsArray = useFieldArray({ control, name: "clientRequirements" });
+  const catalogOptions = getClientRequirementCatalogOptions(tOptions);
+  const [customRequirementText, setCustomRequirementText] = useState("");
+
+  function toggleCatalogRequirement(key: (typeof catalogOptions)[number]["value"], label: string) {
+    const existingIndex = clientRequirementsArray.fields.findIndex((field) => field.key === key);
+    if (existingIndex !== -1) {
+      clientRequirementsArray.remove(existingIndex);
+      return;
+    }
+    clientRequirementsArray.append({ id: crypto.randomUUID(), key, label, custom: false });
+  }
+
+  function addCustomRequirement() {
+    const label = customRequirementText.trim();
+    if (!label) return;
+    clientRequirementsArray.append({ id: crypto.randomUUID(), key: null, label, custom: true });
+    setCustomRequirementText("");
+  }
 
   // heatTransferCoefficients domyślnie "nieznana"/"Nie podano" (spec 0050
   // AC-20): tylko dla family "dom" (jedyna rodzina, której .strict() schemat
@@ -156,6 +181,68 @@ export function ProjectWizardTechnicalStep({ showValidation }: ProjectWizardTech
             {t("structuralWarrantyRequiredError")}
           </p>
         )}
+      </Stack>
+
+      <Stack gap={2}>
+        <Stack gap={1}>
+          <Text as="span" variant="label">
+            {t("clientRequirementsHeading")}
+          </Text>
+          <Text tone="muted">{t("clientRequirementsHint")}</Text>
+        </Stack>
+
+        <Stack gap={1}>
+          {catalogOptions.map((option) => {
+            const checked = clientRequirementsArray.fields.some((field) => field.key === option.value);
+            const checkboxId = `wizard-client-requirement-${option.value}`;
+            return (
+              <div key={option.value} className="flex items-center gap-brand-1">
+                <Checkbox
+                  id={checkboxId}
+                  checked={checked}
+                  onChange={() => toggleCatalogRequirement(option.value, option.label)}
+                />
+                <Label htmlFor={checkboxId}>{option.label}</Label>
+              </div>
+            );
+          })}
+        </Stack>
+
+        {clientRequirementsArray.fields.some((field) => field.custom) && (
+          <Stack gap={1}>
+            {clientRequirementsArray.fields.map((field, index) =>
+              field.custom ? (
+                <div key={field.id} className="flex items-center gap-brand-2">
+                  <Text as="span" className="min-w-0 flex-1 truncate">
+                    {field.label}
+                  </Text>
+                  <button
+                    type="button"
+                    onClick={() => clientRequirementsArray.remove(index)}
+                    aria-label={t("removeCustomRequirementLabel", { label: field.label })}
+                    className="focus-ring flex size-8 shrink-0 items-center justify-center rounded-data text-brand-technical-graphite hover:text-status-blocked"
+                  >
+                    <Trash2 className="size-4" aria-hidden="true" />
+                  </button>
+                </div>
+              ) : null,
+            )}
+          </Stack>
+        )}
+
+        <Stack direction="row" gap={2} className="flex-wrap items-end">
+          <Stack gap={1} className="min-w-48 flex-1">
+            <Label htmlFor="wizard-client-requirement-custom">{t("customRequirementLabel")}</Label>
+            <Input
+              id="wizard-client-requirement-custom"
+              value={customRequirementText}
+              onChange={(event) => setCustomRequirementText(event.target.value)}
+            />
+          </Stack>
+          <Button type="button" variant="secondary" size="sm" onClick={addCustomRequirement} disabled={!customRequirementText.trim()}>
+            {t("addCustomRequirementButton")}
+          </Button>
+        </Stack>
       </Stack>
     </Stack>
   );

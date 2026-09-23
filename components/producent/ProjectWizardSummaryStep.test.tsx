@@ -71,4 +71,23 @@ describe("ProjectWizardSummaryStep", () => {
     expect(screen.getByText("Rzuty (0)")).toBeInTheDocument();
     expect(screen.getByText("Zdjęcia (0)")).toBeInTheDocument();
   });
+
+  // Spec 0050 AC-23: sama sekcja żyje w kroku technicznym, ale jej liczba
+  // pozycji jest widoczna tu, tym samym wzorcem co rowRoomCount/rowFaqCount.
+  it("shows the client requirements count", () => {
+    render(
+      <ProjectWizardSummaryStep
+        draft={{
+          ...createEmptyDraft(),
+          clientRequirements: [
+            { id: "1", key: "fundament", label: "Fundament", custom: false },
+            { id: "2", key: null, label: "Wyburzenie szopy", custom: true },
+          ],
+        }}
+        countries={countries}
+      />,
+    );
+
+    expect(screen.getByText("2")).toBeInTheDocument();
+  });
 });

@@ -15,6 +15,7 @@ import {
 } from "@/lib/db/queries";
 import { requirePanelProducerSession } from "@/lib/panel-session";
 import { alignFaqTranslation, alignRoomLayoutTranslation } from "@/lib/producer-project-draft";
+import { clientRequirementsSchema } from "@/lib/product-client-requirements";
 import { faqSchema, faqTranslationSchema } from "@/lib/product-faq";
 import { roomLayoutSchema, roomLayoutTranslationSchema } from "@/lib/product-room-layout";
 
@@ -35,6 +36,8 @@ function producerProductToDraft(row: ProducerProductForEdit, variants: ProducerV
   const faq = faqResult.success ? faqResult.data : [];
   const faqEnResult = faqTranslationSchema.safeParse(row.faqEn ?? []);
   const faqNlResult = faqTranslationSchema.safeParse(row.faqNl ?? []);
+  const clientRequirementsResult = clientRequirementsSchema.safeParse(row.clientRequirements ?? []);
+  const clientRequirements = clientRequirementsResult.success ? clientRequirementsResult.data : [];
 
   return {
     name: row.name,
@@ -59,6 +62,7 @@ function producerProductToDraft(row: ProducerProductForEdit, variants: ProducerV
     faq,
     faqEn: alignFaqTranslation(faq, faqEnResult.success ? faqEnResult.data : []),
     faqNl: alignFaqTranslation(faq, faqNlResult.success ? faqNlResult.data : []),
+    clientRequirements,
     floorPlanFiles: [],
     photoFiles: [],
     structuralWarrantyYears: row.structuralWarrantyYears,

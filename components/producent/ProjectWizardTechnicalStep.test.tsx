@@ -210,3 +210,92 @@ describe("ProjectWizardTechnicalStep: no family chosen yet", () => {
     expect(screen.queryByLabelText(/Układ ścian/)).not.toBeInTheDocument();
   });
 });
+
+// Spec 0050 AC-23, AC-24: raz na produkt, niezależnie od family/standardu —
+// renderowana nawet przed wyborem family, jak gwarancja konstrukcyjna wyżej.
+describe("ProjectWizardTechnicalStep: client requirements section (spec 0050 AC-23)", () => {
+  it("renders the seven catalog checkboxes, all unchecked on an empty draft", () => {
+    renderStep(createEmptyDraft(), false);
+
+    for (const label of [
+      "Fundament",
+      "Przygotowanie działki",
+      "Dojazd dla transportu",
+      "Miejsce dla dźwigu",
+      "Przyłącza",
+      "Formalności",
+      "Prace niewchodzące w zakres producenta",
+    ]) {
+      expect(screen.getByRole("checkbox", { name: label })).not.toBeChecked();
+    }
+  });
+
+  it("checking a catalog item adds it to the form's clientRequirements, unchecking removes it", async () => {
+    const user = userEvent.setup();
+    const getForm = renderStep(createEmptyDraft(), false);
+
+    await user.click(screen.getByRole("checkbox", { name: "Fundament" }));
+
+    expect(getForm().getValues("clientRequirements")).toEqual([
+      { id: expect.any(String), key: "fundament", label: "Fundament", custom: false },
+    ]);
+    expect(screen.getByRole("checkbox", { name: "Fundament" })).toBeChecked();
+
+    await user.click(screen.getByRole("checkbox", { name: "Fundament" }));
+
+    expect(getForm().getValues("clientRequirements")).toEqual([]);
+  });
+
+  it("pre-checks a catalog item already present in the draft (edit mode)", () => {
+    renderStep(
+      {
+        ...createEmptyDraft(),
+        clientRequirements: [{ id: "existing-1", key: "przylacza", label: "Przyłącza", custom: false }],
+      },
+      false,
+    );
+
+    expect(screen.getByRole("checkbox", { name: "Przyłącza" })).toBeChecked();
+  });
+
+  it("adds a custom item via the text field and button, then clears the input", async () => {
+    const user = userEvent.setup();
+    const getForm = renderStep(createEmptyDraft(), false);
+
+    await user.type(screen.getByLabelText("Własna pozycja"), "Wyburzenie starej szopy");
+    await user.click(screen.getByRole("button", { name: "Dodaj pozycję" }));
+
+    expect(getForm().getValues("clientRequirements")).toEqual([
+      { id: expect.any(String), key: null, label: "Wyburzenie starej szopy", custom: true },
+    ]);
+    expect(screen.getByLabelText("Własna pozycja")).toHaveValue("");
+    expect(screen.getByText("Wyburzenie starej szopy")).toBeInTheDocument();
+  });
+
+  it("disables the add-custom-item button while the text field is empty", () => {
+    renderStep(createEmptyDraft(), false);
+
+    expect(screen.getByRole("button", { name: "Dodaj pozycję" })).toBeDisabled();
+  });
+
+  it("removes a custom item via its trash button, leaving catalog items untouched", async () => {
+    const user = userEvent.setup();
+    const getForm = renderStep(
+      {
+        ...createEmptyDraft(),
+        clientRequirements: [
+          { id: "catalog-1", key: "fundament", label: "Fundament", custom: false },
+          { id: "custom-1", key: null, label: "Usunięcie starych fundamentów", custom: true },
+        ],
+      },
+      false,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Usuń pozycję Usunięcie starych fundamentów" }));
+
+    expect(getForm().getValues("clientRequirements")).toEqual([
+      { id: "catalog-1", key: "fundament", label: "Fundament", custom: false },
+    ]);
+    expect(screen.getByRole("checkbox", { name: "Fundament" })).toBeChecked();
+  });
+});

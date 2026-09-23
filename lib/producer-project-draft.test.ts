@@ -52,6 +52,7 @@ function completeDraft(): ProjectDraft {
     faq: [],
     faqEn: [],
     faqNl: [],
+    clientRequirements: [],
     floorPlanFiles: [{ name: "rzut.pdf", sizeBytes: 100 }],
     photoFiles: [{ name: "zdjecie.png", sizeBytes: 200 }],
     structuralWarrantyYears: 25,

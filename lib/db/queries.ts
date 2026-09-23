@@ -97,6 +97,7 @@ export interface ProducerProductForEdit {
   technicalSpecs: unknown;
   roomLayout: unknown;
   faq: unknown;
+  clientRequirements: unknown;
   structuralWarrantyYears: number | null;
   installationWarrantyYears: number | null;
   serviceScopeDescription: string | null;
@@ -162,6 +163,7 @@ export async function getProducerProductForEdit(
     technicalSpecs: row.technicalSpecs,
     roomLayout: row.roomLayout,
     faq: row.faq,
+    clientRequirements: row.clientRequirements,
     structuralWarrantyYears: row.structuralWarrantyYears,
     installationWarrantyYears: row.installationWarrantyYears,
     serviceScopeDescription: row.serviceScopeDescription,

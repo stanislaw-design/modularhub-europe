@@ -1,5 +1,6 @@
 import type { useTranslations } from "next-intl";
 import type { ProducerProductFields } from "./producer-product-actions";
+import { CLIENT_REQUIREMENT_CATALOG_KEYS, type ClientRequirementCatalogKey } from "./product-client-requirements";
 import type { FaqRow, FaqTranslationRow } from "./product-faq";
 import { FLOOR_LEVELS, type FloorLevel, type RoomLayoutRow, type RoomLayoutTranslationRow } from "./product-room-layout";
 import { CONSTRUCTION_TECHNOLOGIES, ENERGY_CLASSES, HEAT_SOURCES, VENTILATION_TYPES } from "./product-technical-specs";
@@ -177,6 +178,18 @@ const CONSTRUCTION_TECHNOLOGY_LABELS: Record<(typeof CONSTRUCTION_TECHNOLOGIES)[
 };
 export const CONSTRUCTION_TECHNOLOGY_OPTIONS: { value: (typeof CONSTRUCTION_TECHNOLOGIES)[number]; label: string }[] =
   CONSTRUCTION_TECHNOLOGIES.map((value) => ({ value, label: CONSTRUCTION_TECHNOLOGY_LABELS[value] }));
+
+// Katalog gotowych pozycji "Co musi zapewnić klient" (spec 0050 AC-23):
+// etykieta zapisana wprost w wierszu przy zaznaczeniu (patrz Szkic modelu
+// danych spec 0050), nie tylko wyprowadzana z key przy każdym renderze, żeby
+// product.client_requirements niosło pełny, czytelny opis nawet bez
+// ponownego przejścia przez ten katalog (np. przy ręcznym odczycie z Neon MCP).
+// Producencki kreator jest dziś wyłącznie polski (locale "pl" jedyny aktywny,
+// AGENTS.md), więc ta sama t() daje zarówno etykietę wyświetlaną, jak i
+// zapisywaną — jedno źródło prawdy, ten sam wzorzec co pozostałe opcje w tym pliku.
+export function getClientRequirementCatalogOptions(t: Translate): { value: ClientRequirementCatalogKey; label: string }[] {
+  return CLIENT_REQUIREMENT_CATALOG_KEYS.map((value) => ({ value, label: t(`clientRequirementCatalog.${value}`) }));
+}
 
 export interface TechnicalFieldConfig {
   key: keyof import("./data/types").ProductTechnicalSpecsDraft;
@@ -457,6 +470,7 @@ export function createEmptyDraft(): ProjectDraft {
     faq: [],
     faqEn: [],
     faqNl: [],
+    clientRequirements: [],
     floorPlanFiles: [],
     photoFiles: [],
     structuralWarrantyYears: null,

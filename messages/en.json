@@ -251,6 +251,15 @@
       "uslugowe": "Service",
       "mieszkalne": "Residential"
     },
+    "clientRequirementCatalog": {
+      "fundament": "Foundation",
+      "przygotowanie-dzialki": "Plot preparation",
+      "dojazd-dla-transportu": "Access for transport",
+      "miejsce-dla-dzwigu": "Space for a crane",
+      "przylacza": "Utility connections",
+      "formalnosci": "Formalities",
+      "prace-poza-zakresem-producenta": "Work outside the producer's scope"
+    },
     "costLineItemStatus": {
       "w-cenie": "Included",
       "obowiazkowa-doplata": "Mandatory surcharge",
@@ -566,7 +575,12 @@
     "minPlotWidthLabel": "Minimum plot width (m)",
     "serviceScopeLabel": "Service scope description",
     "transportDimensionsLabel": "Transport dimensions",
-    "craneRequirementsLabel": "Crane requirements"
+    "craneRequirementsLabel": "Crane requirements",
+    "clientRequirementsHeading": "What the client must provide",
+    "clientRequirementsHint": "Check the ready-made items or add your own — this section is shared across all standards for this project.",
+    "customRequirementLabel": "Custom item",
+    "addCustomRequirementButton": "Add item",
+    "removeCustomRequirementLabel": "Remove item {label}"
   },
   "ProjectWizardVariantsStep": {
     "heading": "Variants and pricing",
@@ -710,6 +724,7 @@
     "groupContent": "Project page content",
     "rowRoomCount": "Number of rooms",
     "rowFaqCount": "Number of FAQ entries",
+    "rowClientRequirementsCount": "Number of \"What the client must provide\" items",
     "groupFiles": "Files",
     "floorPlanCount": "Floor plans ({count})",
     "photoCount": "Photos ({count})",

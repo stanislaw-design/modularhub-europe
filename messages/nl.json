@@ -251,6 +251,15 @@
       "uslugowe": "Dienstverlening",
       "mieszkalne": "Wonen"
     },
+    "clientRequirementCatalog": {
+      "fundament": "Fundering",
+      "przygotowanie-dzialki": "Voorbereiding van de kavel",
+      "dojazd-dla-transportu": "Toegang voor transport",
+      "miejsce-dla-dzwigu": "Ruimte voor een kraan",
+      "przylacza": "Aansluitingen",
+      "formalnosci": "Formaliteiten",
+      "prace-poza-zakresem-producenta": "Werkzaamheden buiten de scope van de producent"
+    },
     "costLineItemStatus": {
       "w-cenie": "Inbegrepen",
       "obowiazkowa-doplata": "Verplichte meerprijs",
@@ -566,7 +575,12 @@
     "minPlotWidthLabel": "Minimale kavelbreedte (m)",
     "serviceScopeLabel": "Omschrijving van de service",
     "transportDimensionsLabel": "Transportafmetingen",
-    "craneRequirementsLabel": "Kraanvereisten"
+    "craneRequirementsLabel": "Kraanvereisten",
+    "clientRequirementsHeading": "Wat de klant moet regelen",
+    "clientRequirementsHint": "Vink de kant-en-klare items aan of voeg eigen items toe — deze sectie geldt voor alle standaarden van dit project.",
+    "customRequirementLabel": "Eigen item",
+    "addCustomRequirementButton": "Item toevoegen",
+    "removeCustomRequirementLabel": "Item {label} verwijderen"
   },
   "ProjectWizardVariantsStep": {
     "heading": "Varianten en prijzen",
@@ -710,6 +724,7 @@
     "groupContent": "Inhoud van de projectpagina",
     "rowRoomCount": "Aantal ruimtes",
     "rowFaqCount": "Aantal FAQ-vragen",
+    "rowClientRequirementsCount": "Aantal items \"Wat de klant moet regelen\"",
     "groupFiles": "Bestanden",
     "floorPlanCount": "Plattegronden ({count})",
     "photoCount": "Foto's ({count})",
