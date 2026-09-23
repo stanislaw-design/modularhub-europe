@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
+import { useEffect } from "react";
 import { Controller, type Path, useFormContext, useWatch } from "react-hook-form";
-import { Checkbox, Heading, Input, Label, Select, Stack, Text } from "@/components/ui";
+import { Checkbox, Heading, Input, Label, Select, Stack } from "@/components/ui";
 import type { ProjectDraft } from "@/lib/data/types";
 import { getTechnicalFieldsFor } from "@/lib/producer-project-draft";
 import { ProjectWizardTechnicalField } from "./ProjectWizardTechnicalField";
@@ -8,8 +9,6 @@ import { ProjectWizardTechnicalField } from "./ProjectWizardTechnicalField";
 interface ProjectWizardTechnicalStepProps {
   showValidation: boolean;
 }
-
-type SimplifiedPermitValue = "" | "tak" | "nie";
 
 // Krok skonsolidowany z dawnych trzech (konstrukcja/instalacje/odpornosc):
 // pola zależą od draft.family (spec 0022 AC-6), a dla "kontenery-modulowe"
@@ -21,7 +20,7 @@ type SimplifiedPermitValue = "" | "tak" | "nie";
 export function ProjectWizardTechnicalStep({ showValidation }: ProjectWizardTechnicalStepProps) {
   const t = useTranslations("ProjectWizardTechnicalStep");
   const tOptions = useTranslations("ProjectOptions");
-  const { control, register } = useFormContext<ProjectDraft>();
+  const { control, register, setValue } = useFormContext<ProjectDraft>();
   const family = useWatch({ control, name: "family" });
   const containerSubcategory = useWatch({ control, name: "containerSubcategory" });
   const technicalSpecs = useWatch({ control, name: "technicalSpecs" });
@@ -29,6 +28,19 @@ export function ProjectWizardTechnicalStep({ showValidation }: ProjectWizardTech
   const warrantyInvalid =
     showValidation &&
     (structuralWarrantyYears === null || !Number.isInteger(structuralWarrantyYears) || structuralWarrantyYears < 0);
+
+  // heatTransferCoefficients domyślnie "nieznana"/"Nie podano" (spec 0050
+  // AC-20): tylko dla family "dom" (jedyna rodzina, której .strict() schemat
+  // w ogóle ma to pole, patrz lib/product-technical-specs.ts) — ustawiane tu,
+  // przy pierwszym renderze kroku z tą rodziną, zamiast w createEmptyDraft
+  // (które nie zna jeszcze family), żeby nigdy nie zanieczyścić
+  // technicalSpecs innej rodziny nieznanym dla niej kluczem.
+  useEffect(() => {
+    if (family === "dom" && technicalSpecs.heatTransferCoefficients === undefined) {
+      setValue("technicalSpecs.heatTransferCoefficients" as Path<ProjectDraft>, "nieznana");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [family]);
 
   const fields = family === null ? [] : getTechnicalFieldsFor(family, containerSubcategory, tOptions);
 
@@ -39,11 +51,13 @@ export function ProjectWizardTechnicalStep({ showValidation }: ProjectWizardTech
         const value = technicalSpecs[field.key];
         const fieldName = `technicalSpecs.${field.key}` as Path<ProjectDraft>;
         if (field.type === "select") {
-          const invalid = showValidation && (value === undefined || value === "");
+          const invalid = !field.optional && showValidation && (value === undefined || value === "");
           const labelId = `wizard-technical-${field.key}-label`;
+          const showOtherField = field.otherKey !== undefined && value === field.otherValue;
+          const otherFieldName = field.otherKey ? (`technicalSpecs.${field.otherKey}` as Path<ProjectDraft>) : undefined;
           return (
             <Stack key={field.key} gap={1}>
-              <Label id={labelId} required>
+              <Label id={labelId} required={!field.optional}>
                 {field.label}
               </Label>
               <Controller
@@ -63,6 +77,12 @@ export function ProjectWizardTechnicalStep({ showValidation }: ProjectWizardTech
                 <p className="font-sans text-body text-status-blocked">
                   {t("selectRequiredError", { label: field.label.toLowerCase() })}
                 </p>
+              )}
+              {showOtherField && otherFieldName && (
+                <Stack gap={1}>
+                  <Label htmlFor={`wizard-technical-${field.key}-other`}>{field.otherLabel}</Label>
+                  <Input id={`wizard-technical-${field.key}-other`} {...register(otherFieldName)} />
+                </Stack>
               )}
             </Stack>
           );
@@ -136,50 +156,6 @@ export function ProjectWizardTechnicalStep({ showValidation }: ProjectWizardTech
             {t("structuralWarrantyRequiredError")}
           </p>
         )}
-      </Stack>
-
-      <Stack gap={2}>
-        <Stack gap={1}>
-          <Text as="span" variant="label">
-            {t("logisticsHeading")}
-          </Text>
-          <Text tone="muted">{t("logisticsHint")}</Text>
-        </Stack>
-
-        {/* minPlotWidthM/serviceScopeDescription/transportDimensions/craneRequirements
-            usunięte z kreatora (spec 0049 AC-1): dane istniejących produktów
-            zostają w bazie, rolę przejmuje jeden PDF specyfikacji (AC-6). */}
-        <Stack direction="row" gap={3} className="flex-wrap">
-          <Stack gap={1} className="min-w-40 flex-1">
-            <Label htmlFor="wizard-installation-warranty">{t("installationWarrantyLabel")}</Label>
-            <Input
-              id="wizard-installation-warranty"
-              type="number"
-              min={0}
-              {...register("installationWarrantyYears", { setValueAs: (value) => (value === "" ? null : Number(value)) })}
-            />
-          </Stack>
-        </Stack>
-
-        <Stack gap={1}>
-          <Label id="wizard-simplified-permit-label">{t("simplifiedPermitLabel")}</Label>
-          <Controller
-            name="simplifiedPermitEligible"
-            control={control}
-            render={({ field }) => (
-              <Select<SimplifiedPermitValue>
-                value={field.value === null ? "" : field.value ? "tak" : "nie"}
-                onChange={(value) => field.onChange(value === "" ? null : value === "tak")}
-                options={[
-                  { value: "", label: t("simplifiedPermitUnset") },
-                  { value: "tak", label: t("simplifiedPermitYes") },
-                  { value: "nie", label: t("simplifiedPermitNo") },
-                ]}
-                aria-labelledby="wizard-simplified-permit-label"
-              />
-            )}
-          />
-        </Stack>
       </Stack>
     </Stack>
   );

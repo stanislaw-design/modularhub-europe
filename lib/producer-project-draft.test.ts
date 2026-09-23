@@ -42,6 +42,7 @@ function completeDraft(): ProjectDraft {
       windowClass: "Uw = 0.8",
       ventilation: "rekuperacja",
       heatSource: "pompa-ciepla-powietrze-woda",
+      constructionTechnology: "szkielet-drewniany",
       fireResistance: "REI 30",
       windResistance: "Strefa 2",
     },
@@ -401,13 +402,18 @@ describe("dom technical fields: heatSource/ventilation/heatTransferCoefficients 
     }
   });
 
+  // "inna" dopisana (spec 0050 AC-20): lista z opcją własnej wartości.
   it("VENTILATION_TYPE_OPTIONS has one entry per VENTILATION_TYPES enum value", () => {
-    expect(VENTILATION_TYPE_OPTIONS).toHaveLength(4);
+    expect(VENTILATION_TYPE_OPTIONS).toHaveLength(5);
   });
 
-  it("ENERGY_CLASS_OPTIONS excludes 'nieznana' (a backfill default, not a real choice, spec 0026 Feature design)", () => {
+  // "nieznana" wraca jako prawdziwa opcja, relabelowana "Nie podano" (spec
+  // 0050 AC-20) — nie tylko domyślna wartość jednorazowego backfillu (spec
+  // 0026 AC-12) jak wcześniej.
+  it("ENERGY_CLASS_OPTIONS includes 'nieznana', labeled 'Nie podano' (spec 0050 AC-20)", () => {
     const values: string[] = ENERGY_CLASS_OPTIONS.map((o) => o.value);
-    expect(values).toEqual(["A+", "A", "B", "C", "D"]);
-    expect(values).not.toContain("nieznana");
+    expect(values).toEqual(["A+", "A", "B", "C", "D", "nieznana"]);
+    const unspecified = ENERGY_CLASS_OPTIONS.find((o) => o.value === "nieznana");
+    expect(unspecified?.label).toBe("Nie podano");
   });
 });

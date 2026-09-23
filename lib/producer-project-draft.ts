@@ -2,7 +2,7 @@ import type { useTranslations } from "next-intl";
 import type { ProducerProductFields } from "./producer-product-actions";
 import type { FaqRow, FaqTranslationRow } from "./product-faq";
 import { FLOOR_LEVELS, type FloorLevel, type RoomLayoutRow, type RoomLayoutTranslationRow } from "./product-room-layout";
-import { ENERGY_CLASSES, HEAT_SOURCES, VENTILATION_TYPES } from "./product-technical-specs";
+import { CONSTRUCTION_TECHNOLOGIES, ENERGY_CLASSES, HEAT_SOURCES, VENTILATION_TYPES } from "./product-technical-specs";
 import type {
   CompletionStandard,
   ContainerSubcategory,
@@ -156,16 +156,27 @@ const VENTILATION_TYPE_LABELS: Record<(typeof VENTILATION_TYPES)[number], string
   "mechaniczna-nawiewno-wywiewna": "Mechaniczna nawiewno-wywiewna",
   rekuperacja: "Rekuperacja (mechaniczna z odzyskiem ciepła)",
   brak: "Brak",
+  inna: "Inna",
 };
 export const VENTILATION_TYPE_OPTIONS: { value: (typeof VENTILATION_TYPES)[number]; label: string }[] =
   VENTILATION_TYPES.map((value) => ({ value, label: VENTILATION_TYPE_LABELS[value] }));
 
-// "nieznana" celowo pominięta: to bezpieczna wartość domyślna jednorazowego
-// backfillu (spec 0026 AC-12), nie prawdziwa opcja wyboru producenta.
-export const ENERGY_CLASS_OPTIONS: { value: Exclude<(typeof ENERGY_CLASSES)[number], "nieznana">; label: string }[] =
-  ENERGY_CLASSES.filter((value): value is Exclude<(typeof ENERGY_CLASSES)[number], "nieznana"> => value !== "nieznana").map(
-    (value) => ({ value, label: `Klasa ${value}` }),
-  );
+// "nieznana" wraca jako prawdziwa opcja wyboru, relabelowana "Nie podano"
+// (spec 0050 AC-20): pole jest teraz jawnie opcjonalne w kreatorze, nie
+// tylko domyślna wartość jednorazowego backfillu (spec 0026 AC-12).
+export const ENERGY_CLASS_OPTIONS: { value: (typeof ENERGY_CLASSES)[number]; label: string }[] = ENERGY_CLASSES.map(
+  (value) => ({ value, label: value === "nieznana" ? "Nie podano" : `Klasa ${value}` }),
+);
+
+const CONSTRUCTION_TECHNOLOGY_LABELS: Record<(typeof CONSTRUCTION_TECHNOLOGIES)[number], string> = {
+  "szkielet-drewniany": "Szkielet drewniany",
+  "modulowa-stal-lekka": "Modułowa (stal lekka)",
+  "plyta-warstwowa-sip": "Płyta warstwowa (SIP)",
+  "beton-modulowy": "Beton modułowy",
+  inne: "Inna",
+};
+export const CONSTRUCTION_TECHNOLOGY_OPTIONS: { value: (typeof CONSTRUCTION_TECHNOLOGIES)[number]; label: string }[] =
+  CONSTRUCTION_TECHNOLOGIES.map((value) => ({ value, label: CONSTRUCTION_TECHNOLOGY_LABELS[value] }));
 
 export interface TechnicalFieldConfig {
   key: keyof import("./data/types").ProductTechnicalSpecsDraft;
@@ -176,6 +187,16 @@ export interface TechnicalFieldConfig {
   // CONTAINER_TECHNICAL_FIELDS_BY_SUBCATEGORY i isTechnicalSpecsComplete niżej.
   type: "text" | "number" | "select" | "boolean";
   options?: { value: string; label: string }[];
+  // Spec 0050 AC-20: gdy select ma wartość równą otherValue, obok renderuje
+  // się dodatkowe, opcjonalne pole tekstowe (otherKey) na własną wartość
+  // producenta (np. heatSource === "inne" -> heatSourceOther).
+  otherValue?: string;
+  otherKey?: keyof import("./data/types").ProductTechnicalSpecsDraft;
+  otherLabel?: string;
+  // Spec 0050 AC-20: pole nie blokuje kompletności kroku technicznego (dziś
+  // tylko heatTransferCoefficients — "Nie podano" jest zawsze poprawną,
+  // domyślną wartością, patrz createEmptyDraft). Nadal się renderuje i zapisuje.
+  optional?: boolean;
 }
 
 // Pola techniczne per rodzina (spec 0022 Feature design, technicalSpecs).
@@ -191,11 +212,22 @@ export const TECHNICAL_FIELDS_BY_FAMILY: Record<Exclude<ProductFamily, "kontener
   // nie zbierają/pokazują. Rolę przejmuje jeden PDF specyfikacji (AC-6).
   dom: [
     {
+      key: "constructionTechnology",
+      label: "Technologia konstrukcji",
+      hint: "Główna technologia budowy",
+      type: "select",
+      options: CONSTRUCTION_TECHNOLOGY_OPTIONS,
+      otherValue: "inne",
+      otherKey: "constructionTechnologyOther",
+      otherLabel: "Podaj technologię",
+    },
+    {
       key: "heatTransferCoefficients",
       label: "Klasa energetyczna",
       hint: "Pasmo klasy energetycznej budynku",
       type: "select",
       options: ENERGY_CLASS_OPTIONS,
+      optional: true,
     },
     {
       key: "ventilation",
@@ -203,6 +235,9 @@ export const TECHNICAL_FIELDS_BY_FAMILY: Record<Exclude<ProductFamily, "kontener
       hint: "Typ wentylacji",
       type: "select",
       options: VENTILATION_TYPE_OPTIONS,
+      otherValue: "inna",
+      otherKey: "ventilationOther",
+      otherLabel: "Podaj rodzaj wentylacji",
     },
     {
       key: "heatSource",
@@ -210,6 +245,9 @@ export const TECHNICAL_FIELDS_BY_FAMILY: Record<Exclude<ProductFamily, "kontener
       hint: "Główne źródło ogrzewania",
       type: "select",
       options: HEAT_SOURCE_OPTIONS,
+      otherValue: "inne",
+      otherKey: "heatSourceOther",
+      otherLabel: "Podaj źródło ciepła",
     },
   ],
   "spa-modulowe": [
@@ -379,9 +417,12 @@ export function getTechnicalFieldsFor(
       ...option,
       label:
         field.key === "heatTransferCoefficients"
-          ? t("energyClassPrefix", { code: option.value })
+          ? option.value === "nieznana"
+            ? t("energyClassNotSpecified")
+            : t("energyClassPrefix", { code: option.value })
           : t(`technicalFields.${family}.${field.key}.options.${option.value}`),
     })),
+    otherLabel: field.otherKey ? t(`technicalFields.${family}.${field.key}.otherLabel`) : undefined,
   }));
 }
 
@@ -402,6 +443,13 @@ export function createEmptyDraft(): ProjectDraft {
     category: null,
     spaSubcategory: null,
     containerSubcategory: null,
+    // heatTransferCoefficients domyślnie "nieznana"/"Nie podano" tylko dla
+    // family "dom" (spec 0050 AC-20) — nie ustawiane tu (family jeszcze
+    // nieznana przy pustym draft, a "spa-modulowe"/"kontenery-modulowe" nie
+    // mają wcale tego klucza w swoim .strict() schemacie, patrz
+    // lib/product-technical-specs.ts). Domyślana wartość jest ustawiana przy
+    // pierwszym renderze kroku technicznego z family === "dom" w
+    // ProjectWizardTechnicalStep.tsx, nie tutaj.
     technicalSpecs: {},
     roomLayout: [],
     roomLayoutEn: [],
@@ -460,6 +508,7 @@ function isTechnicalSpecsComplete(draft: ProjectDraft): boolean {
   const fields = getStructuralTechnicalFields(draft);
   if (fields.length === 0) return false;
   return fields.every((field) => {
+    if (field.optional) return true;
     const value = draft.technicalSpecs[field.key];
     if (field.type === "number") return typeof value === "number";
     // "boolean" (spec 0039): kompletne tylko przy dokładnie true/false, nigdy

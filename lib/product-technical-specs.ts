@@ -27,8 +27,32 @@ export const HEAT_SOURCES = [
 ] as const;
 export type HeatSource = (typeof HEAT_SOURCES)[number];
 
-export const VENTILATION_TYPES = ["grawitacyjna", "mechaniczna-nawiewno-wywiewna", "rekuperacja", "brak"] as const;
+// "inna" dopisana (spec 0050 AC-20): lista z opcją własnej wartości, ten sam
+// wzorzec co "inne" w HEAT_SOURCES wyżej — towarzyszący wolny tekst żyje w
+// ventilationOther niżej, znaczący tylko gdy ventilation === "inna".
+export const VENTILATION_TYPES = [
+  "grawitacyjna",
+  "mechaniczna-nawiewno-wywiewna",
+  "rekuperacja",
+  "brak",
+  "inna",
+] as const;
 export type VentilationType = (typeof VENTILATION_TYPES)[number];
+
+// Technologia konstrukcji (spec 0050 AC-20, nowe pole): ta sama lista co
+// producerTechnologyEnum (lib/db/schema.ts, wybór przy rejestracji
+// producenta, spec 0040 AC-8) plus "inne" z własną wartością — dokładna
+// lista jest świadomie prowizoryczna, do ustalenia z prawdziwymi
+// producentami przy budowie (spec 0050 Follow-up), tak jak
+// HEAT_SOURCES/VENTILATION_TYPES.
+export const CONSTRUCTION_TECHNOLOGIES = [
+  "szkielet-drewniany",
+  "modulowa-stal-lekka",
+  "plyta-warstwowa-sip",
+  "beton-modulowy",
+  "inne",
+] as const;
+export type ConstructionTechnology = (typeof CONSTRUCTION_TECHNOLOGIES)[number];
 
 // Nazwa pola (heatTransferCoefficients) zostaje dla ciągłości historii Zod/bazy,
 // ale od spec 0026 niesie pasmo klasy energetycznej, nie opisowy współczynnik U
@@ -46,10 +70,23 @@ export type EnergyClass = (typeof ENERGY_CLASSES)[number];
 const domSpecsShape = {
   wallBuildUp: z.string().optional(),
   insulation: z.string().optional(),
+  // Opcjonalna z jawną wartością "nieznana"/"Nie podano" (spec 0050 AC-20):
+  // pole samo zostaje wymagane w schemacie (zawsze ma jakąś wartość z
+  // enumu), ale kreator już nie wymusza rzeczywistej klasy — "nieznana"
+  // jest teraz prawdziwą, zawsze dostępną opcją wyboru, nie tylko
+  // wartością domyślną backfillu (spec 0026 AC-12).
   heatTransferCoefficients: z.enum(ENERGY_CLASSES),
   windowClass: z.string().optional(),
   ventilation: z.enum(VENTILATION_TYPES),
+  // Znaczący tylko gdy ventilation === "inna" (spec 0050 AC-20).
+  ventilationOther: z.string().optional(),
   heatSource: z.enum(HEAT_SOURCES),
+  // Znaczący tylko gdy heatSource === "inne" (spec 0050 AC-20).
+  heatSourceOther: z.string().optional(),
+  // Nowe pole (spec 0050 AC-20).
+  constructionTechnology: z.enum(CONSTRUCTION_TECHNOLOGIES),
+  // Znaczący tylko gdy constructionTechnology === "inne".
+  constructionTechnologyOther: z.string().optional(),
   fireResistance: z.string().optional(),
   windResistance: z.string().optional(),
 };

@@ -271,6 +271,7 @@
       "pod-klucz": "Turnkey"
     },
     "energyClassPrefix": "Class {code}",
+    "energyClassNotSpecified": "Not specified",
     "technicalFields": {
       "dom": {
         "wallBuildUp": {
@@ -280,6 +281,18 @@
         "insulation": {
           "label": "Insulation",
           "hint": "U-value for walls and roof (W/m²K)"
+        },
+        "constructionTechnology": {
+          "label": "Construction technology",
+          "hint": "Main construction technology",
+          "otherLabel": "Enter the technology",
+          "options": {
+            "szkielet-drewniany": "Timber frame",
+            "modulowa-stal-lekka": "Modular (light steel)",
+            "plyta-warstwowa-sip": "Structural insulated panel (SIP)",
+            "beton-modulowy": "Modular concrete",
+            "inne": "Other"
+          }
         },
         "heatTransferCoefficients": {
           "label": "Energy class",
@@ -292,16 +305,19 @@
         "ventilation": {
           "label": "Ventilation",
           "hint": "Ventilation type",
+          "otherLabel": "Enter the ventilation type",
           "options": {
             "grawitacyjna": "Natural (gravity)",
             "mechaniczna-nawiewno-wywiewna": "Mechanical supply-and-exhaust",
             "rekuperacja": "Heat recovery (mechanical with heat exchanger)",
-            "brak": "None"
+            "brak": "None",
+            "inna": "Other"
           }
         },
         "heatSource": {
           "label": "Heat source",
           "hint": "Main heating source",
+          "otherLabel": "Enter the heat source",
           "options": {
             "pompa-ciepla-powietrze-woda": "Air-to-water heat pump",
             "pompa-ciepla-grunt-woda": "Ground source heat pump (ground-to-water)",
@@ -547,17 +563,10 @@
     "textRequiredError": "Enter {label}.",
     "structuralWarrantyLabel": "Structural warranty (years)",
     "structuralWarrantyRequiredError": "Enter the structural warranty in years.",
-    "logisticsHeading": "Logistics and compliance",
-    "logisticsHint": "Transport and service details plus a simplified-permit declaration — no automated rule behind it.",
-    "installationWarrantyLabel": "Assembly warranty (years)",
     "minPlotWidthLabel": "Minimum plot width (m)",
     "serviceScopeLabel": "Service scope description",
     "transportDimensionsLabel": "Transport dimensions",
-    "craneRequirementsLabel": "Crane requirements",
-    "simplifiedPermitLabel": "Qualifies for a simplified permit",
-    "simplifiedPermitUnset": "Not decided",
-    "simplifiedPermitYes": "Yes",
-    "simplifiedPermitNo": "No"
+    "craneRequirementsLabel": "Crane requirements"
   },
   "ProjectWizardVariantsStep": {
     "heading": "Variants and pricing",
@@ -698,8 +707,6 @@
     "groupLogistics": "Logistics and compliance",
     "rowWarranty": "Structural warranty",
     "rowWarrantyValue": "{years} yrs",
-    "rowInstallationWarranty": "Assembly warranty",
-    "rowSimplifiedPermit": "Simplified permit",
     "groupContent": "Project page content",
     "rowRoomCount": "Number of rooms",
     "rowFaqCount": "Number of FAQ entries",
@@ -819,8 +826,6 @@
       "conditional": "Requires additional documents",
       "blocked": "Not available in this country"
     },
-    "simplifiedPermitEligible": "Eligible for the simplified permit notice",
-    "simplifiedPermitNotEligible": "Not eligible for the simplified permit notice",
     "producerHeading": "Completed projects and producer",
     "bulkInquiryHeading": "Need a larger quantity?",
     "bulkInquiryBody": "This producer is volume-verified. Ask about this model in a larger quantity.",

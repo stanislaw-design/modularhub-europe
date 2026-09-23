@@ -126,24 +126,6 @@ export function ProjectWizardSummaryStep({ draft, countries }: ProjectWizardSumm
               : empty
           }
         />
-        <SummaryRow
-          label={t("rowInstallationWarranty")}
-          value={
-            draft.installationWarrantyYears !== null
-              ? t("rowWarrantyValue", { years: draft.installationWarrantyYears })
-              : empty
-          }
-        />
-        <SummaryRow
-          label={t("rowSimplifiedPermit")}
-          value={
-            draft.simplifiedPermitEligible === null
-              ? empty
-              : draft.simplifiedPermitEligible
-                ? t("booleanYes")
-                : t("booleanNo")
-          }
-        />
       </SummaryGroup>
 
       <SummaryGroup title={t("groupContent")}>

@@ -489,16 +489,9 @@ export default async function ProjektPage({
         <div id="komfort" className="flex scroll-mt-20 flex-col gap-brand-4">
           <ProjectTechnicalSpecs project={project} />
 
-          {(project.certifications?.length || project.simplifiedPermitEligible !== undefined) && (
+          {Boolean(project.certifications?.length) && (
             <div className="flex flex-col gap-brand-2">
               <ProjectCertifications certifications={project.certifications} />
-              {project.simplifiedPermitEligible !== undefined && (
-                <StatusPill status={project.simplifiedPermitEligible ? "approved" : "blocked"}>
-                  {project.simplifiedPermitEligible
-                    ? t("simplifiedPermitEligible")
-                    : t("simplifiedPermitNotEligible")}
-                </StatusPill>
-              )}
             </div>
           )}
         </div>

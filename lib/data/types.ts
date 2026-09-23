@@ -47,7 +47,15 @@ export interface ProductTechnicalSpecsDraft {
   heatTransferCoefficients?: import("../product-technical-specs").EnergyClass;
   windowClass?: string;
   ventilation?: import("../product-technical-specs").VentilationType;
+  /** Znaczący tylko gdy ventilation === "inna" (spec 0050 AC-20). */
+  ventilationOther?: string;
   heatSource?: import("../product-technical-specs").HeatSource;
+  /** Znaczący tylko gdy heatSource === "inne" (spec 0050 AC-20). */
+  heatSourceOther?: string;
+  /** Nowe pole (spec 0050 AC-20). */
+  constructionTechnology?: import("../product-technical-specs").ConstructionTechnology;
+  /** Znaczący tylko gdy constructionTechnology === "inne". */
+  constructionTechnologyOther?: string;
   fireResistance?: string;
   windResistance?: string;
   // spa-modulowe

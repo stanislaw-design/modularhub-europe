@@ -271,6 +271,7 @@
       "wykonczenie": "Wykończenie"
     },
     "energyClassPrefix": "Klasa {code}",
+    "energyClassNotSpecified": "Nie podano",
     "technicalFields": {
       "dom": {
         "wallBuildUp": {
@@ -280,6 +281,18 @@
         "insulation": {
           "label": "Izolacja",
           "hint": "Współczynnik U dla ścian i dachu (W/m²K)"
+        },
+        "constructionTechnology": {
+          "label": "Technologia konstrukcji",
+          "hint": "Główna technologia budowy",
+          "otherLabel": "Podaj technologię",
+          "options": {
+            "szkielet-drewniany": "Szkielet drewniany",
+            "modulowa-stal-lekka": "Modułowa (stal lekka)",
+            "plyta-warstwowa-sip": "Płyta warstwowa (SIP)",
+            "beton-modulowy": "Beton modułowy",
+            "inne": "Inna"
+          }
         },
         "heatTransferCoefficients": {
           "label": "Klasa energetyczna",
@@ -292,16 +305,19 @@
         "ventilation": {
           "label": "Wentylacja",
           "hint": "Typ wentylacji",
+          "otherLabel": "Podaj rodzaj wentylacji",
           "options": {
             "grawitacyjna": "Grawitacyjna",
             "mechaniczna-nawiewno-wywiewna": "Mechaniczna nawiewno-wywiewna",
             "rekuperacja": "Rekuperacja (mechaniczna z odzyskiem ciepła)",
-            "brak": "Brak"
+            "brak": "Brak",
+            "inna": "Inna"
           }
         },
         "heatSource": {
           "label": "Źródło ciepła",
           "hint": "Główne źródło ogrzewania",
+          "otherLabel": "Podaj źródło ciepła",
           "options": {
             "pompa-ciepla-powietrze-woda": "Pompa ciepła powietrze-woda",
             "pompa-ciepla-grunt-woda": "Pompa ciepła gruntowa (grunt-woda)",
@@ -547,17 +563,10 @@
     "textRequiredError": "Podaj {label}.",
     "structuralWarrantyLabel": "Gwarancja konstrukcyjna (lata)",
     "structuralWarrantyRequiredError": "Podaj gwarancję konstrukcyjną w latach.",
-    "logisticsHeading": "Logistyka i zgodność",
-    "logisticsHint": "Dane transportowe, serwisowe i deklaracja zgłoszenia uproszczonego — bez żadnej automatycznej reguły za tym.",
-    "installationWarrantyLabel": "Gwarancja montażu (lata)",
     "minPlotWidthLabel": "Minimalna szerokość działki (m)",
     "serviceScopeLabel": "Opis zakresu serwisu",
     "transportDimensionsLabel": "Wymiary transportowe",
-    "craneRequirementsLabel": "Wymagania dotyczące żurawia",
-    "simplifiedPermitLabel": "Kwalifikuje się do zgłoszenia uproszczonego",
-    "simplifiedPermitUnset": "Nieustalone",
-    "simplifiedPermitYes": "Tak",
-    "simplifiedPermitNo": "Nie"
+    "craneRequirementsLabel": "Wymagania dotyczące żurawia"
   },
   "ProjectWizardVariantsStep": {
     "heading": "Warianty i cennik",
@@ -698,8 +707,6 @@
     "groupLogistics": "Logistyka i zgodność",
     "rowWarranty": "Gwarancja konstrukcyjna",
     "rowWarrantyValue": "{years} lat",
-    "rowInstallationWarranty": "Gwarancja montażu",
-    "rowSimplifiedPermit": "Zgłoszenie uproszczone",
     "groupContent": "Treść karty projektu",
     "rowRoomCount": "Liczba pomieszczeń",
     "rowFaqCount": "Liczba pytań FAQ",
@@ -826,8 +833,6 @@
       "conditional": "Wymaga dodatkowych dokumentów",
       "blocked": "Niedostępny w tym kraju"
     },
-    "simplifiedPermitEligible": "Kwalifikuje się do zgłoszenia uproszczonego",
-    "simplifiedPermitNotEligible": "Nie kwalifikuje się do zgłoszenia uproszczonego",
     "producerHeading": "Realizacje i producent",
     "bulkInquiryHeading": "Potrzebujesz większej ilości?",
     "bulkInquiryBody": "Ten producent jest zweryfikowany wolumenowo. Zapytaj o ten model w większej ilości sztuk.",

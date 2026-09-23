@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { ENERGY_CLASSES, getTechnicalSpecsSchema, HEAT_SOURCES, VENTILATION_TYPES } from "./product-technical-specs";
+import {
+  CONSTRUCTION_TECHNOLOGIES,
+  ENERGY_CLASSES,
+  getTechnicalSpecsSchema,
+  HEAT_SOURCES,
+  VENTILATION_TYPES,
+} from "./product-technical-specs";
 
 describe("getTechnicalSpecsSchema: dom", () => {
   const complete = {
@@ -9,6 +15,7 @@ describe("getTechnicalSpecsSchema: dom", () => {
     windowClass: "Uw = 0.8",
     ventilation: "rekuperacja" as const,
     heatSource: "pompa-ciepla-powietrze-woda" as const,
+    constructionTechnology: "szkielet-drewniany" as const,
     fireResistance: "REI 30",
     windResistance: "Strefa 2",
   };
@@ -77,6 +84,39 @@ describe("getTechnicalSpecsSchema: dom", () => {
       heatTransferCoefficients: "U = 0.9",
     });
     expect(result.success).toBe(false);
+  });
+
+  it.each(CONSTRUCTION_TECHNOLOGIES)("accepts each of the %s constructionTechnology enum values (spec 0050 AC-20)", (constructionTechnology) => {
+    const result = getTechnicalSpecsSchema("dom", "published").safeParse({ ...complete, constructionTechnology });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a constructionTechnology outside the fixed set", () => {
+    const result = getTechnicalSpecsSchema("dom", "published").safeParse({
+      ...complete,
+      constructionTechnology: "kontener-morski",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a dom shape missing constructionTechnology when published (spec 0050 AC-20, new required field)", () => {
+    const missingTechnology: Partial<typeof complete> = { ...complete };
+    delete missingTechnology.constructionTechnology;
+    const result = getTechnicalSpecsSchema("dom", "published").safeParse(missingTechnology);
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts optional heatSourceOther/ventilationOther/constructionTechnologyOther companion text fields", () => {
+    const result = getTechnicalSpecsSchema("dom", "published").safeParse({
+      ...complete,
+      heatSource: "inne",
+      heatSourceOther: "Kominek z płaszczem wodnym",
+      ventilation: "inna",
+      ventilationOther: "Wentylacja hybrydowa",
+      constructionTechnology: "inne",
+      constructionTechnologyOther: "Prefabrykowane moduły betonowe",
+    });
+    expect(result.success).toBe(true);
   });
 
   it("rejects an unknown field even when otherwise complete (strict)", () => {

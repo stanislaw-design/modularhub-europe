@@ -31,22 +31,27 @@ describe("ProjectWizardTechnicalStep: family dom", () => {
     expect(screen.queryByText("Liczba miejsc")).not.toBeInTheDocument();
   });
 
-  // heatSource/ventilation/heatTransferCoefficients switched from free text to a
-  // closed list (spec 0026 AC-2, Feature design): same select pattern as spa's
-  // heatingType and pergola's roofType below, checked the same way (getByText on
-  // the label; Select's trigger button isn't programmatically associated via
-  // getByLabelText, same as the other two families' select fields).
-  it("renders heatSource/ventilation/heatTransferCoefficients as selects, not text inputs", () => {
+  // heatSource/ventilation/heatTransferCoefficients/constructionTechnology
+  // switched from free text to a closed list (spec 0026 AC-2, spec 0050
+  // AC-20): same select pattern as spa's heatingType and pergola's roofType
+  // below, checked the same way (getByText on the label; Select's trigger
+  // button isn't programmatically associated via getByLabelText, same as the
+  // other two families' select fields). heatTransferCoefficients defaults to
+  // "Nie podano" (spec 0050 AC-20), so only the other three show "Wybierz…".
+  it("renders heatSource/ventilation/heatTransferCoefficients/constructionTechnology as selects, not text inputs", () => {
     renderStep({ ...createEmptyDraft(), family: "dom" as const }, false);
 
-    for (const label of ["Źródło ciepła", "Wentylacja", "Klasa energetyczna"]) {
+    for (const label of ["Źródło ciepła", "Wentylacja", "Klasa energetyczna", "Technologia konstrukcji"]) {
       expect(screen.getByText(label)).toBeInTheDocument();
     }
     expect(screen.getAllByRole("button", { name: "Wybierz…" })).toHaveLength(3);
+    expect(screen.getByRole("button", { name: "Nie podano" })).toBeInTheDocument();
   });
 
-  // Select order follows TECHNICAL_FIELDS_BY_FAMILY.dom: heatTransferCoefficients,
-  // ventilation, heatSource (indices 0, 1, 2 among the three select buttons).
+  // Select order follows TECHNICAL_FIELDS_BY_FAMILY.dom: constructionTechnology,
+  // heatTransferCoefficients (auto-defaulted, excluded from "Wybierz…"),
+  // ventilation, heatSource — heatSource lands at index 2 among the three
+  // still-unset "Wybierz…" buttons (constructionTechnology, ventilation, heatSource).
   it("updates the form's heatSource with the chosen option value", async () => {
     const user = userEvent.setup();
     const getForm = renderStep({ ...createEmptyDraft(), family: "dom" as const }, false);
@@ -54,17 +59,42 @@ describe("ProjectWizardTechnicalStep: family dom", () => {
     await user.click(screen.getAllByRole("button", { name: "Wybierz…" })[2]);
     await user.click(screen.getByRole("option", { name: "Gazowe" }));
 
-    expect(getForm().getValues("technicalSpecs")).toEqual({ heatSource: "gazowe" });
+    expect(getForm().getValues("technicalSpecs")).toEqual({ heatSource: "gazowe", heatTransferCoefficients: "nieznana" });
   });
 
-  it("does not offer 'nieznana' as a heatTransferCoefficients (energy class) option (spec 0026 Feature design)", async () => {
+  it("offers 'nieznana' as a heatTransferCoefficients (energy class) option, relabeled 'Nie podano' (spec 0050 AC-20)", async () => {
     const user = userEvent.setup();
     renderStep({ ...createEmptyDraft(), family: "dom" as const }, false);
 
-    await user.click(screen.getAllByRole("button", { name: "Wybierz…" })[0]);
+    await user.click(screen.getByRole("button", { name: "Nie podano" }));
 
-    expect(screen.queryByRole("option", { name: /nieznana/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Nie podano" })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Klasa A+" })).toBeInTheDocument();
+  });
+
+  it("does not block step completion by leaving heatTransferCoefficients on its default (spec 0050 AC-20, optional field)", () => {
+    renderStep({ ...createEmptyDraft(), family: "dom" as const }, true);
+
+    expect(screen.queryByText("Wybierz klasa energetyczna.")).not.toBeInTheDocument();
+  });
+
+  it("shows an inline error under constructionTechnology, the still-required select, once showValidation is true", () => {
+    renderStep({ ...createEmptyDraft(), family: "dom" as const }, true);
+
+    expect(screen.getByText("Wybierz technologia konstrukcji.")).toBeInTheDocument();
+  });
+
+  it("shows a companion text field only once heatSource is set to 'inne'", async () => {
+    const user = userEvent.setup();
+    const getForm = renderStep({ ...createEmptyDraft(), family: "dom" as const }, false);
+
+    expect(screen.queryByLabelText("Podaj źródło ciepła")).not.toBeInTheDocument();
+
+    await user.click(screen.getAllByRole("button", { name: "Wybierz…" })[2]);
+    await user.click(screen.getByRole("option", { name: "Inne" }));
+    await user.type(screen.getByLabelText("Podaj źródło ciepła"), "Kominek z płaszczem wodnym");
+
+    expect(getForm().getValues("technicalSpecs.heatSourceOther")).toBe("Kominek z płaszczem wodnym");
   });
 
   it("merges a new field into technicalSpecs without dropping the other fields already entered", async () => {
@@ -74,18 +104,17 @@ describe("ProjectWizardTechnicalStep: family dom", () => {
       false,
     );
 
-    // ventilation ma już wartość, więc wśród przycisków wciąż pokazujących
-    // "Wybierz…" zostają tylko heatTransferCoefficients (0) i heatSource (1).
+    // ventilation ma już wartość, heatTransferCoefficients dostaje domyślną
+    // "nieznana" po zamontowaniu, więc wśród przycisków wciąż pokazujących
+    // "Wybierz…" zostają tylko constructionTechnology (0) i heatSource (1).
     await user.click(screen.getAllByRole("button", { name: "Wybierz…" })[1]);
     await user.click(screen.getByRole("option", { name: "Gazowe" }));
 
-    expect(getForm().getValues("technicalSpecs")).toEqual({ ventilation: "rekuperacja", heatSource: "gazowe" });
-  });
-
-  it("shows an inline error under an empty required select once showValidation is true", () => {
-    renderStep({ ...createEmptyDraft(), family: "dom" as const }, true);
-
-    expect(screen.getByText("Wybierz klasa energetyczna.")).toBeInTheDocument();
+    expect(getForm().getValues("technicalSpecs")).toEqual({
+      ventilation: "rekuperacja",
+      heatSource: "gazowe",
+      heatTransferCoefficients: "nieznana",
+    });
   });
 });
 
@@ -166,15 +195,18 @@ describe("ProjectWizardTechnicalStep: family kontenery-modulowe (spec 0039)", ()
 });
 
 describe("ProjectWizardTechnicalStep: no family chosen yet", () => {
-  // Gwarancja konstrukcyjna i logistyka (spec 0045 zadanie 9) są pola produktu,
-  // nie family-zależne, więc pozostają widoczne nawet zanim family jest wybrane
+  // Gwarancja konstrukcyjna (spec 0045 zadanie 9) jest polem produktu, nie
+  // family-zależnym, więc pozostaje widoczna nawet zanim family jest wybrane
   // — tylko lista pól technicznych z getTechnicalFieldsFor jest wtedy pusta.
-  it("renders the heading, warranty, and logistics section, but no family-specific field, when family is null", () => {
+  // Sekcja logistyki (gwarancja montażu, zgłoszenie uproszczone) usunięta z
+  // kreatora w całości (spec 0050 AC-21).
+  it("renders the heading and warranty, but no family-specific field or removed logistics section, when family is null", () => {
     renderStep(createEmptyDraft(), false);
 
     expect(screen.getByRole("heading", { level: 2, name: "Dane techniczne" })).toBeInTheDocument();
     expect(screen.getByLabelText(/Gwarancja konstrukcyjna/)).toBeInTheDocument();
-    expect(screen.getByText("Logistyka i zgodność")).toBeInTheDocument();
+    expect(screen.queryByText("Logistyka i zgodność")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/Gwarancja montażu/)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/Układ ścian/)).not.toBeInTheDocument();
   });
 });

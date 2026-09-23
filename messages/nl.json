@@ -271,6 +271,7 @@
       "pod-klucz": "Sleutelklaar"
     },
     "energyClassPrefix": "Klasse {code}",
+    "energyClassNotSpecified": "Niet opgegeven",
     "technicalFields": {
       "dom": {
         "wallBuildUp": {
@@ -280,6 +281,18 @@
         "insulation": {
           "label": "Isolatie",
           "hint": "U-waarde voor wanden en dak (W/m²K)"
+        },
+        "constructionTechnology": {
+          "label": "Bouwtechnologie",
+          "hint": "Belangrijkste bouwtechnologie",
+          "otherLabel": "Geef de technologie op",
+          "options": {
+            "szkielet-drewniany": "Houtskeletbouw",
+            "modulowa-stal-lekka": "Modulair (lichtstaal)",
+            "plyta-warstwowa-sip": "Sandwichpaneel (SIP)",
+            "beton-modulowy": "Modulair beton",
+            "inne": "Overig"
+          }
         },
         "heatTransferCoefficients": {
           "label": "Energieklasse",
@@ -292,16 +305,19 @@
         "ventilation": {
           "label": "Ventilatie",
           "hint": "Type ventilatie",
+          "otherLabel": "Geef het type ventilatie op",
           "options": {
             "grawitacyjna": "Natuurlijke (zwaartekracht)",
             "mechaniczna-nawiewno-wywiewna": "Mechanische toe- en afvoer",
             "rekuperacja": "Warmteterugwinning (mechanisch met warmtewisselaar)",
-            "brak": "Geen"
+            "brak": "Geen",
+            "inna": "Overig"
           }
         },
         "heatSource": {
           "label": "Warmtebron",
           "hint": "Belangrijkste verwarmingsbron",
+          "otherLabel": "Geef de warmtebron op",
           "options": {
             "pompa-ciepla-powietrze-woda": "Lucht-water warmtepomp",
             "pompa-ciepla-grunt-woda": "Bodemwarmtepomp (grond-water)",
@@ -547,17 +563,10 @@
     "textRequiredError": "Voer {label} in.",
     "structuralWarrantyLabel": "Constructiegarantie (jaar)",
     "structuralWarrantyRequiredError": "Voer de constructiegarantie in jaren in.",
-    "logisticsHeading": "Logistiek en naleving",
-    "logisticsHint": "Transport- en servicegegevens plus een verklaring over de vereenvoudigde vergunning — zonder automatische regel erachter.",
-    "installationWarrantyLabel": "Montagegarantie (jaar)",
     "minPlotWidthLabel": "Minimale kavelbreedte (m)",
     "serviceScopeLabel": "Omschrijving van de service",
     "transportDimensionsLabel": "Transportafmetingen",
-    "craneRequirementsLabel": "Kraanvereisten",
-    "simplifiedPermitLabel": "Komt in aanmerking voor een vereenvoudigde vergunning",
-    "simplifiedPermitUnset": "Nog niet bepaald",
-    "simplifiedPermitYes": "Ja",
-    "simplifiedPermitNo": "Nee"
+    "craneRequirementsLabel": "Kraanvereisten"
   },
   "ProjectWizardVariantsStep": {
     "heading": "Varianten en prijzen",
@@ -698,8 +707,6 @@
     "groupLogistics": "Logistiek en naleving",
     "rowWarranty": "Constructiegarantie",
     "rowWarrantyValue": "{years} jaar",
-    "rowInstallationWarranty": "Montagegarantie",
-    "rowSimplifiedPermit": "Vereenvoudigde vergunning",
     "groupContent": "Inhoud van de projectpagina",
     "rowRoomCount": "Aantal ruimtes",
     "rowFaqCount": "Aantal FAQ-vragen",
@@ -819,8 +826,6 @@
       "conditional": "Vereist aanvullende documenten",
       "blocked": "Niet beschikbaar in dit land"
     },
-    "simplifiedPermitEligible": "In aanmerking voor de vereenvoudigde vergunningsmelding",
-    "simplifiedPermitNotEligible": "Niet in aanmerking voor de vereenvoudigde vergunningsmelding",
     "producerHeading": "Opgeleverde projecten en producent",
     "bulkInquiryHeading": "Grotere hoeveelheid nodig?",
     "bulkInquiryBody": "Deze producent is volume-geverifieerd. Vraag naar dit model in een grotere hoeveelheid.",

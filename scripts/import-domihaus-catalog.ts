@@ -31,6 +31,7 @@ const cubeTechnicalSpecs = {
   windowClass: "Stolarka PCV dwuszybowa; dostępna również stolarka aluminiowa.",
   ventilation: "brak",
   heatSource: "elektryczne",
+  constructionTechnology: "szkielet-drewniany",
   fireResistance: "Brak opublikowanej klasy odporności ogniowej.",
   windResistance: "Brak opublikowanej klasy odporności na wiatr.",
 } satisfies DomTechnicalSpecs;
@@ -44,6 +45,7 @@ const houseTechnicalSpecs = {
   windowClass: "Stolarka okienna i drzwiowa w zakresie pakietu; szczegóły wymagają potwierdzenia dla zamówienia.",
   ventilation: "grawitacyjna",
   heatSource: "inne",
+  constructionTechnology: "szkielet-drewniany",
   fireResistance: "Brak opublikowanej klasy odporności ogniowej.",
   windResistance: "Brak opublikowanej klasy odporności na wiatr.",
 } satisfies DomTechnicalSpecs;
