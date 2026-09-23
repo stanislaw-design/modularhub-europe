@@ -62,27 +62,14 @@ const CLIENT_DOCUMENT_PURPOSES: ProjectDocumentPurpose[] = [
 ];
 
 interface ResolveVariantsOptions {
-  /** Pozycje kosztowe i etapy harmonogramu są potrzebne tylko na stronie
-   * szczegółów pojedynczego projektu (spec 0042 AC-2, AC-6); karty/listy
-   * czytają wyłącznie completionStandard/cenę/isDefault, więc pomijają obie
-   * dodatkowe zapytania (domyślnie false). */
+  /** Etapy harmonogramu są potrzebne tylko na stronie szczegółów pojedynczego
+   * projektu (spec 0042 AC-2, AC-6); karty/listy pomijają to dodatkowe
+   * zapytanie (domyślnie false). Pozycje kosztowe (label/status/sortOrder) są
+   * od spec 0051 AC-6 ładowane zawsze, nawet bez withDetails — ResultCard i
+   * ProjectCompareTable pokazują do trzech etykiet "w cenie" zamiast dawnego
+   * scopeSummary. */
   withDetails?: boolean;
-  /** scopeSummary rozwiązywany z product_variant_translation dla en/nl/de,
-   * ten sam wzorzec fallbacku do polskiego co product.name/description
-   * (spec 0028 AC-6), rozszerzony na tę tabelę 2026-09-22 (dotąd czytana
-   * przez nikogo — spec 0028 Follow-up celowo zostawił to jako osobną
-   * decyzję, patrz komentarz przy resolveTranslatedOptionalText).
-   * costLineItem.label nie ma odpowiednika: brak tabeli tłumaczeń, poza
-   * zakresem tej zmiany, patrz docs/scope/produkcja.md. */
   locale?: Locale;
-}
-
-// Ten sam wzorzec co resolveTranslatedText wyżej, ale zwraca `undefined`
-// zamiast pustego stringa gdy nic nie ma — dopasowane do ProjectVariant.
-// scopeSummary?: string (opcjonalne pole, nie zawsze obecny tekst źródłowy).
-function resolveTranslatedOptionalText(base: string | null, translated: string | null | undefined): string | undefined {
-  if (translated && translated.trim().length > 0) return translated;
-  return base ?? undefined;
 }
 
 // Warianty produktu, zgrupowane po product_id (spec 0041/0042): jedno
@@ -95,103 +82,59 @@ export async function resolveProductVariants(
   if (productIds.length === 0) return new Map();
 
   const locale = options?.locale ?? "pl";
-  const translateScopeSummary = locale === "en" || locale === "nl" || locale === "de";
+  const translateLabels = locale === "en" || locale === "nl" || locale === "de";
 
-  const variantRows = translateScopeSummary
-    ? await db
-        .select({
-          id: productVariant.id,
-          productId: productVariant.productId,
-          completionStandard: productVariant.completionStandard,
-          variantLabel: productVariant.variantLabel,
-          priceMinCents: productVariant.priceMinCents,
-          priceMaxCents: productVariant.priceMaxCents,
-          priceOnRequest: productVariant.priceOnRequest,
-          scopeSummary: productVariant.scopeSummary,
-          translatedScopeSummary: productVariantTranslation.scopeSummary,
-          excludedScope: productVariant.excludedScope,
-          translatedExcludedScope: productVariantTranslation.excludedScope,
-          isDefault: productVariant.isDefault,
-          sortOrder: productVariant.sortOrder,
-        })
-        .from(productVariant)
-        .leftJoin(
-          productVariantTranslation,
-          and(
-            eq(productVariantTranslation.productVariantId, productVariant.id),
-            eq(productVariantTranslation.locale, locale),
-          ),
-        )
-        .where(and(inArray(productVariant.productId, productIds), isNull(productVariant.deletedAt)))
-    : await db
-        .select({
-          id: productVariant.id,
-          productId: productVariant.productId,
-          completionStandard: productVariant.completionStandard,
-          variantLabel: productVariant.variantLabel,
-          priceMinCents: productVariant.priceMinCents,
-          priceMaxCents: productVariant.priceMaxCents,
-          priceOnRequest: productVariant.priceOnRequest,
-          scopeSummary: productVariant.scopeSummary,
-          translatedScopeSummary: sql<string | null>`NULL`,
-          excludedScope: productVariant.excludedScope,
-          translatedExcludedScope: sql<string | null>`NULL`,
-          isDefault: productVariant.isDefault,
-          sortOrder: productVariant.sortOrder,
-        })
-        .from(productVariant)
-        .where(and(inArray(productVariant.productId, productIds), isNull(productVariant.deletedAt)));
+  const variantRows = await db
+    .select({
+      id: productVariant.id,
+      productId: productVariant.productId,
+      completionStandard: productVariant.completionStandard,
+      variantLabel: productVariant.variantLabel,
+      priceMinCents: productVariant.priceMinCents,
+      priceOnRequest: productVariant.priceOnRequest,
+      isDefault: productVariant.isDefault,
+      sortOrder: productVariant.sortOrder,
+    })
+    .from(productVariant)
+    .where(and(inArray(productVariant.productId, productIds), isNull(productVariant.deletedAt)));
 
   const variantIds = variantRows.map((row) => row.id);
   const costLineItemsByVariant = new Map<string, CostLineItem[]>();
   const timelineStagesByVariant = new Map<string, TimelineStage[]>();
 
-  if (options?.withDetails && variantIds.length > 0) {
-    const [costRows, stageRows] = await Promise.all([
-      translateScopeSummary
-        ? db
-            .select({
-              id: costLineItem.id,
-              productVariantId: costLineItem.productVariantId,
-              label: costLineItem.label,
-              translatedLabel: costLineItemLabelTranslation.translatedLabel,
-              status: costLineItem.status,
-              responsibleParty: costLineItem.responsibleParty,
-              sortOrder: costLineItem.sortOrder,
-            })
-            .from(costLineItem)
-            .leftJoin(
-              costLineItemLabelTranslation,
-              and(
-                eq(costLineItemLabelTranslation.labelPl, costLineItem.label),
-                eq(costLineItemLabelTranslation.locale, locale),
-              ),
-            )
-            .where(inArray(costLineItem.productVariantId, variantIds))
-        : db
-            .select({
-              id: costLineItem.id,
-              productVariantId: costLineItem.productVariantId,
-              label: costLineItem.label,
-              translatedLabel: sql<string | null>`NULL`,
-              status: costLineItem.status,
-              responsibleParty: costLineItem.responsibleParty,
-              sortOrder: costLineItem.sortOrder,
-            })
-            .from(costLineItem)
-            .where(inArray(costLineItem.productVariantId, variantIds)),
-      db
-        .select({
-          productVariantId: productTimelineStage.productVariantId,
-          stageKey: productTimelineStage.stageKey,
-          durationMinDays: productTimelineStage.durationMinDays,
-          durationMaxDays: productTimelineStage.durationMaxDays,
-          startsFromLabel: productTimelineStage.startsFromLabel,
-          responsibleParty: productTimelineStage.responsibleParty,
-        })
-        .from(productTimelineStage)
-        .where(inArray(productTimelineStage.productVariantId, variantIds)),
-    ]);
+  if (variantIds.length > 0) {
+    const costRows = await (translateLabels
+      ? db
+          .select({
+            id: costLineItem.id,
+            productVariantId: costLineItem.productVariantId,
+            label: costLineItem.label,
+            translatedLabel: costLineItemLabelTranslation.translatedLabel,
+            status: costLineItem.status,
+            responsibleParty: costLineItem.responsibleParty,
+            sortOrder: costLineItem.sortOrder,
+          })
+          .from(costLineItem)
+          .leftJoin(
+            costLineItemLabelTranslation,
+            and(
+              eq(costLineItemLabelTranslation.labelPl, costLineItem.label),
+              eq(costLineItemLabelTranslation.locale, locale),
+            ),
+          )
+          .where(inArray(costLineItem.productVariantId, variantIds))
+      : db
+          .select({
+            id: costLineItem.id,
+            productVariantId: costLineItem.productVariantId,
+            label: costLineItem.label,
+            translatedLabel: sql<string | null>`NULL`,
+            status: costLineItem.status,
+            responsibleParty: costLineItem.responsibleParty,
+            sortOrder: costLineItem.sortOrder,
+          })
+          .from(costLineItem)
+          .where(inArray(costLineItem.productVariantId, variantIds)));
 
     const costRowsByVariant = new Map<string, typeof costRows>();
     for (const row of costRows) {
@@ -214,26 +157,40 @@ export async function resolveProductVariants(
       );
     }
 
-    const stageRowsByVariant = new Map<string, typeof stageRows>();
-    for (const row of stageRows) {
-      const list = stageRowsByVariant.get(row.productVariantId) ?? [];
-      list.push(row);
-      stageRowsByVariant.set(row.productVariantId, list);
-    }
-    for (const [variantId, rows] of stageRowsByVariant) {
-      const sorted = [...rows].sort(
-        (a, b) => TIMELINE_STAGE_ORDER.indexOf(a.stageKey) - TIMELINE_STAGE_ORDER.indexOf(b.stageKey),
-      );
-      timelineStagesByVariant.set(
-        variantId,
-        sorted.map((row) => ({
-          stageKey: row.stageKey,
-          durationMinDays: row.durationMinDays ?? undefined,
-          durationMaxDays: row.durationMaxDays ?? undefined,
-          startsFromLabel: row.startsFromLabel ?? undefined,
-          responsibleParty: row.responsibleParty ?? undefined,
-        })),
-      );
+    if (options?.withDetails) {
+      const stageRows = await db
+        .select({
+          productVariantId: productTimelineStage.productVariantId,
+          stageKey: productTimelineStage.stageKey,
+          durationMinDays: productTimelineStage.durationMinDays,
+          durationMaxDays: productTimelineStage.durationMaxDays,
+          startsFromLabel: productTimelineStage.startsFromLabel,
+          responsibleParty: productTimelineStage.responsibleParty,
+        })
+        .from(productTimelineStage)
+        .where(inArray(productTimelineStage.productVariantId, variantIds));
+
+      const stageRowsByVariant = new Map<string, typeof stageRows>();
+      for (const row of stageRows) {
+        const list = stageRowsByVariant.get(row.productVariantId) ?? [];
+        list.push(row);
+        stageRowsByVariant.set(row.productVariantId, list);
+      }
+      for (const [variantId, rows] of stageRowsByVariant) {
+        const sorted = [...rows].sort(
+          (a, b) => TIMELINE_STAGE_ORDER.indexOf(a.stageKey) - TIMELINE_STAGE_ORDER.indexOf(b.stageKey),
+        );
+        timelineStagesByVariant.set(
+          variantId,
+          sorted.map((row) => ({
+            stageKey: row.stageKey,
+            durationMinDays: row.durationMinDays ?? undefined,
+            durationMaxDays: row.durationMaxDays ?? undefined,
+            startsFromLabel: row.startsFromLabel ?? undefined,
+            responsibleParty: row.responsibleParty ?? undefined,
+          })),
+        );
+      }
     }
   }
 
@@ -256,11 +213,8 @@ export async function resolveProductVariants(
         completionStandard: row.completionStandard,
         variantLabel: row.variantLabel ?? undefined,
         priceMin: row.priceMinCents !== null ? row.priceMinCents / 100 : undefined,
-        priceMax: row.priceMaxCents !== null ? row.priceMaxCents / 100 : undefined,
         currency: "EUR",
-        scopeSummary: resolveTranslatedOptionalText(row.scopeSummary, row.translatedScopeSummary),
         priceOnRequest: row.priceOnRequest,
-        excludedScope: resolveTranslatedOptionalText(row.excludedScope, row.translatedExcludedScope),
         isDefault: row.isDefault,
         costLineItems: costLineItemsByVariant.get(row.id) ?? [],
         timelineStages: timelineStagesByVariant.get(row.id) ?? [],

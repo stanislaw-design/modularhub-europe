@@ -58,8 +58,8 @@ Zobacz `rationale.md`.
 | product_id | uuid, klucz obcy do product, wymagane, indeksowane | |
 | completion_standard | ten sam enum co dziś na product (surowy zamknięty, deweloperski, pod klucz) | unikalne razem z product_id, ale tylko wśród wierszy z pustym deleted_at (indeks unikalności częściowej), żeby usunięty miękko wariant nie blokował na zawsze ponownego dodania tego samego standardu |
 | variant_label | text, może być puste | opcjonalna własna nazwa producenta (np. Comfort, Premium+), gdy sam enum standardu nie oddaje jego marketingowej nazwy; enum zostaje jedynym polem używanym do reguł biznesowych i unikalności, ta etykieta jest czysto opisowa |
-| price_min_cents, price_max_cents | integer, mogą być puste | |
-| scope_summary | text, może być puste | krótki opis zakresu pod ceną |
+| price_min_cents, price_max_cents | integer, mogą być puste | Superseded in part by [0051](../0051-cena-od-zamiast-zakresu-wariantu/index.md): para zamieniona na jedno pole `price_min_cents` |
+| scope_summary | text, może być puste | krótki opis zakresu pod ceną. Superseded in part by [0051](../0051-cena-od-zamiast-zakresu-wariantu/index.md): kolumna usunięta na rzecz `cost_line_item` |
 | is_default | boolean, domyślnie false | co najwyżej jeden true na produkt wśród wierszy z pustym deleted_at, ograniczenie unikalności częściowej jak przy document.is_cover |
 | sort_order | integer, może być puste | |
 | created_at, updated_at | timestamp | |

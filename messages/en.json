@@ -224,6 +224,7 @@
       "pliki": "Files",
       "warianty": "Variants and pricing",
       "faq": "FAQ",
+      "tlumaczenia": "Translations",
       "podsumowanie": "Summary"
     },
     "family": {
@@ -530,17 +531,6 @@
     "countryRequiredError": "Choose a country of production.",
     "descriptionLabel": "Description",
     "descriptionRequiredError": "Enter a project description.",
-    "translationsHeading": "Translations (optional)",
-    "translationsHint": "English, Dutch, and German are optional — without a translation, foreign clients see the Polish text.",
-    "translationTabEn": "English",
-    "translationTabNl": "Dutch",
-    "translationTabDe": "German",
-    "nameEnLabel": "Name (English)",
-    "nameNlLabel": "Name (Dutch)",
-    "nameDeLabel": "Name (German)",
-    "descriptionEnLabel": "Description (English)",
-    "descriptionNlLabel": "Description (Dutch)",
-    "descriptionDeLabel": "Description (German)",
     "roomLayoutHeading": "Room layout",
     "roomLayoutHint": "Add rooms, their area and function — this section shows on the customer's project page.",
     "roomLayoutEmptyHint": "No room has been added yet.",
@@ -551,8 +541,6 @@
     "moveUpLabel": "Move up",
     "moveDownLabel": "Move down",
     "removeRoomLabel": "Remove room",
-    "roomTranslationsHeading": "Room name translations (optional)",
-    "roomNameTranslationLabel": "Room name {index}",
     "addRoomButton": "Add room",
     "recognizeHeading": "Recognize room layout from floor plans",
     "recognizeHint": "Pick up to five uploaded floor plans, and AI will propose a room list to review.",
@@ -603,11 +591,6 @@
     "priceOnRequestLabel": "Custom quote (no fixed price)",
     "scopeSummaryLabel": "Scope description",
     "excludedScopeLabel": "What's not included in the price",
-    "translationsHeading": "Scope description translations (optional)",
-    "translationTabEn": "EN",
-    "translationTabNl": "NL",
-    "scopeSummaryEnLabel": "Scope description (EN)",
-    "scopeSummaryNlLabel": "Scope description (NL)",
     "costLineItemsHeading": "Cost line items",
     "costLineItemLabelLabel": "Item",
     "costLineItemStatusLabel": "Status",
@@ -654,14 +637,42 @@
     "removeLabel": "Remove question",
     "questionLabel": "Question",
     "answerLabel": "Answer",
-    "translationsHeading": "Translations (optional)",
-    "translationTabEn": "EN",
-    "translationTabNl": "NL",
-    "questionEnLabel": "Question (EN)",
-    "answerEnLabel": "Answer (EN)",
-    "questionNlLabel": "Question (NL)",
-    "answerNlLabel": "Answer (NL)",
     "addButton": "Add question"
+  },
+  "ProjectWizardTranslationsStep": {
+    "heading": "Translations",
+    "intro": "AI drafts translations of the description, standards, rooms, client requirements and FAQ into English, German and Dutch. Review and correct before publishing.",
+    "generateButton": "Generate translations",
+    "regenerateAllButton": "Regenerate all",
+    "regenerateOneButton": "Regenerate ({language})",
+    "generatingLabel": "Generating…",
+    "genericError": "Couldn't generate translations. Try again or edit manually.",
+    "emptyHint": "Generate translations to review and correct the content in each language.",
+    "languageTabsLabel": "Translation language",
+    "localeLabel": {
+      "en": "English",
+      "nl": "Dutch",
+      "de": "German"
+    },
+    "descriptionLabel": "Project description",
+    "roomLayoutHeading": "Room names",
+    "roomNameTranslationLabel": "Room name \"{name}\"",
+    "faqHeading": "FAQ",
+    "faqQuestionTranslationLabel": "Question {index}",
+    "faqAnswerTranslationLabel": "Answer {index}",
+    "clientRequirementsHeading": "What the client must provide",
+    "requirementTranslationLabel": "Item \"{label}\"",
+    "variantsHeading": "Variants",
+    "variantScopeSummaryLabel": "Scope description",
+    "variantExcludedScopeLabel": "What's not included in the price",
+    "savingVariantsLabel": "Saving…",
+    "saveVariantTranslationsButton": "Save variant translations",
+    "variantsSavedLabel": "Saved.",
+    "completionStandard": {
+      "surowy-zamkniety": "Shell and core",
+      "deweloperski": "Developer standard",
+      "pod-klucz": "Turnkey"
+    }
   },
   "ProjectWizardFilesStep": {
     "heading": "Files",
@@ -1191,8 +1202,12 @@
   "InquiryFlow": {
     "heading": "Ask ModularHub to prepare offers",
     "howItWorksTitle": "How it works",
-    "howItWorksBody": "Your request goes to ModularHub, not straight to the manufacturers. An advisor will talk with you, prepare a brief and show it to you for approval. Manufacturers only receive it after you agree.",
+    "howItWorksStep1": "Your request goes to ModularHub, not straight to the manufacturers.",
+    "howItWorksStep2": "An advisor will talk with you and prepare a brief for your approval.",
+    "howItWorksStep3": "Manufacturers only receive the brief after you agree.",
     "selectedHomesLabel": "Selected homes",
+    "sectionAddressHeading": "Plot address",
+    "homeMeta": "{producer} · {area} m²",
     "streetLabel": "Street and number",
     "postalCodeLabel": "Postal code",
     "cityLabel": "City",
@@ -1682,6 +1697,20 @@
     "collapseSidebar": "Collapse sidebar",
     "expandSidebar": "Expand sidebar"
   },
+  "ClientPanelSidebar": {
+    "navAriaLabel": "Client panel",
+    "zapytania": "Inquiries",
+    "ulubione": "Favorites",
+    "profil": "Profile",
+    "unreadBadgeLabel": "New offer",
+    "home": "Home",
+    "signOut": "Sign out",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "menu": "Menu",
+    "collapseSidebar": "Collapse sidebar",
+    "expandSidebar": "Expand sidebar"
+  },
   "CaseChat": {
     "heading": "Conversation with your advisor",
     "draftLabel": "Your message",
@@ -1739,5 +1768,142 @@
   },
   "CaseSystem": {
     "caseReceived": "We received your request. We have not sent it to the manufacturers yet."
+  },
+  "CaseCards": {
+    "layerOneBadge": "A few questions to start",
+    "layerTwoBadge": "Extra and optional",
+    "progress": "Question {current} of {total}",
+    "skipAll": "Skip these questions",
+    "willSave": "We'll save: {value}",
+    "confirm": "Confirm",
+    "saving": "Saving…",
+    "sendError": "We couldn't save your answer. Please try again.",
+    "noAnswerYet": "No answer.",
+    "common": {
+      "unsureLabel": "I don't know, let the advisor suggest",
+      "unsureConsequence": "The advisor will suggest this based on your conversation."
+    },
+    "zakres_uslug": {
+      "question": "What do you expect from the manufacturer?",
+      "options": {
+        "sam_dom": {
+          "label": "Just the house",
+          "consequence": "You arrange transport, assembly and the foundation yourself or with another company."
+        },
+        "dom_i_transport": {
+          "label": "House with transport",
+          "consequence": "The manufacturer delivers the house; assembly and the foundation stay on your side."
+        },
+        "dom_transport_montaz": {
+          "label": "House, transport and assembly",
+          "consequence": "The manufacturer sets up the house on your plot; you arrange the foundation separately."
+        },
+        "kompleksowo_z_fundamentem": {
+          "label": "Complete, including the foundation",
+          "consequence": "Least work on your side, usually a higher total price."
+        }
+      }
+    },
+    "budzet": {
+      "question": "What budget are you considering?",
+      "options": {
+        "do_150k": {
+          "label": "Up to EUR 150k",
+          "consequence": "We'll match models and finishing standard to this amount."
+        },
+        "150_do_250k": {
+          "label": "EUR 150k–250k",
+          "consequence": "A wider choice of models and higher finishing standard within reach."
+        },
+        "250_do_400k": {
+          "label": "EUR 250k–400k",
+          "consequence": "Opens up larger houses and a fuller scope of manufacturer services."
+        },
+        "powyzej_400k": {
+          "label": "Above EUR 400k",
+          "consequence": "No limits on model, finishing standard or scope of services."
+        }
+      }
+    },
+    "termin": {
+      "question": "When would you like to move in?",
+      "options": {
+        "jak_najszybciej": {
+          "label": "As soon as possible",
+          "consequence": "The advisor will check which manufacturers have open production slots now."
+        },
+        "do_6_miesiecy": {
+          "label": "Within 6 months",
+          "consequence": "Enough time for an unhurried choice of manufacturer and plot preparation."
+        },
+        "do_roku": {
+          "label": "Within a year",
+          "consequence": "A comfortable timeline, less pressure on decisions along the way."
+        },
+        "elastyczny": {
+          "label": "Flexible, over a year",
+          "consequence": "Timing isn't a priority when choosing the manufacturer."
+        }
+      }
+    },
+    "gotowosc_dzialki": {
+      "question": "What stage is your plot at?",
+      "options": {
+        "dzialka_i_pozwolenie": {
+          "label": "I have the plot and building permit",
+          "consequence": "Manufacturers can plan production and assembly timing right away."
+        },
+        "dzialka_bez_pozwolenia": {
+          "label": "I have the plot, waiting for the permit",
+          "consequence": "The advisor will account for permit time in the schedule."
+        },
+        "szukam_dzialki": {
+          "label": "Still looking for a plot",
+          "consequence": "The advisor will help with what to look for when choosing a plot for this house."
+        },
+        "potrzebuje_analizy": {
+          "label": "I need an analysis of whether it fits",
+          "consequence": "The advisor will suggest a plot analysis before we move forward."
+        }
+      }
+    },
+    "ogrzewanie": {
+      "question": "What would you prefer to heat the house with?",
+      "options": {
+        "pompa_ciepla": {
+          "label": "Heat pump",
+          "consequence": "Higher installation cost, lower bills later."
+        },
+        "gaz": {
+          "label": "Gas",
+          "consequence": "Lower installation cost, higher heating bills."
+        },
+        "elektryczne": {
+          "label": "Electric",
+          "consequence": "Simplest installation; running cost depends on your electricity tariff."
+        },
+        "kominek_biomasa": {
+          "label": "Fireplace or biomass",
+          "consequence": "Needs space for fuel and a chimney; independence from other utilities."
+        }
+      }
+    },
+    "standard_wykonczenia": {
+      "question": "What finishing standard should the house have?",
+      "options": {
+        "surowy_zamkniety": {
+          "label": "Shell only, closed",
+          "consequence": "You arrange the interior finishing yourself, a lower price from the manufacturer."
+        },
+        "deweloperski": {
+          "label": "Developer finish",
+          "consequence": "Installations ready, surface finishing stays on your side."
+        },
+        "pod_klucz": {
+          "label": "Turnkey",
+          "consequence": "House ready to move into, the highest price from the manufacturer."
+        }
+      }
+    }
   }
 }

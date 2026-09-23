@@ -14,6 +14,7 @@ import { ProjectWizardFilesStep } from "./ProjectWizardFilesStep";
 import { ProjectWizardProgress } from "./ProjectWizardProgress";
 import { ProjectWizardSummaryStep } from "./ProjectWizardSummaryStep";
 import { ProjectWizardTechnicalStep } from "./ProjectWizardTechnicalStep";
+import { ProjectWizardTranslationsStep } from "./ProjectWizardTranslationsStep";
 import { ProjectWizardVariantsStep } from "./ProjectWizardVariantsStep";
 import type { ProducerFloorPlan } from "./ProducerFloorPlanUploadStep";
 import type { ProducerProductPhoto } from "./ProducerProductPhotosStep";
@@ -192,6 +193,7 @@ export function ProjectWizard({ locale, countries }: ProjectWizardProps) {
             <ProjectWizardVariantsStep productId={productId} enableStandardsExtraction />
           )}
           {currentStep.id === "faq" && <ProjectWizardFaqStep />}
+          {currentStep.id === "tlumaczenia" && <ProjectWizardTranslationsStep productId={productId} />}
           {isSummaryStep && <ProjectWizardSummaryStep draft={values} countries={countries} />}
         </Stack>
         {saveError && <Text className="text-status-blocked">{saveError}</Text>}

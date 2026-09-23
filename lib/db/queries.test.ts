@@ -27,7 +27,6 @@ import {
   product,
   productTimelineStage,
   productVariant,
-  productVariantTranslation,
   users,
 } from "./schema";
 
@@ -517,9 +516,6 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: getProducerVariantsF
         completionStandard: "deweloperski",
         isDefault: true,
         priceMinCents: 10_000_000,
-        priceMaxCents: 12_000_000,
-        scopeSummary: "Zakres podstawowy",
-        excludedScope: "Fundament we własnym zakresie klienta",
         sortOrder: 0,
       },
       {
@@ -528,7 +524,6 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: getProducerVariantsF
         completionStandard: "pod-klucz",
         isDefault: false,
         priceMinCents: 15_000_000,
-        priceMaxCents: 17_000_000,
         sortOrder: 1,
       },
     ]);
@@ -539,16 +534,11 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: getProducerVariantsF
     await db.insert(productTimelineStage).values([
       { productVariantId: defaultVariantId, stageKey: "formalnosci", durationMinDays: 2, durationMaxDays: 4 },
     ]);
-    await db.insert(productVariantTranslation).values([
-      { productVariantId: defaultVariantId, locale: "en", scopeSummary: "Base scope" },
-      { productVariantId: defaultVariantId, locale: "nl", scopeSummary: "Basisomvang" },
-    ]);
   });
 
   afterAll(async () => {
     await db.delete(costLineItem).where(inArray(costLineItem.productVariantId, [defaultVariantId, otherVariantId]));
     await db.delete(productTimelineStage).where(inArray(productTimelineStage.productVariantId, [defaultVariantId, otherVariantId]));
-    await db.delete(productVariantTranslation).where(inArray(productVariantTranslation.productVariantId, [defaultVariantId, otherVariantId]));
     await db.delete(productVariant).where(inArray(productVariant.id, [defaultVariantId, otherVariantId]));
     await db.delete(product).where(inArray(product.id, [productId, emptyProductId]));
     await db.delete(producer).where(eq(producer.id, producerId));
@@ -556,7 +546,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: getProducerVariantsF
     await db.delete(auditLog).where(inArray(auditLog.recordId, [userId, producerId]));
   });
 
-  it("returns variants ordered by sortOrder, each with its own cost items, timeline stages, and translations", async () => {
+  it("returns variants ordered by sortOrder, each with its own cost items and timeline stages", async () => {
     const results = await getProducerVariantsForEdit(productId);
 
     expect(results.map((row) => row.id)).toEqual([defaultVariantId, otherVariantId]);
@@ -566,12 +556,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: getProducerVariantsF
       completionStandard: "deweloperski",
       isDefault: true,
       priceMinCents: 10_000_000,
-      priceMaxCents: 12_000_000,
       priceOnRequest: false,
-      scopeSummary: "Zakres podstawowy",
-      excludedScope: "Fundament we własnym zakresie klienta",
-      scopeSummaryEn: "Base scope",
-      scopeSummaryNl: "Basisomvang",
     });
     expect(defaultVariant.costLineItems).toEqual([
       { id: expect.any(String), label: "Fundament", status: "w-cenie", responsibleParty: null },
@@ -581,8 +566,6 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: getProducerVariantsF
     ]);
 
     const otherVariant = results[1];
-    expect(otherVariant.scopeSummaryEn).toBeNull();
-    expect(otherVariant.scopeSummaryNl).toBeNull();
     expect(otherVariant.costLineItems).toEqual([
       { id: expect.any(String), label: "Instalacja fotowoltaiczna", status: "opcja", responsibleParty: null },
     ]);

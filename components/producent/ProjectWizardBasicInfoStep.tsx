@@ -53,15 +53,17 @@ export function ProjectWizardBasicInfoStep({
   const t = useTranslations("ProjectWizardBasicInfoStep");
   const tOptions = useTranslations("ProjectOptions");
   const { control, register, setValue } = useFormContext<ProjectDraft>();
-  // Zakładki EN/NL/DE są opcjonalne (spec 0028 AC-5, AC-16): brak walidacji, w
-  // przeciwieństwie do wymaganych pól polskich poniżej.
-  const [translationTab, setTranslationTab] = useState<"en" | "nl" | "de">("en");
-  // Uklad pomieszczen (spec 0045 AC-5, AC-10): trzy tablice w locku po
-  // pozycji, ten sam wzorzec co ProjectWizardFaqStep — patrz komentarz tam.
+  // Uklad pomieszczen (spec 0045 AC-5, AC-10; DE dodane spec 0050 AC-28):
+  // cztery tablice w locku po pozycji, ten sam wzorzec co ProjectWizardFaqStep
+  // — patrz komentarz tam. Tłumaczenia (roomLayoutEn/Nl/De) nie mają tu już
+  // własnej zakładki (spec 0050 AC-31, AC-32): wypełnia je wyłącznie
+  // ProjectWizardTranslationsStep, ten komponent tylko trzyma je w tym samym
+  // locku id/pozycji co roomLayout, żeby nie rozjechały się przy dodaniu/
+  // usunięciu/przesunięciu pokoju.
   const roomLayoutArray = useFieldArray({ control, name: "roomLayout" });
   const roomLayoutEnArray = useFieldArray({ control, name: "roomLayoutEn" });
   const roomLayoutNlArray = useFieldArray({ control, name: "roomLayoutNl" });
-  const [roomTranslationTab, setRoomTranslationTab] = useState<"en" | "nl">("en");
+  const roomLayoutDeArray = useFieldArray({ control, name: "roomLayoutDe" });
   const values = useWatch({ control }) as ProjectDraft;
 
   // Rozpoznawanie układu pomieszczeń (spec 0050 AC-4 do AC-12): tylko gdy
@@ -101,6 +103,7 @@ export function ProjectWizardBasicInfoStep({
       roomLayoutArray.append(room);
       roomLayoutEnArray.append({ id: room.id, name: "" });
       roomLayoutNlArray.append({ id: room.id, name: "" });
+      roomLayoutDeArray.append({ id: room.id, name: "" });
     }
     setRoomConfidence((current) => ({ ...current, ...merged.confidenceById }));
   }
@@ -132,18 +135,21 @@ export function ProjectWizardBasicInfoStep({
     roomLayoutArray.append({ id, name: "", areaM2: 0, function: "", floorLevel: "parter" });
     roomLayoutEnArray.append({ id, name: "" });
     roomLayoutNlArray.append({ id, name: "" });
+    roomLayoutDeArray.append({ id, name: "" });
   }
 
   function handleRemoveRoom(index: number) {
     roomLayoutArray.remove(index);
     roomLayoutEnArray.remove(index);
     roomLayoutNlArray.remove(index);
+    roomLayoutDeArray.remove(index);
   }
 
   function handleMoveRoom(from: number, to: number) {
     roomLayoutArray.move(from, to);
     roomLayoutEnArray.move(from, to);
     roomLayoutNlArray.move(from, to);
+    roomLayoutDeArray.move(from, to);
   }
 
   return (
@@ -359,83 +365,6 @@ export function ProjectWizardBasicInfoStep({
       <Stack gap={2}>
         <Stack gap={1}>
           <Text as="span" variant="label">
-            {t("translationsHeading")}
-          </Text>
-          <Text tone="muted">{t("translationsHint")}</Text>
-        </Stack>
-        <div role="tablist" aria-label={t("translationsHeading")} className="flex gap-brand-1">
-          <Button
-            type="button"
-            role="tab"
-            aria-selected={translationTab === "en"}
-            variant={translationTab === "en" ? "primary" : "secondary"}
-            size="sm"
-            onClick={() => setTranslationTab("en")}
-          >
-            {t("translationTabEn")}
-          </Button>
-          <Button
-            type="button"
-            role="tab"
-            aria-selected={translationTab === "nl"}
-            variant={translationTab === "nl" ? "primary" : "secondary"}
-            size="sm"
-            onClick={() => setTranslationTab("nl")}
-          >
-            {t("translationTabNl")}
-          </Button>
-          <Button
-            type="button"
-            role="tab"
-            aria-selected={translationTab === "de"}
-            variant={translationTab === "de" ? "primary" : "secondary"}
-            size="sm"
-            onClick={() => setTranslationTab("de")}
-          >
-            {t("translationTabDe")}
-          </Button>
-        </div>
-        {translationTab === "en" && (
-          <Stack gap={2}>
-            <Stack gap={1}>
-              <Label htmlFor="wizard-name-en">{t("nameEnLabel")}</Label>
-              <Input id="wizard-name-en" {...register("nameEn")} />
-            </Stack>
-            <Stack gap={1}>
-              <Label htmlFor="wizard-description-en">{t("descriptionEnLabel")}</Label>
-              <Textarea id="wizard-description-en" {...register("descriptionEn")} />
-            </Stack>
-          </Stack>
-        )}
-        {translationTab === "nl" && (
-          <Stack gap={2}>
-            <Stack gap={1}>
-              <Label htmlFor="wizard-name-nl">{t("nameNlLabel")}</Label>
-              <Input id="wizard-name-nl" {...register("nameNl")} />
-            </Stack>
-            <Stack gap={1}>
-              <Label htmlFor="wizard-description-nl">{t("descriptionNlLabel")}</Label>
-              <Textarea id="wizard-description-nl" {...register("descriptionNl")} />
-            </Stack>
-          </Stack>
-        )}
-        {translationTab === "de" && (
-          <Stack gap={2}>
-            <Stack gap={1}>
-              <Label htmlFor="wizard-name-de">{t("nameDeLabel")}</Label>
-              <Input id="wizard-name-de" {...register("nameDe")} />
-            </Stack>
-            <Stack gap={1}>
-              <Label htmlFor="wizard-description-de">{t("descriptionDeLabel")}</Label>
-              <Textarea id="wizard-description-de" {...register("descriptionDe")} />
-            </Stack>
-          </Stack>
-        )}
-      </Stack>
-
-      <Stack gap={2}>
-        <Stack gap={1}>
-          <Text as="span" variant="label">
             {t("roomLayoutHeading")}
           </Text>
           <Text tone="muted">{t("roomLayoutHint")}</Text>
@@ -586,52 +515,6 @@ export function ProjectWizardBasicInfoStep({
             );
           })}
         </Stack>
-
-        {roomLayoutArray.fields.length > 0 && (
-          <Stack gap={2}>
-            <div role="tablist" aria-label={t("roomTranslationsHeading")} className="flex gap-brand-1">
-              <Button
-                type="button"
-                role="tab"
-                aria-selected={roomTranslationTab === "en"}
-                variant={roomTranslationTab === "en" ? "primary" : "secondary"}
-                size="sm"
-                onClick={() => setRoomTranslationTab("en")}
-              >
-                {t("translationTabEn")}
-              </Button>
-              <Button
-                type="button"
-                role="tab"
-                aria-selected={roomTranslationTab === "nl"}
-                variant={roomTranslationTab === "nl" ? "primary" : "secondary"}
-                size="sm"
-                onClick={() => setRoomTranslationTab("nl")}
-              >
-                {t("translationTabNl")}
-              </Button>
-            </div>
-            <Stack gap={2}>
-              {roomLayoutArray.fields.map((field, index) =>
-                roomTranslationTab === "en" ? (
-                  <Input
-                    key={field.id}
-                    aria-label={t("roomNameTranslationLabel", { index: index + 1 })}
-                    placeholder={t("roomNameTranslationLabel", { index: index + 1 })}
-                    {...register(`roomLayoutEn.${index}.name`)}
-                  />
-                ) : (
-                  <Input
-                    key={field.id}
-                    aria-label={t("roomNameTranslationLabel", { index: index + 1 })}
-                    placeholder={t("roomNameTranslationLabel", { index: index + 1 })}
-                    {...register(`roomLayoutNl.${index}.name`)}
-                  />
-                ),
-              )}
-            </Stack>
-          </Stack>
-        )}
 
         <Button type="button" variant="secondary" size="sm" className="w-fit" onClick={handleAddRoom}>
           <Plus className="size-4" aria-hidden="true" />

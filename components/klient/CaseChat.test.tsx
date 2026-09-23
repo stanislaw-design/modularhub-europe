@@ -23,6 +23,7 @@ function makeMessage(id: string, overrides: Partial<CaseMessageDto> = {}): CaseM
     authorKind: "advisor",
     type: "text",
     body: `Treść ${id}`,
+    payload: null,
     locale: "pl",
     createdAt,
     cursor: `${createdAt}|${id}`,

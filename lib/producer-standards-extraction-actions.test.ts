@@ -33,11 +33,12 @@ function jpegBytes(): ArrayBuffer {
 
 const sampleStandard = {
   name: "Comfort",
-  priceMinEur: 90_000,
-  priceMaxEur: 100_000,
+  priceEur: 90_000,
   priceOnRequest: false,
-  scopeSummary: "Ściany, dach, okna",
-  excludedScope: "Fundament",
+  costLineItems: [
+    { label: "Ściany, dach, okna", status: "w-cenie" as const },
+    { label: "Fundament", status: "po-stronie-klienta" as const },
+  ],
   proposedStandard: "deweloperski" as const,
   confidence: "high" as const,
 };

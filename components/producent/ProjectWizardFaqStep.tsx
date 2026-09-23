@@ -2,15 +2,14 @@
 
 import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { Button, Card, Heading, Input, Label, Stack, Text, Textarea } from "@/components/ui";
 import type { ProjectDraft } from "@/lib/data/types";
 
 // AC-6, AC-10: FAQ produktu, useFieldArray na wspólnym formularzu kreatora
 // (ProjectDraft), zapisywany do product.faq (spec 0045 Feature design). faq/
-// faqEn/faqNl trzymane w tej samej kolejności i długości podczas edycji
-// (append/remove/move stosowane naraz na wszystkich trzech, ten sam stabilny
+// faqEn/faqNl/faqDe trzymane w tej samej kolejności i długości podczas edycji
+// (append/remove/move stosowane naraz na wszystkich czterech, ten sam stabilny
 // `id` przy tworzeniu) — dopasowanie po pozycji = dopasowanie po `id`, bo
 // nigdy się nie rozjeżdżają w trakcie życia tego formularza. Wczytanie
 // istniejącego, częściowego tłumaczenia (edycja produktu) przechodzi przez
@@ -18,32 +17,37 @@ import type { ProjectDraft } from "@/lib/data/types";
 // initialDraft, żeby ten sam lock po indeksie działał od pierwszego renderu;
 // puste wpisy tłumaczenia są odrzucane tuż przed zapisem (sanitizeDraftForSave),
 // żeby faktycznie częściowe tłumaczenie (AC-10) nie łamało
-// faqTranslationRowSchema (question/answer min(1)).
+// faqTranslationRowSchema (question/answer min(1)). Tłumaczenie nie ma tu już
+// własnej zakładki (spec 0050 AC-31, AC-32): wypełnia je wyłącznie
+// ProjectWizardTranslationsStep, ten krok tylko trzyma faqEn/Nl/De w locku.
 export function ProjectWizardFaqStep() {
   const t = useTranslations("ProjectWizardFaqStep");
   const { control, register } = useFormContext<ProjectDraft>();
   const faqArray = useFieldArray({ control, name: "faq" });
   const faqEnArray = useFieldArray({ control, name: "faqEn" });
   const faqNlArray = useFieldArray({ control, name: "faqNl" });
-  const [translationTab, setTranslationTab] = useState<"en" | "nl">("en");
+  const faqDeArray = useFieldArray({ control, name: "faqDe" });
 
   function handleAdd() {
     const id = crypto.randomUUID();
     faqArray.append({ id, question: "", answer: "" });
     faqEnArray.append({ id, question: "", answer: "" });
     faqNlArray.append({ id, question: "", answer: "" });
+    faqDeArray.append({ id, question: "", answer: "" });
   }
 
   function handleRemove(index: number) {
     faqArray.remove(index);
     faqEnArray.remove(index);
     faqNlArray.remove(index);
+    faqDeArray.remove(index);
   }
 
   function handleMove(from: number, to: number) {
     faqArray.move(from, to);
     faqEnArray.move(from, to);
     faqNlArray.move(from, to);
+    faqDeArray.move(from, to);
   }
 
   return (
@@ -106,42 +110,6 @@ export function ProjectWizardFaqStep() {
                   {t("answerLabel")}
                 </Label>
                 <Textarea id={`faq-${index}-answer`} required {...register(`faq.${index}.answer`)} />
-              </Stack>
-
-              <Stack gap={2}>
-                <div role="tablist" aria-label={t("translationsHeading")} className="flex gap-brand-1">
-                  <Button
-                    type="button"
-                    role="tab"
-                    aria-selected={translationTab === "en"}
-                    variant={translationTab === "en" ? "primary" : "secondary"}
-                    size="sm"
-                    onClick={() => setTranslationTab("en")}
-                  >
-                    {t("translationTabEn")}
-                  </Button>
-                  <Button
-                    type="button"
-                    role="tab"
-                    aria-selected={translationTab === "nl"}
-                    variant={translationTab === "nl" ? "primary" : "secondary"}
-                    size="sm"
-                    onClick={() => setTranslationTab("nl")}
-                  >
-                    {t("translationTabNl")}
-                  </Button>
-                </div>
-                {translationTab === "en" ? (
-                  <Stack gap={2}>
-                    <Input aria-label={t("questionEnLabel")} placeholder={t("questionEnLabel")} {...register(`faqEn.${index}.question`)} />
-                    <Textarea aria-label={t("answerEnLabel")} placeholder={t("answerEnLabel")} {...register(`faqEn.${index}.answer`)} />
-                  </Stack>
-                ) : (
-                  <Stack gap={2}>
-                    <Input aria-label={t("questionNlLabel")} placeholder={t("questionNlLabel")} {...register(`faqNl.${index}.question`)} />
-                    <Textarea aria-label={t("answerNlLabel")} placeholder={t("answerNlLabel")} {...register(`faqNl.${index}.answer`)} />
-                  </Stack>
-                )}
               </Stack>
             </Stack>
           </Card>

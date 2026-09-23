@@ -1,4 +1,4 @@
-import type { ClientRequirementRow } from "../product-client-requirements";
+import type { ClientRequirementRow, ClientRequirementTranslationRow } from "../product-client-requirements";
 import type { FaqRow, FaqTranslationRow } from "../product-faq";
 import type { FloorLevel, RoomLayoutRow, RoomLayoutTranslationRow } from "../product-room-layout";
 
@@ -122,18 +122,15 @@ export interface ProjectVariant {
   id: string;
   completionStandard: CompletionStandard;
   variantLabel?: string;
+  // Spec 0051 AC-1: jedna cena "od" na wariant, price_max_cents usunięty z
+  // bazy (schema fazy 1/2, kolumna fizycznie usunięta w fazie 3).
   priceMin?: number;
-  priceMax?: number;
   currency: "EUR";
-  scopeSummary?: string;
-  // Spec 0050 AC-13, AC-37: gdy true, priceMin/priceMax są zawsze undefined
+  // Spec 0050 AC-13, AC-37: gdy true, priceMin jest zawsze undefined
   // (wymuszone CHECK-em product_variant_price_on_request), karta klienta
   // pokazuje "wycena indywidualna" zamiast liczby i wariant jest wykluczony z
   // filtrowania/sortowania po cenie (lib/results-filters.ts#sortResults).
   priceOnRequest: boolean;
-  // Spec 0050 AC-13, AC-24, AC-36: co nie wchodzi w cenę tego standardu,
-  // zawsze osobny tekst od scopeSummary wyżej, nigdy z nim łączony.
-  excludedScope?: string;
   isDefault: boolean;
   costLineItems: CostLineItem[];
   timelineStages: TimelineStage[];
@@ -194,8 +191,8 @@ export interface Project {
   foundationOptions: string;
   customizationScope: string;
   structuralWarrantyYears: number;
+  // Spec 0051 AC-1: jedna cena "od", priceMax usunięty.
   priceMin: number;
-  priceMax: number;
   currency: "EUR";
   coverImageUrl: string;
   description: string;
@@ -235,8 +232,8 @@ export interface Project {
   craneRequirements?: string;
   minPlotWidthM?: number;
   featured: boolean;
-  /** Gdy true, priceMin/priceMax nie są pokazywane nigdzie na stronie projektu ani na
-   * kartach — w ich miejscu widoczne jest tylko CTA zapytania (spec 0020 AC-5). */
+  /** Gdy true, priceMin nie jest pokazywany nigdzie na stronie projektu ani na
+   * kartach — w jego miejscu widoczne jest tylko CTA zapytania (spec 0020 AC-5). */
   priceOnRequest?: boolean;
   /** Puste lub brak → sekcja "Certyfikaty" nie renderuje się (spec 0020 AC-4). */
   certifications?: string[];
@@ -305,15 +302,16 @@ export interface ProjectDraft {
   bedrooms: number | null;
   countryOfProduction: CountryCode | null;
   description: string;
-  // Opcjonalne tłumaczenia EN/NL/DE nazwy i opisu (spec 0028 AC-5, AC-16):
-  // polski (name/description) zostaje wymaganym tekstem źródłowym, te pola
-  // mogą zostać puste — strona klienta wtedy pokazuje polski tekst (AC-6).
-  // Zawsze konkretny (choćby pusty) string tutaj: to stan formularza w
-  // przeglądarce, nie payload zapisu — patrz ProducerProductFields
-  // (lib/producer-product-actions.ts), gdzie te sześć pól jest opcjonalnych.
-  nameEn: string;
-  nameNl: string;
-  nameDe: string;
+  // Opcjonalne tłumaczenia EN/NL/DE opisu (spec 0028 AC-5, AC-16, rozszerzone
+  // spec 0050 AC-28 do AC-34): polski (description) zostaje wymaganym tekstem
+  // źródłowym, te pola mogą zostać puste — strona klienta wtedy pokazuje
+  // polski tekst (AC-6). Wypełniane wyłącznie w kroku "Tłumaczenia"
+  // (ProjectWizardTranslationsStep, jedyne miejsce z zakładkami językowymi w
+  // obu kreatorach od spec 0050 AC-31/AC-32). Zawsze konkretny (choćby pusty)
+  // string tutaj: to stan formularza w przeglądarce, nie payload zapisu —
+  // patrz ProducerProductFields (lib/producer-product-actions.ts), gdzie te
+  // pola są opcjonalne. `name` nie jest już tłumaczone wcale (spec 0050 AC-2):
+  // jedna, wspólna wartość dla wszystkich języków, żadnego pola *En/*Nl/*De.
   descriptionEn: string;
   descriptionNl: string;
   descriptionDe: string;
@@ -330,20 +328,27 @@ export interface ProjectDraft {
   technicalSpecs: ProductTechnicalSpecsDraft;
   // Uklad pomieszczen (spec 0045 AC-5): zapisywany do product.room_layout,
   // ten sam stabilny-id wzorzec co lib/product-room-layout.ts. Tlumaczenia
-  // (AC-10) dopasowane po tym samym id, moga byc krotsze niz lista polska.
+  // (AC-10, DE dodane spec 0050 AC-28) dopasowane po tym samym id, moga byc
+  // krotsze niz lista polska.
   roomLayout: RoomLayoutRow[];
   roomLayoutEn: RoomLayoutTranslationRow[];
   roomLayoutNl: RoomLayoutTranslationRow[];
+  roomLayoutDe: RoomLayoutTranslationRow[];
   // FAQ produktu (spec 0045 AC-6): zapisywany do product.faq, ten sam wzorzec
   // co roomLayout wyzej.
   faq: FaqRow[];
   faqEn: FaqTranslationRow[];
   faqNl: FaqTranslationRow[];
+  faqDe: FaqTranslationRow[];
   // Co musi zapewnic klient, niezaleznie od wybranego standardu (spec 0050
   // AC-23): zapisywany do product.client_requirements, ten sam wzorzec co
-  // roomLayout/faq wyzej. Tlumaczenie wlasnych pozycji (AC-28) buduje sie w
-  // zadaniu 9, nie tutaj.
+  // roomLayout/faq wyzej. Tlumaczenie wlasnych pozycji (custom: true, AC-28)
+  // dopasowane po tym samym id; pozycje katalogowe (custom: false) nie maja
+  // tu odpowiednika (tlumacza sie z katalogu opcji przy odczycie).
   clientRequirements: ClientRequirementRow[];
+  clientRequirementsEn: ClientRequirementTranslationRow[];
+  clientRequirementsNl: ClientRequirementTranslationRow[];
+  clientRequirementsDe: ClientRequirementTranslationRow[];
   floorPlanFiles: MockUploadedFile[];
   photoFiles: MockUploadedFile[];
   // Gwarancja konstrukcyjna (dom/materialy), niezalezna od

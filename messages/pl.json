@@ -224,6 +224,7 @@
       "pliki": "Pliki",
       "warianty": "Warianty i cennik",
       "faq": "FAQ",
+      "tlumaczenia": "Tłumaczenia",
       "podsumowanie": "Podsumowanie"
     },
     "family": {
@@ -530,17 +531,6 @@
     "countryRequiredError": "Wybierz kraj produkcji.",
     "descriptionLabel": "Opis",
     "descriptionRequiredError": "Podaj opis projektu.",
-    "translationsHeading": "Tłumaczenia (opcjonalnie)",
-    "translationsHint": "Angielski, niderlandzki i niemiecki są opcjonalne — bez tłumaczenia klienci z zagranicy zobaczą tekst polski.",
-    "translationTabEn": "Angielski",
-    "translationTabNl": "Niderlandzki",
-    "translationTabDe": "Niemiecki",
-    "nameEnLabel": "Nazwa (angielski)",
-    "nameNlLabel": "Nazwa (niderlandzki)",
-    "nameDeLabel": "Nazwa (niemiecki)",
-    "descriptionEnLabel": "Opis (angielski)",
-    "descriptionNlLabel": "Opis (niderlandzki)",
-    "descriptionDeLabel": "Opis (niemiecki)",
     "roomLayoutHeading": "Układ pomieszczeń",
     "roomLayoutHint": "Dodaj pomieszczenia, ich powierzchnię i funkcję — sekcja jest widoczna na karcie projektu klienta.",
     "roomLayoutEmptyHint": "Nie dodano jeszcze żadnego pomieszczenia.",
@@ -551,8 +541,6 @@
     "moveUpLabel": "Przesuń w górę",
     "moveDownLabel": "Przesuń w dół",
     "removeRoomLabel": "Usuń pomieszczenie",
-    "roomTranslationsHeading": "Tłumaczenia nazw pomieszczeń (opcjonalnie)",
-    "roomNameTranslationLabel": "Nazwa pomieszczenia {index}",
     "addRoomButton": "Dodaj pomieszczenie",
     "recognizeHeading": "Rozpoznaj układ pomieszczeń z rzutów",
     "recognizeHint": "Wybierz maksymalnie pięć wgranych rzutów, a AI zaproponuje listę pomieszczeń do sprawdzenia.",
@@ -603,11 +591,6 @@
     "priceOnRequestLabel": "Wycena indywidualna (bez stałej ceny)",
     "scopeSummaryLabel": "Opis zakresu",
     "excludedScopeLabel": "Co nie wchodzi w cenę",
-    "translationsHeading": "Tłumaczenia opisu zakresu (opcjonalne)",
-    "translationTabEn": "EN",
-    "translationTabNl": "NL",
-    "scopeSummaryEnLabel": "Opis zakresu (EN)",
-    "scopeSummaryNlLabel": "Opis zakresu (NL)",
     "costLineItemsHeading": "Pozycje kosztowe",
     "costLineItemLabelLabel": "Pozycja",
     "costLineItemStatusLabel": "Status",
@@ -654,14 +637,42 @@
     "removeLabel": "Usuń pytanie",
     "questionLabel": "Pytanie",
     "answerLabel": "Odpowiedź",
-    "translationsHeading": "Tłumaczenia (opcjonalnie)",
-    "translationTabEn": "EN",
-    "translationTabNl": "NL",
-    "questionEnLabel": "Pytanie (EN)",
-    "answerEnLabel": "Odpowiedź (EN)",
-    "questionNlLabel": "Pytanie (NL)",
-    "answerNlLabel": "Odpowiedź (NL)",
     "addButton": "Dodaj pytanie"
+  },
+  "ProjectWizardTranslationsStep": {
+    "heading": "Tłumaczenia",
+    "intro": "AI przygotowuje tłumaczenia opisu, standardów, pomieszczeń, wymagań klienta i FAQ na angielski, niemiecki i niderlandzki. Sprawdź i popraw przed publikacją.",
+    "generateButton": "Wygeneruj tłumaczenia",
+    "regenerateAllButton": "Wygeneruj ponownie",
+    "regenerateOneButton": "Wygeneruj ponownie ({language})",
+    "generatingLabel": "Generowanie…",
+    "genericError": "Nie udało się wygenerować tłumaczeń. Spróbuj ponownie albo popraw ręcznie.",
+    "emptyHint": "Wygeneruj tłumaczenia, żeby zobaczyć i poprawić treść w każdym języku.",
+    "languageTabsLabel": "Język tłumaczenia",
+    "localeLabel": {
+      "en": "Angielski",
+      "nl": "Niderlandzki",
+      "de": "Niemiecki"
+    },
+    "descriptionLabel": "Opis projektu",
+    "roomLayoutHeading": "Nazwy pomieszczeń",
+    "roomNameTranslationLabel": "Nazwa pomieszczenia „{name}”",
+    "faqHeading": "FAQ",
+    "faqQuestionTranslationLabel": "Pytanie {index}",
+    "faqAnswerTranslationLabel": "Odpowiedź {index}",
+    "clientRequirementsHeading": "Co musi zapewnić klient",
+    "requirementTranslationLabel": "Pozycja „{label}”",
+    "variantsHeading": "Warianty",
+    "variantScopeSummaryLabel": "Opis zakresu",
+    "variantExcludedScopeLabel": "Co nie wchodzi w cenę",
+    "savingVariantsLabel": "Zapisywanie…",
+    "saveVariantTranslationsButton": "Zapisz tłumaczenia wariantów",
+    "variantsSavedLabel": "Zapisano.",
+    "completionStandard": {
+      "surowy-zamkniety": "Stan surowy zamknięty",
+      "deweloperski": "Standard deweloperski",
+      "pod-klucz": "Pod klucz"
+    }
   },
   "ProjectWizardFilesStep": {
     "heading": "Pliki",
@@ -1198,8 +1209,12 @@
   "InquiryFlow": {
     "heading": "Poproś ModularHub o przygotowanie ofert",
     "howItWorksTitle": "Jak to działa",
-    "howItWorksBody": "Twoje zapytanie trafia do ModularHub, a nie od razu do producentów. Doradca porozmawia z Tobą, przygotuje brief i pokaże Ci go do zatwierdzenia. Producenci dostaną go dopiero po Twojej zgodzie.",
+    "howItWorksStep1": "Twoje zapytanie trafia do ModularHub, a nie od razu do producentów.",
+    "howItWorksStep2": "Doradca porozmawia z Tobą i przygotuje brief do Twojego zatwierdzenia.",
+    "howItWorksStep3": "Producenci dostają brief dopiero po Twojej zgodzie.",
     "selectedHomesLabel": "Wybrane domy",
+    "sectionAddressHeading": "Adres działki",
+    "homeMeta": "{producer} · {area} m²",
     "streetLabel": "Ulica i numer",
     "postalCodeLabel": "Kod pocztowy",
     "cityLabel": "Miejscowość",
@@ -1682,6 +1697,20 @@
     "collapseSidebar": "Zwiń menu",
     "expandSidebar": "Rozwiń menu"
   },
+  "ClientPanelSidebar": {
+    "navAriaLabel": "Panel klienta",
+    "zapytania": "Zapytania",
+    "ulubione": "Ulubione",
+    "profil": "Profil",
+    "unreadBadgeLabel": "Nowa oferta",
+    "home": "Strona Główna",
+    "signOut": "Wyloguj",
+    "openMenu": "Otwórz menu",
+    "closeMenu": "Zamknij menu",
+    "menu": "Menu",
+    "collapseSidebar": "Zwiń menu",
+    "expandSidebar": "Rozwiń menu"
+  },
   "CaseChat": {
     "heading": "Rozmowa z doradcą",
     "draftLabel": "Twoja wiadomość",
@@ -1739,5 +1768,142 @@
   },
   "CaseSystem": {
     "caseReceived": "Otrzymaliśmy Twoje zapytanie. Nie wysłaliśmy go jeszcze do producentów."
+  },
+  "CaseCards": {
+    "layerOneBadge": "Kilka pytań na start",
+    "layerTwoBadge": "Dodatkowe i opcjonalne",
+    "progress": "Pytanie {current} z {total}",
+    "skipAll": "Pomiń te pytania",
+    "willSave": "Zapiszemy: {value}",
+    "confirm": "Zatwierdź",
+    "saving": "Zapisywanie…",
+    "sendError": "Nie udało się zapisać odpowiedzi. Spróbuj ponownie.",
+    "noAnswerYet": "Bez odpowiedzi.",
+    "common": {
+      "unsureLabel": "Nie wiem, niech doradca zaproponuje",
+      "unsureConsequence": "Doradca zaproponuje to na podstawie rozmowy z Tobą."
+    },
+    "zakres_uslug": {
+      "question": "Czego oczekujesz od producenta?",
+      "options": {
+        "sam_dom": {
+          "label": "Sam dom",
+          "consequence": "Transport, montaż i fundament organizujesz sam albo z inną firmą."
+        },
+        "dom_i_transport": {
+          "label": "Dom z transportem",
+          "consequence": "Producent dowozi dom, montaż i fundament zostają po Twojej stronie."
+        },
+        "dom_transport_montaz": {
+          "label": "Dom, transport i montaż",
+          "consequence": "Producent stawia dom na Twojej działce, fundament przygotowujesz osobno."
+        },
+        "kompleksowo_z_fundamentem": {
+          "label": "Kompleksowo, razem z fundamentem",
+          "consequence": "Najmniej rzeczy po Twojej stronie, zwykle wyższa cena całości."
+        }
+      }
+    },
+    "budzet": {
+      "question": "Jaki budżet bierzesz pod uwagę?",
+      "options": {
+        "do_150k": {
+          "label": "Do 150 tys. EUR",
+          "consequence": "Dobierzemy modele i standard wykończenia dopasowane do tej kwoty."
+        },
+        "150_do_250k": {
+          "label": "150–250 tys. EUR",
+          "consequence": "Szerszy wybór modeli i wyższy standard wykończenia w zasięgu."
+        },
+        "250_do_400k": {
+          "label": "250–400 tys. EUR",
+          "consequence": "Otwiera większe domy i pełniejszy zakres usług producenta."
+        },
+        "powyzej_400k": {
+          "label": "Powyżej 400 tys. EUR",
+          "consequence": "Bez ograniczeń w wyborze modelu, standardu i zakresu usług."
+        }
+      }
+    },
+    "termin": {
+      "question": "Kiedy chciałbyś się wprowadzić?",
+      "options": {
+        "jak_najszybciej": {
+          "label": "Jak najszybciej",
+          "consequence": "Doradca sprawdzi, którzy producenci mają wolne terminy produkcji już teraz."
+        },
+        "do_6_miesiecy": {
+          "label": "W ciągu 6 miesięcy",
+          "consequence": "Wystarczy czasu na spokojny wybór producenta i przygotowanie działki."
+        },
+        "do_roku": {
+          "label": "W ciągu roku",
+          "consequence": "Komfortowy termin, mniej presji na decyzje po drodze."
+        },
+        "elastyczny": {
+          "label": "Elastyczny, ponad rok",
+          "consequence": "Termin nie jest priorytetem przy wyborze producenta."
+        }
+      }
+    },
+    "gotowosc_dzialki": {
+      "question": "Na jakim etapie jest Twoja działka?",
+      "options": {
+        "dzialka_i_pozwolenie": {
+          "label": "Mam działkę i pozwolenie na budowę",
+          "consequence": "Producenci mogą od razu planować termin produkcji i montażu."
+        },
+        "dzialka_bez_pozwolenia": {
+          "label": "Mam działkę, czekam na pozwolenie",
+          "consequence": "Doradca uwzględni czas na pozwolenie w harmonogramie."
+        },
+        "szukam_dzialki": {
+          "label": "Jeszcze szukam działki",
+          "consequence": "Doradca doradzi, na co zwrócić uwagę przy wyborze działki pod ten dom."
+        },
+        "potrzebuje_analizy": {
+          "label": "Potrzebuję analizy, czy dom się zmieści",
+          "consequence": "Doradca zaproponuje analizę działki, zanim ruszymy dalej."
+        }
+      }
+    },
+    "ogrzewanie": {
+      "question": "Czym wolałbyś ogrzewać dom?",
+      "options": {
+        "pompa_ciepla": {
+          "label": "Pompa ciepła",
+          "consequence": "Wyższy koszt montażu, niższe rachunki później."
+        },
+        "gaz": {
+          "label": "Gaz",
+          "consequence": "Niższy koszt instalacji, wyższe rachunki za ogrzewanie."
+        },
+        "elektryczne": {
+          "label": "Elektryczne",
+          "consequence": "Najprostszy montaż, koszt eksploatacji zależy od taryfy prądu."
+        },
+        "kominek_biomasa": {
+          "label": "Kominek lub biomasa",
+          "consequence": "Wymaga miejsca na opał i komin, niezależność od innych mediów."
+        }
+      }
+    },
+    "standard_wykonczenia": {
+      "question": "W jakim standardzie ma być dom?",
+      "options": {
+        "surowy_zamkniety": {
+          "label": "Stan surowy zamknięty",
+          "consequence": "Wykończenie wnętrz organizujesz sam, niższa cena od producenta."
+        },
+        "deweloperski": {
+          "label": "Stan deweloperski",
+          "consequence": "Instalacje gotowe, wykończenie powierzchni po Twojej stronie."
+        },
+        "pod_klucz": {
+          "label": "Pod klucz",
+          "consequence": "Dom gotowy do wprowadzenia się, najwyższa cena od producenta."
+        }
+      }
+    }
   }
 }

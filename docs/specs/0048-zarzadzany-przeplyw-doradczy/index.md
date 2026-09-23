@@ -30,7 +30,7 @@ Zapytanie klienta o pojedynczy dom trafia dziś prosto do producenta, a producen
 
 *Komunikator*
 - **AC-6**: Klient i doradca wymieniają wiadomości tekstowe w kanale `klient_doradca` (pliki dochodzą w AC-9). Interwały i okna czasowe czytają czas z wstrzykiwanego zegara, żeby dało się je testować. Nowa wiadomość pojawia się u drugiej strony w ciągu około 5 sekund przy aktywnej karcie przeglądarki (odświeżanie co 5 s, co 30 s w karcie w tle). Wiadomości nie da się edytować ani usunąć. Ponowne wysłanie z tym samym kluczem idempotencji nie tworzy duplikatu.
-- **AC-7**: Doradca wysyła karty: pytanie z wyborem, pole liczbowe, prośba o plik, propozycja alternatywy, podgląd briefu do zatwierdzenia. Odpowiedź klienta na kartę zapisuje wskazane pole w `case_field` ze stanem „potwierdzone” i źródłem „karta klienta”. Przed wysłaniem odpowiedzi klient widzi, co zostanie zapisane.
+- **AC-7**: Doradca wysyła karty: pytanie z wyborem, pole liczbowe, prośba o plik, propozycja alternatywy, podgląd briefu do zatwierdzenia. Odpowiedź klienta na kartę zapisuje wskazane pole w `case_field` ze stanem „potwierdzone” i źródłem „karta klienta”, z wyjątkiem opisanym w AC-40. Przed wysłaniem odpowiedzi klient widzi, co zostanie zapisane. Karty mogą też pochodzić od systemu przy tworzeniu sprawy, patrz AC-38 do AC-44.
 - **AC-8**: Klient nigdy nie odczytuje kanałów `producent_doradca`, ani przez adres, ani przez akcję serwera. Producent odczytuje wyłącznie kanał własnego zaproszenia, a jeśli jest finalistą, także kanał wspólny. Producent nie widzi zaproszeń, ofert ani kanałów innego producenta.
 - **AC-9**: Pliki w rozmowie lądują w prywatnym buckecie R2, są przyjmowane tylko jako PDF, JPG lub PNG do 20 MB, z typem sprawdzanym po sygnaturze bajtów. Pobranie odbywa się krótkotrwałym linkiem tworzonym dopiero po sprawdzeniu dostępu do kanału. Plik z kanału klienta nie jest dostępny producentowi, dopóki klient nie udostępni go jawną zgodą.
 - **AC-10**: E maile: od razu przy zdarzeniach kluczowych (nowa sprawa dla doradcy, brief do zatwierdzenia, zaproszenie dla producenta, porównanie gotowe, wybór finalisty). Przy zwykłych wiadomościach maksymalnie jeden e mail na odbiorcę i kanał w oknie 10 minut, i żaden, jeśli odbiorca był aktywny w tym kanale w ciągu ostatnich 90 sekund. E mail zawiera tylko link i powód, nigdy treści wiadomości.
@@ -71,6 +71,15 @@ Zapytanie klienta o pojedynczy dom trafia dziś prosto do producenta, a producen
 - **AC-35**: Gdy wszystkie zaproszenia są w stanie końcowym (odmowa, wygasło) i nie ma żadnej oferty „gotowa”, doradca widzi w kolejce sprawę „brak ofert” i może wrócić do etapu `rozmowa` (zmiana wymagań lub nowi producenci za zgodą) albo zamknąć sprawę z `closed_reason = brak_ofert`. `publishComparison` bez ofert „gotowa” jest odrzucone z czytelnym komunikatem, sprawa nie zostaje w martwym punkcie.
 - **AC-36**: Klient może wycofać zgodę na udostępnianie danych (RODO art. 7 ust. 3). `withdrawConsent` dopisuje nowy wiersz `case_consent` rodzaju `withdrawal` (append only), zatrzymuje dalsze udostępnianie, powiadamia doradcę, a dane już przekazane producentowi są obsługiwane ręcznie przez doradcę.
 - **AC-37**: `reopenCase` działa do 90 dni od `closed_at`, po tym czasie klient składa nowe zapytanie. `assignAdvisor` zmienia `assigned_advisor_id`, nowy doradca widzi wszystkie kanały i historię, a poprzedni zachowuje wpisy jako autor swoich wiadomości.
+
+*Karty startowe od systemu*
+- **AC-38**: Zaraz po utworzeniu sprawy, w tej samej operacji co pierwsza wiadomość systemowa (AC-3), system wstawia do kanału `klient_doradca` wszystkie sześć kart pytań, warstwy pierwszej i drugiej naraz (patrz Data model o kolejności zapisu). Każda karta ma autora `system` i typ `question_card`, ten sam typ, którego dziś używa doradca (AC-7). Karty warstwy pierwszej, w ustalonej kolejności zakres usług, budżet, termin, gotowość działki, są widoczne od razu.
+- **AC-39**: Każda opcja na karcie pokazuje ikonę (z biblioteki lucide, tej samej co reszta systemu projektowego), krótką etykietę i jedno zdanie zwykłym językiem opisujące, co ten wybór oznacza w praktyce, na przykład „pompa ciepła, wyższy koszt montażu, niższe rachunki później”. Etykiety i zdania pochodzą z katalogu tłumaczeń, nigdy nie są zapisane w bazie.
+- **AC-40**: Każda karta ma pełnoprawną opcję „nie wiem, niech doradca zaproponuje”, pokazaną tak samo jak pozostałe opcje, nigdy jako mały link z boku. Wybranie tej opcji zapisuje `case_field` w stanie brak informacji, nie potwierdzone, wyjątek od ogólnej reguły AC-7 dla tego jednego przypadku. Karta jest odpowiedziana dokładnie wtedy, gdy `case_field` dla jej klucza ma stan potwierdzone albo brak informacji, nie po osobnej fladze na wiadomości, więc dwie równoległe odpowiedzi na tę samą kartę (na przykład w dwóch kartach przeglądarki) kończą się jednym zapisem, ostatni wygrywa, nigdy duplikatem ani błędem.
+- **AC-41**: Klient może w każdej chwili pominąć całą sekwencję kart jednym działaniem, bez wpływu na dostęp do kanału ani na możliwość pisania do doradcy. Pominięcie jest wyłącznie stanem interfejsu, nie zapisuje żadnej wartości w `case_field`, karty zostają w kanale nieodpowiedziane, dokładnie jakby klient je zignorował.
+- **AC-42**: Karty warstwy drugiej (ogrzewanie, standard wykończenia) istnieją w kanale od razu, tak jak warstwa pierwsza (AC-38), ale interfejs pokazuje je klientowi dopiero po tym, jak odpowie na cztery karty warstwy pierwszej albo je pominie, i wyraźnie oznacza je jako dodatkowe i opcjonalne. Te same zasady z AC-39, AC-40 i AC-41 obowiązują tak samo.
+- **AC-43**: Interfejs pokazuje jako aktywną tylko pierwszą nieodpowiedzianą kartę w ustalonej kolejności, z widocznym postępem, nigdy ścianę kart naraz; odpowiedziane albo pominięte karty przechodzą do zwykłej historii kanału. Pod spodem każda karta jest prawdziwym polem wyboru (semantyka grupy opcji), a status nigdy nie jest przekazywany wyłącznie kolorem.
+- **AC-44**: Wartości `case_field` zebrane tymi kartami (zakres usług, budżet, termin, gotowość działki, standard wykończenia), które mają stan potwierdzone, zasilają szkic briefu (`draftBrief`) jako wartość początkowa odpowiadających pól z AC-14. Wartość w stanie brak informacji (odpowiedź „nie wiem”) nigdy nie trafia do szkicu jako tekst, dokładnie jak brak ceny w AC-24 nie trafia do porównania jako zero. Doradca może każdą wartość zmienić przed wysłaniem briefu do zatwierdzenia. Ogrzewanie nie ma dziś odpowiednika w treści briefu i zostaje widoczne doradcy jako podsumowanie potrzeb.
 
 ## Decision
 
@@ -130,6 +139,10 @@ Dotychczasowe kolumny (`status`, `idempotency_key`, migawka danych kontaktowych,
 
 **`case_file`**: `id`, `inquiry_id`, `channel_id`, `uploaded_by`, `r2_key`, `filename`, `mime`, `size_bytes`, `shared_with_producer_ids` (uuid[]), `created_at`. Osobna od `document`, bo `document` obsługuje publiczny bucket zdjęć.
 
+**Karty startowe od systemu (bez nowej tabeli)**: Sześć kluczy `case_field` (`zakres_uslug`, `budzet`, `termin`, `gotowosc_dzialki` w warstwie pierwszej, `ogrzewanie`, `standard_wykonczenia` w warstwie drugiej) opisane w katalogu w kodzie, nie w bazie: dla każdego uporządkowana lista opcji z ikoną (nazwa komponentu z `lucide react`), kluczem etykiety i kluczem zdania konsekwencji w katalogu tłumaczeń, plus stała opcja `nie_wiem` na końcu. `message.payload` dla tych kart jest cienki, tylko `{ fieldKey, allowUnsure: true }`, bez duplikowania tłumaczonej treści w bazie. Wartość `nie_wiem` zawsze zapisuje `case_field.state = missing`, każda inna wybrana opcja zapisuje `confirmed`. Zod waliduje, że zapisana wartość jest jedną z dozwolonych dla danego klucza.
+
+Wszystkie sześć wierszy `message` powstaje w jednym `db.batch`, razem z wiadomością systemową z AC-3. Domyślne `created_at` (`now()`) i losowe `id` nie gwarantują kolejności zapisu w jednej transakcji, więc `createAdvisoryCase` nadaje każdemu wierszowi jawny, rosnący `created_at` (odstęp co najmniej jednej mikrosekundy, precyzja, którą `listMessages` już czyta), w kolejności: wiadomość systemowa, cztery karty warstwy pierwszej, dwie karty warstwy drugiej. Retencja i usunięcie treści na prośbę klienta (AC-31, Consequences) obejmują też wiersze `case_field` zapisane tymi kartami, nie tylko `message` i pliki.
+
 **Relacje (ERD tekstowo)**: `inquiry` 1:N `inquiry_item`, `case_field`, `brief_version`, `producer_invitation`, `channel`, `comparison`, `case_consent`, `case_file`. `producer_invitation` 1:N `producer_invitation_item`, 1:N `offer`. `channel` 1:N `message`. `comparison.entries` odwołuje się do `offer` po identyfikatorze. `inquiry.finalist_offer_id` N:1 `offer`. `offer_item` N:1 `product_variant`.
 
 ### Maszyna stanów (`inquiry.stage`)
@@ -178,6 +191,8 @@ Server Actions (zapis) wewnątrz `lib/case-*.ts`, każda zaczyna od `auth()` i w
 | `selectFinalist` | klient | offerId, zgoda | kanał wspólny | oferta nie „gotowa”, nieaktualna wersja |
 | `assignAdvisor`, `closeCase`, `reopenCase`, `deleteCaseContent` | admin | | ok | |
 
+Bez nowych akcji ani endpointów dla kart startowych: system wstawia sześć wierszy `message` w tym samym `db.batch` co dzisiejsza wiadomość systemowa, wewnątrz `createAdvisoryCase` (`submitAdvisoryInquiry`), a odpowiedź klienta idzie przez istniejącą akcję `answerCard`, tylko z rozszerzonym katalogiem kluczy. Te sześć wierszy, tak jak wiadomość systemowa z AC-3, nie przechodzi przez `sendMessage` i nie wywołuje reguły e maila z AC-10; klient jest właśnie na stronie sprawy, więc nie dostaje e maila o własnych kartach startowych.
+
 Polling: klient JS pyta co 5 s w aktywnej karcie, co 30 s w tle (`visibilitychange`), przy błędzie odczekanie rosnące, każde zapytanie jednocześnie odświeża `last_seen_at`. Zapytanie to prosty odczyt po indeksie kanału, bez łączenia z innymi tabelami.
 
 ### Key invariants
@@ -191,6 +206,11 @@ Polling: klient JS pyta co 5 s w aktywnej karcie, co 30 s w tle (`visibilitychan
 - Najwyżej jedna aktywna oferta na (sprawa, producent), utrzymana istniejącym częściowym unikalnym indeksem.
 - Wiadomość ma jedno `idempotency_key` na kanał, ponowienie po błędzie zwraca istniejący wiersz.
 - `order` nie powstaje w tej specyfikacji. Akcja `respondToOffer` z spec 0033 działa tylko dla `stage = legacy_direct`.
+- Każdy klucz karty startowej ma zamknięty, zwalidowany Zod zestaw wartości, zawsze zawierający `nie_wiem`, która zawsze zapisuje `missing`, nigdy `confirmed`.
+- Karty startowe nigdy nie blokują `sendMessage` ani dostęp do kanału (AC-41): wymagane brakiem jakiejkolwiek zależności w kodzie tych akcji od stanu odpowiedzi na karty, nie osobną bramką do usunięcia później.
+- Ikony i zdania konsekwencji żyją w katalogu kodu i w katalogu tłumaczeń, nigdy w bazie, więc dodanie języka nie wymaga migracji danych.
+- Karta jest odpowiedziana wtedy, gdy `case_field(inquiry_id, key)` ma stan potwierdzone albo brak informacji, `answerCard` sprawdza to zawsze przez `case_field`, nigdy przez osobną flagę na `message` (AC-40).
+- `draftBrief` czyta z `case_field` wyłącznie wartości w stanie potwierdzone; `missing` nigdy nie trafia do treści briefu jako tekst (AC-44).
 
 ### Security model
 
@@ -224,6 +244,10 @@ Polling: klient JS pyta co 5 s w aktywnej karcie, co 30 s w tle (`visibilitychan
 - Waluta: oferta w PLN przy briefie w EUR oznaczona „poza założeniami briefu” i niesumowana, verifies **AC-24**
 - Wycofanie zgody i redakcja: `withdrawConsent` dopisuje wiersz, `deleteCaseContent` zeruje treść wiadomości mimo triggera niezmienności, zgody zostają, verifies **AC-31, AC-36**
 - Dostęp do starych spraw: ścieżka `legacy_direct` i B2B bez zmian, verifies **AC-32**.
+- Karty startowe: klient wysyła zapytanie, w kanale `klient_doradca` powstają od razu wszystkie sześć kart w jawnie rosnącej kolejności `created_at`, interfejs pokazuje najpierw tylko cztery karty warstwy pierwszej, klient odpowiada „nie wiem” na jedną i wybiera konkretną opcję na pozostałych trzech, `case_field` ma odpowiednio stan `missing` i `confirmed`; interfejs odsłania dwie karty warstwy drugiej, klient pomija je w całości i mimo to swobodnie pisze do doradcy, verifies **AC-38, AC-39, AC-40, AC-41, AC-42, AC-43**.
+- Wyścig odpowiedzi: dwie równoległe odpowiedzi na tę samą kartę startową (dwie karty przeglądarki) zapisują jeden wiersz `case_field`, ostatni zapis wygrywa, żaden błąd ani duplikat, verifies **AC-40**.
+- Szkic briefu z kart: doradca otwiera `draftBrief` dla sprawy z odpowiedzianymi kartami warstwy pierwszej, pola budżet, termin, zakres usług i gotowość działki są wstępnie wypełnione wartościami `case_field` w stanie potwierdzone, pole z odpowiedzią „nie wiem” zostaje puste w szkicu, nie tekstem `nie_wiem`, verifies **AC-44**.
+- Bez lawiny e maili od kart startowych: utworzenie sprawy z sześcioma kartami startowymi nie wysyła żadnego e maila poza jednorazowym alarmem dla doradcy z AC-5, verifies **AC-10**.
 - E2E (Playwright): klient, doradca i producent w trzech sesjach przechodzą cały wątek, verifies **AC-1 do AC-30**.
 
 ## Migration plan
@@ -246,9 +270,9 @@ Podejście Tracer Bullet: najpierw cienki, prawdziwy wątek od formularza do odp
 3. `requireCaseAccess` i moduł `lib/case-producer-queries.ts` (jawne kolumny bez danych osobowych), testy uprawnień dla klienta, admina i producenta bez zaproszenia (odmowa), satisfies **AC-8, AC-31**
 4. Cienki wątek: przycisk i formularz zapytania (adres, wolny tekst), `submitAdvisoryInquiry` z idempotencją, kanał `klient_doradca` z wiadomością systemową, strona sprawy klienta z tekstowym czatem i pollingiem (wstrzykiwany zegar), widok sprawy doradcy z odpowiedzią i przypisaniem, satisfies **AC-1, AC-2, AC-3, AC-5, AC-6, AC-11**
 5. Powiadomienia i zdarzenia: Resend (alarm o nowej sprawie, zdarzenia kluczowe, reguła jednego e maila w oknie 10 minut z wykryciem aktywności w `channel_read_state`), nowe nazwy w `EventName` i zdarzenia przez `lib/observability`, satisfies **AC-5, AC-10, AC-33**
-6. Migracja 2 i karty: `case_field`, katalog kluczy (Zod), typy kart z walidacją payload, `answerCard`, ocena gotowości, satisfies **AC-7, AC-12, AC-13**
+6. Migracja 2 i karty: `case_field`, katalog kluczy (Zod) rozszerzony o sześć kluczy kart startowych (warstwa pierwsza i druga), typy kart z walidacją payload, `answerCard`, ocena gotowości, katalog kart startowych w kodzie (ikony, etykiety, zdania konsekwencji), wstawienie kart startowych do `db.batch` wewnątrz `createAdvisoryCase`, satisfies **AC-7, AC-12, AC-13, AC-38, AC-39, AC-40, AC-41, AC-42, AC-43** (code in `drizzle/0032_fixed_katie_power.sql`, `lib/cases/{start-cards,cards,create,messaging}.ts`, `lib/case-schemas.ts`, `lib/case-actions.ts`, `components/klient/{CaseCardStack,CaseChat}.tsx`)
 7. Migracja 3 i pliki: `case_file`, prywatny bucket, klient prywatny z podpisywaniem, `uploadCaseFile`, `GET /api/cases/files/[fileId]`, reguła udostępnienia plików producentowi, satisfies **AC-9**
-8. Migracja 4, brief i zgoda: `brief_version`, `case_consent`, szkic, podgląd, `approveBrief`, waluta i tryb podatku w briefie, wersjonowanie i karta aktualizacji, satisfies **AC-14, AC-15, AC-16**
+8. Migracja 4, brief i zgoda: `brief_version`, `case_consent`, szkic wypełniony wartościami z `case_field` kart startowych, gdy są dostępne, podgląd, `approveBrief`, waluta i tryb podatku w briefie, wersjonowanie i karta aktualizacji, satisfies **AC-14, AC-15, AC-16, AC-44**
 9. Migracja 5, zaproszenia i panel producenta: `producer_invitation`, `producer_invitation_item`, `createInvitations`, alternatywy za zgodą, ekran zaproszeń w `producer/panel/inquiries`, akcje producenta, kanał `producent_doradca`, ręczne przypomnienie i wygaszenie, oznaczenie po terminie, `confirmOfferOnCurrentBrief`, satisfies **AC-17, AC-18, AC-19, AC-20, AC-16**
 10. Migracja 6, oferta we wspólnym formacie: zmiany `offer` i `offer_item` (wariant, surogatowy klucz), `submitCaseOffer` jednym `db.batch`, wersje, kontrola doradcy i zwrot do uzupełnienia, satisfies **AC-21, AC-22, AC-23**
 11. Migracja 7, porównanie: `comparison` z `entries`, tabela z pól ofert, podsumowanie doradcy, oznaczenie ofert poza założeniami briefu, publikacja, widok klienta, obsługa braku ofert (AC-35), satisfies **AC-24, AC-35**
@@ -263,6 +287,7 @@ Podejście Tracer Bullet: najpierw cienki, prawdziwy wątek od formularza do odp
 - Platforma kontroluje przepływ informacji i dane kontaktowe do momentu wyboru finalisty, co jest jej podstawową wartością.
 - Model wersjonowany i niezmienny daje ślad decyzji użyteczny w sporach i do mierzenia lejka.
 - Ping na żywo, tłumaczenie, automatyczne przypomnienia i kontrakt dochodzą później bez zmiany rdzenia.
+- Doradca dostaje częściowo wypełniony szkic briefu (budżet, termin, zakres usług, gotowość działki) zanim jeszcze otworzy sprawę, bo te dane przychodzą kartami startowymi zamiast czekać na rozmowę.
 
 **Negative / tradeoffs**:
 - Doradca staje się wąskim gardłem: przy jednej osobie liczba jednoczesnych spraw ogranicza wzrost. To świadomy koszt modelu zarządzanego.
@@ -271,11 +296,14 @@ Podejście Tracer Bullet: najpierw cienki, prawdziwy wątek od formularza do odp
 - Pojedyncze zapytanie nie trafia już od razu do producenta, więc szybkość pierwszej odpowiedzi zależy od doradcy.
 - Powstaje około dziesięciu nowych tabel i logika uprawnień, którą trzeba pilnować testami.
 - Ryzyko obchodzenia platformy przez producenta po zdobyciu danych klienta zostaje, choć ograniczone przez moment ich udostępnienia.
+- Rozszerza zakres kroku 6 planu budowy o katalog kart startowych i logikę sekwencji w interfejsie, więcej treści do przetłumaczenia (ikona, etykieta, zdanie konsekwencji razy sześć pytań razy kilka opcji razy cztery języki).
+- Jeśli klient pomija karty, korzyść znika i sprawa wraca do dokładnie tego samego tempa co bez tej zmiany. To podnosi szansę na szybszy, pełniejszy szkic briefu, nie gwarantuje go.
 
 **Neutral**:
 - Dziś `respondToOffer` tworzy `order` przy przyjęciu oferty. W nowym przepływie `order` powstanie dopiero w specyfikacji o kontrakcie.
 - Nowa zależność `@aws-sdk/s3-request-presigner` i osobny bucket R2 z własnymi kluczami.
 - Etykiety etapów i treść komunikatu o prowizji są w katalogu tłumaczeń, wymagają tłumaczenia na aktywne języki.
+- Karty startowe od systemu nie wprowadzają nowej migracji: korzystają z tabel `message` i `case_field` już przewidzianych w kroku 6, cała zmiana jest w kodzie aplikacji i katalogu tłumaczeń.
 
 ## Follow-up
 
@@ -287,7 +315,9 @@ Podejście Tracer Bullet: najpierw cienki, prawdziwy wątek od formularza do odp
 - [ ] Prawnik: podstawa prawna zgody na udostępnienie danych, treść komunikatu o prowizji, okres retencji 24 miesiące, obowiązek informacyjny.
 - [ ] Zweryfikować przed decyzją o pingu: limity darmowych planów dostawców, dostępność WebSocketów na Vercel (raportowane jako publiczna beta, nieprzetestowane), zachowanie `LISTEN/NOTIFY` na pulowanym adresie Neon (z wiedzy, niepotwierdzone).
 - [ ] Ustalić, które wersje językowe formularza i strony sprawy są na start (klucze w katalogu tłumaczeń dla wszystkich aktywnych, treść polska jako źródło).
-- [ ] `lib/storage/AGENTS.md`: dopisać prywatny bucket rozmów (osobne klucze, linki podpisywane, brak publicznej domeny). Nowy `lib/cases/AGENTS.md` (funkcja dostępu, katalog kart) po zbudowaniu, przez `/sync`.
+- [ ] `lib/storage/AGENTS.md`: dopisać prywatny bucket rozmów (osobne klucze, linki podpisywane, brak publicznej domeny). Nowy `lib/cases/AGENTS.md` (funkcja dostępu, katalog kart, w tym katalog kart startowych i zasada „nie wiem” równa się `missing`) po zbudowaniu, przez `/sync`.
+- [ ] Ustalić dokładne widełki budżetowe (kwoty graniczne) i etykiety karty budżetu z osobą odpowiedzialną za ofertę handlową; to decyzja biznesowa, nie techniczna.
+- [ ] Zmierzyć po pierwszych realnych sprawach, czy warstwa druga (ogrzewanie, standard wykończenia) faktycznie skraca rozmowę z doradcą, zanim rozważy się dodanie kolejnych pytań. W rozmowie projektowej świadomie odrzucono trzecią warstwę (konstrukcja/technologia budynku), bo kłóciłaby się z domami już wybranymi z shortlisty.
 - [ ] Wszystkie użyte skille są zainstalowane i wymienione w `AGENTS.md`, żadnego brakującego.
 
 ## Rationale

@@ -43,7 +43,7 @@ async function flushAfter(): Promise<void> {
 }
 
 function draftFields(overrides: Partial<ProducerProductFields> = {}): ProducerProductFields {
-  const base = buildProducerSavePayload(createEmptyDraft(), "podstawowe");
+  const base = buildProducerSavePayload(createEmptyDraft(), "tlumaczenia");
   return {
     ...base,
     family: "dom",
@@ -104,9 +104,8 @@ describe.skipIf(!process.env.DATABASE_URL)(
       afterQueue.length = 0;
     });
 
-    it("generates en/nl/de translations for a brand-new, never-translated product", async () => {
+    it("generates en/nl/de description translations for a brand-new, never-translated product", async () => {
       generateProductTranslationsMock.mockResolvedValue({
-        name: { en: "Modulor 28", nl: "Modulor 28", de: "Modulor 28" },
         description: {
           en: "A modern modular house of 80 m².",
           nl: "Een modern modulair huis van 80 m².",
@@ -120,24 +119,22 @@ describe.skipIf(!process.env.DATABASE_URL)(
       await flushAfter();
 
       expect(generateProductTranslationsMock).toHaveBeenCalledWith({
-        name: "Modulor 28",
+        name: null,
         description: "Nowoczesny dom modułowy o powierzchni 80 m².",
         locales: ["en", "nl", "de"],
-        fields: ["name", "description"],
+        fields: ["description"],
       });
 
       const translations = await translationsFor(result.productId!);
       for (const locale of ["en", "nl", "de"] as const) {
-        expect(translations[locale].name).toBeTruthy();
-        expect(translations[locale].aiGeneratedName).toBe(translations[locale].name);
-        expect(translations[locale].aiTranslatedFromName).toBe("Modulor 28");
+        expect(translations[locale].description).toBeTruthy();
         expect(translations[locale].aiGeneratedDescription).toBe(translations[locale].description);
+        expect(translations[locale].aiTranslatedFromDescription).toBe("Nowoczesny dom modułowy o powierzchni 80 m².");
       }
     });
 
-    it("never regenerates a field the producer has manually edited, but still regenerates a stale AI-owned sibling field", async () => {
+    it("never regenerates a description the producer has manually edited (AC-33), but still regenerates a still-AI-owned locale", async () => {
       generateProductTranslationsMock.mockResolvedValue({
-        name: { en: "Modulor 28", nl: "Modulor 28", de: "Modulor 28" },
         description: {
           en: "A modern modular house of 80 m².",
           nl: "Een modern modulair huis van 80 m².",
@@ -150,20 +147,17 @@ describe.skipIf(!process.env.DATABASE_URL)(
       await flushAfter();
       const afterCreate = await translationsFor(productId);
 
-      // Producer manually overrides only the English name (AC-13), sent from
-      // the "podstawowe" step (like ProjectWizardBasicInfoStep does) together
-      // with the current, already-hydrated NL/DE values (as a freshly loaded
-      // edit form would hold them) — not stale empties, which is the one case
-      // AC-15 doesn't protect against (re-submitting straight from the tabs
-      // step itself, a narrower, documented edge case).
+      // Producer manually overrides only the English description (AC-33),
+      // sent from the "tlumaczenia" step together with the current,
+      // already-hydrated NL/DE values (as a freshly loaded edit form would
+      // hold them) — not stale empties, which is the one case AC-33 doesn't
+      // protect against (re-submitting straight from the tabs step itself, a
+      // narrower, documented edge case).
       await updateProducerProduct(
         productId,
         draftFields({
           description: "Nowoczesny dom modułowy o powierzchni 80 m².",
-          nameEn: "Modulor 28 (custom)",
-          nameNl: afterCreate.nl.name!,
-          nameDe: afterCreate.de.name!,
-          descriptionEn: afterCreate.en.description!,
+          descriptionEn: "A modern modular house of 80 m² (custom).",
           descriptionNl: afterCreate.nl.description!,
           descriptionDe: afterCreate.de.description!,
         }),
@@ -172,12 +166,12 @@ describe.skipIf(!process.env.DATABASE_URL)(
       await flushAfter();
       generateProductTranslationsMock.mockClear();
 
-      // Polish description changes; a fresh save from the technical step
-      // (no translation keys, AC-15) still regenerates the still-AI-owned
-      // description, but must never touch the now producer-owned English name.
+      // Polish description changes; a fresh save from the technical step (no
+      // translation keys, AC-33) still regenerates the still-AI-owned NL/DE,
+      // but must never touch the now producer-owned English description.
       generateProductTranslationsMock.mockResolvedValue({
         description: {
-          en: "An updated modern modular house.",
+          en: "This must never be written.",
           nl: "Een bijgewerkt modern modulair huis.",
           de: "Ein aktualisiertes modernes modulares Haus.",
         },
@@ -201,16 +195,16 @@ describe.skipIf(!process.env.DATABASE_URL)(
       await flushAfter();
 
       expect(generateProductTranslationsMock).toHaveBeenCalledWith(
-        expect.objectContaining({ fields: ["description"] }),
+        expect.objectContaining({ locales: ["nl", "de"] }),
       );
       const translations = await translationsFor(productId);
-      expect(translations.en.name).toBe("Modulor 28 (custom)");
-      expect(translations.en.description).toBe("An updated modern modular house.");
+      expect(translations.en.description).toBe("A modern modular house of 80 m² (custom).");
+      expect(translations.nl.description).toBe("Een bijgewerkt modern modulair huis.");
+      expect(translations.de.description).toBe("Ein aktualisiertes modernes modulares Haus.");
     });
 
-    it("a save without translation keys never clobbers an existing translation (AC-15)", async () => {
+    it("a save without translation keys never clobbers an existing translation (AC-33)", async () => {
       generateProductTranslationsMock.mockResolvedValue({
-        name: { en: "Modulor 28", nl: "Modulor 28", de: "Modulor 28" },
         description: { en: "Description.", nl: "Beschrijving.", de: "Beschreibung." },
       });
       const created = await createProducerProduct(draftFields());
@@ -232,13 +226,12 @@ describe.skipIf(!process.env.DATABASE_URL)(
         },
         "pliki",
       );
-      expect(stepPayload.nameEn).toBeUndefined();
+      expect(stepPayload.descriptionEn).toBeUndefined();
       const result = await updateProducerProduct(productId, stepPayload, { publish: false });
       expect(result.ok).toBe(true);
       await flushAfter();
 
       const after = await translationsFor(productId);
-      expect(after.en.name).toBe(before.en.name);
       expect(after.en.description).toBe(before.en.description);
       // Nothing was stale (source text unchanged), so no regeneration call.
       expect(generateProductTranslationsMock).not.toHaveBeenCalled();
@@ -257,10 +250,10 @@ describe.skipIf(!process.env.DATABASE_URL)(
         expect.objectContaining({ path: "generateMissingProductTranslations" }),
       );
       // Empty forever, never regenerated (AC-14): the row exists (created by
-      // upsertTranslations) but name/description stayed null, so the next
-      // save's regeneration rule still sees it as a candidate.
+      // upsertTranslations) but description stayed null, so the next save's
+      // regeneration rule still sees it as a candidate.
       const translations = await translationsFor(result.productId!);
-      expect(translations.en.name).toBeNull();
+      expect(translations.en.description).toBeNull();
     });
   },
 );

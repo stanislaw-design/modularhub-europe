@@ -18,6 +18,7 @@ const messageColumns = {
   authorKind: message.authorKind,
   type: message.type,
   body: message.body,
+  payload: message.payload,
   locale: message.locale,
   redactedAt: message.redactedAt,
   createdAtIso: MICROSECOND_ISO,
@@ -28,6 +29,7 @@ function toDto(row: {
   authorKind: CaseMessageDto["authorKind"];
   type: string;
   body: string | null;
+  payload: unknown;
   locale: string;
   redactedAt: Date | null;
   createdAtIso: string;
@@ -37,6 +39,9 @@ function toDto(row: {
     authorKind: row.authorKind,
     type: row.type,
     body: row.body,
+    // Redakcja zeruje też payload (trigger message_immutable), więc karta
+    // usuniętej na prośbę klienta wiadomości nigdy nie nosi starej treści.
+    payload: row.redactedAt !== null ? null : row.payload,
     locale: row.locale,
     createdAt: row.createdAtIso,
     cursor: encodeCursor(row.createdAtIso, row.id),

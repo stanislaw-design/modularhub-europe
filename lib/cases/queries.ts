@@ -3,6 +3,7 @@ import type { CaseMessageDto } from "@/lib/case-schemas";
 import { db } from "@/lib/db/client";
 import { channel, inquiry, inquiryItem, product, users } from "@/lib/db/schema";
 import { requireCaseAccess, type CaseActor } from "./access";
+import { getCaseFields, type CaseFieldsByKey } from "./cards";
 import { listMessages } from "./messaging";
 
 // Odczyty sprawy doradczej dla ekranów klienta i doradcy (spec 0048). Dostęp
@@ -37,6 +38,10 @@ export interface CaseView {
   advisorName: string | null;
   channelId: string;
   messages: CaseMessageDto[];
+  // Stan kart startowych i innych pól podsumowania (AC-43): interfejs
+  // wylicza z tego, która karta jest odpowiedziana, bez osobnej flagi na
+  // wiadomości.
+  caseFields: CaseFieldsByKey;
 }
 
 const summaryColumns = {
@@ -123,13 +128,14 @@ export async function getCaseView(actor: CaseActor, inquiryId: string): Promise<
     .where(and(eq(channel.inquiryId, inquiryId), eq(channel.kind, "klient_doradca")));
   if (!channelRow) return null;
 
-  const [productRows, messages] = await Promise.all([
+  const [productRows, messages, caseFields] = await Promise.all([
     db
       .select({ name: product.name })
       .from(inquiryItem)
       .innerJoin(product, eq(product.id, inquiryItem.productId))
       .where(eq(inquiryItem.inquiryId, inquiryId)),
     listMessages(channelRow.id, null),
+    getCaseFields(inquiryId),
   ]);
 
   return {
@@ -145,5 +151,6 @@ export async function getCaseView(actor: CaseActor, inquiryId: string): Promise<
     advisorName: row.advisorName,
     channelId: channelRow.id,
     messages,
+    caseFields,
   };
 }

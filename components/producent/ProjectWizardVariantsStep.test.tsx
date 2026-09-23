@@ -12,7 +12,6 @@ vi.mock("@/lib/producer-product-variant-actions", () => ({
   createVariant: vi.fn(),
   cloneVariant: vi.fn(),
   updateVariant: vi.fn(),
-  updateVariantTranslation: vi.fn(),
   setDefaultVariant: vi.fn(),
   deleteVariant: vi.fn(),
   upsertCostLineItem: vi.fn(),
@@ -33,7 +32,6 @@ import {
   deleteVariant,
   setDefaultVariant,
   updateVariant,
-  updateVariantTranslation,
   upsertCostLineItem,
   upsertTimelineStage,
 } from "@/lib/producer-product-variant-actions";
@@ -67,8 +65,6 @@ function editVariantFixture(overrides: Partial<ProducerVariantForEdit> = {}): Pr
     priceOnRequest: false,
     scopeSummary: "Zakres podstawowy",
     excludedScope: null,
-    scopeSummaryEn: "Base scope",
-    scopeSummaryNl: null,
     costLineItems: [{ id: "item-1", label: "Fundament", status: "w-cenie", responsibleParty: null }],
     timelineStages: [{ stageKey: "formalnosci", durationMinDays: 2, durationMaxDays: 4, startsFromLabel: null, responsibleParty: null }],
     ...overrides,
@@ -89,7 +85,6 @@ describe("ProjectWizardVariantsStep", () => {
     vi.mocked(createVariant).mockReset();
     vi.mocked(cloneVariant).mockReset();
     vi.mocked(updateVariant).mockReset();
-    vi.mocked(updateVariantTranslation).mockReset().mockResolvedValue({ ok: true });
     vi.mocked(setDefaultVariant).mockReset();
     vi.mocked(deleteVariant).mockReset();
     vi.mocked(upsertCostLineItem).mockReset();
@@ -127,7 +122,7 @@ describe("ProjectWizardVariantsStep", () => {
     expect(screen.queryByRole("heading", { level: 3 })).not.toBeInTheDocument();
   });
 
-  it("saves price and scope through updateVariant, and both translations, when Zapisz wariant is clicked", async () => {
+  it("saves price and scope through updateVariant when Zapisz wariant is clicked", async () => {
     vi.mocked(createVariant).mockResolvedValue({ ok: true, variantId: "variant-1" });
     vi.mocked(updateVariant).mockResolvedValue({ ok: true });
     const user = userEvent.setup();
@@ -147,8 +142,6 @@ describe("ProjectWizardVariantsStep", () => {
       excludedScope: "",
       variantLabel: "",
     });
-    expect(updateVariantTranslation).toHaveBeenCalledWith("variant-1", "en", "");
-    expect(updateVariantTranslation).toHaveBeenCalledWith("variant-1", "nl", "");
 
     // AC-1/AC-4: the outer draft's variantsSummary mirror reflects the saved price.
     expect(getForm().getValues("variantsSummary")).toEqual([{ isDefault: true, priceMinCents: 10_000_000 }]);

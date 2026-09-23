@@ -224,6 +224,7 @@
       "pliki": "Bestanden",
       "warianty": "Varianten en prijzen",
       "faq": "FAQ",
+      "tlumaczenia": "Vertalingen",
       "podsumowanie": "Samenvatting"
     },
     "family": {
@@ -530,17 +531,6 @@
     "countryRequiredError": "Kies een productieland.",
     "descriptionLabel": "Beschrijving",
     "descriptionRequiredError": "Voer een projectbeschrijving in.",
-    "translationsHeading": "Vertalingen (optioneel)",
-    "translationsHint": "Engels, Nederlands en Duits zijn optioneel — zonder vertaling zien buitenlandse klanten de Poolse tekst.",
-    "translationTabEn": "Engels",
-    "translationTabNl": "Nederlands",
-    "translationTabDe": "Duits",
-    "nameEnLabel": "Naam (Engels)",
-    "nameNlLabel": "Naam (Nederlands)",
-    "nameDeLabel": "Naam (Duits)",
-    "descriptionEnLabel": "Beschrijving (Engels)",
-    "descriptionNlLabel": "Beschrijving (Nederlands)",
-    "descriptionDeLabel": "Beschrijving (Duits)",
     "roomLayoutHeading": "Indeling van de ruimtes",
     "roomLayoutHint": "Voeg ruimtes toe met hun oppervlakte en functie — deze sectie is zichtbaar op de projectpagina van de klant.",
     "roomLayoutEmptyHint": "Er is nog geen ruimte toegevoegd.",
@@ -551,8 +541,6 @@
     "moveUpLabel": "Omhoog verplaatsen",
     "moveDownLabel": "Omlaag verplaatsen",
     "removeRoomLabel": "Ruimte verwijderen",
-    "roomTranslationsHeading": "Vertalingen van ruimtenamen (optioneel)",
-    "roomNameTranslationLabel": "Naam van ruimte {index}",
     "addRoomButton": "Ruimte toevoegen",
     "recognizeHeading": "Indeling van ruimtes herkennen uit plattegronden",
     "recognizeHint": "Kies maximaal vijf geüploade plattegronden; AI stelt een lijst met ruimtes voor om te controleren.",
@@ -603,11 +591,6 @@
     "priceOnRequestLabel": "Prijs op aanvraag (geen vaste prijs)",
     "scopeSummaryLabel": "Omschrijving van de omvang",
     "excludedScopeLabel": "Wat niet in de prijs is inbegrepen",
-    "translationsHeading": "Vertalingen van de omschrijving (optioneel)",
-    "translationTabEn": "EN",
-    "translationTabNl": "NL",
-    "scopeSummaryEnLabel": "Omschrijving van de omvang (EN)",
-    "scopeSummaryNlLabel": "Omschrijving van de omvang (NL)",
     "costLineItemsHeading": "Kostenposten",
     "costLineItemLabelLabel": "Post",
     "costLineItemStatusLabel": "Status",
@@ -654,14 +637,42 @@
     "removeLabel": "Vraag verwijderen",
     "questionLabel": "Vraag",
     "answerLabel": "Antwoord",
-    "translationsHeading": "Vertalingen (optioneel)",
-    "translationTabEn": "EN",
-    "translationTabNl": "NL",
-    "questionEnLabel": "Vraag (EN)",
-    "answerEnLabel": "Antwoord (EN)",
-    "questionNlLabel": "Vraag (NL)",
-    "answerNlLabel": "Antwoord (NL)",
     "addButton": "Vraag toevoegen"
+  },
+  "ProjectWizardTranslationsStep": {
+    "heading": "Vertalingen",
+    "intro": "AI stelt vertalingen op van de beschrijving, standaarden, ruimtes, klantvereisten en FAQ in het Engels, Duits en Nederlands. Controleer en corrigeer deze voordat u publiceert.",
+    "generateButton": "Vertalingen genereren",
+    "regenerateAllButton": "Alles opnieuw genereren",
+    "regenerateOneButton": "Opnieuw genereren ({language})",
+    "generatingLabel": "Bezig met genereren…",
+    "genericError": "Vertalingen konden niet worden gegenereerd. Probeer het opnieuw of bewerk ze handmatig.",
+    "emptyHint": "Genereer vertalingen om de inhoud in elke taal te controleren en te corrigeren.",
+    "languageTabsLabel": "Vertaaltaal",
+    "localeLabel": {
+      "en": "Engels",
+      "nl": "Nederlands",
+      "de": "Duits"
+    },
+    "descriptionLabel": "Projectbeschrijving",
+    "roomLayoutHeading": "Namen van ruimtes",
+    "roomNameTranslationLabel": "Naam van ruimte „{name}”",
+    "faqHeading": "FAQ",
+    "faqQuestionTranslationLabel": "Vraag {index}",
+    "faqAnswerTranslationLabel": "Antwoord {index}",
+    "clientRequirementsHeading": "Wat de klant moet regelen",
+    "requirementTranslationLabel": "Item „{label}”",
+    "variantsHeading": "Varianten",
+    "variantScopeSummaryLabel": "Omschrijving van de omvang",
+    "variantExcludedScopeLabel": "Wat niet in de prijs is inbegrepen",
+    "savingVariantsLabel": "Bezig met opslaan…",
+    "saveVariantTranslationsButton": "Variantvertalingen opslaan",
+    "variantsSavedLabel": "Opgeslagen.",
+    "completionStandard": {
+      "surowy-zamkniety": "Casco",
+      "deweloperski": "Ontwikkelaarsstandaard",
+      "pod-klucz": "Sleutelklaar"
+    }
   },
   "ProjectWizardFilesStep": {
     "heading": "Bestanden",
@@ -1191,8 +1202,12 @@
   "InquiryFlow": {
     "heading": "Vraag ModularHub om offertes voor te bereiden",
     "howItWorksTitle": "Zo werkt het",
-    "howItWorksBody": "Uw aanvraag gaat naar ModularHub en niet meteen naar de fabrikanten. Een adviseur spreekt met u, maakt een briefing en legt die aan u voor ter goedkeuring. Fabrikanten ontvangen de briefing pas nadat u akkoord bent gegaan.",
+    "howItWorksStep1": "Uw aanvraag gaat naar ModularHub en niet meteen naar de fabrikanten.",
+    "howItWorksStep2": "Een adviseur spreekt met u en stelt een briefing op ter goedkeuring.",
+    "howItWorksStep3": "Fabrikanten ontvangen de briefing pas nadat u akkoord bent gegaan.",
     "selectedHomesLabel": "Gekozen woningen",
+    "sectionAddressHeading": "Adres van het perceel",
+    "homeMeta": "{producer} · {area} m²",
     "streetLabel": "Straat en huisnummer",
     "postalCodeLabel": "Postcode",
     "cityLabel": "Plaats",
@@ -1682,6 +1697,20 @@
     "collapseSidebar": "Menu inklappen",
     "expandSidebar": "Menu uitklappen"
   },
+  "ClientPanelSidebar": {
+    "navAriaLabel": "Klantenpaneel",
+    "zapytania": "Aanvragen",
+    "ulubione": "Favorieten",
+    "profil": "Profiel",
+    "unreadBadgeLabel": "Nieuwe offerte",
+    "home": "Startpagina",
+    "signOut": "Uitloggen",
+    "openMenu": "Menu openen",
+    "closeMenu": "Menu sluiten",
+    "menu": "Menu",
+    "collapseSidebar": "Menu inklappen",
+    "expandSidebar": "Menu uitklappen"
+  },
   "CaseChat": {
     "heading": "Gesprek met de adviseur",
     "draftLabel": "Uw bericht",
@@ -1739,5 +1768,142 @@
   },
   "CaseSystem": {
     "caseReceived": "Wij hebben uw aanvraag ontvangen. We hebben die nog niet naar de fabrikanten gestuurd."
+  },
+  "CaseCards": {
+    "layerOneBadge": "Een paar vragen om te beginnen",
+    "layerTwoBadge": "Extra en optioneel",
+    "progress": "Vraag {current} van {total}",
+    "skipAll": "Deze vragen overslaan",
+    "willSave": "We slaan op: {value}",
+    "confirm": "Bevestigen",
+    "saving": "Bezig met opslaan…",
+    "sendError": "Het antwoord kon niet worden opgeslagen. Probeer het opnieuw.",
+    "noAnswerYet": "Geen antwoord.",
+    "common": {
+      "unsureLabel": "Ik weet het niet, laat de adviseur voorstellen",
+      "unsureConsequence": "De adviseur stelt dit voor op basis van het gesprek met u."
+    },
+    "zakres_uslug": {
+      "question": "Wat verwacht u van de fabrikant?",
+      "options": {
+        "sam_dom": {
+          "label": "Alleen het huis",
+          "consequence": "U regelt transport, montage en de fundering zelf of met een ander bedrijf."
+        },
+        "dom_i_transport": {
+          "label": "Huis met transport",
+          "consequence": "De fabrikant levert het huis, montage en fundering blijven aan uw kant."
+        },
+        "dom_transport_montaz": {
+          "label": "Huis, transport en montage",
+          "consequence": "De fabrikant plaatst het huis op uw kavel, de fundering regelt u apart."
+        },
+        "kompleksowo_z_fundamentem": {
+          "label": "Compleet, inclusief fundering",
+          "consequence": "Het minste werk aan uw kant, meestal een hogere totaalprijs."
+        }
+      }
+    },
+    "budzet": {
+      "question": "Welk budget heeft u in gedachten?",
+      "options": {
+        "do_150k": {
+          "label": "Tot 150.000 EUR",
+          "consequence": "We stemmen modellen en afwerkingsniveau af op dit bedrag."
+        },
+        "150_do_250k": {
+          "label": "150.000–250.000 EUR",
+          "consequence": "Een ruimere keuze aan modellen en hoger afwerkingsniveau binnen bereik."
+        },
+        "250_do_400k": {
+          "label": "250.000–400.000 EUR",
+          "consequence": "Opent grotere huizen en een uitgebreider dienstenpakket van de fabrikant."
+        },
+        "powyzej_400k": {
+          "label": "Boven 400.000 EUR",
+          "consequence": "Geen beperkingen in model, afwerkingsniveau of dienstenpakket."
+        }
+      }
+    },
+    "termin": {
+      "question": "Wanneer wilt u erin trekken?",
+      "options": {
+        "jak_najszybciej": {
+          "label": "Zo snel mogelijk",
+          "consequence": "De adviseur controleert welke fabrikanten nu vrije productieplekken hebben."
+        },
+        "do_6_miesiecy": {
+          "label": "Binnen 6 maanden",
+          "consequence": "Genoeg tijd voor een rustige keuze van fabrikant en voorbereiding van de kavel."
+        },
+        "do_roku": {
+          "label": "Binnen een jaar",
+          "consequence": "Een comfortabele planning, minder druk op beslissingen onderweg."
+        },
+        "elastyczny": {
+          "label": "Flexibel, meer dan een jaar",
+          "consequence": "Timing is geen prioriteit bij het kiezen van de fabrikant."
+        }
+      }
+    },
+    "gotowosc_dzialki": {
+      "question": "In welke fase bevindt uw kavel zich?",
+      "options": {
+        "dzialka_i_pozwolenie": {
+          "label": "Ik heb de kavel en de bouwvergunning",
+          "consequence": "Fabrikanten kunnen productie en montage meteen inplannen."
+        },
+        "dzialka_bez_pozwolenia": {
+          "label": "Ik heb de kavel, wacht op de vergunning",
+          "consequence": "De adviseur houdt rekening met de vergunningstijd in de planning."
+        },
+        "szukam_dzialki": {
+          "label": "Ik zoek nog een kavel",
+          "consequence": "De adviseur adviseert waar u op moet letten bij de keuze van een kavel voor dit huis."
+        },
+        "potrzebuje_analizy": {
+          "label": "Ik heb een analyse nodig of het past",
+          "consequence": "De adviseur stelt een kavelanalyse voor voordat we verdergaan."
+        }
+      }
+    },
+    "ogrzewanie": {
+      "question": "Waarmee zou u het huis willen verwarmen?",
+      "options": {
+        "pompa_ciepla": {
+          "label": "Warmtepomp",
+          "consequence": "Hogere installatiekosten, lagere rekeningen later."
+        },
+        "gaz": {
+          "label": "Gas",
+          "consequence": "Lagere installatiekosten, hogere verwarmingskosten."
+        },
+        "elektryczne": {
+          "label": "Elektrisch",
+          "consequence": "Eenvoudigste installatie, gebruikskosten hangen af van uw stroomtarief."
+        },
+        "kominek_biomasa": {
+          "label": "Open haard of biomassa",
+          "consequence": "Vereist ruimte voor brandstof en een schoorsteen, onafhankelijkheid van andere nutsvoorzieningen."
+        }
+      }
+    },
+    "standard_wykonczenia": {
+      "question": "In welk afwerkingsniveau moet het huis zijn?",
+      "options": {
+        "surowy_zamkniety": {
+          "label": "Casco, gesloten",
+          "consequence": "De binnenafwerking regelt u zelf, een lagere prijs van de fabrikant."
+        },
+        "deweloperski": {
+          "label": "Afbouwniveau",
+          "consequence": "Installaties klaar, de oppervlakteafwerking blijft aan uw kant."
+        },
+        "pod_klucz": {
+          "label": "Sleutelklaar",
+          "consequence": "Huis klaar om in te trekken, de hoogste prijs van de fabrikant."
+        }
+      }
+    }
   }
 }

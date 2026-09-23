@@ -11,6 +11,7 @@ import {
   TECHNICAL_FIELDS_BY_FAMILY,
   VENTILATION_TYPE_OPTIONS,
   WIZARD_STEPS,
+  alignClientRequirementsTranslation,
   alignFaqTranslation,
   alignRoomLayoutTranslation,
   createEmptyDraft,
@@ -25,9 +26,6 @@ function completeDraft(): ProjectDraft {
     bedrooms: 2,
     countryOfProduction: "PL",
     description: "Opis projektu",
-    nameEn: "",
-    nameNl: "",
-    nameDe: "",
     descriptionEn: "",
     descriptionNl: "",
     descriptionDe: "",
@@ -49,10 +47,15 @@ function completeDraft(): ProjectDraft {
     roomLayout: [],
     roomLayoutEn: [],
     roomLayoutNl: [],
+    roomLayoutDe: [],
     faq: [],
     faqEn: [],
     faqNl: [],
+    faqDe: [],
     clientRequirements: [],
+    clientRequirementsEn: [],
+    clientRequirementsNl: [],
+    clientRequirementsDe: [],
     floorPlanFiles: [{ name: "rzut.pdf", sizeBytes: 100 }],
     photoFiles: [{ name: "zdjecie.png", sizeBytes: 200 }],
     structuralWarrantyYears: 25,
@@ -67,13 +70,14 @@ function completeDraft(): ProjectDraft {
 }
 
 describe("WIZARD_STEPS", () => {
-  it("has six steps in the fixed spec order (spec 0045 Build plan zadanie 12: 'cena' usunięta, 'faq' dodane)", () => {
+  it("has seven steps in the fixed spec order ('tlumaczenia' added spec 0050 AC-31, right before 'podsumowanie')", () => {
     expect(WIZARD_STEPS.map((step) => step.id)).toEqual([
       "podstawowe",
       "techniczne",
       "pliki",
       "warianty",
       "faq",
+      "tlumaczenia",
       "podsumowanie",
     ]);
   });
@@ -298,6 +302,15 @@ describe("isStepComplete: warianty", () => {
   });
 });
 
+// spec 0050 AC-30, AC-34: producent może zaufać automatycznym tłumaczeniom i
+// przejść dalej, albo opublikować bez tłumaczeń wcale — krok nigdy nie blokuje.
+describe("isStepComplete: tlumaczenia", () => {
+  it("is always complete regardless of translation content", () => {
+    expect(isStepComplete("tlumaczenia", completeDraft())).toBe(true);
+    expect(isStepComplete("tlumaczenia", { ...completeDraft(), descriptionEn: "" })).toBe(true);
+  });
+});
+
 describe("isStepComplete: podsumowanie", () => {
   it("is complete only when every prior step is complete", () => {
     expect(isStepComplete("podsumowanie", completeDraft())).toBe(true);
@@ -356,6 +369,24 @@ describe("alignRoomLayoutTranslation / alignFaqTranslation", () => {
   });
 });
 
+// spec 0050 AC-28: ten sam wzorzec dopasowania po id, ale filtrowany do
+// custom: true — pozycje katalogowe nigdy nie dostają wpisu tłumaczenia.
+describe("alignClientRequirementsTranslation", () => {
+  it("aligns only custom entries, skipping catalog entries entirely", () => {
+    const rows = [
+      { id: "a", key: "fundament" as const, label: "Fundament", custom: false },
+      { id: "b", key: null, label: "Wyburzenie szopy", custom: true },
+    ];
+    expect(alignClientRequirementsTranslation(rows, [])).toEqual([{ id: "b", label: "" }]);
+  });
+
+  it("keeps an existing custom translation matched by id", () => {
+    const rows = [{ id: "b", key: null, label: "Wyburzenie szopy", custom: true }];
+    const translation = [{ id: "b", label: "Demolish old shed" }];
+    expect(alignClientRequirementsTranslation(rows, translation)).toEqual([{ id: "b", label: "Demolish old shed" }]);
+  });
+});
+
 // spec 0045 AC-10: odwrotność align*Translation wyżej — puste wpisy tłumaczenia
 // (jeszcze nie wpisane) muszą zniknąć przed zapisem, inaczej łamią
 // roomLayoutTranslationRowSchema/faqTranslationRowSchema (min(1)).
@@ -381,6 +412,18 @@ describe("sanitizeDraftForSave", () => {
       ],
     };
     expect(sanitizeDraftForSave(draft).faqEn).toEqual([{ id: "3", question: "Is it heated?", answer: "Yes." }]);
+  });
+
+  // spec 0050 AC-28: ten sam wzorzec co roomLayout/faq wyżej.
+  it("drops client requirement translation rows with an empty label", () => {
+    const draft = {
+      ...completeDraft(),
+      clientRequirementsEn: [
+        { id: "a", label: "" },
+        { id: "b", label: "Demolish old shed" },
+      ],
+    };
+    expect(sanitizeDraftForSave(draft).clientRequirementsEn).toEqual([{ id: "b", label: "Demolish old shed" }]);
   });
 });
 

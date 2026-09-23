@@ -18,7 +18,6 @@ import {
   productTimelineStage,
   productTranslation,
   productVariant,
-  productVariantTranslation,
 } from "./schema";
 
 // Zarządzany przepływ doradczy (spec 0048 AC-34): stare zapytania i akcje
@@ -105,16 +104,18 @@ export interface ProducerProductForEdit {
   craneRequirements: string | null;
   minPlotWidthM: number | null;
   simplifiedPermitEligible: boolean | null;
-  nameEn: string | null;
-  nameNl: string | null;
-  nameDe: string | null;
   descriptionEn: string | null;
   descriptionNl: string | null;
   descriptionDe: string | null;
   roomLayoutEn: unknown;
   roomLayoutNl: unknown;
+  roomLayoutDe: unknown;
   faqEn: unknown;
   faqNl: unknown;
+  faqDe: unknown;
+  clientRequirementsEn: unknown;
+  clientRequirementsNl: unknown;
+  clientRequirementsDe: unknown;
 }
 
 // Zasila /producer/panel/products/[id]/edit (spec 0032 AC-5, AC-13): null
@@ -134,17 +135,18 @@ export async function getProducerProductForEdit(
   const translations = await db
     .select({
       locale: productTranslation.locale,
-      name: productTranslation.name,
       description: productTranslation.description,
       roomLayout: productTranslation.roomLayout,
       faq: productTranslation.faq,
+      clientRequirements: productTranslation.clientRequirements,
     })
     .from(productTranslation)
     .where(eq(productTranslation.productId, productId));
   const en = translations.find((translation) => translation.locale === "en");
   const nl = translations.find((translation) => translation.locale === "nl");
-  // AC-16: zakładka DE czyta tylko name/description (nie roomLayout/faq — te
-  // tłumaczenia zostają EN/NL only, poza zakresem AI rozszerzenia spec 0028).
+  // Spec 0050 AC-28: DE czyta teraz roomLayout/faq/clientRequirements na
+  // równi z EN/NL (dawne ograniczenie do EN/NL only, spec 0028 zakres AI,
+  // zniesione razem ze skonsolidowanym etapem tłumaczeń).
   const de = translations.find((translation) => translation.locale === "de");
 
   return {
@@ -171,16 +173,18 @@ export async function getProducerProductForEdit(
     craneRequirements: row.craneRequirements,
     minPlotWidthM: row.minPlotWidthM,
     simplifiedPermitEligible: row.simplifiedPermitEligible,
-    nameEn: en?.name ?? null,
-    nameNl: nl?.name ?? null,
-    nameDe: de?.name ?? null,
     descriptionEn: en?.description ?? null,
     descriptionNl: nl?.description ?? null,
     descriptionDe: de?.description ?? null,
     roomLayoutEn: en?.roomLayout ?? null,
     roomLayoutNl: nl?.roomLayout ?? null,
+    roomLayoutDe: de?.roomLayout ?? null,
     faqEn: en?.faq ?? null,
     faqNl: nl?.faq ?? null,
+    faqDe: de?.faq ?? null,
+    clientRequirementsEn: en?.clientRequirements ?? null,
+    clientRequirementsNl: nl?.clientRequirements ?? null,
+    clientRequirementsDe: de?.clientRequirements ?? null,
   };
 }
 
@@ -204,12 +208,7 @@ export interface ProducerVariantForEdit {
   completionStandard: (typeof productVariant.$inferSelect)["completionStandard"];
   isDefault: boolean;
   priceMinCents: number | null;
-  priceMaxCents: number | null;
   priceOnRequest: boolean;
-  scopeSummary: string | null;
-  excludedScope: string | null;
-  scopeSummaryEn: string | null;
-  scopeSummaryNl: string | null;
   costLineItems: ProducerVariantCostLineItemForEdit[];
   timelineStages: ProducerVariantTimelineStageForEdit[];
 }
@@ -228,10 +227,9 @@ export async function getProducerVariantsForEdit(productId: string): Promise<Pro
   if (variantRows.length === 0) return [];
 
   const variantIds = variantRows.map((row) => row.id);
-  const [costItemRows, stageRows, translationRows] = await Promise.all([
+  const [costItemRows, stageRows] = await Promise.all([
     db.select().from(costLineItem).where(inArray(costLineItem.productVariantId, variantIds)),
     db.select().from(productTimelineStage).where(inArray(productTimelineStage.productVariantId, variantIds)),
-    db.select().from(productVariantTranslation).where(inArray(productVariantTranslation.productVariantId, variantIds)),
   ]);
 
   return variantRows.map((variant) => ({
@@ -239,12 +237,7 @@ export async function getProducerVariantsForEdit(productId: string): Promise<Pro
     completionStandard: variant.completionStandard,
     isDefault: variant.isDefault,
     priceMinCents: variant.priceMinCents,
-    priceMaxCents: variant.priceMaxCents,
     priceOnRequest: variant.priceOnRequest,
-    scopeSummary: variant.scopeSummary,
-    excludedScope: variant.excludedScope,
-    scopeSummaryEn: translationRows.find((row) => row.productVariantId === variant.id && row.locale === "en")?.scopeSummary ?? null,
-    scopeSummaryNl: translationRows.find((row) => row.productVariantId === variant.id && row.locale === "nl")?.scopeSummary ?? null,
     costLineItems: costItemRows
       .filter((row) => row.productVariantId === variant.id)
       .map((row) => ({ id: row.id, label: row.label, status: row.status, responsibleParty: row.responsibleParty })),

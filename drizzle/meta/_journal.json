@@ -225,6 +225,20 @@
       "when": 1790089396311,
       "tag": "0031_chief_king_bedlam",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1790165434752,
+      "tag": "0032_fixed_katie_power",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1790167683878,
+      "tag": "0033_smart_phantom_reporter",
+      "breakpoints": true
     }
   ]
 }

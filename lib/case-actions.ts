@@ -4,10 +4,24 @@ import { eq } from "drizzle-orm";
 import { after } from "next/server";
 import { getTranslations } from "next-intl/server";
 import { auth } from "@/auth";
-import type { CaseMessageDto, SendMessageInput, SubmitAdvisoryInquiryInput } from "@/lib/case-schemas";
-import { sendMessageSchema, submitAdvisoryInquirySchema } from "@/lib/case-schemas";
+import type {
+  AnswerCardInput,
+  AssessReadinessInput,
+  CaseMessageDto,
+  SendMessageInput,
+  SubmitAdvisoryInquiryInput,
+  UpsertCaseFieldInput,
+} from "@/lib/case-schemas";
+import {
+  answerCardSchema,
+  assessReadinessSchema,
+  sendMessageSchema,
+  submitAdvisoryInquirySchema,
+  upsertCaseFieldSchema,
+} from "@/lib/case-schemas";
 import { requireCaseAccess } from "@/lib/cases/access";
 import { getCaseActor } from "@/lib/cases/actor";
+import { answerCard as answerCardData, assessReadiness as assessReadinessData, upsertCaseField as upsertCaseFieldData } from "@/lib/cases/cards";
 import { systemClock } from "@/lib/cases/clock";
 import { createAdvisoryCase } from "@/lib/cases/create";
 import { postMessage, touchChannel } from "@/lib/cases/messaging";
@@ -144,4 +158,74 @@ export async function assignAdvisorToSelf(inquiryId: string): Promise<{ ok: bool
   if (!access) return { ok: false };
   await db.update(inquiry).set({ assignedAdvisorId: actor.userId }).where(eq(inquiry.id, inquiryId));
   return { ok: true };
+}
+
+export interface AnswerCardResult {
+  ok: boolean;
+  error?: "invalid" | "forbidden" | "generic";
+}
+
+// Odpowiedź klienta na kartę, systemową (AC-38) albo od doradcy (AC-7).
+export async function answerCard(input: AnswerCardInput): Promise<AnswerCardResult> {
+  const parsed = answerCardSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "invalid" };
+
+  const actor = await getCaseActor();
+  if (!actor) return { ok: false, error: "forbidden" };
+
+  try {
+    const result = await answerCardData(actor, parsed.data, systemClock);
+    if (!result.ok) return { ok: false, error: result.reason };
+    return { ok: true };
+  } catch (error) {
+    captureError(error, { path: "answerCard", userId: actor.userId });
+    return { ok: false, error: "generic" };
+  }
+}
+
+export interface UpsertCaseFieldResult {
+  ok: boolean;
+  error?: "invalid" | "forbidden" | "generic";
+}
+
+// Doradca prowadzi lub poprawia podsumowanie potrzeb (AC-12).
+export async function upsertCaseField(input: UpsertCaseFieldInput): Promise<UpsertCaseFieldResult> {
+  const parsed = upsertCaseFieldSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "invalid" };
+
+  const actor = await getCaseActor();
+  if (!actor) return { ok: false, error: "forbidden" };
+
+  try {
+    const result = await upsertCaseFieldData(actor, parsed.data, systemClock);
+    if (!result.ok) return { ok: false, error: result.reason };
+    return { ok: true };
+  } catch (error) {
+    captureError(error, { path: "upsertCaseField", userId: actor.userId });
+    return { ok: false, error: "generic" };
+  }
+}
+
+export interface AssessReadinessResult {
+  ok: boolean;
+  error?: "invalid" | "forbidden" | "generic";
+}
+
+// Ocena gotowości (AC-13): każdy wynik wymaga wiadomości z wyjaśnieniem dla
+// klienta, którą ta akcja wysyła w tej samej operacji co zmianę sprawy.
+export async function assessReadiness(input: AssessReadinessInput): Promise<AssessReadinessResult> {
+  const parsed = assessReadinessSchema.safeParse(input);
+  if (!parsed.success || !isKnownLocale(parsed.data.locale)) return { ok: false, error: "invalid" };
+
+  const actor = await getCaseActor();
+  if (!actor) return { ok: false, error: "forbidden" };
+
+  try {
+    const result = await assessReadinessData(actor, parsed.data, systemClock);
+    if (!result.ok) return { ok: false, error: result.reason };
+    return { ok: true };
+  } catch (error) {
+    captureError(error, { path: "assessReadiness", userId: actor.userId });
+    return { ok: false, error: "generic" };
+  }
 }

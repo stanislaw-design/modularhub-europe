@@ -11,7 +11,7 @@ vi.mock("@/auth", () => ({ auth: authMock }));
 vi.mock("@/lib/observability/errors", () => ({ captureError: vi.fn() }));
 
 import { db } from "@/lib/db/client";
-import { auditLog, costLineItem, product, productTimelineStage, productVariant, productVariantTranslation, producer, users } from "@/lib/db/schema";
+import { auditLog, costLineItem, product, productTimelineStage, productVariant, producer, users } from "@/lib/db/schema";
 import { captureError } from "@/lib/observability/errors";
 import {
   cloneVariant,
@@ -20,7 +20,6 @@ import {
   deleteVariant,
   setDefaultVariant,
   updateVariant,
-  updateVariantTranslation,
   upsertCostLineItem,
   upsertTimelineStage,
 } from "./producer-product-variant-actions";
@@ -64,7 +63,6 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/producer-product-variant-actions
     if (variantIds.length === 0) return;
     await db.delete(costLineItem).where(inArray(costLineItem.productVariantId, variantIds));
     await db.delete(productTimelineStage).where(inArray(productTimelineStage.productVariantId, variantIds));
-    await db.delete(productVariantTranslation).where(inArray(productVariantTranslation.productVariantId, variantIds));
   }
 
   afterAll(async () => {
@@ -164,36 +162,17 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/producer-product-variant-actions
   });
 
   describe("updateVariant", () => {
-    it("updates price and scope summary on an owned variant", async () => {
+    it("updates price on an owned variant", async () => {
       authMock.mockResolvedValue(sessionAs(producerUserId, "producer"));
       const created = await createVariant(productId, "deweloperski");
       const result = await updateVariant(created.variantId!, {
         priceMinEur: 100000,
-        priceMaxEur: 120000,
         priceOnRequest: false,
-        scopeSummary: "Zakres podstawowy",
-        excludedScope: "",
         variantLabel: "Comfort",
       });
       expect(result.ok).toBe(true);
       const [row] = await db.select().from(productVariant).where(eq(productVariant.id, created.variantId!));
       expect(row.priceMinCents).toBe(10_000_000);
-      expect(row.priceMaxCents).toBe(12_000_000);
-      expect(row.scopeSummary).toBe("Zakres podstawowy");
-    });
-
-    it("rejects a max price below the min price", async () => {
-      authMock.mockResolvedValue(sessionAs(producerUserId, "producer"));
-      const created = await createVariant(productId, "deweloperski");
-      const result = await updateVariant(created.variantId!, {
-        priceMinEur: 100000,
-        priceMaxEur: 50000,
-        priceOnRequest: false,
-        scopeSummary: "",
-        excludedScope: "",
-        variantLabel: "",
-      });
-      expect(result.ok).toBe(false);
     });
 
     it("rejects updating another producer's variant", async () => {
@@ -202,51 +181,24 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/producer-product-variant-actions
       authMock.mockResolvedValue(sessionAs(producerUserId, "producer"));
       const result = await updateVariant(created.variantId!, {
         priceMinEur: 1,
-        priceMaxEur: 2,
         priceOnRequest: false,
-        scopeSummary: "",
-        excludedScope: "",
         variantLabel: "",
       });
       expect(result.ok).toBe(false);
     });
 
-    it("nulls both prices when priceOnRequest is true, even if price fields are set (spec 0050 AC-13, AC-37)", async () => {
+    it("nulls the price when priceOnRequest is true, even if a price is set (spec 0050 AC-13, AC-37)", async () => {
       authMock.mockResolvedValue(sessionAs(producerUserId, "producer"));
       const created = await createVariant(productId, "deweloperski");
       const result = await updateVariant(created.variantId!, {
         priceMinEur: 100000,
-        priceMaxEur: 120000,
         priceOnRequest: true,
-        scopeSummary: "",
-        excludedScope: "Fundament nie wliczony",
         variantLabel: "",
       });
       expect(result.ok).toBe(true);
       const [row] = await db.select().from(productVariant).where(eq(productVariant.id, created.variantId!));
       expect(row.priceMinCents).toBeNull();
-      expect(row.priceMaxCents).toBeNull();
       expect(row.priceOnRequest).toBe(true);
-      expect(row.excludedScope).toBe("Fundament nie wliczony");
-    });
-  });
-
-  describe("updateVariantTranslation", () => {
-    it("upserts en and nl scope summaries as separate rows", async () => {
-      authMock.mockResolvedValue(sessionAs(producerUserId, "producer"));
-      const created = await createVariant(productId, "deweloperski");
-      await updateVariantTranslation(created.variantId!, "en", "Base scope");
-      await updateVariantTranslation(created.variantId!, "nl", "Basisomvang");
-      // second write to the same locale must update, not duplicate
-      await updateVariantTranslation(created.variantId!, "en", "Base scope v2");
-
-      const rows = await db
-        .select()
-        .from(productVariantTranslation)
-        .where(eq(productVariantTranslation.productVariantId, created.variantId!));
-      expect(rows).toHaveLength(2);
-      expect(rows.find((row) => row.locale === "en")?.scopeSummary).toBe("Base scope v2");
-      expect(rows.find((row) => row.locale === "nl")?.scopeSummary).toBe("Basisomvang");
     });
   });
 

@@ -147,6 +147,18 @@ export const channelKindEnum = pgEnum("channel_kind", ["klient_doradca", "produc
 
 export const messageAuthorKindEnum = pgEnum("message_author_kind", ["client", "advisor", "producer", "system"]);
 
+// Podsumowanie potrzeb sprawy doradczej (spec 0048 AC-12). "confirmed" i
+// "missing" to też jedyne dwa stany, jakie zapisuje karta startowa lub karta
+// doradcy (AC-40): wybór opcji daje confirmed, "nie wiem" daje missing.
+export const caseFieldStateEnum = pgEnum("case_field_state", [
+  "confirmed",
+  "assumption",
+  "missing",
+  "not_applicable",
+]);
+
+export const caseFieldSourceEnum = pgEnum("case_field_source", ["client_card", "client_form", "advisor"]);
+
 export const messageTypeEnum = pgEnum("message_type", [
   "text",
   "question_card",
@@ -656,13 +668,13 @@ export const productVariant = pgTable(
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },
   (table) => [
-    check(
-      "product_variant_price_order",
-      sql`${table.priceMinCents} IS NULL OR ${table.priceMaxCents} IS NULL OR ${table.priceMaxCents} >= ${table.priceMinCents}`,
-    ),
+    // product_variant_price_order (porównanie min/max) usunięty spec 0051 AC-2,
+    // migracja faza 1 (drizzle/, ten sam hand-enriched wzorzec co reszta tego
+    // pliku poza DSL drizzle-kit): price_max_cents przestaje istnieć jako pole
+    // porównywalne, więc porządek między dwiema cenami przestaje mieć sens.
     check(
       "product_variant_price_on_request",
-      sql`${table.priceOnRequest} = false OR (${table.priceMinCents} IS NULL AND ${table.priceMaxCents} IS NULL)`,
+      sql`${table.priceOnRequest} = false OR ${table.priceMinCents} IS NULL`,
     ),
     // Co najwyżej jeden aktywny wariant na (product, standard); indeks
     // częściowy tak, żeby usunięty miękko wariant nie blokował ponownego
@@ -1037,6 +1049,28 @@ export const channelReadState = pgTable(
     lastEmailAt: timestamp("last_email_at", { withTimezone: true }),
   },
   (table) => [primaryKey({ columns: [table.channelId, table.userId] })],
+);
+
+// Podsumowanie potrzeb sprawy (spec 0048 AC-12): klucz z katalogu w kodzie
+// (lib/cases/case-fields.ts), nie z enumu bazy, żeby dodanie pola nie
+// wymagało migracji. Klient odpowiada kartom startowym (AC-38 do AC-44) albo
+// kartom doradcy (AC-7), doradca poprawia bezpośrednio (upsertCaseField).
+// Wiersz jest nadpisywany (ostatni zapis wygrywa, AC-40), nie ma triggera
+// niezmienności jak message czy brief_version.
+export const caseField = pgTable(
+  "case_field",
+  {
+    inquiryId: uuid("inquiry_id")
+      .notNull()
+      .references(() => inquiry.id),
+    key: text("key").notNull(),
+    value: jsonb("value"),
+    state: caseFieldStateEnum("state").notNull(),
+    source: caseFieldSourceEnum("source").notNull(),
+    updatedBy: text("updated_by").references(() => users.id),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.inquiryId, table.key] })],
 );
 
 // Klucz (clientId, productId) unikalny (spec 0024 Feature design): jeden

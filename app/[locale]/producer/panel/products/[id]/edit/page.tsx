@@ -14,8 +14,8 @@ import {
   type ProducerVariantForEdit,
 } from "@/lib/db/queries";
 import { requirePanelProducerSession } from "@/lib/panel-session";
-import { alignFaqTranslation, alignRoomLayoutTranslation } from "@/lib/producer-project-draft";
-import { clientRequirementsSchema } from "@/lib/product-client-requirements";
+import { alignClientRequirementsTranslation, alignFaqTranslation, alignRoomLayoutTranslation } from "@/lib/producer-project-draft";
+import { clientRequirementsSchema, clientRequirementTranslationSchema } from "@/lib/product-client-requirements";
 import { faqSchema, faqTranslationSchema } from "@/lib/product-faq";
 import { roomLayoutSchema, roomLayoutTranslationSchema } from "@/lib/product-room-layout";
 
@@ -32,12 +32,17 @@ function producerProductToDraft(row: ProducerProductForEdit, variants: ProducerV
   const roomLayout = roomLayoutResult.success ? roomLayoutResult.data : [];
   const roomLayoutEnResult = roomLayoutTranslationSchema.safeParse(row.roomLayoutEn ?? []);
   const roomLayoutNlResult = roomLayoutTranslationSchema.safeParse(row.roomLayoutNl ?? []);
+  const roomLayoutDeResult = roomLayoutTranslationSchema.safeParse(row.roomLayoutDe ?? []);
   const faqResult = faqSchema.safeParse(row.faq ?? []);
   const faq = faqResult.success ? faqResult.data : [];
   const faqEnResult = faqTranslationSchema.safeParse(row.faqEn ?? []);
   const faqNlResult = faqTranslationSchema.safeParse(row.faqNl ?? []);
+  const faqDeResult = faqTranslationSchema.safeParse(row.faqDe ?? []);
   const clientRequirementsResult = clientRequirementsSchema.safeParse(row.clientRequirements ?? []);
   const clientRequirements = clientRequirementsResult.success ? clientRequirementsResult.data : [];
+  const clientRequirementsEnResult = clientRequirementTranslationSchema.safeParse(row.clientRequirementsEn ?? []);
+  const clientRequirementsNlResult = clientRequirementTranslationSchema.safeParse(row.clientRequirementsNl ?? []);
+  const clientRequirementsDeResult = clientRequirementTranslationSchema.safeParse(row.clientRequirementsDe ?? []);
 
   return {
     name: row.name,
@@ -45,9 +50,6 @@ function producerProductToDraft(row: ProducerProductForEdit, variants: ProducerV
     bedrooms: row.bedrooms,
     countryOfProduction: (row.countryOfProduction as ProjectDraft["countryOfProduction"]) ?? null,
     description: row.description ?? "",
-    nameEn: row.nameEn ?? "",
-    nameNl: row.nameNl ?? "",
-    nameDe: row.nameDe ?? "",
     descriptionEn: row.descriptionEn ?? "",
     descriptionNl: row.descriptionNl ?? "",
     descriptionDe: row.descriptionDe ?? "",
@@ -59,10 +61,24 @@ function producerProductToDraft(row: ProducerProductForEdit, variants: ProducerV
     roomLayout,
     roomLayoutEn: alignRoomLayoutTranslation(roomLayout, roomLayoutEnResult.success ? roomLayoutEnResult.data : []),
     roomLayoutNl: alignRoomLayoutTranslation(roomLayout, roomLayoutNlResult.success ? roomLayoutNlResult.data : []),
+    roomLayoutDe: alignRoomLayoutTranslation(roomLayout, roomLayoutDeResult.success ? roomLayoutDeResult.data : []),
     faq,
     faqEn: alignFaqTranslation(faq, faqEnResult.success ? faqEnResult.data : []),
     faqNl: alignFaqTranslation(faq, faqNlResult.success ? faqNlResult.data : []),
+    faqDe: alignFaqTranslation(faq, faqDeResult.success ? faqDeResult.data : []),
     clientRequirements,
+    clientRequirementsEn: alignClientRequirementsTranslation(
+      clientRequirements,
+      clientRequirementsEnResult.success ? clientRequirementsEnResult.data : [],
+    ),
+    clientRequirementsNl: alignClientRequirementsTranslation(
+      clientRequirements,
+      clientRequirementsNlResult.success ? clientRequirementsNlResult.data : [],
+    ),
+    clientRequirementsDe: alignClientRequirementsTranslation(
+      clientRequirements,
+      clientRequirementsDeResult.success ? clientRequirementsDeResult.data : [],
+    ),
     floorPlanFiles: [],
     photoFiles: [],
     structuralWarrantyYears: row.structuralWarrantyYears,

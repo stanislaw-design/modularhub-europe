@@ -22,11 +22,14 @@ import {
   deleteVariant,
   setDefaultVariant,
   updateVariant,
-  updateVariantTranslation,
   upsertCostLineItem,
   upsertTimelineStage,
 } from "@/lib/producer-product-variant-actions";
-import { extractStandardsFromMaterial, type ExtractedStandard } from "@/lib/producer-standards-extraction-actions";
+import {
+  extractStandardsFromMaterial,
+  type ExtractedCostLineItem,
+  type ExtractedStandard,
+} from "@/lib/producer-standards-extraction-actions";
 
 const COMPLETION_STANDARDS: CompletionStandard[] = ["surowy-zamkniety", "deweloperski", "pod-klucz"];
 const MAX_VARIANTS = 3;
@@ -50,18 +53,14 @@ interface VariantFormValue {
   variantId: string;
   completionStandard: CompletionStandard;
   isDefault: boolean;
+  // Spec 0051 AC-1, AC-9: jedna cena "od", priceMaxEur usunięty; co wchodzi w
+  // cenę żyje wyłącznie w costLineItems niżej (scopeSummary/excludedScope
+  // usunięte z product_variant razem z ich tłumaczeniem w
+  // ProjectWizardTranslationsStep).
   priceMinEur: number | null;
-  priceMaxEur: number | null;
   // Wycena indywidualna (spec 0050 AC-13, AC-37): jawna flaga, wyklucza
-  // priceMinEur/priceMaxEur (CHECK product_variant_price_on_request).
+  // priceMinEur (CHECK product_variant_price_on_request).
   priceOnRequest: boolean;
-  scopeSummaryPl: string;
-  // Co nie wchodzi w cenę tego standardu (spec 0050 AC-13, AC-24), osobny
-  // krótki opis, nie tłumaczony (jak scopeSummaryEn/Nl niżej) w tym etapie —
-  // tłumaczenia trafiają do skonsolidowanego etapu "Tłumaczenia" (zadanie 9).
-  excludedScope: string;
-  scopeSummaryEn: string;
-  scopeSummaryNl: string;
   costLineItems: CostItemFormValue[];
   timelineStages: TimelineStageFormValue[];
 }
@@ -90,12 +89,7 @@ const variantSchema = z.object({
   completionStandard: z.enum(["surowy-zamkniety", "deweloperski", "pod-klucz"]),
   isDefault: z.boolean(),
   priceMinEur: z.number().nullable(),
-  priceMaxEur: z.number().nullable(),
   priceOnRequest: z.boolean(),
-  scopeSummaryPl: z.string(),
-  excludedScope: z.string(),
-  scopeSummaryEn: z.string(),
-  scopeSummaryNl: z.string(),
   costLineItems: z.array(costItemSchema),
   timelineStages: z.array(timelineStageSchema),
 });
@@ -112,18 +106,28 @@ function emptyTimelineStages(): TimelineStageFormValue[] {
   }));
 }
 
+// AC-9: pozycje kosztowe zaproponowane przez AI dopisywane do listy
+// istniejącej/nowej, nigdy nie zastępujące ręcznie wpisanych, odfiltrowane od
+// duplikatów po dokładnym tekście etykiety (zarówno względem już istniejących
+// pozycji, jak i między sobą w tej samej propozycji).
+function mergeCostLineItems(existing: CostItemFormValue[], proposed: ExtractedCostLineItem[]): CostItemFormValue[] {
+  const seenLabels = new Set(existing.map((item) => item.label));
+  const appended: CostItemFormValue[] = [];
+  for (const item of proposed) {
+    if (seenLabels.has(item.label)) continue;
+    seenLabels.add(item.label);
+    appended.push({ itemId: null, label: item.label, status: item.status, responsibleParty: "" });
+  }
+  return [...existing, ...appended];
+}
+
 function initialVariantsToFormValues(initialVariants: ProducerVariantForEdit[]): VariantFormValue[] {
   return initialVariants.map((variant) => ({
     variantId: variant.id,
     completionStandard: variant.completionStandard,
     isDefault: variant.isDefault,
     priceMinEur: variant.priceMinCents === null ? null : variant.priceMinCents / 100,
-    priceMaxEur: variant.priceMaxCents === null ? null : variant.priceMaxCents / 100,
     priceOnRequest: variant.priceOnRequest,
-    scopeSummaryPl: variant.scopeSummary ?? "",
-    excludedScope: variant.excludedScope ?? "",
-    scopeSummaryEn: variant.scopeSummaryEn ?? "",
-    scopeSummaryNl: variant.scopeSummaryNl ?? "",
     costLineItems: variant.costLineItems.map((item) => ({
       itemId: item.id,
       label: item.label,
@@ -227,6 +231,7 @@ export function ProjectWizardVariantsStep({
   const usedStandards = new Set(fields.map((field) => field.completionStandard));
   const availableStandards = COMPLETION_STANDARDS.filter((standard) => !usedStandards.has(standard));
   const standardOptions = getCompletionStandardOptions(tOptions);
+  const statusOptions = getCostLineItemStatusOptions(tOptions);
   const canAddMore = fields.length < MAX_VARIANTS && availableStandards.length > 0;
 
   async function handleAddVariant() {
@@ -244,12 +249,7 @@ export function ProjectWizardVariantsStep({
       completionStandard: addStandard,
       isDefault: fields.length === 0,
       priceMinEur: null,
-      priceMaxEur: null,
       priceOnRequest: false,
-      scopeSummaryPl: "",
-      excludedScope: "",
-      scopeSummaryEn: "",
-      scopeSummaryNl: "",
       costLineItems: [],
       timelineStages: emptyTimelineStages(),
     });
@@ -273,12 +273,7 @@ export function ProjectWizardVariantsStep({
       completionStandard: cloneStandard,
       isDefault: false,
       priceMinEur: cloned.priceMinCents === null ? null : cloned.priceMinCents / 100,
-      priceMaxEur: cloned.priceMaxCents === null ? null : cloned.priceMaxCents / 100,
       priceOnRequest: cloned.priceOnRequest,
-      scopeSummaryPl: cloned.scopeSummary ?? "",
-      excludedScope: cloned.excludedScope ?? "",
-      scopeSummaryEn: "",
-      scopeSummaryNl: "",
       costLineItems: cloned.costLineItems.map((item) => ({
         itemId: item.id,
         label: item.label,
@@ -329,6 +324,37 @@ export function ProjectWizardVariantsStep({
     setProposals((current) => current.filter((_, index) => index !== proposalIndex));
   }
 
+  // AC-9: producent może poprawić/usunąć/dopisać pozycję kosztową zaproponowaną
+  // przez AI zanim ją zatwierdzi (handleApplyProposal), zanim cokolwiek trafi
+  // do listy wariantu.
+  function handleProposalCostItemChange(proposalIndex: number, itemIndex: number, patch: Partial<ExtractedCostLineItem>) {
+    setProposals((current) =>
+      current.map((proposal, index) =>
+        index === proposalIndex
+          ? { ...proposal, costLineItems: proposal.costLineItems.map((item, i) => (i === itemIndex ? { ...item, ...patch } : item)) }
+          : proposal,
+      ),
+    );
+  }
+
+  function handleAddProposalCostItem(proposalIndex: number) {
+    setProposals((current) =>
+      current.map((proposal, index) =>
+        index === proposalIndex ? { ...proposal, costLineItems: [...proposal.costLineItems, { label: "", status: "w-cenie" }] } : proposal,
+      ),
+    );
+  }
+
+  function handleRemoveProposalCostItem(proposalIndex: number, itemIndex: number) {
+    setProposals((current) =>
+      current.map((proposal, index) =>
+        index === proposalIndex
+          ? { ...proposal, costLineItems: proposal.costLineItems.filter((_, i) => i !== itemIndex) }
+          : proposal,
+      ),
+    );
+  }
+
   // AC-15: dopasowana pozycja (po proposal.targetStandard, który producent
   // zawsze może poprawić przed zatwierdzeniem) dostaje nowe wartości przez
   // updateVariant; brak dopasowania i wolny slot tworzy nowy wariant przez
@@ -343,11 +369,8 @@ export function ProjectWizardVariantsStep({
 
     const existingIndex = fields.findIndex((field) => field.completionStandard === proposal.targetStandard);
     const updateFields = {
-      priceMinEur: proposal.priceMinEur,
-      priceMaxEur: proposal.priceMaxEur,
+      priceMinEur: proposal.priceEur,
       priceOnRequest: proposal.priceOnRequest,
-      scopeSummary: proposal.scopeSummary,
-      excludedScope: proposal.excludedScope,
       variantLabel: proposal.name ?? "",
     };
 
@@ -359,13 +382,13 @@ export function ProjectWizardVariantsStep({
         setListError(result.error ?? t("genericError"));
         return;
       }
+      // AC-9: pozycje kosztowe nigdy nie zapisują się tu same z siebie — trafiają
+      // do lokalnego stanu formularza, zapis idzie dopiero przy "Zapisz wariant".
       update(existingIndex, {
         ...existing,
-        priceMinEur: proposal.priceMinEur,
-        priceMaxEur: proposal.priceMaxEur,
+        priceMinEur: proposal.priceEur,
         priceOnRequest: proposal.priceOnRequest,
-        scopeSummaryPl: proposal.scopeSummary,
-        excludedScope: proposal.excludedScope,
+        costLineItems: mergeCostLineItems(existing.costLineItems, proposal.costLineItems),
       });
     } else {
       if (fields.length >= MAX_VARIANTS) {
@@ -389,14 +412,9 @@ export function ProjectWizardVariantsStep({
         variantId: created.variantId,
         completionStandard: proposal.targetStandard,
         isDefault: fields.length === 0,
-        priceMinEur: proposal.priceMinEur,
-        priceMaxEur: proposal.priceMaxEur,
+        priceMinEur: proposal.priceEur,
         priceOnRequest: proposal.priceOnRequest,
-        scopeSummaryPl: proposal.scopeSummary,
-        excludedScope: proposal.excludedScope,
-        scopeSummaryEn: "",
-        scopeSummaryNl: "",
-        costLineItems: [],
+        costLineItems: mergeCostLineItems([], proposal.costLineItems),
         timelineStages: emptyTimelineStages(),
       });
     }
@@ -567,37 +585,20 @@ export function ProjectWizardVariantsStep({
                       onChange={(event) => handleProposalChange(proposalIndex, { name: event.target.value })}
                     />
                   </Stack>
-                  <Stack direction="row" gap={3} className="flex-wrap">
-                    <Stack gap={1} className="min-w-40 flex-1">
-                      <Label htmlFor={`proposal-${proposalIndex}-price-min`}>{t("priceMinLabel")}</Label>
-                      <Input
-                        id={`proposal-${proposalIndex}-price-min`}
-                        type="number"
-                        min={0}
-                        disabled={proposal.priceOnRequest}
-                        value={proposal.priceMinEur ?? ""}
-                        onChange={(event) =>
-                          handleProposalChange(proposalIndex, {
-                            priceMinEur: event.target.value === "" ? null : Number(event.target.value),
-                          })
-                        }
-                      />
-                    </Stack>
-                    <Stack gap={1} className="min-w-40 flex-1">
-                      <Label htmlFor={`proposal-${proposalIndex}-price-max`}>{t("priceMaxLabel")}</Label>
-                      <Input
-                        id={`proposal-${proposalIndex}-price-max`}
-                        type="number"
-                        min={0}
-                        disabled={proposal.priceOnRequest}
-                        value={proposal.priceMaxEur ?? ""}
-                        onChange={(event) =>
-                          handleProposalChange(proposalIndex, {
-                            priceMaxEur: event.target.value === "" ? null : Number(event.target.value),
-                          })
-                        }
-                      />
-                    </Stack>
+                  <Stack gap={1} className="min-w-40 flex-1">
+                    <Label htmlFor={`proposal-${proposalIndex}-price-min`}>{t("priceMinLabel")}</Label>
+                    <Input
+                      id={`proposal-${proposalIndex}-price-min`}
+                      type="number"
+                      min={0}
+                      disabled={proposal.priceOnRequest}
+                      value={proposal.priceEur ?? ""}
+                      onChange={(event) =>
+                        handleProposalChange(proposalIndex, {
+                          priceEur: event.target.value === "" ? null : Number(event.target.value),
+                        })
+                      }
+                    />
                   </Stack>
                   <label className="flex w-fit items-center gap-2 text-body">
                     <Checkbox
@@ -606,21 +607,49 @@ export function ProjectWizardVariantsStep({
                     />
                     {t("priceOnRequestLabel")}
                   </label>
-                  <Stack gap={1}>
-                    <Label htmlFor={`proposal-${proposalIndex}-scope`}>{t("scopeSummaryLabel")}</Label>
-                    <Textarea
-                      id={`proposal-${proposalIndex}-scope`}
-                      value={proposal.scopeSummary}
-                      onChange={(event) => handleProposalChange(proposalIndex, { scopeSummary: event.target.value })}
-                    />
-                  </Stack>
-                  <Stack gap={1}>
-                    <Label htmlFor={`proposal-${proposalIndex}-excluded`}>{t("excludedScopeLabel")}</Label>
-                    <Textarea
-                      id={`proposal-${proposalIndex}-excluded`}
-                      value={proposal.excludedScope}
-                      onChange={(event) => handleProposalChange(proposalIndex, { excludedScope: event.target.value })}
-                    />
+                  <Stack gap={2}>
+                    <Text as="span" variant="label">
+                      {t("costLineItemsHeading")}
+                    </Text>
+                    {proposal.costLineItems.map((item, itemIndex) => (
+                      <Stack key={itemIndex} direction="row" gap={2} className="flex-wrap items-end">
+                        <Stack gap={1} className="min-w-40 flex-1">
+                          <Label htmlFor={`proposal-${proposalIndex}-cost-${itemIndex}-label`}>{t("costLineItemLabelLabel")}</Label>
+                          <Input
+                            id={`proposal-${proposalIndex}-cost-${itemIndex}-label`}
+                            value={item.label}
+                            onChange={(event) => handleProposalCostItemChange(proposalIndex, itemIndex, { label: event.target.value })}
+                          />
+                        </Stack>
+                        <Stack gap={1} className="min-w-40">
+                          <Label id={`proposal-${proposalIndex}-cost-${itemIndex}-status-label`}>{t("costLineItemStatusLabel")}</Label>
+                          <Select
+                            value={item.status}
+                            onChange={(value) => handleProposalCostItemChange(proposalIndex, itemIndex, { status: value as CostLineItemStatus })}
+                            options={statusOptions}
+                            aria-labelledby={`proposal-${proposalIndex}-cost-${itemIndex}-status-label`}
+                          />
+                        </Stack>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveProposalCostItem(proposalIndex, itemIndex)}
+                          aria-label={t("removeCostLineItemLabel")}
+                          className="focus-ring flex size-8 items-center justify-center rounded-data text-brand-technical-graphite hover:text-status-blocked"
+                        >
+                          <Trash2 className="size-4" aria-hidden="true" />
+                        </button>
+                      </Stack>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      className="w-fit"
+                      onClick={() => handleAddProposalCostItem(proposalIndex)}
+                    >
+                      <Plus className="size-4" aria-hidden="true" />
+                      {t("addCostLineItemButton")}
+                    </Button>
                   </Stack>
                   <Stack direction="row" gap={2}>
                     <Button type="button" size="sm" disabled={pendingAction} onClick={() => handleApplyProposal(proposalIndex)}>
@@ -743,7 +772,6 @@ function VariantCard({ form, index, isFirst, isLast, onMoveUp, onMoveDown, onSet
   const { control, register, getValues, setValue } = form;
   const variant = useWatch({ control, name: `variants.${index}` });
   const costItemsArray = useFieldArray({ control, name: `variants.${index}.costLineItems` });
-  const [translationTab, setTranslationTab] = useState<"en" | "nl">("en");
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -773,10 +801,7 @@ function VariantCard({ form, index, isFirst, isLast, onMoveUp, onMoveDown, onSet
 
     const variantResult = await updateVariant(current.variantId, {
       priceMinEur: current.priceMinEur,
-      priceMaxEur: current.priceMaxEur,
       priceOnRequest: current.priceOnRequest,
-      scopeSummary: current.scopeSummaryPl,
-      excludedScope: current.excludedScope,
       variantLabel: "",
     });
     if (!variantResult.ok) {
@@ -784,9 +809,6 @@ function VariantCard({ form, index, isFirst, isLast, onMoveUp, onMoveDown, onSet
       setSaveError(variantResult.error ?? t("genericError"));
       return;
     }
-
-    await updateVariantTranslation(current.variantId, "en", current.scopeSummaryEn);
-    await updateVariantTranslation(current.variantId, "nl", current.scopeSummaryNl);
 
     for (let i = 0; i < current.costLineItems.length; i++) {
       const item = current.costLineItems[i];
@@ -878,73 +900,21 @@ function VariantCard({ form, index, isFirst, isLast, onMoveUp, onMoveDown, onSet
           </label>
         )}
 
-        <Stack direction="row" gap={3} className="flex-wrap">
-          <Stack gap={1} className="min-w-40 flex-1">
-            <Label htmlFor={`variant-${index}-price-min`}>{t("priceMinLabel")}</Label>
-            <Input
-              id={`variant-${index}-price-min`}
-              type="number"
-              min={0}
-              disabled={variant.priceOnRequest}
-              {...register(`variants.${index}.priceMinEur`, { setValueAs: (value) => (value === "" ? null : Number(value)) })}
-            />
-          </Stack>
-          <Stack gap={1} className="min-w-40 flex-1">
-            <Label htmlFor={`variant-${index}-price-max`}>{t("priceMaxLabel")}</Label>
-            <Input
-              id={`variant-${index}-price-max`}
-              type="number"
-              min={0}
-              disabled={variant.priceOnRequest}
-              {...register(`variants.${index}.priceMaxEur`, { setValueAs: (value) => (value === "" ? null : Number(value)) })}
-            />
-          </Stack>
+        <Stack gap={1} className="min-w-40 flex-1">
+          <Label htmlFor={`variant-${index}-price-min`}>{t("priceMinLabel")}</Label>
+          <Input
+            id={`variant-${index}-price-min`}
+            type="number"
+            min={0}
+            disabled={variant.priceOnRequest}
+            {...register(`variants.${index}.priceMinEur`, { setValueAs: (value) => (value === "" ? null : Number(value)) })}
+          />
         </Stack>
 
         <label className="flex w-fit items-center gap-2 text-body">
           <Checkbox id={`variant-${index}-price-on-request`} {...register(`variants.${index}.priceOnRequest`)} />
           {t("priceOnRequestLabel")}
         </label>
-
-        <Stack gap={1}>
-          <Label htmlFor={`variant-${index}-scope-pl`}>{t("scopeSummaryLabel")}</Label>
-          <Textarea id={`variant-${index}-scope-pl`} {...register(`variants.${index}.scopeSummaryPl`)} />
-        </Stack>
-
-        <Stack gap={1}>
-          <Label htmlFor={`variant-${index}-excluded-scope`}>{t("excludedScopeLabel")}</Label>
-          <Textarea id={`variant-${index}-excluded-scope`} {...register(`variants.${index}.excludedScope`)} />
-        </Stack>
-
-        <Stack gap={2}>
-          <div role="tablist" aria-label={t("translationsHeading")} className="flex gap-brand-1">
-            <Button
-              type="button"
-              role="tab"
-              aria-selected={translationTab === "en"}
-              variant={translationTab === "en" ? "primary" : "secondary"}
-              size="sm"
-              onClick={() => setTranslationTab("en")}
-            >
-              {t("translationTabEn")}
-            </Button>
-            <Button
-              type="button"
-              role="tab"
-              aria-selected={translationTab === "nl"}
-              variant={translationTab === "nl" ? "primary" : "secondary"}
-              size="sm"
-              onClick={() => setTranslationTab("nl")}
-            >
-              {t("translationTabNl")}
-            </Button>
-          </div>
-          {translationTab === "en" ? (
-            <Textarea aria-label={t("scopeSummaryEnLabel")} {...register(`variants.${index}.scopeSummaryEn`)} />
-          ) : (
-            <Textarea aria-label={t("scopeSummaryNlLabel")} {...register(`variants.${index}.scopeSummaryNl`)} />
-          )}
-        </Stack>
 
         <Stack gap={2}>
           <Text as="span" variant="label">

@@ -36,7 +36,13 @@ export default async function ClientInquiryDetailPage({
     return (
       <Stack gap={4}>
         <CaseStatusPanel view={caseView} dateLabel={dateFormatter.format(caseView.receivedAt)} />
-        <CaseChat inquiryId={caseView.id} channelId={caseView.channelId} viewer="client" initialMessages={caseView.messages} />
+        <CaseChat
+          inquiryId={caseView.id}
+          channelId={caseView.channelId}
+          viewer="client"
+          initialMessages={caseView.messages}
+          initialCaseFields={caseView.caseFields}
+        />
         <CaseCommissionFooter />
       </Stack>
     );

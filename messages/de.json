@@ -224,6 +224,7 @@
       "pliki": "Dateien",
       "warianty": "Varianten und Preise",
       "faq": "FAQ",
+      "tlumaczenia": "Übersetzungen",
       "podsumowanie": "Zusammenfassung"
     },
     "family": {
@@ -530,17 +531,6 @@
     "countryRequiredError": "Wählen Sie ein Produktionsland aus.",
     "descriptionLabel": "Beschreibung",
     "descriptionRequiredError": "Geben Sie eine Projektbeschreibung an.",
-    "translationsHeading": "Übersetzungen (optional)",
-    "translationsHint": "Englisch, Niederländisch und Deutsch sind optional — ohne Übersetzung sehen ausländische Kunden den polnischen Text.",
-    "translationTabEn": "Englisch",
-    "translationTabNl": "Niederländisch",
-    "translationTabDe": "Deutsch",
-    "nameEnLabel": "Name (Englisch)",
-    "nameNlLabel": "Name (Niederländisch)",
-    "nameDeLabel": "Name (Deutsch)",
-    "descriptionEnLabel": "Beschreibung (Englisch)",
-    "descriptionNlLabel": "Beschreibung (Niederländisch)",
-    "descriptionDeLabel": "Beschreibung (Deutsch)",
     "roomLayoutHeading": "Raumaufteilung",
     "roomLayoutHint": "Fügen Sie Räume mit Fläche und Funktion hinzu — dieser Abschnitt erscheint auf der Projektseite des Kunden.",
     "roomLayoutEmptyHint": "Es wurde noch kein Raum hinzugefügt.",
@@ -551,8 +541,6 @@
     "moveUpLabel": "Nach oben verschieben",
     "moveDownLabel": "Nach unten verschieben",
     "removeRoomLabel": "Raum entfernen",
-    "roomTranslationsHeading": "Übersetzungen der Raumnamen (optional)",
-    "roomNameTranslationLabel": "Raumname {index}",
     "addRoomButton": "Raum hinzufügen",
     "recognizeHeading": "Raumaufteilung aus Grundrissen erkennen",
     "recognizeHint": "Wählen Sie bis zu fünf hochgeladene Grundrisse aus, die KI schlägt eine zu prüfende Raumliste vor.",
@@ -603,11 +591,6 @@
     "priceOnRequestLabel": "Individuelles Angebot (kein Festpreis)",
     "scopeSummaryLabel": "Leistungsbeschreibung",
     "excludedScopeLabel": "Was nicht im Preis enthalten ist",
-    "translationsHeading": "Übersetzungen der Leistungsbeschreibung (optional)",
-    "translationTabEn": "EN",
-    "translationTabNl": "NL",
-    "scopeSummaryEnLabel": "Leistungsbeschreibung (EN)",
-    "scopeSummaryNlLabel": "Leistungsbeschreibung (NL)",
     "costLineItemsHeading": "Kostenpositionen",
     "costLineItemLabelLabel": "Position",
     "costLineItemStatusLabel": "Status",
@@ -654,14 +637,42 @@
     "removeLabel": "Frage entfernen",
     "questionLabel": "Frage",
     "answerLabel": "Antwort",
-    "translationsHeading": "Übersetzungen (optional)",
-    "translationTabEn": "EN",
-    "translationTabNl": "NL",
-    "questionEnLabel": "Frage (EN)",
-    "answerEnLabel": "Antwort (EN)",
-    "questionNlLabel": "Frage (NL)",
-    "answerNlLabel": "Antwort (NL)",
     "addButton": "Frage hinzufügen"
+  },
+  "ProjectWizardTranslationsStep": {
+    "heading": "Übersetzungen",
+    "intro": "Die KI erstellt Übersetzungen der Beschreibung, der Standards, der Räume, der Kundenanforderungen und der FAQ auf Englisch, Deutsch und Niederländisch. Prüfen und korrigieren Sie diese vor der Veröffentlichung.",
+    "generateButton": "Übersetzungen generieren",
+    "regenerateAllButton": "Alle erneut generieren",
+    "regenerateOneButton": "Erneut generieren ({language})",
+    "generatingLabel": "Generierung läuft…",
+    "genericError": "Übersetzungen konnten nicht generiert werden. Versuchen Sie es erneut oder bearbeiten Sie sie manuell.",
+    "emptyHint": "Generieren Sie Übersetzungen, um den Inhalt in jeder Sprache zu prüfen und zu korrigieren.",
+    "languageTabsLabel": "Übersetzungssprache",
+    "localeLabel": {
+      "en": "Englisch",
+      "nl": "Niederländisch",
+      "de": "Deutsch"
+    },
+    "descriptionLabel": "Projektbeschreibung",
+    "roomLayoutHeading": "Raumnamen",
+    "roomNameTranslationLabel": "Raumname „{name}“",
+    "faqHeading": "FAQ",
+    "faqQuestionTranslationLabel": "Frage {index}",
+    "faqAnswerTranslationLabel": "Antwort {index}",
+    "clientRequirementsHeading": "Was der Kunde bereitstellen muss",
+    "requirementTranslationLabel": "Position „{label}“",
+    "variantsHeading": "Varianten",
+    "variantScopeSummaryLabel": "Leistungsbeschreibung",
+    "variantExcludedScopeLabel": "Was nicht im Preis enthalten ist",
+    "savingVariantsLabel": "Wird gespeichert…",
+    "saveVariantTranslationsButton": "Variantenübersetzungen speichern",
+    "variantsSavedLabel": "Gespeichert.",
+    "completionStandard": {
+      "surowy-zamkniety": "Rohbau geschlossen",
+      "deweloperski": "Bauträgerstandard",
+      "pod-klucz": "Schlüsselfertig"
+    }
   },
   "ProjectWizardFilesStep": {
     "heading": "Dateien",
@@ -1198,8 +1209,12 @@
   "InquiryFlow": {
     "heading": "ModularHub um Angebote bitten",
     "howItWorksTitle": "So funktioniert es",
-    "howItWorksBody": "Ihre Anfrage geht an ModularHub und nicht direkt an die Hersteller. Ein Berater spricht mit Ihnen, erstellt ein Briefing und legt es Ihnen zur Freigabe vor. Die Hersteller erhalten es erst nach Ihrer Zustimmung.",
+    "howItWorksStep1": "Ihre Anfrage geht an ModularHub und nicht direkt an die Hersteller.",
+    "howItWorksStep2": "Ein Berater spricht mit Ihnen und erstellt ein Briefing zur Freigabe durch Sie.",
+    "howItWorksStep3": "Die Hersteller erhalten das Briefing erst nach Ihrer Zustimmung.",
     "selectedHomesLabel": "Ausgewählte Häuser",
+    "sectionAddressHeading": "Adresse des Grundstücks",
+    "homeMeta": "{producer} · {area} m²",
     "streetLabel": "Straße und Hausnummer",
     "postalCodeLabel": "Postleitzahl",
     "cityLabel": "Ort",
@@ -1682,6 +1697,20 @@
     "collapseSidebar": "Menü einklappen",
     "expandSidebar": "Menü ausklappen"
   },
+  "ClientPanelSidebar": {
+    "navAriaLabel": "Kundenbereich",
+    "zapytania": "Anfragen",
+    "ulubione": "Favoriten",
+    "profil": "Profil",
+    "unreadBadgeLabel": "Neues Angebot",
+    "home": "Startseite",
+    "signOut": "Abmelden",
+    "openMenu": "Menü öffnen",
+    "closeMenu": "Menü schließen",
+    "menu": "Menü",
+    "collapseSidebar": "Menü einklappen",
+    "expandSidebar": "Menü ausklappen"
+  },
   "CaseChat": {
     "heading": "Gespräch mit dem Berater",
     "draftLabel": "Ihre Nachricht",
@@ -1739,5 +1768,142 @@
   },
   "CaseSystem": {
     "caseReceived": "Wir haben Ihre Anfrage erhalten. Wir haben sie noch nicht an die Hersteller gesendet."
+  },
+  "CaseCards": {
+    "layerOneBadge": "Ein paar Fragen zum Start",
+    "layerTwoBadge": "Zusätzlich und optional",
+    "progress": "Frage {current} von {total}",
+    "skipAll": "Diese Fragen überspringen",
+    "willSave": "Wir speichern: {value}",
+    "confirm": "Bestätigen",
+    "saving": "Wird gespeichert…",
+    "sendError": "Die Antwort konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
+    "noAnswerYet": "Keine Antwort.",
+    "common": {
+      "unsureLabel": "Ich weiß es nicht, der Berater soll vorschlagen",
+      "unsureConsequence": "Der Berater schlägt dies auf Basis des Gesprächs mit Ihnen vor."
+    },
+    "zakres_uslug": {
+      "question": "Was erwarten Sie vom Hersteller?",
+      "options": {
+        "sam_dom": {
+          "label": "Nur das Haus",
+          "consequence": "Transport, Montage und Fundament organisieren Sie selbst oder mit einer anderen Firma."
+        },
+        "dom_i_transport": {
+          "label": "Haus mit Transport",
+          "consequence": "Der Hersteller liefert das Haus, Montage und Fundament bleiben bei Ihnen."
+        },
+        "dom_transport_montaz": {
+          "label": "Haus, Transport und Montage",
+          "consequence": "Der Hersteller stellt das Haus auf Ihrem Grundstück auf, das Fundament organisieren Sie separat."
+        },
+        "kompleksowo_z_fundamentem": {
+          "label": "Komplett, inklusive Fundament",
+          "consequence": "Am wenigsten Aufwand für Sie, meist ein höherer Gesamtpreis."
+        }
+      }
+    },
+    "budzet": {
+      "question": "Welches Budget haben Sie im Blick?",
+      "options": {
+        "do_150k": {
+          "label": "Bis 150.000 EUR",
+          "consequence": "Wir passen Modelle und Ausbaustandard an diesen Betrag an."
+        },
+        "150_do_250k": {
+          "label": "150.000–250.000 EUR",
+          "consequence": "Eine größere Auswahl an Modellen und höherer Ausbaustandard in Reichweite."
+        },
+        "250_do_400k": {
+          "label": "250.000–400.000 EUR",
+          "consequence": "Öffnet größere Häuser und einen umfassenderen Leistungsumfang des Herstellers."
+        },
+        "powyzej_400k": {
+          "label": "Über 400.000 EUR",
+          "consequence": "Keine Einschränkungen bei Modell, Ausbaustandard oder Leistungsumfang."
+        }
+      }
+    },
+    "termin": {
+      "question": "Wann möchten Sie einziehen?",
+      "options": {
+        "jak_najszybciej": {
+          "label": "So schnell wie möglich",
+          "consequence": "Der Berater prüft, welche Hersteller jetzt freie Produktionstermine haben."
+        },
+        "do_6_miesiecy": {
+          "label": "Innerhalb von 6 Monaten",
+          "consequence": "Genug Zeit für eine entspannte Herstellerwahl und Grundstücksvorbereitung."
+        },
+        "do_roku": {
+          "label": "Innerhalb eines Jahres",
+          "consequence": "Ein komfortabler Zeitrahmen, weniger Druck bei Entscheidungen unterwegs."
+        },
+        "elastyczny": {
+          "label": "Flexibel, über ein Jahr",
+          "consequence": "Der Zeitpunkt hat bei der Herstellerwahl keine Priorität."
+        }
+      }
+    },
+    "gotowosc_dzialki": {
+      "question": "In welchem Stadium ist Ihr Grundstück?",
+      "options": {
+        "dzialka_i_pozwolenie": {
+          "label": "Ich habe Grundstück und Baugenehmigung",
+          "consequence": "Hersteller können Produktion und Montage sofort einplanen."
+        },
+        "dzialka_bez_pozwolenia": {
+          "label": "Ich habe das Grundstück, warte auf die Genehmigung",
+          "consequence": "Der Berater berücksichtigt die Genehmigungszeit im Zeitplan."
+        },
+        "szukam_dzialki": {
+          "label": "Ich suche noch ein Grundstück",
+          "consequence": "Der Berater berät, worauf bei der Grundstückswahl für dieses Haus zu achten ist."
+        },
+        "potrzebuje_analizy": {
+          "label": "Ich brauche eine Analyse, ob es passt",
+          "consequence": "Der Berater schlägt eine Grundstücksanalyse vor, bevor es weitergeht."
+        }
+      }
+    },
+    "ogrzewanie": {
+      "question": "Womit möchten Sie das Haus heizen?",
+      "options": {
+        "pompa_ciepla": {
+          "label": "Wärmepumpe",
+          "consequence": "Höhere Installationskosten, niedrigere Rechnungen später."
+        },
+        "gaz": {
+          "label": "Gas",
+          "consequence": "Niedrigere Installationskosten, höhere Heizkosten."
+        },
+        "elektryczne": {
+          "label": "Elektrisch",
+          "consequence": "Einfachste Installation, Betriebskosten hängen vom Stromtarif ab."
+        },
+        "kominek_biomasa": {
+          "label": "Kamin oder Biomasse",
+          "consequence": "Benötigt Platz für Brennstoff und einen Schornstein, Unabhängigkeit von anderen Medien."
+        }
+      }
+    },
+    "standard_wykonczenia": {
+      "question": "In welchem Standard soll das Haus sein?",
+      "options": {
+        "surowy_zamkniety": {
+          "label": "Rohbau, geschlossen",
+          "consequence": "Den Innenausbau organisieren Sie selbst, ein niedrigerer Preis vom Hersteller."
+        },
+        "deweloperski": {
+          "label": "Ausbauhaus",
+          "consequence": "Installationen fertig, die Oberflächenausstattung bleibt bei Ihnen."
+        },
+        "pod_klucz": {
+          "label": "Schlüsselfertig",
+          "consequence": "Haus bezugsfertig, der höchste Preis vom Hersteller."
+        }
+      }
+    }
   }
 }

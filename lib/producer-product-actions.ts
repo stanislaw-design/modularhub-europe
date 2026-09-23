@@ -12,9 +12,13 @@ import { db } from "@/lib/db/client";
 import { document, product, productTranslation, productVariant } from "@/lib/db/schema";
 import { captureError } from "@/lib/observability/errors";
 import { trackEvent } from "@/lib/observability";
-import { clientRequirementsSchema } from "@/lib/product-client-requirements";
-import { faqSchema, faqTranslationSchema } from "@/lib/product-faq";
-import { roomLayoutSchema, roomLayoutTranslationSchema } from "@/lib/product-room-layout";
+import {
+  clientRequirementsSchema,
+  clientRequirementTranslationSchema,
+  type ClientRequirementTranslationRow,
+} from "@/lib/product-client-requirements";
+import { faqSchema, faqTranslationSchema, type FaqTranslationRow } from "@/lib/product-faq";
+import { roomLayoutSchema, roomLayoutTranslationSchema, type RoomLayoutTranslationRow } from "@/lib/product-room-layout";
 import { getTechnicalSpecsSchema } from "@/lib/product-technical-specs";
 import { requireProducerActor } from "@/lib/producer-actor";
 
@@ -24,34 +28,49 @@ import { requireProducerActor } from "@/lib/producer-actor";
 // tylko migawka na potrzeby isStepComplete("warianty", ...) w kreatorze
 // (spec 0045), prawdziwy zapis idzie przez lib/producer-product-variant-actions.ts.
 //
-// nameEn/nameNl/nameDe/descriptionEn/descriptionNl/descriptionDe są tu
-// opcjonalne (spec 0028 AC-15, Build plan zadanie 20), inaczej niż na
-// ProjectDraft (gdzie zawsze mają konkretną, choćby pustą, wartość string —
-// stan formularza w przeglądarce). Krok kreatora inny niż ten pokazujący
-// zakładki językowe (ProjectWizardBasicInfoStep) po prostu ich nie wysyła
-// (undefined, nie pusty string): translationRow/upsertTranslations niżej
-// dotykają kolumnę product_translation tylko wtedy, gdy jej klucz jest
-// obecny w fields, więc resubmisja nieodświeżonego draftu z wcześniejszego
-// kroku nigdy nie kasuje tłumaczenia, które w międzyczasie mogło dopisać AI
-// (generateMissingProductTranslations niżej).
+// descriptionEn/descriptionNl/descriptionDe/roomLayoutEn/Nl/De/faqEn/Nl/De/
+// clientRequirementsEn/Nl/De są tu opcjonalne (spec 0028 AC-15, spec 0050
+// AC-28 do AC-34), inaczej niż na ProjectDraft (gdzie zawsze mają konkretną,
+// choćby pustą, wartość — stan formularza w przeglądarce). Krok kreatora inny
+// niż "tlumaczenia" (jedyne miejsce z tymi polami w obu kreatorach od spec
+// 0050) po prostu ich nie wysyła (undefined, nie pusty string/pusta tablica):
+// translationRow/upsertTranslations niżej dotykają kolumnę product_translation
+// tylko wtedy, gdy jej klucz jest obecny w fields, więc resubmisja
+// nieodświeżonego draftu z wcześniejszego kroku nigdy nie kasuje tłumaczenia
+// description, które w międzyczasie mogło dopisać AI
+// (generateMissingProductTranslations niżej) — jedyne pole z tym wyścigiem,
+// bo jedyne z asynchronicznym backfillem. `name` nie jest już tłumaczone
+// wcale (spec 0050 AC-2): jedna, wspólna wartość dla wszystkich języków.
 export type ProducerProductFields = Omit<
   ProjectDraft,
   | "floorPlanFiles"
   | "photoFiles"
   | "variantsSummary"
-  | "nameEn"
-  | "nameNl"
-  | "nameDe"
   | "descriptionEn"
   | "descriptionNl"
   | "descriptionDe"
+  | "roomLayoutEn"
+  | "roomLayoutNl"
+  | "roomLayoutDe"
+  | "faqEn"
+  | "faqNl"
+  | "faqDe"
+  | "clientRequirementsEn"
+  | "clientRequirementsNl"
+  | "clientRequirementsDe"
 > & {
-  nameEn?: string;
-  nameNl?: string;
-  nameDe?: string;
   descriptionEn?: string;
   descriptionNl?: string;
   descriptionDe?: string;
+  roomLayoutEn?: RoomLayoutTranslationRow[];
+  roomLayoutNl?: RoomLayoutTranslationRow[];
+  roomLayoutDe?: RoomLayoutTranslationRow[];
+  faqEn?: FaqTranslationRow[];
+  faqNl?: FaqTranslationRow[];
+  faqDe?: FaqTranslationRow[];
+  clientRequirementsEn?: ClientRequirementTranslationRow[];
+  clientRequirementsNl?: ClientRequirementTranslationRow[];
+  clientRequirementsDe?: ClientRequirementTranslationRow[];
 };
 
 interface ActionResult {
@@ -106,35 +125,38 @@ function buildProductValues(fields: ProducerProductFields) {
   };
 }
 
-// Wiersz do upsertu, budowany WARUNKOWO (spec 0028 AC-15, Build plan zadanie
-// 20): name/description/roomLayout/faq trafiają do zwróconego obiektu tylko
-// gdy odpowiadający klucz jest obecny w fields (nie tylko niepusty — pusty
-// string to jawne wyczyszczenie, undefined to "krok tego nie dotyczył").
-// upsertTranslations niżej robi z tego .set({...}) do onConflictDoUpdate, więc
-// kolumna, której klucz nie przyszedł w tym zapisie, zostaje nietknięta —
-// w szczególności nigdy nie kasuje tego, co generateMissingProductTranslations
-// mogło w międzyczasie dopisać do name/description. DE nie ma odpowiednika
-// roomLayout/faq (te tłumaczenia zostają EN/NL only, poza zakresem spec 0028
-// AI rozszerzenia) — locale "de" nigdy nie dotyka tych dwóch kolumn.
+// Wiersz do upsertu, budowany WARUNKOWO (spec 0028 AC-15, spec 0050 AC-28 do
+// AC-34): description/roomLayout/faq/clientRequirements trafiają do
+// zwróconego obiektu tylko gdy odpowiadający klucz jest obecny w fields (nie
+// tylko niepusty — pusty string/pusta tablica to jawne wyczyszczenie,
+// undefined to "krok tego nie dotyczył"). upsertTranslations niżej robi z
+// tego .set({...}) do onConflictDoUpdate, więc kolumna, której klucz nie
+// przyszedł w tym zapisie, zostaje nietknięta — w szczególności nigdy nie
+// kasuje tego, co generateMissingProductTranslations mogło w międzyczasie
+// dopisać do description. `name` nie ma tu już odpowiednika (spec 0050 AC-2:
+// jedna, wspólna wartość, nigdy tłumaczona). Od spec 0050 DE dostaje
+// roomLayout/faq/clientRequirements na równi z EN/NL (dawne ograniczenie do
+// EN/NL only, spec 0028 zakres AI, zniesione razem ze skonsolidowanym etapem
+// tłumaczeń — jedyne miejsce, które je teraz pisze).
 function translationRow(
   productId: string,
   locale: ProductTranslationLocale,
   fields: ProducerProductFields,
 ): { productId: string; locale: ProductTranslationLocale } & Record<string, unknown> {
   const row: Record<string, unknown> = { productId, locale };
-  const nameValue = locale === "en" ? fields.nameEn : locale === "nl" ? fields.nameNl : fields.nameDe;
-  if (nameValue !== undefined) row.name = nameValue || null;
   const descriptionValue =
     locale === "en" ? fields.descriptionEn : locale === "nl" ? fields.descriptionNl : fields.descriptionDe;
   if (descriptionValue !== undefined) row.description = descriptionValue || null;
-  if (locale !== "de") {
-    // AC-10: tłumaczenie roomLayout/faq dopasowane po stabilnym id z listy
-    // polskiej (fields.roomLayout/faq), może być krótsze (tłumaczenie częściowe).
-    const roomLayoutValue = locale === "en" ? fields.roomLayoutEn : fields.roomLayoutNl;
-    if (roomLayoutValue !== undefined) row.roomLayout = roomLayoutValue;
-    const faqValue = locale === "en" ? fields.faqEn : fields.faqNl;
-    if (faqValue !== undefined) row.faq = faqValue;
-  }
+  // AC-10, AC-28: tłumaczenie dopasowane po stabilnym id z listy polskiej
+  // (fields.roomLayout/faq/clientRequirements), może być krótsze (tłumaczenie
+  // częściowe).
+  const roomLayoutValue = locale === "en" ? fields.roomLayoutEn : locale === "nl" ? fields.roomLayoutNl : fields.roomLayoutDe;
+  if (roomLayoutValue !== undefined) row.roomLayout = roomLayoutValue;
+  const faqValue = locale === "en" ? fields.faqEn : locale === "nl" ? fields.faqNl : fields.faqDe;
+  if (faqValue !== undefined) row.faq = faqValue;
+  const clientRequirementsValue =
+    locale === "en" ? fields.clientRequirementsEn : locale === "nl" ? fields.clientRequirementsNl : fields.clientRequirementsDe;
+  if (clientRequirementsValue !== undefined) row.clientRequirements = clientRequirementsValue;
   return row as { productId: string; locale: ProductTranslationLocale } & Record<string, unknown>;
 }
 
@@ -160,10 +182,12 @@ function normalizeForCompare(value: string | null | undefined): string | null {
   return value?.trim() || null;
 }
 
-const AI_TRANSLATION_FIELDS: readonly ProductTranslationField[] = ["name", "description"];
+const AI_TRANSLATION_FIELDS: readonly ProductTranslationField[] = ["description"];
 
 // Automatyczne tłumaczenie AI (spec 0028 AC-11 do AC-14, AC-17, Build plan
-// zadanie 22): reguła regeneracji per (productId, locale, field), wywołana
+// zadanie 22; zawężone do description spec 0050 AC-2 — `name` nie jest już
+// tłumaczone wcale, jedna wspólna wartość dla wszystkich języków, więc nie ma
+// czego tu regenerować): reguła regeneracji per (productId, locale), wywołana
 // przez after() na końcu createProducerProduct/updateProducerProduct — nigdy
 // nie blokuje ani nie cofa zapisu produktu, który już się powiódł (AC-14),
 // więc każdy błąd tu jest złapany i zgłoszony, nigdy rzucony dalej.
@@ -171,101 +195,67 @@ const AI_TRANSLATION_FIELDS: readonly ProductTranslationField[] = ["name", "desc
 // "Własność" jest wyliczona, nie przechowywana jako osobna flaga (patrz
 // komentarz przy product_translation w schema.ts): pole jest "własnością AI"
 // dokładnie wtedy, gdy jego zapisana wartość (znormalizowana) równa się
-// odpowiedniej kolumnie ai_generated_* (też znormalizowanej). Wymaga
-// regeneracji, gdy do tego jeszcze nigdy nie było generowane
-// (ai_generated_* IS NULL, w tym pole dziś puste) albo polski tekst źródłowy
-// zmienił się od ostatniej generacji (ai_translated_from_* różni się od
-// aktualnego product.name/description).
+// aiGeneratedDescription (też znormalizowanej). Wymaga regeneracji, gdy do
+// tego jeszcze nigdy nie było generowane (aiGeneratedDescription IS NULL, w
+// tym pole dziś puste) albo polski tekst źródłowy zmienił się od ostatniej
+// generacji (aiTranslatedFromDescription różni się od aktualnego
+// product.description). Jedyny pisarz description poza etapem "Tłumaczenia"
+// (lib/producer-project-translation-actions.ts, spec 0050 AC-33): ten sam
+// wzorzec własności obowiązuje tam identycznie, żeby te dwa mechanizmy nigdy
+// nie nadpisywały się nawzajem.
 async function generateMissingProductTranslations(productId: string): Promise<void> {
   try {
-    const [productRow] = await db
-      .select({ name: product.name, description: product.description })
-      .from(product)
-      .where(eq(product.id, productId));
+    const [productRow] = await db.select({ description: product.description }).from(product).where(eq(product.id, productId));
     if (!productRow) return;
 
-    const sourceName = normalizeForCompare(productRow.name);
     const sourceDescription = normalizeForCompare(productRow.description);
     // Nic do tłumaczenia, gdy polski tekst źródłowy jest jeszcze pusty
     // (wczesny etap kreatora) — pole zostaje kandydatem do generacji przy
     // następnym zapisie, kiedy source faktycznie ma treść.
-    if (sourceName === null && sourceDescription === null) return;
+    if (sourceDescription === null) return;
 
     const existingRows = await db
       .select({
         locale: productTranslation.locale,
-        name: productTranslation.name,
         description: productTranslation.description,
-        aiGeneratedName: productTranslation.aiGeneratedName,
         aiGeneratedDescription: productTranslation.aiGeneratedDescription,
-        aiTranslatedFromName: productTranslation.aiTranslatedFromName,
         aiTranslatedFromDescription: productTranslation.aiTranslatedFromDescription,
       })
       .from(productTranslation)
       .where(eq(productTranslation.productId, productId));
 
-    const localesNeedingName: ProductTranslationLocale[] = [];
     const localesNeedingDescription: ProductTranslationLocale[] = [];
 
     for (const locale of TRANSLATION_LOCALES) {
       const existing = existingRows.find((row) => row.locale === locale);
-
-      if (sourceName !== null) {
-        const isNameAiOwned = normalizeForCompare(existing?.name) === normalizeForCompare(existing?.aiGeneratedName);
-        const isStale =
-          normalizeForCompare(existing?.aiGeneratedName) === null ||
-          normalizeForCompare(existing?.aiTranslatedFromName) !== sourceName;
-        if (isNameAiOwned && isStale) localesNeedingName.push(locale);
-      }
-
-      if (sourceDescription !== null) {
-        const isDescriptionAiOwned =
-          normalizeForCompare(existing?.description) === normalizeForCompare(existing?.aiGeneratedDescription);
-        const isStale =
-          normalizeForCompare(existing?.aiGeneratedDescription) === null ||
-          normalizeForCompare(existing?.aiTranslatedFromDescription) !== sourceDescription;
-        if (isDescriptionAiOwned && isStale) localesNeedingDescription.push(locale);
-      }
+      const isDescriptionAiOwned =
+        normalizeForCompare(existing?.description) === normalizeForCompare(existing?.aiGeneratedDescription);
+      const isStale =
+        normalizeForCompare(existing?.aiGeneratedDescription) === null ||
+        normalizeForCompare(existing?.aiTranslatedFromDescription) !== sourceDescription;
+      if (isDescriptionAiOwned && isStale) localesNeedingDescription.push(locale);
     }
 
-    if (localesNeedingName.length === 0 && localesNeedingDescription.length === 0) return;
-
-    const neededLocales = [...new Set([...localesNeedingName, ...localesNeedingDescription])];
-    const neededFields = AI_TRANSLATION_FIELDS.filter(
-      (field) =>
-        (field === "name" && localesNeedingName.length > 0) ||
-        (field === "description" && localesNeedingDescription.length > 0),
-    );
+    if (localesNeedingDescription.length === 0) return;
 
     const result = await generateProductTranslations({
-      name: sourceName,
+      name: null,
       description: sourceDescription,
-      locales: neededLocales,
-      fields: neededFields,
+      locales: localesNeedingDescription,
+      fields: AI_TRANSLATION_FIELDS,
     });
 
-    const statements = TRANSLATION_LOCALES.filter(
-      (locale) => localesNeedingName.includes(locale) || localesNeedingDescription.includes(locale),
-    )
-      .map((locale) => {
-        const patch: Record<string, unknown> = {};
-        const generatedName = localesNeedingName.includes(locale) ? result.name?.[locale] : undefined;
-        if (generatedName) {
-          patch.name = generatedName;
-          patch.aiGeneratedName = generatedName;
-          patch.aiTranslatedFromName = sourceName;
-        }
-        const generatedDescription = localesNeedingDescription.includes(locale)
-          ? result.description?.[locale]
-          : undefined;
-        if (generatedDescription) {
-          patch.description = generatedDescription;
-          patch.aiGeneratedDescription = generatedDescription;
-          patch.aiTranslatedFromDescription = sourceDescription;
-        }
-        return Object.keys(patch).length > 0 ? { locale, patch } : null;
+    const statements = localesNeedingDescription
+      .flatMap((locale) => {
+        const generatedDescription = result.description?.[locale];
+        if (!generatedDescription) return [];
+        const patch = {
+          description: generatedDescription,
+          aiGeneratedDescription: generatedDescription,
+          aiTranslatedFromDescription: sourceDescription,
+        };
+        return [{ locale, patch }];
       })
-      .filter((entry): entry is { locale: ProductTranslationLocale; patch: Record<string, unknown> } => entry !== null)
       .map(({ locale, patch }) =>
         db
           .insert(productTranslation)
@@ -301,6 +291,9 @@ function validateContentShape(fields: ProducerProductFields): string | null {
   if (!roomLayoutTranslationSchema.safeParse(fields.roomLayoutNl).success) {
     return "Nieprawidłowe tłumaczenie układu pomieszczeń (niderlandzki).";
   }
+  if (!roomLayoutTranslationSchema.safeParse(fields.roomLayoutDe).success) {
+    return "Nieprawidłowe tłumaczenie układu pomieszczeń (niemiecki).";
+  }
   if (!faqSchema.safeParse(fields.faq).success) {
     return "Nieprawidłowe FAQ.";
   }
@@ -310,8 +303,20 @@ function validateContentShape(fields: ProducerProductFields): string | null {
   if (!faqTranslationSchema.safeParse(fields.faqNl).success) {
     return "Nieprawidłowe tłumaczenie FAQ (niderlandzki).";
   }
+  if (!faqTranslationSchema.safeParse(fields.faqDe).success) {
+    return "Nieprawidłowe tłumaczenie FAQ (niemiecki).";
+  }
   if (!clientRequirementsSchema.safeParse(fields.clientRequirements).success) {
     return "Nieprawidłowa lista wymagań wobec klienta.";
+  }
+  if (!clientRequirementTranslationSchema.safeParse(fields.clientRequirementsEn).success) {
+    return "Nieprawidłowe tłumaczenie wymagań wobec klienta (angielski).";
+  }
+  if (!clientRequirementTranslationSchema.safeParse(fields.clientRequirementsNl).success) {
+    return "Nieprawidłowe tłumaczenie wymagań wobec klienta (niderlandzki).";
+  }
+  if (!clientRequirementTranslationSchema.safeParse(fields.clientRequirementsDe).success) {
+    return "Nieprawidłowe tłumaczenie wymagań wobec klienta (niemiecki).";
   }
   return null;
 }

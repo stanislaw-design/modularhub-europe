@@ -33,7 +33,13 @@ export default async function InternalCasePage({ params }: { params: Promise<{ l
           {view.advisorId !== session.user.id && <AssignToMeButton inquiryId={view.id} />}
         </Stack>
         <Text tone="muted">Klient: {view.clientName}</Text>
-        <CaseChat inquiryId={view.id} channelId={view.channelId} viewer="advisor" initialMessages={view.messages} />
+        <CaseChat
+          inquiryId={view.id}
+          channelId={view.channelId}
+          viewer="advisor"
+          initialMessages={view.messages}
+          initialCaseFields={view.caseFields}
+        />
       </Stack>
     </Container>
   );

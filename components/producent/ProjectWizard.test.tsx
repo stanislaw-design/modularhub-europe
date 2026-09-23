@@ -58,6 +58,17 @@ vi.mock("@/lib/producer-standards-extraction-actions", () => ({
   extractStandardsFromMaterial: vi.fn(),
 }));
 
+// generateProjectTranslations ("use server" -> @/auth chain, spec 0050 AC-28
+// to AC-30) has the same jsdom/vitest gap as the modules mocked above; no
+// test here reaches the "tlumaczenia" step.
+vi.mock("@/lib/producer-project-translation-actions", () => ({
+  generateProjectTranslations: vi.fn(),
+}));
+
+vi.mock("@/lib/ai/product-translation", () => ({
+  ALL_PROJECT_TRANSLATION_LOCALES: ["en", "nl", "de"],
+}));
+
 vi.mock("next/navigation", async (importOriginal) => {
   const actual = await importOriginal<typeof import("next/navigation")>();
   return { ...actual, useRouter: () => ({ push: vi.fn() }) };

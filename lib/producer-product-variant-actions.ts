@@ -3,7 +3,7 @@
 import { and, eq, isNull, sql } from "drizzle-orm";
 import type { CompletionStandard, CostLineItemStatus, TimelineStageKey } from "@/lib/data/types";
 import { db } from "@/lib/db/client";
-import { costLineItem, product, productTimelineStage, productVariant, productVariantTranslation } from "@/lib/db/schema";
+import { costLineItem, product, productTimelineStage, productVariant } from "@/lib/db/schema";
 import { captureError } from "@/lib/observability/errors";
 import { requireProducerActor } from "@/lib/producer-actor";
 
@@ -130,10 +130,7 @@ export interface ClonedTimelineStage {
 export interface ClonedVariant {
   variantId: string;
   priceMinCents: number | null;
-  priceMaxCents: number | null;
   priceOnRequest: boolean;
-  scopeSummary: string | null;
-  excludedScope: string | null;
   costLineItems: ClonedCostLineItem[];
   timelineStages: ClonedTimelineStage[];
 }
@@ -193,10 +190,7 @@ export async function cloneVariant(
       productId,
       completionStandard: newCompletionStandard,
       priceMinCents: source.priceMinCents,
-      priceMaxCents: source.priceMaxCents,
       priceOnRequest: source.priceOnRequest,
-      scopeSummary: source.scopeSummary,
-      excludedScope: source.excludedScope,
       isDefault: false,
       sortOrder: maxSortOrder + 1,
     }),
@@ -231,10 +225,7 @@ export async function cloneVariant(
       variant: {
         variantId: newVariantId,
         priceMinCents: source.priceMinCents,
-        priceMaxCents: source.priceMaxCents,
         priceOnRequest: source.priceOnRequest,
-        scopeSummary: source.scopeSummary,
-        excludedScope: source.excludedScope,
         costLineItems: newCostItems.map((item) => ({
           id: item.id,
           label: item.label,
@@ -257,17 +248,12 @@ export async function cloneVariant(
 }
 
 export interface UpdateVariantFields {
+  // Spec 0051 AC-1: jedna cena "od", priceMaxEur usunięty.
   priceMinEur: number | null;
-  priceMaxEur: number | null;
   // Wycena indywidualna (spec 0050 AC-13, AC-37): jawna flaga, nigdy
-  // wyliczana z braku ceny. true wymusza obie ceny na null (CHECK
-  // product_variant_price_on_request w schema.ts), ten sam wzorzec co
-  // priceOnRequest === false gdyby ceny nie były podane.
+  // wyliczana z braku ceny. true wymusza cenę na null (CHECK
+  // product_variant_price_on_request w schema.ts).
   priceOnRequest: boolean;
-  scopeSummary: string;
-  // Co nie wchodzi w cenę tego standardu (spec 0050 AC-13, AC-24), osobny
-  // krótki opis, nie łączony z product.clientRequirements.
-  excludedScope: string;
   variantLabel: string;
 }
 
@@ -279,20 +265,13 @@ export async function updateVariant(variantId: string, fields: UpdateVariantFiel
   if (ownership.status === "denied") return { ok: false, error: DENIED_ERROR };
 
   const priceMinCents = fields.priceOnRequest ? null : toPriceCents(fields.priceMinEur);
-  const priceMaxCents = fields.priceOnRequest ? null : toPriceCents(fields.priceMaxEur);
-  if (priceMinCents !== null && priceMaxCents !== null && priceMaxCents < priceMinCents) {
-    return { ok: false, error: "Cena maksymalna nie może być niższa niż minimalna." };
-  }
 
   try {
     await db
       .update(productVariant)
       .set({
         priceMinCents,
-        priceMaxCents,
         priceOnRequest: fields.priceOnRequest,
-        scopeSummary: fields.scopeSummary || null,
-        excludedScope: fields.excludedScope || null,
         variantLabel: fields.variantLabel || null,
         updatedAt: new Date(),
       })
@@ -300,35 +279,6 @@ export async function updateVariant(variantId: string, fields: UpdateVariantFiel
     return { ok: true };
   } catch (error) {
     captureError(error, { path: "updateVariant", userId: actor.userId });
-    return { ok: false, error: GENERIC_ERROR };
-  }
-}
-
-// AC-10: EN/NL tłumaczenie opisu zakresu wariantu, ten sam wzorzec upsertu co
-// productTranslation w lib/producer-product-actions.ts, keyed po variantId
-// zamiast productId (product_variant_translation, spec 0045 Feature design).
-export async function updateVariantTranslation(
-  variantId: string,
-  locale: "en" | "nl",
-  scopeSummary: string,
-): Promise<ActionResult> {
-  const actor = await requireProducerActor();
-  if (!actor) return { ok: false, error: DENIED_ERROR };
-  const ownership = await resolveVariantOwnership(actor, variantId);
-  if (ownership.status === "not_found") return { ok: false, error: "Nie znaleziono wariantu." };
-  if (ownership.status === "denied") return { ok: false, error: DENIED_ERROR };
-
-  try {
-    await db
-      .insert(productVariantTranslation)
-      .values({ productVariantId: variantId, locale, scopeSummary: scopeSummary || null })
-      .onConflictDoUpdate({
-        target: [productVariantTranslation.productVariantId, productVariantTranslation.locale],
-        set: { scopeSummary: scopeSummary || null, updatedAt: new Date() },
-      });
-    return { ok: true };
-  } catch (error) {
-    captureError(error, { path: "updateVariantTranslation", userId: actor.userId });
     return { ok: false, error: GENERIC_ERROR };
   }
 }

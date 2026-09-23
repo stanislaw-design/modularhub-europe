@@ -1,6 +1,11 @@
 import type { useTranslations } from "next-intl";
 import type { ProducerProductFields } from "./producer-product-actions";
-import { CLIENT_REQUIREMENT_CATALOG_KEYS, type ClientRequirementCatalogKey } from "./product-client-requirements";
+import {
+  CLIENT_REQUIREMENT_CATALOG_KEYS,
+  type ClientRequirementCatalogKey,
+  type ClientRequirementRow,
+  type ClientRequirementTranslationRow,
+} from "./product-client-requirements";
 import type { FaqRow, FaqTranslationRow } from "./product-faq";
 import { FLOOR_LEVELS, type FloorLevel, type RoomLayoutRow, type RoomLayoutTranslationRow } from "./product-room-layout";
 import { CONSTRUCTION_TECHNOLOGIES, ENERGY_CLASSES, HEAT_SOURCES, VENTILATION_TYPES } from "./product-technical-specs";
@@ -20,7 +25,7 @@ import type {
 // below accept either without depending on one entry point.
 type Translate = ReturnType<typeof useTranslations>;
 
-export type WizardStepId = "podstawowe" | "techniczne" | "pliki" | "warianty" | "faq" | "podsumowanie";
+export type WizardStepId = "podstawowe" | "techniczne" | "pliki" | "warianty" | "faq" | "tlumaczenia" | "podsumowanie";
 
 export interface WizardStep {
   id: WizardStepId;
@@ -50,6 +55,7 @@ export const WIZARD_STEPS: WizardStep[] = [
   { id: "pliki", label: "Pliki" },
   { id: "warianty", label: "Warianty i cennik" },
   { id: "faq", label: "FAQ" },
+  { id: "tlumaczenia", label: "Tłumaczenia" },
   { id: "podsumowanie", label: "Podsumowanie" },
 ];
 
@@ -446,9 +452,6 @@ export function createEmptyDraft(): ProjectDraft {
     bedrooms: null,
     countryOfProduction: null,
     description: "",
-    nameEn: "",
-    nameNl: "",
-    nameDe: "",
     descriptionEn: "",
     descriptionNl: "",
     descriptionDe: "",
@@ -467,10 +470,15 @@ export function createEmptyDraft(): ProjectDraft {
     roomLayout: [],
     roomLayoutEn: [],
     roomLayoutNl: [],
+    roomLayoutDe: [],
     faq: [],
     faqEn: [],
     faqNl: [],
+    faqDe: [],
     clientRequirements: [],
+    clientRequirementsEn: [],
+    clientRequirementsNl: [],
+    clientRequirementsDe: [],
     floorPlanFiles: [],
     photoFiles: [],
     structuralWarrantyYears: null,
@@ -572,6 +580,12 @@ export function isStepComplete(stepId: WizardStepId, draft: ProjectDraft): boole
     // wpisanych wierszy, nie ich obecności.
     case "faq":
       return true;
+    // AC-30, AC-34: producent może zaufać automatycznym tłumaczeniom i
+    // przejść dalej bez zmian, albo opublikować bez tłumaczeń wcale, jeśli
+    // generowanie zawiedzie — krok nigdy nie blokuje, ten sam wzorzec co "faq"
+    // wyżej.
+    case "tlumaczenia":
+      return true;
     case "podsumowanie":
       return WIZARD_STEPS.slice(0, -1).every((step) => isStepComplete(step.id, draft));
   }
@@ -597,6 +611,20 @@ export function alignFaqTranslation(rows: FaqRow[], translation: FaqTranslationR
   return rows.map((row) => translation.find((entry) => entry.id === row.id) ?? { id: row.id, question: "", answer: "" });
 }
 
+// Ten sam wzorzec dopasowania po `id` co wyżej, ale filtruje do custom: true
+// (spec 0050 AC-28): pozycje katalogowe (custom: false) nie mają odpowiednika
+// w product_translation.client_requirements (tłumaczą się z katalogu opcji
+// przy odczycie), więc dopasowywanie po nich tylko rozjeżdżałoby długość
+// tablicy od reszty listy.
+export function alignClientRequirementsTranslation(
+  rows: ClientRequirementRow[],
+  translation: ClientRequirementTranslationRow[],
+): ClientRequirementTranslationRow[] {
+  return rows
+    .filter((row) => row.custom)
+    .map((row) => translation.find((entry) => entry.id === row.id) ?? { id: row.id, label: "" });
+}
+
 // Odwrotność alignRoomLayoutTranslation/alignFaqTranslation wyżej: kreator
 // trzyma tłumaczenia w gęstym, pozycyjnie wyrównanym kształcie (UI-friendly),
 // ale roomLayoutTranslationRowSchema/faqTranslationRowSchema wymagają
@@ -610,25 +638,39 @@ export function sanitizeDraftForSave(draft: ProjectDraft): ProjectDraft {
     ...draft,
     roomLayoutEn: draft.roomLayoutEn.filter((row) => isNonEmpty(row.name)),
     roomLayoutNl: draft.roomLayoutNl.filter((row) => isNonEmpty(row.name)),
+    roomLayoutDe: draft.roomLayoutDe.filter((row) => isNonEmpty(row.name)),
     faqEn: draft.faqEn.filter((row) => isNonEmpty(row.question) && isNonEmpty(row.answer)),
     faqNl: draft.faqNl.filter((row) => isNonEmpty(row.question) && isNonEmpty(row.answer)),
+    faqDe: draft.faqDe.filter((row) => isNonEmpty(row.question) && isNonEmpty(row.answer)),
+    clientRequirementsEn: draft.clientRequirementsEn.filter((row) => isNonEmpty(row.label)),
+    clientRequirementsNl: draft.clientRequirementsNl.filter((row) => isNonEmpty(row.label)),
+    clientRequirementsDe: draft.clientRequirementsDe.filter((row) => isNonEmpty(row.label)),
   };
 }
 
-// AC-15: pola tłumaczenia (name/description × en/nl/de) trafiają do payloadu
-// zapisu WYŁĄCZNIE z kroku, który pokazuje ich zakładki
-// (ProjectWizardBasicInfoStep, stepId "podstawowe"); każdy inny krok kreatora
-// (w tym finalny "Zapisz" z Podsumowania) wysyła te klucze jako nieobecne
-// (nie: puste), zamiast tego, co ostatnio było w lokalnym stanie
+// AC-15, spec 0050 AC-33: pole tłumaczenia opisu (description × en/nl/de)
+// trafia do payloadu zapisu WYŁĄCZNIE z kroku, który pokazuje jego zakładki
+// (ProjectWizardTranslationsStep, stepId "tlumaczenia", jedyne miejsce z tymi
+// polami w obu kreatorach od spec 0050 AC-31/AC-32); każdy inny krok kreatora
+// (w tym finalny "Zapisz" z Podsumowania) wysyła ten klucz jako nieobecny
+// (nie: pusty), zamiast tego, co ostatnio było w lokalnym stanie
 // react-hook-form. react-hook-form trzyma cały formularz w pamięci
 // przeglądarki i nigdy nie odświeża go z bazy między krokami — bez tej
 // funkcji, przejście do kolejnego kroku (albo bezpośredni skok do
-// Podsumowania) resubmitowałoby wciąż nieodświeżony lokalnie nameEn/itd. i
-// mogłoby skasować tłumaczenie, które w międzyczasie dopisało AI
+// Podsumowania) resubmitowałoby wciąż nieodświeżony lokalnie descriptionEn/
+// itd. i mogłoby skasować tłumaczenie, które w międzyczasie dopisało AI
 // (generateMissingProductTranslations, lib/producer-product-actions.ts) —
 // dokładnie wyścig znaleziony przy cross checku tej funkcji (patrz spec 0028
-// rationale.md). Woła sanitizeDraftForSave wyżej, więc jest jedynym miejscem
-// kreator musi wywołać przed createProducerProduct/updateProducerProduct.
+// rationale.md), ten sam mechanizm teraz chroniący "tlumaczenia" zamiast
+// dawnego "podstawowe". `name` nie ma już odpowiednika (spec 0050 AC-2, jedna
+// wspólna wartość, żadnego backfillu). roomLayoutEn/Nl/De, faqEn/Nl/De i
+// clientRequirementsEn/Nl/De NIE potrzebują tej ochrony: żaden backfill ich
+// nie dotyka (tylko ten krok kiedykolwiek je zapisuje), więc resubmisja
+// nieodświeżonej-ale-wciąż-poprawnej wartości z innego kroku jest nieszkodliwa
+// — ten sam status quo co dzisiejsze roomLayoutEn/Nl/faqEn/Nl (nigdy nie
+// omijane), tylko teraz wypełniane przez ten krok zamiast przez zakładki w
+// "podstawowe"/"faq". Woła sanitizeDraftForSave wyżej, więc jest jedynym
+// miejscem kreator musi wywołać przed createProducerProduct/updateProducerProduct.
 function omitKeys<T extends object, K extends keyof T>(obj: T, keys: readonly K[]): Omit<T, K> {
   const result = { ...obj };
   for (const key of keys) delete result[key];
@@ -638,10 +680,7 @@ function omitKeys<T extends object, K extends keyof T>(obj: T, keys: readonly K[
 export function buildProducerSavePayload(draft: ProjectDraft, stepId: WizardStepId): ProducerProductFields {
   const sanitized = sanitizeDraftForSave(draft);
   const fields = omitKeys(sanitized, ["floorPlanFiles", "photoFiles", "variantsSummary"] as const);
-  if (stepId === "podstawowe") return fields;
-  return omitKeys(
-    fields,
-    ["nameEn", "nameNl", "nameDe", "descriptionEn", "descriptionNl", "descriptionDe"] as const,
-  );
+  if (stepId === "tlumaczenia") return fields;
+  return omitKeys(fields, ["descriptionEn", "descriptionNl", "descriptionDe"] as const);
 }
 

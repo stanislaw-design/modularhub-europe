@@ -94,6 +94,42 @@ Wiadomości, kanały i widżet czatu prowadzi dostawca, model sprawy, brief, ofe
 8. **`order` nie powstaje.** Wybór finalisty nie jest umową. Utworzenie zamówienia przechodzi do specyfikacji o kontrakcie, dlatego `respondToOffer` ze spec 0033 działa tylko dla starych zapytań.
 9. **Retencja 24 miesiące** jako propozycja do potwierdzenia z prawnikiem. Automatyczna anonimizacja jest odłożona, bo pierwsze sprawy dojrzeją za około dwa lata, a usunięcie na prośbę działa od razu.
 
+## Dodatek: karty startowe od systemu (2026 09 23)
+
+### Context
+
+> ⚠️ Premise note: Ten dodatek dokłada sześć nowych pytań, zanim jakakolwiek prawdziwa sprawa tego przepływu przeszła przez cały wątek. To zakład, nie zmierzona potrzeba: nie wiadomo jeszcze, które pola doradca faktycznie musi dociągać ręcznie za każdym razem. Dlatego zakres jest celowo mały (cztery pytania rdzenia plus dwa wyraźnie opcjonalne, trzecia warstwa świadomie odrzucona w rozmowie projektowej), a Follow up w index.md prosi o zmierzenie realnej korzyści, zanim ktoś doda kolejne pytania.
+
+Podczas budowy cienkiego wątku (krok 4 planu) padł pomysł: klient, wysyłając zapytanie, i tak zostawia nam trop (lead), więc ten sam moment można wykorzystać, żeby w przyjemny, obrazkowy sposób zebrać kilka odpowiedzi, które i tak trafią do briefu (AC-14: budżet, termin, zakres usług, stan działki, standard). Rozważano, czy te pytania dodać do formularza zapytania (przed wysłaniem) czy po wysłaniu, w kanale rozmowy. Formularz zapytania ma świadomie zamknięty zakres (AC-2: bez budżetu, terminu i usług), żeby zostać jednym krótkim krokiem, jedynym miejscem w całym lejku, gdzie porzucenie jest nieodwracalne. Dodanie tam pól cofnęłoby tę decyzję.
+
+### Options considered
+
+**Opcja A: Dopisać pola do formularza zapytania, przed wysłaniem.** Doradca ma wszystko od razu w jednej transakcji.
+**Cons**: podnosi tarcie dokładnie na najcenniejszym kroku konwersji, wprost cofa AC-2 i jej uzasadnienie, zaczyna przypominać stary wzorzec „kilka formularzy”, którego ta specyfikacja miała uniknąć.
+
+**Opcja B: Karty od systemu zaraz po wysłaniu, w kanale `klient_doradca`, jako `question_card` autorstwa `system` (wybrana).** Formularz zostaje dokładnie taki jak dziś. Zaraz po utworzeniu sprawy w tym samym kanale czekają karty pytań, zanim jeszcze doradca cokolwiek napisze.
+**Pros**: nie rusza AC-2 ani jej uzasadnienia, klient odpowiada, gdy intencja jest najświeższa, zero nowych tabel, bo `message` i `case_field` już to obsługują.
+**Cons**: klient może zignorować karty i wtedy korzyść znika (mitygacja: AC-41, pominięcie nie blokuje niczego, więc koszt pominięcia jest zerowy, nie ujemny).
+
+**Opcja C: Osobna tabela „onboarding” zamiast `message`/`case_field`.** Model danych dedykowany tej jednej sekwencji.
+**Cons**: duplikuje dokładnie to, co `message.type = question_card` i `case_field` już robią dla kart doradcy (AC-7), własna migracja i własna logika dostępu obok tych, które `requireCaseAccess` już rozwiązuje, dwa mechanizmy kart do utrzymania zamiast jednego. Nie jest to "migracja tam, gdzie żadna nie jest potrzebna": `case_field` sam czeka na migrację z kroku 6, więc i tak trzeba na nią poczekać, ale reuse nie dokłada drugiej.
+
+**Opcja D: Jedna wiadomość na warstwę (dwie karty zamiast sześciu), z tablicą pytań w `payload`.** Cała warstwa pierwsza to jeden wiersz `message` z uporządkowaną listą czterech pytań w `payload`, klient odpowiada na nie po kolei w obrębie jednej karty.
+**Pros**: kolejność jest strukturą danych, nie zależy od `created_at`; nie ma pytania, czy sześć osobnych wierszy przypadkiem wyświetli się naraz.
+**Cons**: `answerCard` dziś mapuje jeden `messageId` na jedno pole `case_field` (AC-7); jedna wiadomość na cztery pola wymagałaby poszerzenia tej akcji o klucz pola w wywołaniu, co zmienia kontrakt karty także dla kart doradcy, nie tylko startowych. Odrzucona na rzecz mniejszej zmiany: sześć osobnych wierszy `message`, każdy nadal jedno pole, jak dziś, z kolejnością wymuszoną jawnym `created_at` zamiast domyślnego `now()` (patrz Data model w index.md).
+
+### Rationale
+
+**Opcja B, bo to rozszerzenie tego samego mechanizmu kart, nie nowa decyzja danych.** Karty doradcy (AC-7) już piszą do `case_field` ze stanem i źródłem; system jako dodatkowy autor tego samego typu wiadomości jest naturalnym rozszerzeniem, nie nowym pomysłem (basis: AC-7, spójność z istniejącym mechanizmem kart).
+
+**„Nie wiem” zapisuje `missing`, nie `confirmed`.** AC-7 każe zapisywać odpowiedź na kartę jako `confirmed`, ale „nie wiem, niech doradca zaproponuje” nie jest informacją od klienta, jest jej brakiem. Zapisanie tego jako `confirmed` zafałszowałoby stan sprawy: doradca zobaczyłby pole jako załatwione, choć nie ma żadnej treści (basis: cztery stany `case_field` z AC-12, `missing` istnieje dokładnie po to).
+
+**Warstwa druga w tym samym `db.batch` co warstwa pierwsza, nie osobną akcją później.** Rozważono wysłanie warstwy drugiej dopiero po odpowiedzi na warstwę pierwszą, osobną akcją serwera. Odrzucono: to nowy punkt zapisu bez realnej korzyści, skoro „opcjonalne i pomijalne” jest w tym projekcie czysto sprawą interfejsu (kolejność i etykieta „dodatkowo”), nie backendu. Sześć wierszy `message` powstaje od razu, tak jak dziś jeden wiersz systemowej wiadomości powitalnej (AC-3), bez nowego punktu zapisu.
+
+**Jawny, rosnący `created_at` zamiast domyślnego `now()`.** Cross check innym modelem wykazał, że sześć wierszy wstawionych w jednym `db.batch` dostałoby domyślnie ten sam znacznik czasu, a `id` jest losowe, więc kolejność z AC-38 i AC-42 nie byłaby zagwarantowana przez `listMessages`, który sortuje po `(created_at, id)`. Poprawka jest tania: `createAdvisoryCase` nadaje kolejne, rosnące znaczniki czasu (co najmniej mikrosekunda odstępu) w zamierzonej kolejności, bez zmiany schematu ani nowej kolumny.
+
+**Ikony i zdania konsekwencji w kodzie i katalogu tłumaczeń, nigdy w bazie.** To treść stała, wspólna dla wszystkich spraw, nie dane per sprawa. Trzymanie jej w bazie duplikowałoby to, co i tak trzeba przetłumaczyć w katalogu i utrudniłoby zmianę treści bez migracji (basis: istniejący wzorzec `messages/*.json` dla treści produktu).
+
 ## References
 
 **Project sources** (weryfikowalne w repo):
@@ -104,6 +140,7 @@ Wiadomości, kanały i widżet czatu prowadzi dostawca, model sprawy, brief, ofe
 - `docs/research/2026-09-19-managed-advisory-flow.md` (szkic procesu, punkt wyjścia)
 - `lib/inquiry-actions.ts`, `lib/offer-actions.ts` (obecny stan przepływu)
 - pamięć projektu: odłożony plan Vercel Pro
+- `lib/cases/create.ts`, `lib/cases/messaging.ts`, `lib/case-schemas.ts` (już zbudowany cienki wątek, do którego dopina się dodatek o kartach startowych)
 
 **Practices & standards**:
 - strangler pattern dla migracji na żywym systemie

@@ -5,13 +5,26 @@ import { type FormEvent, useCallback, useEffect, useRef, useState, useTransition
 import { Button, Text, Textarea } from "@/components/ui";
 import { markChannelRead, sendMessage } from "@/lib/case-actions";
 import type { CaseMessageDto } from "@/lib/case-schemas";
+import type { CaseFieldsByKey } from "@/lib/cases/cards";
 import { nextPollDelay } from "@/lib/cases/poll";
+import { NIE_WIEM } from "@/lib/cases/start-cards";
+import { CaseCardHistoryEntry, CaseCardStack, isCardFieldAnswered } from "./CaseCardStack";
 
 interface CaseChatProps {
   inquiryId: string;
   channelId: string;
   viewer: "client" | "advisor";
   initialMessages: CaseMessageDto[];
+  // Stan kart startowych (AC-38 do AC-44). Tylko klient je odpowiada, ale
+  // doradca też widzi odpowiedziane karty w historii, stąd prop nie jest
+  // ograniczony do viewer === "client".
+  initialCaseFields?: CaseFieldsByKey;
+}
+
+function questionCardFieldKey(message: CaseMessageDto): string | null {
+  if (message.type !== "question_card") return null;
+  const payload = message.payload as { fieldKey?: unknown } | null;
+  return payload && typeof payload === "object" && typeof payload.fieldKey === "string" ? payload.fieldKey : null;
 }
 
 function mergeMessages(current: CaseMessageDto[], incoming: CaseMessageDto[]): CaseMessageDto[] {
@@ -24,10 +37,12 @@ function mergeMessages(current: CaseMessageDto[], incoming: CaseMessageDto[]): C
 // Czat sprawy doradczej (spec 0048 AC-6): odświeżanie co 5 s w aktywnej karcie,
 // co 30 s w karcie w tle, przy błędzie odstęp rośnie. Wiadomości nie da się
 // edytować ani usunąć. Odstępy liczy czysta funkcja nextPollDelay.
-export function CaseChat({ inquiryId, channelId, viewer, initialMessages }: CaseChatProps) {
+export function CaseChat({ inquiryId, channelId, viewer, initialMessages, initialCaseFields }: CaseChatProps) {
   const t = useTranslations("CaseChat");
   const locale = useLocale();
   const [messages, setMessages] = useState(initialMessages);
+  const [caseFields, setCaseFields] = useState<CaseFieldsByKey>(initialCaseFields ?? {});
+  const [cardsDismissed, setCardsDismissed] = useState(false);
   const [draft, setDraft] = useState("");
   const [sendError, setSendError] = useState(false);
   const [pollFailing, setPollFailing] = useState(false);
@@ -109,6 +124,14 @@ export function CaseChat({ inquiryId, channelId, viewer, initialMessages }: Case
     return message.authorKind === "advisor" ? t("authorAdvisor") : t("authorClient");
   }
 
+  function handleCardAnswered(key: string, value: string) {
+    const isUnsure = value === NIE_WIEM;
+    setCaseFields((current) => ({
+      ...current,
+      [key]: { value: isUnsure ? null : value, state: isUnsure ? "missing" : "confirmed" },
+    }));
+  }
+
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
     const body = draft.trim();
@@ -146,6 +169,14 @@ export function CaseChat({ inquiryId, channelId, viewer, initialMessages }: Case
         )}
         {messages.map((message) => {
           const mine = message.authorKind === viewer;
+          const cardFieldKey = questionCardFieldKey(message);
+          // U klienta karta nieodpowiedziana i sekwencja nie pominięta:
+          // pokazuje ją CaseCardStack poniżej, nie zwykła historia (AC-43).
+          // Doradca widzi wszystkie karty w historii od razu, bez sekwencji.
+          if (viewer === "client" && cardFieldKey && !cardsDismissed && !isCardFieldAnswered(caseFields[cardFieldKey])) {
+            return null;
+          }
+
           return (
             <div
               key={message.id}
@@ -157,16 +188,32 @@ export function CaseChat({ inquiryId, channelId, viewer, initialMessages }: Case
                     : "self-start bg-brand-v5-line/20"
               }`}
             >
-              <Text as="p" surface="v5" className="text-data font-medium">
-                {authorLabel(message)}
-              </Text>
-              <Text as="p" surface="v5" className="whitespace-pre-wrap break-words">
-                {message.redacted || message.body === null ? t("redacted") : message.body}
-              </Text>
+              {cardFieldKey ? (
+                <CaseCardHistoryEntry fieldKey={cardFieldKey} caseFields={caseFields} />
+              ) : (
+                <>
+                  <Text as="p" surface="v5" className="text-data font-medium">
+                    {authorLabel(message)}
+                  </Text>
+                  <Text as="p" surface="v5" className="whitespace-pre-wrap break-words">
+                    {message.redacted || message.body === null ? t("redacted") : message.body}
+                  </Text>
+                </>
+              )}
             </div>
           );
         })}
       </div>
+      {viewer === "client" && (
+        <CaseCardStack
+          inquiryId={inquiryId}
+          cardMessages={messages.filter((message) => message.type === "question_card")}
+          caseFields={caseFields}
+          dismissed={cardsDismissed}
+          onDismiss={() => setCardsDismissed(true)}
+          onAnswered={handleCardAnswered}
+        />
+      )}
       {pollFailing && (
         <p className="font-sans text-body text-status-blocked" role="status">
           {t("pollError")}
