@@ -32,8 +32,8 @@ vi.mock("@/lib/producer-product-actions", () => ({
   updateProducerProduct: vi.fn(),
 }));
 
-// Same server-action-chain gap as above (spec 0050 AC-4): ProjectWizardBasicInfoStep
-// now imports recognizeRoomLayout ("use server" -> @/auth) at module scope.
+// Same server-action-chain gap as above (spec 0050 AC-4): ProjectWizardRoomLayoutStep
+// imports recognizeRoomLayout ("use server" -> @/auth) at module scope.
 vi.mock("@/lib/producer-room-layout-actions", () => ({
   recognizeRoomLayout: vi.fn(),
 }));
@@ -44,7 +44,6 @@ vi.mock("@/lib/producer-product-variant-actions", () => ({
   createVariant: vi.fn(),
   cloneVariant: vi.fn(),
   updateVariant: vi.fn(),
-  updateVariantTranslation: vi.fn(),
   setDefaultVariant: vi.fn(),
   deleteVariant: vi.fn(),
   upsertCostLineItem: vi.fn(),
@@ -86,9 +85,9 @@ async function fillBasicInfoStep(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole("option", { name: "Całoroczny" }));
   await user.type(screen.getByLabelText(/nazwa projektu/i), "Modulor 28");
   await user.type(screen.getByLabelText(/metraż/i), "120");
-  await user.type(screen.getByLabelText(/liczba sypialni/i), "3");
   await user.click(screen.getByRole("button", { name: "Wybierz…" }));
   await user.click(screen.getByRole("option", { name: "Polska" }));
+  await user.click(screen.getByRole("checkbox", { name: "Polska" }));
   await user.type(screen.getByLabelText("Opis *"), "Opis projektu");
 }
 

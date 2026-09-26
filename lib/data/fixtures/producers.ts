@@ -30,7 +30,7 @@ export const producers: Producer[] = [
     sizeRangeM2Min: 15.9,
     sizeRangeM2Max: 55.2,
     deliveryCountries: ["PL", "DE"],
-    featuredPhotoUrl: "/images/houses/steel-house/pomerania/01_wizualizacja_okladka.jpg",
+    featuredPhotoUrl: "/images/houses/steel-house/pomerania/wizualizacja-okladka.png",
     completedProjectsCount: 143,
     verified: true,
     showroomVisitAvailable: null,

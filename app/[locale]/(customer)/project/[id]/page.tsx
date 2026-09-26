@@ -19,8 +19,9 @@ import { ProjectTechnicalSpecs } from "@/components/klient/ProjectTechnicalSpecs
 import { ProjectTimeline } from "@/components/klient/ProjectTimeline";
 import { ProjectVariantPicker } from "@/components/klient/ProjectVariantPicker";
 import { getCountries } from "@/lib/data/countries";
+import { getDefaultProjectVariant } from "@/lib/data/project-variants";
 import { getProducerById } from "@/lib/data/producers";
-import { getDisplayProjectVariants, getEligibilityByCountry, getProducerVolumeProfile, getProjectById } from "@/lib/data/projects";
+import { getEligibilityByCountry, getProducerVolumeProfile, getProjectById } from "@/lib/data/projects";
 import type { CompletionStandard, EligibilityByCountry } from "@/lib/data/types";
 import { getClientIdForUser, getFavoritedProductIds } from "@/lib/db/queries";
 import { routing, type Locale } from "@/lib/i18n/routing";
@@ -153,20 +154,17 @@ export default async function ProjektPage({
     })),
   ];
 
-  // Wszystkie trzy standardy wykończenia są zawsze wybieralne (enum
-  // zamknięty), niezależnie od tego, ile ma ich dziś wypełniony
-  // `product_variant` — standard bez wiersza w bazie to placeholder
-  // (getDisplayProjectVariants), żeby klient widział cały układ od razu.
-  const displayVariants = getDisplayProjectVariants(project);
-  // Wariant wybrany przez parametr adresu URL (spec 0042 AC-1): is_default,
-  // a w jego braku pierwszy wg sort_order wśród realnych wariantów.
+  // Tylko prawdziwe wiersze product_variant, nigdy syntetyczny placeholder za
+  // brakujący standard (spec 0054 AC-1). Wariant wybrany przez parametr
+  // adresu URL (spec 0042 AC-1): is_default, a w jego braku pierwszy wg
+  // sort_order. Wartość ?wariant= bez dopasowania (nieaktualny link albo
+  // standard, który producent od tego czasu usunął) po prostu wraca do tego
+  // samego domyślnego wariantu, zamiast rozwiązywać się do placeholdera albo
+  // undefined (spec 0054 AC-9).
   const wariantParam = firstParam(rawSearchParams.wariant);
-  const defaultRealVariant = project.variants.find((variant) => variant.isDefault) ?? project.variants[0];
   const selectedVariant =
-    displayVariants.find((variant) => variant.completionStandard === wariantParam) ??
-    (defaultRealVariant
-      ? displayVariants.find((variant) => variant.completionStandard === defaultRealVariant.completionStandard)
-      : displayVariants[0]);
+    project.variants.find((variant) => variant.completionStandard === wariantParam) ??
+    getDefaultProjectVariant(project);
   const zakladkaParam = firstParam(rawSearchParams.zakladka);
   const activeGalleryTab: GalleryTabKey = zakladkaParam === "rzut" ? zakladkaParam : "wizualizacje";
 
@@ -183,6 +181,16 @@ export default async function ProjektPage({
     "pod-klucz": t("completionStandard.pod-klucz"),
   };
   const montazStage = selectedVariant?.timelineStages.find((stage) => stage.stageKey === "montaz");
+
+  // Sekcja bez żadnej prawdziwej treści znika całkowicie, nagłówek włącznie,
+  // a jej pozycja w ProjectSectionNav dostaje `disabled` zamiast zniknąć z
+  // paska (spec 0054 AC-8, ten sam wzorzec co dzisiejsza pozycja "podobne").
+  const hasCenaSection = project.variants.length > 0;
+  const hasDzialkaSection =
+    Boolean(project.externalDimensions) || Boolean(project.foundationOptions) || (project.clientRequirements?.length ?? 0) > 0;
+  const hasHarmonogramSection = (selectedVariant?.timelineStages.length ?? 0) > 0;
+  const hasDokumentySection =
+    Boolean(project.documents.find((doc) => doc.purpose === "product_specification")) || (project.faq?.length ?? 0) > 0;
 
   // Odznaka przeznaczenia (spec 0042 AC-13): family + category, już
   // istniejące pola, tylko luka w renderze — bez zmiany schematu. Category
@@ -209,10 +217,9 @@ export default async function ProjektPage({
       ? {}
       : {
           offers: {
-            "@type": "AggregateOffer",
+            "@type": "Offer",
             priceCurrency: "EUR",
-            lowPrice: project.priceMin,
-            highPrice: project.priceMax,
+            price: project.priceMin,
             availability: "https://schema.org/InStock",
           },
         }),
@@ -271,7 +278,7 @@ export default async function ProjektPage({
               </div>
 
               <ProjectVariantPicker
-                variants={displayVariants}
+                variants={project.variants}
                 selectedVariantId={selectedVariant?.id ?? ""}
                 hrefFor={hrefForVariant}
                 standardLabel={standardLabel}
@@ -294,18 +301,8 @@ export default async function ProjektPage({
                     <Text tone="muted" surface="v5" className="text-data">
                       {t("priceOnRequestHint")}
                     </Text>
-                    {selectedVariant?.scopeSummary && (
-                      <Text tone="muted" surface="v5" className="text-data">
-                        {selectedVariant.scopeSummary}
-                      </Text>
-                    )}
-                    {selectedVariant?.excludedScope && (
-                      <Text tone="muted" surface="v5" className="text-data">
-                        {t("excludedScopeLabel", { text: selectedVariant.excludedScope })}
-                      </Text>
-                    )}
                   </>
-                ) : selectedVariant?.priceMin !== undefined && selectedVariant?.priceMax !== undefined ? (
+                ) : selectedVariant?.priceMin !== undefined ? (
                   <>
                     <Text variant="label" tone="muted" surface="v5">
                       {t("priceForStandard", { standard: standardLabel[selectedVariant.completionStandard] })}
@@ -319,16 +316,6 @@ export default async function ProjektPage({
                     <Text tone="muted" surface="v5" className="text-data">
                       {t("vatDisclaimer")}
                     </Text>
-                    {selectedVariant.scopeSummary && (
-                      <Text tone="muted" surface="v5" className="text-data">
-                        {selectedVariant.scopeSummary}
-                      </Text>
-                    )}
-                    {selectedVariant.excludedScope && (
-                      <Text tone="muted" surface="v5" className="text-data">
-                        {t("excludedScopeLabel", { text: selectedVariant.excludedScope })}
-                      </Text>
-                    )}
                     {(() => {
                       const pendingCount = selectedVariant.costLineItems.filter(
                         (item) => item.status === "do-wyceny",
@@ -350,11 +337,14 @@ export default async function ProjektPage({
                       );
                     })()}
                   </>
-                ) : project.variants.length === 0 ? (
+                ) : (
                   // Produkt bez żadnego jeszcze wypełnionego product_variant
                   // (Follow-up spec 0041): pokazuje starą, płaską cenę
                   // project.priceMin bez opisu zakresu — nigdy fałszywe
-                  // "wycena indywidualna" (spec 0042 AC-11).
+                  // "wycena indywidualna" (spec 0042 AC-11). Gałąź dla "wybrany
+                  // standard nie ma wiersza, choć inne standardy mają" jest
+                  // nieosiągalna: selectedVariant to zawsze prawdziwy wiersz z
+                  // project.variants albo w ogóle go nie ma (spec 0054 AC-4).
                   <>
                     <Text variant="label" tone="muted" surface="v5">
                       {t("estimatedPackage")}
@@ -362,21 +352,6 @@ export default async function ProjektPage({
                     <DataText as="p" surface="v5" className="text-h2 font-semibold">
                       {t("from")} {priceFormatter.format(project.priceMin)} €
                     </DataText>
-                  </>
-                ) : (
-                  // Ten konkretny standard nie ma jeszcze własnego wiersza w
-                  // product_variant, choć inne standardy tego produktu mają —
-                  // jawny placeholder zamiast cichego przełączenia na płaską cenę.
-                  <>
-                    <Text variant="label" tone="muted" surface="v5">
-                      {t("priceForStandard", {
-                        standard: standardLabel[selectedVariant!.completionStandard],
-                      })}
-                    </Text>
-                    <StatusPill status="conditional">{t("toBeCompleted")}</StatusPill>
-                    <Text tone="muted" surface="v5" className="text-data">
-                      {t("scopeToBeCompleted")}
-                    </Text>
                   </>
                 )}
                 <Button as="a" href={zapytanieHref} size="lg" surface="v5" className="mt-brand-1 w-full sm:w-fit">
@@ -387,30 +362,11 @@ export default async function ProjektPage({
                 </Button>
                 <div className="flex flex-col gap-1">
                   <Text tone="muted" surface="v5" className="text-data">
-                    {t.rich("inquiryGoesTo", {
-                      producer: project.producerName,
-                      b: (chunks) => (
-                        <Text as="span" surface="v5" className="font-semibold">
-                          {chunks}
-                        </Text>
-                      ),
-                    })}
+                    {t("inquiryGoesToAdvisor")}
                   </Text>
-                  {producer?.inquiryResponseTimeLabel ? (
-                    <Text tone="muted" surface="v5" className="text-data">
-                      {t("inquiryResponseTimeShort", { label: producer.inquiryResponseTimeLabel })}
-                    </Text>
-                  ) : (
-                    <span className="flex flex-wrap items-center gap-brand-1">
-                      <Text tone="muted" surface="v5" className="text-data">
-                        {t("inquiryResponseTimeLabel")}
-                      </Text>
-                      <StatusPill status="conditional">{t("toBeCompleted")}</StatusPill>
-                      <Text tone="muted" surface="v5" className="text-data">
-                        · {t("noPurchaseObligation")}
-                      </Text>
-                    </span>
-                  )}
+                  <Text tone="muted" surface="v5" className="text-data">
+                    · {t("noPurchaseObligation")}
+                  </Text>
                 </div>
               </Card>
             </div>
@@ -458,12 +414,12 @@ export default async function ProjektPage({
         <ProjectSectionNav
           items={[
             { id: "uklad", label: t("sectionNav.uklad") },
-            { id: "cena", label: t("sectionNav.cena") },
-            { id: "dzialka", label: t("sectionNav.dzialka") },
-            { id: "harmonogram", label: t("sectionNav.harmonogram") },
+            { id: "cena", label: t("sectionNav.cena"), disabled: !hasCenaSection },
+            { id: "dzialka", label: t("sectionNav.dzialka"), disabled: !hasDzialkaSection },
+            { id: "harmonogram", label: t("sectionNav.harmonogram"), disabled: !hasHarmonogramSection },
             { id: "komfort", label: t("sectionNav.komfort") },
             { id: "producent", label: t("sectionNav.producent") },
-            { id: "dokumenty", label: t("sectionNav.dokumenty") },
+            { id: "dokumenty", label: t("sectionNav.dokumenty"), disabled: !hasDokumentySection },
             { id: "podobne", label: t("sectionNav.podobne"), disabled: true },
           ]}
           ariaLabel={t("sectionNavAriaLabel")}
@@ -485,25 +441,26 @@ export default async function ProjektPage({
 
         </div>
 
-        {/* Cena i zakres: tabela porównawcza pokazuje zawsze wszystkie trzy
-            standardy wykończenia (getDisplayProjectVariants), niezależnie od
-            tego, ile ma ich dziś wypełniony product_variant — standard bez
-            danych pokazuje "do uzupełnienia" zamiast znikać razem z całą
-            sekcją (świadome odejście od pierwotnego AC-2/AC-3/AC-11). */}
-        <div id="cena" className="flex scroll-mt-20 flex-col gap-brand-4">
-          <Heading level="h2" surface="v5" className="text-h3">
-            {t("priceAndScopeHeading")}
-          </Heading>
-          <ProjectCostComparisonTable variants={displayVariants} />
-        </div>
+        {/* Cena i zakres: tabela porównawcza pokazuje dokładnie tyle kolumn,
+            ile projekt ma prawdziwych wariantów (spec 0054 AC-1, AC-2); cała
+            sekcja znika, gdy nie ma żadnego (AC-8). */}
+        {hasCenaSection && (
+          <div id="cena" className="scroll-mt-20">
+            <ProjectCostComparisonTable variants={project.variants} heading={t("priceAndScopeHeading")} />
+          </div>
+        )}
 
-        <div id="dzialka" className="scroll-mt-20">
-          <ProjectLogistics project={project} />
-        </div>
+        {hasDzialkaSection && (
+          <div id="dzialka" className="scroll-mt-20">
+            <ProjectLogistics project={project} />
+          </div>
+        )}
 
-        <div id="harmonogram" className="scroll-mt-20">
-          <ProjectTimeline stages={selectedVariant?.timelineStages ?? []} />
-        </div>
+        {hasHarmonogramSection && (
+          <div id="harmonogram" className="scroll-mt-20">
+            <ProjectTimeline stages={selectedVariant?.timelineStages ?? []} />
+          </div>
+        )}
 
         <div id="komfort" className="flex scroll-mt-20 flex-col gap-brand-4">
           <ProjectTechnicalSpecs project={project} />
@@ -525,13 +482,16 @@ export default async function ProjektPage({
               projectName={project.name}
               documents={project.documents}
               selectedVariantId={selectedVariant?.id}
+              structuralWarrantyYears={project.structuralWarrantyYears}
             />
           </div>
         )}
 
-        <div id="dokumenty" className="scroll-mt-20">
-          <ProjectDocumentsAndFaq faq={project.faq} documents={project.documents} />
-        </div>
+        {hasDokumentySection && (
+          <div id="dokumenty" className="scroll-mt-20">
+            <ProjectDocumentsAndFaq faq={project.faq} documents={project.documents} />
+          </div>
+        )}
 
         {countryCode && eligibility && (
           <div className="flex flex-col gap-brand-2">

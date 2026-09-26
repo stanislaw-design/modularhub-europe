@@ -85,8 +85,8 @@ function translationInput(input: GenerateProductTranslationsInput, fields: reado
 
 // Etap "Tłumaczenia" (spec 0050 AC-28 do AC-34): jedno wywołanie tłumaczy
 // dowolny worek pozycji tekstowych naraz (opis, nazwy pomieszczeń, pytania i
-// odpowiedzi FAQ, własne pozycje "Co musi zapewnić klient", opis/wyłączenia
-// wariantu) — w odróżnieniu od generateProductTranslations wyżej (stałe pola
+// odpowiedzi FAQ, własne pozycje "Co musi zapewnić klient") — w odróżnieniu
+// od generateProductTranslations wyżej (stałe pola
 // "name"/"description", zawsze polskie źródło), tu źródło może już być w
 // dowolnym z czterech języków (np. nazwa pomieszczenia wydobyta z rzutu innym
 // niż polski, AC-9/Kontekst) i jest wykrywane per pozycja, nie zakładane z
@@ -94,8 +94,8 @@ function translationInput(input: GenerateProductTranslationsInput, fields: reado
 // lib/producer-project-translation-actions.ts, nie tu.
 export interface ProjectTranslationItem {
   // Stabilny klucz pozycji w tym wywołaniu (np. "description",
-  // "room:<id>", "faq:<id>:question", "requirement:<id>", "variant:<id>:scopeSummary") —
-  // wywołujący dopasowuje wynik z powrotem po tym samym kluczu.
+  // "room:<id>", "faq:<id>:question", "requirement:<id>") — wywołujący
+  // dopasowuje wynik z powrotem po tym samym kluczu.
   id: string;
   text: string;
 }

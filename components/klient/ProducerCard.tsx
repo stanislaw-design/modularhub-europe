@@ -1,7 +1,7 @@
 import { BadgeCheck, CircleHelp, Home, XCircle } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import Image from "next/image";
-import { StarRating, StatusPill, Text } from "@/components/ui";
+import { StarRating, Text } from "@/components/ui";
 import type { CountryCode, Producer } from "@/lib/data/types";
 
 const countryFlag: Record<CountryCode, string> = { PL: "🇵🇱", DE: "🇩🇪", NL: "🇳🇱" };
@@ -100,17 +100,10 @@ export async function ProducerCard({ producer, showTrustDetails = false }: Produ
                 {producer.showroomVisitNote}
               </Text>
             )}
-            {producer.inquiryResponseTimeLabel ? (
+            {producer.inquiryResponseTimeLabel && (
               <Text tone="muted" className="text-data">
                 {t("inquiryResponseTime", { label: producer.inquiryResponseTimeLabel })}
               </Text>
-            ) : (
-              <span className="flex items-center gap-brand-1">
-                <Text tone="muted" className="text-data">
-                  {t("inquiryResponseTimeLabel")}
-                </Text>
-                <StatusPill status="conditional">{t("toBeCompleted")}</StatusPill>
-              </span>
             )}
           </div>
         )}

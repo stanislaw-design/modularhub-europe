@@ -4,15 +4,26 @@ import { createMockProject } from "@/test/fixtures/project";
 import { resolveAsyncTree } from "@/test/resolve-async-tree";
 import { ProjectDocumentsAndFaq } from "./ProjectDocumentsAndFaq";
 
-// Spec 0049 AC-9: la sekcja dokumentów pokazuje placeholder dopóki producent
-// nie wgra pliku specyfikacji, potem prawdziwy link do pobrania w jego miejsce.
+// Spec 0054 AC-7, AC-8: każdy z dwóch bloków (specyfikacja, FAQ) renderuje
+// się niezależnie tylko z prawdziwą treścią; cała sekcja znika, gdy oba puste.
 describe("ProjectDocumentsAndFaq", () => {
-  it("shows the documents placeholder when no specification PDF was uploaded", async () => {
-    const project = createMockProject({ documents: [] });
+  it("renders nothing when there is no specification PDF and no FAQ (spec 0054 AC-8)", async () => {
+    const project = createMockProject({ documents: [], faq: [] });
+    const result = await resolveAsyncTree(<ProjectDocumentsAndFaq faq={project.faq} documents={project.documents} />);
+    expect(result).toBeNull();
+  });
+
+  it("shows only the FAQ block, no documents block or placeholder, when only FAQ is filled (spec 0054 AC-7)", async () => {
+    const project = createMockProject({
+      documents: [],
+      faq: [{ question: "Czy dom jest ocieplony?", answer: "Tak, w standardzie." }],
+    });
     render(await resolveAsyncTree(<ProjectDocumentsAndFaq faq={project.faq} documents={project.documents} />));
 
-    expect(screen.getAllByText("Do uzupełnienia").length).toBeGreaterThan(0);
-    expect(screen.queryByRole("link", { name: /specyfikacj/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Pytania i odpowiedzi" })).toBeInTheDocument();
+    expect(screen.getByText("Czy dom jest ocieplony?")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Dokumenty" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Do uzupełnienia")).not.toBeInTheDocument();
   });
 
   it("shows a real download link once a product_specification document exists", async () => {

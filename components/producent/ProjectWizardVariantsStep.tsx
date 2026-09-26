@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronDown, ChevronUp, Copy, Plus, Star, Trash2, Upload } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Controller, useFieldArray, useForm, useFormContext, useWatch, type UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import { Button, Card, Checkbox, Heading, Input, Label, Radio, Select, Stack, Text, Textarea } from "@/components/ui";
@@ -155,13 +155,26 @@ interface ProjectWizardVariantsStepProps {
   // ProjectWizard (nowy projekt) zostawia to puste, bo produkt jeszcze nie ma
   // żadnego wariantu.
   initialVariants?: ProducerVariantForEdit[];
-  // Wydobywanie standardów z materiału (spec 0050 AC-13 do AC-19) istnieje
-  // wyłącznie w kreatorze nowego projektu (AC-41) — ProductEditWizard nie
-  // ustawia tego na true, więc sekcja materiału się nie renderuje.
+  // Wydobywanie standardów z materiału (spec 0050 AC-13 do AC-19) w obu
+  // kreatorach, tworzenia i edycji istniejącego, opublikowanego produktu
+  // (spec 0052, odwraca dawne AC-41 spec 0050) — oba ustawiają to na true.
   enableStandardsExtraction?: boolean;
 }
 
 type StandardProposal = ExtractedStandard & { targetStandard: CompletionStandard };
+
+// Cena/pozycje kosztowe/etapy zapisują się wyłącznie przyciskiem "Zapisz
+// wariant" na karcie (patrz komentarz nad komponentem), żeby nie odpalać
+// zapytania na każde naciśnięcie klawisza — ale to znaczyło też, że
+// nawigacja "Dalej"/"Wstecz"/kliknięcie innego kroku (które odmontowuje ten
+// komponent) po cichu gubiła każdą niezapisaną w ten sposób zmianę, mimo że
+// reszta kreatora zawsze zapisuje cały krok przy "Dalej". Rodzic
+// (ProjectWizard/ProductEditWizard) woła saveAllPending() przez ten ref tuż
+// przed każdą nawigacją, więc odejście z kroku bez kliknięcia "Zapisz
+// wariant" nadal utrwala to, co producent wpisał.
+export interface ProjectWizardVariantsStepHandle {
+  saveAllPending: () => Promise<boolean>;
+}
 
 // Krok "Warianty i cennik" (spec 0045 AC-1, AC-2, AC-10, Build plan zadanie
 // 5), zastępujący dawny krok "Cena" (usunięty w zadaniu 12, patrz komentarz
@@ -177,11 +190,8 @@ type StandardProposal = ExtractedStandard & { targetStandard: CompletionStandard
 // Do rodzica (ProjectWizard) wraca tylko lekka migawka przez setValue na
 // draft.variantsSummary — patrz onVariantsSummaryChange niżej — żeby
 // isStepComplete("warianty", ...) miało co sprawdzić bez czytania bazy.
-export function ProjectWizardVariantsStep({
-  productId,
-  initialVariants = [],
-  enableStandardsExtraction = false,
-}: ProjectWizardVariantsStepProps) {
+export const ProjectWizardVariantsStep = forwardRef<ProjectWizardVariantsStepHandle, ProjectWizardVariantsStepProps>(
+  function ProjectWizardVariantsStep({ productId, initialVariants = [], enableStandardsExtraction = false }, ref) {
   const t = useTranslations("ProjectWizardVariantsStep");
   const tOptions = useTranslations("ProjectOptions");
   const outerForm = useFormContext<ProjectDraft>();
@@ -190,7 +200,7 @@ export function ProjectWizardVariantsStep({
     resolver: zodResolver(variantsFormSchema),
     mode: "onBlur",
   });
-  const { control, getValues } = localForm;
+  const { control, getValues, setValue } = localForm;
   const { fields, append, remove, update, move } = useFieldArray({ control, name: "variants" });
   const [pendingAction, setPendingAction] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
@@ -233,6 +243,61 @@ export function ProjectWizardVariantsStep({
   const standardOptions = getCompletionStandardOptions(tOptions);
   const statusOptions = getCostLineItemStatusOptions(tOptions);
   const canAddMore = fields.length < MAX_VARIANTS && availableStandards.length > 0;
+
+  // Jedyne miejsce, które faktycznie zapisuje cenę/pozycje kosztowe/etapy
+  // wariantu — dawniej żyło wyłącznie wewnątrz VariantCard (handleSave), tu
+  // podniesione, żeby zarówno przycisk "Zapisz wariant" na karcie
+  // (przez onSave przekazane niżej), jak i saveAllPending() (przez ref, patrz
+  // komentarz przy ProjectWizardVariantsStepHandle) mogły wywołać dokładnie tę
+  // samą logikę zamiast dwóch kopii do rozjechania.
+  async function saveVariant(index: number): Promise<{ ok: boolean; error?: string }> {
+    const current = getValues(`variants.${index}`);
+
+    const variantResult = await updateVariant(current.variantId, {
+      priceMinEur: current.priceMinEur,
+      priceOnRequest: current.priceOnRequest,
+      variantLabel: "",
+    });
+    if (!variantResult.ok) return { ok: false, error: variantResult.error };
+
+    for (let i = 0; i < current.costLineItems.length; i++) {
+      const item = current.costLineItems[i];
+      if (!item.label.trim()) continue;
+      const itemResult = await upsertCostLineItem(current.variantId, {
+        id: item.itemId,
+        label: item.label,
+        status: item.status,
+        responsibleParty: item.responsibleParty,
+      });
+      if (!itemResult.ok) return { ok: false, error: itemResult.error };
+      if (item.itemId === null && itemResult.itemId) {
+        setValue(`variants.${index}.costLineItems.${i}.itemId`, itemResult.itemId);
+      }
+    }
+
+    for (const stage of current.timelineStages) {
+      const stageResult = await upsertTimelineStage(current.variantId, stage.stageKey, {
+        durationMinDays: stage.durationMinDays,
+        durationMaxDays: stage.durationMaxDays,
+        startsFromLabel: stage.startsFromLabel,
+        responsibleParty: stage.responsibleParty,
+      });
+      if (!stageResult.ok) return { ok: false, error: stageResult.error };
+    }
+
+    return { ok: true };
+  }
+
+  useImperativeHandle(ref, () => ({
+    saveAllPending: async () => {
+      let allOk = true;
+      for (let i = 0; i < fields.length; i++) {
+        const result = await saveVariant(i);
+        if (!result.ok) allOk = false;
+      }
+      return allOk;
+    },
+  }));
 
   async function handleAddVariant() {
     if (!productId || addStandard === null) return;
@@ -686,6 +751,7 @@ export function ProjectWizardVariantsStep({
             onMoveDown={() => move(index, index + 1)}
             onSetDefault={() => handleSetDefault(index)}
             onDelete={() => handleDeleteVariant(index)}
+            onSave={() => saveVariant(index)}
             pending={pendingAction}
           />
         ))}
@@ -752,7 +818,8 @@ export function ProjectWizardVariantsStep({
       )}
     </Stack>
   );
-}
+  },
+);
 
 interface VariantCardProps {
   form: UseFormReturn<VariantsFormValues>;
@@ -761,15 +828,16 @@ interface VariantCardProps {
   isLast: boolean;
   onMoveUp: () => void;
   onMoveDown: () => void;
+  onSave: () => Promise<{ ok: boolean; error?: string }>;
   onSetDefault: () => void;
   onDelete: () => void;
   pending: boolean;
 }
 
-function VariantCard({ form, index, isFirst, isLast, onMoveUp, onMoveDown, onSetDefault, onDelete, pending }: VariantCardProps) {
+function VariantCard({ form, index, isFirst, isLast, onMoveUp, onMoveDown, onSave, onSetDefault, onDelete, pending }: VariantCardProps) {
   const t = useTranslations("ProjectWizardVariantsStep");
   const tOptions = useTranslations("ProjectOptions");
-  const { control, register, getValues, setValue } = form;
+  const { control, register, getValues } = form;
   const variant = useWatch({ control, name: `variants.${index}` });
   const costItemsArray = useFieldArray({ control, name: `variants.${index}.costLineItems` });
   const [isSaving, setIsSaving] = useState(false);
@@ -793,57 +861,19 @@ function VariantCard({ form, index, isFirst, isLast, onMoveUp, onMoveDown, onSet
     costItemsArray.remove(itemIndex);
   }
 
+  // Deleguje do saveVariant(index) w rodzicu (patrz komentarz tam) — jedyna
+  // logika zapisu żyje w jednym miejscu, ten przycisk i saveAllPending() z
+  // rodzica wołają dokładnie to samo.
   async function handleSave() {
     setIsSaving(true);
     setSaveError(null);
     setSaved(false);
-    const current = getValues(`variants.${index}`);
-
-    const variantResult = await updateVariant(current.variantId, {
-      priceMinEur: current.priceMinEur,
-      priceOnRequest: current.priceOnRequest,
-      variantLabel: "",
-    });
-    if (!variantResult.ok) {
-      setIsSaving(false);
-      setSaveError(variantResult.error ?? t("genericError"));
+    const result = await onSave();
+    setIsSaving(false);
+    if (!result.ok) {
+      setSaveError(result.error ?? t("genericError"));
       return;
     }
-
-    for (let i = 0; i < current.costLineItems.length; i++) {
-      const item = current.costLineItems[i];
-      if (!item.label.trim()) continue;
-      const itemResult = await upsertCostLineItem(current.variantId, {
-        id: item.itemId,
-        label: item.label,
-        status: item.status,
-        responsibleParty: item.responsibleParty,
-      });
-      if (!itemResult.ok) {
-        setIsSaving(false);
-        setSaveError(itemResult.error ?? t("genericError"));
-        return;
-      }
-      if (item.itemId === null && itemResult.itemId) {
-        setValue(`variants.${index}.costLineItems.${i}.itemId`, itemResult.itemId);
-      }
-    }
-
-    for (const stage of current.timelineStages) {
-      const stageResult = await upsertTimelineStage(current.variantId, stage.stageKey, {
-        durationMinDays: stage.durationMinDays,
-        durationMaxDays: stage.durationMaxDays,
-        startsFromLabel: stage.startsFromLabel,
-        responsibleParty: stage.responsibleParty,
-      });
-      if (!stageResult.ok) {
-        setIsSaving(false);
-        setSaveError(stageResult.error ?? t("genericError"));
-        return;
-      }
-    }
-
-    setIsSaving(false);
     setSaved(true);
   }
 

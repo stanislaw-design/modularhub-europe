@@ -724,6 +724,12 @@ export const costLineItem = pgTable(
 // ProjectCostComparisonTable.tsx (po dokładnym tekście `label`) bez zmiany —
 // tłumaczenie podmienia się na poziomie odczytu (lib/data/projects.ts), więc
 // identyczne polskie etykiety wciąż dają identyczne przetłumaczone etykiety.
+// Od 2026-09-25 wypełnia się też automatycznie: generateMissingCostLineItemLabelTranslations
+// (lib/producer-project-translation-actions.ts) dopisuje tu brakujące wiersze
+// w tle po każdym zapisie/klonowaniu pozycji kosztowej
+// (lib/producer-product-variant-actions.ts), ON CONFLICT DO NOTHING, więc
+// ręczny backfill (scripts/backfill-cost-line-item-label-translations-2026-09-22.ts)
+// zostaje jednorazowym uzupełnieniem historii, nie jedynym pisarzem tej tabeli.
 export const costLineItemLabelTranslation = pgTable(
   "cost_line_item_label_translation",
   {
@@ -818,6 +824,10 @@ export const productTranslation = pgTable(
     // spec 0050 AC-28): tablica {id, label}[] dopasowana po id; pozycje z
     // katalogu (custom: false) tłumaczą się z katalogu opcji, nie stąd.
     clientRequirements: jsonb("client_requirements"),
+    // Tłumaczenie product.foundationOptions (spec 0053 AC-4): wolny tekst,
+    // ten sam wzorzec co description wyżej (nie jsonb, bo źródło na product
+    // też jest zwykłym text, nie tablicą pozycji jak roomLayout/faq).
+    foundationOptions: text("foundation_options"),
     // Automatyczne tłumaczenie AI (spec 0028 AC-11 do AC-17, rozszerzenie
     // 2026-09-22): "własność" pola (AI vs producent) jest wyliczona, nie
     // przechowywana jako osobna flaga — patrz lib/producer-product-actions.ts

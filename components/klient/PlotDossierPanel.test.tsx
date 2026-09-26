@@ -6,7 +6,7 @@ import { createMockProject } from "@/test/fixtures/project";
 import { PlotDossierPanel } from "./PlotDossierPanel";
 
 function makeProject(id: string, name: string, producerName: string, floorAreaM2: number): Project {
-  return createMockProject({ id, producerId: "prod-1", producerName, name, floorAreaM2, priceMin: 100000, priceMax: 120000 });
+  return createMockProject({ id, producerId: "prod-1", producerName, name, floorAreaM2, priceMin: 100000 });
 }
 
 // prj-budman-familia-90 (approved) and prj-steelhouse-alpine-104 (blocked) both have

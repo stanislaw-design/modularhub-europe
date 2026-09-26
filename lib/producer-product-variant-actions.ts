@@ -1,11 +1,13 @@
 "use server";
 
 import { and, eq, isNull, sql } from "drizzle-orm";
+import { after } from "next/server";
 import type { CompletionStandard, CostLineItemStatus, TimelineStageKey } from "@/lib/data/types";
 import { db } from "@/lib/db/client";
 import { costLineItem, product, productTimelineStage, productVariant } from "@/lib/db/schema";
 import { captureError } from "@/lib/observability/errors";
 import { requireProducerActor } from "@/lib/producer-actor";
+import { generateMissingCostLineItemLabelTranslations } from "@/lib/producer-project-translation-actions";
 
 interface ActionResult {
   ok: boolean;
@@ -220,6 +222,10 @@ export async function cloneVariant(
 
   try {
     await db.batch(statements as [(typeof statements)[number], ...typeof statements]);
+    // Sklonowane etykiety zwykle są już w słowniku (pochodzą z wariantu
+    // źródłowego tego samego produktu), ale nie zawsze — np. źródłowy wariant
+    // sam nigdy nie przeszedł przez ten mechanizm. Nigdy nie blokuje odpowiedzi.
+    after(() => generateMissingCostLineItemLabelTranslations(newCostItems.map((item) => item.label)));
     return {
       ok: true,
       variant: {
@@ -343,6 +349,11 @@ export interface UpsertCostLineItemResult extends ActionResult {
   itemId?: string;
 }
 
+// Zawsze wywołuje generateMissingCostLineItemLabelTranslations(fields.label) w
+// tle po udanym zapisie (after(), błąd nigdy nie cofa/blokuje tego zapisu,
+// patrz komentarz przy tej funkcji) — jedyny sposób, żeby nowa/własna etykieta
+// wpisana tu (albo zaakceptowana z ekstrakcji AI) trafiła kiedykolwiek do
+// cost_line_item_label_translation bez ręcznego backfillu.
 export async function upsertCostLineItem(
   variantId: string,
   fields: UpsertCostLineItemFields,
@@ -367,6 +378,7 @@ export async function upsertCostLineItem(
           updatedAt: new Date(),
         })
         .where(eq(costLineItem.id, fields.id));
+      after(() => generateMissingCostLineItemLabelTranslations([fields.label]));
       return { ok: true, itemId: fields.id };
     } catch (error) {
       captureError(error, { path: "upsertCostLineItem.update", userId: actor.userId });
@@ -395,6 +407,7 @@ export async function upsertCostLineItem(
         sortOrder: maxSortOrder + 1,
       })
       .returning({ id: costLineItem.id });
+    after(() => generateMissingCostLineItemLabelTranslations([fields.label]));
     return { ok: true, itemId: inserted.id };
   } catch (error) {
     captureError(error, { path: "upsertCostLineItem.insert", userId: actor.userId });

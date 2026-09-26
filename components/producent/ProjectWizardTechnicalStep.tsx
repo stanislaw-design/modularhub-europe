@@ -32,8 +32,8 @@ export function ProjectWizardTechnicalStep({ showValidation }: ProjectWizardTech
 
   // "Co musi zapewnić klient" (spec 0050 AC-23): raz na produkt, niezależnie
   // od wybranego standardu — stąd tutaj, w kroku technicznym, nie w
-  // ProjectWizardVariantsStep. excludedScope per standard (AC-24) zostaje
-  // osobnym polem tam, nigdy łączonym z tym katalogiem.
+  // ProjectWizardVariantsStep. Pozycje kosztowe per standard (spec 0051 AC-9)
+  // żyją osobno tam, nigdy łączone z tym katalogiem.
   const clientRequirementsArray = useFieldArray({ control, name: "clientRequirements" });
   const catalogOptions = getClientRequirementCatalogOptions(tOptions);
   const [customRequirementText, setCustomRequirementText] = useState("");
@@ -181,6 +181,11 @@ export function ProjectWizardTechnicalStep({ showValidation }: ProjectWizardTech
             {t("structuralWarrantyRequiredError")}
           </p>
         )}
+      </Stack>
+
+      <Stack gap={1}>
+        <Label htmlFor="wizard-foundation-options">{t("foundationOptionsLabel")}</Label>
+        <Input id="wizard-foundation-options" {...register("foundationOptions")} />
       </Stack>
 
       <Stack gap={2}>

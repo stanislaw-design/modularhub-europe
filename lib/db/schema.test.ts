@@ -609,12 +609,14 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: enforce_bulk_request_
   });
 });
 
-// spec 0041 AC-5: product.price_min_cents/price_max_cents are no longer
-// written directly -- they are derived by the price sync trigger
-// (drizzle/0020_lame_tigra.sql) from whichever product_variant has
-// is_default = true. /check verify confirmed this manually on a disposable
-// Neon branch; these tests lock the same behaviour in permanently.
-describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: product_variant price sync trigger (spec 0041 AC-5)", () => {
+// spec 0041 AC-5, rewritten spec 0051 AC-3: product.price_min_cents is no
+// longer written directly -- it is derived by the price sync trigger
+// (drizzle/0020_lame_tigra.sql, rewritten by drizzle/0033 to stop
+// reading/writing price_max_cents on either table) from whichever
+// product_variant has is_default = true. /check verify confirmed this
+// manually on a disposable Neon branch; these tests lock the same behaviour
+// in permanently.
+describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: product_variant price sync trigger (spec 0041 AC-5, spec 0051 AC-3)", () => {
   const userId = crypto.randomUUID();
   const producerId = crypto.randomUUID();
   const productId = crypto.randomUUID();
@@ -641,13 +643,11 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: product_variant price
       productId,
       completionStandard: "surowy-zamkniety",
       priceMinCents: 500000,
-      priceMaxCents: 550000,
       isDefault: true,
     });
 
     const [row] = await db.select().from(product).where(eq(product.id, productId));
     expect(row?.priceMinCents).toBe(500000);
-    expect(row?.priceMaxCents).toBe(550000);
   });
 
   it("keeps product price in sync after switching the default variant with a single UPDATE", async () => {
@@ -655,12 +655,11 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: product_variant price
       productId,
       completionStandard: "surowy-zamkniety",
       priceMinCents: 500000,
-      priceMaxCents: 550000,
       isDefault: true,
     });
     const [second] = await db
       .insert(productVariant)
-      .values({ productId, completionStandard: "pod-klucz", priceMinCents: 900000, priceMaxCents: 950000, isDefault: false })
+      .values({ productId, completionStandard: "pod-klucz", priceMinCents: 900000, isDefault: false })
       .returning({ id: productVariant.id });
 
     // The spec's key invariant: switching the default is always one UPDATE,
@@ -669,15 +668,13 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: product_variant price
 
     const [row] = await db.select().from(product).where(eq(product.id, productId));
     expect(row?.priceMinCents).toBe(900000);
-    expect(row?.priceMaxCents).toBe(950000);
   });
 
-  it("reverts product price to NULL when no variant is marked default, never a mixed range", async () => {
+  it("reverts product price to NULL when no variant is marked default, never a stale value", async () => {
     await db.insert(productVariant).values({
       productId,
       completionStandard: "surowy-zamkniety",
       priceMinCents: 500000,
-      priceMaxCents: 550000,
       isDefault: true,
     });
 
@@ -685,7 +682,24 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: product_variant price
 
     const [row] = await db.select().from(product).where(eq(product.id, productId));
     expect(row?.priceMinCents).toBeNull();
-    expect(row?.priceMaxCents).toBeNull();
+  });
+
+  // spec 0051 AC-2: raising the price on a variant with a stale, still
+  // physically present price_max_cents below the new price_min_cents must
+  // not trip a CHECK anymore (product_variant_price_order was dropped).
+  it("allows raising price_min_cents above a stale price_max_cents value", async () => {
+    const [variant] = await db
+      .insert(productVariant)
+      .values({ productId, completionStandard: "surowy-zamkniety", priceMinCents: 500000, isDefault: true })
+      .returning({ id: productVariant.id });
+    // Simulate the stale column still holding a smaller value from before
+    // the app stopped writing it (phase 2), via raw SQL since the column no
+    // longer has a drizzle field.
+    await db.execute(sql`UPDATE product_variant SET price_max_cents = 550000 WHERE id = ${variant.id}`);
+
+    await expect(
+      db.update(productVariant).set({ priceMinCents: 900000 }).where(eq(productVariant.id, variant.id)),
+    ).resolves.not.toThrow();
   });
 });
 
@@ -747,10 +761,17 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: product_variant uniqu
     );
   });
 
-  it("rejects a variant whose price_max_cents is below price_min_cents", async () => {
+  // product_variant_price_order dropped spec 0051 AC-2 (migration phase 1):
+  // price_max_cents no longer has a meaningful order to enforce.
+  it("rejects a variant with priceOnRequest true and a priceMinCents set (product_variant_price_on_request)", async () => {
     await expectRejectionToMatch(
-      db.insert(productVariant).values({ productId, completionStandard: "surowy-zamkniety", priceMinCents: 900000, priceMaxCents: 500000 }),
-      /product_variant_price_order/,
+      db.insert(productVariant).values({
+        productId,
+        completionStandard: "surowy-zamkniety",
+        priceMinCents: 900000,
+        priceOnRequest: true,
+      }),
+      /product_variant_price_on_request/,
     );
   });
 });

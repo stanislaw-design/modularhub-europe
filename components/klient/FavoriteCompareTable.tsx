@@ -55,7 +55,7 @@ export function FavoriteCompareTable({ favorites }: FavoriteCompareTableProps) {
             </Text>
             {favorites.map(({ project }) => (
               <DataText as="td" key={project.id} surface="v5" className="p-brand-2">
-                {priceFormatter.format(project.priceMin)}–{priceFormatter.format(project.priceMax)} €
+                {t("priceFrom", { price: priceFormatter.format(project.priceMin) })}
               </DataText>
             ))}
           </tr>

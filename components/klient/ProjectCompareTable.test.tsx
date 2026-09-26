@@ -11,7 +11,7 @@ function makeColumn(id: string, overrides: Parameters<typeof createMockProject>[
 }
 
 describe("ProjectCompareTable", () => {
-  it("renders a column per product with its price, scope and floor-plan state (spec 0044 AC-6, AC-7)", () => {
+  it("renders a column per product with its price, in-price cost items and floor-plan state (spec 0044 AC-6, AC-7, spec 0051 AC-6)", () => {
     render(
       <ProjectCompareTable
         locale="pl"
@@ -22,7 +22,7 @@ describe("ProjectCompareTable", () => {
     );
 
     expect(screen.getAllByText("od 118 000 €")).toHaveLength(2);
-    expect(screen.getAllByText("Dom w standardzie deweloperskim, gotowy do wykończenia.")).toHaveLength(2);
+    expect(screen.getAllByText("Fundament, Ściany i dach")).toHaveLength(2);
     expect(screen.getAllByText("Brak rzutu")).toHaveLength(2);
   });
 

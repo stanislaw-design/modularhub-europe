@@ -134,22 +134,19 @@ export interface ProjectVariant {
   isDefault: boolean;
   costLineItems: CostLineItem[];
   timelineStages: TimelineStage[];
-  /** True for a synthetic entry standing in for a completion standard that
-   * has no real `product_variant` row yet (see getDisplayProjectVariants).
-   * Never set by the data layer itself — only by presentation code that
-   * fills the fixed 3-standard picker so the layout renders before the
-   * producer has entered real variant data. */
-  isPlaceholder?: boolean;
 }
 
 export interface RoomLayoutEntry {
   name: string;
   areaM2?: number;
-  function?: string;
   // Zastępuje dawne isMezzanine (spec 0050 AC-8): migracja starych wierszy
   // (isMezzanine: true -> floorLevel: "poddasze") dzieje się przy odczycie w
   // lib/data/projects.ts, ten typ widzi już tylko wynik.
   floorLevel?: FloorLevel;
+  // `function` (dawne pole "Funkcja" w kreatorze) usunięte z typu: karta
+  // klienta (ProjectRoomLayout.tsx) nigdy go nie wyświetlała, a stare wiersze
+  // w bazie, które je jeszcze mają, po prostu tracą tę nieużywaną właściwość
+  // przy castowaniu z jsonb w lib/data/projects.ts.
 }
 
 export interface ProjectFaqItem {
@@ -214,8 +211,8 @@ export interface Project {
   /** Zdjęcia/rzuty produktu z ich purpose i opcjonalnym wariantem (spec 0042 AC-7, AC-8). */
   documents: ProjectDocument[];
   /** Pytania i odpowiedzi specyficzne dla modelu (sekcja "Dokumenty i pytania"
-   * na karcie projektu). Puste lub brak → sekcja pokazuje placeholder "do
-   * uzupełnienia", ten sam wzorzec co roomLayout wyżej. */
+   * na karcie projektu). Puste lub brak → ten blok sekcji nie renderuje się
+   * (spec 0054 AC-7), ten sam wzorzec co roomLayout wyżej. */
   faq?: ProjectFaqItem[];
   /** Co musi zapewnić klient, niezależnie od standardu (spec 0050 AC-23,
    * AC-35): puste lub brak → sekcja nie renderuje się, ten sam wzorzec co
@@ -299,8 +296,27 @@ export interface MockUploadedFile {
 export interface ProjectDraft {
   name: string;
   floorAreaM2: number | null;
+  // Wymiary zewnętrzne (spec 0053 AC-1): wolny tekst, opcjonalny, bez
+  // wariantów tłumaczeń (dane wymiarowe/liczbowe, niezależne językowo, AC-5).
+  externalDimensions: string;
+  // Łączna liczba pokoi i liczba łazienek (Project.rooms/bathrooms, spec 0042
+  // AC-4 "Układ domu"): osobne od bedrooms (sypialnie) i od roomLayout (lista
+  // nazwanych pomieszczeń, która miesza pokoje z wiatrołapem/kotłownią, patrz
+  // komentarz w components/klient/ProjectRoomLayout.tsx) — producent wpisuje
+  // je wprost, nie liczone automatycznie z żadnej z tych dwóch list.
+  rooms: number | null;
   bedrooms: number | null;
+  bathrooms: number | null;
   countryOfProduction: CountryCode | null;
+  // Kraje dostawy (product_country_eligibility, spec 0018): bez tego pola
+  // produkt nigdy nie przechodzi filtra kraju w getProjects() (lib/data/projects.ts),
+  // więc na /wyniki nie pojawia się w ogóle — producent musi zadeklarować co
+  // najmniej jeden kraj. Uproszczenie względem docelowego modelu zgodności
+  // (status approved/conditional/blocked + reason per kraj, ocena prawnika/
+  // admina): każdy zaznaczony kraj zapisuje się jako status "approved" wprost
+  // z deklaracji producenta, bez ręcznej weryfikacji — patrz komentarz przy
+  // upsertProductCountryEligibility w lib/producer-product-actions.ts.
+  deliveryCountries: CountryCode[];
   description: string;
   // Opcjonalne tłumaczenia EN/NL/DE opisu (spec 0028 AC-5, AC-16, rozszerzone
   // spec 0050 AC-28 do AC-34): polski (description) zostaje wymaganym tekstem
@@ -356,6 +372,13 @@ export interface ProjectDraft {
   // przy product.structuralWarrantyYears. Dawniej zbierana w usunietym kroku
   // "Cena", teraz w sekcji logistyki kroku "Dane techniczne" (spec 0045 zadanie 9).
   structuralWarrantyYears: number | null;
+  // Wymagania fundamentowe (spec 0053 AC-2): wolny tekst, opcjonalny, obok
+  // gwarancji konstrukcyjnej wyżej. Tłumaczenia EN/NL/DE (AC-4) tym samym
+  // wzorcem co description wyżej — zbierane w kroku "Tłumaczenia".
+  foundationOptions: string;
+  foundationOptionsEn: string;
+  foundationOptionsNl: string;
+  foundationOptionsDe: string;
   // Logistyka i zgodnosc (spec 0045 AC-8): sekcja w kroku "Dane techniczne",
   // czysto deklaratywne pola producenta, bez zadnej reguly wyliczajacej.
   installationWarrantyYears: number | null;

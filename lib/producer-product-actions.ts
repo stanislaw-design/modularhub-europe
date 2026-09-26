@@ -1,15 +1,15 @@
 "use server";
 
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, notInArray } from "drizzle-orm";
 import { after } from "next/server";
 import {
   generateProductTranslations,
   type ProductTranslationField,
   type ProductTranslationLocale,
 } from "@/lib/ai/product-translation";
-import type { ProjectDraft } from "@/lib/data/types";
+import type { CountryCode, ProjectDraft } from "@/lib/data/types";
 import { db } from "@/lib/db/client";
-import { document, product, productTranslation, productVariant } from "@/lib/db/schema";
+import { document, product, productCountryEligibility, productTranslation, productVariant } from "@/lib/db/schema";
 import { captureError } from "@/lib/observability/errors";
 import { trackEvent } from "@/lib/observability";
 import {
@@ -49,6 +49,9 @@ export type ProducerProductFields = Omit<
   | "descriptionEn"
   | "descriptionNl"
   | "descriptionDe"
+  | "foundationOptionsEn"
+  | "foundationOptionsNl"
+  | "foundationOptionsDe"
   | "roomLayoutEn"
   | "roomLayoutNl"
   | "roomLayoutDe"
@@ -62,6 +65,9 @@ export type ProducerProductFields = Omit<
   descriptionEn?: string;
   descriptionNl?: string;
   descriptionDe?: string;
+  foundationOptionsEn?: string;
+  foundationOptionsNl?: string;
+  foundationOptionsDe?: string;
   roomLayoutEn?: RoomLayoutTranslationRow[];
   roomLayoutNl?: RoomLayoutTranslationRow[];
   roomLayoutDe?: RoomLayoutTranslationRow[];
@@ -97,7 +103,12 @@ function buildProductValues(fields: ProducerProductFields) {
   return {
     name: fields.name || null,
     floorAreaM2: fields.floorAreaM2,
+    // AC-1: wolny tekst, opcjonalne — puste zapisuje się jako null, ten sam
+    // wzorzec co serviceScopeDescription/transportDimensions niżej.
+    externalDimensions: fields.externalDimensions || null,
+    rooms: fields.rooms,
     bedrooms: fields.bedrooms,
+    bathrooms: fields.bathrooms,
     countryOfProduction: fields.countryOfProduction,
     description: fields.description || null,
     category: fields.category,
@@ -114,6 +125,8 @@ function buildProductValues(fields: ProducerProductFields) {
     // clientRequirementsSchema w validateContentShape niżej.
     clientRequirements: fields.clientRequirements,
     structuralWarrantyYears: fields.structuralWarrantyYears,
+    // AC-2: wolny tekst, opcjonalne, obok gwarancji konstrukcyjnej wyżej.
+    foundationOptions: fields.foundationOptions || null,
     // AC-8: logistyka i zgodność, czysto deklaratywne, bez reguły wyliczającej.
     installationWarrantyYears: fields.installationWarrantyYears,
     serviceScopeDescription: fields.serviceScopeDescription || null,
@@ -147,6 +160,14 @@ function translationRow(
   const descriptionValue =
     locale === "en" ? fields.descriptionEn : locale === "nl" ? fields.descriptionNl : fields.descriptionDe;
   if (descriptionValue !== undefined) row.description = descriptionValue || null;
+  // AC-4: ten sam warunkowy wzorzec co description wyżej.
+  const foundationOptionsValue =
+    locale === "en"
+      ? fields.foundationOptionsEn
+      : locale === "nl"
+        ? fields.foundationOptionsNl
+        : fields.foundationOptionsDe;
+  if (foundationOptionsValue !== undefined) row.foundationOptions = foundationOptionsValue || null;
   // AC-10, AC-28: tłumaczenie dopasowane po stabilnym id z listy polskiej
   // (fields.roomLayout/faq/clientRequirements), może być krótsze (tłumaczenie
   // częściowe).
@@ -158,6 +179,50 @@ function translationRow(
     locale === "en" ? fields.clientRequirementsEn : locale === "nl" ? fields.clientRequirementsNl : fields.clientRequirementsDe;
   if (clientRequirementsValue !== undefined) row.clientRequirements = clientRequirementsValue;
   return row as { productId: string; locale: ProductTranslationLocale } & Record<string, unknown>;
+}
+
+// Uproszczenie względem docelowego modelu prawnej zgodności per kraj
+// (product_country_eligibility niesie status approved/conditional/blocked +
+// reason, pomyślany jako wynik oceny prawnika/admina, spec 0018 Feature
+// design): nic w aplikacji nigdy nie pisało do tej tabeli poza jednorazowym
+// skryptem importu, więc żaden nowo utworzony produkt nie miał tam ani
+// jednego wiersza i znikał z /wyniki dla każdego kraju (getProjects filtruje
+// po tej tabeli, lib/data/projects.ts). Tymczasowo: każdy kraj zaznaczony
+// przez producenta jako "kraj dostawy" (ProjectDraft.deliveryCountries)
+// dostaje wprost status "approved", bez ręcznej weryfikacji — do czasu
+// zaprojektowania realnego procesu zgodności (docs/scope/produkcja.md,
+// "Edycja profilu firmy przez producenta"). Kraj odznaczony przez producenta
+// traci swój wiersz całkowicie (usuwany), nie tylko zmienia status.
+const DELIVERY_COUNTRY_ELIGIBILITY_REASON = "Zadeklarowane przez producenta jako kraj dostawy.";
+
+async function upsertProductCountryEligibility(productId: string, countryCodes: CountryCode[]) {
+  const statements = [
+    countryCodes.length > 0
+      ? db
+          .delete(productCountryEligibility)
+          .where(
+            and(
+              eq(productCountryEligibility.productId, productId),
+              notInArray(productCountryEligibility.countryCode, countryCodes),
+            ),
+          )
+      : db.delete(productCountryEligibility).where(eq(productCountryEligibility.productId, productId)),
+    ...countryCodes.map((countryCode) =>
+      db
+        .insert(productCountryEligibility)
+        .values({
+          productId,
+          countryCode,
+          status: "approved" as const,
+          reason: DELIVERY_COUNTRY_ELIGIBILITY_REASON,
+        })
+        .onConflictDoUpdate({
+          target: [productCountryEligibility.productId, productCountryEligibility.countryCode],
+          set: { status: "approved" as const, reason: DELIVERY_COUNTRY_ELIGIBILITY_REASON, updatedAt: new Date() },
+        }),
+    ),
+  ];
+  await db.batch(statements as [(typeof statements)[number], ...typeof statements]);
 }
 
 const TRANSLATION_LOCALES: readonly ProductTranslationLocale[] = ["en", "nl", "de"];
@@ -334,7 +399,10 @@ async function validatePublishReadiness(productId: string, fields: ProducerProdu
     !fields.name.trim() ||
     fields.floorAreaM2 === null ||
     fields.bedrooms === null ||
+    fields.rooms === null ||
+    fields.bathrooms === null ||
     fields.countryOfProduction === null ||
+    fields.deliveryCountries.length === 0 ||
     !fields.description.trim() ||
     fields.structuralWarrantyYears === null
   ) {
@@ -401,6 +469,7 @@ export async function createProducerProduct(fields: ProducerProductFields): Prom
       .returning({ id: product.id });
 
     await upsertTranslations(inserted.id, fields);
+    await upsertProductCountryEligibility(inserted.id, fields.deliveryCountries);
     after(() => generateMissingProductTranslations(inserted.id));
     return { ok: true, productId: inserted.id, published: false };
   } catch (error) {
@@ -449,6 +518,7 @@ export async function updateProducerProduct(
       })
       .where(eq(product.id, productId));
     await upsertTranslations(productId, fields);
+    await upsertProductCountryEligibility(productId, fields.deliveryCountries);
     after(() => generateMissingProductTranslations(productId));
   } catch (error) {
     captureError(error, { path: "updateProducerProduct", userId: actor.userId });

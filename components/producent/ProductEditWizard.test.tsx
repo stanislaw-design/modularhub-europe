@@ -4,6 +4,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Country } from "@/lib/data/types";
 import { createEmptyDraft } from "@/lib/producer-project-draft";
 import { updateProducerProduct } from "@/lib/producer-product-actions";
+import { recognizeRoomLayout } from "@/lib/producer-room-layout-actions";
+import { extractStandardsFromMaterial } from "@/lib/producer-standards-extraction-actions";
 import { ProductEditWizard } from "./ProductEditWizard";
 
 const countries: Country[] = [{ code: "PL", name: "Polska" }];
@@ -37,7 +39,6 @@ vi.mock("@/lib/producer-product-variant-actions", () => ({
   createVariant: vi.fn(),
   cloneVariant: vi.fn(),
   updateVariant: vi.fn(),
-  updateVariantTranslation: vi.fn(),
   setDefaultVariant: vi.fn(),
   deleteVariant: vi.fn(),
   upsertCostLineItem: vi.fn(),
@@ -45,17 +46,18 @@ vi.mock("@/lib/producer-product-variant-actions", () => ({
   upsertTimelineStage: vi.fn(),
 }));
 
-// Same server-action-chain gap as above (spec 0050 AC-4): ProjectWizardBasicInfoStep
-// now imports recognizeRoomLayout ("use server" -> @/auth) at module scope,
-// even though ProductEditWizard never passes it the props that would render
-// the AI section (AC-41, no room recognition on an existing product's edit).
+// Same server-action-chain gap as above (spec 0050 AC-4): ProjectWizardRoomLayoutStep
+// imports recognizeRoomLayout ("use server" -> @/auth) at module scope.
+// ProductEditWizard passes it productId/floorPlans (spec 0052, reverses the
+// old AC-41 exclusion), so the room recognition card renders and calls this.
 vi.mock("@/lib/producer-room-layout-actions", () => ({
   recognizeRoomLayout: vi.fn(),
 }));
 
 // extractStandardsFromMaterial ("use server" -> Azure OpenAI client chain)
-// doesn't resolve under Vitest/jsdom, same gap as above; ProductEditWizard
-// also never sets enableStandardsExtraction (AC-41).
+// doesn't resolve under Vitest/jsdom, same gap as above. ProductEditWizard
+// sets enableStandardsExtraction (spec 0052, reverses the old AC-41
+// exclusion), so the standards extraction card renders and calls this.
 vi.mock("@/lib/producer-standards-extraction-actions", () => ({
   extractStandardsFromMaterial: vi.fn(),
 }));
@@ -161,5 +163,79 @@ describe("ProductEditWizard", () => {
       expect.objectContaining({ name: "Modulor 28" }),
       { publish: true },
     );
+  });
+
+  // Spec 0052: both AI capabilities, previously exclusive to ProjectWizard
+  // (AC-41), now also work in ProductEditWizard. The recognition/extraction
+  // components' own behavior (merge, confidence badges, apply/skip flow) is
+  // already covered by ProjectWizardRoomLayoutStep.test.tsx and
+  // ProjectWizardVariantsStep.test.tsx; these two just prove the edit wizard
+  // actually wires productId/floorPlans/enableStandardsExtraction through.
+  it("shows the room recognition card in the room layout step and calls recognizeRoomLayout with the productId", async () => {
+    const user = userEvent.setup();
+    vi.mocked(recognizeRoomLayout).mockResolvedValue({
+      ok: true,
+      rooms: [{ name: "Salon", areaM2: 28, floorLevel: "parter", confidence: "high" }],
+    });
+    render(
+      <ProductEditWizard
+        locale="pl"
+        productId="product-1"
+        initialDraft={initialDraft}
+        initialPhotos={[]}
+        initialFloorPlans={[{ id: "f1", url: "https://example.com/f1.jpg", filename: "rzut.jpg", variantId: null }]}
+        initialSpecificationPdf={null}
+        initialSalesPdf={null}
+        initialVariants={[]}
+        countries={countries}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Układ pomieszczeń" }));
+    expect(screen.getByText("Rozpoznaj układ pomieszczeń z rzutów")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Rozpoznaj pomieszczenia" }));
+
+    expect(recognizeRoomLayout).toHaveBeenCalledWith("product-1", ["f1"]);
+    await screen.findByDisplayValue("Salon");
+  });
+
+  it("shows the standards extraction card in the variants step and calls extractStandardsFromMaterial with the productId", async () => {
+    const user = userEvent.setup();
+    vi.mocked(extractStandardsFromMaterial).mockResolvedValue({
+      ok: true,
+      standards: [
+        {
+          name: "Comfort",
+          priceEur: 90_000,
+          priceOnRequest: false,
+          costLineItems: [],
+          proposedStandard: "deweloperski",
+          confidence: "high",
+        },
+      ],
+    });
+    render(
+      <ProductEditWizard
+        locale="pl"
+        productId="product-1"
+        initialDraft={initialDraft}
+        initialPhotos={[]}
+        initialFloorPlans={[]}
+        initialSpecificationPdf={null}
+        initialSalesPdf={null}
+        initialVariants={[]}
+        countries={countries}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Warianty i cennik" }));
+    expect(screen.getByText("Rozpoznaj standardy z materiału")).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText("Wklejony tekst albo tabela"), "Comfort: 90-100k EUR");
+    await user.click(screen.getByRole("button", { name: "Rozpoznaj standardy" }));
+
+    expect(extractStandardsFromMaterial).toHaveBeenCalledWith("product-1", { kind: "text", text: "Comfort: 90-100k EUR" });
+    expect(await screen.findByText("wysoka pewność")).toBeInTheDocument();
   });
 });

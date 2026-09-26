@@ -145,6 +145,71 @@ export function EnergyEfficiencyIcon(props: IconProps) {
   );
 }
 
+// Trójkąt połaci dachu z linią pionową od kalenicy i łukiem kąta między nimi —
+// ten sam symbol kąta nachylenia, jaki widać na przekroju architektonicznym
+// dachu, więc odpowiada wprost na pytanie "jaki jest kąt nachylenia dachu?".
+export function RoofPitchIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M3.5 15 12 5 20.5 15" />
+      <path d="M3.5 15h17" />
+      <path d="M12 5v6.4" />
+      <path d="M9.3 9.8a3.6 3.6 0 0 0 2.7-4.4" />
+    </svg>
+  );
+}
+
+// Rzut pomieszczenia z przestawną (przerywaną) ścianką działową i strzałkami
+// w obie strony — symbol przekładalności układu, nie ozdobna strzałka, żeby
+// mówić wprost "ten układ da się dopasować pod siebie".
+export function CustomizationIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <rect x="3.5" y="4" width="17" height="16" rx="0.5" />
+      <path d="M12 4v16" strokeDasharray="1.4 2.2" />
+      <path d="M9.4 12H7M7 12l1.4-1.4M7 12l1.4 1.4" />
+      <path d="M14.6 12h2.4M17 12l-1.4-1.4M17 12l1.4 1.4" />
+    </svg>
+  );
+}
+
+// Podwójna rama okna: zewnętrzna linia to ościeżnica, wewnętrzna przerywana
+// to szczelina uszczelki — ten sam sposób rysowania szczelności stolarki co
+// na przekrojach okiennych, więc odpowiada na "jak szczelne są okna i drzwi?".
+export function WindowSealIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <rect x="4" y="3.5" width="16" height="16" rx="0.5" />
+      <rect x="6.4" y="5.9" width="11.2" height="11.2" rx="0.3" strokeDasharray="0.1 2.6" />
+      <path d="M12 5.9v11.2M6.4 11.5h11.2" />
+    </svg>
+  );
+}
+
+// Kratka wentylacyjna (żaluzje) z zawijasem przepływu powietrza nad nią — ten
+// sam symbol nawiewu co na rzutach instalacyjnych, odpowiadający na "czy
+// latem będzie duszno?".
+export function VentilationIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <rect x="4" y="6.5" width="16" height="13" rx="1" />
+      <path d="M7 10h10M7 13.2h10M7 16.4h10" />
+      <path d="M14.8 3c1.9.9 1.9 2.1 0 3" />
+    </svg>
+  );
+}
+
+// Grzejnik (żeberka) — realny symbol źródła ciepła z rzutów instalacyjnych,
+// odpowiadający na "czym dom jest ogrzewany?".
+export function HeatSourceIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <rect x="4" y="6" width="16" height="12" rx="1" />
+      <path d="M7.5 6v12M11 6v12M14.5 6v12M18 6v12" />
+    </svg>
+  );
+}
+
 // Tarcza (ten sam kształt co WarrantyIcon — spójna wizualna rodzina "ochrony")
 // z czytelnym płomieniem w środku zamiast poprzedniej abstrakcyjnej kropli:
 // odporność ogniowa/wiatrowa i gwarancja konstrukcyjna to ta sama obietnica

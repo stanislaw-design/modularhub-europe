@@ -80,6 +80,7 @@ Stored in `docs/specs/`. Each is a directory `docs/specs/NNNN-title/` with `inde
 - [sentry-nextjs-sdk](.agents/skills/sentry-nextjs-sdk/): `getsentry/sentry-for-ai`, Sentry Next.js SDK setup and conventions (error tracking, see `lib/observability/AGENTS.md`)
 - [posthog-instrumentation](.agents/skills/posthog-instrumentation/): `posthog/posthog-for-claude`, PostHog event tracking conventions (business analytics, see `lib/observability/AGENTS.md`)
 - [aws-sdk-js-v3-usage](.agents/skills/aws-sdk-js-v3-usage/): `aws/agent-toolkit-for-aws`, AWS SDK for JavaScript v3 patterns (used for `@aws-sdk/client-s3` against Cloudflare R2, spec 0031, see `lib/storage/AGENTS.md`)
+- [scrape-steel-house](.claude/skills/scrape-steel-house/): bespoke (not vendored), gathers refreshed Steel House (steel-house.com.pl) product data/images into `tmp/house-research/steel-house/` for human review before any import touches `_docs/steelhouse-import-manifest.json` or the real Neon rows; never writes to `lib/data/`, `lib/db/`, or `public/images/`
 
 MCP servers: playwright (connected), Neon (connected), Sentry (connected)
 

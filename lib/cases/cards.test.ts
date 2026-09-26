@@ -46,7 +46,7 @@ describe.skipIf(!process.env.DATABASE_URL)("karty startowe i podsumowanie potrze
       countryCode: "PL",
       technology: "szkielet-drewniany",
     });
-    await db.insert(product).values({ id: productId, producerId, family: "dom", status: "published", name: "Case Field Product" });
+    await db.insert(product).values({ id: productId, producerId, family: "dom", status: "draft", name: "Case Field Product" });
 
     const result = await createAdvisoryCase(
       {

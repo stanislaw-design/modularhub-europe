@@ -198,6 +198,15 @@ body {
    (percentage-based margins can't cancel it exactly). Used by the home
    page's v4 marketing bands (RouteShell/Container keep every other klient/
    producent screen contained; this is additive, opt-in per section). */
+@utility full-bleed {
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+}
+
 .full-bleed {
   width: 100vw;
   position: relative;

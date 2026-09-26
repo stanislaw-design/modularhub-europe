@@ -3,11 +3,12 @@
 import { CheckCircle2, ChevronDown, CircleDot, HelpCircle, PlusCircle, TriangleAlert, User } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
-import { Checkbox, DataText, StatusPill, Text } from "@/components/ui";
+import { Checkbox, DataText, Heading, Text } from "@/components/ui";
 import type { CompletionStandard, CostLineItemStatus, ProjectVariant } from "@/lib/data/types";
 
 interface ProjectCostComparisonTableProps {
   variants: ProjectVariant[];
+  heading: string;
 }
 
 const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0 });
@@ -17,6 +18,15 @@ const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0
 // specyfikacja (dziś potrafi mieć 20+ wierszy) nie zdominowała pierwszego
 // ekranu przed resztą sekcji strony.
 const PREVIEW_ROW_COUNT = 10;
+
+// Literalne nazwy klas (nie budowane dynamicznie z liczby) — Tailwind musi
+// widzieć każdą użytą klasę w źródle, żeby jej nie odciąć przy budowaniu.
+// Tyle kolumn ile prawdziwych wariantów (1 do 3, spec 0054 AC-2).
+const MOBILE_GRID_COLS: Record<number, string> = {
+  1: "grid-cols-1",
+  2: "grid-cols-2",
+  3: "grid-cols-3",
+};
 
 const STATUS_ICON: Record<CostLineItemStatus, typeof CheckCircle2> = {
   "w-cenie": CheckCircle2,
@@ -45,7 +55,7 @@ const STATUS_COLOR_CLASS: Record<CostLineItemStatus, string> = {
 // nawigacji. Łączy wiersze między wariantami po dokładnym dopasowaniu tekstu
 // `label` (spec 0042 AC-2) — najlepsze możliwe przybliżenie, bo spec 0041
 // celowo zostawił `label` jako wolny tekst bez wspólnego słownika.
-export function ProjectCostComparisonTable({ variants }: ProjectCostComparisonTableProps) {
+export function ProjectCostComparisonTable({ variants, heading }: ProjectCostComparisonTableProps) {
   const t = useTranslations("ProjectCostComparisonTable");
   const [onlyDifferences, setOnlyDifferences] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -81,46 +91,42 @@ export function ProjectCostComparisonTable({ variants }: ProjectCostComparisonTa
     }));
   }, [variants]);
 
-  // Kolumna "pod klucz" bez prawdziwego wariantu w bazie to zawsze placeholder
-  // (getDisplayProjectVariants) z pustym costLineItems, więc jej komórka w
-  // każdym wierszu to `null` — licząc ją do porównania, KAŻDY wiersz wyglądał
-  // na "różny" (prawdziwy status kontra null), nawet gdy oba prawdziwe warianty
-  // były identyczne. Różnicę sprawdzamy tylko między prawdziwymi wariantami.
-  const visibleRows = onlyDifferences
-    ? rows.filter((row) => {
-        const realCells = row.cells.filter((_, index) => !variants[index].isPlaceholder);
-        return new Set(realCells).size > 1;
-      })
-    : rows;
+  const visibleRows = onlyDifferences ? rows.filter((row) => new Set(row.cells).size > 1) : rows;
 
   const displayedRows = expanded ? visibleRows : visibleRows.slice(0, PREVIEW_ROW_COUNT);
   const hiddenRowCount = Math.max(visibleRows.length - PREVIEW_ROW_COUNT, 0);
 
   return (
     <div className="flex flex-col gap-brand-3">
-      {rows.length > 0 && (
-        <label className="focus-ring flex w-fit cursor-pointer items-center gap-brand-2 rounded-data">
-          <Checkbox
-            surface="v5"
-            checked={onlyDifferences}
-            onChange={() => setOnlyDifferences((value) => !value)}
-          />
-          <Text as="span" surface="v5">
-            {t("onlyDifferences")}
-          </Text>
-        </label>
-      )}
+      {/* Nagłówek sekcji i przełącznik "pokaż tylko różnice" w jednej linii
+          (checkbox po prawej) — z jednym wariantem nie ma z czym porównywać,
+          więc przełącznik nie ma sensu i się nie renderuje. */}
+      <div className="flex flex-wrap items-center justify-between gap-brand-2">
+        <Heading level="h2" surface="v5" className="text-h3">
+          {heading}
+        </Heading>
+        {rows.length > 0 && variants.length >= 2 && (
+          <label className="focus-ring flex w-fit cursor-pointer items-center gap-brand-2 rounded-data">
+            <Checkbox
+              surface="v5"
+              checked={onlyDifferences}
+              onChange={() => setOnlyDifferences((value) => !value)}
+            />
+            <Text as="span" surface="v5">
+              {t("onlyDifferences")}
+            </Text>
+          </label>
+        )}
+      </div>
       {/* Mobile: karty zamiast szerokiej tabeli (wymagała poziomego scrolla) —
           nagłówek "Pozycja" znika, bo etykieta pozycji jest już tytułem karty;
-          3 warianty stają się rzędem ikon z krótką podpisaną nazwą standardu
-          pod spodem, bez osobnego tekstu statusu (ikona + podpis pod ikoną
-          liczy się jako "status ikoną i tekstem", tekst statusu trafia do
-          sr-only zamiast zajmować miejsce na ekranie). Brak statusu (kolumna
-          placeholder albo pozycja spoza wariantu) to zawsze ten sam trójkąt
-          z wykrzyknikiem, niezależnie od przyczyny — desktopowa tabela
-          rozróżnia "do uzupełnienia" od "nie dotyczy" tekstem, tu nie ma na to
-          miejsca. Legenda tłumaczy ikony raz na górze, więc karty poniżej nie
-          muszą powtarzać tekstu statusu na widoku. */}
+          warianty (1 do 3, spec 0054 AC-2) stają się rzędem ikon z krótką
+          podpisaną nazwą standardu pod spodem, bez osobnego tekstu statusu
+          (ikona + podpis pod ikoną liczy się jako "status ikoną i tekstem",
+          tekst statusu trafia do sr-only zamiast zajmować miejsce na
+          ekranie). Pozycja spoza wariantu (brak statusu) to zawsze ten sam
+          trójkąt z wykrzyknikiem. Legenda tłumaczy ikony raz na górze, więc
+          karty poniżej nie muszą powtarzać tekstu statusu na widoku. */}
       {rows.length > 0 && (
         <div className="flex flex-wrap gap-x-brand-3 gap-y-1 lg:hidden">
           {(Object.keys(STATUS_ICON) as CostLineItemStatus[]).map((status) => {
@@ -153,13 +159,13 @@ export function ProjectCostComparisonTable({ variants }: ProjectCostComparisonTa
               <Text as="p" surface="v5" className="font-medium">
                 {row.label}
               </Text>
-              <div className="mt-brand-2 grid grid-cols-3 gap-brand-2">
+              <div className={`mt-brand-2 grid gap-brand-2 ${MOBILE_GRID_COLS[variants.length] ?? "grid-cols-3"}`}>
                 {row.cells.map((status, index) => {
                   const variant = variants[index];
-                  const missing = variant.isPlaceholder || !status;
+                  const missing = !status;
                   const Icon = missing ? TriangleAlert : STATUS_ICON[status];
                   const colorClass = missing ? "text-status-conditional" : STATUS_COLOR_CLASS[status];
-                  const srLabel = variant.isPlaceholder ? t("toBeCompleted") : status ? statusLabel[status] : t("notIncluded");
+                  const srLabel = status ? statusLabel[status] : t("notIncluded");
                   return (
                     <div key={variant.id} className="flex flex-col items-center gap-1 text-center">
                       <Icon className={`size-5 shrink-0 ${colorClass}`} aria-hidden="true" />
@@ -189,31 +195,11 @@ export function ProjectCostComparisonTable({ variants }: ProjectCostComparisonTa
                   <Text as="span" variant="label" tone="muted" surface="v5" className="block">
                     {variant.variantLabel ?? standardLabel[variant.completionStandard]}
                   </Text>
-                  {variant.isPlaceholder ? (
-                    <div className="mt-1">
-                      <StatusPill status="conditional">{t("toBeCompleted")}</StatusPill>
-                    </div>
-                  ) : (
-                    <>
-                      <DataText as="span" surface="v5" className="block text-body-l font-semibold">
-                        {variant.priceMin !== undefined && variant.priceMax !== undefined
-                          ? variant.priceMin === variant.priceMax
-                            ? t("priceFrom", { price: priceFormatter.format(variant.priceMin) })
-                            : `${priceFormatter.format(variant.priceMin)}–${priceFormatter.format(variant.priceMax)} €`
-                          : t("priceOnRequest")}
-                      </DataText>
-                      {variant.scopeSummary && (
-                        <Text tone="muted" surface="v5" className="mt-1 block text-data font-normal">
-                          {variant.scopeSummary}
-                        </Text>
-                      )}
-                      {variant.excludedScope && (
-                        <Text tone="muted" surface="v5" className="mt-1 block text-data font-normal">
-                          {t("excludedScopeLabel", { text: variant.excludedScope })}
-                        </Text>
-                      )}
-                    </>
-                  )}
+                  <DataText as="span" surface="v5" className="block text-body-l font-semibold">
+                    {variant.priceMin !== undefined
+                      ? t("priceFrom", { price: priceFormatter.format(variant.priceMin) })
+                      : t("priceOnRequest")}
+                  </DataText>
                 </th>
               ))}
             </tr>
@@ -239,9 +225,7 @@ export function ProjectCostComparisonTable({ variants }: ProjectCostComparisonTa
                     const Icon = status ? STATUS_ICON[status] : null;
                     return (
                       <td key={variants[index].id} className="p-brand-3">
-                        {variants[index].isPlaceholder ? (
-                          <StatusPill status="conditional">{t("toBeCompleted")}</StatusPill>
-                        ) : status ? (
+                        {status ? (
                           <span className={`flex items-center gap-brand-1 ${STATUS_COLOR_CLASS[status]}`}>
                             {Icon && <Icon className="size-4 shrink-0" aria-hidden="true" />}
                             <Text as="span" surface="v5" className={`text-data font-medium ${STATUS_COLOR_CLASS[status]}`}>

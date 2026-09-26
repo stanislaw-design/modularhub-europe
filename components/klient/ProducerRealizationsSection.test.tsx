@@ -25,6 +25,7 @@ function makeProducer(overrides: Partial<Producer> = {}): Producer {
 const baseProps = {
   projectName: "Steel House Loft 120",
   selectedVariantId: "variant-1",
+  structuralWarrantyYears: 30,
 };
 
 describe("ProducerRealizationsSection", () => {
@@ -71,7 +72,7 @@ describe("ProducerRealizationsSection", () => {
   it.each([
     [true, "Możliwe odwiedziny osobiste"],
     [false, "Bez możliwości odwiedzin osobistych"],
-    [null, "Odwiedziny osobiste do potwierdzenia z producentem"],
+    [null, "Odwiedziny osobiste do ustalenia z producentem"],
   ] as const)("shows showroomVisitAvailable=%s as its own distinguishable state", async (value, expectedText) => {
     render(
       await ProducerRealizationsSection({
@@ -81,5 +82,22 @@ describe("ProducerRealizationsSection", () => {
       }),
     );
     expect(screen.getByText(expectedText)).toBeInTheDocument();
+  });
+
+  // Kafelek gwarancji konstrukcyjnej przeniósł się tu z ProjectTechnicalSpecs
+  // (grupa "Bezpieczeństwo i gwarancja"), żeby wypełnić wolną przestrzeń po
+  // prawej stronie tego nagłówka na desktopie.
+  it("shows the structural warranty next to the producer's identity", async () => {
+    render(
+      await ProducerRealizationsSection({
+        producer: makeProducer(),
+        documents: [],
+        ...baseProps,
+        structuralWarrantyYears: 25,
+      }),
+    );
+
+    expect(screen.getByText("Gwarancja konstrukcyjna")).toBeInTheDocument();
+    expect(screen.getByText("25 lat")).toBeInTheDocument();
   });
 });

@@ -57,7 +57,7 @@ export function mergeRecognizedRooms(existing: RoomLayoutRow[], recognized: Reco
 
     if (matchIndex === -1) {
       const id = crypto.randomUUID();
-      rows.push({ id, name: room.name, areaM2: room.areaM2, function: "", floorLevel: room.floorLevel });
+      rows.push({ id, name: room.name, areaM2: room.areaM2, floorLevel: room.floorLevel });
       confidenceById[id] = room.confidence;
       continue;
     }

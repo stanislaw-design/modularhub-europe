@@ -13,7 +13,6 @@ import {
   productTimelineStage,
   productTranslation,
   productVariant,
-  productVariantTranslation,
 } from "@/lib/db/schema";
 import type { Locale } from "@/lib/i18n/routing";
 import type { EnergyClass, VentilationType } from "@/lib/product-technical-specs";
@@ -359,6 +358,10 @@ interface ProductTranslationText {
   // getProjects/getFeaturedProjectByFamily (listy/teaser) nigdy nie renderują
   // tej sekcji, więc nie płacą za dodatkowy JOIN.
   clientRequirements?: unknown;
+  // Tłumaczenie product.foundationOptions (spec 0053 AC-7): wolny tekst, ten
+  // sam wzorzec opcjonalności co clientRequirements wyżej — tylko
+  // getProjectById selectuje tę kolumnę.
+  foundationOptions?: string | null;
 }
 
 function resolveTranslatedText(base: string | null, translated: string | null | undefined): string {
@@ -377,7 +380,7 @@ function migrateRoomLayoutEntry(room: RoomLayoutEntry & { isMezzanine?: boolean 
   return { ...rest, floorLevel: isMezzanine ? "poddasze" : "parter" };
 }
 
-// Tylko `name` jest tłumaczony (areaM2/function/floorLevel nie są
+// Tylko `name` jest tłumaczony (areaM2/floorLevel nie są
 // językozależne, ten sam wzorzec co roomLayoutTranslationRowSchema w
 // lib/product-room-layout.ts). Dopasowanie preferuje `id` (kreator producenta
 // zawsze go pisze od spec 0045), z fallbackiem na pozycję w tablicy dla
@@ -564,11 +567,10 @@ function mapRowToProject(
     family: row.family,
     category: row.category ?? "caloroczny",
     constructionSystem: row.constructionSystem ?? "",
-    foundationOptions: row.foundationOptions ?? "",
+    foundationOptions: resolveTranslatedText(row.foundationOptions, translation?.foundationOptions),
     customizationScope: row.customizationScope ?? "",
     structuralWarrantyYears: row.structuralWarrantyYears ?? 0,
     priceMin: (row.priceMinCents ?? 0) / 100,
-    priceMax: (row.priceMaxCents ?? 0) / 100,
     currency: "EUR",
     coverImageUrl: row.coverImageUrl ?? "",
     description: resolveTranslatedText(row.description, translation?.description),
@@ -600,7 +602,7 @@ function mapRowToProject(
 // lib/db/client), żeby dzisiejsi odbiorcy importujący z tego pliku nie musieli
 // zmieniać ścieżki importu; komponenty prezentacyjne importują bezpośrednio
 // z project-variants.ts, patrz komentarz tam.
-export { getDefaultProjectVariant, getDisplayProjectVariants } from "./project-variants";
+export { getDefaultProjectVariant } from "./project-variants";
 
 // countryCode filter: a project surfaces for a country when it has an
 // eligibility row there and that row is not "blocked" ("approved" and
@@ -777,6 +779,7 @@ export async function getProjectById(id: string, locale: Locale = "pl"): Promise
         translationDescription: productTranslation.description,
         translationRoomLayout: productTranslation.roomLayout,
         translationClientRequirements: productTranslation.clientRequirements,
+        translationFoundationOptions: productTranslation.foundationOptions,
       })
       .from(product)
       .innerJoin(producer, eq(product.producerId, producer.id))
@@ -802,6 +805,7 @@ export async function getProjectById(id: string, locale: Locale = "pl"): Promise
               description: row.translationDescription,
               roomLayout: row.translationRoomLayout,
               clientRequirements: row.translationClientRequirements,
+              foundationOptions: row.translationFoundationOptions,
             }),
             documentPhotos.get(id),
           ),

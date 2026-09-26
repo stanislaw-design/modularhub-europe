@@ -91,7 +91,10 @@ function sourceMetadata(item: DomiHausProjectSource) {
 function productValues(item: DomiHausProjectSource) {
   const cube = isCube(item);
   const priceMinCents = plnToRoundedEurCents(item.pricesNetPln[0]);
-  const priceMaxCents = plnToRoundedEurCents(item.pricesNetPln[2]);
+  // housePriceMaxCents jest osobną kolumną (nie product.priceMaxCents,
+  // usuniętym spec 0051 AC-1): dziś nieużywana przez aplikację, ale nie jest
+  // objęta tą decyzją, więc zostaje wyliczana jak dotąd.
+  const housePriceMaxCents = plnToRoundedEurCents(item.pricesNetPln[2]);
   return {
     producerId: PRODUCER_ID,
     status: "published" as const,
@@ -107,7 +110,7 @@ function productValues(item: DomiHausProjectSource) {
     onSiteAssemblyDaysMin: cube ? 2 : 0,
     onSiteAssemblyDaysMax: cube ? 2 : 0,
     housePriceMinCents: priceMinCents,
-    housePriceMaxCents: priceMaxCents,
+    housePriceMaxCents,
     structuralWarrantyYears: 30,
     category: item.category,
     technicalSpecs: sourceMetadata(item),
@@ -128,7 +131,6 @@ function productValues(item: DomiHausProjectSource) {
     customizationScope:
       "Zmiany projektu, stolarka, elewacja, dach, instalacje, termoizolacja i standard wykończenia zależnie od wybranego pakietu",
     priceMinCents,
-    priceMaxCents,
     currency: "EUR",
     priceIncludes: [
       "zakres wybranego pakietu Basic, Comfort lub Premium zgodnie z tabelą producenta",

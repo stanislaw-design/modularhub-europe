@@ -12,12 +12,12 @@ interface ProjectVariantPickerProps {
 
 // Serwerowy przełącznik wariantów (spec 0042 AC-1): rząd linków
 // `?wariant=...`, żadnego stanu klienckiego — wybór idzie przez zwykłą
-// nawigację Next.js, ten sam wzorzec co SubcategoryFilterBar. Zawsze
-// pokazuje wszystkie trzy standardy wykończenia (enum zamknięty, spec 0042
-// AC-7 komentarz) — standard bez jeszcze wypełnionego `product_variant`
-// renderuje się jako wyłączona (disabled) zakładka (isPlaceholder), zamiast
-// klikalnego linku, żeby klient widział cały układ, ale nie mógł przełączyć
-// się na standard, dla którego producent jeszcze nie podał ceny.
+// nawigację Next.js, ten sam wzorzec co SubcategoryFilterBar. Renderuje
+// dokładnie tyle zakładek, ile projekt ma prawdziwych wariantów, nigdy
+// syntetyczny placeholder za standard bez wiersza w bazie (spec 0054 AC-1,
+// AC-2). Gdy jest dokładnie jeden wariant, ta jedna zakładka nadal się
+// renderuje jako widoczna, niekliklana "bieżąca" pozycja, dla spójności
+// układu z projektami mającymi dwa albo trzy warianty (spec 0054 AC-3).
 export function ProjectVariantPicker({
   variants,
   selectedVariantId,
@@ -27,12 +27,13 @@ export function ProjectVariantPicker({
 }: ProjectVariantPickerProps) {
   if (variants.length === 0) return null;
 
+  const singleVariant = variants.length === 1;
   const selectedVariant = variants.find((variant) => variant.id === selectedVariantId);
   const selectOptions = variants.map((variant) => ({
     value: variant.completionStandard,
     label: variant.variantLabel ?? standardLabel[variant.completionStandard],
-    href: variant.isPlaceholder ? "" : hrefFor(variant.completionStandard),
-    disabled: Boolean(variant.isPlaceholder),
+    href: singleVariant ? "" : hrefFor(variant.completionStandard),
+    disabled: singleVariant,
   }));
 
   return (
@@ -52,12 +53,12 @@ export function ProjectVariantPicker({
           const active = variant.id === selectedVariantId;
           const label = variant.variantLabel ?? standardLabel[variant.completionStandard];
 
-          if (variant.isPlaceholder) {
+          if (singleVariant) {
             return (
               <span
                 key={variant.id}
-                aria-disabled="true"
-                className="flex-1 cursor-not-allowed whitespace-nowrap rounded-full border border-dashed border-brand-v5-line px-brand-2 py-1 text-center text-data font-medium text-brand-v5-muted/60"
+                aria-current="true"
+                className="flex-1 cursor-default whitespace-nowrap rounded-full border border-brand-v5-amber-strong bg-brand-v5-amber/10 px-brand-2 py-1 text-center text-data font-medium text-brand-v5-ink"
               >
                 {label}
               </span>

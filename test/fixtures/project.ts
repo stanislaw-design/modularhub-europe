@@ -22,7 +22,6 @@ export function createMockProject(overrides: Partial<Project> = {}): Project {
     customizationScope: "Lustrzane odbicie i wariant elewacji",
     structuralWarrantyYears: 30,
     priceMin: 118000,
-    priceMax: 142000,
     currency: "EUR",
     coverImageUrl: "https://picsum.photos/seed/modulor-family-90/960/640",
     description: "",
@@ -39,12 +38,13 @@ export function createMockProject(overrides: Partial<Project> = {}): Project {
         id: "variant-deweloperski",
         completionStandard: "deweloperski",
         priceMin: 118000,
-        priceMax: 142000,
         currency: "EUR",
-        scopeSummary: "Dom w standardzie deweloperskim, gotowy do wykończenia.",
         priceOnRequest: false,
         isDefault: true,
-        costLineItems: [],
+        costLineItems: [
+          { id: "cost-fundament", label: "Fundament", status: "w-cenie" },
+          { id: "cost-sciany", label: "Ściany i dach", status: "w-cenie" },
+        ],
         // Dni zamiast dawnych tygodni (spec 0041/0042): 12–16 tyg. produkcji
         // = 84–112 dni, żeby testy odwołujące się do starego zapisu
         // tygodniowego (ResultCard, FavoriteCompareTable) nie musiały się zmienić.

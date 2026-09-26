@@ -10,6 +10,15 @@ const authMock = vi.hoisted(() => vi.fn<() => Promise<Session | null>>());
 vi.mock("@/auth", () => ({ auth: authMock }));
 vi.mock("@/lib/observability/errors", () => ({ captureError: vi.fn() }));
 
+// after() throws "called outside a request scope" under plain Vitest (no
+// Next.js request context) — same boundary mock as
+// lib/producer-product-actions.test.ts. upsertCostLineItem/cloneVariant fire
+// generateMissingCostLineItemLabelTranslations through after() on every save;
+// none of these tests assert on that background translation, so the queued
+// task is deliberately never flushed (it would otherwise hit the real,
+// unmocked Azure OpenAI client at lib/ai/openai.ts).
+vi.mock("next/server", () => ({ after: vi.fn((task: () => unknown) => task) }));
+
 import { db } from "@/lib/db/client";
 import { auditLog, costLineItem, product, productTimelineStage, productVariant, producer, users } from "@/lib/db/schema";
 import { captureError } from "@/lib/observability/errors";

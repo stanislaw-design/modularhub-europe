@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { ProjectDraft } from "./data/types";
 import {
+  BATHROOMS_MAX,
+  BATHROOMS_MIN,
   BEDROOMS_MAX,
   BEDROOMS_MIN,
+  ROOMS_MAX,
+  ROOMS_MIN,
   CONTAINER_TECHNICAL_FIELDS_BY_SUBCATEGORY,
   ENERGY_CLASS_OPTIONS,
   FLOOR_AREA_MAX_M2,
@@ -23,8 +27,12 @@ function completeDraft(): ProjectDraft {
   return {
     name: "Modulor 28",
     floorAreaM2: 80,
+    externalDimensions: "10m x 8m x 5m",
+    rooms: 4,
     bedrooms: 2,
+    bathrooms: 1,
     countryOfProduction: "PL",
+    deliveryCountries: ["PL"],
     description: "Opis projektu",
     descriptionEn: "",
     descriptionNl: "",
@@ -59,6 +67,10 @@ function completeDraft(): ProjectDraft {
     floorPlanFiles: [{ name: "rzut.pdf", sizeBytes: 100 }],
     photoFiles: [{ name: "zdjecie.png", sizeBytes: 200 }],
     structuralWarrantyYears: 25,
+    foundationOptions: "",
+    foundationOptionsEn: "",
+    foundationOptionsNl: "",
+    foundationOptionsDe: "",
     installationWarrantyYears: null,
     serviceScopeDescription: "",
     transportDimensions: "",
@@ -70,11 +82,12 @@ function completeDraft(): ProjectDraft {
 }
 
 describe("WIZARD_STEPS", () => {
-  it("has seven steps in the fixed spec order ('tlumaczenia' added spec 0050 AC-31, right before 'podsumowanie')", () => {
+  it("has eight steps in the fixed spec order ('uklad-pomieszczen' moved after 'pliki' so AI recognition can use already-uploaded floor plans)", () => {
     expect(WIZARD_STEPS.map((step) => step.id)).toEqual([
       "podstawowe",
       "techniczne",
       "pliki",
+      "uklad-pomieszczen",
       "warianty",
       "faq",
       "tlumaczenia",
@@ -89,8 +102,12 @@ describe("createEmptyDraft", () => {
 
     expect(draft.name).toBe("");
     expect(draft.floorAreaM2).toBeNull();
+    expect(draft.externalDimensions).toBe("");
+    expect(draft.rooms).toBeNull();
     expect(draft.bedrooms).toBeNull();
+    expect(draft.bathrooms).toBeNull();
     expect(draft.countryOfProduction).toBeNull();
+    expect(draft.deliveryCountries).toEqual([]);
     expect(draft.family).toBeNull();
     expect(draft.category).toBeNull();
     expect(draft.technicalSpecs).toEqual({});
@@ -99,6 +116,10 @@ describe("createEmptyDraft", () => {
     expect(draft.floorPlanFiles).toEqual([]);
     expect(draft.photoFiles).toEqual([]);
     expect(draft.simplifiedPermitEligible).toBeNull();
+    expect(draft.foundationOptions).toBe("");
+    expect(draft.foundationOptionsEn).toBe("");
+    expect(draft.foundationOptionsNl).toBe("");
+    expect(draft.foundationOptionsDe).toBe("");
   });
 });
 
@@ -123,21 +144,18 @@ describe("isStepComplete: podstawowe", () => {
     expect(isStepComplete("podstawowe", { ...completeDraft(), floorAreaM2: null })).toBe(false);
   });
 
-  it("accepts bedrooms at the inclusive boundaries", () => {
-    expect(isStepComplete("podstawowe", { ...completeDraft(), bedrooms: BEDROOMS_MIN })).toBe(true);
-    expect(isStepComplete("podstawowe", { ...completeDraft(), bedrooms: BEDROOMS_MAX })).toBe(true);
-  });
-
-  it("rejects bedrooms outside the boundaries, non-integer, or null", () => {
-    expect(isStepComplete("podstawowe", { ...completeDraft(), bedrooms: BEDROOMS_MIN - 1 })).toBe(false);
-    expect(isStepComplete("podstawowe", { ...completeDraft(), bedrooms: BEDROOMS_MAX + 1 })).toBe(false);
-    expect(isStepComplete("podstawowe", { ...completeDraft(), bedrooms: 2.5 })).toBe(false);
-    expect(isStepComplete("podstawowe", { ...completeDraft(), bedrooms: null })).toBe(false);
-  });
-
   it("is incomplete when the country or description is missing", () => {
     expect(isStepComplete("podstawowe", { ...completeDraft(), countryOfProduction: null })).toBe(false);
     expect(isStepComplete("podstawowe", { ...completeDraft(), description: "" })).toBe(false);
+  });
+
+  it("is incomplete when no delivery country is selected", () => {
+    expect(isStepComplete("podstawowe", { ...completeDraft(), deliveryCountries: [] })).toBe(false);
+  });
+
+  it("is complete with a single or several delivery countries", () => {
+    expect(isStepComplete("podstawowe", { ...completeDraft(), deliveryCountries: ["DE"] })).toBe(true);
+    expect(isStepComplete("podstawowe", { ...completeDraft(), deliveryCountries: ["PL", "DE", "NL"] })).toBe(true);
   });
 
   it("is incomplete when family is missing, or when its matching subcategory is missing (spec 0022 AC-6)", () => {
@@ -278,6 +296,36 @@ describe("isStepComplete: pliki", () => {
   });
 });
 
+describe("isStepComplete: uklad-pomieszczen", () => {
+  it("is complete with a valid bedrooms/rooms/bathrooms count, room layout itself is optional", () => {
+    expect(isStepComplete("uklad-pomieszczen", { ...completeDraft(), roomLayout: [] })).toBe(true);
+  });
+
+  it("accepts bedrooms, rooms and bathrooms at the inclusive boundaries", () => {
+    expect(isStepComplete("uklad-pomieszczen", { ...completeDraft(), bedrooms: BEDROOMS_MIN })).toBe(true);
+    expect(isStepComplete("uklad-pomieszczen", { ...completeDraft(), bedrooms: BEDROOMS_MAX })).toBe(true);
+    expect(isStepComplete("uklad-pomieszczen", { ...completeDraft(), rooms: ROOMS_MIN })).toBe(true);
+    expect(isStepComplete("uklad-pomieszczen", { ...completeDraft(), rooms: ROOMS_MAX })).toBe(true);
+    expect(isStepComplete("uklad-pomieszczen", { ...completeDraft(), bathrooms: BATHROOMS_MIN })).toBe(true);
+    expect(isStepComplete("uklad-pomieszczen", { ...completeDraft(), bathrooms: BATHROOMS_MAX })).toBe(true);
+  });
+
+  it("rejects bedrooms, rooms or bathrooms outside the boundaries, non-integer, or null", () => {
+    expect(isStepComplete("uklad-pomieszczen", { ...completeDraft(), bedrooms: BEDROOMS_MIN - 1 })).toBe(false);
+    expect(isStepComplete("uklad-pomieszczen", { ...completeDraft(), bedrooms: BEDROOMS_MAX + 1 })).toBe(false);
+    expect(isStepComplete("uklad-pomieszczen", { ...completeDraft(), bedrooms: 2.5 })).toBe(false);
+    expect(isStepComplete("uklad-pomieszczen", { ...completeDraft(), bedrooms: null })).toBe(false);
+    expect(isStepComplete("uklad-pomieszczen", { ...completeDraft(), rooms: ROOMS_MIN - 1 })).toBe(false);
+    expect(isStepComplete("uklad-pomieszczen", { ...completeDraft(), rooms: ROOMS_MAX + 1 })).toBe(false);
+    expect(isStepComplete("uklad-pomieszczen", { ...completeDraft(), rooms: 2.5 })).toBe(false);
+    expect(isStepComplete("uklad-pomieszczen", { ...completeDraft(), rooms: null })).toBe(false);
+    expect(isStepComplete("uklad-pomieszczen", { ...completeDraft(), bathrooms: BATHROOMS_MIN - 1 })).toBe(false);
+    expect(isStepComplete("uklad-pomieszczen", { ...completeDraft(), bathrooms: BATHROOMS_MAX + 1 })).toBe(false);
+    expect(isStepComplete("uklad-pomieszczen", { ...completeDraft(), bathrooms: 1.5 })).toBe(false);
+    expect(isStepComplete("uklad-pomieszczen", { ...completeDraft(), bathrooms: null })).toBe(false);
+  });
+});
+
 // spec 0045 AC-1/AC-4: kompletny tylko gdy istnieje dokładnie jeden domyślny
 // wariant z wypełnioną ceną minimalną.
 describe("isStepComplete: warianty", () => {
@@ -347,14 +395,14 @@ describe("isStepComplete: faq", () => {
 // puste wpisy tam, gdzie tłumaczenie jeszcze nie istnieje (edycja produktu).
 describe("alignRoomLayoutTranslation / alignFaqTranslation", () => {
   it("fills a missing translation with an empty placeholder sharing the same id", () => {
-    const rows = [{ id: "a", name: "Salon", areaM2: 30, function: "dzienna", floorLevel: "parter" as const }];
+    const rows = [{ id: "a", name: "Salon", areaM2: 30, floorLevel: "parter" as const }];
     expect(alignRoomLayoutTranslation(rows, [])).toEqual([{ id: "a", name: "" }]);
   });
 
   it("keeps an existing translation matched by id, ignoring array position", () => {
     const rows = [
-      { id: "a", name: "Salon", areaM2: 30, function: "dzienna", floorLevel: "parter" as const },
-      { id: "b", name: "Sypialnia", areaM2: 12, function: "nocna", floorLevel: "parter" as const },
+      { id: "a", name: "Salon", areaM2: 30, floorLevel: "parter" as const },
+      { id: "b", name: "Sypialnia", areaM2: 12, floorLevel: "parter" as const },
     ];
     const translation = [{ id: "b", name: "Bedroom" }];
     expect(alignRoomLayoutTranslation(rows, translation)).toEqual([

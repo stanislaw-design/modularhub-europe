@@ -6,6 +6,7 @@ import {
   getInquiryDetailForClient,
   getInquiryDetailForProducer,
   getOffersByInquiryIdForAdmin,
+  getProducerProductForEdit,
   getProducerVariantsForEdit,
   getProductFamilyCounts,
   getProductForAdmin,
@@ -26,6 +27,7 @@ import {
   producer,
   product,
   productTimelineStage,
+  productTranslation,
   productVariant,
   users,
 } from "./schema";
@@ -479,9 +481,9 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: offer/inquiry detail
 });
 
 // Zasila krok "Warianty i cennik" w ProductEditWizard (spec 0045 Build plan
-// zadanie 5/13): potwierdza, że odczyt składa cost_line_item, product_timeline_stage
-// i product_variant_translation przy właściwym wariancie, a nie miesza ich
-// między dwoma wariantami tego samego produktu.
+// zadanie 5/13): potwierdza, że odczyt składa cost_line_item i
+// product_timeline_stage przy właściwym wariancie, a nie miesza ich między
+// dwoma wariantami tego samego produktu.
 describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: getProducerVariantsForEdit", () => {
   const userId = crypto.randomUUID();
   const producerId = crypto.randomUUID();
@@ -575,5 +577,77 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: getProducerVariantsF
   it("returns an empty array for a product with no variants", async () => {
     const results = await getProducerVariantsForEdit(emptyProductId);
     expect(results).toEqual([]);
+  });
+});
+
+// Spec 0053 AC-6: confirms the edit screen's read path resolves
+// externalDimensions/foundationOptions from product and foundationOptions'
+// three translation variants from product_translation, the same shape
+// buildProductValues/translationRow (lib/producer-product-actions.ts) wrote.
+describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: getProducerProductForEdit foundation fields (spec 0053)", () => {
+  const userId = crypto.randomUUID();
+  const producerId = crypto.randomUUID();
+  const productId = crypto.randomUUID();
+  const emptyProductId = crypto.randomUUID();
+
+  beforeAll(async () => {
+    await db.insert(users).values({
+      id: userId,
+      email: `foundation-edit-${userId}@example.test`,
+      phone: "+48000000000",
+      role: "producer",
+    });
+    await db.insert(producer).values({
+      id: producerId,
+      userId,
+      nip: `FE${producerId.slice(0, 9)}`,
+      name: "Foundation Edit Query Test Producer",
+      countryCode: "PL",
+      technology: "szkielet-drewniany",
+    });
+    await db.insert(product).values([
+      {
+        id: productId,
+        producerId,
+        family: "dom",
+        name: "Foundation Edit Query Test Product",
+        externalDimensions: "12m x 9m x 6m",
+        foundationOptions: "Płyta fundamentowa lub ławy",
+      },
+      { id: emptyProductId, producerId, family: "dom", name: "Foundation Edit Query Test Product (empty)" },
+    ]);
+    await db.insert(productTranslation).values([
+      { productId, locale: "en", foundationOptions: "Concrete slab or strip footings" },
+      { productId, locale: "nl", foundationOptions: "Betonplaat of stroken funderingen" },
+    ]);
+  });
+
+  afterAll(async () => {
+    await db.delete(productTranslation).where(eq(productTranslation.productId, productId));
+    await db.delete(product).where(inArray(product.id, [productId, emptyProductId]));
+    await db.delete(producer).where(eq(producer.id, producerId));
+    await db.delete(users).where(eq(users.id, userId));
+    await db.delete(auditLog).where(inArray(auditLog.recordId, [userId, producerId]));
+  });
+
+  it("returns externalDimensions/foundationOptions from product, plus foundationOptionsEn/Nl/De from product_translation", async () => {
+    const row = await getProducerProductForEdit(producerId, productId);
+
+    expect(row?.externalDimensions).toBe("12m x 9m x 6m");
+    expect(row?.foundationOptions).toBe("Płyta fundamentowa lub ławy");
+    expect(row?.foundationOptionsEn).toBe("Concrete slab or strip footings");
+    expect(row?.foundationOptionsNl).toBe("Betonplaat of stroken funderingen");
+    // No "de" row inserted (partial translation, AC-4): falls back to null,
+    // not to the Polish source — that fallback happens client-side only
+    // (lib/data/projects.ts#resolveTranslatedText), never in this edit read.
+    expect(row?.foundationOptionsDe).toBeNull();
+  });
+
+  it("returns null for both fields on a product that never had them filled in", async () => {
+    const row = await getProducerProductForEdit(producerId, emptyProductId);
+
+    expect(row?.externalDimensions).toBeNull();
+    expect(row?.foundationOptions).toBeNull();
+    expect(row?.foundationOptionsEn).toBeNull();
   });
 });

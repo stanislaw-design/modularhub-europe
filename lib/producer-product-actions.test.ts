@@ -255,5 +255,81 @@ describe.skipIf(!process.env.DATABASE_URL)(
       const translations = await translationsFor(result.productId!);
       expect(translations.en.description).toBeNull();
     });
+
+    // Spec 0053 AC-3: externalDimensions/foundationOptions save through the
+    // same buildProductValues path as every other product field.
+    it("saves externalDimensions/foundationOptions to product, empty string as null (AC-3)", async () => {
+      generateProductTranslationsMock.mockResolvedValue({});
+
+      const created = await createProducerProduct(
+        draftFields({ externalDimensions: "10m x 8m x 5m", foundationOptions: "Płyta fundamentowa" }),
+      );
+      expect(created.ok).toBe(true);
+      createdProductIds.push(created.productId!);
+      await flushAfter();
+
+      const [row] = await db.select().from(product).where(eq(product.id, created.productId!));
+      expect(row.externalDimensions).toBe("10m x 8m x 5m");
+      expect(row.foundationOptions).toBe("Płyta fundamentowa");
+
+      const updated = await updateProducerProduct(
+        created.productId!,
+        draftFields({ externalDimensions: "", foundationOptions: "" }),
+        { publish: false },
+      );
+      expect(updated.ok).toBe(true);
+      await flushAfter();
+
+      const [updatedRow] = await db.select().from(product).where(eq(product.id, created.productId!));
+      expect(updatedRow.externalDimensions).toBeNull();
+      expect(updatedRow.foundationOptions).toBeNull();
+    });
+
+    // Spec 0053 AC-4: translationRow writes foundationOptions per locale only
+    // when its key is present in fields (undefined = "this save didn't touch
+    // it"), the same conditional pattern as description. roomLayoutEn/faqEn
+    // don't need this protection because no background job ever backfills
+    // them (lib/producer-project-draft.ts comment); foundationOptions is the
+    // same case, so this test locks in the write-only-when-present contract
+    // directly, not a resubmission-safety scenario (that only matters for
+    // description, which has an async AI backfill this field doesn't).
+    it("writes foundationOptions translations only for the locales present in fields, leaving the rest untouched (AC-4)", async () => {
+      generateProductTranslationsMock.mockResolvedValue({});
+
+      const created = await createProducerProduct(
+        draftFields({
+          foundationOptions: "Płyta fundamentowa",
+          foundationOptionsEn: "Concrete slab",
+          foundationOptionsNl: "Vloerplaat",
+          foundationOptionsDe: "Fundamentplatte",
+        }),
+      );
+      expect(created.ok).toBe(true);
+      const productId = created.productId!;
+      createdProductIds.push(productId);
+      await flushAfter();
+
+      const before = await translationsFor(productId);
+      expect(before.en.foundationOptions).toBe("Concrete slab");
+      expect(before.de.foundationOptions).toBe("Fundamentplatte");
+
+      // Only foundationOptionsEn's key is present this time; Nl/De are
+      // genuinely absent from the object (not merely empty), simulating a
+      // caller that only ever touches English.
+      const partialFields = draftFields({ foundationOptions: "Płyta fundamentowa", foundationOptionsEn: "Concrete slab (revised)" });
+      delete partialFields.foundationOptionsNl;
+      delete partialFields.foundationOptionsDe;
+
+      const updated = await updateProducerProduct(productId, partialFields, { publish: false });
+      expect(updated.ok).toBe(true);
+      await flushAfter();
+
+      const after = await translationsFor(productId);
+      expect(after.en.foundationOptions).toBe("Concrete slab (revised)");
+      // Nl/De columns were never touched by this save, so they keep the
+      // value the create call wrote above.
+      expect(after.nl.foundationOptions).toBe("Vloerplaat");
+      expect(after.de.foundationOptions).toBe("Fundamentplatte");
+    });
   },
 );

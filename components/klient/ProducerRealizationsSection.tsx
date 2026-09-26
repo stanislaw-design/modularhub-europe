@@ -1,7 +1,8 @@
 import { BadgeCheck, Camera, CircleHelp, Home, XCircle } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import Image from "next/image";
-import { Heading, StarRating, Text } from "@/components/ui";
+import { DataText, Heading, StarRating, Text } from "@/components/ui";
+import { SafetyIcon } from "@/components/klient/ProjectSpecIcons";
 import type { CountryCode, Producer, ProjectDocument } from "@/lib/data/types";
 
 const countryFlag: Record<CountryCode, string> = { PL: "🇵🇱", DE: "🇩🇪", NL: "🇳🇱" };
@@ -11,6 +12,7 @@ interface ProducerRealizationsSectionProps {
   projectName: string;
   documents: ProjectDocument[];
   selectedVariantId?: string;
+  structuralWarrantyYears: number;
 }
 
 // Dokument z pustym productVariantId dotyczy każdego wariantu, ten sam
@@ -29,11 +31,23 @@ function realizationDocsFor(documents: ProjectDocument[], selectedVariantId: str
 // nawigacji "Realizacje i producent" — wcześniej ta etykieta obiecywała
 // więcej niż plain ProducerCard pokazywał, a same zdjęcia realizacji
 // mieszkały osobno, jako trzecia zakładka w hero galerii.
+//
+// Kafelek gwarancji konstrukcyjnej (dawna grupa "Bezpieczeństwo i gwarancja"
+// w ProjectTechnicalSpecs) dołączył do tego samego nagłówka: to jedyny
+// pozostały wiersz tamtej grupy (fireResistance/windResistance usunięte, spec
+// 0049 AC-3), więc osobna sekcja niżej na stronie renderowała jeden kafelek
+// w gridzie zaprojektowanym pod trzy — dużo pustej przestrzeni jak na jedną
+// liczbę. Nagłówek producenta ma odwrotny problem na desktopie (sm:flex-row):
+// zdjęcie + tekst tożsamości nie wypełniają szerokości karty, więc po prawej
+// zostaje wolne miejsce. Kafelek gwarancji jako trzeci element wiersza
+// (shrink-0, flex-1 na kolumnie tekstu wypycha go do prawej krawędzi)
+// wypełnia je, bez własnej, osobnej karty na stronie.
 export async function ProducerRealizationsSection({
   producer,
   projectName,
   documents,
   selectedVariantId,
+  structuralWarrantyYears,
 }: ProducerRealizationsSectionProps) {
   const t = await getTranslations("ProducerRealizationsSection");
   const countryLabel: Record<CountryCode, string> = {
@@ -113,6 +127,19 @@ export async function ProducerRealizationsSection({
               {producer.showroomVisitNote}
             </Text>
           )}
+        </div>
+        <div className="flex shrink-0 items-center gap-brand-2 rounded-v5-card border border-status-approved/40 bg-status-approved/5 p-brand-3 sm:self-stretch">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-data bg-status-approved/15">
+            <SafetyIcon className="size-5 text-status-approved" />
+          </span>
+          <div className="flex flex-col">
+            <Text variant="label" tone="muted" className="text-data">
+              {t("warrantyLabel")}
+            </Text>
+            <DataText className="text-h3 font-medium leading-snug">
+              {t("warrantyValue", { years: structuralWarrantyYears })}
+            </DataText>
+          </div>
         </div>
       </div>
 

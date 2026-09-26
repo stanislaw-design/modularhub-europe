@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { Button, Heading, Stack, Text } from "@/components/ui";
@@ -13,10 +13,11 @@ import { ProjectWizardBasicInfoStep } from "./ProjectWizardBasicInfoStep";
 import { ProjectWizardFaqStep } from "./ProjectWizardFaqStep";
 import { ProjectWizardFilesStep } from "./ProjectWizardFilesStep";
 import { ProjectWizardProgress } from "./ProjectWizardProgress";
+import { ProjectWizardRoomLayoutStep } from "./ProjectWizardRoomLayoutStep";
 import { ProjectWizardSummaryStep } from "./ProjectWizardSummaryStep";
 import { ProjectWizardTechnicalStep } from "./ProjectWizardTechnicalStep";
 import { ProjectWizardTranslationsStep } from "./ProjectWizardTranslationsStep";
-import { ProjectWizardVariantsStep } from "./ProjectWizardVariantsStep";
+import { ProjectWizardVariantsStep, type ProjectWizardVariantsStepHandle } from "./ProjectWizardVariantsStep";
 import type { ProducerFloorPlan } from "./ProducerFloorPlanUploadStep";
 import type { ProducerProductPhoto } from "./ProducerProductPhotosStep";
 import type { ProducerSalesPdf } from "./ProducerSalesPdfUploadStep";
@@ -76,6 +77,7 @@ export function ProductEditWizard({
   const [showValidation, setShowValidation] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const variantsStepRef = useRef<ProjectWizardVariantsStepHandle>(null);
 
   // Rzuty przypisywane do konkretnego wariantu, jeśli produkt już ma warianty
   // (spec 0045 AC-7): edycja jest jedynym miejscem, gdzie krok "pliki"
@@ -103,7 +105,16 @@ export function ProductEditWizard({
     );
   }
 
-  function goToStep(index: number) {
+  // Ten sam flush co ProjectWizard.tsx (patrz komentarz tam): "Zapisz
+  // wariant" na karcie kroku "warianty" jest jedynym, co utrwala cenę/pozycje
+  // kosztowe/etapy wariantu, więc bez tego wywołania każda nawigacja stąd
+  // odmontowywała krok i po cichu gubiła niezapisaną zmianę.
+  async function goToStep(index: number) {
+    const variantsSaved = await variantsStepRef.current?.saveAllPending();
+    if (variantsSaved === false) {
+      setSaveError(t("saveError"));
+      return;
+    }
     setStepIndex(index);
     setShowValidation(false);
   }
@@ -127,17 +138,17 @@ export function ProductEditWizard({
     }
     const nextIndex = Math.min(stepIndex + 1, WIZARD_STEPS.length - 1);
     setMaxReachedIndex((prev) => Math.max(prev, nextIndex));
-    goToStep(nextIndex);
+    await goToStep(nextIndex);
   }
 
-  function handleBack() {
+  async function handleBack() {
     if (stepIndex === 0) return;
-    goToStep(stepIndex - 1);
+    await goToStep(stepIndex - 1);
   }
 
-  function handleStepClick(index: number) {
+  async function handleStepClick(index: number) {
     if (index === stepIndex || index > maxReachedIndex) return;
-    goToStep(index);
+    await goToStep(index);
   }
 
   // Znany, zaakceptowany brzeg (spec 0028 AC-15): stepIndex startuje na
@@ -196,8 +207,16 @@ export function ProductEditWizard({
               onSalesPdfChange={setSalesPdf}
             />
           )}
+          {currentStep.id === "uklad-pomieszczen" && (
+            <ProjectWizardRoomLayoutStep productId={productId} floorPlans={floorPlans} showValidation={showValidation} />
+          )}
           {currentStep.id === "warianty" && (
-            <ProjectWizardVariantsStep productId={productId} initialVariants={initialVariants} />
+            <ProjectWizardVariantsStep
+              ref={variantsStepRef}
+              productId={productId}
+              initialVariants={initialVariants}
+              enableStandardsExtraction
+            />
           )}
           {currentStep.id === "faq" && <ProjectWizardFaqStep />}
           {currentStep.id === "tlumaczenia" && <ProjectWizardTranslationsStep productId={productId} />}

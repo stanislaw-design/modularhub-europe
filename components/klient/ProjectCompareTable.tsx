@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Checkbox, DataText, Heading, Text } from "@/components/ui";
+import { getInPriceCostLineItemLabels } from "@/lib/data/project-variants";
 import type { CompletionStandard, Project, ProjectVariant } from "@/lib/data/types";
 
 export interface CompareTableColumn {
@@ -248,7 +249,13 @@ export function ProjectCompareTable({ locale, columns, hasUnavailable, resultsHr
                             {t("priceFrom", { price: priceFormatter.format(column.selectedVariant.priceMin) })}
                           </DataText>
                           <Text tone="muted" surface="v5" className="text-data">
-                            {column.selectedVariant.scopeSummary || t("scopeToBeConfirmed")}
+                            {(() => {
+                              const { labels, extraCount } = getInPriceCostLineItemLabels(column.selectedVariant);
+                              if (labels.length === 0) return t("costIncludedFallback");
+                              return extraCount > 0
+                                ? `${labels.join(", ")} ${t("costIncludedMore", { count: extraCount })}`
+                                : labels.join(", ");
+                            })()}
                           </Text>
                         </>
                       ) : (

@@ -1,0 +1,164 @@
+{
+  "family": "pomerania",
+  "scraped_at": "2026-09-25T13:41:00Z",
+  "source": {
+    "homepage": "https://www.steel-house.com.pl/",
+    "collection_note": "Family cards on homepage have no href — reached via client-side click ('Odkryj domy z tej kolekcji' card), not a stable URL.",
+    "site_architecture_note": "SPA on Firebase (steelhouse-production-e4132). WebFetch cannot see per-variant data or usable image URLs (missing ?alt=media&token=...). Playwright required."
+  },
+  "known_in_db": true,
+  "db_update_2026_09_26_pomerania_20_detail": {
+    "applied_at": "2026-09-26T00:00:00Z",
+    "project": "spring-rain-58383710 (modularhub, prod)",
+    "confirmed_by_user": true,
+    "source": "User-supplied screenshots (configurator price cards for Deweloperski/Pod klucz, both standard content modals) plus the already-placed public/images/houses/steel-house/pomerania/rzut20.png floor plan — not a fresh Playwright pass.",
+    "written": {
+      "document": "rzut20.png uploaded to R2 (r2Key dd6e0d32-fb88-42cd-ac11-754384cc977d.png) and inserted as purpose=product_floor_plan for Pomerania 20 (previously had zero floor plan documents, unlike Pomerania 32/40).",
+      "product_variant": "New pod-klucz variant added (id 9e70cd27-0b82-4ec6-b61d-9ca85e1a64a8): 98800 PLN netto -> 22583 EUR (2258300 cents), same 4.375 NBP rate as the 2026-09-25 run. Both variants got a scope_summary, copied verbatim from Pomerania 40's (same company-wide standard text, confirmed against user's screenshots of the 'Standard: Deweloperski'/'Standard: Pod klucz' modals).",
+      "cost_line_item": "14 rows for deweloperski, 20 for pod-klucz, identical labels/sort_order to Pomerania 40's (same standard applies company-wide).",
+      "product.room_layout": "Derived directly from rzut20.png: Salon z aneksem kuchennym i jadalnią 13.07 m2, Łazienka 2.42 m2 (both floorLevel parter). Mezzanine bedroom not included — no floor plan image for it was provided/available, so its shape wasn't guessed.",
+      "product.bathrooms": "null -> 1 (confirmed by the floor plan: one WC+sink+shower room).",
+      "product.description": "Fixed typo: usable area 15.9/total 21.8 -> 15.5/21.4 m2, now consistent with floor_area_m2=21.4 (already correct) and the configurator's 'powierzchnia użytkowa' reading."
+    },
+    "not_written_still_open": ["Mezzanine bedroom room_layout entry (area/shape unknown, no antresola floor plan seen)."]
+  },
+  "db_update_2026_09_26_pomerania_20_realization_photos": {
+    "applied_at": "2026-09-26T00:00:00Z",
+    "project": "spring-rain-58383710 (modularhub, prod)",
+    "confirmed_by_user": true,
+    "source": "User-supplied files in public/images/houses/steel-house/pomerania/20/ (podklucz_1-4.webp, podklucz5.JPG, STANDARD2-5.JPG), user said all 9 are from the 'Pod klucz' standard realization.",
+    "written": "9 document rows (purpose=product_realization_photo) uploaded to R2 and tagged with product_variant_id = 9e70cd27-0b82-4ec6-b61d-9ca85e1a64a8 (the pod-klucz variant), so they only show to customers when Pod klucz is selected (ProducerRealizationsSection filters by productVariantId).",
+    "note": "podklucz5.JPG and STANDARD2-5.JPG are actually WebP-encoded despite the .JPG extension (confirmed via magic bytes, RIFF...WEBP) — served with the correct image/webp Content-Type regardless, just a cosmetic filename/extension mismatch, not a functional issue.",
+    "unresolved": "STANDARD2-5.JPG show an interior with a different, rawer building/yard in the background (visible glass racks/forklifts) than podklucz_1's finished exterior — could not visually confirm they're the same physical unit; proceeded on the user's explicit instruction that all 9 belong to this one realization."
+  },
+  "db_update_2026_09_25": {
+    "applied_at": "2026-09-25T14:10:00Z",
+    "project": "spring-rain-58383710 (modularhub, prod)",
+    "confirmed_by_user": true,
+    "eur_pln_rate": { "rate": 4.375, "table": "187/A/NBP/2026", "effective_date": "2026-09-25" },
+    "decisions_locked_by_user": {
+      "umeblowany": "Not offered on our site — ignored entirely, no enum mapping attempted.",
+      "price_basis": "Netto PLN from site converted to EUR via NBP rate above (Math.round(pln/rate)*100 cents), same convention as scripts/import-domihaus-catalog.ts. Card price = 'Deweloperski' standard.",
+      "schema_authority": "lib/db/schema.ts is authoritative for the real write, not lib/data/types.ts."
+    },
+    "written": {
+      "producer.nip": "DEMO00000006 -> 7831705801",
+      "per_product": [
+        { "name": "Pomerania 20", "price_min_cents": "2056500 -> 2029700", "technicalSpecs": "+constructionTechnology/+wallBuildUp/+insulation" },
+        { "name": "Pomerania 32", "price_min_cents": "3223700 -> 3181700", "technicalSpecs": "+constructionTechnology/+wallBuildUp/+insulation" },
+        { "name": "Pomerania 35", "price_min_cents": "3527100 -> 3481100", "external_dimensions": "FIXED: '3.2 × 10 m' -> '3.5 × 10 m' (was copy-paste of Pomerania 32's dims)", "technicalSpecs": "+constructionTechnology/+wallBuildUp/+insulation" },
+        { "name": "Pomerania 40", "price_min_cents": "written via product_variant (deweloperski, id a3189a09-ff53-4f9f-9735-fd860e209a48): 3937000 -> 3885700", "floor_area_m2": "FIXED: 33.07 -> 45.9 (was 'usable area', inconsistent with rest of family's 'total with mezzanine' convention)", "technicalSpecs": "+constructionTechnology/+wallBuildUp/+insulation" },
+        { "name": "Pomerania 48", "price_min_cents": "4724400 -> 4662900", "technicalSpecs": "+constructionTechnology/+wallBuildUp/+insulation" },
+        { "name": "Pomerania 57", "price_min_cents": "5629900 -> 5556600", "technicalSpecs": "+constructionTechnology/+wallBuildUp/+insulation" },
+        { "name": "Pomerania 60", "price_min_cents": "5928700 -> 5851400", "technicalSpecs": "+constructionTechnology/+wallBuildUp/+insulation" },
+        { "name": "Pomerania 65", "price_min_cents": "6350200 -> 6267400", "technicalSpecs": "+constructionTechnology/+wallBuildUp/+insulation" }
+      ]
+    },
+    "not_written_still_open": ["rooms/bathrooms (unknown for most)", "heatTransferCoefficients (still 'nieznana', no U-value found)", "ventilation (left untouched, no new evidence)", "'Pod klucz' variant pricing (only Pomerania 40 has a pod-klucz row, left at null — not scraped per-variant this run)", "priced add-ons list (insulation upgrades, PV, cladding, etc.) — not modeled as costLineItems, kept only in this research file", "scope_summary + cost_line_item breakdown for the 7 new 'deweloperski' variants — Pomerania 40's existing variant has these (14 cost_line_items, a descriptive scope_summary from an earlier manual migration 2026-09-17); the 7 new bare variants created just now don't, so their 'co wchodzi w cenę' section will render empty until someone authors that content"],
+    "followup_2026_09_25b": "User noticed Pomerania 32 (and the other 6 non-Pomerania-40 products) showed no completion-standard label on the client card despite having a price — root cause: Project.variants (lib/data/projects.ts:88-98) is built ONLY from product_variant rows, product.completion_standard (the flat legacy column written above) is never read for display. Fixed by INSERTing one 'deweloperski' product_variant row per product (is_default=true, price = the value already on product.priceMinCents) for all 7 missing products. Verified via run_sql: all 8 Pomerania products now have a default 'deweloperski' product_variant row."
+  },
+  "site_wide_findings": {
+    "prices_now_published": "CHANGED vs 2026-09-05 manifest: manifest said no prices exist anywhere on the site (all NULL/'na zapytanie'). Site now shows explicit net (netto) base prices per variant on the collection cards AND a live configurator price. VAT note repeated everywhere: 8% for individuals (residential use), 23% for businesses, added on top of the netto price shown.",
+    "producer_nip_found": "Real NIP found in site footer: 7831705801 (REGON 302571482, KRS 0000483959, 'Steel-House Sp. z o.o', ul. Książęca 16, 62-020 Gortatowo). DB currently holds placeholder 'DEMO00000006' for producer.nip (see steelhouse-import-manifest.json placeholder_fields_needing_real_values) — this should be replaced with the real NIP at next import review.",
+    "contact_found": { "email": "biuro@steel-house.com.pl", "footer_phone_display": "+48 509 502 508", "footer_phone_tel_link": "+48500600700 (differs from displayed number — worth confirming which is correct before using either)" },
+    "completion_standard_mismatch": "Configurator shows 3 standard choices: 'Deweloperski', 'Pod klucz', 'Umeblowany' (furnished). Our CompletionStandard enum (lib/data/types.ts) only has 'surowy-zamkniety' | 'deweloperski' | 'pod-klucz' — 'Umeblowany' has no matching enum value. 'surowy-zamkniety' (shell/closed) is not offered as a standard on the site at all, at least for Pomerania. Needs a product/schema decision, not something this skill should invent a mapping for.",
+    "technical_pdfs_exist_but_gated": "Configurator's 'Dokumenty PDF' tab lists real per-insulation-level spec sheets ('OCIEPLENIE STANDARD.pdf', 'OCIEPLENIE PLUS.pdf', 'OCIEPLENIE WT 2021.pdf') — gated behind a free-account signup modal for an unauthenticated session. RESOLVED mid-run: the user set up and logged into a Steel House account in the shared Playwright browser session, after which all 3 PDFs downloaded cleanly with no further auth needed on the file URL itself (Firebase Storage token obtained from the authenticated page load). Content = construction cross-sections with exact layer thicknesses per tier, not an energy certificate (still no numeric U-value/energy class) — see the pomerania-40 variant's technicalSpecs for the extracted layer data. Since these are 'GLOBAL_' prefixed files, they're the same for every product/family, not Pomerania-specific — a future full-catalog run does not need to re-fetch them.",
+    "izolacja_konstrukcja_buttons_gated": "On the collection card, the 'Izolacja' and 'Konstrukcja' buttons on every variant open a login/signup modal ('Odblokuj pełną specyfikację') for an unauthenticated session. RESOLVED-then-superseded: after logging in (same account as the PDF fix above), both buttons open instantly with NO further login wall, but their content for Pomerania 40 is literally a stub: 'Izolacja i Termika' → 'Dane w trakcie opracowywania przez inżynierów.' and 'Parametry Konstrukcyjne' → the same placeholder sentence. So this is NOT a login/rights gap at all — it's unfinished content on Steel House's own site (their engineers haven't filled it in yet). The real insulation data lives in the configurator's 'Dokumenty PDF' tab instead (see technical_pdfs_exist_but_gated) — future runs should go straight there and skip these two card buttons.",
+    "shared_browser_profile_caution": "The Playwright browser used is a shared, persistent Chrome profile. It already had autofill data suggestive of a real email in its signup form fields — did not touch/submit any form. Future runs should be aware this profile persists state across sessions."
+  },
+  "variants_summary_from_collection_cards": [
+    { "name": "Pomerania 20", "price_pln_netto": 88800, "dimensions_w_l_h_m": "3 x 6.65 x 3.9", "built_up_m2": 19.95, "total_m2": 21.4, "bedrooms": 1, "mezzanine_m2": 5.9, "configurator_url": "https://www.steel-house.com.pl/konfigurator/pomerania-20-1760191767601" },
+    { "name": "Pomerania 32", "price_pln_netto": 139200, "dimensions_w_l_h_m": "3.2 x 10 x 3.9", "built_up_m2": 32, "total_m2": 35.3, "bedrooms": 1, "mezzanine_m2": 9.7, "configurator_url": "https://www.steel-house.com.pl/konfigurator/pomerania-32-1760710620551" },
+    { "name": "Pomerania 35", "price_pln_netto": 152300, "dimensions_w_l_h_m": "3.5 x 10 x 3.9", "built_up_m2": 35, "total_m2": 39.4, "bedrooms": 1, "mezzanine_m2": 11, "configurator_url": "https://www.steel-house.com.pl/konfigurator/pomerania-35-1760710700587", "diff_vs_manifest": "Manifest flagged Pomerania 35 dimensions (3.2x10 m) vs built-up area (35 m2) as inconsistent ('podane niespójnie u źródła'). Site now shows 3.5 x 10 m for Pomerania 35, which IS consistent with 35 m² built-up (3.5*10=35). Looks resolved on the site's side — worth re-checking against the DB row." },
+    { "name": "Pomerania 40", "price_pln_netto": 170000, "dimensions_w_l_h_m": "4 x 10 x 3.9", "built_up_m2": 40, "usable_m2": 33, "total_m2": 45.9, "bedrooms": 1, "mezzanine_m2": 12.9, "configurator_url": "https://www.steel-house.com.pl/konfigurator/pomerania-40-1760710776796", "detail_pass": "done — see variant entry below" },
+    { "name": "Pomerania 48", "price_pln_netto": 204000, "dimensions_w_l_h_m": "4 x 12 x 3.9", "built_up_m2": 48, "total_m2": 57.7, "bedrooms": 2, "mezzanine_m2": 18, "configurator_url": "https://www.steel-house.com.pl/konfigurator/pomerania-48-1760710809920" },
+    { "name": "Pomerania 57", "price_pln_netto": 243100, "dimensions_w_l_h_m": "4.3 x 13.3 x 3.9", "built_up_m2": 57.2, "total_m2": 69.5, "bedrooms": 2, "mezzanine_m2": 21.5, "configurator_url": "https://www.steel-house.com.pl/konfigurator/pomerania-57-1760710845482" },
+    { "name": "Pomerania 60", "price_pln_netto": 256000, "dimensions_w_l_h_m": "4.3 x 14 x 3.9", "built_up_m2": 60.2, "total_m2": 72.2, "bedrooms": 2, "mezzanine_m2": 21.5, "configurator_url": "https://www.steel-house.com.pl/konfigurator/pomerania-60-1760710880475" },
+    { "name": "Pomerania 65", "price_pln_netto": null, "note": "Not opened this run — 8th card was not scrolled into view before ending the test pass; only 7 of 8 Pomerania cards were captured (20,32,35,40,48,57,60). Pomerania 65 is the known 8th variant in the DB (steelhouse-pomerania-65) but its current price/dims were not re-verified this run.", "configurator_url": null }
+  ],
+  "variants": [
+    {
+      "external_id": "steelhouse-pomerania-40",
+      "status": "existing_update",
+      "configurator_url": "https://www.steel-house.com.pl/konfigurator/pomerania-40-1760710776796",
+      "fields": {
+        "name": "Pomerania 40",
+        "priceMin_pln_netto": 170000,
+        "priceMin_note": "NEW: site now publishes an explicit net base price (was NULL/'na zapytanie' at 2026-09-05 import). Net + VAT (8% residential individual / 23% business) per site-wide disclaimer. Currency in our schema is EUR only (lib/data/types.ts ProjectVariant.currency: 'EUR') — PLN-to-EUR conversion and whether to store PLN raw somewhere is a decision for the human import step, not made here.",
+        "externalDimensions": "4 x 10 x 3.9 m (szer. x dł. x wys.)",
+        "builtUpAreaM2": 40,
+        "usableAreaM2_siteterm": 33,
+        "floorAreaM2_siteterm_total_with_mezzanine": 45.9,
+        "mezzanineAreaM2": 12.9,
+        "storeys": "parter + antresola (ground floor + mezzanine, per 'Dodatkowa przestrzeń: Model z antresolą')",
+        "bedrooms": 1,
+        "rooms": null,
+        "bathrooms": null,
+        "roofType": null,
+        "note_rooms_bathrooms": "Still not stated anywhere on the collection card or configurator — same gap as 2026-09-05 import. Not guessed."
+      },
+      "technicalSpecs": {
+        "wallBuildUp": "UNBLOCKED after user provided a logged-in Steel House account session (2026-09-25) — the 3 PDFs downloaded clean, no auth wall on the file itself once you have the token from an authenticated page load. Exact cross-section per finish tier, from outside in: (1) blacha na rąbek 25mm (standing-seam sheet cladding), kontrłaty 25mm, membrana, [wood beam layer, tier-dependent — see insulation.wall_mm below], profil stalowy 80mm (steel frame, constant across all 3 tiers), kontrłata pozioma 25mm, folia paroszczelna (vapour barrier), płyta STRAMA 12mm (interior sheathing board), then insulation. Floor (constant across tiers): panel 15mm, OSB 22mm, folia paroszczelna, łata 60mm, profil stalowy 80mm, blacha ocynk 0.5mm, insulation 140mm. Roof: same layer order as wall.",
+        "insulation": "Three selectable tiers (this is a priced configurator OPTION, not one fixed spec — our schema's single insulation/wallBuildUp string per variant doesn't model 'select one of 3' the way the site does): STANDARD (included, +0 zł) = wall 130mm / roof 130mm / floor 140mm, no wood beam layer (steel-profile-only). PLUS (+14 000 zł) = wall 165mm (+60mm wood beam) / roof 200mm (+95mm wood beam) / floor 140mm (unchanged). WT2021 (+22 000 zł) = wall 200mm (+95mm wood beam) / roof 250mm (+145mm wood beam) / floor 140mm (unchanged). Floor insulation is constant across all 3 tiers — only wall and roof thickness/wood-beam layer change. 'WT2021' names Poland's 'Warunki Techniczne 2021' building thermal code, i.e. this tier is positioned as meeting that regulatory minimum, but the PDF is a construction cross-section, not an energy certificate.",
+        "heatTransferCoefficients": "nieznana — even with the 3 unblocked PDFs, none states a numeric U-value (W/m²K) or an energy class letter, only layer thicknesses. Do not infer a class from the WT2021 label alone — that names a code year, not a certified rating. A real energy certificate (mentioned but not linked anywhere seen so far) would be needed to fill this honestly.",
+        "windowClass": null,
+        "ventilation": "nieznana — not mentioned anywhere on this page.",
+        "heatSource": "inne — configurator only offers 'Grzejniki elektryczne' (electric heaters, 1-3 units, +1000/+2000/+3000 zł) as an addable option, not a stated primary heat source for the base house. Closest enum value would be 'elektryczne' but that's inferring from an optional add-on, not a confirmed base spec — flagging as uncertain rather than committing.",
+        "constructionTechnology": "modulowa-stal-lekka (unchanged justification from 2026-09-05 import: whole site branding is 'domy modułowe w konstrukcji stalowej' — steel frame). Still not a formal supplier confirmation of the exact enum wording.",
+        "fireResistance": null,
+        "windResistance": null
+      },
+      "commercial_options_found_not_in_schema": {
+        "note": "The configurator exposes a full priced options list that has no home in our current Project/ProjectVariant/technicalSpecs shape. Recording raw for whoever designs the real import mapping — not forcing these into existing fields.",
+        "completion_standards_offered": ["Deweloperski", "Pod klucz", "Umeblowany (no enum match — see site_wide_findings.completion_standard_mismatch)"],
+        "priced_addons_pln_netto": {
+          "Ocieplenie PLUS": 14000,
+          "Ocieplenie WT2021": 22000,
+          "Ściany wewnętrzne — Płyta OSB": 0,
+          "Sufity — Płyta OSB": 0,
+          "Ściany zewnętrzne — Vox Solvo": 5200,
+          "Ściany zewnętrzne — Thermo deska gładka": 6000,
+          "Ściany zewnętrzne — Vinylit": 7200,
+          "Ściany zewnętrzne — Thermo deska lamel (rombus)": 7600,
+          "Rynny": 2800,
+          "Grzejniki elektryczne 1szt": 1000,
+          "Grzejniki elektryczne 2szt": 2000,
+          "Grzejniki elektryczne 3szt": 3000,
+          "Uziemienie budynku": 1500,
+          "Kominek - Kratki Bjorn": 16000,
+          "Projekt budowlany - Tak": 17000,
+          "Izolacja akustyczna blachy": 1000,
+          "Instalacja PV": "0 to 8.1 kW, adjustable, price not shown per-kW step in this pass",
+          "Klimatyzacja": "0 to 3 units, price not shown per-unit in this pass"
+        },
+        "defaults_included_free": ["Płyta Karton-gips (GK) — internal walls", "Płyta Karton-gips (GK) — ceilings", "Vox Fronto — external walls", "Ocieplenie STANDARD"]
+      },
+      "images": [
+        { "local_path": "tmp/house-research/steel-house/images/pomerania/pomerania-line-hero.jpeg", "kind": "downloaded", "source_url": "https://firebasestorage.googleapis.com/.../model_lines%2Fpomerania%2FLINE_1785244437496_pomerania-front%20(1).jpeg", "note": "Family-level hero shot, same as homepage. Same as pre-existing 2026-09-05 import image, likely (unconfirmed exact match, not diffed byte-for-byte)." },
+        { "local_path": "tmp/house-research/steel-house/images/pomerania/pomerania-line-realizacja-1.jpg", "kind": "downloaded", "source_url": "https://firebasestorage.googleapis.com/.../lines_gallery%2Fpomerania%2F1.jpg", "note": "Labeled by the site itself as 'zdjęcie poglądowe dla całej linii Pomerania' (illustrative photo for the whole line) — explicitly NOT variant-specific per the site's own caption." },
+        { "local_path": "tmp/house-research/steel-house/images/pomerania/pomerania-40/pomerania-40-rzut.jpg", "kind": "downloaded", "source_url": "https://firebasestorage.googleapis.com/.../models_floorplans%2Fpomerania-40-1760710776796%2FFLOORPLAN_...Pomerania%2040.jpg", "note": "IMPORTANT: this is a per-VARIANT floor plan (named for pomerania-40 specifically), unlike the 2026-09-05 import note that said Steel House only published family-level images (except one Posnania 35 exception). Worth checking whether other variants now also have their own floor plans." },
+        { "local_path": "tmp/house-research/steel-house/images/materials/ocieplenie-standard.png", "kind": "downloaded", "source_url": "https://firebasestorage.googleapis.com/.../materials%2Focieplenie-standard-...png", "note": "Configurator option thumbnail, not a house photo — reference image for insulation tier 'STANDARD'." },
+        { "local_path": "tmp/house-research/steel-house/images/materials/ocieplenie-plus.jpg", "kind": "downloaded", "source_url": "https://firebasestorage.googleapis.com/.../materials%2Focieplenie-plus--...JPG", "note": "Configurator option thumbnail for insulation tier 'PLUS'." },
+        { "local_path": "tmp/house-research/steel-house/images/materials/ocieplenie-wt2021.jpg", "kind": "downloaded", "source_url": "https://firebasestorage.googleapis.com/.../materials%2Fwt2021-...JPG", "note": "Configurator option thumbnail for insulation tier 'WT2021'." }
+      ],
+      "documents_downloaded": [
+        { "name": "OCIEPLENIE STANDARD.pdf", "local_path": "tmp/house-research/steel-house/documents/OCIEPLENIE-STANDARD.pdf", "note": "GLOBAL_ prefix in source filename — same doc for every product, not Pomerania-40-specific. Downloaded after user provided a logged-in session; the file URL itself needed no further auth once its token was obtained from the authenticated page." },
+        { "name": "OCIEPLENIE PLUS.pdf", "local_path": "tmp/house-research/steel-house/documents/OCIEPLENIE-PLUS.pdf", "note": "Same as above." },
+        { "name": "OCIEPLENIE WT 2021.pdf", "local_path": "tmp/house-research/steel-house/documents/OCIEPLENIE-WT2021.pdf", "note": "Same as above." }
+      ],
+      "unresolved_questions": [
+        "heatTransferCoefficients / energy class still unknown — the 3 unblocked PDFs are construction cross-sections (layer thicknesses only), not an energy certificate with a U-value or class letter. Need to find whether Steel House has an actual energy certificate somewhere (site copy on /jak-kupic mentions 'certyfikaty energetyczne' as downloadable but not seen where, yet).",
+        "Our schema models one wallBuildUp/insulation string per variant, but the site models 3 selectable priced insulation tiers (STANDARD/PLUS/WT2021) that change wall+roof thickness (floor stays 140mm always) — needs a human decision on whether to pick one tier as 'the' spec (and if so which — probably WT2021 since it's code-compliant) or model this as a variant-level option, closer to costLineItems.",
+        "How to represent PLN net price + variable VAT (8%/23%) in a schema whose ProjectVariant.currency is fixed to 'EUR' and doesn't model a VAT split.",
+        "How/whether to map 'Umeblowany' (furnished) standard — no CompletionStandard enum value exists for it.",
+        "Whether to model the long list of priced add-ons (insulation upgrade, wall cladding, PV, AC, fireplace, etc.) as costLineItems on the variant, or leave them out of the prototype schema entirely.",
+        "Confirm the correct producer phone number — footer displays '+48 509 502 508' but the tel: link underneath is 'tel:+48500600700' (different number)."
+      ],
+      "diffs_vs_manifest": [
+        "priceMin: manifest has NULL/'na zapytanie' for all 27 variants incl. this one — site now shows 170 000 zł netto.",
+        "New image: variant-specific floor plan now exists (previously family-level only per manifest's images.note).",
+        "producer.nip: manifest placeholder 'DEMO00000006' — real NIP 7831705801 now findable in the site footer."
+      ]
+    }
+  ]
+}

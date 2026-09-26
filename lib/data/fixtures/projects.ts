@@ -22,7 +22,6 @@ export const projects: Project[] = [
     customizationScope: "Lustrzane odbicie, układ ścian działowych i wariant elewacji",
     structuralWarrantyYears: 30,
     priceMin: 138000,
-    priceMax: 168000,
     currency: "EUR",
     coverImageUrl: "/images/houses/golden-hour/modulor-family-90.webp",
     description:
@@ -67,7 +66,6 @@ export const projects: Project[] = [
     customizationScope: "Wariant elewacji i wyposażenia; stały układ stref mokrych",
     structuralWarrantyYears: 25,
     priceMin: 92000,
-    priceMax: 114000,
     currency: "EUR",
     coverImageUrl: "/images/houses/golden-hour/modulor-compact-56.webp",
     description:
@@ -105,7 +103,6 @@ export const projects: Project[] = [
     customizationScope: "Układ piętra, antresola, zakres przeszkleń i elewacja",
     structuralWarrantyYears: 25,
     priceMin: 204000,
-    priceMax: 247000,
     currency: "EUR",
     coverImageUrl: "/images/houses/golden-hour/baltyk-loft-120.webp",
     description:
@@ -144,7 +141,6 @@ export const projects: Project[] = [
     customizationScope: "Dach, elewacja i trzy pakiety wykończenia; stała szerokość transportowa",
     structuralWarrantyYears: 25,
     priceMin: 69000,
-    priceMax: 85000,
     currency: "EUR",
     coverImageUrl: "/images/houses/golden-hour/baltyk-studio-38.webp",
     description:
@@ -182,7 +178,6 @@ export const projects: Project[] = [
     customizationScope: "Układ funkcjonalny w siatce konstrukcyjnej, elewacja i instalacje",
     structuralWarrantyYears: 30,
     priceMin: 223000,
-    priceMax: 265000,
     currency: "EUR",
     coverImageUrl: "/images/houses/golden-hour/karpaty-alpine-104.webp",
     description:
@@ -220,7 +215,6 @@ export const projects: Project[] = [
     customizationScope: "Lustrzane odbicie, taras, elewacja i pakiet energetyczny",
     structuralWarrantyYears: 30,
     priceMin: 143000,
-    priceMax: 173000,
     currency: "EUR",
     coverImageUrl: "/images/houses/golden-hour/karpaty-ridge-72.webp",
     description:
@@ -258,7 +252,6 @@ export const projects: Project[] = [
     customizationScope: "Wersja lądowa lub pływająca, wykończenie wnętrza, kolor elewacji",
     structuralWarrantyYears: 15,
     priceMin: 29500,
-    priceMax: 40200,
     currency: "EUR",
     coverImageUrl: "/images/houses/cocomodule/ch-24-coco.png",
     description:
@@ -297,7 +290,6 @@ export const projects: Project[] = [
     customizationScope: "Układ wnętrza (strefa dzienna/sypialnia), wykończenie, kolor elewacji",
     structuralWarrantyYears: 15,
     priceMin: 44300,
-    priceMax: 56000,
     currency: "EUR",
     coverImageUrl: "/images/houses/cocomodule/ch-36-coco.png",
     description:
@@ -336,7 +328,6 @@ export const projects: Project[] = [
     customizationScope: "Układ wnętrza, wykończenie, liczba jednostek klimatyzacji",
     structuralWarrantyYears: 20,
     priceMin: 87000,
-    priceMax: 101000,
     currency: "EUR",
     coverImageUrl: "/images/houses/cocomodule/ch-72-2.png",
     description:
@@ -375,7 +366,6 @@ export const projects: Project[] = [
     customizationScope: "Układ wnętrza strefy dziennej, wykończenie, liczba jednostek klimatyzacji",
     structuralWarrantyYears: 20,
     priceMin: 98200,
-    priceMax: 123000,
     currency: "EUR",
     coverImageUrl: "/images/houses/cocomodule/ch-90.png",
     description:
@@ -414,7 +404,6 @@ export const projects: Project[] = [
     customizationScope: "Układ drugiego piętra (dostępne warianty rozkładu), wykończenie, przeszklenia, taras na dachu",
     structuralWarrantyYears: 20,
     priceMin: 271000,
-    priceMax: 339000,
     currency: "EUR",
     coverImageUrl: "/images/houses/cocomodule/cover-premium.png",
     description:
@@ -464,7 +453,6 @@ export const projects: Project[] = [
     customizationScope: "Konfiguracja sauna + jacuzzi + barek, wykończenie drewna, wielkość przeszkleń",
     structuralWarrantyYears: 15,
     priceMin: 42000,
-    priceMax: 55000,
     currency: "EUR",
     coverImageUrl: "/spa/zdj1.jpeg",
     description:
@@ -505,7 +493,6 @@ export const projects: Project[] = [
     customizationScope: "Wyposażenie kuchenne, okno wydawcze, kolor okładziny zewnętrznej",
     structuralWarrantyYears: 10,
     priceMin: 17000,
-    priceMax: 23000,
     currency: "EUR",
     coverImageUrl: "/images/houses/golden-hour/baltyk-studio-38.webp",
     description:

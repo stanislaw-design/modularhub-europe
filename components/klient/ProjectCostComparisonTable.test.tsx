@@ -9,9 +9,7 @@ const variants: ProjectVariant[] = [
     id: "v1",
     completionStandard: "surowy-zamkniety",
     priceMin: 138000,
-    priceMax: 168000,
     currency: "EUR",
-    scopeSummary: "Bryła zamknięta, bez instalacji.",
     priceOnRequest: false,
     isDefault: false,
     costLineItems: [
@@ -24,7 +22,6 @@ const variants: ProjectVariant[] = [
     id: "v2",
     completionStandard: "pod-klucz",
     priceMin: 207000,
-    priceMax: 220000,
     currency: "EUR",
     priceOnRequest: false,
     isDefault: true,
@@ -46,42 +43,28 @@ function table() {
 }
 
 describe("ProjectCostComparisonTable", () => {
-  it("shows a price/scope column per variant (spec 0042 AC-2)", () => {
-    render(<ProjectCostComparisonTable variants={variants} />);
-    expect(screen.getByText("138 000–168 000 €")).toBeInTheDocument();
-    expect(screen.getByText("207 000–220 000 €")).toBeInTheDocument();
-    expect(screen.getByText("Bryła zamknięta, bez instalacji.")).toBeInTheDocument();
-  });
-
-  // Spec 0050 AC-36: excludedScope is its own text, never merged into scopeSummary.
-  it("shows excludedScope next to scopeSummary, prefixed, when present (AC-36)", () => {
-    const variantsWithExcludedScope: ProjectVariant[] = [{ ...variants[0], excludedScope: "Przyłącza mediów." }];
-    render(<ProjectCostComparisonTable variants={variantsWithExcludedScope} />);
-    expect(screen.getByText("Nie obejmuje: Przyłącza mediów.")).toBeInTheDocument();
-  });
-
-  it("shows 'od X €' instead of a redundant X–X € range when priceMin equals priceMax", () => {
-    const fixedPriceVariants: ProjectVariant[] = [
-      { ...variants[0], priceMin: 83730, priceMax: 83730 },
-      { ...variants[1], priceMin: 148138, priceMax: 148138 },
-    ];
-    render(<ProjectCostComparisonTable variants={fixedPriceVariants} />);
-    expect(screen.getByText("od 83 730 €")).toBeInTheDocument();
-    expect(screen.getByText("od 148 138 €")).toBeInTheDocument();
-    expect(screen.queryByText(/83 730–83 730/)).not.toBeInTheDocument();
+  it("shows a single 'od X €' price per variant, never a range (spec 0042 AC-2, spec 0051 AC-1)", () => {
+    render(<ProjectCostComparisonTable variants={variants} heading="Cena i zakres" />);
+    expect(screen.getByText("od 138 000 €")).toBeInTheDocument();
+    expect(screen.getByText("od 207 000 €")).toBeInTheDocument();
   });
 
   it("matches line items across variants by exact label, showing 'not included' where a variant has none", () => {
-    render(<ProjectCostComparisonTable variants={variants} />);
+    render(<ProjectCostComparisonTable variants={variants} heading="Cena i zakres" />);
     expect(table().getAllByText("W cenie")).toHaveLength(2);
     expect(table().getByText("Po stronie klienta")).toBeInTheDocument();
     expect(table().getByText("Obowiązkowa dopłata")).toBeInTheDocument();
     expect(table().getAllByText("Nie dotyczy")).toHaveLength(2);
   });
 
+  it("hides the 'show only differences' checkbox with a single variant (nothing to compare)", () => {
+    render(<ProjectCostComparisonTable variants={[variants[0]]} heading="Cena i zakres" />);
+    expect(screen.queryByRole("checkbox", { name: "Pokaż tylko różnice" })).not.toBeInTheDocument();
+  });
+
   it("hides rows identical across every variant when 'show only differences' is checked", async () => {
     const user = userEvent.setup();
-    render(<ProjectCostComparisonTable variants={variants} />);
+    render(<ProjectCostComparisonTable variants={variants} heading="Cena i zakres" />);
 
     // "Transport" is w-cenie in both variants, "Fundament"/"Wykończenie wnętrz" differ.
     expect(table().getByText("Transport")).toBeInTheDocument();
@@ -92,31 +75,30 @@ describe("ProjectCostComparisonTable", () => {
     expect(table().getByText("Wykończenie wnętrz")).toBeInTheDocument();
   });
 
-  it("ignores the placeholder 'pod klucz' column (empty costLineItems) when deciding what counts as a difference", async () => {
+  it("renders exactly one column per real variant, three real variants means three columns (spec 0054 AC-1, AC-2)", async () => {
     const user = userEvent.setup();
-    const variantsWithPlaceholder: ProjectVariant[] = [
+    const threeVariants: ProjectVariant[] = [
       ...variants,
       {
-        id: "placeholder-deweloperski",
+        id: "v3",
         completionStandard: "deweloperski",
+        priceMin: 165000,
         currency: "EUR",
         priceOnRequest: false,
         isDefault: false,
-        costLineItems: [],
+        costLineItems: [{ id: "c5", label: "Transport", status: "w-cenie" }],
         timelineStages: [],
-        isPlaceholder: true,
       },
     ];
-    render(<ProjectCostComparisonTable variants={variantsWithPlaceholder} />);
+    render(<ProjectCostComparisonTable variants={threeVariants} heading="Cena i zakres" />);
 
+    expect(table().getAllByRole("columnheader")).toHaveLength(4); // 1 label column + 3 variant columns
+
+    // "Transport" is w-cenie for all three real variants and must still hide
+    // under "show only differences", never fake-different because of a
+    // synthetic column (the placeholder concept no longer exists).
     await user.click(screen.getByRole("checkbox", { name: "Pokaż tylko różnice" }));
-
-    // "Transport" is identical between the two real variants; the placeholder's
-    // always-null cell must not make it look like a difference (regression: it
-    // used to make every row "different" and the checkbox effectively a no-op).
     expect(table().queryByText("Transport")).not.toBeInTheDocument();
-    expect(table().getByText("Fundament")).toBeInTheDocument();
-    expect(table().getByText("Wykończenie wnętrz")).toBeInTheDocument();
   });
 
   it("previews only the first 10 rows and reveals the rest through the expand toggle", async () => {
@@ -132,7 +114,7 @@ describe("ProjectCostComparisonTable", () => {
       },
       { ...variants[1], costLineItems: [] },
     ];
-    render(<ProjectCostComparisonTable variants={manyLabelVariants} />);
+    render(<ProjectCostComparisonTable variants={manyLabelVariants} heading="Cena i zakres" />);
 
     expect(table().getByText("Pozycja 1")).toBeInTheDocument();
     expect(table().getByText("Pozycja 10")).toBeInTheDocument();
@@ -150,7 +132,7 @@ describe("ProjectCostComparisonTable", () => {
   });
 
   it("shows no expand control when there are 10 or fewer rows", () => {
-    render(<ProjectCostComparisonTable variants={variants} />);
+    render(<ProjectCostComparisonTable variants={variants} heading="Cena i zakres" />);
     expect(screen.queryByText(/Pokaż więcej/)).not.toBeInTheDocument();
   });
 });

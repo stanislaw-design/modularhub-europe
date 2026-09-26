@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { Button, Heading, Stack, Text } from "@/components/ui";
@@ -12,10 +12,11 @@ import { ProjectWizardBasicInfoStep } from "./ProjectWizardBasicInfoStep";
 import { ProjectWizardFaqStep } from "./ProjectWizardFaqStep";
 import { ProjectWizardFilesStep } from "./ProjectWizardFilesStep";
 import { ProjectWizardProgress } from "./ProjectWizardProgress";
+import { ProjectWizardRoomLayoutStep } from "./ProjectWizardRoomLayoutStep";
 import { ProjectWizardSummaryStep } from "./ProjectWizardSummaryStep";
 import { ProjectWizardTechnicalStep } from "./ProjectWizardTechnicalStep";
 import { ProjectWizardTranslationsStep } from "./ProjectWizardTranslationsStep";
-import { ProjectWizardVariantsStep } from "./ProjectWizardVariantsStep";
+import { ProjectWizardVariantsStep, type ProjectWizardVariantsStepHandle } from "./ProjectWizardVariantsStep";
 import type { ProducerFloorPlan } from "./ProducerFloorPlanUploadStep";
 import type { ProducerProductPhoto } from "./ProducerProductPhotosStep";
 import type { ProducerSalesPdf } from "./ProducerSalesPdfUploadStep";
@@ -68,6 +69,7 @@ export function ProjectWizard({ locale, countries }: ProjectWizardProps) {
   const [showValidation, setShowValidation] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const variantsStepRef = useRef<ProjectWizardVariantsStepHandle>(null);
 
   function handlePhotosChange(next: ProducerProductPhoto[]) {
     setPhotos(next);
@@ -103,7 +105,19 @@ export function ProjectWizard({ locale, countries }: ProjectWizardProps) {
     return true;
   }
 
-  function goToStep(index: number) {
+  // "Zapisz wariant" na karcie kroku "warianty" jest jedynym, co utrwala
+  // cenę/pozycje kosztowe/etapy wariantu (ProjectWizardVariantsStep) — bez
+  // tego flusha każda nawigacja stąd (Dalej/Wstecz/klik w inny krok)
+  // odmontowywała ten krok i po cichu gubiła każdą niezapisaną w ten sposób
+  // zmianę, mimo że reszta kreatora zawsze zapisuje bieżący krok przy
+  // "Dalej". `undefined` (ref pusty, bo nie jesteśmy na kroku "warianty")
+  // nigdy nie blokuje nawigacji, tylko `false` (realny błąd zapisu) blokuje.
+  async function goToStep(index: number) {
+    const variantsSaved = await variantsStepRef.current?.saveAllPending();
+    if (variantsSaved === false) {
+      setSaveError(t("saveError"));
+      return;
+    }
     setStepIndex(index);
     setShowValidation(false);
   }
@@ -122,17 +136,17 @@ export function ProjectWizard({ locale, countries }: ProjectWizardProps) {
     if (!persisted) return;
     const nextIndex = Math.min(stepIndex + 1, WIZARD_STEPS.length - 1);
     setMaxReachedIndex((prev) => Math.max(prev, nextIndex));
-    goToStep(nextIndex);
+    await goToStep(nextIndex);
   }
 
-  function handleBack() {
+  async function handleBack() {
     if (stepIndex === 0) return;
-    goToStep(stepIndex - 1);
+    await goToStep(stepIndex - 1);
   }
 
-  function handleStepClick(index: number) {
+  async function handleStepClick(index: number) {
     if (index === stepIndex || index > maxReachedIndex) return;
-    goToStep(index);
+    await goToStep(index);
   }
 
   async function handleSave() {
@@ -167,12 +181,7 @@ export function ProjectWizard({ locale, countries }: ProjectWizardProps) {
         />
         <Stack gap={4}>
           {currentStep.id === "podstawowe" && (
-            <ProjectWizardBasicInfoStep
-              countries={countries}
-              showValidation={showValidation}
-              productId={productId}
-              floorPlans={floorPlans}
-            />
+            <ProjectWizardBasicInfoStep countries={countries} showValidation={showValidation} />
           )}
           {currentStep.id === "techniczne" && <ProjectWizardTechnicalStep showValidation={showValidation} />}
           {currentStep.id === "pliki" && (
@@ -189,8 +198,11 @@ export function ProjectWizard({ locale, countries }: ProjectWizardProps) {
               onSalesPdfChange={setSalesPdf}
             />
           )}
+          {currentStep.id === "uklad-pomieszczen" && (
+            <ProjectWizardRoomLayoutStep productId={productId} floorPlans={floorPlans} showValidation={showValidation} />
+          )}
           {currentStep.id === "warianty" && (
-            <ProjectWizardVariantsStep productId={productId} enableStandardsExtraction />
+            <ProjectWizardVariantsStep ref={variantsStepRef} productId={productId} enableStandardsExtraction />
           )}
           {currentStep.id === "faq" && <ProjectWizardFaqStep />}
           {currentStep.id === "tlumaczenia" && <ProjectWizardTranslationsStep productId={productId} />}

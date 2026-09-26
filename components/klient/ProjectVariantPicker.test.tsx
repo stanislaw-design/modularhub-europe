@@ -1,7 +1,15 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { render, screen, within } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import type { ProjectVariant } from "@/lib/data/types";
 import { ProjectVariantPicker } from "./ProjectVariantPicker";
+
+// ProjectVariantSelect (mobile <lg branch, always mounted in jsdom regardless
+// of the Tailwind breakpoint classes) calls useRouter() itself — same mock
+// pattern as ShortlistActionBar.test.tsx.
+vi.mock("next/navigation", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/navigation")>()),
+  useRouter: () => ({ push: vi.fn() }),
+}));
 
 const standardLabel = {
   "surowy-zamkniety": "Stan surowy zamknięty",
@@ -23,7 +31,7 @@ function makeVariant(overrides: Partial<ProjectVariant>): ProjectVariant {
 }
 
 describe("ProjectVariantPicker", () => {
-  it("still renders a single variant as one selectable tab (always shows the full picker)", () => {
+  it("renders a single variant as a visible, non-clickable current tab (spec 0054 AC-3)", () => {
     render(
       <ProjectVariantPicker
         variants={[makeVariant({ id: "v1", isDefault: true })]}
@@ -33,7 +41,11 @@ describe("ProjectVariantPicker", () => {
         ariaLabel="Standard wykończenia"
       />,
     );
-    expect(screen.getByRole("link", { name: "Standard deweloperski" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Standard deweloperski" })).not.toBeInTheDocument();
+    const nav = within(screen.getByRole("navigation", { name: "Standard wykończenia" }));
+    const currentTab = nav.getByText("Standard deweloperski");
+    expect(currentTab).toHaveAttribute("aria-current", "true");
+    expect(currentTab.tagName).not.toBe("A");
   });
 
   it("renders nothing with zero variants", () => {
@@ -71,12 +83,12 @@ describe("ProjectVariantPicker", () => {
     expect(rawLink).not.toHaveAttribute("aria-current");
   });
 
-  it("renders a placeholder variant as a disabled, non-navigable tab", () => {
+  it("renders exactly two tabs for a project with two real variants (spec 0054 AC-2)", () => {
     render(
       <ProjectVariantPicker
         variants={[
           makeVariant({ id: "v1", completionStandard: "deweloperski", isDefault: true }),
-          makeVariant({ id: "placeholder-pod-klucz", completionStandard: "pod-klucz", isPlaceholder: true }),
+          makeVariant({ id: "v2", completionStandard: "surowy-zamkniety" }),
         ]}
         selectedVariantId="v1"
         hrefFor={(standard) => `?wariant=${standard}`}
@@ -85,10 +97,8 @@ describe("ProjectVariantPicker", () => {
       />,
     );
 
-    expect(screen.queryByRole("link", { name: "Pod klucz" })).not.toBeInTheDocument();
-    const disabledTab = screen.getByText("Pod klucz");
-    expect(disabledTab).toHaveAttribute("aria-disabled", "true");
-    expect(disabledTab.tagName).not.toBe("A");
+    expect(screen.getAllByRole("link")).toHaveLength(2);
+    expect(screen.queryByText("Pod klucz")).not.toBeInTheDocument();
   });
 
   it("prefers the producer's own variant label over the standard label", () => {

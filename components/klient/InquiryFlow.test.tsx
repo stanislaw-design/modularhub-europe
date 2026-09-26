@@ -19,7 +19,7 @@ vi.mock("next/navigation", async (importOriginal) => ({
 const mockedSubmit = vi.mocked(submitAdvisoryInquiry);
 
 function makeProject(id: string, name: string): Project {
-  return createMockProject({ id, producerId: "prod-1", producerName: "Producent", name, floorAreaM2: 80, priceMin: 100000, priceMax: 120000 });
+  return createMockProject({ id, producerId: "prod-1", producerName: "Producent", name, floorAreaM2: 80, priceMin: 100000 });
 }
 
 const twoProjects = [makeProject("id1", "Dom Jeden"), makeProject("id2", "Dom Dwa")];

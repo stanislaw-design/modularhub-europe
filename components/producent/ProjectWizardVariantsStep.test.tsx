@@ -1,11 +1,12 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { createRef, type Ref } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ProjectDraft } from "@/lib/data/types";
 import type { ProducerVariantForEdit } from "@/lib/db/queries";
 import { createEmptyDraft } from "@/lib/producer-project-draft";
-import { ProjectWizardVariantsStep } from "./ProjectWizardVariantsStep";
+import { ProjectWizardVariantsStep, type ProjectWizardVariantsStepHandle } from "./ProjectWizardVariantsStep";
 import { WizardFormHarness } from "./wizardFormTestUtils";
 
 vi.mock("@/lib/producer-product-variant-actions", () => ({
@@ -41,11 +42,13 @@ function renderStep(
   productId: string | null = "product-1",
   initialVariants: ProducerVariantForEdit[] = [],
   enableStandardsExtraction = false,
+  ref?: Ref<ProjectWizardVariantsStepHandle>,
 ) {
   let form!: UseFormReturn<ProjectDraft>;
   render(
     <WizardFormHarness defaultValues={createEmptyDraft()} onFormReady={(f) => (form = f)}>
       <ProjectWizardVariantsStep
+        ref={ref}
         productId={productId}
         initialVariants={initialVariants}
         enableStandardsExtraction={enableStandardsExtraction}
@@ -61,10 +64,7 @@ function editVariantFixture(overrides: Partial<ProducerVariantForEdit> = {}): Pr
     completionStandard: "deweloperski",
     isDefault: true,
     priceMinCents: 10_000_000,
-    priceMaxCents: 12_000_000,
     priceOnRequest: false,
-    scopeSummary: "Zakres podstawowy",
-    excludedScope: null,
     costLineItems: [{ id: "item-1", label: "Fundament", status: "w-cenie", responsibleParty: null }],
     timelineStages: [{ stageKey: "formalnosci", durationMinDays: 2, durationMaxDays: 4, startsFromLabel: null, responsibleParty: null }],
     ...overrides,
@@ -122,24 +122,20 @@ describe("ProjectWizardVariantsStep", () => {
     expect(screen.queryByRole("heading", { level: 3 })).not.toBeInTheDocument();
   });
 
-  it("saves price and scope through updateVariant when Zapisz wariant is clicked", async () => {
+  it("saves price through updateVariant when Zapisz wariant is clicked", async () => {
     vi.mocked(createVariant).mockResolvedValue({ ok: true, variantId: "variant-1" });
     vi.mocked(updateVariant).mockResolvedValue({ ok: true });
     const user = userEvent.setup();
     const getForm = renderStep();
 
     await addVariant(user, "Standard deweloperski");
-    await user.type(screen.getByLabelText("Cena minimalna (EUR)"), "100000");
-    await user.type(screen.getByLabelText("Cena maksymalna (EUR)"), "120000");
+    await user.type(screen.getByLabelText("Cena od (EUR)"), "100000");
     await user.click(screen.getByRole("button", { name: "Zapisz wariant" }));
 
     expect(await screen.findByText("Zapisano.")).toBeInTheDocument();
     expect(updateVariant).toHaveBeenCalledWith("variant-1", {
       priceMinEur: 100000,
-      priceMaxEur: 120000,
       priceOnRequest: false,
-      scopeSummary: "",
-      excludedScope: "",
       variantLabel: "",
     });
 
@@ -200,6 +196,60 @@ describe("ProjectWizardVariantsStep", () => {
     });
   });
 
+  // Regression: "Zapisz wariant" used to be the ONLY thing that persisted
+  // price/cost line items/timeline stages. Clicking the wizard's own
+  // "Dalej"/"Wstecz" (which unmounts this step) never called it, so any edit
+  // made after the last "Zapisz wariant" click was silently discarded —
+  // exactly what a producer reported after adding a cost line item and then
+  // moving on with "Dalej" instead of the card's own button. The parent
+  // wizard now calls saveAllPending() through this ref before every
+  // navigation (ProjectWizard.tsx/ProductEditWizard.tsx goToStep).
+  describe("saveAllPending (imperative handle, called by the wizard before navigating away)", () => {
+    it("persists price and an unsaved cost line item even though 'Zapisz wariant' was never clicked", async () => {
+      vi.mocked(createVariant).mockResolvedValue({ ok: true, variantId: "variant-1" });
+      vi.mocked(updateVariant).mockResolvedValue({ ok: true });
+      vi.mocked(upsertCostLineItem).mockResolvedValue({ ok: true, itemId: "item-1" });
+      const user = userEvent.setup();
+      const stepRef = createRef<ProjectWizardVariantsStepHandle>();
+      renderStep("product-1", [], false, stepRef);
+
+      await addVariant(user, "Standard deweloperski");
+      await user.type(screen.getByLabelText("Cena od (EUR)"), "100000");
+      await user.click(screen.getByRole("button", { name: "Dodaj pozycję kosztową" }));
+      await user.type(screen.getByLabelText("Pozycja"), "Fundament");
+
+      expect(updateVariant).not.toHaveBeenCalled();
+      expect(upsertCostLineItem).not.toHaveBeenCalled();
+
+      const saved = await stepRef.current!.saveAllPending();
+
+      expect(saved).toBe(true);
+      expect(updateVariant).toHaveBeenCalledWith("variant-1", {
+        priceMinEur: 100000,
+        priceOnRequest: false,
+        variantLabel: "",
+      });
+      expect(upsertCostLineItem).toHaveBeenCalledWith("variant-1", {
+        id: null,
+        label: "Fundament",
+        status: "w-cenie",
+        responsibleParty: "",
+      });
+    });
+
+    it("returns false when a save fails, so the wizard can block navigation instead of losing the edit silently", async () => {
+      vi.mocked(createVariant).mockResolvedValue({ ok: true, variantId: "variant-1" });
+      vi.mocked(updateVariant).mockResolvedValue({ ok: false, error: "Nie udało się zapisać." });
+      const user = userEvent.setup();
+      const stepRef = createRef<ProjectWizardVariantsStepHandle>();
+      renderStep("product-1", [], false, stepRef);
+
+      await addVariant(user, "Standard deweloperski");
+
+      expect(await stepRef.current!.saveAllPending()).toBe(false);
+    });
+  });
+
   it("removes an unsaved cost line item locally without calling deleteCostLineItem", async () => {
     vi.mocked(createVariant).mockResolvedValue({ ok: true, variantId: "variant-1" });
     const user = userEvent.setup();
@@ -223,8 +273,7 @@ describe("ProjectWizardVariantsStep", () => {
       expect(createVariant).not.toHaveBeenCalled();
       expect(screen.getByRole("heading", { level: 3, name: "Standard deweloperski" })).toBeInTheDocument();
       expect(screen.getByText("Domyślny")).toBeInTheDocument();
-      expect(screen.getByLabelText("Cena minimalna (EUR)")).toHaveValue(100000);
-      expect(screen.getByLabelText("Cena maksymalna (EUR)")).toHaveValue(120000);
+      expect(screen.getByLabelText("Cena od (EUR)")).toHaveValue(100000);
       expect(screen.getByLabelText("Pozycja")).toHaveValue("Fundament");
       // Five fixed timeline-stage rows always render; "formalnosci" (with the
       // fixture's duration) is first, so its "Dni od" input is index 0.
@@ -242,10 +291,7 @@ describe("ProjectWizardVariantsStep", () => {
       expect(await screen.findByText("Zapisano.")).toBeInTheDocument();
       expect(updateVariant).toHaveBeenCalledWith("variant-existing-1", {
         priceMinEur: 100000,
-        priceMaxEur: 120000,
         priceOnRequest: false,
-        scopeSummary: "Zakres podstawowy",
-        excludedScope: "",
         variantLabel: "",
       });
       expect(upsertCostLineItem).toHaveBeenCalledWith("variant-existing-1", {
@@ -260,16 +306,17 @@ describe("ProjectWizardVariantsStep", () => {
   describe("standards extraction (spec 0050 AC-13 to AC-19)", () => {
     const sampleStandard = {
       name: "Comfort",
-      priceMinEur: 90_000,
-      priceMaxEur: 100_000,
+      priceEur: 90_000,
       priceOnRequest: false,
-      scopeSummary: "Ściany, dach, okna",
-      excludedScope: "Fundament",
+      costLineItems: [
+        { label: "Ściany, dach, okna", status: "w-cenie" as const },
+        { label: "Fundament", status: "po-stronie-klienta" as const },
+      ],
       proposedStandard: "deweloperski" as const,
       confidence: "high" as const,
     };
 
-    it("does not render the material section when enableStandardsExtraction is false (edit wizard, AC-41)", () => {
+    it("does not render the material section when enableStandardsExtraction is false", () => {
       renderStep("product-1", [], false);
       expect(screen.queryByText("Rozpoznaj standardy z materiału")).not.toBeInTheDocument();
     });
@@ -311,14 +358,15 @@ describe("ProjectWizardVariantsStep", () => {
       expect(createVariant).toHaveBeenCalledWith("product-1", "deweloperski");
       expect(updateVariant).toHaveBeenCalledWith("variant-new", {
         priceMinEur: 90_000,
-        priceMaxEur: 100_000,
         priceOnRequest: false,
-        scopeSummary: "Ściany, dach, okna",
-        excludedScope: "Fundament",
         variantLabel: "Comfort",
       });
       expect(await screen.findByRole("heading", { level: 3, name: "Standard deweloperski" })).toBeInTheDocument();
       expect(screen.queryByText("wysoka pewność")).not.toBeInTheDocument(); // proposal removed after applying
+      // AC-9: proposed cost line items land in the new variant's editable list, unsaved.
+      expect(screen.getByDisplayValue("Ściany, dach, okna")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("Fundament")).toBeInTheDocument();
+      expect(upsertCostLineItem).not.toHaveBeenCalled();
     });
 
     it("applying a proposal matched to an already-used standard updates the existing variant instead of creating a new one", async () => {
@@ -336,13 +384,14 @@ describe("ProjectWizardVariantsStep", () => {
       expect(createVariant).not.toHaveBeenCalled();
       expect(updateVariant).toHaveBeenCalledWith("variant-existing-1", {
         priceMinEur: 90_000,
-        priceMaxEur: 100_000,
         priceOnRequest: false,
-        scopeSummary: "Ściany, dach, okna",
-        excludedScope: "Fundament",
         variantLabel: "Comfort",
       });
       expect(screen.getAllByRole("heading", { level: 3, name: "Standard deweloperski" })).toHaveLength(1); // not duplicated
+      // AC-9: the proposal's new "Ściany, dach, okna" is appended; its "Fundament"
+      // duplicates the fixture's existing item by exact label, so it's not added twice.
+      expect(screen.getByDisplayValue("Ściany, dach, okna")).toBeInTheDocument();
+      expect(screen.getAllByDisplayValue("Fundament")).toHaveLength(1);
     });
 
     it("skipping a proposal removes it without calling any save action", async () => {

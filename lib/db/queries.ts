@@ -14,6 +14,7 @@ import {
   producer,
   producerDeliveryCountry,
   product,
+  productCountryEligibility,
   productFamilyEnum,
   productTimelineStage,
   productTranslation,
@@ -90,14 +91,19 @@ export interface ProducerProductForEdit {
   spaSubcategory: (typeof product.$inferSelect)["spaSubcategory"];
   containerSubcategory: (typeof product.$inferSelect)["containerSubcategory"];
   floorAreaM2: number | null;
+  externalDimensions: string | null;
+  rooms: number | null;
   bedrooms: number | null;
+  bathrooms: number | null;
   countryOfProduction: string | null;
+  deliveryCountries: string[];
   description: string | null;
   technicalSpecs: unknown;
   roomLayout: unknown;
   faq: unknown;
   clientRequirements: unknown;
   structuralWarrantyYears: number | null;
+  foundationOptions: string | null;
   installationWarrantyYears: number | null;
   serviceScopeDescription: string | null;
   transportDimensions: string | null;
@@ -107,6 +113,9 @@ export interface ProducerProductForEdit {
   descriptionEn: string | null;
   descriptionNl: string | null;
   descriptionDe: string | null;
+  foundationOptionsEn: string | null;
+  foundationOptionsNl: string | null;
+  foundationOptionsDe: string | null;
   roomLayoutEn: unknown;
   roomLayoutNl: unknown;
   roomLayoutDe: unknown;
@@ -139,6 +148,7 @@ export async function getProducerProductForEdit(
       roomLayout: productTranslation.roomLayout,
       faq: productTranslation.faq,
       clientRequirements: productTranslation.clientRequirements,
+      foundationOptions: productTranslation.foundationOptions,
     })
     .from(productTranslation)
     .where(eq(productTranslation.productId, productId));
@@ -148,6 +158,11 @@ export async function getProducerProductForEdit(
   // równi z EN/NL (dawne ograniczenie do EN/NL only, spec 0028 zakres AI,
   // zniesione razem ze skonsolidowanym etapem tłumaczeń).
   const de = translations.find((translation) => translation.locale === "de");
+
+  const eligibilityRows = await db
+    .select({ countryCode: productCountryEligibility.countryCode })
+    .from(productCountryEligibility)
+    .where(eq(productCountryEligibility.productId, productId));
 
   return {
     id: row.id,
@@ -159,14 +174,19 @@ export async function getProducerProductForEdit(
     spaSubcategory: row.spaSubcategory,
     containerSubcategory: row.containerSubcategory,
     floorAreaM2: row.floorAreaM2,
+    externalDimensions: row.externalDimensions,
+    rooms: row.rooms,
     bedrooms: row.bedrooms,
+    bathrooms: row.bathrooms,
     countryOfProduction: row.countryOfProduction,
+    deliveryCountries: eligibilityRows.map((eligibility) => eligibility.countryCode),
     description: row.description,
     technicalSpecs: row.technicalSpecs,
     roomLayout: row.roomLayout,
     faq: row.faq,
     clientRequirements: row.clientRequirements,
     structuralWarrantyYears: row.structuralWarrantyYears,
+    foundationOptions: row.foundationOptions,
     installationWarrantyYears: row.installationWarrantyYears,
     serviceScopeDescription: row.serviceScopeDescription,
     transportDimensions: row.transportDimensions,
@@ -176,6 +196,9 @@ export async function getProducerProductForEdit(
     descriptionEn: en?.description ?? null,
     descriptionNl: nl?.description ?? null,
     descriptionDe: de?.description ?? null,
+    foundationOptionsEn: en?.foundationOptions ?? null,
+    foundationOptionsNl: nl?.foundationOptions ?? null,
+    foundationOptionsDe: de?.foundationOptions ?? null,
     roomLayoutEn: en?.roomLayout ?? null,
     roomLayoutNl: nl?.roomLayout ?? null,
     roomLayoutDe: de?.roomLayout ?? null,

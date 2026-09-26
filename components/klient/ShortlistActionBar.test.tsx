@@ -38,7 +38,7 @@ describe("ShortlistActionBar", () => {
       />
     );
 
-    await user.click(screen.getByRole("button", { name: "Poproś ModularHub o przygotowanie ofert" }));
+    await user.click(screen.getByRole("button", { name: "Wyślij zapytanie" }));
 
     expect(push).toHaveBeenCalledWith("/pl/inquiry?projects=id1%2Cid2");
   });
@@ -57,7 +57,7 @@ describe("ShortlistActionBar", () => {
       />
     );
 
-    await user.click(screen.getByRole("button", { name: "Poproś ModularHub o przygotowanie ofert" }));
+    await user.click(screen.getByRole("button", { name: "Wyślij zapytanie" }));
 
     expect(push).toHaveBeenCalledWith(
       "/pl/inquiry?projects=id1&country=DE&sizeMin=50&sizeMax=100"
@@ -70,7 +70,7 @@ describe("ShortlistActionBar", () => {
       <ShortlistActionBar locale="pl" selectedCount={1} maxSelected={3} projectIds={["id1"]} countryCode="PL" />
     );
 
-    await user.click(screen.getByRole("button", { name: "Poproś ModularHub o przygotowanie ofert" }));
+    await user.click(screen.getByRole("button", { name: "Wyślij zapytanie" }));
 
     const url = new URL(push.mock.calls[0][0] as string, "http://localhost");
     expect([...url.searchParams.keys()].sort()).toEqual(["country", "projects"]);

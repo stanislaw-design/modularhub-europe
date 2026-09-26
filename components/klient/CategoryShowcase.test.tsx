@@ -105,7 +105,6 @@ describe("CategoryShowcase", () => {
         family,
         priceOnRequest: false,
         priceMin: 42000,
-        priceMax: 55000,
       })
     );
 

@@ -3,15 +3,12 @@ import { describe, expect, it } from "vitest";
 import { ProjectTimeline } from "./ProjectTimeline";
 
 describe("ProjectTimeline", () => {
-  it("renders all five stages with a placeholder when there are no stages at all", async () => {
-    render(await ProjectTimeline({ stages: [] }));
-    expect(screen.getByRole("heading", { name: "Harmonogram realizacji" })).toBeInTheDocument();
-    expect(screen.getByText("Formalności")).toBeInTheDocument();
-    expect(screen.getByText("Montaż")).toBeInTheDocument();
-    expect(screen.getAllByText("Do uzupełnienia").length).toBe(5);
+  it("renders nothing when there are no stages at all (spec 0054 AC-6, AC-8)", async () => {
+    const result = await ProjectTimeline({ stages: [] });
+    expect(result).toBeNull();
   });
 
-  it("renders a stage missing from the data with a placeholder, not as absent (data gap override)", async () => {
+  it("renders only the stages present in the data, in chronological order, none of the missing ones (spec 0054 AC-6)", async () => {
     render(
       await ProjectTimeline({
         stages: [{ stageKey: "produkcja", durationMinDays: 84, durationMaxDays: 112 }],
@@ -21,9 +18,9 @@ describe("ProjectTimeline", () => {
     expect(screen.getByRole("heading", { name: "Harmonogram realizacji" })).toBeInTheDocument();
     expect(screen.getByText("Produkcja")).toBeInTheDocument();
     expect(screen.getByText("84–112 dni")).toBeInTheDocument();
-    expect(screen.getByText("Montaż")).toBeInTheDocument();
-    expect(screen.getByText("Formalności")).toBeInTheDocument();
-    expect(screen.getAllByText("Do uzupełnienia").length).toBe(4);
+    expect(screen.queryByText("Montaż")).not.toBeInTheDocument();
+    expect(screen.queryByText("Formalności")).not.toBeInTheDocument();
+    expect(screen.queryByText("Do uzupełnienia")).not.toBeInTheDocument();
   });
 
   it("shows a single day count when min and max match, a range otherwise", async () => {

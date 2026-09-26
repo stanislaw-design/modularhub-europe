@@ -118,6 +118,38 @@ describe("ProjectWizardTechnicalStep: family dom", () => {
   });
 });
 
+// Spec 0053 AC-2: free text, optional, independent of family/containerSubcategory
+// — same status as structuralWarrantyYears above, visible regardless of family.
+describe("ProjectWizardTechnicalStep: foundationOptions (spec 0053 AC-2)", () => {
+  it("renders the field as not required, next to the structural warranty", () => {
+    renderStep(createEmptyDraft(), false);
+
+    expect(screen.getByLabelText("Wymagania fundamentowe")).not.toBeRequired();
+  });
+
+  it("shows no validation error for a blank value even once showValidation is true", () => {
+    renderStep(createEmptyDraft(), true);
+
+    expect(screen.getByLabelText("Wymagania fundamentowe")).toHaveValue("");
+    expect(screen.getByLabelText("Wymagania fundamentowe")).not.toHaveAttribute("aria-invalid", "true");
+  });
+
+  it("updates the form's foundationOptions as the field changes", async () => {
+    const user = userEvent.setup();
+    const getForm = renderStep(createEmptyDraft(), false);
+
+    await user.type(screen.getByLabelText("Wymagania fundamentowe"), "Płyta fundamentowa");
+
+    expect(getForm().getValues("foundationOptions")).toBe("Płyta fundamentowa");
+  });
+
+  it("pre-fills the field with the value already on the draft (edit wizard)", () => {
+    renderStep({ ...createEmptyDraft(), foundationOptions: "Ławy fundamentowe" }, false);
+
+    expect(screen.getByLabelText("Wymagania fundamentowe")).toHaveValue("Ławy fundamentowe");
+  });
+});
+
 describe("ProjectWizardTechnicalStep: family spa-modulowe", () => {
   it("renders numeric fields as number inputs and heatingType as a select, not dom's fields", () => {
     renderStep({ ...createEmptyDraft(), family: "spa-modulowe" as const }, false);

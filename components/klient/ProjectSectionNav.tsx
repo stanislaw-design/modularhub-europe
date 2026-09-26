@@ -17,13 +17,13 @@ interface ProjectSectionNavProps {
 }
 
 // Pasek szybkiej nawigacji po sekcjach strony projektu, zaraz pod hero.
-// Zwykłe kotwice `#id`. Sekcja bez jeszcze zbudowanego odpowiednika na
-// stronie (dziś: Dokumenty i pytania, Podobne domy — to ostatnie jawnie poza
-// zakresem spec 0042 AC-15) renderuje się jako wyłączona (disabled) pozycja
-// zamiast martwego linku donikąd, ten sam wzorzec co placeholder w
-// ProjectVariantPicker. Klienckie: strzałki przewijania na desktopie
-// wymagają śledzenia pozycji scrolla — na mobile przewija się samym gestem
-// (natywny overflow-x-auto), strzałki są tam ukryte.
+// Zwykłe kotwice `#id`. Sekcja bez żadnej prawdziwej treści na tym
+// konkretnym projekcie (cena, działka, harmonogram, dokumenty — policzone w
+// page.tsx, spec 0054 AC-8) renderuje się jako wyłączona (disabled) pozycja
+// zamiast martwego linku donikąd, ten sam wzorzec co "Podobne domy" (jawnie
+// poza zakresem, spec 0042 AC-15). Klienckie: strzałki przewijania na
+// desktopie wymagają śledzenia pozycji scrolla — na mobile przewija się
+// samym gestem (natywny overflow-x-auto), strzałki są tam ukryte.
 export function ProjectSectionNav({ items, ariaLabel, scrollLeftLabel, scrollRightLabel }: ProjectSectionNavProps) {
   const scrollRef = useRef<HTMLElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);

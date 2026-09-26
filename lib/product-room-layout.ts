@@ -18,19 +18,28 @@ export type FloorLevel = (typeof FLOOR_LEVELS)[number];
 // dokładnie tu (nie migracją bazy, bo room_layout jest jsonb). isMezzanine
 // nigdy nie trafia z powrotem do zapisu: `RoomLayoutRow` (typ wyjściowy) go
 // nie ma.
+//
+// `function` (dawne pole "Funkcja") usunięte z kreatora: w praktyce niemal
+// zawsze dublowało `name` ("Salon" / funkcja "Dzienna"), bez własnego miejsca
+// na karcie klienta (ProjectRoomLayout.tsx nigdy go nie wyświetlał). Ten sam
+// wzorzec co isMezzanine wyżej — schemat wciąż akceptuje `function` na
+// wejściu (produkty opublikowane przed tą zmianą mają je w swoim jsonb), ale
+// zawsze go odrzuca w transformacji; `RoomLayoutRow` go nie ma.
 const roomLayoutRowInputSchema = z
   .object({
     id: z.string().min(1),
     name: z.string().min(1),
     areaM2: z.number().positive(),
-    function: z.string().min(1),
+    function: z.string().optional(),
     floorLevel: z.enum(FLOOR_LEVELS).optional(),
     isMezzanine: z.boolean().optional(),
   })
   .strict();
 
-export const roomLayoutRowSchema = roomLayoutRowInputSchema.transform(({ isMezzanine, floorLevel, ...rest }) => ({
-  ...rest,
+export const roomLayoutRowSchema = roomLayoutRowInputSchema.transform(({ id, name, areaM2, isMezzanine, floorLevel }) => ({
+  id,
+  name,
+  areaM2,
   floorLevel: floorLevel ?? (isMezzanine ? "poddasze" : "parter"),
 }));
 export type RoomLayoutRow = z.infer<typeof roomLayoutRowSchema>;
@@ -39,10 +48,10 @@ export const roomLayoutSchema = z.array(roomLayoutRowSchema);
 export type RoomLayout = z.infer<typeof roomLayoutSchema>;
 
 // Tlumaczenie EN/NL (product_translation.room_layout, AC-10): dopasowane po
-// `id` z roomLayoutSchema powyzej. Tylko `name` jest tlumaczony — areaM2,
-// function i floorLevel nie sa jezykozalezne. Tablica moze byc krotsza niz
-// polska wersja (tlumaczenie czesciowe); brakujacy wpis renderuje sie jako
-// polski tekst (AC-10), rozwiazywane po stronie odczytu, nie tutaj.
+// `id` z roomLayoutSchema powyzej. Tylko `name` jest tlumaczony — areaM2 i
+// floorLevel nie sa jezykozalezne. Tablica moze byc krotsza niz polska
+// wersja (tlumaczenie czesciowe); brakujacy wpis renderuje sie jako polski
+// tekst (AC-10), rozwiazywane po stronie odczytu, nie tutaj.
 export const roomLayoutTranslationRowSchema = z
   .object({
     id: z.string().min(1),

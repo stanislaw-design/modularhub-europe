@@ -26,7 +26,7 @@ afterEach(() => {
 });
 
 function makeProject(id: string, name: string): Project {
-  return createMockProject({ id, producerId: "prod-1", producerName: "Producent", name, floorAreaM2: 80, priceMin: 100000, priceMax: 120000 });
+  return createMockProject({ id, producerId: "prod-1", producerName: "Producent", name, floorAreaM2: 80, priceMin: 100000 });
 }
 
 const items: ResultItem[] = [
@@ -114,7 +114,7 @@ describe("ResultsSelection", () => {
 
     await user.click(screen.getByRole("checkbox", { name: "Zaznacz Dom Jeden do zapytania" }));
     await user.click(screen.getByRole("checkbox", { name: "Zaznacz Dom Dwa do zapytania" }));
-    await user.click(screen.getByRole("button", { name: "Poproś ModularHub o przygotowanie ofert" }));
+    await user.click(screen.getByRole("button", { name: "Wyślij zapytanie" }));
 
     expect(push).toHaveBeenCalledWith(
       "/pl/inquiry?projects=id1%2Cid2&country=DE&sizeMin=50&sizeMax=100"

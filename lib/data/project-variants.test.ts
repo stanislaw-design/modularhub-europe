@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createMockProject } from "@/test/fixtures/project";
 import type { ProjectVariant } from "./types";
-import { getDefaultProjectVariant, getProjectPriceDisplay } from "./project-variants";
+import { getDefaultProjectVariant, getInPriceCostLineItemLabels, getProjectPriceDisplay } from "./project-variants";
 
 function makeVariant(overrides: Partial<ProjectVariant>): ProjectVariant {
   return {
@@ -37,13 +37,7 @@ describe("getDefaultProjectVariant", () => {
 
 describe("getProjectPriceDisplay", () => {
   it("returns the priced default variant when a real price exists (spec 0044 AC-1)", () => {
-    const variant = makeVariant({ id: "a", isDefault: true, priceMin: 100000, priceMax: 120000 });
-    const project = createMockProject({ priceOnRequest: false, variants: [variant] });
-    expect(getProjectPriceDisplay(project)).toEqual({ priceOnRequest: false, variant });
-  });
-
-  it("flags priceOnRequest when the scope is empty, keeping the real variant (spec 0044 AC-2)", () => {
-    const variant = makeVariant({ id: "a", isDefault: true, priceMin: 100000, scopeSummary: undefined });
+    const variant = makeVariant({ id: "a", isDefault: true, priceMin: 100000 });
     const project = createMockProject({ priceOnRequest: false, variants: [variant] });
     expect(getProjectPriceDisplay(project)).toEqual({ priceOnRequest: false, variant });
   });
@@ -63,5 +57,37 @@ describe("getProjectPriceDisplay", () => {
     const variant = makeVariant({ id: "a", isDefault: true, priceMin: undefined });
     const project = createMockProject({ priceOnRequest: false, variants: [variant] });
     expect(getProjectPriceDisplay(project)).toEqual({ priceOnRequest: true });
+  });
+});
+
+describe("getInPriceCostLineItemLabels (spec 0051 AC-6)", () => {
+  it("returns up to `max` labels with status w-cenie, in list order, and zero extraCount when within the limit", () => {
+    const variant = makeVariant({
+      costLineItems: [
+        { id: "1", label: "Fundament", status: "w-cenie" },
+        { id: "2", label: "Transport", status: "po-stronie-klienta" },
+        { id: "3", label: "Ściany i dach", status: "w-cenie" },
+      ],
+    });
+    expect(getInPriceCostLineItemLabels(variant)).toEqual({ labels: ["Fundament", "Ściany i dach"], extraCount: 0 });
+  });
+
+  it("caps at `max` labels and reports the remaining count", () => {
+    const variant = makeVariant({
+      costLineItems: [
+        { id: "1", label: "A", status: "w-cenie" },
+        { id: "2", label: "B", status: "w-cenie" },
+        { id: "3", label: "C", status: "w-cenie" },
+        { id: "4", label: "D", status: "w-cenie" },
+      ],
+    });
+    expect(getInPriceCostLineItemLabels(variant)).toEqual({ labels: ["A", "B", "C"], extraCount: 1 });
+  });
+
+  it("returns an empty summary when there are no items, or none with status w-cenie", () => {
+    expect(getInPriceCostLineItemLabels(makeVariant({ costLineItems: [] }))).toEqual({ labels: [], extraCount: 0 });
+    expect(
+      getInPriceCostLineItemLabels(makeVariant({ costLineItems: [{ id: "1", label: "Transport", status: "do-wyceny" }] })),
+    ).toEqual({ labels: [], extraCount: 0 });
   });
 });

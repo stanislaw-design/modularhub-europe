@@ -747,6 +747,8 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: verified volume m
           family: "dom",
           name: "Test Variant Product",
           floorAreaM2: 90,
+          externalDimensions: "12m x 9m x 6m",
+          foundationOptions: "Płyta fundamentowa lub ławy",
           roomLayout: [
             { name: "Salon", areaM2: 28, function: "Dzienna" },
             { name: "Antresola", function: "Sypialnia", isMezzanine: true },
@@ -774,10 +776,6 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: verified volume m
           productId: variantsProductId,
           completionStandard: "surowy-zamkniety",
           priceMinCents: 13800000,
-          priceMaxCents: 16800000,
-          scopeSummary: "Bryła zamknięta.",
-          // Spec 0050 AC-13, AC-24, AC-36.
-          excludedScope: "Przyłącza mediów i instalacja fotowoltaiczna.",
           isDefault: false,
           sortOrder: 1,
         },
@@ -786,8 +784,6 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: verified volume m
           productId: variantsProductId,
           completionStandard: "pod-klucz",
           priceMinCents: 20700000,
-          priceMaxCents: 22000000,
-          scopeSummary: "Gotowy do zamieszkania.",
           isDefault: true,
           sortOrder: 2,
         },
@@ -796,9 +792,8 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: verified volume m
           productId: variantsProductId,
           completionStandard: "deweloperski",
           // Spec 0050 AC-13, AC-37: CHECK product_variant_price_on_request wymaga
-          // NULL cen, gdy priceOnRequest = true.
+          // NULL ceny, gdy priceOnRequest = true.
           priceMinCents: null,
-          priceMaxCents: null,
           priceOnRequest: true,
           isDefault: false,
           sortOrder: 3,
@@ -855,7 +850,6 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: verified volume m
 
       const rawVariant = project?.variants.find((variant) => variant.completionStandard === "surowy-zamkniety");
       expect(rawVariant?.priceMin).toBe(138000);
-      expect(rawVariant?.priceMax).toBe(168000);
       expect(rawVariant?.isDefault).toBe(false);
       expect(rawVariant?.costLineItems).toEqual([
         { id: expect.any(String), label: "Fundament", status: "po-stronie-klienta", responsibleParty: undefined },
@@ -868,18 +862,16 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: verified volume m
       expect(turnkeyVariant?.timelineStages.map((stage) => stage.stageKey)).toEqual(["produkcja", "montaz"]);
     });
 
-    // Spec 0050 AC-13, AC-24, AC-36, AC-37.
-    it("reads priceOnRequest and excludedScope per variant", async () => {
+    // Spec 0050 AC-13, AC-37.
+    it("reads priceOnRequest per variant", async () => {
       const project = await getProjectById(variantsProductId);
 
       const rawVariant = project?.variants.find((variant) => variant.completionStandard === "surowy-zamkniety");
       expect(rawVariant?.priceOnRequest).toBe(false);
-      expect(rawVariant?.excludedScope).toBe("Przyłącza mediów i instalacja fotowoltaiczna.");
 
       const onRequestVariant = project?.variants.find((variant) => variant.completionStandard === "deweloperski");
       expect(onRequestVariant?.priceOnRequest).toBe(true);
       expect(onRequestVariant?.priceMin).toBeUndefined();
-      expect(onRequestVariant?.priceMax).toBeUndefined();
     });
 
     // Spec 0050 AC-23, AC-35.
@@ -894,11 +886,23 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: verified volume m
       expect(withoutRequirements?.clientRequirements).toBeUndefined();
     });
 
-    it("mirrors the trigger-derived product.price_min/max_cents at the top level, matching the default variant", async () => {
+    // Spec 0053 AC-1, AC-2, AC-7: producent może wypełnić oba pola, w innym
+    // wypadku karta klienta dostaje pusty string (placeholder "do
+    // uzupełnienia" żyje w ProjectLogistics.tsx, nie tutaj).
+    it("reads externalDimensions/foundationOptions from product, empty string when unset", async () => {
+      const withDimensions = await getProjectById(variantsProductId);
+      expect(withDimensions?.externalDimensions).toBe("12m x 9m x 6m");
+      expect(withDimensions?.foundationOptions).toBe("Płyta fundamentowa lub ławy");
+
+      const withoutDimensions = await getProjectById(noVariantProductId);
+      expect(withoutDimensions?.externalDimensions).toBe("");
+      expect(withoutDimensions?.foundationOptions).toBe("");
+    });
+
+    it("mirrors the trigger-derived product.price_min_cents at the top level, matching the default variant", async () => {
       const project = await getProjectById(variantsProductId);
       expect(project?.priceOnRequest).toBeFalsy();
       expect(project?.priceMin).toBe(207000);
-      expect(project?.priceMax).toBe(220000);
     });
 
     it("reads roomLayout from product.room_layout, undefined when empty (spec 0042 AC-4)", async () => {
@@ -926,7 +930,6 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: verified volume m
       expect(project?.variants).toEqual([]);
       expect(project?.priceOnRequest).toBe(true);
       expect(project?.priceMin).toBe(0);
-      expect(project?.priceMax).toBe(0);
     });
   });
 });

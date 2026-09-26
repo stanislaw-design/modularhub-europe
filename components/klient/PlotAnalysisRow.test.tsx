@@ -8,7 +8,7 @@ import { PlotAnalysisRow } from "./PlotAnalysisRow";
 import type { PlotAnalysisRequest } from "./PlotDossierPanel";
 
 function makeProject(id: string, name: string, producerName: string, floorAreaM2: number): Project {
-  return createMockProject({ id, producerId: "prod-1", producerName, name, floorAreaM2, priceMin: 100000, priceMax: 120000 });
+  return createMockProject({ id, producerId: "prod-1", producerName, name, floorAreaM2, priceMin: 100000 });
 }
 
 // Known fixture rows (lib/data/fixtures/plot-analysis.ts): pick one of each status.

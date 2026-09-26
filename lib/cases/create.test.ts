@@ -36,7 +36,7 @@ describe.skipIf(!process.env.DATABASE_URL)("createAdvisoryCase: kolejność kart
       countryCode: "PL",
       technology: "szkielet-drewniany",
     });
-    await db.insert(product).values({ id: productId, producerId, family: "dom", status: "published", name: "Create Order Product" });
+    await db.insert(product).values({ id: productId, producerId, family: "dom", status: "draft", name: "Create Order Product" });
 
     const result = await createAdvisoryCase(
       {

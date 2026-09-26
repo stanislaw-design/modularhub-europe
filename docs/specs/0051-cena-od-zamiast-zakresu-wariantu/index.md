@@ -1,7 +1,7 @@
 # 0051. Cena od zamiast zakresu wariantu
 
 **Date**: 2026-09-23
-**Status**: Proposed
+**Status**: In Progress
 
 ## Summary
 

@@ -15,7 +15,7 @@ test.describe("/pl/project/[id]", () => {
 
     const headingOrder = await page.getByRole("heading", { level: 2 }).allTextContents();
     expect(headingOrder).toEqual([
-      "Technologia i konstrukcja",
+      "Efektywność energetyczna",
       "Warunki komercyjne",
       "Producent",
     ]);

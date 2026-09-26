@@ -25,17 +25,25 @@ import type {
 // below accept either without depending on one entry point.
 type Translate = ReturnType<typeof useTranslations>;
 
-export type WizardStepId = "podstawowe" | "techniczne" | "pliki" | "warianty" | "faq" | "tlumaczenia" | "podsumowanie";
+export type WizardStepId =
+  | "podstawowe"
+  | "techniczne"
+  | "pliki"
+  | "uklad-pomieszczen"
+  | "warianty"
+  | "faq"
+  | "tlumaczenia"
+  | "podsumowanie";
 
 export interface WizardStep {
   id: WizardStepId;
   label: string;
 }
 
-// Krok 1 zbiera family i podkategorię (spec 0022 AC-6), plus uklad pomieszczen
-// (spec 0045 AC-5); dawne trzy kroki techniczne domu (konstrukcja/instalacje/
-// odpornosc) zwijają się w jeden krok "techniczne", ktorego pola zależą od
-// family i ktory od zadania 9 niesie tez sekcje logistyki i zgodnosci (AC-8).
+// Krok 1 zbiera family i podkategorię (spec 0022 AC-6); dawne trzy kroki
+// techniczne domu (konstrukcja/instalacje/odpornosc) zwijają się w jeden krok
+// "techniczne", ktorego pola zależą od family i ktory od zadania 9 niesie tez
+// sekcje logistyki i zgodnosci (AC-8).
 //
 // Dawny krok "cena" zostal usuniety (spec 0045 Build plan zadanie 12): jego
 // pola cenowe (housePriceMinEur/Max, completionStandard) i stara reguła
@@ -46,13 +54,18 @@ export interface WizardStep {
 // (structuralWarrantyYears) przeniosla sie do sekcji logistyki kroku
 // "techniczne", bo nadal jest realnie wyswietlana klientowi (patrz
 // ProjectTechnicalSpecs.tsx), w odroznieniu od pol superseded wyzej.
-// Kolejnosc reorganizowana docelowo dopiero w zadaniu 17 (audyt, AC-20) —
-// ta lista zostaje w dzisiejszej kolejnosci (podstawowe/techniczne/pliki),
-// tylko z "cena" usunieta i "faq" dodanym po "warianty".
+//
+// "uklad-pomieszczen" (dawniej sekcja w "podstawowe", spec 0045 AC-5) ma tu
+// wlasny krok, umieszczony PO "pliki": rozpoznawanie AI (spec 0050 AC-4 do
+// AC-12) potrzebuje juz wgranych rzutow, a "podstawowe" jest pierwszym krokiem
+// kreatora, wiec producent musial wracac na sam poczatek, zeby uruchomic
+// rozpoznawanie po wgraniu plikow na kroku 3 — zglaszany UX bug, nie
+// zamierzone zachowanie.
 export const WIZARD_STEPS: WizardStep[] = [
   { id: "podstawowe", label: "Informacje podstawowe" },
   { id: "techniczne", label: "Dane techniczne" },
   { id: "pliki", label: "Pliki" },
+  { id: "uklad-pomieszczen", label: "Układ pomieszczeń" },
   { id: "warianty", label: "Warianty i cennik" },
   { id: "faq", label: "FAQ" },
   { id: "tlumaczenia", label: "Tłumaczenia" },
@@ -63,6 +76,10 @@ export const FLOOR_AREA_MIN_M2 = 20;
 export const FLOOR_AREA_MAX_M2 = 500;
 export const BEDROOMS_MIN = 0;
 export const BEDROOMS_MAX = 10;
+export const ROOMS_MIN = 1;
+export const ROOMS_MAX = 15;
+export const BATHROOMS_MIN = 0;
+export const BATHROOMS_MAX = 10;
 
 // Etykiety wybierane przez t() z namespace "ProjectOptions" (messages/*.json,
 // spec 0028 AC-1: "etykiety filtrów/enumów"), value listy zostają value listami
@@ -449,8 +466,12 @@ export function createEmptyDraft(): ProjectDraft {
   return {
     name: "",
     floorAreaM2: null,
+    externalDimensions: "",
+    rooms: null,
     bedrooms: null,
+    bathrooms: null,
     countryOfProduction: null,
+    deliveryCountries: [],
     description: "",
     descriptionEn: "",
     descriptionNl: "",
@@ -482,6 +503,10 @@ export function createEmptyDraft(): ProjectDraft {
     floorPlanFiles: [],
     photoFiles: [],
     structuralWarrantyYears: null,
+    foundationOptions: "",
+    foundationOptionsEn: "",
+    foundationOptionsNl: "",
+    foundationOptionsDe: "",
     installationWarrantyYears: null,
     serviceScopeDescription: "",
     transportDimensions: "",
@@ -548,11 +573,8 @@ export function isStepComplete(stepId: WizardStepId, draft: ProjectDraft): boole
         draft.floorAreaM2 !== null &&
         draft.floorAreaM2 >= FLOOR_AREA_MIN_M2 &&
         draft.floorAreaM2 <= FLOOR_AREA_MAX_M2 &&
-        draft.bedrooms !== null &&
-        Number.isInteger(draft.bedrooms) &&
-        draft.bedrooms >= BEDROOMS_MIN &&
-        draft.bedrooms <= BEDROOMS_MAX &&
         draft.countryOfProduction !== null &&
+        draft.deliveryCountries.length > 0 &&
         isNonEmpty(draft.description) &&
         draft.family !== null &&
         isSubcategoryComplete(draft)
@@ -570,6 +592,28 @@ export function isStepComplete(stepId: WizardStepId, draft: ProjectDraft): boole
       );
     case "pliki":
       return draft.floorPlanFiles.length > 0 && draft.photoFiles.length > 0;
+    // Sama lista pomieszczen jest opcjonalna (zadna AC spec 0045/0050 nie
+    // wymaga wypelnienia) — ten sam status quo co przed wydzieleniem wlasnego
+    // kroku, gdy sekcja zyla w "podstawowe" i rowniez nie byla tam sprawdzana.
+    // Liczba sypialni/pokoi/lazienek natomiast jest wymagana: przeniesiona tu
+    // z "podstawowe" (dedykowane kolumny produktu, patrz komentarz przy
+    // ProjectDraft.rooms w lib/data/types.ts), bo tematycznie nalezy do
+    // rozkladu domu, nie do nazwy/metrazu/opisu.
+    case "uklad-pomieszczen":
+      return (
+        draft.bedrooms !== null &&
+        Number.isInteger(draft.bedrooms) &&
+        draft.bedrooms >= BEDROOMS_MIN &&
+        draft.bedrooms <= BEDROOMS_MAX &&
+        draft.rooms !== null &&
+        Number.isInteger(draft.rooms) &&
+        draft.rooms >= ROOMS_MIN &&
+        draft.rooms <= ROOMS_MAX &&
+        draft.bathrooms !== null &&
+        Number.isInteger(draft.bathrooms) &&
+        draft.bathrooms >= BATHROOMS_MIN &&
+        draft.bathrooms <= BATHROOMS_MAX
+      );
     // AC-1/AC-4: krok jest kompletny gdy istnieje dokładnie jeden domyślny
     // wariant z wypełnioną ceną minimalną — ten sam warunek, który bramkuje
     // publikację na serwerze (validatePublishReadiness, spec 0045 zadanie 12).

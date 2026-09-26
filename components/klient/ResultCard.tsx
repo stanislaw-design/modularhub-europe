@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Card, Checkbox, DataText, Heading, StatusPill, Text } from "@/components/ui";
 import { FavoriteButton } from "./FavoriteButton";
-import { getDefaultProjectVariant, getProjectPriceDisplay } from "@/lib/data/project-variants";
+import { getDefaultProjectVariant, getInPriceCostLineItemLabels, getProjectPriceDisplay } from "@/lib/data/project-variants";
 import type { CountryCode, EligibilityStatus, Project } from "@/lib/data/types";
 
 interface ResultCardProps {
@@ -178,7 +178,11 @@ export function ResultCard({
                 {t("priceFrom", { price: priceFormatter.format(priceDisplay.variant.priceMin) })}
               </DataText>
               <Text tone="muted" surface="v5" className="mt-1 text-data">
-                {priceDisplay.variant.scopeSummary || t("scopeToBeConfirmed")}
+                {(() => {
+                  const { labels, extraCount } = getInPriceCostLineItemLabels(priceDisplay.variant);
+                  if (labels.length === 0) return t("costIncludedFallback");
+                  return extraCount > 0 ? `${labels.join(", ")} ${t("costIncludedMore", { count: extraCount })}` : labels.join(", ");
+                })()}
               </Text>
             </>
           )}

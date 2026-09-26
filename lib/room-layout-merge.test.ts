@@ -6,12 +6,12 @@ describe("mergeRecognizedRooms", () => {
     const result = mergeRecognizedRooms([], [{ name: "Salon", areaM2: 28, floorLevel: "parter", confidence: "high" }]);
 
     expect(result.rows).toHaveLength(1);
-    expect(result.rows[0]).toMatchObject({ name: "Salon", areaM2: 28, floorLevel: "parter", function: "" });
+    expect(result.rows[0]).toMatchObject({ name: "Salon", areaM2: 28, floorLevel: "parter" });
     expect(result.confidenceById[result.rows[0]!.id]).toBe("high");
   });
 
   it("matches an existing row by normalized name and similar area without overwriting it", () => {
-    const existing = [{ id: "a", name: "salon", areaM2: 27.5, function: "Dzienna", floorLevel: "parter" as const }];
+    const existing = [{ id: "a", name: "salon", areaM2: 27.5, floorLevel: "parter" as const }];
     const result = mergeRecognizedRooms(existing, [{ name: "Salon", areaM2: 28, floorLevel: "parter", confidence: "high" }]);
 
     expect(result.rows).toHaveLength(1);
@@ -20,7 +20,7 @@ describe("mergeRecognizedRooms", () => {
   });
 
   it("flags a matched row as needs-check when the recognized floor level differs, without changing it", () => {
-    const existing = [{ id: "a", name: "Salon", areaM2: 27.5, function: "Dzienna", floorLevel: "parter" as const }];
+    const existing = [{ id: "a", name: "Salon", areaM2: 27.5, floorLevel: "parter" as const }];
     const result = mergeRecognizedRooms(existing, [{ name: "Salon", areaM2: 28, floorLevel: "pietro", confidence: "high" }]);
 
     expect(result.rows).toEqual(existing); // preserved as-is
@@ -35,7 +35,7 @@ describe("mergeRecognizedRooms", () => {
   });
 
   it("matches names ignoring case, whitespace and diacritics", () => {
-    const existing = [{ id: "a", name: "Sypialnia główna", areaM2: 15, function: "Nocna", floorLevel: "pietro" as const }];
+    const existing = [{ id: "a", name: "Sypialnia główna", areaM2: 15, floorLevel: "pietro" as const }];
     const result = mergeRecognizedRooms(existing, [
       { name: "  sypialnia GLOWNA  ", areaM2: 15.5, floorLevel: "pietro", confidence: "low" },
     ]);
@@ -45,7 +45,7 @@ describe("mergeRecognizedRooms", () => {
   });
 
   it("treats a room with a very different area as unmatched, adding it as new", () => {
-    const existing = [{ id: "a", name: "Salon", areaM2: 27.5, function: "Dzienna", floorLevel: "parter" as const }];
+    const existing = [{ id: "a", name: "Salon", areaM2: 27.5, floorLevel: "parter" as const }];
     const result = mergeRecognizedRooms(existing, [{ name: "Salon", areaM2: 60, floorLevel: "parter", confidence: "high" }]);
 
     expect(result.rows).toHaveLength(2);

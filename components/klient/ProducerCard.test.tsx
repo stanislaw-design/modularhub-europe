@@ -32,7 +32,7 @@ describe("ProducerCard", () => {
   it.each([
     [true, "Możliwe odwiedziny osobiste"],
     [false, "Bez możliwości odwiedzin osobistych"],
-    [null, "Odwiedziny osobiste do potwierdzenia z producentem"],
+    [null, "Odwiedziny osobiste do ustalenia z producentem"],
   ] as const)(
     "shows showroomVisitAvailable=%s as its own distinguishable state (spec 0042 AC-9)",
     async (value, expectedText) => {
@@ -61,11 +61,13 @@ describe("ProducerCard", () => {
     expect(screen.queryByText("Stray note")).not.toBeInTheDocument();
   });
 
-  it("shows the response time line only when filled (spec 0042 AC-10)", async () => {
+  it("shows the whole response time row only when filled, no placeholder row otherwise (spec 0054 AC-10)", async () => {
     const { rerender } = render(
       await ProducerCard({ producer: makeProducer({ inquiryResponseTimeLabel: undefined }), showTrustDetails: true }),
     );
     expect(screen.queryByText(/Odpowiada w ciągu/)).not.toBeInTheDocument();
+    expect(screen.queryByText("Czas odpowiedzi")).not.toBeInTheDocument();
+    expect(screen.queryByText("Do uzupełnienia")).not.toBeInTheDocument();
 
     rerender(
       await ProducerCard({

@@ -121,15 +121,15 @@ describe("ResultCard", () => {
     expect(checkbox).not.toHaveAttribute("title");
   });
 
-  it("pairs the price with the default variant's name and scope (spec 0044 AC-1)", () => {
+  it("pairs the price with the default variant's name and in-price cost line item labels (spec 0044 AC-1, spec 0051 AC-6)", () => {
     render(<ResultCard project={project} countryName="Polska" locale="pl" />);
     expect(screen.getAllByText(/Standard deweloperski/).length).toBeGreaterThan(0);
-    expect(screen.getByText("Dom w standardzie deweloperskim, gotowy do wykończenia.")).toBeInTheDocument();
+    expect(screen.getByText("Fundament, Ściany i dach")).toBeInTheDocument();
   });
 
   it("shows a scope-to-be-confirmed fallback instead of hiding the scope line (spec 0044 AC-2)", () => {
     const noScopeProject = createMockProject({
-      variants: [{ ...project.variants[0], scopeSummary: undefined }],
+      variants: [{ ...project.variants[0], costLineItems: [] }],
     });
     render(<ResultCard project={noScopeProject} countryName="Polska" locale="pl" />);
     expect(screen.getByText("Zakres do potwierdzenia")).toBeInTheDocument();

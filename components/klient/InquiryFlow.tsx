@@ -2,7 +2,6 @@
 
 import {
   Home,
-  ImageOff,
   MapPin,
   MessageCircle,
   Send,
@@ -10,7 +9,6 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { type FormEvent, type ReactNode, useState, useTransition } from "react";
 import {
@@ -124,34 +122,32 @@ export function InquiryFlow({
   }));
 
   return (
-    <Stack gap={4}>
-      <Heading level="h1" surface="v5">
-        {t("heading")}
-      </Heading>
-      <div className="grid grid-cols-1 gap-brand-5 lg:grid-cols-[320px_1fr] lg:items-start lg:gap-brand-6">
-        <Stack gap={3} className="lg:sticky lg:top-brand-4">
-          <Text as="span" variant="label" surface="v5">
+    <div className="relative left-1/2 right-1/2 w-screen -ml-[50vw] -mr-[50vw] px-4 sm:px-8 lg:pl-10 lg:pr-10 xl:pl-14 xl:pr-14 2xl:pl-16 2xl:pr-16">
+      <h1 className="sr-only">{t("heading")}</h1>
+      <div className="grid grid-cols-1 gap-brand-6 lg:grid-cols-[420px_1fr] xl:grid-cols-[480px_1fr] 2xl:grid-cols-[520px_1fr] lg:items-start lg:gap-10 xl:gap-14">
+        <Stack gap={4} className="lg:sticky lg:top-brand-4">
+          <Heading level="h2" surface="v5" className="text-2xl font-bold tracking-tight sm:text-3xl">
             {t("howItWorksTitle")}
-          </Text>
+          </Heading>
           <ol className="flex flex-col">
             {HOW_IT_WORKS_STEPS.map(({ icon: Icon, key }, index) => (
               <li
                 key={key}
-                className="relative flex gap-3 pb-brand-4 last:pb-0"
+                className="relative flex gap-4 pb-8 last:pb-0 xl:pb-10"
               >
                 {index < HOW_IT_WORKS_STEPS.length - 1 && (
                   <span
                     aria-hidden="true"
-                    className="absolute left-[17px] top-9 h-[calc(100%-2.25rem)] w-px bg-brand-v5-line"
+                    className="absolute left-[23px] top-12 h-[calc(100%-2.5rem)] w-px bg-brand-v5-line"
                   />
                 )}
-                <span className="relative z-10 flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-v5-amber/10 text-brand-v5-amber-strong">
-                  <Icon className="size-4" aria-hidden="true" />
+                <span className="relative z-10 flex size-12 shrink-0 items-center justify-center rounded-xl border border-brand-v5-amber/30 bg-brand-v5-amber/12 text-brand-v5-amber-strong shadow-sm">
+                  <Icon className="size-6" aria-hidden="true" />
                 </span>
-                <Text surface="v5" tone="muted" className="pt-1.5">
+                <p className="pt-2 text-base leading-relaxed text-brand-v5-ink sm:text-lg lg:text-xl font-normal">
                   <span className="sr-only">{index + 1}. </span>
                   {t(key)}
-                </Text>
+                </p>
               </li>
             ))}
           </ol>
@@ -160,54 +156,34 @@ export function InquiryFlow({
         <Card
           surface="v5"
           padding="lg"
-          className="p-brand-4 shadow-sm sm:p-brand-5"
+          className="w-full p-brand-5 shadow-sm sm:p-brand-6 xl:p-8"
         >
           <form
             onSubmit={handleSubmit}
             className="flex flex-col gap-brand-5"
             noValidate
           >
-            <div className="grid grid-cols-1 gap-brand-5 sm:grid-cols-[2fr_3fr] sm:gap-brand-6">
+            <div className="grid grid-cols-1 gap-brand-5 sm:grid-cols-[1fr_1.3fr] sm:gap-brand-6 xl:gap-brand-8">
               <Stack gap={3}>
                 <SectionHeading icon={Home}>
                   {t("selectedHomesLabel")}
                 </SectionHeading>
                 <ul className="flex flex-col gap-brand-3">
                   {projects.map((project) => (
-                    <li key={project.id} className="flex items-center gap-3">
-                      <div className="relative size-16 shrink-0 overflow-hidden rounded-v5-card bg-brand-v5-line/40">
-                        {project.coverImageUrl ? (
-                          <Image
-                            src={project.coverImageUrl}
-                            alt=""
-                            fill
-                            sizes="64px"
-                            className="object-cover"
-                          />
-                        ) : (
-                          <div className="flex size-full items-center justify-center">
-                            <ImageOff
-                              className="size-5 text-brand-v5-muted/50"
-                              aria-hidden="true"
-                            />
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex min-w-0 flex-col gap-0.5">
-                        <Text surface="v5" className="truncate font-medium">
-                          {project.name}
-                        </Text>
-                        <Text
-                          tone="muted"
-                          surface="v5"
-                          className="truncate text-data"
-                        >
-                          {t("homeMeta", {
-                            producer: project.producerName,
-                            area: project.floorAreaM2,
-                          })}
-                        </Text>
-                      </div>
+                    <li key={project.id} className="flex min-w-0 flex-col gap-0.5">
+                      <Text surface="v5" className="truncate font-medium">
+                        {project.name}
+                      </Text>
+                      <Text
+                        tone="muted"
+                        surface="v5"
+                        className="truncate text-data"
+                      >
+                        {t("homeMeta", {
+                          producer: project.producerName,
+                          area: project.floorAreaM2,
+                        })}
+                      </Text>
                     </li>
                   ))}
                 </ul>
@@ -334,6 +310,6 @@ export function InquiryFlow({
           </form>
         </Card>
       </div>
-    </Stack>
+    </div>
   );
 }
