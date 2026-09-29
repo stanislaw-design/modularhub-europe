@@ -8,6 +8,7 @@ import { useState } from "react";
 import { Checkbox, DataText, Heading, Text } from "@/components/ui";
 import { getInPriceCostLineItemLabels } from "@/lib/data/project-variants";
 import type { CompletionStandard, Project, ProjectVariant } from "@/lib/data/types";
+import { resolveProductHref } from "@/lib/product-family-groups";
 
 export interface CompareTableColumn {
   id: string;
@@ -213,7 +214,7 @@ export function ProjectCompareTable({ locale, columns, hasUnavailable, resultsHr
                         )}
                       </div>
                       <Link
-                        href={`/${locale}/project/${column.project.id}`}
+                        href={resolveProductHref(column.project.family, column.project.id, locale)}
                         className="focus-ring rounded-data font-display text-body-l font-semibold text-brand-v5-ink underline-offset-2 hover:underline"
                       >
                         {column.project.name}

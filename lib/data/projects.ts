@@ -531,6 +531,17 @@ function mapRowToProject(
   related?: ProjectRelatedRows,
 ): Project {
   const specs = (row.technicalSpecs ?? {}) as ProductTechnicalSpecsDraft & TechnicalSpecsBridgeFields;
+  // Wersja surowa, bez typowania pod "dom" (spec 0056 AC-3): dla rodziny bez
+  // własnego schematu Zod (outdoor-tv) to jedyny sposób pokazania czegokolwiek
+  // ze specyfikacji technicznej. Klucze wewnętrzne (podkreślnik, np.
+  // _priceOnRequest) i wartości nietekstowe są pomijane — to pole nie zna
+  // kształtu żadnej konkretnej rodziny, tylko wypisuje to, co jest.
+  const rawTechnicalSpecs = Object.fromEntries(
+    Object.entries((row.technicalSpecs ?? {}) as Record<string, unknown>).filter(
+      (entry): entry is [string, string] =>
+        !entry[0].startsWith("_") && typeof entry[1] === "string" && entry[1].length > 0,
+    ),
+  );
   // price_min/max_cents są od spec 0041 pochodną wyzwalacza synchronizacji
   // ceny (lib/db/AGENTS.md): NULL gdy produkt nie ma aktywnego wariantu
   // domyślnego. AC-11 traktuje to dokładnie jak priceOnRequest, nigdy jako
@@ -595,6 +606,8 @@ function mapRowToProject(
     featured: row.featured,
     priceOnRequest,
     galleryImageUrls: specs._extraImageUrls,
+    videoUrl: row.videoUrl ?? undefined,
+    technicalSpecs: Object.keys(rawTechnicalSpecs).length > 0 ? rawTechnicalSpecs : undefined,
   };
 }
 

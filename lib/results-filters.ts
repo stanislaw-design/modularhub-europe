@@ -12,7 +12,13 @@ import { SIZE_THRESHOLDS, type SizeThreshold } from "./size-thresholds";
 
 const VALID_COUNTRY_CODES: readonly CountryCode[] = ["PL", "DE", "NL"];
 // Trzy prawdziwe rodziny plus sentinel grupy "wiecej-niz-dom" (spec 0035 AC-2).
-const VALID_FAMILY_FILTER_VALUES: readonly FamilyFilterValue[] = ["dom", "spa-modulowe", "kontenery-modulowe", "wiecej-niz-dom"];
+const VALID_FAMILY_FILTER_VALUES: readonly FamilyFilterValue[] = [
+  "dom",
+  "spa-modulowe",
+  "kontenery-modulowe",
+  "outdoor-tv",
+  "wiecej-niz-dom",
+];
 const DEFAULT_FAMILY: FamilyFilterValue = "dom";
 
 const VALID_SPA_SUBCATEGORIES: readonly SpaSubcategory[] = ["sauna", "jacuzzi", "wellness-combo"];

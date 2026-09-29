@@ -25,7 +25,7 @@ describe("FamilyTabs", () => {
     expect(screen.getByRole("link", { name: "Więcej niż dom" })).toHaveAttribute("aria-current", "page");
     const refineNav = screen.getByRole("navigation", { name: "Doprecyzuj w grupie Więcej niż dom" });
     const refineLinks = within(refineNav).getAllByRole("link");
-    expect(refineLinks.map((link) => link.textContent)).toEqual(["Wszystko", "Spa modułowe", "Kontenery"]);
+    expect(refineLinks.map((link) => link.textContent)).toEqual(["Wszystko", "Spa modułowe", "Kontenery", "Outdoor TV"]);
     expect(screen.getByRole("link", { name: "Wszystko" })).toHaveAttribute("aria-current", "true");
   });
 
@@ -45,6 +45,14 @@ describe("FamilyTabs", () => {
       "href",
       "/pl/results?family=wiecej-niz-dom"
     );
+  });
+
+  it("marks Więcej niż dom as current and highlights the specific refine tab when family is outdoor-tv", async () => {
+    render(await resolveAsyncTree(<FamilyTabs locale="pl" family="outdoor-tv" />));
+
+    expect(screen.getByRole("link", { name: "Więcej niż dom" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Outdoor TV" })).toHaveAttribute("aria-current", "true");
+    expect(screen.getByRole("link", { name: "Wszystko" })).not.toHaveAttribute("aria-current");
   });
 
   it("preserves country and size filters on every tab link, both levels (AC-3)", async () => {

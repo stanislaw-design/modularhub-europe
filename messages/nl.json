@@ -143,6 +143,11 @@
       "few": "modulaire containers",
       "many": "modulaire containers"
     },
+    "outdoor-tv": {
+      "one": "buiten tv-kast",
+      "few": "buiten tv-kasten",
+      "many": "buiten tv-kasten"
+    },
     "wiecej-niz-dom": {
       "one": "product",
       "few": "producten",
@@ -231,7 +236,8 @@
     "family": {
       "dom": "Huis",
       "spa-modulowe": "Modulaire spa",
-      "kontenery-modulowe": "Modulaire containers"
+      "kontenery-modulowe": "Modulaire containers",
+      "outdoor-tv": "Outdoor TV"
     },
     "floorLevel": {
       "parter": "Begane grond",
@@ -897,6 +903,30 @@
       "podobne": "Vergelijkbare woningen"
     }
   },
+  "OutdoorTvPage": {
+    "price": "Prijs",
+    "priceOnRequest": "Prijs op aanvraag",
+    "netVat": "netto",
+    "estimatedPackage": "Richtprijs",
+    "from": "vanaf",
+    "sendInquiry": "Aanvraag versturen",
+    "variantPickerAriaLabel": "Variantkeuze",
+    "variantFallbackLabel": "Variant",
+    "videoLabel": "Productvideo {name}",
+    "specsHeading": "Technische specificatie",
+    "realUseHeading": "Zo ziet het eruit in de praktijk",
+    "realUsePhotoAlt": "{name} in de praktijk, foto {index}",
+    "partnerHeading": "Over de partner",
+    "sectionNavAriaLabel": "Sectienavigatie",
+    "sectionNavScrollLeft": "Sectiebalk naar links scrollen",
+    "sectionNavScrollRight": "Sectiebalk naar rechts scrollen",
+    "sectionNav": {
+      "specyfikacja": "Specificatie",
+      "wPraktyce": "In de praktijk",
+      "partner": "Partner",
+      "faq": "Documenten en vragen"
+    }
+  },
   "Faq": {
     "heading": "Veelgestelde vragen",
     "subheading": "Geen antwoord gevonden? Neem contact met ons op via het contactformulier.",
@@ -1228,7 +1258,8 @@
     "subNavAriaLabel": "Verfijn binnen Meer dan een woning",
     "all": "Alles",
     "spa": "Modulaire spa's",
-    "containers": "Modulaire containers"
+    "containers": "Modulaire containers",
+    "outdoorTv": "Outdoor TV"
   },
   "CategoryFilterBar": {
     "navAriaLabel": "Woningkenmerkfilters",
@@ -1804,6 +1835,36 @@
     "newMessageSubject": "Nieuw bericht in uw ModularHub-dossier",
     "newMessageBodyClient": "Uw ModularHub-adviseur heeft u geschreven in het gesprek. Open het dossier om het bericht te lezen.",
     "newMessageBodyAdvisor": "De klant heeft in het gesprek geschreven. Open het dossier om te antwoorden."
+  },
+  "LoginLinkEmail": {
+    "subject": "Uw inloglink voor ModularHub Europe",
+    "heading": "Log in bij ModularHub Europe",
+    "body": "Klik op de knop hieronder om het inloggen te voltooien. De link is beperkt geldig en kan maar één keer worden gebruikt.",
+    "cta": "Inloggen"
+  },
+  "NewInquiryConfirmationEmail": {
+    "subject": "We hebben uw aanvraag ontvangen",
+    "heading": "Bedankt voor uw aanvraag",
+    "body": "We hebben uw aanvraag over modulaire woningen ontvangen. Onze adviseur neemt binnenkort contact met u op. U kunt de details bekijken in uw account.",
+    "cta": "Bekijk uw aanvraag"
+  },
+  "NewOfferEmail": {
+    "subject": "Nieuwe offerte voor uw aanvraag",
+    "heading": "Een producent heeft een offerte opgesteld",
+    "body": "Een producent heeft een offerte ingediend voor uw aanvraag. Bekijk de details en beslis in uw account.",
+    "cta": "Bekijk de offerte"
+  },
+  "OrderStatusChangedEmail": {
+    "subject": "De status van uw bestelling is gewijzigd",
+    "heading": "Nieuwe status van uitvoering",
+    "body": "Uw bestelling is naar de fase {stage} gegaan. Bekijk de details in uw account.",
+    "cta": "Bekijk bestelstatus"
+  },
+  "PaymentConfirmedEmail": {
+    "subject": "Betalingsbevestiging",
+    "heading": "Betaling ontvangen",
+    "body": "We hebben uw betaling van {amount} ontvangen. Dank u wel.",
+    "cta": "Bekijk betalingsgegevens"
   },
   "CaseSystem": {
     "caseReceived": "Wij hebben uw aanvraag ontvangen. We hebben die nog niet naar de fabrikanten gestuurd."

@@ -16,7 +16,7 @@ const createAzureOpenAiClientMock = vi.hoisted(() =>
 vi.mock("@/lib/ai/openai", () => ({ createAzureOpenAiClient: createAzureOpenAiClientMock }));
 
 import { db } from "@/lib/db/client";
-import { auditLog, document, producer, product, users } from "@/lib/db/schema";
+import { auditLog, document, producer, producerMember, product, users } from "@/lib/db/schema";
 import { captureError } from "@/lib/observability/errors";
 import { recognizeFromAttachments, recognizeRoomLayout } from "./producer-room-layout-actions";
 
@@ -107,6 +107,10 @@ describe.skipIf(!process.env.DATABASE_URL)("recognizeRoomLayout: real DB, mocked
         countryCode: "PL",
         technology: "szkielet-drewniany",
       },
+    ]);
+    await db.insert(producerMember).values([
+      { producerId, userId: producerUserId },
+      { producerId: otherProducerId, userId: otherProducerUserId },
     ]);
     await db.insert(product).values([
       { id: productId, producerId, family: "dom", status: "draft", name: "RLA test product", floorAreaM2: 80, countryOfProduction: "PL" },

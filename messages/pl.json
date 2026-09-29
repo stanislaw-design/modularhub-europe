@@ -143,6 +143,11 @@
       "few": "kontenery modułowe",
       "many": "kontenerów modułowych"
     },
+    "outdoor-tv": {
+      "one": "szafka TV ogrodowa",
+      "few": "szafki TV ogrodowe",
+      "many": "szafek TV ogrodowych"
+    },
     "wiecej-niz-dom": {
       "one": "produkt",
       "few": "produkty",
@@ -231,7 +236,8 @@
     "family": {
       "dom": "Dom",
       "spa-modulowe": "Spa modułowe",
-      "kontenery-modulowe": "Kontenery modułowe"
+      "kontenery-modulowe": "Kontenery modułowe",
+      "outdoor-tv": "Outdoor TV"
     },
     "floorLevel": {
       "parter": "Parter",
@@ -904,6 +910,30 @@
       "podobne": "Podobne domy"
     }
   },
+  "OutdoorTvPage": {
+    "price": "Cena",
+    "priceOnRequest": "Wycena indywidualna",
+    "netVat": "netto",
+    "estimatedPackage": "Cena orientacyjna",
+    "from": "od",
+    "sendInquiry": "Wyślij zapytanie",
+    "variantPickerAriaLabel": "Wybór wariantu",
+    "variantFallbackLabel": "Wariant",
+    "videoLabel": "Wideo produktu {name}",
+    "specsHeading": "Specyfikacja techniczna",
+    "realUseHeading": "Jak to wygląda w praktyce",
+    "realUsePhotoAlt": "{name} w praktyce, zdjęcie {index}",
+    "partnerHeading": "O partnerze",
+    "sectionNavAriaLabel": "Nawigacja po sekcjach strony",
+    "sectionNavScrollLeft": "Przewiń pasek sekcji w lewo",
+    "sectionNavScrollRight": "Przewiń pasek sekcji w prawo",
+    "sectionNav": {
+      "specyfikacja": "Specyfikacja",
+      "wPraktyce": "W praktyce",
+      "partner": "Partner",
+      "faq": "Dokumenty i pytania"
+    }
+  },
   "Faq": {
     "heading": "Najczęstsze pytania",
     "subheading": "Nie znalazłeś odpowiedzi? Napisz do nas przez formularz kontaktowy.",
@@ -1235,7 +1265,8 @@
     "subNavAriaLabel": "Doprecyzuj w grupie Więcej niż dom",
     "all": "Wszystko",
     "spa": "Spa modułowe",
-    "containers": "Kontenery"
+    "containers": "Kontenery",
+    "outdoorTv": "Outdoor TV"
   },
   "CategoryFilterBar": {
     "navAriaLabel": "Filtry atrybutów domu",
@@ -1804,6 +1835,36 @@
     "newMessageSubject": "Nowa wiadomość w sprawie w ModularHub",
     "newMessageBodyClient": "Doradca ModularHub napisał do Ciebie w rozmowie. Otwórz sprawę, żeby przeczytać wiadomość.",
     "newMessageBodyAdvisor": "Klient napisał w rozmowie. Otwórz sprawę, żeby odpisać."
+  },
+  "LoginLinkEmail": {
+    "subject": "Twój link do logowania w ModularHub Europe",
+    "heading": "Zaloguj się do ModularHub Europe",
+    "body": "Kliknij przycisk poniżej, żeby dokończyć logowanie. Link jest ważny przez ograniczony czas i można go użyć tylko raz.",
+    "cta": "Zaloguj się"
+  },
+  "NewInquiryConfirmationEmail": {
+    "subject": "Otrzymaliśmy Twoje zapytanie",
+    "heading": "Dziękujemy za zapytanie",
+    "body": "Otrzymaliśmy Twoje zapytanie o domy modułowe. Nasz doradca skontaktuje się z Tobą wkrótce. Szczegóły możesz sprawdzić w swoim koncie.",
+    "cta": "Zobacz swoje zapytanie"
+  },
+  "NewOfferEmail": {
+    "subject": "Nowa oferta na Twoje zapytanie",
+    "heading": "Producent przygotował ofertę",
+    "body": "Producent złożył ofertę na Twoje zapytanie. Sprawdź szczegóły i podejmij decyzję w swoim koncie.",
+    "cta": "Zobacz ofertę"
+  },
+  "OrderStatusChangedEmail": {
+    "subject": "Status Twojego zamówienia się zmienił",
+    "heading": "Nowy status realizacji",
+    "body": "Twoje zamówienie przeszło do etapu: {stage}. Sprawdź szczegóły w swoim koncie.",
+    "cta": "Zobacz status zamówienia"
+  },
+  "PaymentConfirmedEmail": {
+    "subject": "Potwierdzenie płatności",
+    "heading": "Płatność przyjęta",
+    "body": "Otrzymaliśmy Twoją płatność w wysokości {amount}. Dziękujemy.",
+    "cta": "Zobacz szczegóły płatności"
   },
   "CaseSystem": {
     "caseReceived": "Otrzymaliśmy Twoje zapytanie. Nie wysłaliśmy go jeszcze do producentów."

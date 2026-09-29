@@ -12,7 +12,7 @@ export type ProductFamilyGroup = "dom" | "wiecej-niz-dom";
 // lib/results-filters.ts każdym z osobna.
 export const FAMILY_GROUPS: Record<ProductFamilyGroup, ProductFamily[]> = {
   dom: ["dom"],
-  "wiecej-niz-dom": ["spa-modulowe", "kontenery-modulowe"],
+  "wiecej-niz-dom": ["spa-modulowe", "kontenery-modulowe", "outdoor-tv"],
 };
 
 // Wartość, jaką może przyjąć parametr URL/filtra `family`: dowolna prawdziwa
@@ -37,6 +37,21 @@ export function resolveFamilyGroup(value: FamilyFilterValue): ProductFamilyGroup
 // WHERE ... IN, matchesResultsFilter): sentinel rozwija się do każdej rodziny
 // swojej grupy, prawdziwa rodzina rozwija się do samej siebie.
 export function resolveFamilies(value: FamilyFilterValue): ProductFamily[] {
-  if (value === "wiecej-niz-dom") return FAMILY_GROUPS["wiecej-niz-dom"];
+  // Kopia, nie referencja (przedistniejący bug, ujawniony przy dodaniu trzeciej
+  // rodziny do grupy): zwracanie FAMILY_GROUPS["wiecej-niz-dom"] wprost pozwalało
+  // wywołującemu, który zmutuje wynik (np. push), trwale zepsuć współdzieloną mapę.
+  if (value === "wiecej-niz-dom") return [...FAMILY_GROUPS["wiecej-niz-dom"]];
   return [value];
+}
+
+// Jedyne miejsce, które wie, pod jakim route'em żyje strona produktu danej
+// rodziny (spec 0056 AC-5): outdoor-tv ma własną, katalogową stronę produktu
+// (/outdoor-tv/[id]), każda inna rodzina używa strony domu (/project/[id]).
+// Każde miejsce budujące link do produktu (lista wyników, ulubione,
+// porównywarka) przechodzi przez tę funkcję zamiast składać ścieżkę samemu,
+// żeby dodanie kolejnej rodziny katalogowej w przyszłości było jedną zmianą
+// tutaj, nie zmianą we wszystkich miejscach linkujących.
+export function resolveProductHref(family: ProductFamily, id: string, locale: string): string {
+  const segment = family === "outdoor-tv" ? "outdoor-tv" : "project";
+  return `/${locale}/${segment}/${id}`;
 }

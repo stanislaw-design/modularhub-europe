@@ -1,31 +1,43 @@
-import { LogOut } from "lucide-react";
+import { cookies } from "next/headers";
 import type { ReactNode } from "react";
-import { Container } from "@/components/ui";
-import { signOutAction } from "@/lib/auth-session-actions";
+import { InternalSidebar } from "@/components/internal/InternalSidebar";
+import { SkipLink } from "@/components/SkipLink";
+import { Container, Stack, ThemeProvider } from "@/components/ui";
+import { isTheme, THEME_COOKIE_NAME } from "@/lib/theme";
 
-// Pasek nad każdym ekranem /internal/* (produkty, zapytania): samo
-// wylogowanie, bez nawigacji — admin nie ma jeszcze wspólnego menu między
-// ekranami (pełny panel to późniejsza funkcja, scope feature 18). Sesja/rola
-// są nadal sprawdzane w każdej stronie z osobna (patrz AGENTS.md w
-// internal/products/), ten layout tylko dokłada UI. Ten sam wzorzec przycisku
-// co /klient/panel — patrz app/[locale]/klient/panel/layout.tsx.
-export default function InternalLayout({ children }: { children: ReactNode }) {
+// Wspólna powłoka dla /internal/* (spec 0055 Build plan zadanie 1): boczna
+// nawigacja spinająca dziś rozłączone ekrany panelu, wzorem
+// app/[locale]/producer/panel/layout.tsx. Bramka sesji (brak sesji/zła rola)
+// żyje w każdej podstronie osobno (patrz internal/products/AGENTS.md), ten
+// layout tylko dokłada nawigację i motyw, dokładnie jak u producenta.
+export default async function InternalLayout({
+  children,
+  params,
+}: {
+  children: ReactNode;
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+
+  // Trzeci, niezależny zakres trybu ciemnego (spec 0055 AC-3), obok
+  // theme-klient (0043) i theme-producer (0046): ten sam mechanizm (cookie,
+  // ThemeProvider, klasa CSS), sparametryzowany przez scopeClassName zamiast
+  // osobnego providera.
+  const cookieStore = await cookies();
+  const themeCookie = cookieStore.get(THEME_COOKIE_NAME)?.value;
+  const initialTheme = isTheme(themeCookie) ? themeCookie : null;
+
   return (
-    <>
-      <div className="border-b border-brand-steel">
-        <Container className="flex justify-end py-brand-2">
-          <form action={signOutAction}>
-            <button
-              type="submit"
-              className="focus-ring flex items-center gap-1 rounded-data text-body font-medium text-brand-v5-muted transition-colors hover:text-brand-v5-ink"
-            >
-              <LogOut className="size-4" aria-hidden="true" />
-              Wyloguj
-            </button>
-          </form>
-        </Container>
+    <ThemeProvider initialTheme={initialTheme} scopeClassName="theme-internal">
+      <SkipLink />
+      <div className="flex min-h-screen flex-col md:flex-row">
+        <InternalSidebar locale={locale} />
+        <main id="main-content" className="min-w-0 flex-1">
+          <Container className="py-brand-6">
+            <Stack gap={4}>{children}</Stack>
+          </Container>
+        </main>
       </div>
-      {children}
-    </>
+    </ThemeProvider>
   );
 }

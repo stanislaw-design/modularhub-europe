@@ -26,6 +26,7 @@ import { systemClock } from "@/lib/cases/clock";
 import { createAdvisoryCase } from "@/lib/cases/create";
 import { postMessage, touchChannel } from "@/lib/cases/messaging";
 import { notifyAdvisorOfNewCase, notifyMessageRecipient } from "@/lib/cases/notify";
+import { notifyClientOfNewCase } from "@/lib/notifications/new-inquiry";
 import { getCountries } from "@/lib/data/countries";
 import { getPublishedProductIds } from "@/lib/data/projects";
 import { db } from "@/lib/db/client";
@@ -96,6 +97,7 @@ export async function submitAdvisoryInquiry(input: SubmitAdvisoryInquiryInput): 
     if (result.created) {
       trackEvent("case_created", { homeCount: projectIds.length, countryCode }, session.user.id);
       after(() => notifyAdvisorOfNewCase(result.inquiryId));
+      after(() => notifyClientOfNewCase(result.inquiryId));
     }
     return { ok: true, inquiryId: result.inquiryId };
   } catch (error) {

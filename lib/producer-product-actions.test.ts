@@ -24,7 +24,7 @@ vi.mock("@/lib/ai/product-translation", () => ({
 }));
 
 import { db } from "@/lib/db/client";
-import { producer, product, productTranslation, users } from "@/lib/db/schema";
+import { producer, producerMember, product, productTranslation, users } from "@/lib/db/schema";
 import { captureError } from "@/lib/observability/errors";
 import { buildProducerSavePayload, createEmptyDraft } from "./producer-project-draft";
 import { createProducerProduct, updateProducerProduct, type ProducerProductFields } from "./producer-product-actions";
@@ -86,6 +86,7 @@ describe.skipIf(!process.env.DATABASE_URL)(
         countryCode: "PL",
         technology: "szkielet-drewniany",
       });
+      await db.insert(producerMember).values({ producerId, userId: producerUserId });
       authMock.mockResolvedValue(sessionAs(producerUserId));
     });
 

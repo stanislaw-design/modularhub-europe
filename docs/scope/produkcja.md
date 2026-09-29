@@ -31,8 +31,8 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 14 | Realny silnik zgodności (Polska, pilot) | Slice 6 | planned |
 | 15 | Realna wycena transportu | Slice 7 | planned |
 | 16 | Realizacja i statusy na prawdziwym zapleczu | Slice 8 | planned |
-| 17 | Powiadomienia e mail | Slice 9 | planned |
-| 18 | Panel administracyjny | Slice 10 | planned |
+| 17 | Powiadomienia e mail | Slice 9 | in progress |
+| 18 | Panel administracyjny | Slice 10 | in progress |
 | 19 | Weryfikacja firmy producenta (realna) | Slice 11 | planned |
 | 20 | SEO podstawowe stron publicznych | Utwardzenie | planned |
 | 21 | Wydajność: cel i audyt Core Web Vitals | Utwardzenie | planned |
@@ -57,6 +57,9 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 41 | Zarządzany przepływ doradczy: klient, ModularHub i producent | Slice 3b | in progress |
 | 42 | AI w edycji istniejącego produktu (rozpoznawanie układu, wydobywanie standardów) | Slice 2b | in progress |
 | 43 | Wymiary zewnętrzne i wymagania fundamentowe w kreatorze | Slice 2b | done |
+| 44 | Użytkownicy, role, audit log i 2FA panelu admina | Slice 10 | planned |
+| 45 | Outdoor TV: rodzina produktu i partnerstwo reseller MirageVision | Foundation | in progress |
+| 46 | Wieloosobowe konta producenta | Slice 2b | in progress |
 
 ## Foundations
 
@@ -127,6 +130,18 @@ Rodzina produktu "pergola" (funkcja 6) została zbudowana hipotetycznie, bez pra
   - [x] Wyszukiwanie klienta (`SearchCard`, `FamilyTabs`, `SubcategoryFilterBar`, `CategoryShowcase`) i tłumaczenia `pl`/`en`/`nl`, satisfies AC-6, AC-10
 - [ ] Zweryfikuj: `/check verify kontenery modułowe zamiast pergoli`
 - [ ] Testuj: `/test kontenery modułowe zamiast pergoli`
+
+### 45. Outdoor TV: rodzina produktu i partnerstwo reseller MirageVision · full · in progress
+Nowa rodzina produktu `outdoor-tv` dla pierwszego partnera typu reseller: MirageVision Outdoor TVs & Displays (USA), szafki ogrodowe z podnośnikiem TV, umowa reseller z 5% prowizją płatną po dostawie. W odróżnieniu od funkcji 6/34, ten producent nie buduje na zamówienie, sprzedaje stały katalog kilku SKU, więc kreator producenta i schemat `technicalSpecs` dla tej rodziny świadomie zostają odłożone (funkcja 44-podobny wzorzec wykluczenia). Zakres tej funkcji to tylko to, co dało się rozstrzygnąć przed spotkaniem z MirageVision (2026-10-02): model danych, dedykowana strona produktu (osobny route, bo strona domowa nie pasuje do resellowanego katalogu), routing i wyszukiwanie. Cennik EUR, model zamówienia i śledzenie prowizji zostają świadomym Follow-up do osobnej, przyszłej funkcji.
+**Done when:** `outdoor-tv` jest osiągalna w wyszukiwaniu pod grupą "Więcej niż dom", istnieje dedykowana strona produktu `/outdoor-tv/[id]` zbudowana wg zatwierdzonej makiety (bez sekcji domowych: układ pomieszczeń, działka, harmonogram budowy), oba route'y strony produktu (`/project/[id]` i `/outdoor-tv/[id]`) wzajemnie przekierowują dla niewłaściwej rodziny, a MirageVision istnieje w bazie jako wiersz producenta bez wydanych danych logowania.
+- [x] Zaprojektuj (spec): [0056](../specs/0056-outdoor-tv-partner-mirage-vision/index.md) (enum `outdoor-tv` już zmigrowany na `modularhub-dev`; reużycie tabel product/producer/product_variant/document zamiast nowego podsystemu; osobny route zamiast rozgałęzienia w `/project/[id]`, zatwierdzony wspólną makietą strony)
+- [x] Build it: `/develop outdoor tv, partnerstwo MirageVision` (code in `app/[locale]/(customer)/outdoor-tv/[id]/page.tsx`, `lib/product-family-groups.ts`, `lib/data/{types,projects,producers}.ts`, `components/klient/OutdoorTv*.tsx`)
+  - [x] Migracja (`producer.description`, `product.video_url`) i wiersz producenta MirageVision bez logowania, satisfies AC-8, AC-9
+  - [x] `resolveProductHref(family, id, locale)` okablowany w wynikach, ulubionych i porównywarce, satisfies AC-5
+  - [x] Strona `/[locale]/outdoor-tv/[id]` wg zatwierdzonej makiety (galeria, wariant i cena, wideo, specyfikacja techniczna, "w praktyce", partner, FAQ) plus metadane/SEO, satisfies AC-3, AC-4 — zbudowana bez dostępu do samej makiety w tej sesji, warto zweryfikować wizualnie
+  - [x] Przekierowanie 307 między `/project/[id]` i `/outdoor-tv/[id]`; wykluczenie `outdoor-tv` ze schematu Zod i pól kreatora utrzymane, satisfies AC-6, AC-7
+- [ ] Verify it: `/check verify outdoor tv, partnerstwo MirageVision`
+- [ ] Test it: `/test outdoor tv, partnerstwo MirageVision`
 
 ### 31. Anglojęzyczne adresy URL i strona główna klienta bez segmentu klient · full · in progress
 Adresy platformy pod segmentami next intl (spec 0028: `/pl`, `/en`, `/nl`) są dziś w całości po polsku (`klient`, `producent`, `wyniki` i tak dalej), mimo że treść jest już przetłumaczona. Ta funkcja zmienia wszystkie segmenty adresów na angielskie i przenosi całą ścieżkę klienta, razem ze stroną główną, z `/klient` na sam adres główny danego języka, bo klient jest głównym odbiorcą tej międzynarodowej platformy; producent i panel administracyjny zachowują własny, rozróżniający prefiks. Każdy stary adres trwale przekierowuje na nowy.
@@ -389,6 +404,19 @@ Kolumny `product.external_dimensions`/`foundation_options` istnieją w bazie od 
 - [x] Zweryfikuj: `/check verify wymiary zewnętrzne i wymagania fundamentowe w kreatorze` — PASS 2026-09-25, wszystkich 8 kryteriów akceptacji potwierdzone na żywo (patrz `verify.md`)
 - [x] Testuj: `/test wymiary zewnętrzne i wymagania fundamentowe w kreatorze` — 2026-09-25, 207/207 przechodzi (12 plików testowych), nowe testy w `ProjectWizardBasicInfoStep.test.tsx`, `ProjectWizardTechnicalStep.test.tsx`, `producer-product-actions.test.ts`, `producer-project-translation-actions.test.ts`
 
+### 46. Wieloosobowe konta producenta · in progress
+Dziś jedno konto producenta ma dokładnie jednego użytkownika (`producer.user_id` `NOT NULL UNIQUE`); nie da się dodać drugiej osoby bez podmiany jedynego adresu e mail i utraty dostępu przez pierwszą. Bezpośredni powód: Budman House (istniejący, prawdziwy producent) potrzebuje drugiej osoby obok dzisiejszego jedynego konta. Nowa tabela łącząca `producer_member` pozwala jednemu producentowi mieć wielu użytkowników z równym dostępem, dodawanych i usuwanych wyłącznie przez administratora (skrypt/Neon MCP), bez samoobsługowego zaproszenia w tym etapie.
+**Done when:** konto producenta może mieć więcej niż jednego użytkownika, każdy logujący się niezależnie z pełnym dostępem do panelu; administrator może dodać i usunąć członka (z ochroną ostatniego pozostałego); zablokowanie producenta odcina wszystkich jego członków naraz; `producer.user_id` przestaje istnieć, a `getProducerIdForUser`/lista producentów administratora czytają wyłącznie przez `producer_member`.
+- [x] Zaprojektuj (spec): [0057](../specs/0057-wieloosobowe-konta-producenta/index.md) (tabela łącząca `producer_member`, N:M w stronę producenta ale co najwyżej jeden producent na użytkownika; dwufazowa migracja z jawnym dual write `producer.user_id` w fazie 1, bo kolumna zostaje `NOT NULL` do fazy 2; poprawiona po niezależnym cross checku — pełny zakres kodu, backfill wewnątrz migracji, agregacja listy admina, lowercase e maila, blokada zablokowanego producenta)
+- [ ] Build it: `/develop wieloosobowe konta producenta`
+  - [x] Migracja faza 1: tabela `producer_member` (z indeksem na `producer_id`) + wsteczne wypełnienie w tej samej migracji, sprawdzona na osobnej gałęzi Neon, satisfies AC-1, AC-2, AC-7, AC-8 — `drizzle/0038_abnormal_shinko_yamashiro.sql`, zastosowana i zweryfikowana na modularhub-dev (163/163 producentów, 0 osieroconych); produkcja dostaje ją przez `deploy-production.yml` (`db:migrate`) po scaleniu do `main`, nie ręcznie
+  - [x] Odczyt/zapis aplikacji przez `producer_member`: `getProducerIdForUser`, `getAllProducersForAdmin` (zagregowana, jeden wiersz na producenta), `auth.ts`'s `createUser` (dual write), `blockProducer`/`unblockProducer` na poziomie producenta + `ProducerBlockControl`, fixtury testowe i `scripts/import-domihaus-catalog.ts`, satisfies AC-5, AC-7, AC-8
+  - [x] `lib/producer-member-actions.ts`: `addProducerMember`/`removeProducerMember` (walidacje, lowercase e maila, ochrona ostatniego członka i zablokowanego producenta) oraz weryfikacja komunikatu "brak przypisanej firmy" w panelu, satisfies AC-3, AC-4, AC-6
+  - [ ] Uruchomienie dla Budman House (Lejman.jakub@gmail.com) i zapytanie zero osieroconych producentów przed fazą 2, satisfies AC-1, AC-3, AC-8 — czeka na wdrożenie tej migracji na produkcję oraz na imię i telefon tej osoby (administrator podaje wprost, spec Key invariants)
+  - [ ] Migracja faza 2 (osobny deploy, po potwierdzonej stabilności fazy 1): usunięcie `producer.user_id`, satisfies AC-8
+- [ ] Verify it: `/check verify wieloosobowe konta producenta`
+- [ ] Test it: `/test wieloosobowe konta producenta`
+
 ## Slice 3: oferta
 
 ### 11. Realna oferta i jej przyjęcie · done
@@ -464,17 +492,37 @@ Oś statusów (produkcja, transport, montaż, odbiór, gwarancja) czytana z bazy
 
 ## Slice 9: powiadomienia
 
-### 17. Powiadomienia e mail · needs a decision
-E mail przy kluczowych zdarzeniach transakcyjnych (nowe zapytanie, nowa oferta, zmiana statusu realizacji, potwierdzenie płatności), żeby użytkownik nie musiał ręcznie sprawdzać aplikacji.
+### 17. Powiadomienia e mail · in progress
+E mail przy kluczowych zdarzeniach transakcyjnych (nowe zapytanie, nowa oferta, zmiana statusu realizacji, potwierdzenie płatności), żeby użytkownik nie musiał ręcznie sprawdzać aplikacji. Rozszerzone w spec o branded e mail logowania (spam/wiarygodność) i podgląd szablonów w panelu wewnętrznym.
 **Done when:** każde z czterech zdarzeń wysyła e mail do właściwego odbiorcy w rozsądnym czasie, treść e maila odpowiada zdarzeniu, a błąd wysyłki nie blokuje głównej akcji użytkownika.
-- [ ] Zaprojektuj (spec): `/architect powiadomienia e mail`
+- [x] Zaprojektuj (spec): [0051](../specs/0051-powiadomienia-e-mail/index.md)
+- [x] Zbuduj: `/develop powiadomienia e mail` (kod w `lib/notifications/` (`send.ts`, `new-offer.ts`, `new-inquiry.ts`, `order-status.ts`, `payment.ts`, `login.ts`, `templates/{TransactionalEmail.tsx,text.ts,contact.ts,reference.ts,types.ts}`), `lib/cases/notify.ts` (refaktor `sendCaseEmail` na wspólny sender), `lib/case-actions.ts`, `lib/offer-actions.ts`, `auth.ts`, `lib/observability/types.ts`, `messages/{pl,en,nl,de}.json`, `app/[locale]/internal/notifications/page.tsx`. Design feedback po pierwszym przeglądzie: logo i wordmark na górze, wyśrodkowany przycisk, większe odstępy, stopka z kontaktem i adresem firmy (mock, patrz Follow-up spec 0051), plakietka etapu w mailu o statusie realizacji, krótki numer referencyjny, wersja plain text obok HTML dla wszystkich pięciu szablonów)
+  - [x] Nowa oferta i potwierdzenie nowego zapytania, koniec do końca (własny sender, szablony, testy), satisfies AC-1 do AC-5, AC-8
+  - [x] Wspólny sender (refaktor spec 0048) i branded e mail logowania ze spójnym nadawcą, satisfies AC-7, AC-9 do AC-11
+  - [x] Projekt (bez podłączenia) treści dla zmiany statusu realizacji i potwierdzenia płatności, do podłączenia gdy powstaną funkcje 16 i 12, satisfies AC-6
+  - [x] Podgląd wszystkich szablonów w `internal/notifications` (tylko admin), satisfies AC-12, AC-13
+- [x] Zweryfikuj: `/check verify powiadomienia e mail` (2026-09-28, PASS — patrz raport w sesji: realny przebieg przez przeglądarkę, prawdziwe wysyłki Resend, zero błędów w Sentry)
+- [ ] Testuj: `/test powiadomienia e mail`
 
 ## Slice 10: panel admina
 
-### 18. Panel administracyjny · needs a decision · full
-Wewnętrzny panel do przeglądu i moderacji producentów, projektów i zapytań, chroniony osobną autoryzacją dla personelu.
-**Done when:** uprawniony administrator widzi listę producentów, projektów i zapytań, może zablokować lub odblokować producenta, a dostęp do panelu jest niedostępny bez roli administratora.
-- [ ] Zaprojektuj (spec): `/architect panel administracyjny`
+### 18. Panel administracyjny · full
+Wspólna nawigacja i tryb ciemny spinające dziś rozłączone ekrany panelu (sprawy, zapytania, produkty, powiadomienia), dashboard z prawdziwymi liczbami (konta, projekty, zapytania, ruch, wykres trendu, ostatnia aktywność), moderacja producentów (blokada/odblokowanie) i strona monitoringu (błędy Sentry, stan baza/storage/e mail), chronione osobną autoryzacją dla personelu.
+**Done when:** uprawniony administrator widzi jedną wspólną nawigację ze wszystkimi ekranami panelu w trybie ciemnym, dashboard z prawdziwymi liczbami, listę producentów i może zablokować lub odblokować producenta, jedną wspólną listę projektów i zapytań, oraz stronę monitoringu z błędami i stanem kluczowych usług, a dostęp do całego panelu jest niedostępny bez roli administratora.
+- [x] Zaprojektuj (spec): [0055](../specs/0055-panel-administracyjny/index.md)
+- [x] Zbuduj: `/develop panel administracyjny`
+  - [x] Wspólna powłoka: nawigacja i trzeci niezależny zakres trybu ciemnego dla czterech istniejących ekranów, satisfies AC-1, AC-2, AC-3 (code in `app/[locale]/internal/layout.tsx`, `components/internal/InternalSidebar.tsx`, `app/globals.css` `.theme-internal`; migracja `blocked_at`/`blocked_by`/`blocked_reason` na `users` w `lib/db/schema.ts` + `drizzle/0035_amused_changeling.sql`, zadanie 1 planu budowy)
+  - [x] Dashboard: aktywne konta, liczby z bazy, ruch z PostHog, wykres trendu, feed aktywności, odporność widgetów na awarie zewnętrznych źródeł, satisfies AC-4 do AC-9 (w pełni zweryfikowane w przeglądarce na prawdziwych danych; code in `app/[locale]/internal/page.tsx`, `components/internal/DashboardTrendChart.tsx`, `lib/observability/posthog-metrics.ts`, `lib/db/queries.ts`. AC-6 naprawione 2026-09-28: osobny `POSTHOG_PERSONAL_API_KEY` (Personal API Key, scope Query: Read), kafelek pokazuje realną liczbę `$pageview` z ostatnich 30 dni (dziś 0 — potwierdzone bezpośrednim zapytaniem HogQL, że to prawdziwy stan danych, nie błąd); AC-9 dla tego kafelka: `value: null` renderuje "Niedostępne" zamiast psuć resztę dashboardu przy błędzie/limicie czasu)
+  - [x] Producenci i blokada: lista producentów, akcje blokuj/odblokuj z natychmiastową utratą dostępu, satisfies AC-10 do AC-13, AC-17 (zweryfikowane w przeglądarce na prawdziwych danych dev DB: blokada/odblokowanie, powód zapisany, sesje usunięte; code in `app/[locale]/internal/producers/page.tsx`, `components/internal/ProducerBlockControl.tsx`, `lib/producer-block-actions.ts`, `auth.ts` `callbacks.signIn`, `lib/db/queries.ts`. Świadomie niedokończone: spec Key invariants chce też, żeby istniejące mutujące akcje producenta spoza tej spec (dodanie produktu, odpowiedź na zapytanie) sprawdzały `blocked_at` niezależnie od sesji — pominięte w tym przebiegu, wąskie ryzyko wyścigu, sesja i tak usuwana natychmiast przy blokadzie)
+  - [x] Projekty i zapytania: scalenie dzisiejszych spraw i dawnych zapytań bezpośrednich w jedną listę, satisfies AC-14 (zweryfikowane w przeglądarce: lista scalona, paginacja, stare adresy `/internal/cases` i `/internal/inquiries` przekierowują 308, `/internal/cases/[id]` bez zmian; code in `app/[locale]/internal/cases-and-inquiries/page.tsx`, `lib/cases/queries.ts` `listCasesAndInquiriesForAdmin`, `proxy.ts`; usunięte `app/[locale]/internal/cases/page.tsx` i `internal/inquiries/page.tsx` jako zastąpione; `npx vitest run proxy.test.ts` 26/26, `SiteHeader.test.tsx` + `lib/cases/*` zielone)
+  - [x] Monitoring: błędy z Sentry i stan usług (baza, R2, e mail), satisfies AC-15, AC-16 (w pełni zweryfikowane w przeglądarce na prawdziwych danych: wszystkie trzy usługi "Działa", lista błędów Sentry pokazuje realne wpisy; degradacja "niedostępne"/"błąd" przy błędzie zewnętrznego źródła potwierdzona wcześniej (AC-9); code in `app/[locale]/internal/monitoring/page.tsx`, `lib/observability/sentry-issues.ts`, `lib/admin-monitoring.ts`, `lib/storage/r2-client.ts` `checkR2Health`. Oba wcześniejsze ograniczenia poświadczeń naprawione 2026-09-28: `SENTRY_MONITORING_TOKEN` (Personal Token, scope Project+Issue&Event: Read) i `RESEND_MONITORING_API_KEY` (Full Access), oba osobne od kluczy używanych do realnego builda/wysyłki, `.env.local.example` zaktualizowany)
+- [ ] Zweryfikuj: `/check verify panel administracyjny`
+- [ ] Testuj: `/test panel administracyjny`
+
+### 44. Użytkownicy, role, audit log i 2FA panelu admina · needs a decision · full
+Świadomie odłożona przez spec 0055 (patrz jej Premise note i Follow-up) rozbudowa panelu admina: zarządzanie kontami i rolami z poziomu panelu (zamiast dzisiejszego ręcznego nadawania roli w bazie), pełny log audytowy kto i kiedy przeglądał lub zmieniał dane klienta/producenta, oraz dwuskładnikowe logowanie dla kont administratora.
+**Done when:** administrator może nadać lub odebrać rolę bez ręcznej zmiany w bazie, każda odsłona i zmiana danych osobowych klienta/producenta w panelu jest zapisana w logu audytowym z odpowiedzią kto/kiedy/co, a logowanie na konto administratora wymaga drugiego składnika.
+- [ ] Zaprojektuj (spec): `/architect użytkownicy, role i audit log panelu admina`
 
 ## Slice 11: weryfikacja firmy
 

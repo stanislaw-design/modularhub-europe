@@ -96,7 +96,15 @@ const OLD_INTERNAL_ROUTES: readonly [oldPrefix: string, newPrefix: string][] = [
   ["internal/produkty", "internal/products"],
 ];
 
+// Spec 0055 AC-14: sprawy i zapytania scalają się w jedną listę pod
+// /internal/cases-and-inquiries. Wyłącznie dokładne dopasowanie list, nie
+// prefiks jak OLD_INTERNAL_ROUTES wyżej — /internal/cases/[id] (strona
+// szczegółu pojedynczej sprawy) świadomie zostaje bez zmian (AC-14), więc
+// startsWith złapałoby ją błędnie i przekierowało na nieistniejący adres.
+const MERGED_CASES_AND_INQUIRIES_OLD_PATHS = new Set(["internal/cases", "internal/inquiries"]);
+
 function renamedInternalPath(restPath: string): string {
+  if (MERGED_CASES_AND_INQUIRIES_OLD_PATHS.has(restPath)) return "internal/cases-and-inquiries";
   for (const [oldPrefix, newPrefix] of OLD_INTERNAL_ROUTES) {
     if (restPath === oldPrefix) return newPrefix;
     if (restPath.startsWith(`${oldPrefix}/`)) return `${newPrefix}${restPath.slice(oldPrefix.length)}`;

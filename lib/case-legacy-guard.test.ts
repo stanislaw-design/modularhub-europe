@@ -11,7 +11,7 @@ vi.mock("@/lib/observability", () => ({ trackEvent: vi.fn() }));
 
 import { db } from "@/lib/db/client";
 import { getInquiriesForProducer, getInquiryDetailForProducer } from "@/lib/db/queries";
-import { auditLog, client, inquiry, inquiryItem, offer, producer, product, users } from "@/lib/db/schema";
+import { auditLog, client, inquiry, inquiryItem, offer, producer, producerMember, product, users } from "@/lib/db/schema";
 import { submitOffer } from "./offer-actions";
 
 function sessionAs(userId: string, role: "producer" | "client"): Session {
@@ -46,6 +46,7 @@ describe.skipIf(!process.env.DATABASE_URL)("legacy_direct guard: stare zapytania
       countryCode: "PL",
       technology: "szkielet-drewniany",
     });
+    await db.insert(producerMember).values({ producerId, userId: producerUserId });
     await db
       .insert(product)
       .values({ id: productId, producerId, family: "dom", status: "published", name: "Legacy Guard Product" });

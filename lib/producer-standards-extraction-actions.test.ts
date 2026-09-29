@@ -16,7 +16,7 @@ const createAzureOpenAiClientMock = vi.hoisted(() =>
 vi.mock("@/lib/ai/openai", () => ({ createAzureOpenAiClient: createAzureOpenAiClientMock }));
 
 import { db } from "@/lib/db/client";
-import { auditLog, producer, product, users } from "@/lib/db/schema";
+import { auditLog, producer, producerMember, product, users } from "@/lib/db/schema";
 import { captureError } from "@/lib/observability/errors";
 import { extractFromContent, extractStandardsFromMaterial } from "./producer-standards-extraction-actions";
 
@@ -118,6 +118,10 @@ describe.skipIf(!process.env.DATABASE_URL)("extractStandardsFromMaterial: real D
         countryCode: "PL",
         technology: "szkielet-drewniany",
       },
+    ]);
+    await db.insert(producerMember).values([
+      { producerId, userId: producerUserId },
+      { producerId: otherProducerId, userId: otherProducerUserId },
     ]);
     await db
       .insert(product)

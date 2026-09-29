@@ -66,10 +66,20 @@ export const producerProductionScaleEnum = pgEnum("producer_production_scale", [
 
 export const productStatusEnum = pgEnum("product_status", ["draft", "published"]);
 
+// "katalogowy" dopisana przez ALTER TYPE ... ADD VALUE (spec 0056 Follow-up):
+// slot dla rodzin katalogowych o stałej, gotowej ofercie (outdoor-tv i
+// przyszłe podobne), gdzie warianty różnią się czymś innym niż standard
+// wykończenia domu (np. rozmiar TV) i nie mają z góry znanej, zamkniętej
+// listy wartości. Wszystkie warianty jednego produktu mogą dzielić tę samą
+// wartość enum naraz — prawdziwym identyfikatorem wariantu jest wtedy
+// productVariant.variantLabel (wolny tekst), nie completionStandard; patrz
+// product_variant_product_standard_unique niżej, który celowo wyklucza tę
+// wartość ze swojej reguły unikalności.
 export const completionStandardEnum = pgEnum("completion_standard", [
   "surowy-zamkniety",
   "deweloperski",
   "pod-klucz",
+  "katalogowy",
 ]);
 
 // "wynajem-hotel" dopisana przez ALTER TYPE ... ADD VALUE (spec 0041 AC-6),
@@ -86,8 +96,17 @@ export const productCategoryEnum = pgEnum("product_category", [
 // domyślnej celowo: każdy insert, w tym ręczny przez Neon MCP (funkcja 7),
 // musi jawnie podać family (spec 0022 AC-1). "pergola" zastąpiona przez
 // "kontenery-modulowe" (spec 0039): przebudowa typu, nie dopisanie wartości
-// obok starej — Postgres nie ma ALTER TYPE ... DROP VALUE.
-export const productFamilyEnum = pgEnum("product_family", ["dom", "spa-modulowe", "kontenery-modulowe"]);
+// obok starej — Postgres nie ma ALTER TYPE ... DROP VALUE. "outdoor-tv"
+// dopisana przez ALTER TYPE ... ADD VALUE (partnerstwo reseller MirageVision
+// Outdoor TVs & Displays, nazwa robocza — katalog/technicalSpecs jeszcze nie
+// ustalone, ta rodzina celowo wyłączona z publishedTechnicalSpecsSchemaByFamily/
+// TECHNICAL_FIELDS_BY_FAMILY do czasu ustalenia szczegółów).
+export const productFamilyEnum = pgEnum("product_family", [
+  "dom",
+  "spa-modulowe",
+  "kontenery-modulowe",
+  "outdoor-tv",
+]);
 
 // en/nl/de: polski zostaje na product.name/description samym, jako tekst
 // źródłowy (spec 0028 Decision) — ten enum nigdy nie nosi "pl". "de" dopisana
@@ -370,6 +389,11 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  // Spec 0055: blokada dotyczy wyłącznie producentów, wymuszone w akcji
+  // serwerowej, nie tu (CHECK zależny od innej kolumny utrudniałby migracje).
+  blockedAt: timestamp("blocked_at", { withTimezone: true }),
+  blockedBy: text("blocked_by").references((): AnyPgColumn => users.id, { onDelete: "set null" }),
+  blockedReason: text("blocked_reason"),
 });
 
 // Dane z formularza rejestracji do chwili potwierdzenia e mailem (spec 0023
@@ -458,6 +482,9 @@ export const producer = pgTable("producer", {
   inquiryResponseTimeLabel: text("inquiry_response_time_label"),
   showroomVisitAvailable: boolean("showroom_visit_available"),
   showroomVisitNote: text("showroom_visit_note"),
+  // Generic producer bio (spec 0056 AC-9); any producer may use it, not just
+  // a reseller partner. Empty renders as an absent section (never a blank one).
+  description: text("description"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
@@ -475,6 +502,27 @@ export const producerDeliveryCountry = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [primaryKey({ columns: [table.producerId, table.countryCode] })],
+);
+
+// Tabela łącząca producent <-> użytkownicy (spec 0057 AC-1, AC-2): jeden
+// producent może mieć wielu użytkowników, każdy z pełnym dostępem, ale jeden
+// użytkownik należy najwyżej do jednego producenta (unique na userId). Faza 1
+// migracji: producer.userId zostaje jako dual write (NOT NULL) do fazy 2.
+export const producerMember = pgTable(
+  "producer_member",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    producerId: uuid("producer_id")
+      .notNull()
+      .references(() => producer.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .unique()
+      .references(() => users.id, { onDelete: "cascade" }),
+    addedBy: text("added_by").references(() => users.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index("producer_member_producer_idx").on(table.producerId)],
 );
 
 export const client = pgTable("client", {
@@ -589,6 +637,9 @@ export const product = pgTable(
     // Tymczasowe: zwykły URL zewnętrzny, zastąpione realnym przechowywaniem
     // plików (Cloudflare R2) w Slice 5 (spec 0023 Context, Follow-up).
     coverImageUrl: text("cover_image_url"),
+    // Generyczny link do wideo produktu (spec 0056 AC-9), dostępny dla każdej
+    // rodziny, nie tylko outdoor-tv. Puste renderuje się jako brak sekcji.
+    videoUrl: text("video_url"),
     // Wyszukiwanie pełnotekstowe (spec 0026 AC-6, AC-13): kolumna generowana przez
     // Postgres (GENERATED ALWAYS AS ... STORED, migracja ręczna drizzle/NNNN, ten
     // sam wzorzec spoza DSL drizzle-kit co drizzle/0002_audit_log_trigger.sql —
@@ -679,9 +730,14 @@ export const productVariant = pgTable(
     // Co najwyżej jeden aktywny wariant na (product, standard); indeks
     // częściowy tak, żeby usunięty miękko wariant nie blokował ponownego
     // dodania tego samego standardu (spec 0041 Feature design).
+    // completionStandard = 'katalogowy' celowo wyłączona z tej reguły (spec
+    // 0056 Follow-up): rodziny katalogowe (np. outdoor-tv) mogą mieć wiele
+    // aktywnych wariantów dzielących tę samą wartość enum naraz, rozróżnianych
+    // przez variantLabel zamiast completionStandard — patrz komentarz przy
+    // completionStandardEnum wyżej.
     uniqueIndex("product_variant_product_standard_unique")
       .on(table.productId, table.completionStandard)
-      .where(sql`${table.deletedAt} IS NULL`),
+      .where(sql`${table.deletedAt} IS NULL AND ${table.completionStandard} <> 'katalogowy'`),
     // Co najwyżej jeden aktywny wariant domyślny na produkt, ten sam wzorzec
     // częściowego indeksu co document_one_cover_per_product.
     uniqueIndex("product_variant_one_default_per_product")

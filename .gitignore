@@ -53,3 +53,6 @@ __pycache__/
 # playwright test artifacts
 /test-results/
 /playwright-report/
+
+# generated outputs
+/outputs/

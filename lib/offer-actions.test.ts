@@ -15,8 +15,23 @@ vi.mock("@/auth", () => ({ auth: authMock }));
 vi.mock("@/lib/observability/errors", () => ({ captureError: captureErrorMock }));
 vi.mock("@/lib/observability", () => ({ trackEvent: trackEventMock }));
 
+// after() throws "called outside a request scope" without a real Next.js
+// request context in Vitest (same boundary as producer-product-actions.test.ts):
+// queue the deferred task and drain it explicitly instead of racing it.
+const afterQueue = vi.hoisted(() => [] as Array<() => unknown>);
+const afterMock = vi.hoisted(() => vi.fn((task: () => unknown) => afterQueue.push(task)));
+vi.mock("next/server", () => ({ after: afterMock }));
+
+const notifyClientOfNewOfferMock = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
+vi.mock("@/lib/notifications/new-offer", () => ({ notifyClientOfNewOffer: notifyClientOfNewOfferMock }));
+
+async function drainAfterQueue() {
+  const tasks = afterQueue.splice(0, afterQueue.length);
+  for (const task of tasks) await task();
+}
+
 import { db } from "@/lib/db/client";
-import { auditLog, client, inquiry, inquiryItem, offer, offerItem, order, orderStageEvent, producer, product, users } from "@/lib/db/schema";
+import { auditLog, client, inquiry, inquiryItem, offer, offerItem, order, orderStageEvent, producer, producerMember, product, users } from "@/lib/db/schema";
 import { markOfferDecisionViewedByProducer, markOfferViewedByClient, respondToOffer, submitOffer } from "./offer-actions";
 
 function sessionAs(userId: string, role: "admin" | "producer" | "client"): Session {
@@ -64,6 +79,11 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/offer-actions: real DB, mocked a
       { id: producer2Id, userId: producer2UserId, nip: `OA2${producer2Id.slice(0, 7)}`, name: "Offer Actions Producer 2", countryCode: "PL", technology: "szkielet-drewniany" },
       { id: producer3Id, userId: producer3UserId, nip: `OA3${producer3Id.slice(0, 7)}`, name: "Offer Actions Producer 3 (no products here)", countryCode: "PL", technology: "szkielet-drewniany" },
     ]);
+    await db.insert(producerMember).values([
+      { producerId: producer1Id, userId: producer1UserId },
+      { producerId: producer2Id, userId: producer2UserId },
+      { producerId: producer3Id, userId: producer3UserId },
+    ]);
     await db.insert(product).values([
       { id: product1Id, producerId: producer1Id, family: "dom", status: "published", name: "Offer Actions Product 1" },
       { id: product2Id, producerId: producer2Id, family: "dom", status: "published", name: "Offer Actions Product 2" },
@@ -103,6 +123,9 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/offer-actions: real DB, mocked a
     authMock.mockReset();
     trackEventMock.mockClear();
     captureErrorMock.mockClear();
+    afterMock.mockClear();
+    afterQueue.length = 0;
+    notifyClientOfNewOfferMock.mockClear();
 
     const offerRows = await db.select({ id: offer.id }).from(offer).where(eq(offer.inquiryId, inquiryId));
     const offerIds = offerRows.map((row) => row.id);
@@ -236,6 +259,52 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/offer-actions: real DB, mocked a
 
       const [inquiryRow] = await db.select({ status: inquiry.status }).from(inquiry).where(eq(inquiry.id, inquiryId));
       expect(inquiryRow.status).toBe("offered");
+    });
+
+    // spec 0051 AC-2: a successful submission queues the client's
+    // new-offer notification with the new offer's id via after().
+    it("queues notifyClientOfNewOffer with the new offer id and inquiry id", async () => {
+      authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
+
+      const result = await submitOffer({
+        inquiryId,
+        items: [{ productId: product1Id, housePriceEur: 45000 }],
+        transportPriceEur: 3200,
+        installationPriceEur: 1800,
+      });
+      expect(result.ok).toBe(true);
+      const [offerRow] = await db.select({ id: offer.id }).from(offer).where(and(eq(offer.inquiryId, inquiryId), eq(offer.producerId, producer1Id)));
+
+      expect(afterMock).toHaveBeenCalledTimes(1);
+      await drainAfterQueue();
+      expect(notifyClientOfNewOfferMock).toHaveBeenCalledWith(offerRow.id, inquiryId);
+    });
+
+    // spec 0051 AC-5: a resubmission is a new offer row, not a duplicate —
+    // it must queue its own, distinct notification, not be deduped away.
+    it("a resubmission queues a second, distinct notification for the new offer id", async () => {
+      authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
+      await submitOffer({
+        inquiryId,
+        items: [{ productId: product1Id, housePriceEur: 40000 }],
+        transportPriceEur: 3000,
+        installationPriceEur: 1500,
+      });
+      await drainAfterQueue();
+      const firstCallOfferId = notifyClientOfNewOfferMock.mock.calls[0]?.[0];
+      notifyClientOfNewOfferMock.mockClear();
+
+      await submitOffer({
+        inquiryId,
+        items: [{ productId: product1Id, housePriceEur: 42000 }],
+        transportPriceEur: 3000,
+        installationPriceEur: 1500,
+      });
+      await drainAfterQueue();
+
+      expect(notifyClientOfNewOfferMock).toHaveBeenCalledTimes(1);
+      const secondCallOfferId = notifyClientOfNewOfferMock.mock.calls[0]?.[0];
+      expect(secondCallOfferId).not.toBe(firstCallOfferId);
     });
 
     // AC-3: a revision supersedes the prior active offer atomically.

@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "./client";
 import { buildPublicUrl } from "@/lib/storage/r2-client";
 import {
@@ -13,12 +13,15 @@ import {
   offerItem,
   producer,
   producerDeliveryCountry,
+  producerMember,
   product,
   productCountryEligibility,
   productFamilyEnum,
   productTimelineStage,
   productTranslation,
   productVariant,
+  projectRequest,
+  users,
 } from "./schema";
 
 // Zarządzany przepływ doradczy (spec 0048 AC-34): stare zapytania i akcje
@@ -39,11 +42,17 @@ export async function getProductsForProducer(producerId: string) {
     .where(and(eq(product.producerId, producerId), isNull(product.deletedAt)));
 }
 
-// producer.id wyprowadzone z sesji (session.user.id -> producer.userId), nigdy z
-// identyfikatora podanego przez przeglądarkę (spec 0032 AC-13), mirror
-// getClientIdForUser (spec 0024 AC-10).
+// producer.id wyprowadzone z sesji (session.user.id -> producer_member.userId),
+// nigdy z identyfikatora podanego przez przeglądarkę (spec 0032 AC-13), mirror
+// getClientIdForUser (spec 0024 AC-10). Czyta przynależność wyłącznie przez
+// producer_member (spec 0057 AC-8): jeden użytkownik należy najwyżej do
+// jednego producenta (unique na producer_member.userId), więc najwyżej jeden
+// wiersz wraca.
 export async function getProducerIdForUser(userId: string): Promise<string | null> {
-  const [row] = await db.select({ id: producer.id }).from(producer).where(eq(producer.userId, userId));
+  const [row] = await db
+    .select({ id: producerMember.producerId })
+    .from(producerMember)
+    .where(eq(producerMember.userId, userId));
   return row?.id ?? null;
 }
 
@@ -448,6 +457,236 @@ export async function getFavoritedProductIds(clientId: string): Promise<Set<stri
     .from(favorite)
     .where(eq(favorite.clientId, clientId));
   return new Set(rows.map((row) => row.productId));
+}
+
+export interface AdminDashboardAccountCounts {
+  activeClientCount: number;
+  activeProducerCount: number;
+}
+
+// Zasila pierwszy kafelek /internal (spec 0055 AC-4): "aktywne konto" znaczy
+// zawsze deleted_at i blocked_at oba puste (spec Key invariants), spójnie z
+// każdym innym miejscem, gdzie ta liczba się pojawia.
+export async function getAdminDashboardAccountCounts(): Promise<AdminDashboardAccountCounts> {
+  const rows = await db
+    .select({ role: users.role, count: sql<number>`count(*)::int` })
+    .from(users)
+    .where(and(isNull(users.deletedAt), isNull(users.blockedAt)))
+    .groupBy(users.role);
+
+  const countByRole = new Map(rows.map((row) => [row.role, row.count]));
+  return {
+    activeClientCount: countByRole.get("client") ?? 0,
+    activeProducerCount: countByRole.get("producer") ?? 0,
+  };
+}
+
+export interface AdminDashboardCoreCounts {
+  projectCount: number;
+  inquiryCount: number;
+  offerCount: number;
+}
+
+// Zasila kolejne trzy kafelki /internal (spec 0055 AC-5): "zapytania" liczy
+// cały wiersz inquiry, sprawy (spec 0048) i dawne zapytania bezpośrednie
+// (spec 0023) razem — to jedna i ta sama tabela, rozróżniona tylko kolumną
+// stage, więc żadnego filtru tu nie trzeba (ta sama definicja co AC-14).
+export async function getAdminDashboardCoreCounts(): Promise<AdminDashboardCoreCounts> {
+  const [[projectRow], [inquiryRow], [offerRow]] = await Promise.all([
+    db.select({ count: sql<number>`count(*)::int` }).from(projectRequest),
+    db.select({ count: sql<number>`count(*)::int` }).from(inquiry),
+    db.select({ count: sql<number>`count(*)::int` }).from(offer),
+  ]);
+
+  return {
+    projectCount: projectRow?.count ?? 0,
+    inquiryCount: inquiryRow?.count ?? 0,
+    offerCount: offerRow?.count ?? 0,
+  };
+}
+
+const TREND_DAYS = 30;
+const TREND_TIMEZONE = "Europe/Warsaw";
+
+export interface AdminDashboardTrendPoint {
+  day: string;
+  registrations: number;
+  inquiries: number;
+}
+
+// Ostatnie 30 dni w Europe/Warsaw jako klucze "YYYY-MM-DD", najstarszy
+// pierwszy — bez tego dni bez żadnego rekordu (0 nowych) po prostu nie
+// pojawiłyby się w wyniku SQL GROUP BY, a wykres potrzebuje ciągłej serii.
+function buildTrendDayKeys(): string[] {
+  const formatter = new Intl.DateTimeFormat("en-CA", { timeZone: TREND_TIMEZONE });
+  const days: string[] = [];
+  const now = Date.now();
+  for (let i = TREND_DAYS - 1; i >= 0; i--) {
+    days.push(formatter.format(new Date(now - i * 24 * 60 * 60 * 1000)));
+  }
+  return days;
+}
+
+// Zasila wykres trendu na /internal (spec 0055 AC-7): nowe rejestracje
+// (users.created_at) i nowe zapytania (inquiry.received_at, sprawy i dawne
+// zapytania bezpośrednie razem, ta sama definicja co AC-5), pogrupowane po
+// dniu kalendarzowym w Europe/Warsaw. to_char zamiast samego ::date, żeby
+// klucz zawsze wracał jako zwykły tekst "YYYY-MM-DD", niezależnie od tego, jak
+// sterownik zmapowałby typ date.
+export async function getAdminDashboardTrend(): Promise<AdminDashboardTrendPoint[]> {
+  const dayKeys = buildTrendDayKeys();
+
+  const [registrationRows, inquiryRows] = await Promise.all([
+    db
+      .select({
+        day: sql<string>`to_char(${users.createdAt} AT TIME ZONE ${TREND_TIMEZONE}, 'YYYY-MM-DD')`,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(users)
+      .where(sql`${users.createdAt} >= now() - interval '30 days'`)
+      .groupBy(sql`1`),
+    db
+      .select({
+        day: sql<string>`to_char(${inquiry.receivedAt} AT TIME ZONE ${TREND_TIMEZONE}, 'YYYY-MM-DD')`,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(inquiry)
+      .where(sql`${inquiry.receivedAt} >= now() - interval '30 days'`)
+      .groupBy(sql`1`),
+  ]);
+
+  const registrationsByDay = new Map(registrationRows.map((row) => [row.day, row.count]));
+  const inquiriesByDay = new Map(inquiryRows.map((row) => [row.day, row.count]));
+
+  return dayKeys.map((day) => ({
+    day,
+    registrations: registrationsByDay.get(day) ?? 0,
+    inquiries: inquiriesByDay.get(day) ?? 0,
+  }));
+}
+
+const ACTIVITY_FEED_LIMIT = 15;
+
+export interface AdminActivityFeedItem {
+  id: string;
+  label: string;
+  detail: string;
+  at: Date;
+}
+
+const activityRoleLabel: Record<string, string> = {
+  client: "klient",
+  producer: "producent",
+  admin: "administrator",
+};
+
+// Feed ostatniej aktywności na /internal (spec 0055 AC-8): najnowsze rekordy
+// z kont, zapytań (sprawy i dawne zapytania bezpośrednie razem, ta sama
+// tabela co AC-5/AC-14) i ofert, każde źródło pobrane osobno (limit na
+// każdym, żeby nie ciągnąć całej tabeli) i scalone po dacie w JS zamiast
+// jednym SQL UNION — trzy różne kształty kolumn, bez nowej tabeli zdarzeń.
+export async function getAdminActivityFeed(): Promise<AdminActivityFeedItem[]> {
+  const [accountRows, inquiryRows, offerRows] = await Promise.all([
+    db
+      .select({ id: users.id, name: users.name, email: users.email, role: users.role, createdAt: users.createdAt })
+      .from(users)
+      .orderBy(desc(users.createdAt))
+      .limit(ACTIVITY_FEED_LIMIT),
+    db
+      .select({ id: inquiry.id, name: inquiry.name, stage: inquiry.stage, receivedAt: inquiry.receivedAt })
+      .from(inquiry)
+      .orderBy(desc(inquiry.receivedAt))
+      .limit(ACTIVITY_FEED_LIMIT),
+    db
+      .select({ id: offer.id, producerName: producer.name, submittedAt: offer.submittedAt })
+      .from(offer)
+      .innerJoin(producer, eq(offer.producerId, producer.id))
+      .orderBy(desc(offer.submittedAt))
+      .limit(ACTIVITY_FEED_LIMIT),
+  ]);
+
+  const items: AdminActivityFeedItem[] = [
+    ...accountRows.map((row) => ({
+      id: `account-${row.id}`,
+      label: "Nowe konto",
+      detail: `${row.name ?? row.email} (${activityRoleLabel[row.role] ?? row.role})`,
+      at: row.createdAt,
+    })),
+    ...inquiryRows.map((row) => ({
+      id: `inquiry-${row.id}`,
+      label: row.stage === "legacy_direct" ? "Nowe zapytanie" : "Nowa sprawa",
+      detail: row.name,
+      at: row.receivedAt,
+    })),
+    ...offerRows.map((row) => ({
+      id: `offer-${row.id}`,
+      label: "Nowa oferta",
+      detail: row.producerName,
+      at: row.submittedAt,
+    })),
+  ];
+
+  return items.sort((a, b) => b.at.getTime() - a.at.getTime()).slice(0, ACTIVITY_FEED_LIMIT);
+}
+
+export const PRODUCERS_FOR_ADMIN_PAGE_SIZE = 20;
+
+export interface ProducerForAdmin {
+  producerId: string;
+  memberEmails: string[];
+  name: string;
+  countryCode: string;
+  countryName: string;
+  verificationStatus: (typeof producer.$inferSelect)["verificationStatus"];
+  blockedAt: Date | null;
+}
+
+export interface ProducersForAdminPage {
+  items: ProducerForAdmin[];
+  totalCount: number;
+}
+
+// Zasila /internal/producers (spec 0055 AC-10): wyszukiwanie po nazwie i
+// paginacja, jak zapowiada spec Build plan zadanie 8 (wzorem
+// getAllProductsForAdmin, ale z limit/offset bo ta lista już nie jest mała).
+// Jeden wiersz na producenta (GROUP BY producer.id, spec 0057 Key invariants):
+// przynależność czytana przez producer_member, memberEmails zbiera wszystkich
+// dzisiejszych członków. blockedAt czytany jako min() z jednego dowolnego
+// członka — bezpieczne, bo blokada zawsze obejmuje wszystkich naraz (AC-5).
+export async function getAllProducersForAdmin({
+  search,
+  page,
+}: {
+  search?: string;
+  page: number;
+}): Promise<ProducersForAdminPage> {
+  const trimmedSearch = search?.trim();
+  const whereClause = trimmedSearch ? ilike(producer.name, `%${trimmedSearch}%`) : undefined;
+
+  const [countRow, rows] = await Promise.all([
+    db.select({ count: sql<number>`count(*)::int` }).from(producer).where(whereClause),
+    db
+      .select({
+        producerId: producer.id,
+        name: producer.name,
+        countryCode: producer.countryCode,
+        countryName: country.name,
+        verificationStatus: producer.verificationStatus,
+        blockedAt: sql<Date | null>`min(${users.blockedAt})`,
+        memberEmails: sql<string[]>`array_agg(${users.email} order by ${users.email})`,
+      })
+      .from(producer)
+      .innerJoin(country, eq(producer.countryCode, country.code))
+      .innerJoin(producerMember, eq(producerMember.producerId, producer.id))
+      .innerJoin(users, eq(producerMember.userId, users.id))
+      .where(whereClause)
+      .groupBy(producer.id, producer.name, producer.countryCode, country.name, producer.verificationStatus)
+      .orderBy(asc(producer.name))
+      .limit(PRODUCERS_FOR_ADMIN_PAGE_SIZE)
+      .offset((page - 1) * PRODUCERS_FOR_ADMIN_PAGE_SIZE),
+  ]);
+
+  return { items: rows, totalCount: countRow[0]?.count ?? 0 };
 }
 
 export interface ProductForAdmin {

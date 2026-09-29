@@ -8,6 +8,7 @@ import {
   document,
   producer,
   producerDeliveryCountry,
+  producerMember,
   product,
   productCountryEligibility,
   users,
@@ -191,6 +192,14 @@ async function upsertCatalog(): Promise<void> {
     db
       .insert(producerDeliveryCountry)
       .values({ producerId: PRODUCER_ID, countryCode: "PL" })
+      .onConflictDoNothing(),
+    // Spec 0057 faza 1: producer_member jest dziś jedyną drogą odczytu
+    // przynależności; import bez tego wiersza zniknąłby z getProducerIdForUser
+    // mimo istniejącego wiersza producer. onConflictDoNothing bo skrypt jest
+    // idempotentny/rerunowalny (users.id -> producer_member.userId unique).
+    db
+      .insert(producerMember)
+      .values({ producerId: PRODUCER_ID, userId: IMPORT_USER_ID })
       .onConflictDoNothing(),
   ]);
 

@@ -1,6 +1,7 @@
-import { and, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { offer, order, producer, producerDeliveryCountry, product } from "@/lib/db/schema";
+import { document, offer, order, producer, producerDeliveryCountry, product } from "@/lib/db/schema";
+import { buildPublicUrl } from "@/lib/storage/r2-client";
 import { resolveProductDocumentPhotos } from "./projects";
 import type { CountryCode, Producer } from "./types";
 
@@ -140,7 +141,26 @@ function mapRowToProducer(
     inquiryResponseTimeLabel: row.inquiryResponseTimeLabel ?? undefined,
     showroomVisitAvailable: row.showroomVisitAvailable,
     showroomVisitNote: row.showroomVisitNote ?? undefined,
+    description: row.description ?? undefined,
   };
+}
+
+// Logo/zdjęcie partnera dla sekcji "o partnerze" (spec 0056 AC-10): reużywa
+// istniejący document.purpose 'producer_photo', dziś bez customerowego
+// czytelnika (żyło tylko po stronie weryfikacji/panelu). isCover pierwsze,
+// potem najstarsze — ten sam porządek co loadFeaturedPhotoByProducer wyżej,
+// ale kluczowany przez document.producerId, nie przez product.
+export async function getProducerPhotoUrl(producerId: string): Promise<string | null> {
+  if (!UUID_PATTERN.test(producerId)) return null;
+
+  const [row] = await db
+    .select({ r2Key: document.r2Key })
+    .from(document)
+    .where(and(eq(document.producerId, producerId), eq(document.purpose, "producer_photo"), isNull(document.deletedAt)))
+    .orderBy(desc(document.isCover), document.sortOrder, document.createdAt)
+    .limit(1);
+
+  return row ? buildPublicUrl(row.r2Key) : null;
 }
 
 // Real DB read (AC-17, spec 0038): replaces the fixture data whose ids

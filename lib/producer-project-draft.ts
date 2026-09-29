@@ -241,7 +241,10 @@ export interface TechnicalFieldConfig {
 // "kontenery-modulowe" (spec 0039): jej pola zależą od containerSubcategory,
 // nie samej family — patrz CONTAINER_TECHNICAL_FIELDS_BY_SUBCATEGORY i
 // getTechnicalFieldsFor niżej.
-export const TECHNICAL_FIELDS_BY_FAMILY: Record<Exclude<ProductFamily, "kontenery-modulowe">, TechnicalFieldConfig[]> = {
+export const TECHNICAL_FIELDS_BY_FAMILY: Record<
+  Exclude<ProductFamily, "kontenery-modulowe" | "outdoor-tv">,
+  TechnicalFieldConfig[]
+> = {
   // wallBuildUp/insulation/windowClass/fireResistance/windResistance usunięte
   // (spec 0049 AC-1, AC-5): dane 65 istniejących produktów zostają w bazie
   // (technical_specs jsonb), ale kreator, katalog AI i strona klienta ich już
@@ -445,6 +448,9 @@ export function getTechnicalFieldsFor(
       hint: t(`technicalFields.kontenery-modulowe.${containerSubcategory}.${field.key}.hint`),
     }));
   }
+  // outdoor-tv (partnerstwo reseller MirageVision): brak jeszcze zdefiniowanych pól
+  // technicznych, kreator producenta nie oferuje tej rodziny do wyboru.
+  if (family === "outdoor-tv") return [];
   return TECHNICAL_FIELDS_BY_FAMILY[family].map((field) => ({
     ...field,
     label: t(`technicalFields.${family}.${field.key}.label`),
@@ -532,6 +538,10 @@ function isSubcategoryComplete(draft: ProjectDraft): boolean {
       return draft.spaSubcategory !== null;
     case "kontenery-modulowe":
       return draft.containerSubcategory !== null;
+    // outdoor-tv (partnerstwo reseller MirageVision): brak pojęcia podkategorii,
+    // wektor nieosiągalny przez UI (kreator nie oferuje tej rodziny).
+    case "outdoor-tv":
+      return true;
     case null:
       return false;
   }
@@ -547,6 +557,7 @@ function getStructuralTechnicalFields(draft: ProjectDraft): TechnicalFieldConfig
       ? []
       : CONTAINER_TECHNICAL_FIELDS_BY_SUBCATEGORY[draft.containerSubcategory];
   }
+  if (draft.family === "outdoor-tv") return [];
   return draft.family === null ? [] : TECHNICAL_FIELDS_BY_FAMILY[draft.family];
 }
 

@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Heading, Text } from "@/components/ui";
 import type { Country, Project } from "@/lib/data/types";
+import { resolveProductHref } from "@/lib/product-family-groups";
 import { PopularHomeCard } from "./PopularHomeCard";
 
 interface PopularHomesProps {
@@ -31,7 +32,7 @@ export async function PopularHomes({ locale, projects, countries }: PopularHomes
               key={project.id}
               project={project}
               countryName={countryNameByCode.get(project.countryOfProduction) ?? project.countryOfProduction}
-              href={`/${locale}/project/${project.id}`}
+              href={resolveProductHref(project.family, project.id, locale)}
             />
           ))}
         </div>

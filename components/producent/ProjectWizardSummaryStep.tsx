@@ -52,6 +52,10 @@ function subcategoryLabel(draft: ProjectDraft, tOptions: Translate, empty: strin
         getContainerSubcategoryOptions(tOptions).find((option) => option.value === draft.containerSubcategory)
           ?.label ?? empty
       );
+    // outdoor-tv (partnerstwo reseller MirageVision): brak pojęcia podkategorii,
+    // nieosiągalne przez UI (kreator nie oferuje tej rodziny).
+    case "outdoor-tv":
+      return empty;
     case null:
       return empty;
   }

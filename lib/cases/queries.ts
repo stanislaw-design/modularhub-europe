@@ -1,4 +1,4 @@
-import { and, desc, eq, ne } from "drizzle-orm";
+import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import type { CaseMessageDto } from "@/lib/case-schemas";
 import { db } from "@/lib/db/client";
 import { channel, inquiry, inquiryItem, product, users } from "@/lib/db/schema";
@@ -93,6 +93,76 @@ export async function listCasesForAdvisor(actor: CaseActor): Promise<CaseSummary
     .where(ne(inquiry.stage, "legacy_direct"))
     .orderBy(desc(inquiry.receivedAt));
   return groupSummaries(rows);
+}
+
+export const CASES_AND_INQUIRIES_PAGE_SIZE = 30;
+
+export interface CaseOrInquiryRow {
+  id: string;
+  kind: "case" | "legacy_inquiry";
+  stage: CaseStage;
+  status: (typeof inquiry.$inferSelect)["status"];
+  waitingOn: CaseWaitingOn | null;
+  productNames: string[];
+  receivedAt: Date;
+  advisorName: string | null;
+  clientName: string;
+}
+
+export interface CasesAndInquiriesPage {
+  items: CaseOrInquiryRow[];
+  totalCount: number;
+}
+
+// Zasila /internal/cases-and-inquiries (spec 0055 AC-14): sprawy (spec 0048)
+// i dawne zapytania bezpośrednie (spec 0023) są ten sam wiersz inquiry, więc
+// scalenie to po prostu zapytanie bez filtru po stage, nie UNION dwóch tabel.
+// Paginacja na poziomie samego inquiry (krok 1) przed dociągnięciem nazw
+// produktów (krok 2, fan-out przez inquiryItem) — LIMIT/OFFSET na
+// zdenormalizowanym, połączonym z product wynikiem obcinałby wiersze
+// pośrodku jednego zapytania mającego kilka produktów.
+export async function listCasesAndInquiriesForAdmin(page: number): Promise<CasesAndInquiriesPage> {
+  const [countRow, pageRows] = await Promise.all([
+    db.select({ count: sql<number>`count(*)::int` }).from(inquiry),
+    db
+      .select({
+        id: inquiry.id,
+        stage: inquiry.stage,
+        status: inquiry.status,
+        waitingOn: inquiry.waitingOn,
+        receivedAt: inquiry.receivedAt,
+        clientName: inquiry.name,
+        advisorName: users.name,
+      })
+      .from(inquiry)
+      .leftJoin(users, eq(users.id, inquiry.assignedAdvisorId))
+      .orderBy(desc(inquiry.receivedAt))
+      .limit(CASES_AND_INQUIRIES_PAGE_SIZE)
+      .offset((page - 1) * CASES_AND_INQUIRIES_PAGE_SIZE),
+  ]);
+
+  const ids = pageRows.map((row) => row.id);
+  const productRows = ids.length
+    ? await db
+        .select({ inquiryId: inquiryItem.inquiryId, productName: product.name })
+        .from(inquiryItem)
+        .innerJoin(product, eq(product.id, inquiryItem.productId))
+        .where(inArray(inquiryItem.inquiryId, ids))
+    : [];
+  const productNamesById = new Map<string, string[]>();
+  for (const row of productRows) {
+    const list = productNamesById.get(row.inquiryId) ?? [];
+    if (row.productName) list.push(row.productName);
+    productNamesById.set(row.inquiryId, list);
+  }
+
+  const items: CaseOrInquiryRow[] = pageRows.map((row) => ({
+    ...row,
+    kind: row.stage === "legacy_direct" ? "legacy_inquiry" : "case",
+    productNames: productNamesById.get(row.id) ?? [],
+  }));
+
+  return { items, totalCount: countRow[0]?.count ?? 0 };
 }
 
 // Klient i doradca widzą kanał klient_doradca. Zwraca null przy braku dostępu

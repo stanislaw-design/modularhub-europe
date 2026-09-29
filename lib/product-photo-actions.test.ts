@@ -35,7 +35,7 @@ vi.mock("@/lib/storage/r2-client", async (importOriginal) => {
 });
 
 import { db } from "@/lib/db/client";
-import { auditLog, document, producer, product, users } from "@/lib/db/schema";
+import { auditLog, document, producer, producerMember, product, users } from "@/lib/db/schema";
 import { captureError } from "@/lib/observability/errors";
 import {
   deleteProductPhoto,
@@ -112,6 +112,10 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/product-photo-actions: real DB, 
         countryCode: "PL",
         technology: "szkielet-drewniany",
       },
+    ]);
+    await db.insert(producerMember).values([
+      { producerId, userId: producerUserId },
+      { producerId: otherProducerId, userId: otherProducerUserId },
     ]);
     await db.insert(product).values(
       allProductIds.map((id, index) => ({

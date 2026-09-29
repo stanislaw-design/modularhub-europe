@@ -16,7 +16,7 @@ const createAzureOpenAiClientMock = vi.hoisted(() =>
 vi.mock("@/lib/ai/openai", () => ({ createAzureOpenAiClient: createAzureOpenAiClientMock }));
 
 import { db } from "@/lib/db/client";
-import { auditLog, costLineItem, costLineItemLabelTranslation, producer, product, productVariant, users } from "@/lib/db/schema";
+import { auditLog, costLineItem, costLineItemLabelTranslation, producer, producerMember, product, productVariant, users } from "@/lib/db/schema";
 import { captureError } from "@/lib/observability/errors";
 import {
   generateMissingCostLineItemLabelTranslations,
@@ -68,6 +68,10 @@ describe.skipIf(!process.env.DATABASE_URL)("generateProjectTranslations: real DB
         countryCode: "PL",
         technology: "szkielet-drewniany",
       },
+    ]);
+    await db.insert(producerMember).values([
+      { producerId, userId: producerUserId },
+      { producerId: otherProducerId, userId: otherProducerUserId },
     ]);
     await db.insert(product).values([
       {
@@ -335,6 +339,10 @@ describe.skipIf(!process.env.DATABASE_URL)("getCostLineItemLabelTranslationsForP
         countryCode: "PL",
         technology: "szkielet-drewniany",
       },
+    ]);
+    await db.insert(producerMember).values([
+      { producerId, userId: producerUserId },
+      { producerId: otherProducerId, userId: otherProducerUserId },
     ]);
     await db.insert(product).values([
       { id: productId, producerId, family: "dom", status: "draft", name: "PTA cli test product", floorAreaM2: 80, countryOfProduction: "PL" },

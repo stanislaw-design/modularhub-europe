@@ -1,0 +1,1 @@
+ALTER TYPE "public"."product_family" ADD VALUE 'outdoor-tv';

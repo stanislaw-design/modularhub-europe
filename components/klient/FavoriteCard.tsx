@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Card, Checkbox, DataText, Heading, StatusPill, Text } from "@/components/ui";
 import type { FavoriteListEntry } from "@/lib/data/projects";
+import { resolveProductHref } from "@/lib/product-family-groups";
 import { FavoriteButton } from "./FavoriteButton";
 
 interface FavoriteCardProps {
@@ -25,7 +26,7 @@ const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0
 export function FavoriteCard({ entry, locale, selected, selectionDisabled, onToggleSelect }: FavoriteCardProps) {
   const t = useTranslations("FavoriteCard");
   const { project, available } = entry;
-  const href = `/${locale}/project/${project.id}`;
+  const href = resolveProductHref(project.family, project.id, locale);
 
   return (
     <Card

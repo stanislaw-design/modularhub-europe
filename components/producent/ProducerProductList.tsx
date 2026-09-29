@@ -10,7 +10,7 @@ import { DeleteProductDialog } from "./DeleteProductDialog";
 export interface ProducerProductListItem {
   id: string;
   name: string;
-  family: "dom" | "spa-modulowe" | "kontenery-modulowe";
+  family: "dom" | "spa-modulowe" | "kontenery-modulowe" | "outdoor-tv";
   status: "draft" | "published";
   createdAt: Date;
 }

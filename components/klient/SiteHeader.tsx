@@ -73,7 +73,7 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
   // "Mój profil"/"Panel producenta" at once.
   const cta =
     session?.user.role === "admin"
-      ? { label: t("adminPanel"), href: `/${locale}/internal/inquiries`, icon: false }
+      ? { label: t("adminPanel"), href: `/${locale}/internal`, icon: false }
       : session?.user.role === "client"
         ? { label: t("myProfile"), href: `/${locale}/panel/inquiries`, icon: true }
         : session?.user.role === "producer"

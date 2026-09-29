@@ -125,32 +125,61 @@ describe("proxy (spec 0028)", () => {
 
   describe("admin panel stays Polish-only (AC-1)", () => {
     it("redirects /en/internal/... to /pl/internal/...", () => {
-      const response = proxy(request("/en/internal/inquiries"));
+      const response = proxy(request("/en/internal/products"));
 
-      expect(new URL(response.headers.get("location")!).pathname).toBe("/pl/internal/inquiries");
+      expect(new URL(response.headers.get("location")!).pathname).toBe("/pl/internal/products");
       expect(intlMiddlewareMock).not.toHaveBeenCalled();
     });
 
     it("redirects /nl/internal/... to /pl/internal/...", () => {
-      const response = proxy(request("/nl/internal/inquiries"));
+      const response = proxy(request("/nl/internal/products"));
 
-      expect(new URL(response.headers.get("location")!).pathname).toBe("/pl/internal/inquiries");
+      expect(new URL(response.headers.get("location")!).pathname).toBe("/pl/internal/products");
     });
 
     it("redirects /de/internal/... to /pl/internal/... (spec 0028 German extension)", () => {
-      const response = proxy(request("/de/internal/inquiries"));
+      const response = proxy(request("/de/internal/products"));
 
-      expect(new URL(response.headers.get("location")!).pathname).toBe("/pl/internal/inquiries");
+      expect(new URL(response.headers.get("location")!).pathname).toBe("/pl/internal/products");
     });
 
     it("does not redirect /pl/internal/... (already the default locale)", () => {
-      proxy(request("/pl/internal/inquiries"));
+      proxy(request("/pl/internal/products"));
 
       expect(intlMiddlewareMock).toHaveBeenCalledTimes(1);
     });
 
     it("does not redirect a non-internal route under a recognized non-default locale", () => {
       proxy(request("/en/producer"));
+
+      expect(intlMiddlewareMock).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("cases and inquiries merge into one list (spec 0055 AC-14)", () => {
+    it("redirects the old /internal/cases list to /internal/cases-and-inquiries, with a 308", () => {
+      const response = proxy(request("/pl/internal/cases"));
+
+      expect(response.status).toBe(308);
+      expect(new URL(response.headers.get("location")!).pathname).toBe("/pl/internal/cases-and-inquiries");
+    });
+
+    it("redirects the old /internal/inquiries list to /internal/cases-and-inquiries, with a 308", () => {
+      const response = proxy(request("/pl/internal/inquiries"));
+
+      expect(response.status).toBe(308);
+      expect(new URL(response.headers.get("location")!).pathname).toBe("/pl/internal/cases-and-inquiries");
+    });
+
+    it("redirects a non-default locale straight through to /pl/internal/cases-and-inquiries in one hop", () => {
+      const response = proxy(request("/en/internal/cases"));
+
+      expect(response.status).toBe(308);
+      expect(new URL(response.headers.get("location")!).pathname).toBe("/pl/internal/cases-and-inquiries");
+    });
+
+    it("does not redirect the case detail page /internal/cases/[id] (AC-14: stays as is)", () => {
+      proxy(request("/pl/internal/cases/case-123"));
 
       expect(intlMiddlewareMock).toHaveBeenCalledTimes(1);
     });

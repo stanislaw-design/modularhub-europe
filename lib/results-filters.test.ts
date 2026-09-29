@@ -289,6 +289,11 @@ describe("matchesResultsFilter", () => {
     expect(matchesResultsFilter(80, undefined, filter, "kontenery-modulowe")).toBe(true);
   });
 
+  it("matches an outdoor-tv product against the wiecej-niz-dom group filter", () => {
+    const filter: ResultsFilter = { family: "wiecej-niz-dom" };
+    expect(matchesResultsFilter(80, undefined, filter, "outdoor-tv")).toBe(true);
+  });
+
   it("does not match a dom product against the wiecej-niz-dom group filter", () => {
     const filter: ResultsFilter = { family: "wiecej-niz-dom" };
     expect(matchesResultsFilter(80, undefined, filter, "dom")).toBe(false);

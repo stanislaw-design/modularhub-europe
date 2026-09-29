@@ -38,9 +38,10 @@ interface ThemeProviderProps {
 }
 
 // Scopes dark mode to whichever subtree mounts this provider (spec 0043
-// AC-11: producer/internal stay light by never mounting it at all; spec 0046
-// adds a second scope, theme-producer, for the producer panel, via
-// scopeClassName rather than a second provider). The wrapper's own class
+// AC-11: producer public routes stay light by never mounting it at all;
+// spec 0046 adds a second scope, theme-producer, for the producer panel, and
+// spec 0055 a third, theme-internal, for the admin panel, via scopeClassName
+// rather than a second/third provider). The wrapper's own class
 // only ever reflects the explicit cookie choice, never the system-detected
 // fallback below — the no-cookie case is left to app/globals.css's plain
 // `@media (prefers-color-scheme: dark)` rule, which paints correctly before

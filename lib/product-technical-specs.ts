@@ -4,7 +4,11 @@ import { z } from "zod";
 // kolumna obok technicalSpecs (nie wewnątrz JSON), więc z.discriminatedUnion
 // (który wymaga dyskryminatora wewnątrz walidowanego obiektu) nie pasuje —
 // zamiast tego mapa schematu per family, wybierana przez wywołującego.
-export const PRODUCT_FAMILIES = ["dom", "spa-modulowe", "kontenery-modulowe"] as const;
+// "outdoor-tv" (partnerstwo reseller MirageVision) mirror lib/data/types.ts;
+// zostaje poza publishedTechnicalSpecsSchemaByFamily/draftTechnicalSpecsSchemaByFamily
+// niżej do czasu ustalenia kształtu specyfikacji (patrz Exclude<> tam), ten sam
+// wzorzec co kontenery-modulowe.
+export const PRODUCT_FAMILIES = ["dom", "spa-modulowe", "kontenery-modulowe", "outdoor-tv"] as const;
 export type ProductFamily = (typeof PRODUCT_FAMILIES)[number];
 
 // Podkategorie kontenera modułowego (spec 0039): pierwszy przypadek w tym
@@ -112,13 +116,13 @@ const spaModuloweSpecsShape = {
 const publishedTechnicalSpecsSchemaByFamily = {
   dom: z.object(domSpecsShape).strict(),
   "spa-modulowe": z.object(spaModuloweSpecsShape).strict(),
-} satisfies Record<Exclude<ProductFamily, "kontenery-modulowe">, z.ZodTypeAny>;
+} satisfies Record<Exclude<ProductFamily, "kontenery-modulowe" | "outdoor-tv">, z.ZodTypeAny>;
 
 // Kształt dopuszczalny podczas status = 'draft': te same pola, wszystkie opcjonalne.
 const draftTechnicalSpecsSchemaByFamily = {
   dom: publishedTechnicalSpecsSchemaByFamily.dom.partial(),
   "spa-modulowe": publishedTechnicalSpecsSchemaByFamily["spa-modulowe"].partial(),
-} satisfies Record<Exclude<ProductFamily, "kontenery-modulowe">, z.ZodTypeAny>;
+} satisfies Record<Exclude<ProductFamily, "kontenery-modulowe" | "outdoor-tv">, z.ZodTypeAny>;
 
 // Pola dzielone przez wszystkie trzy podkategorie kontenera modułowego (spec
 // 0039 Follow-up: wspólny bazowy kształt rozszerzany per podkategoria, żeby
@@ -186,6 +190,12 @@ export function getTechnicalSpecsSchema(
     return status === "published"
       ? publishedContainerSpecsSchemaBySubcategory[containerSubcategory]
       : draftContainerSpecsSchemaBySubcategory[containerSubcategory];
+  }
+  // outdoor-tv (partnerstwo reseller MirageVision): brak schematu technicalSpecs
+  // do czasu ustalenia katalogu/danych technicznych; w praktyce nieosiągalne przez
+  // UI, bo kreator producenta nie oferuje tej rodziny (patrz lib/producer-project-draft.ts).
+  if (family === "outdoor-tv") {
+    throw new Error("getTechnicalSpecsSchema: no technicalSpecs schema defined yet for family 'outdoor-tv'");
   }
   return status === "published"
     ? publishedTechnicalSpecsSchemaByFamily[family]

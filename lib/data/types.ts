@@ -25,7 +25,13 @@ export type CompletionStandard = "surowy-zamkniety" | "deweloperski" | "pod-kluc
 // myślanymi pod dom dopasowanymi tam gdzie to ma sens i pustymi tam, gdzie
 // nie (patrz komentarz przy tych dwóch wpisach w fixtures/projects.ts).
 // "pergola" zastąpiona przez "kontenery-modulowe" (spec 0039).
-export type ProductFamily = "dom" | "spa-modulowe" | "kontenery-modulowe";
+// "outdoor-tv" dodana dla partnerstwa reseller z MirageVision Outdoor TVs &
+// Displays (nazwa robocza, katalog stały pochodzący od jednego partnera, nie
+// od wielu producentów) — wyłączona z TECHNICAL_FIELDS_BY_FAMILY/
+// publishedTechnicalSpecsSchemaByFamily do czasu ustalenia realnego kształtu
+// technicalSpecs, tak jak dziś kontenery-modulowe (patrz Exclude<> w
+// lib/producer-project-draft.ts i lib/product-technical-specs.ts).
+export type ProductFamily = "dom" | "spa-modulowe" | "kontenery-modulowe" | "outdoor-tv";
 export type SpaSubcategory = "sauna" | "jacuzzi" | "wellness-combo";
 // Zastępuje dawny PergolaSubcategory (spec 0039): trzy zastosowania kontenera
 // modułowego, każde z własnym kształtem technicalSpecs (patrz
@@ -240,6 +246,16 @@ export interface Project {
   /** coverImageUrl zostaje pierwszym/głównym zdjęciem; puste lub brak → brak dodatkowej
    * galerii, hero pokazuje samo coverImageUrl (spec 0020 Feature design). */
   galleryImageUrls?: string[];
+  /** Link do wideo produktu (spec 0056 AC-9), dowolna rodzina; puste lub brak
+   * → sekcja wideo nie renderuje się. */
+  videoUrl?: string;
+  /** Surowe, niewalidowane pary klucz/wartość z product.technical_specs
+   * (spec 0056 AC-3, AC-7): jedyny sposób pokazania specyfikacji technicznej
+   * dla rodziny bez własnego schematu Zod (dziś outdoor-tv), bez czekania na
+   * ten schemat. Rodziny z własnym schematem (dom) renderują specyfikację
+   * przez płaskie pola wyżej (ProjectTechnicalSpecs), nie przez to pole.
+   * Puste lub brak → sekcja nie renderuje się. */
+  technicalSpecs?: Record<string, string>;
 }
 
 export interface Producer {
@@ -264,6 +280,9 @@ export interface Producer {
   showroomVisitAvailable: boolean | null;
   /** Znacząca tylko gdy showroomVisitAvailable === true (spec 0042 Feature design). */
   showroomVisitNote?: string;
+  /** Generyczny opis producenta (spec 0056 AC-9), dowolny producent; puste
+   * lub brak → sekcja "o partnerze"/opis się nie renderuje. */
+  description?: string;
 }
 
 export type EligibilityStatus = "approved" | "conditional" | "blocked";

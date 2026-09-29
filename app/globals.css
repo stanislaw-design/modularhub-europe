@@ -379,11 +379,12 @@ body {
   bottom: 77px;
 }
 
-/* Dark mode (spec 0043, extended by spec 0046 to a second scope): scoped to
-   .theme-klient (customer flow, app/[locale]/(customer)/layout.tsx) and
-   .theme-producer (protected producer panel,
-   app/[locale]/producer/panel/layout.tsx) — producer public routes and
-   internal never render inside either, so this never reaches them (0043
+/* Dark mode (spec 0043, extended by spec 0046 to a second scope, and by spec
+   0055 to a third): scoped to .theme-klient (customer flow,
+   app/[locale]/(customer)/layout.tsx), .theme-producer (protected producer
+   panel, app/[locale]/producer/panel/layout.tsx), and .theme-internal
+   (admin panel, app/[locale]/internal/layout.tsx) — producer public routes
+   never render inside any of the three, so this never reaches them (0043
    AC-11), even under the system-preference media query below (which is
    otherwise unaware of route). Redefines the semantic alias custom
    properties, not the raw --brand-black/--brand-orange/... primitives, so
@@ -423,7 +424,8 @@ body {
    the v4/v5 declarations stay .theme-klient only — no other component
    reachable from the panel references them. */
 .theme-klient.dark,
-.theme-producer.dark {
+.theme-producer.dark,
+.theme-internal.dark {
   color-scheme: dark;
 
   --background: var(--dm-bg);
@@ -458,7 +460,8 @@ body {
    override a dark-preferring system (AC-4). */
 @media (prefers-color-scheme: dark) {
   .theme-klient:not(.light),
-  .theme-producer:not(.light) {
+  .theme-producer:not(.light),
+  .theme-internal:not(.light) {
     color-scheme: dark;
 
     --background: var(--dm-bg);
@@ -504,7 +507,7 @@ body {
    so the whole page recolors smoothly rather than snapping. */
 @layer base {
   @media not (prefers-reduced-motion: reduce) {
-    :where(.theme-klient *, .theme-producer *) {
+    :where(.theme-klient *, .theme-producer *, .theme-internal *) {
       transition-property: background-color, border-color, color, fill, stroke;
       transition-duration: 200ms;
       transition-timing-function: ease;

@@ -24,6 +24,7 @@ import {
   pendingRegistration,
   producer,
   producerCapacityProfile,
+  producerMember,
   product,
   projectQuote,
   projectRequest,
@@ -87,6 +88,11 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       { id: producer1Id, userId: producer1UserId, nip: `PQA1${producer1Id.slice(0, 7)}`, name: "Project Quote Producer 1", countryCode: "PL", technology: "szkielet-drewniany" },
       { id: producer2Id, userId: producer2UserId, nip: `PQA2${producer2Id.slice(0, 7)}`, name: "Project Quote Producer 2 (not targeted)", countryCode: "PL", technology: "szkielet-drewniany" },
       { id: producer3Id, userId: producer3UserId, nip: `PQA3${producer3Id.slice(0, 7)}`, name: "Project Quote Producer 3 (bulk product owner)", countryCode: "PL", technology: "szkielet-drewniany" },
+    ]);
+    await db.insert(producerMember).values([
+      { producerId: producer1Id, userId: producer1UserId },
+      { producerId: producer2Id, userId: producer2UserId },
+      { producerId: producer3Id, userId: producer3UserId },
     ]);
     await db.insert(product).values({ id: bulkProductId, producerId: producer3Id, family: "dom", status: "published", name: "PQA Bulk Product" });
     await db.insert(projectRequest).values({

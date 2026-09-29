@@ -6,6 +6,7 @@ import { Card, Checkbox, DataText, Heading, StatusPill, Text } from "@/component
 import { FavoriteButton } from "./FavoriteButton";
 import { getDefaultProjectVariant, getInPriceCostLineItemLabels, getProjectPriceDisplay } from "@/lib/data/project-variants";
 import type { CountryCode, EligibilityStatus, Project } from "@/lib/data/types";
+import { resolveProductHref } from "@/lib/product-family-groups";
 
 interface ResultCardProps {
   project: Project;
@@ -61,14 +62,15 @@ export function ResultCard({
   } as const;
   const roomsLabel = t(`rooms.${roomsCountBucket(project.rooms)}`);
   const countryQuery = countryCode ? `country=${countryCode}` : "";
-  const href = `/${locale}/project/${project.id}${countryQuery ? `?${countryQuery}` : ""}`;
+  const productHref = resolveProductHref(project.family, project.id, locale);
+  const href = `${productHref}${countryQuery ? `?${countryQuery}` : ""}`;
   const defaultVariant = getDefaultProjectVariant(project);
   const priceDisplay = getProjectPriceDisplay(project);
   // Dokument bez productVariantId dotyczy każdego wariantu (spec 0041 Feature
   // design); karta pyta tylko o istnienie choćby jednego rzutu w ogóle (spec
   // 0044 AC-3), bez zawężania do wybranego wariantu.
   const hasFloorPlan = project.documents.some((doc) => doc.purpose === "product_floor_plan");
-  const floorPlanHref = `/${locale}/project/${project.id}?${[countryQuery, "zakladka=rzut"].filter(Boolean).join("&")}`;
+  const floorPlanHref = `${productHref}?${[countryQuery, "zakladka=rzut"].filter(Boolean).join("&")}`;
   // Harmonogram żyje dziś w dniach na wariancie (spec 0041/0042), ale ta karta
   // zachowuje dawny, tygodniowy zapis czasu produkcji (t("leadTime")) — stąd
   // konwersja z powrotem, zamiast zmiany treści komunikatu w czterech językach.

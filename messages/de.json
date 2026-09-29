@@ -143,6 +143,11 @@
       "few": "Modularcontainer",
       "many": "Modularcontainer"
     },
+    "outdoor-tv": {
+      "one": "Outdoor-TV-Schrank",
+      "few": "Outdoor-TV-Schränke",
+      "many": "Outdoor-TV-Schränke"
+    },
     "wiecej-niz-dom": {
       "one": "Produkt",
       "few": "Produkte",
@@ -231,7 +236,8 @@
     "family": {
       "dom": "Haus",
       "spa-modulowe": "Modulares Spa",
-      "kontenery-modulowe": "Modularcontainer"
+      "kontenery-modulowe": "Modularcontainer",
+      "outdoor-tv": "Outdoor TV"
     },
     "floorLevel": {
       "parter": "Erdgeschoss",
@@ -904,6 +910,30 @@
       "podobne": "Ähnliche Häuser"
     }
   },
+  "OutdoorTvPage": {
+    "price": "Preis",
+    "priceOnRequest": "Individuelles Angebot",
+    "netVat": "netto",
+    "estimatedPackage": "Richtpreis",
+    "from": "ab",
+    "sendInquiry": "Anfrage senden",
+    "variantPickerAriaLabel": "Variantenauswahl",
+    "variantFallbackLabel": "Variante",
+    "videoLabel": "Produktvideo {name}",
+    "specsHeading": "Technische Spezifikation",
+    "realUseHeading": "So sieht es in der Praxis aus",
+    "realUsePhotoAlt": "{name} in der Praxis, Foto {index}",
+    "partnerHeading": "Über den Partner",
+    "sectionNavAriaLabel": "Abschnittsnavigation",
+    "sectionNavScrollLeft": "Abschnittsleiste nach links scrollen",
+    "sectionNavScrollRight": "Abschnittsleiste nach rechts scrollen",
+    "sectionNav": {
+      "specyfikacja": "Spezifikation",
+      "wPraktyce": "In der Praxis",
+      "partner": "Partner",
+      "faq": "Dokumente und Fragen"
+    }
+  },
   "Faq": {
     "heading": "Häufig gestellte Fragen",
     "subheading": "Keine Antwort gefunden? Schreiben Sie uns über das Kontaktformular.",
@@ -1235,7 +1265,8 @@
     "subNavAriaLabel": "Verfeinern innerhalb von Mehr als ein Haus",
     "all": "Alle",
     "spa": "Modulare Spas",
-    "containers": "Container"
+    "containers": "Container",
+    "outdoorTv": "Outdoor TV"
   },
   "CategoryFilterBar": {
     "navAriaLabel": "Filter für Hausmerkmale",
@@ -1804,6 +1835,36 @@
     "newMessageSubject": "Neue Nachricht in Ihrem ModularHub-Fall",
     "newMessageBodyClient": "Ihr ModularHub-Berater hat Ihnen im Gespräch geschrieben. Öffnen Sie den Fall, um die Nachricht zu lesen.",
     "newMessageBodyAdvisor": "Der Kunde hat im Gespräch geschrieben. Öffnen Sie den Fall, um zu antworten."
+  },
+  "LoginLinkEmail": {
+    "subject": "Ihr Anmeldelink für ModularHub Europe",
+    "heading": "Bei ModularHub Europe anmelden",
+    "body": "Klicken Sie auf die Schaltfläche unten, um die Anmeldung abzuschließen. Der Link ist zeitlich begrenzt gültig und kann nur einmal verwendet werden.",
+    "cta": "Anmelden"
+  },
+  "NewInquiryConfirmationEmail": {
+    "subject": "Wir haben Ihre Anfrage erhalten",
+    "heading": "Danke für Ihre Anfrage",
+    "body": "Wir haben Ihre Anfrage zu modularen Häusern erhalten. Unser Berater meldet sich in Kürze bei Ihnen. Die Details finden Sie in Ihrem Konto.",
+    "cta": "Anfrage ansehen"
+  },
+  "NewOfferEmail": {
+    "subject": "Neues Angebot für Ihre Anfrage",
+    "heading": "Ein Hersteller hat ein Angebot erstellt",
+    "body": "Ein Hersteller hat ein Angebot zu Ihrer Anfrage abgegeben. Prüfen Sie die Details und entscheiden Sie in Ihrem Konto.",
+    "cta": "Angebot ansehen"
+  },
+  "OrderStatusChangedEmail": {
+    "subject": "Der Status Ihrer Bestellung hat sich geändert",
+    "heading": "Neuer Status der Ausführung",
+    "body": "Ihre Bestellung ist in die Phase {stage} übergegangen. Prüfen Sie die Details in Ihrem Konto.",
+    "cta": "Bestellstatus ansehen"
+  },
+  "PaymentConfirmedEmail": {
+    "subject": "Zahlungsbestätigung",
+    "heading": "Zahlung erhalten",
+    "body": "Wir haben Ihre Zahlung über {amount} erhalten. Vielen Dank.",
+    "cta": "Zahlungsdetails ansehen"
   },
   "CaseSystem": {
     "caseReceived": "Wir haben Ihre Anfrage erhalten. Wir haben sie noch nicht an die Hersteller gesendet."

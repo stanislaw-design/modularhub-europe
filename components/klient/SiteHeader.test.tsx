@@ -146,7 +146,7 @@ describe("SiteHeader (spec 0030)", () => {
   it("replaces the 'Załóż konto' CTA with 'Panel administratora' for an admin session, and drops it from the menu's Account group", async () => {
     renderHeader({ locale: "pl", session: { user: { role: "admin" } } });
 
-    expect(screen.getByRole("link", { name: "Panel administratora" })).toHaveAttribute("href", "/pl/internal/inquiries");
+    expect(screen.getByRole("link", { name: "Panel administratora" })).toHaveAttribute("href", "/pl/internal");
     expect(screen.queryByRole("link", { name: "Załóż konto" })).not.toBeInTheDocument();
 
     await openMenu();

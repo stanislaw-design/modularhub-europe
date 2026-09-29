@@ -32,4 +32,6 @@ export type EventName =
   | "case_offer_submitted"
   | "case_comparison_published"
   | "case_finalist_selected"
-  | "case_closed_no_choice";
+  | "case_closed_no_choice"
+  | "notification_email_sent"
+  | "notification_email_failed";

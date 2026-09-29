@@ -1,7 +1,7 @@
 import { Award, ShieldCheck, Truck } from "lucide-react";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { Button, Card, DataText, Heading, StatusPill, Text } from "@/components/ui";
 import { BulkProductInquiryModal } from "@/components/klient/BulkProductInquiryModal";
@@ -25,6 +25,7 @@ import { getEligibilityByCountry, getProducerVolumeProfile, getProjectById } fro
 import type { CompletionStandard, EligibilityByCountry } from "@/lib/data/types";
 import { getClientIdForUser, getFavoritedProductIds } from "@/lib/db/queries";
 import { routing, type Locale } from "@/lib/i18n/routing";
+import { resolveProductHref } from "@/lib/product-family-groups";
 import { parseResultsSearchParams } from "@/lib/results-filters";
 
 const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0 });
@@ -68,7 +69,7 @@ export async function generateMetadata({
     getProjectById(id, locale as Locale),
     getTranslations({ locale, namespace: "KlientProjektPage" }),
   ]);
-  if (!project) return {};
+  if (!project || project.family === "outdoor-tv") return {};
 
   const priceLabel = project.priceOnRequest
     ? t("priceOnRequest").toLowerCase()
@@ -115,6 +116,10 @@ export default async function ProjektPage({
   ]);
   const project = await getProjectById(id, locale as Locale);
   if (!project) notFound();
+  // Strona domu nie ma sekcji, jakich potrzebuje katalogowy produkt outdoor-tv
+  // (spec 0056 AC-6): każdy stary lub błędny link na tę rodzinę trafia na jej
+  // właściwy route zamiast renderować się tutaj po cichu.
+  if (project.family === "outdoor-tv") redirect(resolveProductHref(project.family, project.id, locale));
 
   const { countryCode } = parseResultsSearchParams(rawSearchParams);
 

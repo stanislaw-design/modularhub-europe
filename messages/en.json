@@ -143,6 +143,11 @@
       "few": "modular containers",
       "many": "modular containers"
     },
+    "outdoor-tv": {
+      "one": "outdoor TV cabinet",
+      "few": "outdoor TV cabinets",
+      "many": "outdoor TV cabinets"
+    },
     "wiecej-niz-dom": {
       "one": "product",
       "few": "products",
@@ -231,7 +236,8 @@
     "family": {
       "dom": "House",
       "spa-modulowe": "Modular spa",
-      "kontenery-modulowe": "Modular containers"
+      "kontenery-modulowe": "Modular containers",
+      "outdoor-tv": "Outdoor TV"
     },
     "floorLevel": {
       "parter": "Ground floor",
@@ -897,6 +903,30 @@
       "podobne": "Similar houses"
     }
   },
+  "OutdoorTvPage": {
+    "price": "Price",
+    "priceOnRequest": "Custom quote",
+    "netVat": "net",
+    "estimatedPackage": "Estimated price",
+    "from": "from",
+    "sendInquiry": "Send inquiry",
+    "variantPickerAriaLabel": "Variant selection",
+    "variantFallbackLabel": "Variant",
+    "videoLabel": "{name} product video",
+    "specsHeading": "Technical specification",
+    "realUseHeading": "How it looks in real use",
+    "realUsePhotoAlt": "{name} in real use, photo {index}",
+    "partnerHeading": "About the partner",
+    "sectionNavAriaLabel": "Section navigation",
+    "sectionNavScrollLeft": "Scroll section bar left",
+    "sectionNavScrollRight": "Scroll section bar right",
+    "sectionNav": {
+      "specyfikacja": "Specification",
+      "wPraktyce": "In real use",
+      "partner": "Partner",
+      "faq": "Documents and questions"
+    }
+  },
   "Faq": {
     "heading": "Frequently asked questions",
     "subheading": "Didn't find your answer? Write to us through the contact form.",
@@ -1228,7 +1258,8 @@
     "subNavAriaLabel": "Refine within More than a house",
     "all": "All",
     "spa": "Modular spas",
-    "containers": "Modular containers"
+    "containers": "Modular containers",
+    "outdoorTv": "Outdoor TV"
   },
   "CategoryFilterBar": {
     "navAriaLabel": "House attribute filters",
@@ -1804,6 +1835,36 @@
     "newMessageSubject": "New message in your ModularHub case",
     "newMessageBodyClient": "Your ModularHub advisor wrote to you in the conversation. Open the case to read the message.",
     "newMessageBodyAdvisor": "The client wrote in the conversation. Open the case to reply."
+  },
+  "LoginLinkEmail": {
+    "subject": "Your ModularHub Europe login link",
+    "heading": "Sign in to ModularHub Europe",
+    "body": "Click the button below to finish signing in. The link is valid for a limited time and can only be used once.",
+    "cta": "Sign in"
+  },
+  "NewInquiryConfirmationEmail": {
+    "subject": "We received your request",
+    "heading": "Thanks for your request",
+    "body": "We received your request about modular homes. Our advisor will contact you soon. You can check the details in your account.",
+    "cta": "View your request"
+  },
+  "NewOfferEmail": {
+    "subject": "New offer for your request",
+    "heading": "A producer prepared an offer",
+    "body": "A producer submitted an offer on your request. Check the details and decide in your account.",
+    "cta": "View the offer"
+  },
+  "OrderStatusChangedEmail": {
+    "subject": "Your order status has changed",
+    "heading": "New fulfillment status",
+    "body": "Your order moved to the stage: {stage}. Check the details in your account.",
+    "cta": "View order status"
+  },
+  "PaymentConfirmedEmail": {
+    "subject": "Payment confirmation",
+    "heading": "Payment received",
+    "body": "We received your payment of {amount}. Thank you.",
+    "cta": "View payment details"
   },
   "CaseSystem": {
     "caseReceived": "We received your request. We have not sent it to the manufacturers yet."

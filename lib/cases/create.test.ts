@@ -1,11 +1,11 @@
 import { asc, eq } from "drizzle-orm";
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/observability/errors", () => ({ captureError: vi.fn() }));
 vi.mock("@/lib/observability", () => ({ trackEvent: vi.fn() }));
 
 import { db } from "@/lib/db/client";
-import { client, message, producer, product, users } from "@/lib/db/schema";
+import { client, inquiryItem, message, producer, product, users } from "@/lib/db/schema";
 import { createAdvisoryCase } from "./create";
 
 // Kolejność zapisu wiadomości w createAdvisoryCase (spec 0048 AC-38): system
@@ -55,9 +55,16 @@ describe.skipIf(!process.env.DATABASE_URL)("createAdvisoryCase: kolejność kart
   });
 
   // message jest niezmienna (trigger message_immutable, AC-31): DELETE jest
-  // zawsze odrzucony, więc transytywnie też channel i inquiry (FK bez ON
-  // DELETE CASCADE) zostają w bazie dev na stałe. Bez afterAll: nic tu nie da
-  // się bezpiecznie posprzątać po tym, jak createAdvisoryCase wstawi karty.
+  // zawsze odrzucony, więc transytywnie też channel, inquiry i client (FK bez
+  // ON DELETE CASCADE) zostają w bazie na stałe. producer/product nie są
+  // częścią tego łańcucha (channel.producer_id jest tu NULL, kanał to
+  // klient_doradca) — więc te dwa, jedyne widoczne w UI, sprzątamy tutaj.
+  afterAll(async () => {
+    await db.delete(inquiryItem).where(eq(inquiryItem.productId, productId));
+    await db.delete(product).where(eq(product.id, productId));
+    await db.delete(producer).where(eq(producer.id, producerId));
+    await db.delete(users).where(eq(users.id, producerUserId));
+  });
 
   it("wstawia siedem wiadomości w ściśle rosnącej kolejności created_at", async () => {
     const rows = await db

@@ -10,14 +10,14 @@ describe("FAMILY_GROUPS", () => {
     expect(FAMILY_GROUPS.dom).toEqual(["dom"]);
   });
 
-  it("maps wiecej-niz-dom to spa-modulowe and kontenery-modulowe, in that order", () => {
-    expect(FAMILY_GROUPS["wiecej-niz-dom"]).toEqual(["spa-modulowe", "kontenery-modulowe"]);
+  it("maps wiecej-niz-dom to spa-modulowe, kontenery-modulowe and outdoor-tv, in that order", () => {
+    expect(FAMILY_GROUPS["wiecej-niz-dom"]).toEqual(["spa-modulowe", "kontenery-modulowe", "outdoor-tv"]);
   });
 });
 
 describe("resolveFamilies", () => {
   it("expands the wiecej-niz-dom sentinel to every family in its group (AC-2, AC-4)", () => {
-    expect(resolveFamilies("wiecej-niz-dom")).toEqual(["spa-modulowe", "kontenery-modulowe"]);
+    expect(resolveFamilies("wiecej-niz-dom")).toEqual(["spa-modulowe", "kontenery-modulowe", "outdoor-tv"]);
   });
 
   it("returns dom unchanged, wrapped in a single-element array", () => {
@@ -32,10 +32,14 @@ describe("resolveFamilies", () => {
     expect(resolveFamilies("kontenery-modulowe")).toEqual(["kontenery-modulowe"]);
   });
 
+  it("returns outdoor-tv unchanged, wrapped in a single-element array", () => {
+    expect(resolveFamilies("outdoor-tv")).toEqual(["outdoor-tv"]);
+  });
+
   it("returns a fresh array each call, so a caller mutating the result can't corrupt FAMILY_GROUPS", () => {
     const first = resolveFamilies("wiecej-niz-dom");
     first.push("dom" as never);
-    expect(resolveFamilies("wiecej-niz-dom")).toEqual(["spa-modulowe", "kontenery-modulowe"]);
+    expect(resolveFamilies("wiecej-niz-dom")).toEqual(["spa-modulowe", "kontenery-modulowe", "outdoor-tv"]);
   });
 });
 
@@ -50,6 +54,10 @@ describe("resolveFamilyGroup", () => {
 
   it("resolves kontenery-modulowe to the wiecej-niz-dom group", () => {
     expect(resolveFamilyGroup("kontenery-modulowe")).toBe("wiecej-niz-dom");
+  });
+
+  it("resolves outdoor-tv to the wiecej-niz-dom group", () => {
+    expect(resolveFamilyGroup("outdoor-tv")).toBe("wiecej-niz-dom");
   });
 
   it("resolves the wiecej-niz-dom sentinel to itself", () => {

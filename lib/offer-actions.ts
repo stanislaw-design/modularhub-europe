@@ -1,11 +1,13 @@
 "use server";
 
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
+import { after } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db/client";
 import { getPgErrorCode } from "@/lib/db/pg-error";
 import { getClientIdForUser, getProducerIdForUser } from "@/lib/db/queries";
 import { inquiry, inquiryItem, offer, offerItem, order, orderStageEvent, product } from "@/lib/db/schema";
+import { notifyClientOfNewOffer } from "@/lib/notifications/new-offer";
 import { captureError } from "@/lib/observability/errors";
 import { trackEvent } from "@/lib/observability";
 
@@ -174,6 +176,7 @@ export async function submitOffer(input: SubmitOfferInput): Promise<ActionResult
   }
 
   trackEvent("offer_submitted", { inquiryId: input.inquiryId, offerId: newOfferId }, session.user.id);
+  after(() => notifyClientOfNewOffer(newOfferId, input.inquiryId));
   return { ok: true };
 }
 

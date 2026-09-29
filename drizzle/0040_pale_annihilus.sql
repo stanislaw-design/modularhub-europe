@@ -1,0 +1,2 @@
+DROP INDEX "product_variant_product_standard_unique";--> statement-breakpoint
+CREATE UNIQUE INDEX "product_variant_product_standard_unique" ON "product_variant" USING btree ("product_id","completion_standard") WHERE "product_variant"."deleted_at" IS NULL AND "product_variant"."completion_standard" <> 'katalogowy';

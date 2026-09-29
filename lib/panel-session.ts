@@ -16,7 +16,7 @@ export async function requirePanelClientSession(locale: string, selfHref: string
     redirect(`/${locale}/producer`);
   }
   if (session.user.role === "admin") {
-    redirect(`/${locale}/internal/inquiries`);
+    redirect(`/${locale}/internal`);
   }
   return session;
 }
@@ -33,7 +33,7 @@ export async function requirePanelProducerSession(locale: string, selfHref: stri
     redirect(`/${locale}/panel`);
   }
   if (session.user.role === "admin") {
-    redirect(`/${locale}/internal/inquiries`);
+    redirect(`/${locale}/internal`);
   }
   return session;
 }

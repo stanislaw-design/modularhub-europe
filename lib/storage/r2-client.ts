@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { DeleteObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, HeadBucketCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 // Cloudflare R2 klient, spec 0031 Build plan #3. R2 mówi protokołem S3, więc
 // zwykły @aws-sdk/client-s3 wystarcza (bez s3-request-presigner: wgrywanie idzie
@@ -67,4 +67,14 @@ export function buildPublicUrl(key: string): string {
   const domain = process.env.R2_PUBLIC_DOMAIN;
   if (!domain) throw new Error("R2_PUBLIC_DOMAIN nie jest ustawione");
   return `https://${domain}/${key}`;
+}
+
+// Lekki, realny health check dla /internal/monitoring (spec 0055 AC-16):
+// reużywa getR2Client/getBucketName zamiast budować osobnego klienta, żeby
+// nie ominąć jurysdykcyjnego endpointu z komentarza wyżej (zwykły klient pod
+// złym endpointem zwróciłby mylące "AccessDenied" zamiast jasnego stanu).
+export async function checkR2Health(signal: AbortSignal): Promise<boolean> {
+  const client = getR2Client();
+  await client.send(new HeadBucketCommand({ Bucket: getBucketName() }), { abortSignal: signal });
+  return true;
 }

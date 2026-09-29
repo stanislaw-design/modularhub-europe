@@ -6,6 +6,7 @@ import { Button, Heading, Text } from "@/components/ui";
 import { getCountries } from "@/lib/data/countries";
 import { getVerifiedVolumeManufacturerProjects } from "@/lib/data/projects";
 import { routing, type Locale } from "@/lib/i18n/routing";
+import { resolveProductHref } from "@/lib/product-family-groups";
 import {
   buildVerifiedManufacturersHref,
   parseVerifiedManufacturersSearchParams,
@@ -164,7 +165,7 @@ export default async function VerifiedManufacturersPage({
                   key={project.id}
                   project={project}
                   countryName={countryNameByCode.get(project.countryOfProduction) ?? project.countryOfProduction}
-                  href={`/${locale}/project/${project.id}`}
+                  href={resolveProductHref(project.family, project.id, locale)}
                   producerName={manufacturer.producerName}
                   unitsPerMonth={manufacturer.unitsPerMonth}
                   certifications={manufacturer.certifications}

@@ -5,7 +5,7 @@ vi.mock("@/lib/observability/errors", () => ({ captureError: vi.fn() }));
 vi.mock("@/lib/observability", () => ({ trackEvent: vi.fn() }));
 
 import { db } from "@/lib/db/client";
-import { caseField, client, inquiry, message, producer, product, users } from "@/lib/db/schema";
+import { caseField, client, inquiry, inquiryItem, message, producer, product, users } from "@/lib/db/schema";
 import { answerCard, assessReadiness, getCaseFields, upsertCaseField } from "./cards";
 import type { CaseActor } from "./access";
 import { createAdvisoryCase } from "./create";
@@ -75,11 +75,17 @@ describe.skipIf(!process.env.DATABASE_URL)("karty startowe i podsumowanie potrze
 
   // message jest niezmienna (trigger message_immutable, AC-31): DELETE jest
   // zawsze odrzucony, bez wyjątku dla danych testowych. To transytywnie
-  // blokuje też usunięcie channel i inquiry (FK bez ON DELETE CASCADE), więc
-  // ta gałąź fixture zostaje w bazie dev na stałe raz utworzona. Czyścimy
-  // wyłącznie case_field, które nie ma triggera niezmienności.
+  // blokuje usunięcie channel, inquiry i client (FK bez ON DELETE CASCADE),
+  // więc ta gałąź fixture zostaje w bazie na stałe raz utworzona. producer i
+  // product nie są częścią tego łańcucha (channel.producer_id jest tu NULL,
+  // kanał to klient_doradca) i są jedyne widoczne w UI — te dwa, oraz
+  // case_field (bez triggera niezmienności), sprzątamy tutaj.
   afterAll(async () => {
     await db.delete(caseField).where(eq(caseField.inquiryId, inquiryId));
+    await db.delete(inquiryItem).where(eq(inquiryItem.productId, productId));
+    await db.delete(product).where(eq(product.id, productId));
+    await db.delete(producer).where(eq(producer.id, producerId));
+    await db.delete(users).where(eq(users.id, producerUserId));
   });
 
   it("createAdvisoryCase wstawia sześć kart startowych z payloadem fieldKey/allowUnsure (AC-38)", () => {

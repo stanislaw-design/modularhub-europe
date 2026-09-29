@@ -246,6 +246,48 @@
       "when": 1790321820300,
       "tag": "0034_late_jazinda",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1790602371962,
+      "tag": "0035_amused_changeling",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1790621757080,
+      "tag": "0036_even_eternity",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1790673977427,
+      "tag": "0037_certain_hydra",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1790674528392,
+      "tag": "0038_abnormal_shinko_yamashiro",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1790676253485,
+      "tag": "0039_lean_sentinels",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1790676318119,
+      "tag": "0040_pale_annihilus",
+      "breakpoints": true
     }
   ]
 }

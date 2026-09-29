@@ -8,10 +8,13 @@ import {
   client,
   pendingRegistration,
   producer,
+  producerMember,
   sessions,
   users,
   verificationTokens,
 } from "@/lib/db/schema";
+import { DEFAULT_FROM_EMAIL } from "@/lib/notifications/send";
+import { sendLoginLinkEmail } from "@/lib/notifications/login";
 
 declare module "next-auth" {
   interface Session {
@@ -82,13 +85,27 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           b2bVerificationStatus: isInvestor ? "pending" : "not_submitted",
         });
       } else if (pending.role === "producer" && payload.nip && payload.countryCode) {
-        await db.insert(producer).values({
-          userId: createdUser.id,
-          nip: payload.nip,
-          name: payload.name,
-          countryCode: payload.countryCode,
-          productionScale: payload.productionScale,
-        });
+        // Id producenta wygenerowane po stronie aplikacji przed batchem, bo
+        // db.batch nie pozwala jednej instrukcji użyć wyniku poprzedniej w tej
+        // samej partii (patrz lib/producer-product-variant-actions.ts
+        // cloneVariant). Dual write producer.userId (spec 0057 faza 1, kolumna
+        // zostaje NOT NULL do fazy 2) razem z pierwszym wierszem
+        // producer_member, w jednej atomowej partii.
+        const newProducerId = crypto.randomUUID();
+        await db.batch([
+          db.insert(producer).values({
+            id: newProducerId,
+            userId: createdUser.id,
+            nip: payload.nip,
+            name: payload.name,
+            countryCode: payload.countryCode,
+            productionScale: payload.productionScale,
+          }),
+          db.insert(producerMember).values({
+            producerId: newProducerId,
+            userId: createdUser.id,
+          }),
+        ]);
       }
 
       await db.delete(pendingRegistration).where(eq(pendingRegistration.email, email));
@@ -105,11 +122,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Resend({
       apiKey: process.env.RESEND_API_KEY,
-      from: process.env.RESEND_FROM_EMAIL ?? "ModularHub Europe <logowanie@modularhub.eu>",
+      from: process.env.RESEND_FROM_EMAIL ?? DEFAULT_FROM_EMAIL,
+      // AC-9, AC-10, AC-11: branded szablon, wspólny sender, błąd wysyłki
+      // rzucony dalej zamiast połknięty — patrz lib/notifications/login.ts.
+      sendVerificationRequest: ({ identifier, url }) => sendLoginLinkEmail({ identifier, url }),
     }),
   ],
   session: { strategy: "database" },
   callbacks: {
+    // Spec 0055 AC-12: `session` tylko wzbogaca dane sesji i nie może jej
+    // odrzucić, dlatego blokada producenta żyje tu, nie tam — zablokowany
+    // producent, którego aktywne sesje zostały już usunięte w chwili blokady
+    // (lib/producer-block-actions.ts), nie może założyć sobie nowej kolejnym
+    // linkiem mailowym, dopóki blocked_at jest ustawione.
+    async signIn({ user }) {
+      const dbUser = user as unknown as typeof users.$inferSelect;
+      return !dbUser.blockedAt;
+    },
     async session({ session, user }) {
       const dbUser = user as unknown as typeof users.$inferSelect;
       session.user.id = user.id;

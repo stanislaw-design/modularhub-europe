@@ -31,6 +31,7 @@ export async function FamilyTabs({ locale, family, countryCode, sizeMin, sizeMax
     { value: "wiecej-niz-dom", label: t("all") },
     { value: "spa-modulowe", label: t("spa") },
     { value: "kontenery-modulowe", label: t("containers") },
+    { value: "outdoor-tv", label: t("outdoorTv") },
   ];
 
   function hrefFor(value: FamilyFilterValue): string {

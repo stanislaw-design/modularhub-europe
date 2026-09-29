@@ -20,7 +20,7 @@ vi.mock("@/lib/observability/errors", () => ({ captureError: vi.fn() }));
 vi.mock("next/server", () => ({ after: vi.fn((task: () => unknown) => task) }));
 
 import { db } from "@/lib/db/client";
-import { auditLog, costLineItem, product, productTimelineStage, productVariant, producer, users } from "@/lib/db/schema";
+import { auditLog, costLineItem, product, productTimelineStage, productVariant, producer, producerMember, users } from "@/lib/db/schema";
 import { captureError } from "@/lib/observability/errors";
 import {
   cloneVariant,
@@ -58,6 +58,10 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/producer-product-variant-actions
     await db.insert(producer).values([
       { id: producerId, userId: producerUserId, nip: `PVA${producerId.slice(0, 9)}`, name: "Test Producer (variant actions)", countryCode: "PL", technology: "szkielet-drewniany" },
       { id: otherProducerId, userId: otherProducerUserId, nip: `PVB${otherProducerId.slice(0, 9)}`, name: "Other Test Producer (variant actions)", countryCode: "PL", technology: "szkielet-drewniany" },
+    ]);
+    await db.insert(producerMember).values([
+      { producerId, userId: producerUserId },
+      { producerId: otherProducerId, userId: otherProducerUserId },
     ]);
     await db.insert(product).values([
       { id: productId, producerId, family: "dom", name: "Variant actions test product", floorAreaM2: 80, countryOfProduction: "PL" },

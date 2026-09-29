@@ -55,7 +55,7 @@ export default async function ZapytaniePage({
     redirect(`/${locale}/producer`);
   }
   if (session.user.role === "admin") {
-    redirect(`/${locale}/internal/inquiries`);
+    redirect(`/${locale}/internal`);
   }
 
   const [knownIds, countries] = await Promise.all([getPublishedProductIds(), getCountries()]);

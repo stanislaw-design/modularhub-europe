@@ -1,0 +1,1 @@
+ALTER TYPE "public"."completion_standard" ADD VALUE 'katalogowy';

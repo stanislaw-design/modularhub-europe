@@ -2,6 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
 import { db } from "@/lib/db/client";
 import { channelReadState, client, inquiry, users } from "@/lib/db/schema";
+import { sendNotificationEmail } from "@/lib/notifications/send";
 import { captureError } from "@/lib/observability";
 import type { Clock } from "./clock";
 import { shouldEmailForMessage } from "./email-policy";
@@ -9,9 +10,6 @@ import { shouldEmailForMessage } from "./email-policy";
 // Powiadomienia e mail sprawy doradczej (spec 0048 AC-5, AC-10). E mail niesie
 // wyłącznie link i powód, nigdy treść wiadomości. Wszystko best effort: błąd
 // wysyłki nie cofa zapisanej sprawy ani wiadomości.
-
-const RESEND_ENDPOINT = "https://api.resend.com/emails";
-const DEFAULT_FROM = "ModularHub Europe <powiadomienia@modularhub.eu>";
 
 function baseUrl(): string {
   return (process.env.AUTH_URL ?? "http://localhost:3000").replace(/\/$/, "");
@@ -22,30 +20,26 @@ export function caseLink(role: "client" | "advisor", locale: string, inquiryId: 
   return `${baseUrl()}/${locale}/${path}`;
 }
 
-export async function sendCaseEmail(input: { to: string; subject: string; text: string }): Promise<boolean> {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) return false;
-
-  try {
-    const response = await fetch(RESEND_ENDPOINT, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        from: process.env.RESEND_FROM_EMAIL ?? DEFAULT_FROM,
-        to: [input.to],
-        subject: input.subject,
-        text: input.text,
-      }),
-    });
-    if (!response.ok) {
-      captureError(new Error(`Resend responded ${response.status}`), { path: "cases:sendCaseEmail" });
-      return false;
-    }
-    return true;
-  } catch (error) {
-    captureError(error, { path: "cases:sendCaseEmail" });
-    return false;
-  }
+// Cienki wrapper nad wspólnym senderem (spec 0051 AC-7, refaktor): treść i
+// odbiorcy się nie zmieniają, ale wysyłka teraz też rejestruje
+// notification_email_sent/notification_email_failed, czego wcześniej nie
+// robiła. Surowe wywołanie Resend żyje wyłącznie w lib/notifications/send.ts.
+export async function sendCaseEmail(input: {
+  to: string;
+  subject: string;
+  text: string;
+  emailType: "case_new_case_alert" | "case_new_message";
+  inquiryId: string;
+  distinctId: string;
+}): Promise<boolean> {
+  return sendNotificationEmail({
+    to: input.to,
+    subject: input.subject,
+    text: input.text,
+    emailType: input.emailType,
+    entityId: input.inquiryId,
+    distinctId: input.distinctId,
+  });
 }
 
 // Alarm o nowej sprawie: od razu, bez okna czasowego (zdarzenie kluczowe).
@@ -58,6 +52,9 @@ export async function notifyAdvisorOfNewCase(inquiryId: string): Promise<void> {
       to,
       subject: t("newCaseSubject"),
       text: `${t("newCaseBody")}\n\n${caseLink("advisor", "pl", inquiryId)}`,
+      emailType: "case_new_case_alert",
+      inquiryId,
+      distinctId: inquiryId,
     });
   } catch (error) {
     captureError(error, { path: "cases:notifyAdvisorOfNewCase" });
@@ -134,6 +131,9 @@ export async function notifyMessageRecipient(input: {
       to: recipient.email,
       subject: t("newMessageSubject"),
       text: `${t(recipient.role === "client" ? "newMessageBodyClient" : "newMessageBodyAdvisor")}\n\n${caseLink(recipient.role, recipient.locale, input.inquiryId)}`,
+      emailType: "case_new_message",
+      inquiryId: input.inquiryId,
+      distinctId: recipient.userId ?? input.inquiryId,
     });
 
     if (sent && recipient.userId) {
