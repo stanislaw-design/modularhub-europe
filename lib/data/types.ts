@@ -12,7 +12,13 @@ export interface Country {
 // "wynajem-hotel" dopisana spec 0041 AC-6, mirror productCategoryEnum
 // (lib/db/schema.ts); dziś żaden produkt w katalogu pilotażowym jej nie używa.
 export type ProjectCategory = "caloroczny" | "rekreacyjny-caloroczny" | "mobilny" | "wynajem-hotel";
-export type CompletionStandard = "surowy-zamkniety" | "deweloperski" | "pod-klucz";
+// "katalogowy" dopisana do completion_standard enum (spec 0056 Follow-up,
+// drizzle/0039_lean_sentinels.sql): slot dla rodzin katalogowych (outdoor-tv)
+// bez zamkniętej listy standardów wykończenia — prawdziwa nazwa wariantu
+// zawsze żyje w ProjectVariant.variantLabel, ten enum jest tam tylko
+// technicznym kluczem, patrz komentarz przy completionStandardEnum w
+// lib/db/schema.ts.
+export type CompletionStandard = "surowy-zamkniety" | "deweloperski" | "pod-klucz" | "katalogowy";
 
 // Rodzina produktu (spec 0022), niezależna od ProjectCategory (który zostaje
 // znaczący tylko dla family = "dom"). Project (klient, dane przykładowe)
@@ -156,6 +162,11 @@ export interface RoomLayoutEntry {
 }
 
 export interface ProjectFaqItem {
+  // Opcjonalne (dane historyczne sprzed spec 0045 mogą go nie mieć): gdy
+  // obecne, to ten sam stabilny klucz co lib/product-faq.ts#faqRowSchema,
+  // używany do dopasowania tłumaczenia (resolveTranslatedFaq,
+  // lib/data/projects.ts), nie tylko do renderu.
+  id?: string;
   question: string;
   answer: string;
 }
@@ -256,6 +267,25 @@ export interface Project {
    * przez płaskie pola wyżej (ProjectTechnicalSpecs), nie przez to pole.
    * Puste lub brak → sekcja nie renderuje się. */
   technicalSpecs?: Record<string, string>;
+  /** Przetłumaczone etykiety pól dla technicalSpecs powyżej (spec 0056
+   * Follow-up): klucz jsonb -> czytelna etykieta w aktywnym locale, zamiast
+   * automatycznego "humanizowania" polskiego klucza. Brakujący klucz spada
+   * na humanizeKey (components/klient/OutdoorTvTechnicalSpecs.tsx). */
+  technicalSpecsLabels?: Record<string, string>;
+  /** Krótka lista cech produktu (np. karta produktu MirageVision), pokazywana
+   * jako osobne kafelki nad "Specyfikacja techniczna" (spec 0056 Follow-up).
+   * Ten sam bridge-field wzorzec co _extraImageUrls (lib/data/projects.ts):
+   * `_features` w product.technical_specs, poza .strict() schematem dom, bo
+   * outdoor-tv go nie ma. Puste lub brak → sekcja nie renderuje się. */
+  features?: string[];
+  /** Krótka nota o rzeczywistym przeznaczeniu wariantu (np. "seria Silver:
+   * tylko zadaszone strefy"), nad wideo w sekcji "W praktyce" (spec 0056
+   * Follow-up). Ten sam bridge-field wzorzec co features/_extraImageUrls. */
+  usageNote?: string;
+  /** Krótkie zastrzeżenie pod ceną (np. "cena orientacyjna, przelicznik z
+   * USD, do potwierdzenia") dla figury jeszcze niepotwierdzonej przez
+   * partnera (spec 0056 Follow-up). Ten sam bridge-field wzorzec. */
+  priceNote?: string;
 }
 
 export interface Producer {

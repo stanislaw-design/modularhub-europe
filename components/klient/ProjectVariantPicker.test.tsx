@@ -15,6 +15,7 @@ const standardLabel = {
   "surowy-zamkniety": "Stan surowy zamknięty",
   deweloperski: "Standard deweloperski",
   "pod-klucz": "Pod klucz",
+  katalogowy: "Wariant",
 } as const;
 
 function makeVariant(overrides: Partial<ProjectVariant>): ProjectVariant {

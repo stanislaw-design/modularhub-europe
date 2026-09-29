@@ -60,12 +60,16 @@ export function ProjectCostComparisonTable({ variants, heading }: ProjectCostCom
   const [onlyDifferences, setOnlyDifferences] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
-  const standardLabel: Record<CompletionStandard, string> = {
+  // "katalogowy" (spec 0056 Follow-up, slot dla outdoor-tv) nigdy nie dotrze
+  // tu: to porównanie kosztów wariantów JEDNEGO produktu "dom", nigdy
+  // outdoor-tv (ten komponent nie renderuje się na /outdoor-tv/[id]) — stąd
+  // zawężony typ zamiast dopisywania nieosiągalnego czwartego klucza.
+  const standardLabel: Record<Exclude<CompletionStandard, "katalogowy">, string> = {
     "surowy-zamkniety": t("completionStandard.surowy-zamkniety"),
     deweloperski: t("completionStandard.deweloperski"),
     "pod-klucz": t("completionStandard.pod-klucz"),
   };
-  const standardLabelShort: Record<CompletionStandard, string> = {
+  const standardLabelShort: Record<Exclude<CompletionStandard, "katalogowy">, string> = {
     "surowy-zamkniety": t("completionStandardShort.surowy-zamkniety"),
     deweloperski: t("completionStandardShort.deweloperski"),
     "pod-klucz": t("completionStandardShort.pod-klucz"),
@@ -171,7 +175,7 @@ export function ProjectCostComparisonTable({ variants, heading }: ProjectCostCom
                       <Icon className={`size-5 shrink-0 ${colorClass}`} aria-hidden="true" />
                       <span className="sr-only">{srLabel}</span>
                       <Text as="span" tone="muted" surface="v5" className="text-data font-medium">
-                        {standardLabelShort[variant.completionStandard]}
+                        {standardLabelShort[variant.completionStandard as Exclude<CompletionStandard, "katalogowy">]}
                       </Text>
                     </div>
                   );
@@ -193,7 +197,7 @@ export function ProjectCostComparisonTable({ variants, heading }: ProjectCostCom
               {variants.map((variant) => (
                 <th key={variant.id} scope="col" className="p-brand-3 align-top">
                   <Text as="span" variant="label" tone="muted" surface="v5" className="block">
-                    {variant.variantLabel ?? standardLabel[variant.completionStandard]}
+                    {variant.variantLabel ?? standardLabel[variant.completionStandard as Exclude<CompletionStandard, "katalogowy">]}
                   </Text>
                   <DataText as="span" surface="v5" className="block text-body-l font-semibold">
                     {variant.priceMin !== undefined

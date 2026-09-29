@@ -9,9 +9,11 @@ import { ProjectGalleryCarousel, ProjectGalleryCover, ProjectGalleryThumbnails }
 import { ProjectDocumentsAndFaq } from "@/components/klient/ProjectDocumentsAndFaq";
 import { ProjectSectionNav } from "@/components/klient/ProjectSectionNav";
 import { ProjectVariantPicker } from "@/components/klient/ProjectVariantPicker";
+import { OutdoorTvFeatures } from "@/components/klient/OutdoorTvFeatures";
 import { OutdoorTvPartnerSection } from "@/components/klient/OutdoorTvPartnerSection";
 import { OutdoorTvRealUseGallery } from "@/components/klient/OutdoorTvRealUseGallery";
 import { OutdoorTvTechnicalSpecs } from "@/components/klient/OutdoorTvTechnicalSpecs";
+import { OutdoorTvVideoSection } from "@/components/klient/OutdoorTvVideoSection";
 import { getDefaultProjectVariant } from "@/lib/data/project-variants";
 import { getProducerById, getProducerPhotoUrl } from "@/lib/data/producers";
 import { getProjectById } from "@/lib/data/projects";
@@ -128,6 +130,7 @@ export default async function OutdoorTvPage({
     "surowy-zamkniety": t("variantFallbackLabel"),
     deweloperski: t("variantFallbackLabel"),
     "pod-klucz": t("variantFallbackLabel"),
+    katalogowy: t("variantFallbackLabel"),
   };
 
   const zapytanieHref = `/${locale}/inquiry?projects=${project.id}${
@@ -153,10 +156,9 @@ export default async function OutdoorTvPage({
         }),
   };
 
+  const hasFeaturesSection = (project.features?.length ?? 0) > 0;
   const hasSpecsSection = Boolean(project.technicalSpecs && Object.keys(project.technicalSpecs).length > 0);
-  const hasVideoSection = Boolean(project.videoUrl);
-  const hasRealUseSection =
-    hasVideoSection || project.documents.some((doc) => doc.purpose === "product_realization_photo");
+  const hasRealUseSection = project.documents.some((doc) => doc.purpose === "product_realization_photo");
   const hasPartnerSection = Boolean(producer && (producer.description || producerPhotoUrl));
   const hasFaqSection =
     Boolean(project.documents.find((doc) => doc.purpose === "product_specification")) || (project.faq?.length ?? 0) > 0;
@@ -232,6 +234,11 @@ export default async function OutdoorTvPage({
                           {t("netVat")}
                         </Text>
                       </DataText>
+                      {project.priceNote && (
+                        <Text tone="muted" surface="v5" className="text-data">
+                          {project.priceNote}
+                        </Text>
+                      )}
                     </>
                   ) : (
                     <>
@@ -241,6 +248,11 @@ export default async function OutdoorTvPage({
                       <DataText as="p" surface="v5" className="text-h2 font-semibold">
                         {t("from")} {priceFormatter.format(project.priceMin)} €
                       </DataText>
+                      {project.priceNote && (
+                        <Text tone="muted" surface="v5" className="text-data">
+                          {project.priceNote}
+                        </Text>
+                      )}
                     </>
                   )}
                   <Button as="a" href={zapytanieHref} size="lg" surface="v5" className="mt-brand-1 w-full sm:w-fit">
@@ -251,10 +263,16 @@ export default async function OutdoorTvPage({
             </div>
           </div>
 
+          <OutdoorTvVideoSection
+            productName={project.name}
+            videoUrl={project.videoUrl}
+            usageNote={project.usageNote}
+          />
+
           <ProjectSectionNav
             items={[
+              { id: "cechy", label: t("sectionNav.cechy"), disabled: !hasFeaturesSection },
               { id: "specyfikacja", label: t("sectionNav.specyfikacja"), disabled: !hasSpecsSection },
-              { id: "w-praktyce", label: t("sectionNav.wPraktyce"), disabled: !hasRealUseSection },
               { id: "partner", label: t("sectionNav.partner"), disabled: !hasPartnerSection },
               { id: "faq", label: t("sectionNav.faq"), disabled: !hasFaqSection },
             ]}
@@ -263,19 +281,21 @@ export default async function OutdoorTvPage({
             scrollRightLabel={t("sectionNavScrollRight")}
           />
 
+          {hasFeaturesSection && (
+            <div id="cechy" className="scroll-mt-20">
+              <OutdoorTvFeatures features={project.features} />
+            </div>
+          )}
+
           {hasSpecsSection && (
             <div id="specyfikacja" className="scroll-mt-20">
-              <OutdoorTvTechnicalSpecs specs={project.technicalSpecs} />
+              <OutdoorTvTechnicalSpecs specs={project.technicalSpecs} labels={project.technicalSpecsLabels} />
             </div>
           )}
 
           {hasRealUseSection && (
             <div id="w-praktyce" className="scroll-mt-20">
-              <OutdoorTvRealUseGallery
-                productName={project.name}
-                documents={project.documents}
-                videoUrl={project.videoUrl}
-              />
+              <OutdoorTvRealUseGallery productName={project.name} documents={project.documents} />
             </div>
           )}
 

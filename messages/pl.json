@@ -113,7 +113,8 @@
     "completionStandard": {
       "surowy-zamkniety": "Stan surowy zamknięty",
       "deweloperski": "Standard deweloperski",
-      "pod-klucz": "Pod klucz"
+      "pod-klucz": "Pod klucz",
+      "katalogowy": "Wariant"
     },
     "price": "Cena",
     "priceOnRequest": "Wycena indywidualna",
@@ -219,7 +220,8 @@
     "completionStandard": {
       "surowy-zamkniety": "Stan surowy zamknięty",
       "deweloperski": "Standard deweloperski",
-      "pod-klucz": "Pod klucz"
+      "pod-klucz": "Pod klucz",
+      "katalogowy": "Wariant"
     }
   },
   "ProjectOptions": {
@@ -858,7 +860,8 @@
     "completionStandard": {
       "surowy-zamkniety": "Stan surowy zamknięty",
       "deweloperski": "Standard deweloperski",
-      "pod-klucz": "Pod klucz"
+      "pod-klucz": "Pod klucz",
+      "katalogowy": "Wariant"
     },
     "warrantyTermLabel": "Gwarancja konstrukcyjna",
     "productionTimeLabel": "Czas produkcji",
@@ -920,14 +923,20 @@
     "variantPickerAriaLabel": "Wybór wariantu",
     "variantFallbackLabel": "Wariant",
     "videoLabel": "Wideo produktu {name}",
+    "featuresHeading": "Cechy",
     "specsHeading": "Specyfikacja techniczna",
+    "showMore": "Pokaż więcej ({count})",
+    "showFewer": "Pokaż mniej",
     "realUseHeading": "Jak to wygląda w praktyce",
+    "realUsePhotosHeading": "Zdjęcia z realizacji",
+    "usageNoteEyebrow": "Do czego jest ten wariant",
     "realUsePhotoAlt": "{name} w praktyce, zdjęcie {index}",
     "partnerHeading": "O partnerze",
     "sectionNavAriaLabel": "Nawigacja po sekcjach strony",
     "sectionNavScrollLeft": "Przewiń pasek sekcji w lewo",
     "sectionNavScrollRight": "Przewiń pasek sekcji w prawo",
     "sectionNav": {
+      "cechy": "Cechy",
       "specyfikacja": "Specyfikacja",
       "wPraktyce": "W praktyce",
       "partner": "Partner",
@@ -998,7 +1007,8 @@
     "completionStandard": {
       "surowy-zamkniety": "Stan surowy zamknięty",
       "deweloperski": "Standard deweloperski",
-      "pod-klucz": "Pod klucz"
+      "pod-klucz": "Pod klucz",
+      "katalogowy": "Wariant"
     },
     "productionTimeLabel": "Czas produkcji i montażu",
     "productionTimeValue": "{productionMin}–{productionMax} dni produkcji · {assemblyMin}–{assemblyMax} dni montażu",

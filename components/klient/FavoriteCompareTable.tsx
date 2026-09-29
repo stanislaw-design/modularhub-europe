@@ -21,6 +21,9 @@ export function FavoriteCompareTable({ favorites }: FavoriteCompareTableProps) {
     "surowy-zamkniety": t("completionStandard.surowy-zamkniety"),
     deweloperski: t("completionStandard.deweloperski"),
     "pod-klucz": t("completionStandard.pod-klucz"),
+    // "katalogowy" (spec 0056 Follow-up): outdoor-tv products can be
+    // favorited and compared here too (AC-5).
+    katalogowy: t("completionStandard.katalogowy"),
   } as const;
   return (
     <div className="overflow-x-auto rounded-v5-card border border-brand-v5-line">

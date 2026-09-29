@@ -4,7 +4,7 @@ import { Building2, CheckCircle2, Mail, SlidersHorizontal, type LucideIcon } fro
 import { useTranslations } from "next-intl";
 import { type FormEvent, type ReactNode, type RefObject, useEffect, useRef, useState, useTransition } from "react";
 import { Button, Card, Checkbox, Input, Label, Select, Stack, Text, Textarea } from "@/components/ui";
-import type { Country, CountryCode, CompletionStandard, ProductFamily } from "@/lib/data/types";
+import type { Country, CountryCode, ProductFamily } from "@/lib/data/types";
 import { PRODUCT_FAMILIES } from "@/lib/product-technical-specs";
 import { COMPLETION_STANDARDS } from "@/lib/producer-capacity-profile-specs";
 import { PROJECT_TYPES } from "@/lib/project-request-specs";
@@ -67,7 +67,11 @@ export function ProjectRequestFlow({ locale, countries }: ProjectRequestFlowProp
   const [unitCountMax, setUnitCountMax] = useState("");
   const [floorAreaM2Min, setFloorAreaM2Min] = useState("");
   const [floorAreaM2Max, setFloorAreaM2Max] = useState("");
-  const [completionStandard, setCompletionStandard] = useState<CompletionStandard | null>(null);
+  // "katalogowy" (spec 0056 Follow-up, slot dla outdoor-tv) nie ma sensu jako
+  // standard wykończenia w zapytaniu zbiorczym — ten filtr zostaje zawężony
+  // do trzech prawdziwych standardów, ten sam typ co
+  // lib/project-request-actions.ts#SubmitProjectRequestInput.completionStandard.
+  const [completionStandard, setCompletionStandard] = useState<(typeof COMPLETION_STANDARDS)[number] | null>(null);
   const [startWindowFrom, setStartWindowFrom] = useState("");
   const [startWindowTo, setStartWindowTo] = useState("");
   const [deliveryWindowFrom, setDeliveryWindowFrom] = useState("");

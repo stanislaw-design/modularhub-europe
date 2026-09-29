@@ -884,6 +884,19 @@ export const productTranslation = pgTable(
     // ten sam wzorzec co description wyżej (nie jsonb, bo źródło na product
     // też jest zwykłym text, nie tablicą pozycji jak roomLayout/faq).
     foundationOptions: text("foundation_options"),
+    // Tłumaczenie product.technicalSpecs dla rodzin bez własnego schematu Zod
+    // (dziś outdoor-tv, spec 0056 Follow-up): jedna kolumna niesie trzy
+    // niezależne kawałki naraz, `{ specs: { "<polski klucz>": { label, value }
+    // }, features: string[], usageNote: string, priceNote: string }`. Klucz w
+    // "specs" to dosłownie ten sam polski klucz co w product.technical_specs
+    // (pełni rolę stabilnego id, tak jak roomLayout/faq wyżej dopasowują po
+    // id) — etykieta ORAZ wartość tłumaczą się niezależnie, bo etykieta w tej
+    // rodzinie i tak jest tylko "humanizowanym" polskim kluczem
+    // (lib/data/AGENTS.md), nie ma osobnego katalogu tłumaczeń pól jak
+    // ProjectOptions dla "dom". Brakujący klucz w "specs" albo brak features/
+    // usageNote/priceNote spada na polski tekst (ten sam wzorzec AC-6 co
+    // reszta tej tabeli).
+    technicalSpecs: jsonb("technical_specs"),
     // Automatyczne tłumaczenie AI (spec 0028 AC-11 do AC-17, rozszerzenie
     // 2026-09-22): "własność" pola (AI vs producent) jest wyliczona, nie
     // przechowywana jako osobna flaga — patrz lib/producer-product-actions.ts
@@ -924,6 +937,11 @@ export const productVariantTranslation = pgTable(
     // Tłumaczenie productVariant.excludedScope (spec 0050 AC-28), ten sam
     // wzorzec co scopeSummary wyżej.
     excludedScope: text("excluded_scope"),
+    // Tłumaczenie productVariant.variantLabel (spec 0056 Follow-up): jedyna
+    // czytelna nazwa wariantu dla rodzin katalogowych (outdoor-tv), gdzie
+    // completionStandard jest tylko technicznym slotem ("katalogowy"), nie
+    // etykietą — patrz komentarz przy completionStandardEnum wyżej.
+    variantLabel: text("variant_label"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },

@@ -59,6 +59,10 @@ export function ResultCard({
     "surowy-zamkniety": t("completionStandard.surowy-zamkniety"),
     deweloperski: t("completionStandard.deweloperski"),
     "pod-klucz": t("completionStandard.pod-klucz"),
+    // "katalogowy" (spec 0056 Follow-up): outdoor-tv products render as
+    // generic result cards too (AC-5), so this genuinely can be hit here,
+    // unlike the dom-only comparison components.
+    katalogowy: t("completionStandard.katalogowy"),
   } as const;
   const roomsLabel = t(`rooms.${roomsCountBucket(project.rooms)}`);
   const countryQuery = countryCode ? `country=${countryCode}` : "";

@@ -113,7 +113,8 @@
     "completionStandard": {
       "surowy-zamkniety": "Rohbau geschlossen",
       "deweloperski": "Bauträgerstandard",
-      "pod-klucz": "Schlüsselfertig"
+      "pod-klucz": "Schlüsselfertig",
+      "katalogowy": "Variante"
     },
     "price": "Preis",
     "priceOnRequest": "Preis auf Anfrage",
@@ -219,7 +220,8 @@
     "completionStandard": {
       "surowy-zamkniety": "Rohbau geschlossen",
       "deweloperski": "Bauträgerstandard",
-      "pod-klucz": "Schlüsselfertig"
+      "pod-klucz": "Schlüsselfertig",
+      "katalogowy": "Variante"
     }
   },
   "ProjectOptions": {
@@ -858,7 +860,8 @@
     "completionStandard": {
       "surowy-zamkniety": "Rohbau geschlossen",
       "deweloperski": "Bauträgerstandard",
-      "pod-klucz": "Schlüsselfertig"
+      "pod-klucz": "Schlüsselfertig",
+      "katalogowy": "Variante"
     },
     "warrantyTermLabel": "Konstruktionsgarantie",
     "productionTimeLabel": "Produktionszeit",
@@ -920,14 +923,20 @@
     "variantPickerAriaLabel": "Variantenauswahl",
     "variantFallbackLabel": "Variante",
     "videoLabel": "Produktvideo {name}",
+    "featuresHeading": "Eigenschaften",
     "specsHeading": "Technische Spezifikation",
+    "showMore": "Mehr anzeigen ({count})",
+    "showFewer": "Weniger anzeigen",
     "realUseHeading": "So sieht es in der Praxis aus",
+    "realUsePhotosHeading": "Fotos aus echten Installationen",
+    "usageNoteEyebrow": "Wofür diese Variante gedacht ist",
     "realUsePhotoAlt": "{name} in der Praxis, Foto {index}",
     "partnerHeading": "Über den Partner",
     "sectionNavAriaLabel": "Abschnittsnavigation",
     "sectionNavScrollLeft": "Abschnittsleiste nach links scrollen",
     "sectionNavScrollRight": "Abschnittsleiste nach rechts scrollen",
     "sectionNav": {
+      "cechy": "Eigenschaften",
       "specyfikacja": "Spezifikation",
       "wPraktyce": "In der Praxis",
       "partner": "Partner",
@@ -998,7 +1007,8 @@
     "completionStandard": {
       "surowy-zamkniety": "Rohbau geschlossen",
       "deweloperski": "Bauträgerstandard",
-      "pod-klucz": "Schlüsselfertig"
+      "pod-klucz": "Schlüsselfertig",
+      "katalogowy": "Variante"
     },
     "productionTimeLabel": "Produktions- und Montagezeit",
     "productionTimeValue": "{productionMin}–{productionMax} Tage Produktion · {assemblyMin}–{assemblyMax} Tage Montage",

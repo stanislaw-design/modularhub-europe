@@ -113,7 +113,8 @@
     "completionStandard": {
       "surowy-zamkniety": "Shell and core",
       "deweloperski": "Developer standard",
-      "pod-klucz": "Turnkey"
+      "pod-klucz": "Turnkey",
+      "katalogowy": "Variant"
     },
     "price": "Price",
     "priceOnRequest": "Price on request",
@@ -219,7 +220,8 @@
     "completionStandard": {
       "surowy-zamkniety": "Shell and core",
       "deweloperski": "Developer standard",
-      "pod-klucz": "Turnkey"
+      "pod-klucz": "Turnkey",
+      "katalogowy": "Variant"
     }
   },
   "ProjectOptions": {
@@ -851,7 +853,8 @@
     "completionStandard": {
       "surowy-zamkniety": "Closed shell condition",
       "deweloperski": "Developer finish",
-      "pod-klucz": "Turnkey"
+      "pod-klucz": "Turnkey",
+      "katalogowy": "Variant"
     },
     "warrantyTermLabel": "Structural warranty",
     "productionTimeLabel": "Production time",
@@ -913,14 +916,20 @@
     "variantPickerAriaLabel": "Variant selection",
     "variantFallbackLabel": "Variant",
     "videoLabel": "{name} product video",
+    "featuresHeading": "Features",
     "specsHeading": "Technical specification",
+    "showMore": "Show more ({count})",
+    "showFewer": "Show fewer",
     "realUseHeading": "How it looks in real use",
+    "realUsePhotosHeading": "Photos from real installations",
+    "usageNoteEyebrow": "What this variant is for",
     "realUsePhotoAlt": "{name} in real use, photo {index}",
     "partnerHeading": "About the partner",
     "sectionNavAriaLabel": "Section navigation",
     "sectionNavScrollLeft": "Scroll section bar left",
     "sectionNavScrollRight": "Scroll section bar right",
     "sectionNav": {
+      "cechy": "Features",
       "specyfikacja": "Specification",
       "wPraktyce": "In real use",
       "partner": "Partner",
@@ -991,7 +1000,8 @@
     "completionStandard": {
       "surowy-zamkniety": "Shell and core",
       "deweloperski": "Developer standard",
-      "pod-klucz": "Turnkey"
+      "pod-klucz": "Turnkey",
+      "katalogowy": "Variant"
     },
     "productionTimeLabel": "Production and assembly time",
     "productionTimeValue": "{productionMin}–{productionMax} days production · {assemblyMin}–{assemblyMax} days assembly",

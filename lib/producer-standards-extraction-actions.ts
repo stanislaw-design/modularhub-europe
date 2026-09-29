@@ -59,7 +59,12 @@ export interface ExtractedStandard {
   priceEur: number | null;
   priceOnRequest: boolean;
   costLineItems: ExtractedCostLineItem[];
-  proposedStandard: CompletionStandard;
+  // Zawężone do trzech prawdziwych standardów (COMPLETION_STANDARDS wyżej,
+  // ten sam Zod enum): AI wydobywa standardy tylko z materiału producenta
+  // wykończenia domu, nigdy "katalogowy" (spec 0056 Follow-up, AC-8 — kreator
+  // producenta nie oferuje outdoor-tv), mimo że CompletionStandard
+  // (lib/data/types) jest dziś szerszy.
+  proposedStandard: Exclude<CompletionStandard, "katalogowy">;
   confidence: "low" | "high";
 }
 

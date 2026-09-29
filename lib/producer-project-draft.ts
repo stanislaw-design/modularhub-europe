@@ -85,7 +85,13 @@ export const BATHROOMS_MAX = 10;
 // spec 0028 AC-1: "etykiety filtrów/enumów"), value listy zostają value listami
 // (klucze domenowe, nie tekst). Współdzielone przez kreator, edycję produktu i
 // SubcategoryFilterBar (klient) — jedno źródło etykiet, nie duplikat per ekran.
-export function getCompletionStandardOptions(t: Translate): { value: CompletionStandard; label: string }[] {
+// Zwraca tylko trzy prawdziwe standardy wykończenia domu, nigdy "katalogowy"
+// (spec 0056 Follow-up: slot dla rodzin katalogowych jak outdoor-tv, którym
+// ten kreator/filtr się nie zajmuje, AC-8) — stąd zawężony zwracany typ,
+// mimo że CompletionStandard (lib/data/types) jest dziś szerszy.
+export function getCompletionStandardOptions(
+  t: Translate,
+): { value: Exclude<CompletionStandard, "katalogowy">; label: string }[] {
   return [
     { value: "surowy-zamkniety", label: t("completionStandard.surowy-zamkniety") },
     { value: "deweloperski", label: t("completionStandard.deweloperski") },

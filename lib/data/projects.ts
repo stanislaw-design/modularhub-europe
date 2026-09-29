@@ -13,6 +13,7 @@ import {
   productTimelineStage,
   productTranslation,
   productVariant,
+  productVariantTranslation,
 } from "@/lib/db/schema";
 import type { Locale } from "@/lib/i18n/routing";
 import type { EnergyClass, VentilationType } from "@/lib/product-technical-specs";
@@ -193,6 +194,29 @@ export async function resolveProductVariants(
     }
   }
 
+  // Tłumaczenie productVariant.variantLabel (spec 0056 Follow-up): jedyna
+  // czytelna nazwa wariantu dla rodzin katalogowych, gdzie completionStandard
+  // to tylko techniczny slot ("katalogowy") — bez tego EN/NL/DE widziałyby
+  // polski tekst "43″, 4K" nawet po przełączeniu języka. Ten sam warunek
+  // translateLabels co costLineItem wyżej.
+  const translatedVariantLabels = new Map<string, string>();
+  if (translateLabels && variantIds.length > 0) {
+    const labelRows = await db
+      .select({
+        productVariantId: productVariantTranslation.productVariantId,
+        variantLabel: productVariantTranslation.variantLabel,
+      })
+      .from(productVariantTranslation)
+      .where(
+        and(inArray(productVariantTranslation.productVariantId, variantIds), eq(productVariantTranslation.locale, locale)),
+      );
+    for (const row of labelRows) {
+      if (row.variantLabel && row.variantLabel.trim().length > 0) {
+        translatedVariantLabels.set(row.productVariantId, row.variantLabel);
+      }
+    }
+  }
+
   const byProduct = new Map<string, typeof variantRows>();
   for (const row of variantRows) {
     const list = byProduct.get(row.productId) ?? [];
@@ -210,7 +234,7 @@ export async function resolveProductVariants(
       sorted.map((row) => ({
         id: row.id,
         completionStandard: row.completionStandard,
-        variantLabel: row.variantLabel ?? undefined,
+        variantLabel: translatedVariantLabels.get(row.id) ?? row.variantLabel ?? undefined,
         priceMin: row.priceMinCents !== null ? row.priceMinCents / 100 : undefined,
         currency: "EUR",
         priceOnRequest: row.priceOnRequest,
@@ -333,6 +357,16 @@ export function buildPrefixTsQuery(q: string): string | null {
 interface TechnicalSpecsBridgeFields {
   _priceOnRequest?: boolean;
   _extraImageUrls?: string[];
+  /** Backs Project.features (spec 0056 Follow-up): a short tile list, same
+   * bridge-field reasoning as _extraImageUrls above. */
+  _features?: string[];
+  /** Backs Project.usageNote (spec 0056 Follow-up): a short "what this
+   * variant is actually for" note rendered above the real-use video. */
+  _usageNote?: string;
+  /** Backs Project.priceNote (spec 0056 Follow-up): a short caveat rendered
+   * under the price, for a converted/orientation-only figure not yet
+   * confirmed by the partner. */
+  _priceNote?: string;
 }
 
 // pl jest tekstem źródłowym (AC-5); en/nl/de pokazują tłumaczenie producenta,
@@ -362,6 +396,17 @@ interface ProductTranslationText {
   // sam wzorzec opcjonalności co clientRequirements wyżej — tylko
   // getProjectById selectuje tę kolumnę.
   foundationOptions?: string | null;
+  // Tłumaczenie product.faq (spec 0045 AC-10, domknięte spec 0056
+  // Follow-up): tablica {id, question, answer}, dopasowanie po `id`, ten sam
+  // wzorzec co roomLayout/clientRequirements wyżej. Opcjonalne, tylko
+  // getProjectById selektuje tę kolumnę.
+  faq?: unknown;
+  // Tłumaczenie product.technicalSpecs dla rodzin bez własnego schematu Zod
+  // (dziś outdoor-tv, spec 0056 Follow-up): kształt `{ specs: { "<polski
+  // klucz>": { label?, value? } }, features?: string[], usageNote?: string,
+  // priceNote?: string }` — patrz komentarz przy productTranslation.technicalSpecs
+  // w lib/db/schema.ts. Opcjonalne, tylko getProjectById selektuje tę kolumnę.
+  technicalSpecs?: unknown;
 }
 
 function resolveTranslatedText(base: string | null, translated: string | null | undefined): string {
@@ -402,6 +447,101 @@ function resolveTranslatedRoomLayout(base: RoomLayoutEntry[], translated: unknow
         : "";
     return translatedName ? { ...room, name: translatedName } : room;
   });
+}
+
+// Ten sam wzorzec dopasowania po `id` co resolveTranslatedRoomLayout wyżej
+// (spec 0045 AC-10, domknięte spec 0056 Follow-up — kolumna product_translation.faq
+// istniała, ale getProjectById dotąd jej nie selektował, więc FAQ zawsze
+// wracało po polsku). question/answer tłumaczą się niezależnie: brak jednego
+// z nich w tłumaczeniu zostawia polski tekst tego pola, nie cały wiersz.
+function resolveTranslatedFaq(base: ProjectFaqItem[], translated: unknown): ProjectFaqItem[] {
+  if (!Array.isArray(translated) || translated.length === 0) return base;
+  return base.map((item) => {
+    const candidate = translated.find(
+      (entry) => entry && typeof entry === "object" && (entry as { id?: unknown }).id === item.id,
+    );
+    if (!candidate || typeof candidate !== "object") return item;
+    const translatedQuestion = (candidate as { question?: unknown }).question;
+    const translatedAnswer = (candidate as { answer?: unknown }).answer;
+    return {
+      ...item,
+      question:
+        typeof translatedQuestion === "string" && translatedQuestion.trim().length > 0
+          ? translatedQuestion
+          : item.question,
+      answer:
+        typeof translatedAnswer === "string" && translatedAnswer.trim().length > 0 ? translatedAnswer : item.answer,
+    };
+  });
+}
+
+interface TranslatedTechnicalSpecs {
+  rawTechnicalSpecs: Record<string, string>;
+  technicalSpecsLabels?: Record<string, string>;
+  features?: string[];
+  usageNote?: string;
+  priceNote?: string;
+}
+
+// Tłumaczenie technicalSpecs/features/usageNote/priceNote dla rodzin bez
+// własnego schematu Zod (dziś outdoor-tv, spec 0056 Follow-up) — jedyna z
+// tych funkcji dopasowującą nie po `id`, bo baseEntries to płaska mapa
+// klucz/wartość, nie tablica wierszy: sam polski klucz pełni rolę stabilnego
+// id (patrz komentarz przy productTranslation.technicalSpecs w
+// lib/db/schema.ts). Etykieta i wartość tłumaczą się niezależnie na wypadek
+// częściowego tłumaczenia (ten sam AC-6 fallback co reszta tego pliku).
+function resolveTranslatedTechnicalSpecs(
+  baseEntries: [string, string][],
+  baseFeatures: string[] | undefined,
+  baseUsageNote: string | undefined,
+  basePriceNote: string | undefined,
+  translated: unknown,
+): TranslatedTechnicalSpecs {
+  const translatedObj =
+    translated && typeof translated === "object" ? (translated as Record<string, unknown>) : undefined;
+  const translatedSpecs =
+    translatedObj && typeof translatedObj.specs === "object" && translatedObj.specs !== null
+      ? (translatedObj.specs as Record<string, unknown>)
+      : undefined;
+
+  const rawTechnicalSpecs: Record<string, string> = {};
+  const technicalSpecsLabels: Record<string, string> = {};
+  for (const [key, value] of baseEntries) {
+    const candidate = translatedSpecs?.[key];
+    const candidateValue =
+      candidate && typeof candidate === "object" && typeof (candidate as { value?: unknown }).value === "string"
+        ? (candidate as { value: string }).value.trim()
+        : "";
+    const candidateLabel =
+      candidate && typeof candidate === "object" && typeof (candidate as { label?: unknown }).label === "string"
+        ? (candidate as { label: string }).label.trim()
+        : "";
+    rawTechnicalSpecs[key] = candidateValue || value;
+    if (candidateLabel) technicalSpecsLabels[key] = candidateLabel;
+  }
+
+  const translatedFeatures =
+    translatedObj && Array.isArray(translatedObj.features)
+      ? (translatedObj.features as unknown[]).filter(
+          (item): item is string => typeof item === "string" && item.trim().length > 0,
+        )
+      : undefined;
+  const translatedUsageNote =
+    translatedObj && typeof translatedObj.usageNote === "string" && translatedObj.usageNote.trim().length > 0
+      ? (translatedObj.usageNote as string)
+      : undefined;
+  const translatedPriceNote =
+    translatedObj && typeof translatedObj.priceNote === "string" && translatedObj.priceNote.trim().length > 0
+      ? (translatedObj.priceNote as string)
+      : undefined;
+
+  return {
+    rawTechnicalSpecs,
+    technicalSpecsLabels: Object.keys(technicalSpecsLabels).length > 0 ? technicalSpecsLabels : undefined,
+    features: translatedFeatures && translatedFeatures.length > 0 ? translatedFeatures : baseFeatures,
+    usageNote: translatedUsageNote ?? baseUsageNote,
+    priceNote: translatedPriceNote ?? basePriceNote,
+  };
 }
 
 // Ten sam wzorzec dopasowania po `id` co resolveTranslatedRoomLayout wyżej,
@@ -536,12 +676,18 @@ function mapRowToProject(
   // ze specyfikacji technicznej. Klucze wewnętrzne (podkreślnik, np.
   // _priceOnRequest) i wartości nietekstowe są pomijane — to pole nie zna
   // kształtu żadnej konkretnej rodziny, tylko wypisuje to, co jest.
-  const rawTechnicalSpecs = Object.fromEntries(
-    Object.entries((row.technicalSpecs ?? {}) as Record<string, unknown>).filter(
-      (entry): entry is [string, string] =>
-        !entry[0].startsWith("_") && typeof entry[1] === "string" && entry[1].length > 0,
-    ),
+  const baseTechnicalSpecsEntries = Object.entries((row.technicalSpecs ?? {}) as Record<string, unknown>).filter(
+    (entry): entry is [string, string] =>
+      !entry[0].startsWith("_") && typeof entry[1] === "string" && entry[1].length > 0,
   );
+  const translatedTechnicalSpecs = resolveTranslatedTechnicalSpecs(
+    baseTechnicalSpecsEntries,
+    specs._features,
+    specs._usageNote,
+    specs._priceNote,
+    translation?.technicalSpecs,
+  );
+  const rawTechnicalSpecs = translatedTechnicalSpecs.rawTechnicalSpecs;
   // price_min/max_cents są od spec 0041 pochodną wyzwalacza synchronizacji
   // ceny (lib/db/AGENTS.md): NULL gdy produkt nie ma aktywnego wariantu
   // domyślnego. AC-11 traktuje to dokładnie jak priceOnRequest, nigdy jako
@@ -550,7 +696,8 @@ function mapRowToProject(
   const rawRoomLayout = (row.roomLayout as (RoomLayoutEntry & { isMezzanine?: boolean })[] | null) ?? undefined;
   const baseRoomLayout = rawRoomLayout?.map(migrateRoomLayoutEntry);
   const roomLayout = baseRoomLayout ? resolveTranslatedRoomLayout(baseRoomLayout, translation?.roomLayout) : undefined;
-  const faq = (row.faq as ProjectFaqItem[] | null) ?? undefined;
+  const baseFaq = (row.faq as ProjectFaqItem[] | null) ?? undefined;
+  const faq = baseFaq ? resolveTranslatedFaq(baseFaq, translation?.faq) : undefined;
   // Spec 0050 AC-23, AC-35: safeParse zamiast rzucającego parse, bo ten sam
   // wzorzec co reszta tego mappera toleruje niekompletne/legacy wiersze
   // (nigdy nie blokuje renderu całej karty projektu przez jedno złe pole jsonb).
@@ -607,7 +754,11 @@ function mapRowToProject(
     priceOnRequest,
     galleryImageUrls: specs._extraImageUrls,
     videoUrl: row.videoUrl ?? undefined,
+    features: translatedTechnicalSpecs.features,
+    usageNote: translatedTechnicalSpecs.usageNote,
+    priceNote: translatedTechnicalSpecs.priceNote,
     technicalSpecs: Object.keys(rawTechnicalSpecs).length > 0 ? rawTechnicalSpecs : undefined,
+    technicalSpecsLabels: translatedTechnicalSpecs.technicalSpecsLabels,
   };
 }
 
@@ -793,6 +944,14 @@ export async function getProjectById(id: string, locale: Locale = "pl"): Promise
         translationRoomLayout: productTranslation.roomLayout,
         translationClientRequirements: productTranslation.clientRequirements,
         translationFoundationOptions: productTranslation.foundationOptions,
+        // Kolumna istniała w schemacie od dawna (spec 0045 AC-10), ale
+        // dotąd nic jej nie odczytywało na karcie klienta — FAQ zawsze
+        // renderowało się po polsku niezależnie od locale. Domknięte tu
+        // (outdoor-tv FAQ, spec 0056 Follow-up), ten sam wzorzec co
+        // translationClientRequirements/translationFoundationOptions
+        // wyżej: tylko getProjectById selektuje tę kolumnę.
+        translationFaq: productTranslation.faq,
+        translationTechnicalSpecs: productTranslation.technicalSpecs,
       })
       .from(product)
       .innerJoin(producer, eq(product.producerId, producer.id))
@@ -819,6 +978,8 @@ export async function getProjectById(id: string, locale: Locale = "pl"): Promise
               roomLayout: row.translationRoomLayout,
               clientRequirements: row.translationClientRequirements,
               foundationOptions: row.translationFoundationOptions,
+              faq: row.translationFaq,
+              technicalSpecs: row.translationTechnicalSpecs,
             }),
             documentPhotos.get(id),
           ),

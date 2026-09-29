@@ -60,6 +60,9 @@ export function ProjectCompareTable({ locale, columns, hasUnavailable, resultsHr
     "surowy-zamkniety": t("completionStandard.surowy-zamkniety"),
     deweloperski: t("completionStandard.deweloperski"),
     "pod-klucz": t("completionStandard.pod-klucz"),
+    // "katalogowy" (spec 0056 Follow-up): outdoor-tv products can be
+    // shortlisted and compared here too (AC-5).
+    katalogowy: t("completionStandard.katalogowy"),
   };
 
   const rows: CompareRow[] = [

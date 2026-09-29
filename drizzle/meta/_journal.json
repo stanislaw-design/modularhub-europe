@@ -288,6 +288,13 @@
       "when": 1790676318119,
       "tag": "0040_pale_annihilus",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1790689866297,
+      "tag": "0041_smooth_mattie_franklin",
+      "breakpoints": true
     }
   ]
 }

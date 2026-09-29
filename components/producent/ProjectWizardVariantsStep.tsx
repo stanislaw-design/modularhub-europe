@@ -31,7 +31,14 @@ import {
   type ExtractedStandard,
 } from "@/lib/producer-standards-extraction-actions";
 
-const COMPLETION_STANDARDS: CompletionStandard[] = ["surowy-zamkniety", "deweloperski", "pod-klucz"];
+// "katalogowy" (spec 0056 Follow-up) rozszerzył CompletionStandard o slot dla
+// rodzin katalogowych (outdoor-tv), ale kreator producenta nigdy nie oferuje
+// tej rodziny (AC-8) — ten formularz świadomie zawęża się z powrotem do
+// trzech prawdziwych standardów wykończenia domu, zgodnie z variantSchema
+// (Zod enum) niżej.
+type HouseCompletionStandard = Exclude<CompletionStandard, "katalogowy">;
+
+const COMPLETION_STANDARDS: HouseCompletionStandard[] = ["surowy-zamkniety", "deweloperski", "pod-klucz"];
 const MAX_VARIANTS = 3;
 
 interface CostItemFormValue {
@@ -51,7 +58,7 @@ interface TimelineStageFormValue {
 
 interface VariantFormValue {
   variantId: string;
-  completionStandard: CompletionStandard;
+  completionStandard: HouseCompletionStandard;
   isDefault: boolean;
   // Spec 0051 AC-1, AC-9: jedna cena "od", priceMaxEur usunięty; co wchodzi w
   // cenę żyje wyłącznie w costLineItems niżej (scopeSummary/excludedScope
@@ -124,7 +131,10 @@ function mergeCostLineItems(existing: CostItemFormValue[], proposed: ExtractedCo
 function initialVariantsToFormValues(initialVariants: ProducerVariantForEdit[]): VariantFormValue[] {
   return initialVariants.map((variant) => ({
     variantId: variant.id,
-    completionStandard: variant.completionStandard,
+    // Bezpieczny rzut: wiersz bazy niesie szerszy typ Drizzle (4 wartości enum),
+    // ale to zawsze produkt producenta ("dom" i pokrewne), nigdy outdoor-tv
+    // (AC-8) — "katalogowy" fizycznie się tu nie pojawia.
+    completionStandard: variant.completionStandard as HouseCompletionStandard,
     isDefault: variant.isDefault,
     priceMinEur: variant.priceMinCents === null ? null : variant.priceMinCents / 100,
     priceOnRequest: variant.priceOnRequest,
@@ -161,7 +171,7 @@ interface ProjectWizardVariantsStepProps {
   enableStandardsExtraction?: boolean;
 }
 
-type StandardProposal = ExtractedStandard & { targetStandard: CompletionStandard };
+type StandardProposal = ExtractedStandard & { targetStandard: HouseCompletionStandard };
 
 // Cena/pozycje kosztowe/etapy zapisują się wyłącznie przyciskiem "Zapisz
 // wariant" na karcie (patrz komentarz nad komponentem), żeby nie odpalać
@@ -204,9 +214,9 @@ export const ProjectWizardVariantsStep = forwardRef<ProjectWizardVariantsStepHan
   const { fields, append, remove, update, move } = useFieldArray({ control, name: "variants" });
   const [pendingAction, setPendingAction] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
-  const [addStandard, setAddStandard] = useState<CompletionStandard | null>(null);
+  const [addStandard, setAddStandard] = useState<HouseCompletionStandard | null>(null);
   const [cloneSourceIndex, setCloneSourceIndex] = useState<number | null>(null);
-  const [cloneStandard, setCloneStandard] = useState<CompletionStandard | null>(null);
+  const [cloneStandard, setCloneStandard] = useState<HouseCompletionStandard | null>(null);
 
   // Wydobywanie standardów z materiału (spec 0050 AC-13 do AC-19): materiał
   // (tekst wklejony albo plik) nigdy nie jest zapisywany (AC-17) — po
@@ -637,7 +647,9 @@ export const ProjectWizardVariantsStep = forwardRef<ProjectWizardVariantsStepHan
                     <Label id={`proposal-${proposalIndex}-standard-label`}>{t("proposalStandardLabel")}</Label>
                     <Select
                       value={proposal.targetStandard}
-                      onChange={(value) => handleProposalChange(proposalIndex, { targetStandard: value as CompletionStandard })}
+                      onChange={(value) =>
+                        handleProposalChange(proposalIndex, { targetStandard: value as HouseCompletionStandard })
+                      }
                       options={proposalTargetOptions}
                       aria-labelledby={`proposal-${proposalIndex}-standard-label`}
                     />

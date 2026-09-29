@@ -184,6 +184,10 @@ export default async function ProjektPage({
     "surowy-zamkniety": t("completionStandard.surowy-zamkniety"),
     deweloperski: t("completionStandard.deweloperski"),
     "pod-klucz": t("completionStandard.pod-klucz"),
+    // "katalogowy" (spec 0056 Follow-up) never actually reaches this route
+    // (AC-6 redirects outdoor-tv products to /outdoor-tv/[id]), but
+    // ProjectVariantPicker's shared prop type still demands it.
+    katalogowy: t("completionStandard.katalogowy"),
   };
   const montazStage = selectedVariant?.timelineStages.find((stage) => stage.stageKey === "montaz");
 

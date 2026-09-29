@@ -113,7 +113,8 @@
     "completionStandard": {
       "surowy-zamkniety": "Casco",
       "deweloperski": "Ontwikkelaarsstandaard",
-      "pod-klucz": "Sleutelklaar"
+      "pod-klucz": "Sleutelklaar",
+      "katalogowy": "Variant"
     },
     "price": "Prijs",
     "priceOnRequest": "Prijs op aanvraag",
@@ -219,7 +220,8 @@
     "completionStandard": {
       "surowy-zamkniety": "Casco",
       "deweloperski": "Ontwikkelaarsstandaard",
-      "pod-klucz": "Sleutelklaar"
+      "pod-klucz": "Sleutelklaar",
+      "katalogowy": "Variant"
     }
   },
   "ProjectOptions": {
@@ -851,7 +853,8 @@
     "completionStandard": {
       "surowy-zamkniety": "Casco dicht",
       "deweloperski": "Afbouwniveau ontwikkelaar",
-      "pod-klucz": "Sleutelklaar"
+      "pod-klucz": "Sleutelklaar",
+      "katalogowy": "Variant"
     },
     "warrantyTermLabel": "Constructiegarantie",
     "productionTimeLabel": "Productietijd",
@@ -913,14 +916,20 @@
     "variantPickerAriaLabel": "Variantkeuze",
     "variantFallbackLabel": "Variant",
     "videoLabel": "Productvideo {name}",
+    "featuresHeading": "Kenmerken",
     "specsHeading": "Technische specificatie",
+    "showMore": "Toon meer ({count})",
+    "showFewer": "Toon minder",
     "realUseHeading": "Zo ziet het eruit in de praktijk",
+    "realUsePhotosHeading": "Fotos van echte installaties",
+    "usageNoteEyebrow": "Waarvoor deze variant bedoeld is",
     "realUsePhotoAlt": "{name} in de praktijk, foto {index}",
     "partnerHeading": "Over de partner",
     "sectionNavAriaLabel": "Sectienavigatie",
     "sectionNavScrollLeft": "Sectiebalk naar links scrollen",
     "sectionNavScrollRight": "Sectiebalk naar rechts scrollen",
     "sectionNav": {
+      "cechy": "Kenmerken",
       "specyfikacja": "Specificatie",
       "wPraktyce": "In de praktijk",
       "partner": "Partner",
@@ -991,7 +1000,8 @@
     "completionStandard": {
       "surowy-zamkniety": "Casco",
       "deweloperski": "Ontwikkelaarsstandaard",
-      "pod-klucz": "Sleutelklaar"
+      "pod-klucz": "Sleutelklaar",
+      "katalogowy": "Variant"
     },
     "productionTimeLabel": "Productie- en montagetijd",
     "productionTimeValue": "{productionMin}–{productionMax} dagen productie · {assemblyMin}–{assemblyMax} dagen montage",
