@@ -37,7 +37,7 @@ describe("ProjectVariantPicker", () => {
       <ProjectVariantPicker
         variants={[makeVariant({ id: "v1", isDefault: true })]}
         selectedVariantId="v1"
-        hrefFor={(standard) => `?wariant=${standard}`}
+        hrefFor={(variantId) => `?wariant=${variantId}`}
         standardLabel={standardLabel}
         ariaLabel="Standard wykończenia"
       />,
@@ -54,7 +54,7 @@ describe("ProjectVariantPicker", () => {
       <ProjectVariantPicker
         variants={[]}
         selectedVariantId=""
-        hrefFor={(standard) => `?wariant=${standard}`}
+        hrefFor={(variantId) => `?wariant=${variantId}`}
         standardLabel={standardLabel}
         ariaLabel="Standard wykończenia"
       />,
@@ -70,7 +70,7 @@ describe("ProjectVariantPicker", () => {
           makeVariant({ id: "v2", completionStandard: "deweloperski", isDefault: true }),
         ]}
         selectedVariantId="v2"
-        hrefFor={(standard) => `?wariant=${standard}`}
+        hrefFor={(variantId) => `?wariant=${variantId}`}
         standardLabel={standardLabel}
         ariaLabel="Standard wykończenia"
       />,
@@ -78,8 +78,8 @@ describe("ProjectVariantPicker", () => {
 
     const rawLink = screen.getByRole("link", { name: "Stan surowy zamknięty" });
     const activeLink = screen.getByRole("link", { name: "Standard deweloperski" });
-    expect(rawLink).toHaveAttribute("href", "?wariant=surowy-zamkniety");
-    expect(activeLink).toHaveAttribute("href", "?wariant=deweloperski");
+    expect(rawLink).toHaveAttribute("href", "?wariant=v1");
+    expect(activeLink).toHaveAttribute("href", "?wariant=v2");
     expect(activeLink).toHaveAttribute("aria-current", "true");
     expect(rawLink).not.toHaveAttribute("aria-current");
   });
@@ -92,7 +92,7 @@ describe("ProjectVariantPicker", () => {
           makeVariant({ id: "v2", completionStandard: "surowy-zamkniety" }),
         ]}
         selectedVariantId="v1"
-        hrefFor={(standard) => `?wariant=${standard}`}
+        hrefFor={(variantId) => `?wariant=${variantId}`}
         standardLabel={standardLabel}
         ariaLabel="Standard wykończenia"
       />,
@@ -100,6 +100,24 @@ describe("ProjectVariantPicker", () => {
 
     expect(screen.getAllByRole("link")).toHaveLength(2);
     expect(screen.queryByText("Pod klucz")).not.toBeInTheDocument();
+  });
+
+  it("gives each variant a distinct href even when they share completionStandard (spec 0056 catalog families)", () => {
+    render(
+      <ProjectVariantPicker
+        variants={[
+          makeVariant({ id: "v1", completionStandard: "katalogowy", variantLabel: "55″", isDefault: true }),
+          makeVariant({ id: "v2", completionStandard: "katalogowy", variantLabel: "65″" }),
+        ]}
+        selectedVariantId="v1"
+        hrefFor={(variantId) => `?wariant=${variantId}`}
+        standardLabel={standardLabel}
+        ariaLabel="Rozmiar"
+      />,
+    );
+
+    expect(screen.getByRole("link", { name: "55″" })).toHaveAttribute("href", "?wariant=v1");
+    expect(screen.getByRole("link", { name: "65″" })).toHaveAttribute("href", "?wariant=v2");
   });
 
   it("prefers the producer's own variant label over the standard label", () => {
@@ -110,7 +128,7 @@ describe("ProjectVariantPicker", () => {
           makeVariant({ id: "v2", completionStandard: "pod-klucz" }),
         ]}
         selectedVariantId="v1"
-        hrefFor={(standard) => `?wariant=${standard}`}
+        hrefFor={(variantId) => `?wariant=${variantId}`}
         standardLabel={standardLabel}
         ariaLabel="Standard wykończenia"
       />,

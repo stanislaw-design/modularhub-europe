@@ -1,7 +1,7 @@
 import { Award, ShieldCheck, Truck } from "lucide-react";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { notFound, redirect } from "next/navigation";
+import { notFound, permanentRedirect, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { Button, Card, DataText, Heading, StatusPill, Text } from "@/components/ui";
 import { BulkProductInquiryModal } from "@/components/klient/BulkProductInquiryModal";
@@ -21,7 +21,7 @@ import { ProjectVariantPicker } from "@/components/klient/ProjectVariantPicker";
 import { getCountries } from "@/lib/data/countries";
 import { getDefaultProjectVariant } from "@/lib/data/project-variants";
 import { getProducerById } from "@/lib/data/producers";
-import { getEligibilityByCountry, getProducerVolumeProfile, getProjectById } from "@/lib/data/projects";
+import { getEligibilityByCountry, getProducerVolumeProfile, getProjectBySlugOrId } from "@/lib/data/projects";
 import type { CompletionStandard, EligibilityByCountry } from "@/lib/data/types";
 import { getClientIdForUser, getFavoritedProductIds } from "@/lib/db/queries";
 import { routing, type Locale } from "@/lib/i18n/routing";
@@ -56,7 +56,7 @@ function buildQueryHref(searchParams: PageSearchParams, overrides: Record<string
   return query ? `?${query}` : "";
 }
 
-type PageParams = { locale: string; id: string };
+type PageParams = { locale: string; slug: string };
 type PageSearchParams = { [key: string]: string | string[] | undefined };
 
 export async function generateMetadata({
@@ -64,9 +64,9 @@ export async function generateMetadata({
 }: {
   params: Promise<PageParams>;
 }): Promise<Metadata> {
-  const { locale, id } = await params;
+  const { locale, slug } = await params;
   const [project, t] = await Promise.all([
-    getProjectById(id, locale as Locale),
+    getProjectBySlugOrId(slug, locale as Locale),
     getTranslations({ locale, namespace: "KlientProjektPage" }),
   ]);
   if (!project || project.family === "outdoor-tv") return {};
@@ -76,12 +76,15 @@ export async function generateMetadata({
     : `${t("from")} ${priceFormatter.format(project.priceMin)} €`;
   const roomsLabel = t(`roomsLabel.${countBucket(project.rooms)}`);
   const description = `${project.name} ${t("from")} ${project.producerName} — ${project.floorAreaM2} m², ${project.rooms} ${roomsLabel}, ${priceLabel}.`;
-  const canonicalPath = `/${locale}/project/${project.id}`;
+  // Adres kanoniczny liczony od sluga, gdy istnieje, inaczej id (spec 0058
+  // AC-7) — ten sam wzorzec fallbacku co resolveProductHref.
+  const canonicalSegment = project.slug ?? project.id;
+  const canonicalPath = `/${locale}/project/${canonicalSegment}`;
 
   // Ten sam zasób pod trzema prefiksami języka (AC-8): x-default wskazuje na
   // /pl, bo to jedyny język z gwarantowaną, kompletną treścią dziś.
   const languageAlternates = Object.fromEntries(
-    routing.locales.map((code) => [code, `/${code}/project/${project.id}`]),
+    routing.locales.map((code) => [code, `/${code}/project/${canonicalSegment}`]),
   );
 
   return {
@@ -89,8 +92,12 @@ export async function generateMetadata({
     description,
     alternates: {
       canonical: canonicalPath,
-      languages: { ...languageAlternates, "x-default": `/${routing.defaultLocale}/project/${project.id}` },
+      languages: { ...languageAlternates, "x-default": `/${routing.defaultLocale}/project/${canonicalSegment}` },
     },
+    // Produkt inny niż published (draft, np. jeszcze w toku kreatora) nie
+    // trafia do wyszukiwarki, choć bezpośredni link wciąż renderuje stronę
+    // normalnie (spec 0058 AC-7, spec 0020 AC-6: adres nigdy nie blokuje).
+    ...(project.status !== "published" ? { robots: { index: false, follow: false } } : {}),
     openGraph: {
       title: project.name,
       description,
@@ -107,19 +114,26 @@ export default async function ProjektPage({
   params: Promise<PageParams>;
   searchParams: Promise<PageSearchParams>;
 }) {
-  const [{ locale, id }, rawSearchParams, t, tGallery, tOptions] = await Promise.all([
+  const [{ locale, slug }, rawSearchParams, t, tGallery, tOptions] = await Promise.all([
     params,
     searchParams,
     getTranslations("KlientProjektPage"),
     getTranslations("ProjectGallery"),
     getTranslations("ProjectOptions"),
   ]);
-  const project = await getProjectById(id, locale as Locale);
+  const project = await getProjectBySlugOrId(slug, locale as Locale);
   if (!project) notFound();
   // Strona domu nie ma sekcji, jakich potrzebuje katalogowy produkt outdoor-tv
   // (spec 0056 AC-6): każdy stary lub błędny link na tę rodzinę trafia na jej
   // właściwy route zamiast renderować się tutaj po cichu.
-  if (project.family === "outdoor-tv") redirect(resolveProductHref(project.family, project.id, locale));
+  if (project.family === "outdoor-tv") redirect(resolveProductHref(project.family, project.id, locale, project.slug));
+  // Wejście po id, gdy produkt już ma slug, przekierowuje trwale (308) na
+  // kanoniczny adres ze slugiem, z zachowaniem całego ciągu zapytania (spec
+  // 0058 AC-4); produkt bez sluga jeszcze (kreator w toku, bez nazwy) renderuje
+  // się normalnie pod adresem z id, bez przekierowania (AC-5).
+  if (project.slug && project.slug !== slug) {
+    permanentRedirect(`/${locale}/project/${project.slug}${buildQueryHref(rawSearchParams, {})}`);
+  }
 
   const { countryCode } = parseResultsSearchParams(rawSearchParams);
 
@@ -166,24 +180,18 @@ export default async function ProjektPage({
   // standard, który producent od tego czasu usunął) po prostu wraca do tego
   // samego domyślnego wariantu, zamiast rozwiązywać się do placeholdera albo
   // undefined (spec 0054 AC-9).
-  //
-  // Dopasowanie po variant.id, nie completionStandard (patrz komentarz w
-  // ProjectVariantPicker.tsx): completionStandard jest tu wprawdzie zawsze
-  // unikalny per wariant domu, ale id jest jedynym kluczem, który działa
-  // identycznie też dla rodzin katalogowych (outdoor-tv), gdzie hrefFor jest
-  // tym samym współdzielonym komponentem.
   const wariantParam = firstParam(rawSearchParams.wariant);
   const selectedVariant =
-    project.variants.find((variant) => variant.id === wariantParam) ??
+    project.variants.find((variant) => variant.completionStandard === wariantParam) ??
     getDefaultProjectVariant(project);
   const zakladkaParam = firstParam(rawSearchParams.zakladka);
   const activeGalleryTab: GalleryTabKey = zakladkaParam === "rzut" ? zakladkaParam : "wizualizacje";
 
-  function hrefForVariant(variantId: string): string {
-    return `/${locale}/project/${project!.id}${buildQueryHref(rawSearchParams, { wariant: variantId })}`;
+  function hrefForVariant(standard: CompletionStandard): string {
+    return `/${locale}/project/${slug}${buildQueryHref(rawSearchParams, { wariant: standard })}`;
   }
   function hrefForGalleryTab(tab: GalleryTabKey): string {
-    return `/${locale}/project/${project!.id}${buildQueryHref(rawSearchParams, { zakladka: tab === "wizualizacje" ? undefined : tab })}`;
+    return `/${locale}/project/${slug}${buildQueryHref(rawSearchParams, { zakladka: tab === "wizualizacje" ? undefined : tab })}`;
   }
 
   const standardLabel: Record<CompletionStandard, string> = {

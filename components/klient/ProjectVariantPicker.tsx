@@ -5,7 +5,7 @@ import type { CompletionStandard, ProjectVariant } from "@/lib/data/types";
 interface ProjectVariantPickerProps {
   variants: ProjectVariant[];
   selectedVariantId: string;
-  hrefFor: (completionStandard: CompletionStandard) => string;
+  hrefFor: (variantId: string) => string;
   standardLabel: Record<CompletionStandard, string>;
   ariaLabel: string;
 }
@@ -18,6 +18,14 @@ interface ProjectVariantPickerProps {
 // AC-2). Gdy jest dokładnie jeden wariant, ta jedna zakładka nadal się
 // renderuje jako widoczna, niekliklana "bieżąca" pozycja, dla spójności
 // układu z projektami mającymi dwa albo trzy warianty (spec 0054 AC-3).
+//
+// hrefFor klucze po variant.id, nie completionStandard: rodziny katalogowe
+// (outdoor-tv, spec 0056 Follow-up) mają wiele aktywnych wariantów
+// dzielących completionStandard = 'katalogowy' naraz (rozróżnianych przez
+// variantLabel), więc klucz po samym standardzie dawał identyczny href dla
+// każdego z nich i przełączanie faktycznie nic nie zmieniało. id jest zawsze
+// unikalne, więc działa poprawnie też dla domów, gdzie completionStandard
+// i tak jest unikalny per wariant.
 export function ProjectVariantPicker({
   variants,
   selectedVariantId,
@@ -30,9 +38,9 @@ export function ProjectVariantPicker({
   const singleVariant = variants.length === 1;
   const selectedVariant = variants.find((variant) => variant.id === selectedVariantId);
   const selectOptions = variants.map((variant) => ({
-    value: variant.completionStandard,
+    value: variant.id,
     label: variant.variantLabel ?? standardLabel[variant.completionStandard],
-    href: singleVariant ? "" : hrefFor(variant.completionStandard),
+    href: singleVariant ? "" : hrefFor(variant.id),
     disabled: singleVariant,
   }));
 
@@ -43,7 +51,7 @@ export function ProjectVariantPicker({
       <div className="lg:hidden">
         <ProjectVariantSelect
           options={selectOptions}
-          selectedValue={selectedVariant?.completionStandard ?? selectOptions[0].value}
+          selectedValue={selectedVariant?.id ?? selectOptions[0].value}
           ariaLabel={ariaLabel}
         />
       </div>
@@ -68,7 +76,7 @@ export function ProjectVariantPicker({
           return (
             <Link
               key={variant.id}
-              href={hrefFor(variant.completionStandard)}
+              href={hrefFor(variant.id)}
               aria-current={active ? "true" : undefined}
               className={`focus-ring flex-1 whitespace-nowrap rounded-full border px-brand-2 py-1 text-center text-data font-medium transition-colors ${
                 active
