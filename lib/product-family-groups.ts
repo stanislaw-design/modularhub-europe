@@ -46,12 +46,16 @@ export function resolveFamilies(value: FamilyFilterValue): ProductFamily[] {
 
 // Jedyne miejsce, które wie, pod jakim route'em żyje strona produktu danej
 // rodziny (spec 0056 AC-5): outdoor-tv ma własną, katalogową stronę produktu
-// (/outdoor-tv/[id]), każda inna rodzina używa strony domu (/project/[id]).
+// (/outdoor-tv/[slug]), każda inna rodzina używa strony domu (/project/[slug]).
 // Każde miejsce budujące link do produktu (lista wyników, ulubione,
 // porównywarka) przechodzi przez tę funkcję zamiast składać ścieżkę samemu,
 // żeby dodanie kolejnej rodziny katalogowej w przyszłości było jedną zmianą
 // tutaj, nie zmianą we wszystkich miejscach linkujących.
-export function resolveProductHref(family: ProductFamily, id: string, locale: string): string {
+//
+// slug wstawiany zamiast id, gdy produkt go ma (spec 0058 AC-6): czytelny
+// adres wszędzie tam, gdzie jest dostępny, z id jako trwałym fallbackiem dla
+// produktów bez jeszcze wyliczonego sluga (kreator w toku, bez nazwy).
+export function resolveProductHref(family: ProductFamily, id: string, locale: string, slug?: string | null): string {
   const segment = family === "outdoor-tv" ? "outdoor-tv" : "project";
-  return `/${locale}/${segment}/${id}`;
+  return `/${locale}/${segment}/${slug ?? id}`;
 }

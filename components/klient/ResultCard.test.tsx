@@ -33,6 +33,14 @@ describe("ResultCard", () => {
     expect(screen.getByRole("link")).toHaveAttribute("href", `/pl/project/${project.id}`);
   });
 
+  // spec 0058 AC-6: resolveProductHref is called with project.slug, so a
+  // product that already has one links through it, not the raw id.
+  it("links through the slug when the product has one (spec 0058 AC-6)", () => {
+    const slugProject: Project = createMockProject({ slug: "pomerania-40" });
+    render(<ResultCard project={slugProject} countryName="Polska" locale="pl" />);
+    expect(screen.getByRole("link")).toHaveAttribute("href", "/pl/project/pomerania-40");
+  });
+
   it("shows Wycena indywidualna instead of a price range when priceOnRequest is true (spec 0020 AC-5)", () => {
     const onRequestProject = createMockProject({ priceOnRequest: true });
     render(<ResultCard project={onRequestProject} countryName="Polska" locale="pl" />);

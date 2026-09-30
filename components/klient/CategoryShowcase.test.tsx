@@ -121,6 +121,22 @@ describe("CategoryShowcase", () => {
     expect(screen.getAllByText("od 42 000 €")).toHaveLength(2);
   });
 
+  // spec 0058 AC-6: resolveProductHref is called with project.slug, so a
+  // featured example that already has one links through it, not the id.
+  it("links to the slug based address when the featured example has a slug (spec 0058 AC-6)", async () => {
+    mockedGetProductFamilyCounts.mockResolvedValue(zeroCounts);
+    mockedGetFeaturedProjectByFamily.mockImplementation(async (family) =>
+      createMockProject({ id: `prj-${family}-example`, family, slug: `${family}-example-slug` })
+    );
+
+    render(await CategoryShowcase({ locale: "pl" }));
+
+    expect(offerLinkForCategory("Przykładowa realizacja z kategorii Spa modułowe")).toHaveAttribute(
+      "href",
+      "/pl/project/spa-modulowe-example-slug"
+    );
+  });
+
   it("falls back to the product count badge when the featured project has no fixed price (priceOnRequest)", async () => {
     mockedGetProductFamilyCounts.mockResolvedValue([
       { family: "dom", subcategory: null, count: 0 },

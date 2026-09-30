@@ -34,6 +34,15 @@ describe("PopularHomes", () => {
     expect(screen.getByRole("link")).toHaveAttribute("href", "/pl/project/prj-modulor-family-90");
   });
 
+  // spec 0058 AC-6: resolveProductHref is called with project.slug, so a
+  // featured project that already has one links through it, not the id.
+  it("links through the slug when the project has one (spec 0058 AC-6)", async () => {
+    const projects = [createMockProject({ id: "prj-modulor-family-90", featured: true, slug: "modulor-family-90" })];
+    render(await resolveAsyncTree(<PopularHomes locale="pl" projects={projects} countries={countries} />));
+
+    expect(screen.getByRole("link")).toHaveAttribute("href", "/pl/project/modulor-family-90");
+  });
+
   it("renders nothing in the grid when no project is featured", async () => {
     const projects = [createMockProject({ id: "prj-a", featured: false })];
     render(await resolveAsyncTree(<PopularHomes locale="pl" projects={projects} countries={countries} />));

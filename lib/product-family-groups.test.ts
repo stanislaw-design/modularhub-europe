@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { FAMILY_GROUPS, resolveFamilies, resolveFamilyGroup, type FamilyFilterValue } from "./product-family-groups";
+import {
+  FAMILY_GROUPS,
+  resolveFamilies,
+  resolveFamilyGroup,
+  resolveProductHref,
+  type FamilyFilterValue,
+} from "./product-family-groups";
 
 // spec 0035 AC-4: FAMILY_GROUPS is the single typed place deciding which real
 // families belong to which group; every other module (SearchCard, FamilyTabs,
@@ -66,5 +72,42 @@ describe("resolveFamilyGroup", () => {
 
   it("falls back to the dom group for a value outside FAMILY_GROUPS (defensive branch)", () => {
     expect(resolveFamilyGroup("nieznana-wartosc" as FamilyFilterValue)).toBe("dom");
+  });
+});
+
+// spec 0058 AC-6: the single place every product link goes through, so a
+// slug wins over the id everywhere at once.
+describe("resolveProductHref", () => {
+  it("uses the slug when the product has one", () => {
+    expect(resolveProductHref("dom", "11111111-1111-1111-1111-111111111111", "pl", "pomerania-40")).toBe(
+      "/pl/project/pomerania-40"
+    );
+  });
+
+  it("falls back to the id when slug is null (AC-5)", () => {
+    expect(resolveProductHref("dom", "11111111-1111-1111-1111-111111111111", "pl", null)).toBe(
+      "/pl/project/11111111-1111-1111-1111-111111111111"
+    );
+  });
+
+  it("falls back to the id when slug is omitted entirely", () => {
+    expect(resolveProductHref("dom", "11111111-1111-1111-1111-111111111111", "pl")).toBe(
+      "/pl/project/11111111-1111-1111-1111-111111111111"
+    );
+  });
+
+  it("routes outdoor-tv to its own segment, slug and all (spec 0056 AC-5)", () => {
+    expect(resolveProductHref("outdoor-tv", "22222222-2222-2222-2222-222222222222", "pl", "econo-lift")).toBe(
+      "/pl/outdoor-tv/econo-lift"
+    );
+  });
+
+  it("routes every non-outdoor-tv family to /project", () => {
+    expect(resolveProductHref("spa-modulowe", "id", "pl", "sauna-18")).toBe("/pl/project/sauna-18");
+    expect(resolveProductHref("kontenery-modulowe", "id", "pl", "bistro-24")).toBe("/pl/project/bistro-24");
+  });
+
+  it("carries the locale segment through unchanged", () => {
+    expect(resolveProductHref("dom", "id", "en", "pomerania-40")).toBe("/en/project/pomerania-40");
   });
 });

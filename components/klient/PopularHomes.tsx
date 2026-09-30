@@ -32,7 +32,7 @@ export async function PopularHomes({ locale, projects, countries }: PopularHomes
               key={project.id}
               project={project}
               countryName={countryNameByCode.get(project.countryOfProduction) ?? project.countryOfProduction}
-              href={resolveProductHref(project.family, project.id, locale)}
+              href={resolveProductHref(project.family, project.id, locale, project.slug)}
             />
           ))}
         </div>

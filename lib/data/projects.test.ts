@@ -44,6 +44,7 @@ import {
   getFeaturedProjectByFamily,
   getProducerVolumeProfile,
   getProjectById,
+  getProjectBySlugOrId,
   getProjects,
   getPublishedProductIds,
   getVerifiedVolumeManufacturerProjects,
@@ -66,6 +67,10 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: reads from the da
   const priceOnRequestDomId = crypto.randomUUID();
   const saunaSpaId = crypto.randomUUID();
   const searchableDomId = crypto.randomUUID();
+  // spec 0058: a product with a slug already set, and a second one without
+  // (AC-3, AC-5).
+  const slugDomId = crypto.randomUUID();
+  const noSlugDomId = crypto.randomUUID();
   // getFeaturedProjectByFamily has no ORDER BY/LIMIT, so it assumes at most
   // one published+featured row per family (lib/data/projects.ts). The dev DB
   // already seeds a real featured kontenery-modulowe product; neutralize it for this test's
@@ -177,6 +182,26 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: reads from the da
         status: "published",
         name: "Wyjatkowytoken Dom",
         description: "Opisowy tekst do testu wyszukiwania.",
+        floorAreaM2: 80,
+        countryOfProduction: "PL",
+      },
+      {
+        id: slugDomId,
+        producerId,
+        family: "dom",
+        status: "published",
+        name: "Slug Test Dom",
+        slug: "slug-test-dom",
+        floorAreaM2: 80,
+        countryOfProduction: "PL",
+      },
+      {
+        id: noSlugDomId,
+        producerId,
+        family: "dom",
+        status: "draft",
+        name: null,
+        slug: null,
         floorAreaM2: 80,
         countryOfProduction: "PL",
       },
@@ -374,6 +399,46 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: reads from the da
 
     expect(project?.name).toBe("Published Test Dom");
     expect(project?.producerName).toBe("Test Producer");
+  });
+
+  // spec 0058 AC-1, AC-3: mapRowToProject carries slug/status through.
+  it("getProjectById exposes slug (null for a product without one) and status", async () => {
+    const withSlug = await getProjectById(slugDomId);
+    expect(withSlug?.slug).toBe("slug-test-dom");
+    expect(withSlug?.status).toBe("published");
+
+    const published = await getProjectById(publishedDomId);
+    expect(published?.slug).toBeNull();
+
+    const draft = await getProjectById(draftDomId);
+    expect(draft?.status).toBe("draft");
+  });
+
+  // spec 0058 AC-3: the public product route accepts either the slug or the id.
+  describe("getProjectBySlugOrId (spec 0058 AC-3, AC-5)", () => {
+    it("resolves a product by its slug", async () => {
+      const project = await getProjectBySlugOrId("slug-test-dom");
+      expect(project?.id).toBe(slugDomId);
+    });
+
+    it("resolves a product by its id, even when it already has a slug", async () => {
+      const project = await getProjectBySlugOrId(slugDomId);
+      expect(project?.id).toBe(slugDomId);
+    });
+
+    it("resolves a product by its id when it has no slug yet (AC-5)", async () => {
+      const project = await getProjectBySlugOrId(noSlugDomId);
+      expect(project?.id).toBe(noSlugDomId);
+      expect(project?.slug).toBeNull();
+    });
+
+    it("returns null for a value that matches neither a slug nor a uuid", async () => {
+      expect(await getProjectBySlugOrId("nieistniejacy-slug")).toBeNull();
+    });
+
+    it("returns null for a well-formed but unknown uuid", async () => {
+      expect(await getProjectBySlugOrId("00000000-0000-0000-0000-000000000000")).toBeNull();
+    });
   });
 
   it("getFeaturedProjectByFamily returns the one published, featured row for that family", async () => {

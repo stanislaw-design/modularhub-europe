@@ -26,7 +26,7 @@ const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0
 export function FavoriteCard({ entry, locale, selected, selectionDisabled, onToggleSelect }: FavoriteCardProps) {
   const t = useTranslations("FavoriteCard");
   const { project, available } = entry;
-  const href = resolveProductHref(project.family, project.id, locale);
+  const href = resolveProductHref(project.family, project.id, locale, project.slug);
 
   return (
     <Card

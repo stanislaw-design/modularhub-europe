@@ -332,5 +332,84 @@ describe.skipIf(!process.env.DATABASE_URL)(
       expect(after.nl.foundationOptions).toBe("Vloerplaat");
       expect(after.de.foundationOptions).toBe("Fundamentplatte");
     });
+
+    // Spec 0058 AC-1, AC-2: slug generation wired into the two write paths.
+    describe("slug (spec 0058)", () => {
+      it("computes a slug from the product name on create", async () => {
+        generateProductTranslationsMock.mockResolvedValue({});
+
+        const created = await createProducerProduct(draftFields({ name: "Slug Test House" }));
+        expect(created.ok).toBe(true);
+        createdProductIds.push(created.productId!);
+        await flushAfter();
+
+        const [row] = await db.select().from(product).where(eq(product.id, created.productId!));
+        expect(row.slug).toBe("slug-test-house");
+      });
+
+      it("never recomputes the slug once set, even after the name changes", async () => {
+        generateProductTranslationsMock.mockResolvedValue({});
+
+        const created = await createProducerProduct(draftFields({ name: "Slug Stability House" }));
+        expect(created.ok).toBe(true);
+        const productId = created.productId!;
+        createdProductIds.push(productId);
+        await flushAfter();
+
+        const updated = await updateProducerProduct(
+          productId,
+          draftFields({ name: "Renamed Slug Stability House" }),
+          { publish: false },
+        );
+        expect(updated.ok).toBe(true);
+        await flushAfter();
+
+        const [row] = await db.select().from(product).where(eq(product.id, productId));
+        expect(row.name).toBe("Renamed Slug Stability House");
+        expect(row.slug).toBe("slug-stability-house");
+      });
+
+      it("stays null through a create with a blank name, then computes on the first update that fills the name (AC-1)", async () => {
+        generateProductTranslationsMock.mockResolvedValue({});
+
+        const created = await createProducerProduct(draftFields({ name: "" }));
+        expect(created.ok).toBe(true);
+        const productId = created.productId!;
+        createdProductIds.push(productId);
+        await flushAfter();
+
+        const [beforeRow] = await db.select().from(product).where(eq(product.id, productId));
+        expect(beforeRow.slug).toBeNull();
+
+        const updated = await updateProducerProduct(productId, draftFields({ name: "Late Named House" }), {
+          publish: false,
+        });
+        expect(updated.ok).toBe(true);
+        await flushAfter();
+
+        const [afterRow] = await db.select().from(product).where(eq(product.id, productId));
+        expect(afterRow.slug).toBe("late-named-house");
+      });
+
+      it("appends a random suffix when two products collide on the same base slug (AC-2)", async () => {
+        generateProductTranslationsMock.mockResolvedValue({});
+
+        const first = await createProducerProduct(draftFields({ name: "Collision House" }));
+        expect(first.ok).toBe(true);
+        createdProductIds.push(first.productId!);
+        await flushAfter();
+
+        const second = await createProducerProduct(draftFields({ name: "Collision House" }));
+        expect(second.ok).toBe(true);
+        createdProductIds.push(second.productId!);
+        await flushAfter();
+
+        const [firstRow] = await db.select().from(product).where(eq(product.id, first.productId!));
+        const [secondRow] = await db.select().from(product).where(eq(product.id, second.productId!));
+        expect(firstRow.slug).toBe("collision-house");
+        expect(secondRow.slug).not.toBe("collision-house");
+        expect(secondRow.slug).toMatch(/^collision-house-[0-9a-f]{4}$/);
+      });
+    });
   },
 );

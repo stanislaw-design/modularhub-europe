@@ -188,6 +188,10 @@ export interface Project {
   producerId: string;
   producerName: string;
   name: string;
+  /** Czytelny adres publicznej strony produktu (spec 0058 AC-1), null dopóki name jest puste. */
+  slug: string | null;
+  /** `robots: noindex` na stronie klienta dla wszystkiego innego niż "published" (spec 0058 AC-7). */
+  status: "draft" | "published";
   countryOfProduction: CountryCode;
   floorAreaM2: number;
   builtUpAreaM2: number;

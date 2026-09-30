@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { getFeaturedProjectByFamily } from "@/lib/data/projects";
 import { getProductFamilyCounts } from "@/lib/db/queries";
+import { resolveProductHref } from "@/lib/product-family-groups";
 import type { ProductFamily } from "@/lib/product-technical-specs";
 import { CategoryShowcaseCarousel } from "./CategoryShowcaseCarousel";
 
@@ -94,7 +95,7 @@ export async function CategoryShowcase({ locale }: CategoryShowcaseProps) {
       description: familyDescriptions[family],
       image: project?.coverImageUrl ?? FAMILY_IMAGES[family],
       imageAlt: t("imageAlt", { category: name }),
-      href: project ? `/${locale}/project/${project.id}` : allResultsHref,
+      href: project ? resolveProductHref(project.family, project.id, locale, project.slug) : allResultsHref,
       offerLabel,
       dotLabel: t("dotLabel", { category: name }),
     };

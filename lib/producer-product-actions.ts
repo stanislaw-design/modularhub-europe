@@ -9,6 +9,7 @@ import {
 } from "@/lib/ai/product-translation";
 import type { CountryCode, ProjectDraft } from "@/lib/data/types";
 import { db } from "@/lib/db/client";
+import { getPgErrorCode } from "@/lib/db/pg-error";
 import { document, product, productCountryEligibility, productTranslation, productVariant } from "@/lib/db/schema";
 import { captureError } from "@/lib/observability/errors";
 import { trackEvent } from "@/lib/observability";
@@ -19,6 +20,7 @@ import {
 } from "@/lib/product-client-requirements";
 import { faqSchema, faqTranslationSchema, type FaqTranslationRow } from "@/lib/product-faq";
 import { roomLayoutSchema, roomLayoutTranslationSchema, type RoomLayoutTranslationRow } from "@/lib/product-room-layout";
+import { appendSlugSuffix, slugifyProductName } from "@/lib/product-slug";
 import { getTechnicalSpecsSchema } from "@/lib/product-technical-specs";
 import { requireProducerActor } from "@/lib/producer-actor";
 
@@ -136,6 +138,32 @@ function buildProductValues(fields: ProducerProductFields) {
     simplifiedPermitEligible: fields.simplifiedPermitEligible,
     updatedAt: new Date(),
   };
+}
+
+// Ustawia slug dokładnie raz (spec 0058 AC-1, AC-2): tylko gdy dzisiejszy
+// slug jest null a przychodząca nazwa niepusta po przycięciu. Kolizję
+// bazowego sluga (product.slug jest .unique()) łapie się przez 23505 przy
+// samym zapisie, nie przez wcześniejszy SELECT (unika wyścigu dwóch równoległych
+// zapisów), i próbuje ponownie z nowym losowym sufiksem, aż się powiedzie.
+async function writeWithSlugRetry<T>(
+  currentSlug: string | null,
+  name: string,
+  write: (slug: string | undefined) => Promise<T>,
+): Promise<T> {
+  const trimmedName = name.trim();
+  if (currentSlug !== null || !trimmedName) return write(undefined);
+
+  let candidate = slugifyProductName(trimmedName);
+  if (!candidate) return write(undefined);
+
+  for (;;) {
+    try {
+      return await write(candidate);
+    } catch (error) {
+      if (getPgErrorCode(error) !== "23505") throw error;
+      candidate = appendSlugSuffix(candidate);
+    }
+  }
 }
 
 // Wiersz do upsertu, budowany WARUNKOWO (spec 0028 AC-15, spec 0050 AC-28 do
@@ -454,19 +482,23 @@ export async function createProducerProduct(fields: ProducerProductFields): Prom
   const actor = await requireProducerActor();
   if (!actor) return { ok: false, error: DENIED_ERROR };
   if (fields.family === null) return { ok: false, error: GENERIC_ERROR };
+  const family = fields.family;
   const contentError = validateContentShape(fields);
   if (contentError) return { ok: false, error: contentError };
 
   try {
-    const [inserted] = await db
-      .insert(product)
-      .values({
-        producerId: actor.producerId,
-        family: fields.family,
-        status: "draft",
-        ...buildProductValues(fields),
-      })
-      .returning({ id: product.id });
+    const [inserted] = await writeWithSlugRetry(null, fields.name, (slug) =>
+      db
+        .insert(product)
+        .values({
+          producerId: actor.producerId,
+          family,
+          status: "draft",
+          slug,
+          ...buildProductValues(fields),
+        })
+        .returning({ id: product.id }),
+    );
 
     await upsertTranslations(inserted.id, fields);
     await upsertProductCountryEligibility(inserted.id, fields.deliveryCountries);
@@ -492,7 +524,7 @@ export async function updateProducerProduct(
   if (contentError) return { ok: false, error: contentError };
 
   const [existing] = await db
-    .select({ id: product.id, status: product.status })
+    .select({ id: product.id, status: product.status, slug: product.slug })
     .from(product)
     .where(and(eq(product.id, productId), eq(product.producerId, actor.producerId), isNull(product.deletedAt)));
   if (!existing) return { ok: false, error: "Nie znaleziono produktu." };
@@ -510,13 +542,16 @@ export async function updateProducerProduct(
     // kompromis co createProducerProduct obok, gdzie insert product i
     // upsertTranslations też są dwoma osobnymi zapisami) — akceptowalne, bo
     // reguła jest wtedy dokładnie jedna, nie dwie do rozjechania.
-    await db
-      .update(product)
-      .set({
-        ...buildProductValues(fields),
-        ...(options.publish && !publishError ? { status: "published" as const } : {}),
-      })
-      .where(eq(product.id, productId));
+    await writeWithSlugRetry(existing.slug, fields.name, (slug) =>
+      db
+        .update(product)
+        .set({
+          ...buildProductValues(fields),
+          ...(slug !== undefined ? { slug } : {}),
+          ...(options.publish && !publishError ? { status: "published" as const } : {}),
+        })
+        .where(eq(product.id, productId)),
+    );
     await upsertTranslations(productId, fields);
     await upsertProductCountryEligibility(productId, fields.deliveryCountries);
     after(() => generateMissingProductTranslations(productId));

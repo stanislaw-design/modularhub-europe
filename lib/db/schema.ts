@@ -567,6 +567,11 @@ export const product = pgTable(
     // Rodzina produktu, niezmienna po utworzeniu (spec 0022 AC-1, AC-7).
     family: productFamilyEnum("family").notNull(),
     name: text("name"),
+    // Czytelny publiczny adres (spec 0058 AC-1): null dopóki name jest puste,
+    // wyliczany raz przy pierwszym niepustym zapisie name (lib/product-slug.ts),
+    // nigdy przeliczany przy kolejnych zmianach name. `.unique()`, ten sam
+    // wzorzec co producer.nip powyżej.
+    slug: text("slug").unique(),
     countryOfProduction: text("country_of_production").references(() => country.code),
     floorAreaM2: real("floor_area_m2"),
     builtUpAreaM2: real("built_up_area_m2"),

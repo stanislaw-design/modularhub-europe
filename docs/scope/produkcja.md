@@ -60,6 +60,7 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 44 | Użytkownicy, role, audit log i 2FA panelu admina | Slice 10 | planned |
 | 45 | Outdoor TV: rodzina produktu i partnerstwo reseller MirageVision | Foundation | in progress |
 | 46 | Wieloosobowe konta producenta | Slice 2b | in progress |
+| 47 | Czytelne adresy i metadane produktów (slug) | Utwardzenie | done |
 
 ## Foundations
 
@@ -585,6 +586,18 @@ Automatyczny test end to end obejmujący krytyczne ścieżki transakcyjne (logow
 Świadomy punkt kontrolny bezpieczeństwa (autoryzacja, płatności, dane osobowe, panel admina) tuż przed uruchomieniem produkcyjnym, zamiast polegania wyłącznie na utwardzeniu per funkcja (basis: OWASP Application Security Verification Standard, jako struktura wymagań do weryfikacji przed startem).
 **Done when:** przegląd bezpieczeństwa jest przeprowadzony na kompletnym, podłączonym zapleczu, a każde krytyczne lub wysokie ustalenie jest naprawione albo świadomie zaakceptowane przed startem.
 - [ ] Uruchom przegląd: `/security-review`
+
+### 47. Czytelne adresy i metadane produktów (slug) · medium · done (code in lib/product-slug.ts, lib/data/projects.ts, lib/producer-product-actions.ts, app/[locale]/(customer)/project/[slug]/, app/[locale]/(customer)/outdoor-tv/[slug]/)
+Adres strony produktu (dom, spa, kontener, outdoor tv) dostaje czytelny slug wyliczany z nazwy (na przykład `pomerania-40`) zamiast surowego `uuid`, ze starym adresem wciąż działającym i przekierowującym trwale na nowy; produkty inne niż opublikowane dostają `robots: noindex`.
+**Done when:** obie publiczne strony produktu renderują się pod adresem ze slugiem, stary adres z `id` przekierowuje trwale (308) na slug gdy on istnieje, każde miejsce budujące link do produktu pokazuje slug, a istniejące produkty są wyrównane jednorazowym skryptem.
+- [x] Zaprojektuj (spec): [0058](../specs/0058-czytelne-adresy-i-metadane-produktow/index.md)
+- [x] Build it: `/develop czytelne adresy i metadane produktów`
+  - [x] Schemat i generowanie sluga: nowa kolumna `product.slug`, pomocnik transliteracji/kolizji, podłączenie do `createProducerProduct`/`updateProducerProduct`, satisfies AC-1, AC-2
+  - [x] Odczyt i strony publiczne: `getProjectBySlugOrId`, zmiana folderów trasy `[id]` na `[slug]` dla `/project/` i `/outdoor-tv/`, przekierowanie 308 z zachowaniem query, `robots: noindex` dla statusu innego niż published, satisfies AC-3, AC-4, AC-5, AC-7
+  - [x] Linkowanie w całej aplikacji: `resolveProductHref` i wszystkie wywołania (wyniki, ulubione, porównywarka, podgląd producenta/administratora), satisfies AC-6
+  - [x] Wyrównanie danych i testy: jednorazowy skrypt dla istniejących produktów, aktualizacja testów stron produktu, nowe testy przekierowania i przejścia bez sluga, satisfies AC-8, AC-9
+- [x] Verify it: `/check verify czytelne adresy i metadane produktów`
+- [x] Test it: `/test czytelne adresy i metadane produktów`
 
 ## Deferred
 Poza zakresem tej epiki, świadomie odłożone.

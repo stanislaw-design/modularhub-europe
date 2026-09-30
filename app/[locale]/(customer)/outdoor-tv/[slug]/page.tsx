@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { notFound, redirect } from "next/navigation";
+import { notFound, permanentRedirect, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { Button, Card, DataText, Heading, Text } from "@/components/ui";
 import { FavoriteButton } from "@/components/klient/FavoriteButton";
@@ -16,7 +16,7 @@ import { OutdoorTvTechnicalSpecs } from "@/components/klient/OutdoorTvTechnicalS
 import { OutdoorTvVideoSection } from "@/components/klient/OutdoorTvVideoSection";
 import { getDefaultProjectVariant } from "@/lib/data/project-variants";
 import { getProducerById, getProducerPhotoUrl } from "@/lib/data/producers";
-import { getProjectById } from "@/lib/data/projects";
+import { getProjectBySlugOrId } from "@/lib/data/projects";
 import type { CompletionStandard } from "@/lib/data/types";
 import { getClientIdForUser, getFavoritedProductIds } from "@/lib/db/queries";
 import { routing, type Locale } from "@/lib/i18n/routing";
@@ -28,7 +28,20 @@ function firstParam(value: string | string[] | undefined): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
 
-type PageParams = { locale: string; id: string };
+// Klon dzisiejszego search params (spec 0042 AC-1, ten sam wzorzec co
+// /project/[slug]): zachowuje cały ciąg zapytania przy przekierowaniu id ->
+// slug (spec 0058 AC-4), zamiast go gubić.
+function preserveQuery(searchParams: PageSearchParams): string {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(searchParams)) {
+    const resolved = firstParam(value);
+    if (resolved) params.set(key, resolved);
+  }
+  const query = params.toString();
+  return query ? `?${query}` : "";
+}
+
+type PageParams = { locale: string; slug: string };
 type PageSearchParams = { [key: string]: string | string[] | undefined };
 
 export async function generateMetadata({
@@ -36,9 +49,9 @@ export async function generateMetadata({
 }: {
   params: Promise<PageParams>;
 }): Promise<Metadata> {
-  const { locale, id } = await params;
+  const { locale, slug } = await params;
   const [project, t] = await Promise.all([
-    getProjectById(id, locale as Locale),
+    getProjectBySlugOrId(slug, locale as Locale),
     getTranslations({ locale, namespace: "OutdoorTvPage" }),
   ]);
   if (!project || project.family !== "outdoor-tv") return {};
@@ -47,10 +60,11 @@ export async function generateMetadata({
     ? t("priceOnRequest").toLowerCase()
     : `${t("from")} ${priceFormatter.format(project.priceMin)} €`;
   const description = `${project.name} — ${project.producerName}, ${priceLabel}.`;
-  const canonicalPath = `/${locale}/outdoor-tv/${project.id}`;
+  const canonicalSegment = project.slug ?? project.id;
+  const canonicalPath = `/${locale}/outdoor-tv/${canonicalSegment}`;
 
   const languageAlternates = Object.fromEntries(
-    routing.locales.map((code) => [code, `/${code}/outdoor-tv/${project.id}`]),
+    routing.locales.map((code) => [code, `/${code}/outdoor-tv/${canonicalSegment}`]),
   );
 
   return {
@@ -58,8 +72,10 @@ export async function generateMetadata({
     description,
     alternates: {
       canonical: canonicalPath,
-      languages: { ...languageAlternates, "x-default": `/${routing.defaultLocale}/outdoor-tv/${project.id}` },
+      languages: { ...languageAlternates, "x-default": `/${routing.defaultLocale}/outdoor-tv/${canonicalSegment}` },
     },
+    // Spec 0058 AC-7, ten sam wzorzec co /project/[slug].
+    ...(project.status !== "published" ? { robots: { index: false, follow: false } } : {}),
     openGraph: {
       title: project.name,
       description,
@@ -76,18 +92,25 @@ export default async function OutdoorTvPage({
   params: Promise<PageParams>;
   searchParams: Promise<PageSearchParams>;
 }) {
-  const [{ locale, id }, rawSearchParams, t, tGallery] = await Promise.all([
+  const [{ locale, slug }, rawSearchParams, t, tGallery] = await Promise.all([
     params,
     searchParams,
     getTranslations("OutdoorTvPage"),
     getTranslations("ProjectGallery"),
   ]);
-  const project = await getProjectById(id, locale as Locale);
+  const project = await getProjectBySlugOrId(slug, locale as Locale);
   if (!project) notFound();
-  // Odwrotność strażnika na /project/[id] (spec 0056 AC-6): stary lub błędny
+  // Odwrotność strażnika na /project/[slug] (spec 0056 AC-6): stary lub błędny
   // link na inną rodzinę trafia na jej właściwy route zamiast renderować się
   // tutaj po cichu, na stronie zbudowanej wyłącznie pod outdoor-tv.
-  if (project.family !== "outdoor-tv") redirect(resolveProductHref(project.family, project.id, locale));
+  if (project.family !== "outdoor-tv") redirect(resolveProductHref(project.family, project.id, locale, project.slug));
+  // Wejście po id, gdy produkt już ma slug, przekierowuje trwale (308) na
+  // kanoniczny adres ze slugiem, z zachowaniem całego ciągu zapytania (spec
+  // 0058 AC-4); produkt bez sluga jeszcze renderuje się normalnie pod
+  // adresem z id, bez przekierowania (AC-5).
+  if (project.slug && project.slug !== slug) {
+    permanentRedirect(`/${locale}/outdoor-tv/${project.slug}${preserveQuery(rawSearchParams)}`);
+  }
 
   const [producer, producerPhotoUrl, session] = await Promise.all([
     getProducerById(project.producerId),
@@ -111,17 +134,17 @@ export default async function OutdoorTvPage({
     })),
   ];
 
+  const wariantParam = firstParam(rawSearchParams.wariant);
   // Dopasowanie po variant.id, nie completionStandard (patrz komentarz w
   // ProjectVariantPicker.tsx): rodziny katalogowe jak outdoor-tv mają wiele
   // wariantów dzielących completionStandard = 'katalogowy' naraz.
-  const wariantParam = firstParam(rawSearchParams.wariant);
   const selectedVariant =
     project.variants.find((variant) => variant.id === wariantParam) ?? getDefaultProjectVariant(project);
 
   function hrefForVariant(variantId: string): string {
     const query = new URLSearchParams();
     query.set("wariant", variantId);
-    return `${resolveProductHref("outdoor-tv", project!.id, locale)}?${query.toString()}`;
+    return `/${locale}/outdoor-tv/${slug}?${query.toString()}`;
   }
 
   // completionStandard jest tu tylko technicznym slotem wariantu (spec 0056

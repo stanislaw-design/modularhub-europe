@@ -713,6 +713,8 @@ function mapRowToProject(
     producerId: row.producerId,
     producerName,
     name: resolveTranslatedText(row.name, translation?.name),
+    slug: row.slug,
+    status: row.status,
     countryOfProduction: (row.countryOfProduction ?? "PL") as CountryCode,
     floorAreaM2: row.floorAreaM2 ?? 0,
     builtUpAreaM2: row.builtUpAreaM2 ?? 0,
@@ -1014,6 +1016,19 @@ export async function getProjectById(id: string, locale: Locale = "pl"): Promise
     ),
     certificationsByProducer.get(row.product.producerId),
   );
+}
+
+// Adres publicznej strony produktu przyjmuje slug albo id (spec 0058 AC-3):
+// najpierw dopasowanie po slug (czytelny adres), dopiero gdy brak trafienia i
+// wartość ma kształt uuid, dopasowanie po id (stary adres, wciąż działa —
+// AC-4/AC-5 decydują o ewentualnym przekierowaniu na poziomie strony, nie
+// tutaj: ta funkcja tylko rozwiązuje wartość na produkt albo null). Deleguje
+// do getProjectById po znalezieniu prawdziwego id, żeby nie duplikować całego
+// zapytania/joinów dwa razy.
+export async function getProjectBySlugOrId(value: string, locale: Locale = "pl"): Promise<Project | null> {
+  const [bySlug] = await db.select({ id: product.id }).from(product).where(eq(product.slug, value));
+  if (bySlug) return getProjectById(bySlug.id, locale);
+  return getProjectById(value, locale);
 }
 
 // Public: feeds CategoryShowcase on the home page with one real, clickable

@@ -6,6 +6,12 @@ export function createMockProject(overrides: Partial<Project> = {}): Project {
     producerId: "prod-modulor",
     producerName: "Modulor Systems Sp. z o.o.",
     name: "Modulor Family 90",
+    // null by default (spec 0058 AC-5 shape): every existing test/component
+    // that links via project.id (built before slugs existed) keeps working
+    // unchanged; a test that specifically wants slug-based behavior passes
+    // an override.
+    slug: null,
+    status: "published",
     countryOfProduction: "PL",
     floorAreaM2: 90,
     builtUpAreaM2: 108,

@@ -217,7 +217,7 @@ export function ProjectCompareTable({ locale, columns, hasUnavailable, resultsHr
                         )}
                       </div>
                       <Link
-                        href={resolveProductHref(column.project.family, column.project.id, locale)}
+                        href={resolveProductHref(column.project.family, column.project.id, locale, column.project.slug)}
                         className="focus-ring rounded-data font-display text-body-l font-semibold text-brand-v5-ink underline-offset-2 hover:underline"
                       >
                         {column.project.name}

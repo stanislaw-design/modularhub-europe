@@ -66,7 +66,7 @@ export function ResultCard({
   } as const;
   const roomsLabel = t(`rooms.${roomsCountBucket(project.rooms)}`);
   const countryQuery = countryCode ? `country=${countryCode}` : "";
-  const productHref = resolveProductHref(project.family, project.id, locale);
+  const productHref = resolveProductHref(project.family, project.id, locale, project.slug);
   const href = `${productHref}${countryQuery ? `?${countryQuery}` : ""}`;
   const defaultVariant = getDefaultProjectVariant(project);
   const priceDisplay = getProjectPriceDisplay(project);

@@ -26,6 +26,21 @@ describe("ProjectCompareTable", () => {
     expect(screen.getAllByText("Brak rzutu")).toHaveLength(2);
   });
 
+  // spec 0058 AC-6: resolveProductHref is called with column.project.slug, so
+  // the product name link uses the slug when the product has one.
+  it("links the product name through the slug when the product has one (spec 0058 AC-6)", () => {
+    render(
+      <ProjectCompareTable
+        locale="pl"
+        columns={[makeColumn("a", { slug: "pomerania-40" }), makeColumn("b")]}
+        hasUnavailable={false}
+        resultsHref="/pl/results"
+      />
+    );
+
+    expect(screen.getByRole("link", { name: "Dom a" })).toHaveAttribute("href", "/pl/project/pomerania-40");
+  });
+
   it("shows an unavailable column with a hint instead of project data (spec 0044 AC-10)", () => {
     render(
       <ProjectCompareTable
