@@ -57,7 +57,7 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 41 | Zarządzany przepływ doradczy: klient, ModularHub i producent | Slice 3b | in progress |
 | 42 | AI w edycji istniejącego produktu (rozpoznawanie układu, wydobywanie standardów) | Slice 2b | in progress |
 | 43 | Wymiary zewnętrzne i wymagania fundamentowe w kreatorze | Slice 2b | done |
-| 44 | Użytkownicy, role, audit log i 2FA panelu admina | Slice 10 | planned |
+| 44 | Atrybucja audytu panelu admina | Slice 10 | in progress |
 | 45 | Outdoor TV: rodzina produktu i partnerstwo reseller MirageVision | Foundation | in progress |
 | 46 | Wieloosobowe konta producenta | Slice 2b | in progress |
 | 47 | Czytelne adresy i metadane produktów (slug) | Utwardzenie | done |
@@ -65,6 +65,10 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 49 | Tablica ogłoszeń B2B i odpowiadanie na nią | Slice 12 | in progress |
 | 50 | Strona produktu dla sauny (podkategoria spa modułowe) | Foundation | in progress |
 | 51 | Opcjonalny PDF wyceny w tablicy ogłoszeń B2B | Slice 12 | done |
+| 52 | Samoobsługowe role i konta w panelu admina | Slice 10 | planned |
+| 53 | Log kto przeglądał dane klienta lub producenta | Slice 10 | planned |
+| 54 | Dwuskładnikowe logowanie dla kont administratora | Slice 10 | planned |
+| 55 | Rozdział certyfikatów producenta od oceny zgodności | Slice 11 | in progress |
 
 ## Foundations
 
@@ -534,10 +538,32 @@ Wspólna nawigacja i tryb ciemny spinające dziś rozłączone ekrany panelu (sp
 - [ ] Zweryfikuj: `/check verify panel administracyjny`
 - [ ] Testuj: `/test panel administracyjny`
 
-### 44. Użytkownicy, role, audit log i 2FA panelu admina · needs a decision · full
-Świadomie odłożona przez spec 0055 (patrz jej Premise note i Follow-up) rozbudowa panelu admina: zarządzanie kontami i rolami z poziomu panelu (zamiast dzisiejszego ręcznego nadawania roli w bazie), pełny log audytowy kto i kiedy przeglądał lub zmieniał dane klienta/producenta, oraz dwuskładnikowe logowanie dla kont administratora.
-**Done when:** administrator może nadać lub odebrać rolę bez ręcznej zmiany w bazie, każda odsłona i zmiana danych osobowych klienta/producenta w panelu jest zapisana w logu audytowym z odpowiedzią kto/kiedy/co, a logowanie na konto administratora wymaga drugiego składnika.
-- [ ] Zaprojektuj (spec): `/architect użytkownicy, role i audit log panelu admina`
+### 44. Atrybucja audytu panelu admina · full · in progress
+Dokończenie mechanizmu audytu ze spec 0018: tabela `audit_log` i jej trigger już istnieją i zapisują co się zmieniło na danych osobowych, ale nigdy nie zapisywały kto wykonał zmianę, bo nic w aplikacji nie ustawiało zmiennej, którą trigger czyta. Ta funkcja kończy to dla zapisów panelu admina (blokada producenta, weryfikacja B2B klienta, zarządzanie członkami producenta) i dokłada log (same metadane, bez treści) dla rozmów doradczych administratora w sprawach klient/producent (spec 0048), które dziś nie są objęte audytem wcale. Pierwotny, szerszy zamysł funkcji (samoobsługowe role, log przeglądania, 2FA) został świadomie rozdzielony na osobne funkcje 52, 53, 54 podczas projektowania tej decyzji.
+**Done when:** każdy zapis administratora na tabeli objętej audytem (`users`, `producer`, `client`, `inquiry`, `payment`, `document`, `message`) zapisuje w `audit_log`, który administrator go wykonał; rozmowy doradcze w sprawach są objęte audytem bez treści wiadomości; mechanizm ma test regresyjny przeciw cichemu powrotowi do braku atrybucji i jest zweryfikowany bezpośrednio na produkcji (brak stagingu).
+- [x] Zaprojektuj (spec): [0064](../specs/0064-atrybucja-audytu-panelu-admina/index.md)
+- [ ] Zbuduj: `/develop atrybucja audytu panelu admina` — kod w `drizzle/0048_message_audit_trigger.sql` (nowy), `lib/db/with-admin-actor.ts` (nowy), `lib/producer-block-actions.ts`, `lib/producer-member-actions.ts`, `lib/project-quote-actions.ts`, `lib/cases/messaging.ts`, `lib/cases/cards.ts`, `lib/product-photo-actions.ts`, `lib/producer-block-actions.test.ts` (nowy); `lib/producer-project-translation-actions.ts`/`lib/producer-room-layout-actions.ts` sprawdzone przy budowie — żadna z tych dwóch funkcji nie zapisuje dziś niczego same z siebie (zapis dzieje się gdzie indziej), więc nie było tu nic do podłączenia
+  - [x] Migracja: rozszerzenie `audit_log_capture()` o allowlist pól dla `message` i `CREATE TRIGGER message_audit`, zweryfikowana na jednorazowej gałęzi Neon przed zastosowaniem, zastosowana na dev, satisfies AC-3, AC-4
+  - [x] Wspólny mechanizm: `lib/db/with-admin-actor.ts` (`set_config` w `db.batch`, bez przesunięcia indeksów istniejących wyników) plus pierwsze podłączenie (`lib/producer-block-actions.ts`) jako dowód end to end, satisfies AC-1
+  - [x] Test regresyjny (`audit_log.actor_user_id` faktycznie wypełnione po akcji admina) i podłączenie pozostałych miejsc zapisu z tabeli w spec 0064 (w tym ~8 funkcji w `lib/product-photo-actions.ts`, więcej niż jedna pozycja w pierwotnej tabeli spec 0064 sugerowała), satisfies AC-1, AC-2, AC-5
+  - [ ] Weryfikacja na produkcji: migracja zastosowana (Neon MCP), jedna realna akcja admina potwierdzona, satisfies AC-6
+- [ ] Zweryfikuj: `/check verify atrybucja audytu panelu admina` — AC-1 do AC-5 zweryfikowane na żywym dev (sesja admina w przeglądarce + bezpośrednie zapytania do bazy); AC-6 zablokowane, czeka na deploy
+- [x] Testuj: `/test atrybucja audytu panelu admina` — 1493/1493 testów zielonych (`npm run test`), w tym nowe/rozszerzone pliki dla AC-1, AC-2, AC-3, AC-5
+
+### 52. Samoobsługowe role i konta w panelu admina · needs a decision · full
+Rozdzielone ze spec [0064](../specs/0064-atrybucja-audytu-panelu-admina/index.md) podczas projektowania funkcji 44: dziś nadanie lub odebranie roli (klient/producent/admin) wymaga ręcznej zmiany w bazie. Ta funkcja dodaje zarządzanie kontami i rolami z poziomu panelu admina.
+**Done when:** administrator może nadać lub odebrać rolę użytkownikowi z poziomu panelu, bez ręcznej zmiany w bazie.
+- [ ] Zaprojektuj (spec): `/architect samoobsługowe role i konta w panelu admina`
+
+### 53. Log kto przeglądał dane klienta lub producenta · needs a decision · full
+Rozdzielone ze spec [0064](../specs/0064-atrybucja-audytu-panelu-admina/index.md): funkcja 44 w swojej pierwotnej wersji mówiła o logu kto "przeglądał LUB zmieniał" dane; spec 0064 objęła wyłącznie zmiany (trigger bazodanowy reaguje tylko na zapisy). Ta funkcja dokłada drugą połowę: log tego, kto i kiedy jedynie przeglądał dane osobowe klienta/producenta w panelu admina, przez osobny mechanizm (logowanie na poziomie aplikacji przy odczycie, nie trigger).
+**Done when:** każde otwarcie karty klienta lub producenta z danymi osobowymi w panelu admina jest zapisane w logu z odpowiedzią kto i kiedy, bez zalewania logu przy zwykłym przeglądaniu listy.
+- [ ] Zaprojektuj (spec): `/architect log kto przeglądał dane klienta lub producenta w panelu admina`
+
+### 54. Dwuskładnikowe logowanie dla kont administratora · needs a decision · full
+Rozdzielone ze spec [0064](../specs/0064-atrybucja-audytu-panelu-admina/index.md): dziś logowanie na każde konto, w tym administratora, jest jednoskładnikowe (magic link e mail, `auth.ts`). Ta funkcja dokłada drugi składnik logowania wyłącznie dla roli admin.
+**Done when:** logowanie na konto z rolą admin wymaga poprawnego kodu z drugiego składnika oprócz magic linku, zanim panel stanie się dostępny.
+- [ ] Zaprojektuj (spec): `/architect dwuskładnikowe logowanie dla kont administratora`
 
 ## Slice 11: weryfikacja firmy
 
@@ -545,6 +571,18 @@ Wspólna nawigacja i tryb ciemny spinające dziś rozłączone ekrany panelu (sp
 Rzeczywista weryfikacja dokumentów firmy producenta przed pierwszą wypłatą prowizji, zastępująca dzisiejszą listę wymaganych dokumentów bez weryfikacji.
 **Done when:** producent wgrywa wymagane dokumenty firmowe, status weryfikacji zmienia się na podstawie rzeczywistego sprawdzenia, a wypłata jest zablokowana do czasu pozytywnej weryfikacji.
 - [ ] Zaprojektuj (spec): `/architect weryfikacja firmy producenta`
+
+### 55. Rozdział certyfikatów producenta od oceny zgodności · in progress
+Dziś jeden płaski wpis "Zgodność z Bbl" wygląda jak certyfikat, a jest deklaracją producenta o konkretnym kraju. Ta funkcja rozdziela certyfikaty firmy (ze statusem potwierdzenia przez platformę), ocenę zgodności konkretnego projektu z przepisami kraju (w bazie, z zastrzeżeniem Compliance Engine) oraz dwie niezależne odznaki zaufania: tożsamość firmy i zdolność wolumenową.
+**Done when:** inwestor widzi różnicę między certyfikatem potwierdzonym przez platformę a deklaracją producenta, ocena zgodności projektu jest w bazie i powiązana z produktem, a odznaka tożsamości firmy i zdolności wolumenowej są niezależne.
+- [x] Zaprojektuj (spec): [0065](../specs/0065-rozdzial-certyfikatow-od-oceny-zgodnosci/index.md)
+- [ ] Zbuduj: `/develop rozdział certyfikatów producenta od oceny zgodności`
+  - [ ] Dane i migracja: tabele certyfikatów i ocen, backfill wszystkich producentów, trigger audytu, satisfies AC-1 do AC-3, AC-10
+  - [ ] Odczyty i strony: `/project/[id]` i listing z odznakami, satisfies AC-5 do AC-8, AC-12, AC-14
+  - [ ] Panele producenta i admina: dodawanie, potwierdzanie, oceny produktu, usunięcie starego zapisu, satisfies AC-9, AC-11, AC-16
+  - [ ] Faza 2 migracji (usunięcie kolumny jsonb), tłumaczenia, satisfies AC-4, AC-13
+- [ ] Zweryfikuj: `/check verify rozdział certyfikatów producenta od oceny zgodności`
+- [ ] Testuj: `/test rozdział certyfikatów producenta od oceny zgodności`
 
 ## Slice 12: duże zamówienia B2B
 

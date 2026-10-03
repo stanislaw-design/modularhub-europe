@@ -7,6 +7,7 @@ import { AuthError } from "next-auth";
 import { auth, signIn } from "@/auth";
 import { db } from "@/lib/db/client";
 import { getPgErrorCode } from "@/lib/db/pg-error";
+import { withAdminActor } from "@/lib/db/with-admin-actor";
 import { getClientIdForUser, getProducerIdForUser } from "@/lib/db/queries";
 import {
   bulkProductInquiry,
@@ -583,11 +584,13 @@ export async function setProducerVolumeVerification(producerId: string, status: 
   if (!session || session.user.role !== "admin") {
     return { ok: false, error: "Musisz być zalogowany jako administrator." };
   }
-  const updated = await db
-    .update(producerCapacityProfile)
-    .set({ volumeVerificationStatus: status })
-    .where(eq(producerCapacityProfile.producerId, producerId))
-    .returning({ producerId: producerCapacityProfile.producerId });
+  const [updated] = await withAdminActor(session.user.id, [
+    db
+      .update(producerCapacityProfile)
+      .set({ volumeVerificationStatus: status })
+      .where(eq(producerCapacityProfile.producerId, producerId))
+      .returning({ producerId: producerCapacityProfile.producerId }),
+  ]);
   if (updated.length === 0) {
     return { ok: false, error: "Nie znaleziono profilu zdolności producenta." };
   }
@@ -599,11 +602,9 @@ export async function setClientB2bVerification(clientId: string, status: "approv
   if (!session || session.user.role !== "admin") {
     return { ok: false, error: "Musisz być zalogowany jako administrator." };
   }
-  const updated = await db
-    .update(client)
-    .set({ b2bVerificationStatus: status })
-    .where(eq(client.id, clientId))
-    .returning({ id: client.id });
+  const [updated] = await withAdminActor(session.user.id, [
+    db.update(client).set({ b2bVerificationStatus: status }).where(eq(client.id, clientId)).returning({ id: client.id }),
+  ]);
   if (updated.length === 0) {
     return { ok: false, error: "Nie znaleziono klienta." };
   }

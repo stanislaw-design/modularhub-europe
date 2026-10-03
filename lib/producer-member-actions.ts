@@ -3,6 +3,7 @@
 import { and, eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db/client";
+import { withAdminActor } from "@/lib/db/with-admin-actor";
 import { producer, producerMember, sessions, users } from "@/lib/db/schema";
 import { captureError } from "@/lib/observability/errors";
 
@@ -86,16 +87,18 @@ export async function addProducerMember(input: AddProducerMemberInput): Promise<
         };
       }
 
-      await db.insert(producerMember).values({
-        producerId: input.producerId,
-        userId: existingUser.id,
-        addedBy: adminId,
-      });
+      await withAdminActor(adminId, [
+        db.insert(producerMember).values({
+          producerId: input.producerId,
+          userId: existingUser.id,
+          addedBy: adminId,
+        }),
+      ]);
       return { ok: true };
     }
 
     const newUserId = crypto.randomUUID();
-    await db.batch([
+    await withAdminActor(adminId, [
       db.insert(users).values({
         id: newUserId,
         email,
@@ -136,7 +139,7 @@ export async function removeProducerMember(producerId: string, userId: string): 
       return { ok: false, error: "Nie można usunąć ostatniego pozostałego członka producenta." };
     }
 
-    await db.batch([
+    await withAdminActor(adminId, [
       db
         .delete(producerMember)
         .where(and(eq(producerMember.producerId, producerId), eq(producerMember.userId, userId))),

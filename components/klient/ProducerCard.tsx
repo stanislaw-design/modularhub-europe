@@ -12,13 +12,19 @@ interface ProducerCardProps {
    * kontekście karty projektu, nie w ProducerShowcase na stronie głównej,
    * gdzie showroom nie jest istotny (spec 0042 AC-9, AC-10, Follow-up). */
   showTrustDetails?: boolean;
+  /** Zakres metrażu nie jest pokazywany na stronie głównej (ProducerShowcase). */
+  showSizeRange?: boolean;
 }
 
 // No logo files exist for any mock producer, and inventing graphic logos for
 // fictional companies risks reading as a real brand (spec 0014 AC-8's same
 // concern, spec 0015 Feature design). The name renders as large, styled
 // text instead of an image.
-export async function ProducerCard({ producer, showTrustDetails = false }: ProducerCardProps) {
+export async function ProducerCard({
+  producer,
+  showTrustDetails = false,
+  showSizeRange = true,
+}: ProducerCardProps) {
   const t = await getTranslations("ProducerCard");
   const countryLabel: Record<CountryCode, string> = {
     PL: t("country.PL"),
@@ -57,11 +63,13 @@ export async function ProducerCard({ producer, showTrustDetails = false }: Produ
             możliwości zostawiania recenzji, więc "0.0 (0)" wyglądałoby jak
             realna, zweryfikowana ocena, nie jak brak funkcji. */}
         <Text tone="muted" className="text-data">
-          {t("modelsAndSize", {
-            models: producer.modelsCount,
-            min: producer.sizeRangeM2Min,
-            max: producer.sizeRangeM2Max,
-          })}
+          {showSizeRange
+            ? t("modelsAndSize", {
+                models: producer.modelsCount,
+                min: producer.sizeRangeM2Min,
+                max: producer.sizeRangeM2Max,
+              })
+            : t("modelsOnly", { models: producer.modelsCount })}
         </Text>
         <div className="mt-auto flex items-center gap-brand-1 border-t border-brand-v5-line pt-brand-2">
           <Text tone="muted" className="text-data">

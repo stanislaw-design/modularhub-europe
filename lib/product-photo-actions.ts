@@ -2,9 +2,11 @@
 
 import { randomUUID } from "node:crypto";
 import { and, eq, isNull } from "drizzle-orm";
+import type { BatchItem, BatchResponse } from "drizzle-orm/batch";
 import { auth } from "@/auth";
 import { db } from "@/lib/db/client";
 import { getProducerIdForUser } from "@/lib/db/queries";
+import { withAdminActor } from "@/lib/db/with-admin-actor";
 import { document, product, productVariant } from "@/lib/db/schema";
 import { captureError } from "@/lib/observability/errors";
 import { validateDocumentPdf } from "@/lib/storage/document-pdf-validation";
@@ -60,6 +62,17 @@ async function actorOwnsProduct(actor: PhotoActor, productId: string | null): Pr
   return (await resolveProductOwnership(actor, productId)) === "ok";
 }
 
+// Spec 0064 AC-1/AC-2: admin writes here carry an actor_user_id, a producer's
+// own edits on their own product stay unattributed by design. Both branches
+// commit atomically either way, this only decides whether app.actor_user_id
+// rides along.
+async function runAsActor<U extends BatchItem<"pg">, T extends readonly [U, ...U[]]>(
+  actor: PhotoActor,
+  statements: T,
+): Promise<BatchResponse<T>> {
+  return actor.role === "admin" ? withAdminActor(actor.userId, statements) : db.batch(statements);
+}
+
 export interface UploadProductPhotoResult extends ActionResult {
   documentId?: string;
   url?: string;
@@ -102,22 +115,24 @@ export async function uploadProductPhoto(productId: string, file: File): Promise
     // bez dodatkowego kroku producenta; kolejne zdjęcia zostają isCover: false.
     const isFirstPhoto = existing.length === 0;
 
-    const [inserted] = await db
-      .insert(document)
-      .values({
-        r2Key,
-        filename: file.name,
-        mimeType: validation.mimeType,
-        sizeBytes: buffer.byteLength,
-        purpose: "product_photo",
-        isCover: isFirstPhoto,
-        sortOrder: maxSortOrder + 1,
-        ownerUserId: actor.userId,
-        productId,
-      })
-      .returning({ id: document.id });
+    const [insertedRows] = await runAsActor(actor, [
+      db
+        .insert(document)
+        .values({
+          r2Key,
+          filename: file.name,
+          mimeType: validation.mimeType,
+          sizeBytes: buffer.byteLength,
+          purpose: "product_photo",
+          isCover: isFirstPhoto,
+          sortOrder: maxSortOrder + 1,
+          ownerUserId: actor.userId,
+          productId,
+        })
+        .returning({ id: document.id }),
+    ]);
 
-    return { ok: true, documentId: inserted.id, url: buildPublicUrl(r2Key) };
+    return { ok: true, documentId: insertedRows[0].id, url: buildPublicUrl(r2Key) };
   } catch (error) {
     // Plik już jest w R2 w tym momencie; osierocony obiekt bez wiersza to
     // zaakceptowane, rzadkie ryzyko przy tej skali (spec 0031 Key invariants).
@@ -144,7 +159,7 @@ export async function setCoverPhoto(documentId: string): Promise<ActionResult> {
   if (!(await actorOwnsProduct(actor, documentRow.productId))) return { ok: false, error: DENIED_ERROR };
 
   try {
-    await db.batch([
+    await runAsActor(actor, [
       db
         .update(document)
         .set({ isCover: false })
@@ -191,7 +206,7 @@ export async function reorderProductPhotos(productId: string, orderedDocumentIds
     const updates = orderedDocumentIds.map((documentId, index) =>
       db.update(document).set({ sortOrder: index }).where(eq(document.id, documentId)),
     );
-    await db.batch(updates as [typeof updates[number], ...(typeof updates)]);
+    await runAsActor(actor, updates as [typeof updates[number], ...(typeof updates)]);
     return { ok: true };
   } catch (error) {
     captureError(error, { path: "reorderProductPhotos", userId: actor.userId });
@@ -214,7 +229,7 @@ export async function deleteProductPhoto(documentId: string): Promise<ActionResu
   if (!(await actorOwnsProduct(actor, documentRow.productId))) return { ok: false, error: DENIED_ERROR };
 
   try {
-    await db.update(document).set({ deletedAt: new Date() }).where(eq(document.id, documentId));
+    await runAsActor(actor, [db.update(document).set({ deletedAt: new Date() }).where(eq(document.id, documentId))]);
   } catch (error) {
     captureError(error, { path: "deleteProductPhoto", userId: actor.userId });
     return { ok: false, error: "Nie udało się usunąć zdjęcia. Spróbuj ponownie." };
@@ -304,22 +319,24 @@ export async function uploadFloorPlan(
       );
     const maxSortOrder = existing.reduce((max, row) => Math.max(max, row.sortOrder ?? -1), -1);
 
-    const [inserted] = await db
-      .insert(document)
-      .values({
-        r2Key,
-        filename: file.name,
-        mimeType: validation.mimeType,
-        sizeBytes: buffer.byteLength,
-        purpose: "product_floor_plan",
-        sortOrder: maxSortOrder + 1,
-        ownerUserId: actor.userId,
-        productId,
-        productVariantId: variantId || null,
-      })
-      .returning({ id: document.id });
+    const [insertedRows] = await runAsActor(actor, [
+      db
+        .insert(document)
+        .values({
+          r2Key,
+          filename: file.name,
+          mimeType: validation.mimeType,
+          sizeBytes: buffer.byteLength,
+          purpose: "product_floor_plan",
+          sortOrder: maxSortOrder + 1,
+          ownerUserId: actor.userId,
+          productId,
+          productVariantId: variantId || null,
+        })
+        .returning({ id: document.id }),
+    ]);
 
-    return { ok: true, documentId: inserted.id, url: buildPublicUrl(r2Key) };
+    return { ok: true, documentId: insertedRows[0].id, url: buildPublicUrl(r2Key) };
   } catch (error) {
     captureError(error, { path: "uploadFloorPlan", userId: actor.userId });
     return { ok: false, error: "Plik trafił do magazynu, ale zapis w bazie się nie powiódł. Spróbuj ponownie." };
@@ -340,7 +357,7 @@ export async function deleteFloorPlan(documentId: string): Promise<ActionResult>
   if (!(await actorOwnsProduct(actor, documentRow.productId))) return { ok: false, error: DENIED_ERROR };
 
   try {
-    await db.update(document).set({ deletedAt: new Date() }).where(eq(document.id, documentId));
+    await runAsActor(actor, [db.update(document).set({ deletedAt: new Date() }).where(eq(document.id, documentId))]);
   } catch (error) {
     captureError(error, { path: "deleteFloorPlan", userId: actor.userId });
     return { ok: false, error: "Nie udało się usunąć rzutu. Spróbuj ponownie." };
@@ -415,7 +432,7 @@ export async function uploadProductSpecificationPdf(productId: string, file: Fil
         productVariantId: null,
       }),
     ];
-    await db.batch(statements as [(typeof statements)[number], ...typeof statements]);
+    await runAsActor(actor, statements as [(typeof statements)[number], ...typeof statements]);
 
     return { ok: true, documentId: newDocumentId, url: buildPublicUrl(r2Key) };
   } catch (error) {
@@ -436,7 +453,7 @@ export async function deleteProductSpecificationPdf(documentId: string): Promise
   if (!(await actorOwnsProduct(actor, documentRow.productId))) return { ok: false, error: DENIED_ERROR };
 
   try {
-    await db.update(document).set({ deletedAt: new Date() }).where(eq(document.id, documentId));
+    await runAsActor(actor, [db.update(document).set({ deletedAt: new Date() }).where(eq(document.id, documentId))]);
   } catch (error) {
     captureError(error, { path: "deleteProductSpecificationPdf", userId: actor.userId });
     return { ok: false, error: "Nie udało się usunąć pliku specyfikacji. Spróbuj ponownie." };
@@ -508,7 +525,7 @@ export async function uploadProductSalesPdf(productId: string, file: File): Prom
         productVariantId: null,
       }),
     ];
-    await db.batch(statements as [(typeof statements)[number], ...typeof statements]);
+    await runAsActor(actor, statements as [(typeof statements)[number], ...typeof statements]);
 
     return { ok: true, documentId: newDocumentId, url: buildPublicUrl(r2Key) };
   } catch (error) {
@@ -529,7 +546,7 @@ export async function deleteProductSalesPdf(documentId: string): Promise<ActionR
   if (!(await actorOwnsProduct(actor, documentRow.productId))) return { ok: false, error: DENIED_ERROR };
 
   try {
-    await db.update(document).set({ deletedAt: new Date() }).where(eq(document.id, documentId));
+    await runAsActor(actor, [db.update(document).set({ deletedAt: new Date() }).where(eq(document.id, documentId))]);
   } catch (error) {
     captureError(error, { path: "deleteProductSalesPdf", userId: actor.userId });
     return { ok: false, error: "Nie udało się usunąć pliku sprzedażowego. Spróbuj ponownie." };

@@ -1554,6 +1554,80 @@ export const producerCapacityProfile = pgTable("producer_capacity_profile", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+// Spec 0065: certyfikat firmy i ocena zgodności projektu z przepisami kraju
+// rozdzielone od płaskiej listy certyfikatów. Status potwierdzenia ustawia
+// wyłącznie administrator; CHECK pilnuje, że pola potwierdzenia są spójne ze statusem.
+export const producerCertificationStatusEnum = pgEnum("producer_certification_status", [
+  "self_reported",
+  "platform_confirmed",
+]);
+export const complianceAssessmentStatusEnum = pgEnum("compliance_assessment_status", [
+  "approved",
+  "conditional",
+  "blocked",
+]);
+
+const confirmationConsistent = <T extends { confirmationStatus: unknown; confirmedAt: unknown; confirmedBy: unknown }>(
+  table: T,
+) =>
+  sql`(${table.confirmationStatus} = 'platform_confirmed' AND ${table.confirmedAt} IS NOT NULL AND ${table.confirmedBy} IS NOT NULL) OR (${table.confirmationStatus} = 'self_reported' AND ${table.confirmedAt} IS NULL AND ${table.confirmedBy} IS NULL)`;
+
+export const producerCertification = pgTable(
+  "producer_certification",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    producerId: uuid("producer_id")
+      .notNull()
+      .references(() => producer.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    issuer: text("issuer"),
+    confirmationStatus: producerCertificationStatusEnum("confirmation_status").notNull().default("self_reported"),
+    confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
+    confirmedBy: text("confirmed_by").references(() => users.id, { onDelete: "restrict" }),
+    version: integer("version").notNull().default(1),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    unique("producer_certification_producer_name_unique").on(table.producerId, table.name),
+    index("producer_certification_producer_idx").on(table.producerId),
+    check("producer_certification_name_length", sql`char_length(btrim(${table.name})) between 1 and 200`),
+    check("producer_certification_confirmation_consistent", confirmationConsistent(table)),
+  ],
+);
+
+export const productComplianceAssessment = pgTable(
+  "product_compliance_assessment",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => product.id, { onDelete: "cascade" }),
+    countryCode: text("country_code")
+      .notNull()
+      .references(() => country.code),
+    rule: text("rule").notNull(),
+    status: complianceAssessmentStatusEnum("status").notNull(),
+    reason: text("reason").notNull(),
+    confirmationStatus: producerCertificationStatusEnum("confirmation_status").notNull().default("self_reported"),
+    confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
+    confirmedBy: text("confirmed_by").references(() => users.id, { onDelete: "restrict" }),
+    version: integer("version").notNull().default(1),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    unique("product_compliance_assessment_product_country_rule_unique").on(
+      table.productId,
+      table.countryCode,
+      table.rule,
+    ),
+    check("product_compliance_assessment_rule_nonempty", sql`char_length(btrim(${table.rule})) > 0`),
+    check("product_compliance_assessment_reason_nonempty", sql`char_length(btrim(${table.reason})) > 0`),
+    check("product_compliance_assessment_confirmation_consistent", confirmationConsistent(table)),
+  ],
+);
+
 // ---------------------------------------------------------------------------
 // Płatność i dokumenty
 // ---------------------------------------------------------------------------

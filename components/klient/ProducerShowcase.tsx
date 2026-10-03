@@ -33,7 +33,12 @@ export async function ProducerShowcase({ producers }: ProducerShowcaseProps) {
           {producers.map((producer) => (
             // showTrustDetails=false: showroom/odpowiedź nie ma tu kontekstu
             // (spec 0042 Follow-up, świadomie ustawione w obu miejscach użycia).
-            <ProducerCard key={producer.id} producer={producer} showTrustDetails={false} />
+            <ProducerCard
+              key={producer.id}
+              producer={producer}
+              showTrustDetails={false}
+              showSizeRange={false}
+            />
           ))}
         </div>
       </div>

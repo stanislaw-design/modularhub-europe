@@ -1,5 +1,6 @@
 import { and, asc, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
+import { withAdminActor } from "@/lib/db/with-admin-actor";
 import { channel, channelReadState, inquiry, message } from "@/lib/db/schema";
 import type { CaseMessageDto } from "@/lib/case-schemas";
 import { requireCaseAccess, type CaseActor } from "./access";
@@ -117,7 +118,7 @@ export async function postMessage(
   const access = await requireCaseAccess(actor, input.inquiryId, input.channelId);
   if (!access || !access.channelId) return { ok: false, reason: "forbidden" };
 
-  const inserted = await db
+  const insertMessage = db
     .insert(message)
     .values({
       channelId: input.channelId,
@@ -130,6 +131,11 @@ export async function postMessage(
     })
     .onConflictDoNothing({ target: [message.channelId, message.idempotencyKey] })
     .returning({ id: message.id });
+
+  // Atrybucja (spec 0064 AC-1/AC-2) tylko dla doradcy: klient/producent piszący
+  // we własnej sprawie celowo zostaje bez actor_user_id.
+  const inserted =
+    actor.kind === "advisor" ? (await withAdminActor(actor.userId, [insertMessage]))[0] : await insertMessage;
 
   const created = inserted.length > 0;
   const [row] = await db

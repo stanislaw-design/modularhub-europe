@@ -3,6 +3,7 @@
 import { eq, inArray } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db/client";
+import { withAdminActor } from "@/lib/db/with-admin-actor";
 import { producer, producerMember, sessions, users } from "@/lib/db/schema";
 import { captureError } from "@/lib/observability/errors";
 
@@ -45,7 +46,7 @@ export async function blockProducer(producerId: string, reason?: string): Promis
     const memberIds = members.map((member) => member.userId);
     if (memberIds.length === 0) return { ok: true };
 
-    await db.batch([
+    await withAdminActor(adminId, [
       db
         .update(users)
         .set({ blockedAt: new Date(), blockedBy: adminId, blockedReason: reason?.trim() || null })
@@ -75,10 +76,9 @@ export async function unblockProducer(producerId: string): Promise<ActionResult>
     const memberIds = members.map((member) => member.userId);
     if (memberIds.length === 0) return { ok: true };
 
-    await db
-      .update(users)
-      .set({ blockedAt: null, blockedBy: null, blockedReason: null })
-      .where(inArray(users.id, memberIds));
+    await withAdminActor(adminId, [
+      db.update(users).set({ blockedAt: null, blockedBy: null, blockedReason: null }).where(inArray(users.id, memberIds)),
+    ]);
 
     return { ok: true };
   } catch (error) {

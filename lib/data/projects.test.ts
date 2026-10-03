@@ -32,8 +32,10 @@ import {
   document,
   producer,
   producerCapacityProfile,
+  producerCertification,
   producerDeliveryCountry,
   product,
+  productComplianceAssessment,
   productCountryEligibility,
   productTimelineStage,
   productVariant,
@@ -43,6 +45,7 @@ import {
   getEligibilityByCountry,
   getFeaturedProjectByFamily,
   getProducerVolumeProfile,
+  getProductComplianceAssessments,
   getProjectById,
   getProjectBySlugOrId,
   getProjects,
@@ -683,16 +686,38 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: verified volume m
       {
         producerId: approvedProducerId,
         unitsPerMonth: 15,
-        certifications: ["Test certification"],
         volumeVerificationStatus: "approved",
       },
       {
         producerId: secondApprovedProducerId,
         unitsPerMonth: 20,
-        certifications: ["Second test certification"],
         volumeVerificationStatus: "approved",
       },
     ]);
+    await db.insert(producerCertification).values([
+      {
+        producerId: approvedProducerId,
+        name: "Test certification",
+        confirmationStatus: "platform_confirmed",
+        confirmedAt: new Date(),
+        confirmedBy: userId,
+      },
+      { producerId: approvedProducerId, name: "Declared only" },
+      {
+        producerId: secondApprovedProducerId,
+        name: "Second test certification",
+        confirmationStatus: "platform_confirmed",
+        confirmedAt: new Date(),
+        confirmedBy: secondUserId,
+      },
+    ]);
+    await db.insert(productComplianceAssessment).values({
+      productId: publishedProductId,
+      countryCode: "NL",
+      rule: "bbl",
+      status: "conditional",
+      reason: "Test assessment",
+    });
     await db.insert(producerDeliveryCountry).values([
       { producerId: approvedProducerId, countryCode: "PL" },
       { producerId: approvedProducerId, countryCode: "NL" },
@@ -721,7 +746,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: verified volume m
 
       expect(match).toBeDefined();
       expect(match?.unitsPerMonth).toBe(15);
-      expect(match?.certifications).toEqual(["Test certification"]);
+      expect(match?.certifications.map((certification) => certification.name)).toEqual(["Test certification"]);
       expect(match?.deliveryCountries.sort()).toEqual(["NL", "PL"]);
       expect(match?.projects.map((project) => project.id).sort()).toEqual([largeProductId, publishedProductId].sort());
       expect(results.some((item) => item.producerId === unapprovedProducerId)).toBe(false);
@@ -779,6 +804,24 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: verified volume m
 
     it("returns null for a non-uuid id instead of throwing", async () => {
       expect(await getProducerVolumeProfile("not-a-uuid")).toBeNull();
+    });
+
+    it("lists only platform-confirmed certifications (spec 0065 AC-7, AC-12)", async () => {
+      const profile = await getProducerVolumeProfile(approvedProducerId);
+      expect(profile?.certifications.map((certification) => certification.name)).toEqual(["Test certification"]);
+    });
+  });
+
+  describe("getProductComplianceAssessments (spec 0065 AC-6)", () => {
+    it("returns the assessment rows for one product with their confirmation state", async () => {
+      const assessments = await getProductComplianceAssessments(publishedProductId);
+      expect(assessments).toEqual([
+        expect.objectContaining({ countryCode: "NL", rule: "bbl", status: "conditional", confirmed: false }),
+      ]);
+    });
+
+    it("returns an empty list for a product without assessments", async () => {
+      expect(await getProductComplianceAssessments(draftProductId)).toEqual([]);
     });
   });
 

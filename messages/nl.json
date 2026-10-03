@@ -92,6 +92,7 @@
     "verified": "Geverifieerd door ModularHub",
     "countryOfProduction": "Productieland: {country}",
     "modelsAndSize": "{models} modellen · {min}–{max} m²",
+    "modelsOnly": "{models} modellen",
     "delivery": "Levert aan:",
     "showroomVisitAvailable": "Bezoek op locatie mogelijk",
     "showroomVisitUnavailable": "Geen bezoek op locatie mogelijk",

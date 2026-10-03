@@ -638,7 +638,7 @@ export default async function ProjektPage({
 
           {Boolean(project.certifications?.length) && (
             <div className="flex flex-col gap-brand-2">
-              <ProjectCertifications certifications={project.certifications} />
+              <ProjectCertifications certifications={project.certifications?.map((certification) => certification.name)} />
             </div>
           )}
         </div>

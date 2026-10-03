@@ -25,9 +25,10 @@ vi.mock("@/lib/storage/private-r2-client", () => ({
   buildSignedDownloadUrl: buildSignedDownloadUrlMock,
 }));
 
-import { and, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
+  auditLog,
   bulkProductInquiry,
   client,
   document,
@@ -151,6 +152,10 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
     await db.delete(producerCapacityProfile).where(inArray(producerCapacityProfile.producerId, allProducerIds));
     await db.delete(producer).where(inArray(producer.id, allProducerIds));
     await db.delete(client).where(inArray(client.id, [clientId, otherClientId]));
+    // Spec 0064: setClientB2bVerification/setProducerVolumeVerification now
+    // attribute the admin's actor_user_id, which audit_log's FK (no ON DELETE
+    // behavior) then blocks deleting until the referencing rows are gone too.
+    await db.delete(auditLog).where(inArray(auditLog.actorUserId, allUserIds));
     await db.delete(users).where(inArray(users.id, allUserIds));
   });
 
@@ -890,6 +895,23 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       expect(result.ok).toBe(true);
       const [row] = await db.select({ status: client.b2bVerificationStatus }).from(client).where(eq(client.id, clientId));
       expect(row.status).toBe("approved");
+    });
+
+    // Spec 0064 AC-1: `client` is audit-trigger covered, so the admin who made
+    // this change must show up on the resulting audit_log row.
+    it("attributes the resulting audit_log row to the acting admin (AC-1)", async () => {
+      authMock.mockResolvedValue(sessionAs(adminUserId, "admin"));
+
+      const result = await setClientB2bVerification(clientId, "rejected");
+      expect(result.ok).toBe(true);
+
+      const [row] = await db
+        .select({ actorUserId: auditLog.actorUserId })
+        .from(auditLog)
+        .where(and(eq(auditLog.tableName, "client"), eq(auditLog.recordId, clientId)))
+        .orderBy(desc(auditLog.createdAt))
+        .limit(1);
+      expect(row?.actorUserId).toBe(adminUserId);
     });
   });
 });

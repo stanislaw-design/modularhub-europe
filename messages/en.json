@@ -92,6 +92,7 @@
     "verified": "Verified by ModularHub",
     "countryOfProduction": "Country of production: {country}",
     "modelsAndSize": "{models} models · {min}–{max} m²",
+    "modelsOnly": "{models} models",
     "delivery": "Delivers to:",
     "showroomVisitAvailable": "In-person visits available",
     "showroomVisitUnavailable": "In-person visits not available",

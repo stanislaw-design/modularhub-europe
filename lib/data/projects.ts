@@ -7,8 +7,10 @@ import {
   favorite,
   producer,
   producerCapacityProfile,
+  producerCertification,
   producerDeliveryCountry,
   product,
+  productComplianceAssessment,
   productCountryEligibility,
   productTimelineStage,
   productTranslation,
@@ -32,8 +34,10 @@ import type {
   ProjectDocumentPurpose,
   ProjectFaqItem,
   ProjectVariant,
+  ProductComplianceAssessment,
   ProductFamily,
   ProductTechnicalSpecsDraft,
+  ProducerCertification,
   RoomLayoutEntry,
   SpaSubcategory,
   TimelineStage,
@@ -639,24 +643,43 @@ function applyDocuments(projectItem: Project, documents: ProjectDocument[] | und
   return { ...projectItem, documents: documents ?? [] };
 }
 
-function applyCertifications(projectItem: Project, certifications: string[] | undefined): Project {
-  return { ...projectItem, certifications: certifications && certifications.length > 0 ? certifications : undefined };
-}
-
-// Certyfikaty czytane z producer_capacity_profile.certifications (spec 0045
-// AC-9): dane producenta, nie per-projektowe — kreator nie zbiera żadnego
-// nowego pola, karta klienta czyta wprost stąd. LEFT JOIN przez batch (nie
-// INNER w resolveVerifiedVolumeManufacturerProjects powyżej): większość
-// producentów nie ma jeszcze wiersza producer_capacity_profile (dostają go
-// dopiero przy weryfikacji wolumenowej, spec 0038), więc brak wiersza musi
-// znaczyć "brak certyfikatów", nie "usuń produkt z wyniku".
-async function resolveProducerCertifications(producerIds: string[]): Promise<Map<string, string[]>> {
+// Spec 0065 AC-12: certyfikaty firmy z producer_certification. Mapa zawiera
+// tylko producentów z co najmniej jednym certyfikatem, więc brak wpisu znaczy
+// "brak certyfikatów" (undefined na projekcie). onlyConfirmed filtruje w SQL,
+// listing na /verified-manufacturers nigdy nie dostaje deklaracji.
+async function resolveProducerCertifications(
+  producerIds: string[],
+  options: { onlyConfirmed?: boolean } = {},
+): Promise<Map<string, ProducerCertification[]>> {
   if (producerIds.length === 0) return new Map();
   const rows = await db
-    .select({ producerId: producerCapacityProfile.producerId, certifications: producerCapacityProfile.certifications })
-    .from(producerCapacityProfile)
-    .where(inArray(producerCapacityProfile.producerId, producerIds));
-  return new Map(rows.map((row) => [row.producerId, row.certifications]));
+    .select({
+      producerId: producerCertification.producerId,
+      name: producerCertification.name,
+      issuer: producerCertification.issuer,
+      confirmationStatus: producerCertification.confirmationStatus,
+      confirmedAt: producerCertification.confirmedAt,
+    })
+    .from(producerCertification)
+    .where(
+      and(
+        inArray(producerCertification.producerId, producerIds),
+        options.onlyConfirmed ? eq(producerCertification.confirmationStatus, "platform_confirmed") : undefined,
+      ),
+    )
+    .orderBy(producerCertification.name);
+  const map = new Map<string, ProducerCertification[]>();
+  for (const row of rows) {
+    const list = map.get(row.producerId) ?? [];
+    list.push({
+      name: row.name,
+      issuer: row.issuer,
+      confirmed: row.confirmationStatus === "platform_confirmed",
+      confirmedAt: row.confirmedAt,
+    });
+    map.set(row.producerId, list);
+  }
+  return map;
 }
 
 interface ProjectRelatedRows {
@@ -925,12 +948,10 @@ export async function getProjects(filters?: GetProjectsFilters): Promise<Project
     resolveProductVariants(projectIds, { locale }),
     resolveProducerCertifications(producerIds),
   ]);
-  return projects.map((project) =>
-    applyCertifications(
-      applyVariants(applyDocumentPhotos(project, documentPhotos.get(project.id)), variantsByProduct.get(project.id)),
-      certificationsByProducer.get(project.producerId),
-    ),
-  );
+  return projects.map((project) => ({
+    ...applyVariants(applyDocumentPhotos(project, documentPhotos.get(project.id)), variantsByProduct.get(project.id)),
+    certifications: certificationsByProducer.get(project.producerId),
+  }));
 }
 
 // Id existence check for the zapytanie/dzialka flows (spec 0023 AC-... /
@@ -989,8 +1010,8 @@ export async function getProjectById(id: string, locale: Locale = "pl"): Promise
       resolveProductDocuments([id]),
       resolveProducerCertifications([row.product.producerId]),
     ]);
-    return applyCertifications(
-      applyDocuments(
+    return {
+      ...applyDocuments(
         applyVariants(
           applyDocumentPhotos(
             mapRowToProject(row.product, row.producerName, {
@@ -1008,8 +1029,8 @@ export async function getProjectById(id: string, locale: Locale = "pl"): Promise
         ),
         documentsByProduct.get(id),
       ),
-      certificationsByProducer.get(row.product.producerId),
-    );
+      certifications: certificationsByProducer.get(row.product.producerId),
+    };
   }
 
   const [row] = await db
@@ -1025,16 +1046,43 @@ export async function getProjectById(id: string, locale: Locale = "pl"): Promise
     resolveProductDocuments([id]),
     resolveProducerCertifications([row.product.producerId]),
   ]);
-  return applyCertifications(
-    applyDocuments(
+  return {
+    ...applyDocuments(
       applyVariants(
         applyDocumentPhotos(mapRowToProject(row.product, row.producerName), documentPhotos.get(id)),
         variantsByProduct.get(id),
       ),
       documentsByProduct.get(id),
     ),
-    certificationsByProducer.get(row.product.producerId),
-  );
+    certifications: certificationsByProducer.get(row.product.producerId),
+  };
+}
+
+// Spec 0065 AC-6: wiersze ocen zgodności dla jednego produktu, z podpisem
+// tego, czego dotyczą (kraj i przepis). Zastrzeżenie Compliance Engine renderuje
+// komponent, nie ta funkcja.
+export async function getProductComplianceAssessments(productId: string): Promise<ProductComplianceAssessment[]> {
+  if (!UUID_PATTERN.test(productId)) return [];
+  const rows = await db
+    .select({
+      countryCode: productComplianceAssessment.countryCode,
+      rule: productComplianceAssessment.rule,
+      status: productComplianceAssessment.status,
+      reason: productComplianceAssessment.reason,
+      confirmationStatus: productComplianceAssessment.confirmationStatus,
+      confirmedAt: productComplianceAssessment.confirmedAt,
+    })
+    .from(productComplianceAssessment)
+    .where(eq(productComplianceAssessment.productId, productId))
+    .orderBy(productComplianceAssessment.countryCode, productComplianceAssessment.rule);
+  return rows.map((row) => ({
+    countryCode: row.countryCode as CountryCode,
+    rule: row.rule,
+    status: row.status,
+    reason: row.reason,
+    confirmed: row.confirmationStatus === "platform_confirmed",
+    confirmedAt: row.confirmedAt,
+  }));
 }
 
 // Adres publicznej strony produktu przyjmuje slug albo id (spec 0058 AC-3):
@@ -1163,7 +1211,7 @@ export interface VerifiedVolumeManufacturer {
   producerId: string;
   producerName: string;
   unitsPerMonth: number | null;
-  certifications: string[];
+  certifications: ProducerCertification[];
   deliveryCountries: CountryCode[];
   projects: Project[];
 }
@@ -1210,7 +1258,6 @@ export async function getVerifiedVolumeManufacturerProjects(
       producerId: producer.id,
       producerName: producer.name,
       unitsPerMonth: producerCapacityProfile.unitsPerMonth,
-      certifications: producerCapacityProfile.certifications,
     })
     .from(producer)
     .innerJoin(producerCapacityProfile, eq(producerCapacityProfile.producerId, producer.id))
@@ -1300,6 +1347,7 @@ export async function getVerifiedVolumeManufacturerProjects(
   }
 
   const deliveryMap = await loadDeliveryCountriesByProducer(producerIds);
+  const confirmedCertificationsByProducer = await resolveProducerCertifications(producerIds, { onlyConfirmed: true });
   const eligibleProducerIds = new Set(producerIds);
 
   // Producent bez ani jednego pasującego projektu znika z listy razem z
@@ -1312,7 +1360,7 @@ export async function getVerifiedVolumeManufacturerProjects(
       producerId: row.producerId,
       producerName: row.producerName,
       unitsPerMonth: row.unitsPerMonth,
-      certifications: row.certifications ?? [],
+      certifications: confirmedCertificationsByProducer.get(row.producerId) ?? [],
       deliveryCountries: deliveryMap.get(row.producerId) ?? [],
       projects: projectsByProducer.get(row.producerId) ?? [],
     }))
@@ -1332,7 +1380,6 @@ export async function getProducerVolumeProfile(
       producerId: producer.id,
       producerName: producer.name,
       unitsPerMonth: producerCapacityProfile.unitsPerMonth,
-      certifications: producerCapacityProfile.certifications,
     })
     .from(producer)
     .innerJoin(producerCapacityProfile, eq(producerCapacityProfile.producerId, producer.id))
@@ -1345,13 +1392,16 @@ export async function getProducerVolumeProfile(
     );
   if (!row) return null;
 
-  const deliveryMap = await loadDeliveryCountriesByProducer([producerId]);
+  const [deliveryMap, certificationsByProducer] = await Promise.all([
+    loadDeliveryCountriesByProducer([producerId]),
+    resolveProducerCertifications([producerId], { onlyConfirmed: true }),
+  ]);
 
   return {
     producerId: row.producerId,
     producerName: row.producerName,
     unitsPerMonth: row.unitsPerMonth,
-    certifications: row.certifications ?? [],
+    certifications: certificationsByProducer.get(producerId) ?? [],
     deliveryCountries: deliveryMap.get(producerId) ?? [],
   };
 }

@@ -291,7 +291,7 @@ export interface Project {
    * kartach — w jego miejscu widoczne jest tylko CTA zapytania (spec 0020 AC-5). */
   priceOnRequest?: boolean;
   /** Puste lub brak → sekcja "Certyfikaty" nie renderuje się (spec 0020 AC-4). */
-  certifications?: string[];
+  certifications?: ProducerCertification[];
   /** Jawnie wpisywane przez dane przykładowe, nie liczone automatycznie z metrażu —
    * realny silnik zgodności to osobna, przyszła funkcja (spec 0020 Feature design). */
   simplifiedPermitEligible?: boolean;
@@ -363,6 +363,24 @@ export interface EligibilityByCountry {
   countryCode: CountryCode;
   status: EligibilityStatus;
   reason: string;
+}
+
+// Spec 0065: certyfikat firmy. confirmedBy (identyfikator administratora) celowo
+// nie trafia do typu publicznego, tylko stan i data potwierdzenia.
+export interface ProducerCertification {
+  name: string;
+  issuer: string | null;
+  confirmed: boolean;
+  confirmedAt: Date | null;
+}
+
+export interface ProductComplianceAssessment {
+  countryCode: CountryCode;
+  rule: string;
+  status: EligibilityStatus;
+  reason: string;
+  confirmed: boolean;
+  confirmedAt: Date | null;
 }
 
 export interface PlotAnalysisResult {

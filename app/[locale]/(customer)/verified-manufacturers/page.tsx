@@ -168,7 +168,7 @@ export default async function VerifiedManufacturersPage({
                   href={resolveProductHref(project.family, project.id, locale, project.slug, project.spaSubcategory)}
                   producerName={manufacturer.producerName}
                   unitsPerMonth={manufacturer.unitsPerMonth}
-                  certifications={manufacturer.certifications}
+                  certifications={manufacturer.certifications.map((certification) => certification.name)}
                   deliveryCountries={manufacturer.deliveryCountries}
                   deliveryCountryNameByCode={countryNameByCode}
                 />

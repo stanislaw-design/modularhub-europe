@@ -184,6 +184,14 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/product-photo-actions: real DB, 
       const result = await uploadProductPhoto(productAId, jpegFile());
       expect(result.ok).toBe(true);
       expect(uploadObjectMock).toHaveBeenCalledTimes(1);
+
+      // Spec 0064 AC-2: a producer's own write stays unattributed by design,
+      // even though `document` is audit-trigger covered.
+      const [auditRow] = await db
+        .select({ actorUserId: auditLog.actorUserId })
+        .from(auditLog)
+        .where(and(eq(auditLog.tableName, "document"), eq(auditLog.recordId, result.documentId as string)));
+      expect(auditRow?.actorUserId).toBeNull();
     });
 
     // ...but never for a product owned by a different producer (spec 0032 AC-13).
@@ -238,6 +246,14 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/product-photo-actions: real DB, 
         filename: "first.jpg",
         r2Key,
       });
+
+      // Spec 0064 AC-1: an admin-authored write to `document` must carry the
+      // admin's actor_user_id on its audit_log row.
+      const [auditRow] = await db
+        .select({ actorUserId: auditLog.actorUserId })
+        .from(auditLog)
+        .where(and(eq(auditLog.tableName, "document"), eq(auditLog.recordId, result.documentId as string)));
+      expect(auditRow?.actorUserId).toBe(adminUserId);
     });
 
     it("gives the second photo for the same product sortOrder 1", async () => {

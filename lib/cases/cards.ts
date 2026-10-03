@@ -1,5 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
+import { withAdminActor } from "@/lib/db/with-admin-actor";
 import { caseField, channel, inquiry, message } from "@/lib/db/schema";
 import { NIE_WIEM, getStartCard, startCardValues } from "@/lib/cases/start-cards";
 import type {
@@ -187,7 +188,7 @@ export async function assessReadiness(
       break;
   }
 
-  await db.batch([
+  await withAdminActor(actor.userId, [
     db.insert(message).values({
       channelId: channelRow.id,
       authorUserId: actor.userId,

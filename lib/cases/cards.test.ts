@@ -5,7 +5,7 @@ vi.mock("@/lib/observability/errors", () => ({ captureError: vi.fn() }));
 vi.mock("@/lib/observability", () => ({ trackEvent: vi.fn() }));
 
 import { db } from "@/lib/db/client";
-import { caseField, client, inquiry, inquiryItem, message, producer, product, users } from "@/lib/db/schema";
+import { auditLog, caseField, client, inquiry, inquiryItem, message, producer, product, users } from "@/lib/db/schema";
 import { answerCard, assessReadiness, getCaseFields, upsertCaseField } from "./cards";
 import type { CaseActor } from "./access";
 import { createAdvisoryCase } from "./create";
@@ -174,11 +174,19 @@ describe.skipIf(!process.env.DATABASE_URL)("karty startowe i podsumowanie potrze
     expect(row?.waitingOn).toBe("advisor");
 
     const [lastMessage] = await db
-      .select({ body: message.body, authorKind: message.authorKind })
+      .select({ id: message.id, body: message.body, authorKind: message.authorKind })
       .from(message)
       .where(and(eq(message.channelId, channelId), eq(message.type, "text")));
     expect(lastMessage?.body).toBe("Mamy komplet informacji, przygotowuję brief.");
     expect(lastMessage?.authorKind).toBe("advisor");
+
+    // Spec 0064 AC-1: assessReadiness is always an advisor (admin) action, so
+    // its message_audit row must carry the advisor's id.
+    const [auditRow] = await db
+      .select({ actorUserId: auditLog.actorUserId })
+      .from(auditLog)
+      .where(and(eq(auditLog.tableName, "message"), eq(auditLog.recordId, lastMessage!.id)));
+    expect(auditRow?.actorUserId).toBe(advisorUserId);
   });
 
   it("assessReadiness 'poza obszarem obsługi' zamyka sprawę bez etykiety widocznej dla klienta (AC-13)", async () => {
