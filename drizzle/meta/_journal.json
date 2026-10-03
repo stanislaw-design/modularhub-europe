@@ -302,6 +302,34 @@
       "when": 1790768284130,
       "tag": "0042_great_thunderbolts",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1790831808704,
+      "tag": "0043_red_nebula",
+      "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1790836014888,
+      "tag": "0044_dashing_miracleman",
+      "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1790940717349,
+      "tag": "0045_fearless_proteus",
+      "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1790943777729,
+      "tag": "0046_panoramic_sersi",
+      "breakpoints": true
     }
   ]
 }

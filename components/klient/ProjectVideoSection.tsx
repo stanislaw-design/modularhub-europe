@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Heading, Text } from "@/components/ui";
 
-interface OutdoorTvVideoSectionProps {
+interface ProjectVideoSectionProps {
   productName: string;
   videoUrl?: string | null;
   usageNote?: string;
@@ -15,10 +15,16 @@ interface OutdoorTvVideoSectionProps {
 // kolejna sekcja w szeregu. Puste wideo → sekcja znika całkowicie (spec 0056
 // AC-4, ten sam wzorzec co reszta strony); usageNote bez wideo też się nie
 // pokazuje, bo bez wideo nie ma czego zapowiadać.
-export async function OutdoorTvVideoSection({ productName, videoUrl, usageNote }: OutdoorTvVideoSectionProps) {
+//
+// Promowany z OutdoorTvVideoSection (spec 0061 Build plan zadanie 6): drugi
+// katalogowy route (/sauna/[slug]) potrzebuje tej samej sekcji, więc żyje
+// teraz pod własną, dzieloną nazwą/namespace'em zamiast kopii pod outdoor-tv.
+// Zachowanie na /outdoor-tv/[slug] bez zmian (te same stringi, przeniesione
+// z namespace'u OutdoorTvPage do własnego ProjectVideoSection).
+export async function ProjectVideoSection({ productName, videoUrl, usageNote }: ProjectVideoSectionProps) {
   if (!videoUrl) return null;
 
-  const t = await getTranslations("OutdoorTvPage");
+  const t = await getTranslations("ProjectVideoSection");
 
   return (
     <div className="flex flex-col items-center gap-brand-4 text-center">

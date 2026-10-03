@@ -161,9 +161,24 @@ describe("ProjectRequestFlow", () => {
 
     await goToDetailsStep(user);
 
-    expect(
-      screen.getByText(/dane kontaktowe zostaną udostępnione dopasowanym, zweryfikowanym producentom/i)
-    ).toBeInTheDocument();
+    // spec 0062: the open board (pull) replaced the old matched-producer push,
+    // so this notice now says contact stays masked until a quote is accepted.
+    expect(screen.getByText(/dane kontaktowe są widoczne wyłącznie producentowi, którego wycenę zaakceptujesz/i)).toBeInTheDocument();
+  });
+
+  // AC-10 (spec 0062): both free-text fields warn that every volume-verified
+  // producer on the board sees them.
+  it("shows a visibility hint under locationDetail (step 2) and extrasNote (step 3)", async () => {
+    const user = userEvent.setup();
+    render(<ProjectRequestFlow locale="pl" countries={countries} />);
+
+    await completeContactStep(user);
+    await user.click(screen.getByRole("button", { name: "Dalej" }));
+    expect(screen.getByText(/ta informacja jest widoczna dla wszystkich zweryfikowanych wolumenowo producentów/i)).toBeInTheDocument();
+
+    await completeAboutStep(user);
+    await user.click(screen.getByRole("button", { name: "Dalej" }));
+    expect(screen.getByText(/ta notatka jest widoczna dla wszystkich zweryfikowanych wolumenowo producentów/i)).toBeInTheDocument();
   });
 
   it("shows the request-limit error inline and keeps the filled data when the server rejects it (AC-8)", async () => {

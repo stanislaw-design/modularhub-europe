@@ -223,6 +223,17 @@ function comparePriceOnRequestLast(a: Project, b: Project): number {
   return aOnRequest ? 1 : -1;
 }
 
+// Ten sam wzorzec co comparePriceOnRequestLast powyżej: metraż jeszcze
+// nieuzupełniony przez producenta (floorAreaM2 === null) nie ma sensownego
+// miejsca w sortowaniu "od najmniejszego"/"od największego" — zamiast
+// zgadywać, zawsze ląduje na końcu, niezależnie od kierunku.
+function compareUnknownSizeLast(a: Project, b: Project): number {
+  const aUnknown = a.floorAreaM2 === null;
+  const bUnknown = b.floorAreaM2 === null;
+  if (aUnknown === bUnknown) return 0;
+  return aUnknown ? 1 : -1;
+}
+
 // Jedyne miejsce sortowania (spec 0026 Feature design, API surface): brak lub
 // nierozpoznany sort → dzisiejsze domyślne zachowanie, wyróżnione projekty najpierw,
 // potem rosnąco po cenie od. Reużywany przez stronę serwerową, ResultsSelection po
@@ -234,9 +245,13 @@ export function sortResults(projects: Project[], sort?: SortOption): Project[] {
     case "price-desc":
       return [...projects].sort((a, b) => comparePriceOnRequestLast(a, b) || b.priceMin - a.priceMin);
     case "size-asc":
-      return [...projects].sort((a, b) => a.floorAreaM2 - b.floorAreaM2);
+      return [...projects].sort(
+        (a, b) => compareUnknownSizeLast(a, b) || (a.floorAreaM2 ?? 0) - (b.floorAreaM2 ?? 0),
+      );
     case "size-desc":
-      return [...projects].sort((a, b) => b.floorAreaM2 - a.floorAreaM2);
+      return [...projects].sort(
+        (a, b) => compareUnknownSizeLast(a, b) || (b.floorAreaM2 ?? 0) - (a.floorAreaM2 ?? 0),
+      );
     default:
       return [...projects].sort((a, b) => {
         if (a.featured !== b.featured) return a.featured ? -1 : 1;

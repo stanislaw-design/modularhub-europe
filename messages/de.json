@@ -56,11 +56,13 @@
   },
   "KlientRealizacjaPage": {
     "heading": "Ausführung — {name}",
+    "areaUnknown": "Wohnfläche wird noch festgelegt",
     "completionBanner": "Bestellung abgeschlossen — alle Phasen wurden abgeschlossen.",
     "backToOffer": "Zurück zu den Anfragen"
   },
   "ProducentRealizacjaPage": {
     "heading": "Ausführung — {name}",
+    "areaUnknown": "Wohnfläche wird noch festgelegt",
     "deliveredBanner": "Bestellung abgenommen — Sie können jetzt mit der Unternehmensverifizierung vor der ersten Auszahlung fortfahren.",
     "backToList": "Zurück zur Ausführung",
     "verification": "Unternehmensverifizierung und Auszahlung"
@@ -69,6 +71,7 @@
     "heading": "Ausführungen",
     "intro": "Die Statusleiste für Produktion, Transport, Montage und Abnahme — dieselbe, die der Kunde für diese Bestellung sieht. Nach der Abnahme wird die Unternehmensverifizierung vor der ersten Auszahlung freigeschaltet.",
     "empty": "Noch keine Ausführungen — Bestellungen mit angenommenem Angebot erscheinen hier.",
+    "areaUnknown": "Wohnfläche wird noch festgelegt",
     "readyForVerification": "Bereit zur Unternehmensverifizierung",
     "currentStage": "Aktuelle Phase: {stage}",
     "viewTimeline": "Statusleiste ansehen"
@@ -78,8 +81,9 @@
   },
   "PopularHomeCard": {
     "coverAlt": "{name}, Modulhaus",
-    "summary": "{area} m² · {rooms} Zimmer",
-    "summaryNoRooms": "{area} m²",
+    "summary": "{area} · {rooms} Zimmer",
+    "summaryNoRooms": "{area}",
+    "areaUnknown": "Wohnfläche wird noch festgelegt",
     "priceOnRequest": "Preis auf Anfrage",
     "priceFrom": "ab {price} €"
   },
@@ -104,7 +108,13 @@
     "selectForInquiry": "{name} für die Anfrage auswählen",
     "selectionLimitReached": "Es können maximal 3 Projekte ausgewählt werden",
     "needsMoreDocuments": "Erfordert zusätzliche Unterlagen",
-    "summary": "{area} m² Nutzfläche · {rooms} {roomsLabel} · {storeys} Geschosse",
+    "summary": "{area} · {rooms} · {storeys}",
+    "areaValue": "{area} m² Nutzfläche",
+    "areaUnknown": "Nutzfläche wird noch festgelegt",
+    "roomsValue": "{rooms} {roomsLabel}",
+    "roomsUnknown": "Zimmerzahl wird noch festgelegt",
+    "storeysValue": "{storeys} Geschosse",
+    "storeysUnknown": "Geschosszahl wird noch festgelegt",
     "rooms": {
       "one": "Zimmer",
       "few": "Zimmer",
@@ -181,6 +191,7 @@
       "blocked": "Nicht zugelassen"
     },
     "noAnalysisData": "Keine Analysedaten für dieses Projekt; versuchen Sie es später erneut.",
+    "areaUnknown": "Wohnfläche wird noch festgelegt",
     "servicePrice": "Preis der Leistung",
     "plotAreaLabel": "Grundstücksfläche (m²)",
     "plotAreaError": "Geben Sie eine Fläche zwischen {min}–{max} m² an.",
@@ -206,6 +217,7 @@
     "compareLimitReached": "Es können maximal 3 Häuser verglichen werden",
     "unavailable": "Produkt nicht verfügbar",
     "floorArea": "{area} m² Nutzfläche",
+    "floorAreaUnknown": "Wohnfläche wird noch festgelegt",
     "priceFrom": "ab {price} €"
   },
   "FavoriteCompareTable": {
@@ -806,6 +818,29 @@
       "legacy_direct": "Direkte Anfrage"
     }
   },
+  "ClientPanelQuotesPage": {
+    "heading": "Angebote",
+    "emptyTitle": "Du hast noch keine Angebote",
+    "emptyDescription": "Angebote von Herstellern zu deinen Anfragen erscheinen hier.",
+    "requestHeading": "Projektanfrage",
+    "bulkInquiryHeadingPrefix": "Produktanfrage: ",
+    "producerColumn": "Hersteller",
+    "priceColumn": "Preis",
+    "leadTimeColumn": "Lieferzeit",
+    "statusColumn": "Status",
+    "statusActive": "Aktiv",
+    "statusAccepted": "Angenommen",
+    "statusRejected": "Abgelehnt",
+    "statusSuperseded": "Ersetzt",
+    "leadTimeWeeks": "{weeks} Wo.",
+    "notesColumn": "Notiz"
+  },
+  "AcceptQuoteButton": {
+    "accept": "Annehmen",
+    "accepting": "Wird angenommen…",
+    "accepted": "Angenommen",
+    "genericError": "Das Angebot konnte nicht angenommen werden. Bitte versuche es erneut."
+  },
   "ClientInquiryDetailPage": {
     "heading": "Anfragedetails",
     "statusOpen": "Wartet auf Antwort",
@@ -896,6 +931,10 @@
       "few": "+ {count} Positionen noch anzufragen",
       "many": "+ {count} Positionen noch anzufragen"
     },
+    "optionsHeading": "Zusätzliche Optionen",
+    "optionsAriaLabel": "Zusätzliche Optionen",
+    "optionIncluded": "inklusive",
+    "optionPriceOnRequest": "Preis auf Anfrage",
     "compareWithAnother": "Mit einem anderen Haus vergleichen",
     "inquiryGoesToAdvisor": "Ihre Anfrage geht an einen ModularHub Europe Berater, der sich innerhalb von 48h meldet.",
     "noPurchaseObligation": "unverbindlich",
@@ -905,6 +944,7 @@
     "sectionNav": {
       "uklad": "Raumaufteilung",
       "cena": "Preis und Umfang",
+      "opcje": "Zusätzliche Optionen",
       "dzialka": "Grundstück und Anlieferung",
       "harmonogram": "Bauzeitplan",
       "komfort": "Komfort und Technik",
@@ -922,14 +962,10 @@
     "sendInquiry": "Anfrage senden",
     "variantPickerAriaLabel": "Variantenauswahl",
     "variantFallbackLabel": "Variante",
-    "videoLabel": "Produktvideo {name}",
-    "featuresHeading": "Eigenschaften",
     "specsHeading": "Technische Spezifikation",
     "showMore": "Mehr anzeigen ({count})",
     "showFewer": "Weniger anzeigen",
-    "realUseHeading": "So sieht es in der Praxis aus",
     "realUsePhotosHeading": "Fotos aus echten Installationen",
-    "usageNoteEyebrow": "Wofür diese Variante gedacht ist",
     "realUsePhotoAlt": "{name} in der Praxis, Foto {index}",
     "partnerHeading": "Über den Partner",
     "sectionNavAriaLabel": "Abschnittsnavigation",
@@ -942,6 +978,14 @@
       "partner": "Partner",
       "faq": "Dokumente und Fragen"
     }
+  },
+  "ProjectVideoSection": {
+    "realUseHeading": "So sieht es in der Praxis aus",
+    "usageNoteEyebrow": "Wofür diese Variante gedacht ist",
+    "videoLabel": "Produktvideo {name}"
+  },
+  "ProjectFeatureTiles": {
+    "featuresHeading": "Eigenschaften"
   },
   "Faq": {
     "heading": "Häufig gestellte Fragen",
@@ -1168,6 +1212,45 @@
       "inne": "Eine individuelle Wärmequelle — Details mit dem Hersteller abzustimmen."
     }
   },
+  "SaunaTechnicalSpecs": {
+    "heading": "Technische Spezifikation",
+    "claddingMaterial": "Außenverkleidung",
+    "interiorWoodType": "Holz im Innenbereich",
+    "benchMaterial": "Material der Bänke",
+    "insulationType": "Art der Dämmung",
+    "glazingType": "Art der Verglasung",
+    "seatingCapacity": "Sitzplätze",
+    "electricalRequirement": "Elektrische Anforderungen",
+    "hasChangingArea": "Zusatzbereich",
+    "changingAreaDescription": "Beschreibung des Zusatzbereichs",
+    "yes": "Ja",
+    "no": "Nein"
+  },
+  "SaunaPage": {
+    "price": "Preis",
+    "priceOnRequest": "Individuelles Angebot",
+    "netVat": "netto",
+    "estimatedPackage": "Richtpreis",
+    "from": "ab",
+    "sendInquiry": "Anfrage senden",
+    "variantPickerAriaLabel": "Variantenauswahl",
+    "variantFallbackLabel": "Variante",
+    "optionsHeading": "Zusätzliche Optionen",
+    "optionsAriaLabel": "Zusätzliche Optionen",
+    "optionIncluded": "inklusive",
+    "optionPriceOnRequest": "Preis auf Anfrage",
+    "sectionNavAriaLabel": "Abschnittsnavigation",
+    "sectionNavScrollLeft": "Abschnittsleiste nach links scrollen",
+    "sectionNavScrollRight": "Abschnittsleiste nach rechts scrollen",
+    "sectionNav": {
+      "opcje": "Zusätzliche Optionen",
+      "cechy": "Eigenschaften",
+      "specyfikacja": "Spezifikation",
+      "dzialka": "Grundstück und Anlieferung",
+      "partner": "Partner",
+      "dokumenty": "Dokumente und Fragen"
+    }
+  },
   "ResultsFilterBar": {
     "sortPriceAsc": "Preis: aufsteigend",
     "sortPriceDesc": "Preis: absteigend",
@@ -1205,7 +1288,11 @@
     "budgetAriaLabel": "Budget",
     "areaLabel": "Fläche",
     "areaPlaceholder": "Beliebig",
-    "searchButton": "Häuser suchen"
+    "searchButton": "Häuser suchen",
+    "categoryLinksAriaLabel": "Kategorien innerhalb von Mehr als ein Haus",
+    "categoryLinkSpa": "Modulare Spas",
+    "categoryLinkContainers": "Container",
+    "categoryLinkOutdoorTv": "Outdoor TV"
   },
   "FloatingSearchButton": {
     "prompt": "Wonach suchen Sie heute?",
@@ -1294,7 +1381,8 @@
     "howItWorksStep3": "Die Hersteller erhalten das Briefing erst nach Ihrer Zustimmung.",
     "selectedHomesLabel": "Ausgewählte Häuser",
     "sectionAddressHeading": "Adresse des Grundstücks",
-    "homeMeta": "{producer} · {area} m²",
+    "homeMeta": "{producer} · {area}",
+    "areaUnknown": "Wohnfläche wird noch festgelegt",
     "streetLabel": "Straße und Hausnummer",
     "postalCodeLabel": "Postleitzahl",
     "cityLabel": "Ort",
@@ -1621,6 +1709,79 @@
     "statusClosed": "Geschlossen",
     "unreadDecisionLabel": "Kunde hat eine Entscheidung getroffen"
   },
+  "ProducerPanelBoardPage": {
+    "heading": "Pinnwand",
+    "intro": "Offene Großbestellungsanfragen aller Investoren — gib für jede davon ein Angebot ab.",
+    "notApprovedHeading": "Die Pinnwand steht nur volumenverifizierten Herstellern zur Verfügung",
+    "notApprovedDescription": "Fülle dein Produktionskapazitätsprofil aus, damit ein Administrator dich verifizieren kann.",
+    "completeProfileLink": "Kapazitätsprofil vervollständigen",
+    "emptyMessage": "Keine offenen Anfragen auf der Pinnwand.",
+    "columnCountry": "Land",
+    "columnProjectType": "Projekttyp",
+    "columnUnits": "Einheiten",
+    "columnStatus": "Status",
+    "columnDate": "Datum",
+    "statusOpen": "Offen",
+    "statusQuoted": "Mit Angeboten",
+    "trustSignalNew": "Neu",
+    "trustSignalComplete": "Angaben vollständig",
+    "previousPage": "Zurück",
+    "nextPage": "Weiter",
+    "pageLabel": "Seite {current} von {total}",
+    "paginationAriaLabel": "Pinnwandseiten",
+    "columnFamilies": "Familien",
+    "columnFloorArea": "Wohnfläche (m²)"
+  },
+  "ProducerBoardDetailPage": {
+    "heading": "Anfragedetails",
+    "backToBoard": "Zurück zur Pinnwand",
+    "countryLabel": "Land",
+    "projectTypeLabel": "Projekttyp",
+    "familiesLabel": "Produktfamilien",
+    "unitCountLabel": "Stückzahl",
+    "floorAreaLabel": "Wohnfläche (m²)",
+    "completionStandardLabel": "Ausbaustandard",
+    "startWindowLabel": "Startfenster",
+    "deliveryWindowLabel": "Lieferfenster",
+    "locationDetailLabel": "Standort",
+    "extrasNoteLabel": "Zusätzliche Hinweise",
+    "trustSignalLabel": "Kontaktdaten des Investors",
+    "trustSignalNew": "Neu",
+    "trustSignalComplete": "Angaben vollständig",
+    "ownQuoteStatusLabel": "Dein Angebot",
+    "ownQuoteStatusActive": "Aktiv",
+    "ownQuoteStatusAccepted": "Angenommen",
+    "ownQuoteStatusRejected": "Abgelehnt",
+    "ownQuoteStatusSuperseded": "Ersetzt"
+  },
+  "QuoteForm": {
+    "intro": "Gib dein Angebot für diese Anfrage ab.",
+    "revisionIntro": "Du überarbeitest ein bereits eingereichtes Angebot — die neue Version ersetzt die vorherige.",
+    "totalPriceLabel": "Gesamtpreis (€)",
+    "unitPriceLabel": "Preis pro Einheit (€, optional)",
+    "leadTimeLabel": "Vorgeschlagene Lieferzeit (Wochen, optional)",
+    "notesLabel": "Notiz (optional)",
+    "submitQuote": "Angebot senden",
+    "submitRevision": "Überarbeitetes Angebot senden",
+    "submitting": "Wird gesendet…",
+    "submittedMessage": "Angebot gesendet.",
+    "genericError": "Das Angebot konnte nicht gespeichert werden. Bitte versuche es erneut."
+  },
+  "ProducerPanelBoardQuotesPage": {
+    "heading": "Meine Angebote",
+    "emptyMessage": "Du hast noch keine Angebote eingereicht.",
+    "columnSource": "Anfrage",
+    "columnPrice": "Preis",
+    "columnStatus": "Status",
+    "columnDate": "Datum",
+    "sourceProjectRequest": "Pinnwand",
+    "sourceBulkProductInquiry": "Produktanfrage",
+    "statusActive": "Aktiv",
+    "statusAccepted": "Angenommen",
+    "statusRejected": "Abgelehnt",
+    "statusSuperseded": "Ersetzt",
+    "contactRevealedLabel": "Investorenkontakt"
+  },
   "ProducerInquiryDetailPage": {
     "heading": "Anfragedetails",
     "deliveryCountryLabel": "Lieferland",
@@ -1689,7 +1850,7 @@
     "nameLabel": "Vollständiger Name",
     "emailInvalidError": "Geben Sie eine gültige E-Mail-Adresse an.",
     "phoneLabel": "Telefon (optional)",
-    "dataSharingNotice": "Ihre Kontaktdaten werden an passende, verifizierte Hersteller weitergegeben, damit diese Ihnen Angebote zusenden können.",
+    "dataSharingNotice": "Deine Kontaktdaten werden ausschließlich dem Hersteller angezeigt, dessen Angebot du annimmst — bis dahin bleiben sie maskiert.",
     "sendingLabel": "Wird gesendet…",
     "retrySendLabel": "Erneut senden",
     "sendLabel": "Anfrage senden",
@@ -1711,7 +1872,9 @@
     "backStepLabel": "Zurück",
     "nextStepLabel": "Weiter",
     "stepperLabel": "Formularfortschritt",
-    "stepAnnouncement": "Schritt {current} von {total}: {label}"
+    "stepAnnouncement": "Schritt {current} von {total}: {label}",
+    "locationDetailVisibilityHint": "Diese Angabe ist für jeden volumenverifizierten Hersteller auf der Pinnwand sichtbar — gib hier keine Angaben ein, die dich persönlich identifizieren.",
+    "extrasNoteVisibilityHint": "Diese Notiz ist für jeden volumenverifizierten Hersteller auf der Pinnwand sichtbar — gib hier keine Angaben ein, die dich persönlich identifizieren."
   },
   "ProjectRequestConfirmationCard": {
     "statusLabel": "Gesendet",
@@ -1775,7 +1938,9 @@
     "closeMenu": "Menü schließen",
     "menu": "Menü",
     "collapseSidebar": "Menü einklappen",
-    "expandSidebar": "Menü ausklappen"
+    "expandSidebar": "Menü ausklappen",
+    "board": "Pinnwand",
+    "boardQuotes": "Meine Angebote"
   },
   "ClientPanelSidebar": {
     "navAriaLabel": "Kundenbereich",
@@ -1789,7 +1954,8 @@
     "closeMenu": "Menü schließen",
     "menu": "Menü",
     "collapseSidebar": "Menü einklappen",
-    "expandSidebar": "Menü ausklappen"
+    "expandSidebar": "Menü ausklappen",
+    "quotes": "Angebote"
   },
   "CaseChat": {
     "heading": "Gespräch mit dem Berater",

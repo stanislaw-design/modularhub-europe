@@ -100,4 +100,36 @@ describe("ProducerRealizationsSection", () => {
     expect(screen.getByText("Gwarancja konstrukcyjna")).toBeInTheDocument();
     expect(screen.getByText("25 lat")).toBeInTheDocument();
   });
+
+  it("hides the structural warranty tile entirely when no warranty is entered", async () => {
+    render(
+      await ProducerRealizationsSection({
+        producer: makeProducer(),
+        documents: [],
+        ...baseProps,
+        structuralWarrantyYears: 0,
+      }),
+    );
+
+    expect(screen.queryByText("Gwarancja konstrukcyjna")).not.toBeInTheDocument();
+  });
+
+  it("hides the completed projects count (and its separator) when it is 0, keeps the models count", async () => {
+    render(
+      await ProducerRealizationsSection({
+        producer: makeProducer({ completedProjectsCount: 0 }),
+        documents: [],
+        ...baseProps,
+      }),
+    );
+
+    expect(screen.queryByText(/zrealizowanych projektów/)).not.toBeInTheDocument();
+    expect(screen.getByText("27 modeli w ofercie")).toBeInTheDocument();
+  });
+
+  it("never shows a rating/review count — the platform doesn't let anyone leave reviews yet", async () => {
+    render(await ProducerRealizationsSection({ producer: makeProducer(), documents: [], ...baseProps }));
+
+    expect(screen.queryByText(/opinii/)).not.toBeInTheDocument();
+  });
 });

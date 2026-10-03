@@ -34,9 +34,9 @@ export async function PopularHomeCard({ project, countryName, href }: PopularHom
           {project.name}
         </Heading>
         <Text tone="muted" className="text-data">
-          {project.rooms > 0
-            ? t("summary", { area: project.floorAreaM2, rooms: project.rooms })
-            : t("summaryNoRooms", { area: project.floorAreaM2 })}{" "}
+          {project.rooms !== null && project.rooms > 0
+            ? t("summary", { area: project.floorAreaM2 !== null ? `${project.floorAreaM2} m²` : t("areaUnknown"), rooms: project.rooms })
+            : t("summaryNoRooms", { area: project.floorAreaM2 !== null ? `${project.floorAreaM2} m²` : t("areaUnknown") })}{" "}
           · {countryFlag[project.countryOfProduction]}{" "}
           {countryName}
         </Text>

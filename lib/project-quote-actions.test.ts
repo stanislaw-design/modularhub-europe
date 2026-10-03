@@ -28,13 +28,11 @@ import {
   product,
   projectQuote,
   projectRequest,
-  projectRequestTargetProducer,
   users,
 } from "@/lib/db/schema";
 import {
   acceptProjectQuote,
   linkRequestsToClientOnLogin,
-  markProjectRequestViewedOrDeclined,
   setClientB2bVerification,
   setProducerVolumeVerification,
   submitClientB2bDetails,
@@ -57,19 +55,21 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
   const clientId = crypto.randomUUID();
   const otherClientUserId = crypto.randomUUID();
   const otherClientId = crypto.randomUUID();
-  const producer1UserId = crypto.randomUUID(); // targeted on the project_request fixture
+  const producer1UserId = crypto.randomUUID(); // volumeVerificationStatus approved (AC-13 baseline)
   const producer1Id = crypto.randomUUID();
-  const producer2UserId = crypto.randomUUID(); // never targeted, no products
+  const producer2UserId = crypto.randomUUID(); // no capacity profile row at all -> never approved
   const producer2Id = crypto.randomUUID();
   const producer3UserId = crypto.randomUUID(); // owns the bulk-inquiry product
   const producer3Id = crypto.randomUUID();
+  const producer4UserId = crypto.randomUUID(); // second approved producer, for the AC-14 race test
+  const producer4Id = crypto.randomUUID();
   const adminUserId = crypto.randomUUID();
   const bulkProductId = crypto.randomUUID();
   const projectRequestId = crypto.randomUUID();
   const bulkInquiryId = crypto.randomUUID();
 
-  const allUserIds = [clientUserId, otherClientUserId, producer1UserId, producer2UserId, producer3UserId, adminUserId];
-  const allProducerIds = [producer1Id, producer2Id, producer3Id];
+  const allUserIds = [clientUserId, otherClientUserId, producer1UserId, producer2UserId, producer3UserId, producer4UserId, adminUserId];
+  const allProducerIds = [producer1Id, producer2Id, producer3Id, producer4Id];
 
   beforeAll(async () => {
     await db.insert(users).values([
@@ -78,6 +78,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       { id: producer1UserId, email: `pqa-producer1-${producer1UserId}@example.test`, phone: "+48000000003", role: "producer" },
       { id: producer2UserId, email: `pqa-producer2-${producer2UserId}@example.test`, phone: "+48000000004", role: "producer" },
       { id: producer3UserId, email: `pqa-producer3-${producer3UserId}@example.test`, phone: "+48000000005", role: "producer" },
+      { id: producer4UserId, email: `pqa-producer4-${producer4UserId}@example.test`, phone: "+48000000007", role: "producer" },
       { id: adminUserId, email: `pqa-admin-${adminUserId}@example.test`, phone: "+48000000006", role: "admin" },
     ]);
     await db.insert(client).values([
@@ -86,13 +87,21 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
     ]);
     await db.insert(producer).values([
       { id: producer1Id, userId: producer1UserId, nip: `PQA1${producer1Id.slice(0, 7)}`, name: "Project Quote Producer 1", countryCode: "PL", technology: "szkielet-drewniany" },
-      { id: producer2Id, userId: producer2UserId, nip: `PQA2${producer2Id.slice(0, 7)}`, name: "Project Quote Producer 2 (not targeted)", countryCode: "PL", technology: "szkielet-drewniany" },
+      { id: producer2Id, userId: producer2UserId, nip: `PQA2${producer2Id.slice(0, 7)}`, name: "Project Quote Producer 2 (never approved)", countryCode: "PL", technology: "szkielet-drewniany" },
       { id: producer3Id, userId: producer3UserId, nip: `PQA3${producer3Id.slice(0, 7)}`, name: "Project Quote Producer 3 (bulk product owner)", countryCode: "PL", technology: "szkielet-drewniany" },
+      { id: producer4Id, userId: producer4UserId, nip: `PQA4${producer4Id.slice(0, 7)}`, name: "Project Quote Producer 4 (second approved)", countryCode: "PL", technology: "szkielet-drewniany" },
     ]);
     await db.insert(producerMember).values([
       { producerId: producer1Id, userId: producer1UserId },
       { producerId: producer2Id, userId: producer2UserId },
       { producerId: producer3Id, userId: producer3UserId },
+      { producerId: producer4Id, userId: producer4UserId },
+    ]);
+    // AC-13: ścieżka project_request sprawdza volumeVerificationStatus
+    // bezpośrednio, nie już przez project_request_target_producer (usunięte).
+    await db.insert(producerCapacityProfile).values([
+      { producerId: producer1Id, volumeVerificationStatus: "approved" },
+      { producerId: producer4Id, volumeVerificationStatus: "approved" },
     ]);
     await db.insert(product).values({ id: bulkProductId, producerId: producer3Id, family: "dom", status: "published", name: "PQA Bulk Product" });
     await db.insert(projectRequest).values({
@@ -105,7 +114,6 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       unitCountMin: 12,
       status: "open",
     });
-    await db.insert(projectRequestTargetProducer).values({ projectRequestId, producerId: producer1Id, status: "invited" });
     await db.insert(bulkProductInquiry).values({
       id: bulkInquiryId,
       productId: bulkProductId,
@@ -119,7 +127,6 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
 
   afterAll(async () => {
     await db.delete(projectQuote).where(inArray(projectQuote.producerId, allProducerIds));
-    await db.delete(projectRequestTargetProducer).where(eq(projectRequestTargetProducer.projectRequestId, projectRequestId));
     await db.delete(bulkProductInquiry).where(eq(bulkProductInquiry.id, bulkInquiryId));
     await db.delete(projectRequest).where(eq(projectRequest.id, projectRequestId));
     await db.delete(product).where(eq(product.id, bulkProductId));
@@ -136,13 +143,14 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
     trackEventMock.mockClear();
     captureErrorMock.mockClear();
 
-    // Every test starts from the same clean baseline.
+    // Every test starts from the same clean baseline: producer1/producer4
+    // approved (AC-13 happy path), producer2 stays without a capacity profile
+    // row at all (never approved).
     await db.delete(projectQuote).where(inArray(projectQuote.producerId, allProducerIds));
     await db.update(projectRequest).set({ status: "open" }).where(eq(projectRequest.id, projectRequestId));
-    await db.update(projectRequestTargetProducer).set({ status: "invited", viewedAt: null }).where(eq(projectRequestTargetProducer.projectRequestId, projectRequestId));
     await db.update(bulkProductInquiry).set({ status: "open" }).where(eq(bulkProductInquiry.id, bulkInquiryId));
     await db.update(client).set({ nip: null, companyName: null, b2bVerificationStatus: "not_submitted" }).where(inArray(client.id, [clientId, otherClientId]));
-    await db.update(producerCapacityProfile).set({ volumeVerificationStatus: "not_submitted" }).where(inArray(producerCapacityProfile.producerId, allProducerIds));
+    await db.update(producerCapacityProfile).set({ volumeVerificationStatus: "approved" }).where(inArray(producerCapacityProfile.producerId, [producer1Id, producer4Id]));
     await db.delete(pendingRegistration).where(eq(pendingRegistration.email, "pqa-new-contact@example.test"));
     await db.delete(users).where(eq(users.email, "pqa-new-contact@example.test"));
   });
@@ -182,14 +190,28 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       expect(result.ok).toBe(false);
     });
 
-    // AC-3: only a producer with a project_request_target_producer row may quote.
-    it("rejects a producer with no project_request_target_producer row for this request", async () => {
+    // AC-13: only a producer with volumeVerificationStatus = 'approved' may
+    // quote a project_request; replaces the dropped project_request_target_producer gate.
+    it("rejects a producer without an approved capacity profile", async () => {
       authMock.mockResolvedValue(sessionAs(producer2UserId, "producer"));
 
       const result = await submitProjectQuote({ projectRequestId, totalPriceEur: 500000 });
 
       expect(result.ok).toBe(false);
-      expect(result.error).toMatch(/Nie jesteś przypisany/);
+      expect(result.error).toMatch(/zweryfikowany wolumenowo/);
+      const rows = await db.select().from(projectQuote).where(eq(projectQuote.producerId, producer2Id));
+      expect(rows).toHaveLength(0);
+    });
+
+    // AC-13: the request itself must still be open/quoted.
+    it("rejects an approved producer once the request is no longer open or quoted", async () => {
+      await db.update(projectRequest).set({ status: "closed" }).where(eq(projectRequest.id, projectRequestId));
+      authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
+
+      const result = await submitProjectQuote({ projectRequestId, totalPriceEur: 500000 });
+
+      expect(result.ok).toBe(false);
+      expect(result.error).toMatch(/nie jest już otwarte/);
     });
 
     // AC-5: only the owner of the referenced product may quote a bulk inquiry.
@@ -212,8 +234,6 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       expect(quote).toMatchObject({ status: "active", totalPriceCents: 125000000, unitPriceCents: 10000000 });
       const [requestRow] = await db.select({ status: projectRequest.status }).from(projectRequest).where(eq(projectRequest.id, projectRequestId));
       expect(requestRow.status).toBe("quoted");
-      const [targetRow] = await db.select({ status: projectRequestTargetProducer.status }).from(projectRequestTargetProducer).where(and(eq(projectRequestTargetProducer.projectRequestId, projectRequestId), eq(projectRequestTargetProducer.producerId, producer1Id)));
-      expect(targetRow.status).toBe("quoted");
       expect(signInMock).toHaveBeenCalledWith("resend", expect.objectContaining({ redirect: false, redirectTo: "/pl/panel" }));
       expect(trackEventMock).toHaveBeenCalledWith("project_quote_submitted", expect.any(Object), producer1UserId);
     });
@@ -255,6 +275,23 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       expect(result.error).toMatch(/już przyjął/);
     });
 
+    // AC-14: the already-accepted-quote guard checks the whole request, not
+    // just this producer's own rows -- a second, different (also approved)
+    // producer must be blocked too, closing the post-acceptance race.
+    it("refuses a new quote from a different producer once ANY producer's quote on this request is accepted", async () => {
+      authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
+      await submitProjectQuote({ projectRequestId, totalPriceEur: 1000000 });
+      await db.update(projectQuote).set({ status: "accepted" }).where(and(eq(projectQuote.projectRequestId, projectRequestId), eq(projectQuote.producerId, producer1Id)));
+
+      authMock.mockResolvedValue(sessionAs(producer4UserId, "producer"));
+      const result = await submitProjectQuote({ projectRequestId, totalPriceEur: 1100000 });
+
+      expect(result.ok).toBe(false);
+      expect(result.error).toMatch(/już przyjął/);
+      const rows = await db.select().from(projectQuote).where(eq(projectQuote.producerId, producer4Id));
+      expect(rows).toHaveLength(0);
+    });
+
     // AC-11: a contact with no existing account gets staged for the magic
     // link's createUser branch (auth.ts) to succeed.
     it("stages a pending_registration for a contact email with no existing account (AC-11)", async () => {
@@ -269,7 +306,6 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
         unitCountMin: 12,
         status: "open",
       });
-      await db.insert(projectRequestTargetProducer).values({ projectRequestId: newContactRequestId, producerId: producer1Id, status: "invited" });
       authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
 
       const result = await submitProjectQuote({ projectRequestId: newContactRequestId, totalPriceEur: 900000 });
@@ -279,7 +315,6 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       expect(pending).toMatchObject({ role: "client", payload: { name: "Brand New Contact", phone: "" } });
 
       await db.delete(projectQuote).where(eq(projectQuote.projectRequestId, newContactRequestId));
-      await db.delete(projectRequestTargetProducer).where(eq(projectRequestTargetProducer.projectRequestId, newContactRequestId));
       await db.delete(projectRequest).where(eq(projectRequest.id, newContactRequestId));
     });
 
@@ -307,46 +342,6 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
 
       expect(result.ok).toBe(true);
       expect(captureErrorMock).toHaveBeenCalledWith(expect.any(FakeAuthError), expect.objectContaining({ path: "submitProjectQuote:notifyContact" }));
-    });
-  });
-
-  describe("markProjectRequestViewedOrDeclined", () => {
-    it("rejects with no session", async () => {
-      authMock.mockResolvedValue(null);
-
-      const result = await markProjectRequestViewedOrDeclined(projectRequestId, "viewed");
-
-      expect(result.ok).toBe(false);
-    });
-
-    it("rejects a producer with no target row for this request", async () => {
-      authMock.mockResolvedValue(sessionAs(producer2UserId, "producer"));
-
-      const result = await markProjectRequestViewedOrDeclined(projectRequestId, "viewed");
-
-      expect(result.ok).toBe(false);
-      expect(result.error).toMatch(/Nie znaleziono zapytania/);
-    });
-
-    it("sets status to viewed and stamps viewedAt for the owning producer", async () => {
-      authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
-
-      const result = await markProjectRequestViewedOrDeclined(projectRequestId, "viewed");
-
-      expect(result.ok).toBe(true);
-      const [row] = await db.select().from(projectRequestTargetProducer).where(and(eq(projectRequestTargetProducer.projectRequestId, projectRequestId), eq(projectRequestTargetProducer.producerId, producer1Id)));
-      expect(row.status).toBe("viewed");
-      expect(row.viewedAt).not.toBeNull();
-    });
-
-    it("sets status to declined without requiring a prior view", async () => {
-      authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
-
-      const result = await markProjectRequestViewedOrDeclined(projectRequestId, "declined");
-
-      expect(result.ok).toBe(true);
-      const [row] = await db.select({ status: projectRequestTargetProducer.status }).from(projectRequestTargetProducer).where(and(eq(projectRequestTargetProducer.projectRequestId, projectRequestId), eq(projectRequestTargetProducer.producerId, producer1Id)));
-      expect(row.status).toBe("declined");
     });
   });
 
@@ -404,6 +399,8 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
     });
 
     // AC-9: accepting one quote rejects every other active quote on the same request.
+    // AC-7: contactRevealedAt is stamped on the accepted quote, in the same
+    // operation, never on the rejected one.
     it("accepts one active quote and rejects the other active quote on the same request", async () => {
       const acceptedQuoteId = await insertActiveQuote(producer1Id);
       const rejectedQuoteId = await insertActiveQuote(producer2Id);
@@ -414,10 +411,12 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       const result = await acceptProjectQuote(acceptedQuoteId);
 
       expect(result.ok).toBe(true);
-      const [accepted] = await db.select({ status: projectQuote.status }).from(projectQuote).where(eq(projectQuote.id, acceptedQuoteId));
-      const [rejected] = await db.select({ status: projectQuote.status }).from(projectQuote).where(eq(projectQuote.id, rejectedQuoteId));
+      const [accepted] = await db.select({ status: projectQuote.status, contactRevealedAt: projectQuote.contactRevealedAt }).from(projectQuote).where(eq(projectQuote.id, acceptedQuoteId));
+      const [rejected] = await db.select({ status: projectQuote.status, contactRevealedAt: projectQuote.contactRevealedAt }).from(projectQuote).where(eq(projectQuote.id, rejectedQuoteId));
       expect(accepted.status).toBe("accepted");
+      expect(accepted.contactRevealedAt).not.toBeNull();
       expect(rejected.status).toBe("rejected");
+      expect(rejected.contactRevealedAt).toBeNull();
       const [requestRow] = await db.select({ status: projectRequest.status }).from(projectRequest).where(eq(projectRequest.id, projectRequestId));
       expect(requestRow.status).toBe("accepted");
       expect(trackEventMock).toHaveBeenCalledWith("project_quote_accepted", { quoteId: acceptedQuoteId }, clientUserId);

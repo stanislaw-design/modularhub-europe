@@ -138,7 +138,13 @@ describe("getTechnicalSpecsSchema: dom", () => {
   });
 });
 
-describe("getTechnicalSpecsSchema: spa-modulowe", () => {
+describe("getTechnicalSpecsSchema: spa-modulowe requires spaSubcategory", () => {
+  it("throws when spaSubcategory is missing (spec 0061 AC-2)", () => {
+    expect(() => getTechnicalSpecsSchema("spa-modulowe", "published")).toThrow();
+  });
+});
+
+describe("getTechnicalSpecsSchema: spa-modulowe / jacuzzi (unchanged legacy shape, spec 0061 AC-2 zero regression)", () => {
   const complete = {
     seatingCapacity: 4,
     waterVolumeLiters: 800,
@@ -150,12 +156,12 @@ describe("getTechnicalSpecsSchema: spa-modulowe", () => {
   };
 
   it("accepts a complete spa shape when published", () => {
-    const result = getTechnicalSpecsSchema("spa-modulowe", "published").safeParse(complete);
+    const result = getTechnicalSpecsSchema("spa-modulowe", "published", undefined, "jacuzzi").safeParse(complete);
     expect(result.success).toBe(true);
   });
 
   it("rejects a non numeric seatingCapacity", () => {
-    const result = getTechnicalSpecsSchema("spa-modulowe", "published").safeParse({
+    const result = getTechnicalSpecsSchema("spa-modulowe", "published", undefined, "jacuzzi").safeParse({
       ...complete,
       seatingCapacity: "4",
     });
@@ -163,7 +169,7 @@ describe("getTechnicalSpecsSchema: spa-modulowe", () => {
   });
 
   it("rejects a heatingType outside the fixed set", () => {
-    const result = getTechnicalSpecsSchema("spa-modulowe", "published").safeParse({
+    const result = getTechnicalSpecsSchema("spa-modulowe", "published", undefined, "jacuzzi").safeParse({
       ...complete,
       heatingType: "gas",
     });
@@ -172,7 +178,7 @@ describe("getTechnicalSpecsSchema: spa-modulowe", () => {
 
   it("accepts each of the three valid heatingType values", () => {
     for (const heatingType of ["electric", "heat-pump", "wood-fired"] as const) {
-      const result = getTechnicalSpecsSchema("spa-modulowe", "published").safeParse({
+      const result = getTechnicalSpecsSchema("spa-modulowe", "published", undefined, "jacuzzi").safeParse({
         ...complete,
         heatingType,
       });
@@ -181,11 +187,69 @@ describe("getTechnicalSpecsSchema: spa-modulowe", () => {
   });
 
   it("rejects a dom-only field on a spa shape (strict, distinct schema per family)", () => {
-    const result = getTechnicalSpecsSchema("spa-modulowe", "published").safeParse({
+    const result = getTechnicalSpecsSchema("spa-modulowe", "published", undefined, "jacuzzi").safeParse({
       ...complete,
       wallBuildUp: "Szkielet",
     });
     expect(result.success).toBe(false);
+  });
+
+  it("gives wellness-combo the exact same (unchanged) shape as jacuzzi", () => {
+    const result = getTechnicalSpecsSchema("spa-modulowe", "published", undefined, "wellness-combo").safeParse(
+      complete,
+    );
+    expect(result.success).toBe(true);
+  });
+});
+
+describe("getTechnicalSpecsSchema: spa-modulowe / sauna (spec 0061 AC-2, new dedicated shape)", () => {
+  const complete = {
+    claddingMaterial: "Drewno thermo",
+    interiorWoodType: "Świerk skandynawski",
+    benchMaterial: "Abachi",
+    insulationType: "Wełna i folia aluminiowa",
+    glazingType: "Szkło hartowane przyciemniane",
+    seatingCapacity: 6,
+    hasChangingArea: true,
+    changingAreaDescription: "Strefa relaksu 310 x 250 cm",
+    electricalRequirement: "400V",
+  };
+
+  it("accepts a complete sauna shape when published", () => {
+    const result = getTechnicalSpecsSchema("spa-modulowe", "published", undefined, "sauna").safeParse(complete);
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts a sauna shape without the optional changingAreaDescription", () => {
+    const withoutDescription: Omit<typeof complete, "changingAreaDescription"> = { ...complete };
+    delete (withoutDescription as Partial<typeof complete>).changingAreaDescription;
+    const result = getTechnicalSpecsSchema("spa-modulowe", "published", undefined, "sauna").safeParse(
+      withoutDescription,
+    );
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a jacuzzi-only field on a sauna shape (strict, distinct schema per subcategory)", () => {
+    const result = getTechnicalSpecsSchema("spa-modulowe", "published", undefined, "sauna").safeParse({
+      ...complete,
+      waterVolumeLiters: 800,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a non boolean hasChangingArea", () => {
+    const result = getTechnicalSpecsSchema("spa-modulowe", "published", undefined, "sauna").safeParse({
+      ...complete,
+      hasChangingArea: "yes",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts a partial sauna shape when draft", () => {
+    const result = getTechnicalSpecsSchema("spa-modulowe", "draft", undefined, "sauna").safeParse({
+      seatingCapacity: 4,
+    });
+    expect(result.success).toBe(true);
   });
 });
 

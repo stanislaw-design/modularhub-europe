@@ -56,11 +56,13 @@
   },
   "KlientRealizacjaPage": {
     "heading": "Uitvoering — {name}",
+    "areaUnknown": "oppervlakte nog te bepalen",
     "completionBanner": "Bestelling voltooid — alle fasen zijn afgerond.",
     "backToOffer": "Terug naar aanvragen"
   },
   "ProducentRealizacjaPage": {
     "heading": "Uitvoering — {name}",
+    "areaUnknown": "oppervlakte nog te bepalen",
     "deliveredBanner": "Bestelling opgeleverd — u kunt nu doorgaan naar bedrijfsverificatie voor de eerste uitbetaling.",
     "backToList": "Terug naar uitvoering",
     "verification": "Bedrijfsverificatie en uitbetaling"
@@ -69,6 +71,7 @@
     "heading": "Uitvoering",
     "intro": "De statusas voor productie, transport, montage en oplevering — dezelfde die de klant ziet voor deze bestelling. Bedrijfsverificatie wordt ontgrendeld na oplevering, voor de eerste uitbetaling.",
     "empty": "Nog geen uitvoeringen — bestellingen met een geaccepteerd aanbod verschijnen hier.",
+    "areaUnknown": "oppervlakte nog te bepalen",
     "readyForVerification": "Klaar voor bedrijfsverificatie",
     "currentStage": "Huidige fase: {stage}",
     "viewTimeline": "Bekijk statusas"
@@ -78,8 +81,9 @@
   },
   "PopularHomeCard": {
     "coverAlt": "{name}, een modulaire woning",
-    "summary": "{area} m² · {rooms} kamers",
-    "summaryNoRooms": "{area} m²",
+    "summary": "{area} · {rooms} kamers",
+    "summaryNoRooms": "{area}",
+    "areaUnknown": "oppervlakte nog te bepalen",
     "priceOnRequest": "Prijs op aanvraag",
     "priceFrom": "vanaf €{price}"
   },
@@ -104,7 +108,13 @@
     "selectForInquiry": "Selecteer {name} voor de aanvraag",
     "selectionLimitReached": "U kunt maximaal 3 projecten selecteren",
     "needsMoreDocuments": "Vereist aanvullende documenten",
-    "summary": "{area} m² bruikbaar · {rooms} {roomsLabel} · {storeys} bouwlagen",
+    "summary": "{area} · {rooms} · {storeys}",
+    "areaValue": "{area} m² bruikbaar",
+    "areaUnknown": "bruikbare oppervlakte nog te bepalen",
+    "roomsValue": "{rooms} {roomsLabel}",
+    "roomsUnknown": "aantal kamers nog te bepalen",
+    "storeysValue": "{storeys} bouwlagen",
+    "storeysUnknown": "aantal bouwlagen nog te bepalen",
     "rooms": {
       "one": "kamer",
       "few": "kamers",
@@ -181,6 +191,7 @@
       "blocked": "Niet toegestaan"
     },
     "noAnalysisData": "Geen analysegegevens voor dit project; probeer het later opnieuw.",
+    "areaUnknown": "oppervlakte nog te bepalen",
     "servicePrice": "Prijs van de dienst",
     "plotAreaLabel": "Perceeloppervlakte (m²)",
     "plotAreaError": "Voer een oppervlakte in tussen {min}–{max} m².",
@@ -206,6 +217,7 @@
     "compareLimitReached": "U kunt maximaal 3 woningen vergelijken",
     "unavailable": "Product niet beschikbaar",
     "floorArea": "{area} m² bruikbaar",
+    "floorAreaUnknown": "Oppervlakte nog te bepalen",
     "priceFrom": "vanaf €{price}"
   },
   "FavoriteCompareTable": {
@@ -806,6 +818,29 @@
       "legacy_direct": "Directe aanvraag"
     }
   },
+  "ClientPanelQuotesPage": {
+    "heading": "Offertes",
+    "emptyTitle": "Je hebt nog geen offertes",
+    "emptyDescription": "Offertes van producenten op jouw aanvragen verschijnen hier.",
+    "requestHeading": "Projectaanvraag",
+    "bulkInquiryHeadingPrefix": "Productaanvraag: ",
+    "producerColumn": "Producent",
+    "priceColumn": "Prijs",
+    "leadTimeColumn": "Levertijd",
+    "statusColumn": "Status",
+    "statusActive": "Actief",
+    "statusAccepted": "Geaccepteerd",
+    "statusRejected": "Afgewezen",
+    "statusSuperseded": "Vervangen",
+    "leadTimeWeeks": "{weeks} wk",
+    "notesColumn": "Notitie"
+  },
+  "AcceptQuoteButton": {
+    "accept": "Accepteren",
+    "accepting": "Accepteren…",
+    "accepted": "Geaccepteerd",
+    "genericError": "De offerte kon niet worden geaccepteerd. Probeer het opnieuw."
+  },
   "KlientPanelUlubionePage": {
     "heading": "Favorieten",
     "emptyTitle": "U heeft nog geen favoriete woningen",
@@ -889,6 +924,10 @@
       "few": "+ {count} posten nog te offreren",
       "many": "+ {count} posten nog te offreren"
     },
+    "optionsHeading": "Extra opties",
+    "optionsAriaLabel": "Extra opties",
+    "optionIncluded": "inbegrepen",
+    "optionPriceOnRequest": "prijs op aanvraag",
     "compareWithAnother": "Vergelijk met een andere woning",
     "inquiryGoesToAdvisor": "Uw aanvraag gaat naar een ModularHub Europe adviseur, die binnen 48u reageert.",
     "noPurchaseObligation": "geheel vrijblijvend",
@@ -898,6 +937,7 @@
     "sectionNav": {
       "uklad": "Indeling van de woning",
       "cena": "Prijs en omvang",
+      "opcje": "Extra opties",
       "dzialka": "Perceel en levering",
       "harmonogram": "Planning",
       "komfort": "Comfort en techniek",
@@ -915,14 +955,10 @@
     "sendInquiry": "Aanvraag versturen",
     "variantPickerAriaLabel": "Variantkeuze",
     "variantFallbackLabel": "Variant",
-    "videoLabel": "Productvideo {name}",
-    "featuresHeading": "Kenmerken",
     "specsHeading": "Technische specificatie",
     "showMore": "Toon meer ({count})",
     "showFewer": "Toon minder",
-    "realUseHeading": "Zo ziet het eruit in de praktijk",
     "realUsePhotosHeading": "Fotos van echte installaties",
-    "usageNoteEyebrow": "Waarvoor deze variant bedoeld is",
     "realUsePhotoAlt": "{name} in de praktijk, foto {index}",
     "partnerHeading": "Over de partner",
     "sectionNavAriaLabel": "Sectienavigatie",
@@ -935,6 +971,14 @@
       "partner": "Partner",
       "faq": "Documenten en vragen"
     }
+  },
+  "ProjectVideoSection": {
+    "realUseHeading": "Zo ziet het eruit in de praktijk",
+    "usageNoteEyebrow": "Waarvoor deze variant bedoeld is",
+    "videoLabel": "Productvideo {name}"
+  },
+  "ProjectFeatureTiles": {
+    "featuresHeading": "Kenmerken"
   },
   "Faq": {
     "heading": "Veelgestelde vragen",
@@ -1161,6 +1205,45 @@
       "inne": "Een aangepaste warmtebron — details in overleg met de fabrikant."
     }
   },
+  "SaunaTechnicalSpecs": {
+    "heading": "Technische specificatie",
+    "claddingMaterial": "Buitenbekleding",
+    "interiorWoodType": "Hout binnenzijde",
+    "benchMaterial": "Materiaal van de banken",
+    "insulationType": "Type isolatie",
+    "glazingType": "Type beglazing",
+    "seatingCapacity": "Aantal zitplaatsen",
+    "electricalRequirement": "Elektrische vereisten",
+    "hasChangingArea": "Extra ruimte",
+    "changingAreaDescription": "Beschrijving extra ruimte",
+    "yes": "Ja",
+    "no": "Nee"
+  },
+  "SaunaPage": {
+    "price": "Prijs",
+    "priceOnRequest": "Prijs op aanvraag",
+    "netVat": "netto",
+    "estimatedPackage": "Richtprijs",
+    "from": "vanaf",
+    "sendInquiry": "Aanvraag versturen",
+    "variantPickerAriaLabel": "Variantkeuze",
+    "variantFallbackLabel": "Variant",
+    "optionsHeading": "Extra opties",
+    "optionsAriaLabel": "Extra opties",
+    "optionIncluded": "inbegrepen",
+    "optionPriceOnRequest": "prijs op aanvraag",
+    "sectionNavAriaLabel": "Sectienavigatie",
+    "sectionNavScrollLeft": "Sectiebalk naar links scrollen",
+    "sectionNavScrollRight": "Sectiebalk naar rechts scrollen",
+    "sectionNav": {
+      "opcje": "Extra opties",
+      "cechy": "Kenmerken",
+      "specyfikacja": "Specificatie",
+      "dzialka": "Perceel en levering",
+      "partner": "Partner",
+      "dokumenty": "Documenten en vragen"
+    }
+  },
   "ResultsFilterBar": {
     "sortPriceAsc": "Prijs: oplopend",
     "sortPriceDesc": "Prijs: aflopend",
@@ -1198,7 +1281,11 @@
     "budgetAriaLabel": "Budget",
     "areaLabel": "Oppervlakte",
     "areaPlaceholder": "Elke",
-    "searchButton": "Woningen zoeken"
+    "searchButton": "Woningen zoeken",
+    "categoryLinksAriaLabel": "Categorieën binnen Meer dan een woning",
+    "categoryLinkSpa": "Modulaire spa's",
+    "categoryLinkContainers": "Modulaire containers",
+    "categoryLinkOutdoorTv": "Outdoor TV"
   },
   "FloatingSearchButton": {
     "prompt": "Waar bent u vandaag naar op zoek?",
@@ -1287,7 +1374,8 @@
     "howItWorksStep3": "Fabrikanten ontvangen de briefing pas nadat u akkoord bent gegaan.",
     "selectedHomesLabel": "Gekozen woningen",
     "sectionAddressHeading": "Adres van het perceel",
-    "homeMeta": "{producer} · {area} m²",
+    "homeMeta": "{producer} · {area}",
+    "areaUnknown": "oppervlakte nog te bepalen",
     "streetLabel": "Straat en huisnummer",
     "postalCodeLabel": "Postcode",
     "cityLabel": "Plaats",
@@ -1614,6 +1702,79 @@
     "statusClosed": "Gesloten",
     "unreadDecisionLabel": "Klant heeft een beslissing genomen"
   },
+  "ProducerPanelBoardPage": {
+    "heading": "Prikbord",
+    "intro": "Openstaande grootschalige aanvragen van alle investeerders — dien op elke aanvraag een offerte in.",
+    "notApprovedHeading": "Het prikbord is alleen beschikbaar voor volumegeverifieerde producenten",
+    "notApprovedDescription": "Vul je productiecapaciteitsprofiel in zodat een beheerder je kan verifiëren.",
+    "completeProfileLink": "Vul je capaciteitsprofiel aan",
+    "emptyMessage": "Geen openstaande aanvragen op het prikbord.",
+    "columnCountry": "Land",
+    "columnProjectType": "Projecttype",
+    "columnUnits": "Eenheden",
+    "columnStatus": "Status",
+    "columnDate": "Datum",
+    "statusOpen": "Open",
+    "statusQuoted": "Met offertes",
+    "trustSignalNew": "Nieuw",
+    "trustSignalComplete": "Gegevens compleet",
+    "previousPage": "Vorige",
+    "nextPage": "Volgende",
+    "pageLabel": "Pagina {current} van {total}",
+    "paginationAriaLabel": "Prikbordpagina's",
+    "columnFamilies": "Families",
+    "columnFloorArea": "Vloeroppervlak (m²)"
+  },
+  "ProducerBoardDetailPage": {
+    "heading": "Aanvraagdetails",
+    "backToBoard": "Terug naar het prikbord",
+    "countryLabel": "Land",
+    "projectTypeLabel": "Projecttype",
+    "familiesLabel": "Productfamilies",
+    "unitCountLabel": "Aantal eenheden",
+    "floorAreaLabel": "Vloeroppervlak (m²)",
+    "completionStandardLabel": "Afwerkingsniveau",
+    "startWindowLabel": "Startvenster",
+    "deliveryWindowLabel": "Levervenster",
+    "locationDetailLabel": "Locatie",
+    "extrasNoteLabel": "Extra opmerkingen",
+    "trustSignalLabel": "Contactgegevens investeerder",
+    "trustSignalNew": "Nieuw",
+    "trustSignalComplete": "Gegevens compleet",
+    "ownQuoteStatusLabel": "Jouw offerte",
+    "ownQuoteStatusActive": "Actief",
+    "ownQuoteStatusAccepted": "Geaccepteerd",
+    "ownQuoteStatusRejected": "Afgewezen",
+    "ownQuoteStatusSuperseded": "Vervangen"
+  },
+  "QuoteForm": {
+    "intro": "Dien je offerte in voor deze aanvraag.",
+    "revisionIntro": "Je past een eerder ingediende offerte aan — de nieuwe versie vervangt de vorige.",
+    "totalPriceLabel": "Totaalprijs (€)",
+    "unitPriceLabel": "Prijs per eenheid (€, optioneel)",
+    "leadTimeLabel": "Voorgestelde levertijd (weken, optioneel)",
+    "notesLabel": "Notitie (optioneel)",
+    "submitQuote": "Offerte verzenden",
+    "submitRevision": "Aangepaste offerte verzenden",
+    "submitting": "Verzenden…",
+    "submittedMessage": "Offerte verzonden.",
+    "genericError": "De offerte kon niet worden opgeslagen. Probeer het opnieuw."
+  },
+  "ProducerPanelBoardQuotesPage": {
+    "heading": "Mijn offertes",
+    "emptyMessage": "Je hebt nog geen offertes ingediend.",
+    "columnSource": "Aanvraag",
+    "columnPrice": "Prijs",
+    "columnStatus": "Status",
+    "columnDate": "Datum",
+    "sourceProjectRequest": "Prikbord",
+    "sourceBulkProductInquiry": "Productaanvraag",
+    "statusActive": "Actief",
+    "statusAccepted": "Geaccepteerd",
+    "statusRejected": "Afgewezen",
+    "statusSuperseded": "Vervangen",
+    "contactRevealedLabel": "Contact investeerder"
+  },
   "ProducerInquiryDetailPage": {
     "heading": "Aanvraagdetails",
     "deliveryCountryLabel": "Leveringsland",
@@ -1689,7 +1850,7 @@
     "nameLabel": "Volledige naam",
     "emailInvalidError": "Voer een geldig e mailadres in.",
     "phoneLabel": "Telefoon (optioneel)",
-    "dataSharingNotice": "Uw contactgegevens worden gedeeld met gematchte, geverifieerde producenten, zodat zij u een offerte kunnen sturen.",
+    "dataSharingNotice": "Je contactgegevens worden alleen getoond aan de producent wiens offerte je accepteert — tot dat moment blijven ze gemaskeerd.",
     "sendingLabel": "Verzenden…",
     "retrySendLabel": "Opnieuw verzenden",
     "sendLabel": "Aanvraag versturen",
@@ -1711,7 +1872,9 @@
     "backStepLabel": "Terug",
     "nextStepLabel": "Volgende",
     "stepperLabel": "Voortgang formulier",
-    "stepAnnouncement": "Stap {current} van {total}: {label}"
+    "stepAnnouncement": "Stap {current} van {total}: {label}",
+    "locationDetailVisibilityHint": "Deze informatie is zichtbaar voor elke volumegeverifieerde producent op het prikbord — vul hier geen gegevens in die jou persoonlijk identificeren.",
+    "extrasNoteVisibilityHint": "Deze notitie is zichtbaar voor elke volumegeverifieerde producent op het prikbord — vul hier geen gegevens in die jou persoonlijk identificeren."
   },
   "ProjectRequestConfirmationCard": {
     "statusLabel": "Verzonden",
@@ -1775,7 +1938,9 @@
     "closeMenu": "Menu sluiten",
     "menu": "Menu",
     "collapseSidebar": "Menu inklappen",
-    "expandSidebar": "Menu uitklappen"
+    "expandSidebar": "Menu uitklappen",
+    "board": "Prikbord",
+    "boardQuotes": "Mijn offertes"
   },
   "ClientPanelSidebar": {
     "navAriaLabel": "Klantenpaneel",
@@ -1789,7 +1954,8 @@
     "closeMenu": "Menu sluiten",
     "menu": "Menu",
     "collapseSidebar": "Menu inklappen",
-    "expandSidebar": "Menu uitklappen"
+    "expandSidebar": "Menu uitklappen",
+    "quotes": "Offertes"
   },
   "CaseChat": {
     "heading": "Gesprek met de adviseur",

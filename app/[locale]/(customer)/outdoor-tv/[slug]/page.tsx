@@ -9,11 +9,11 @@ import { ProjectGalleryCarousel, ProjectGalleryCover, ProjectGalleryThumbnails }
 import { ProjectDocumentsAndFaq } from "@/components/klient/ProjectDocumentsAndFaq";
 import { ProjectSectionNav } from "@/components/klient/ProjectSectionNav";
 import { ProjectVariantPicker } from "@/components/klient/ProjectVariantPicker";
-import { OutdoorTvFeatures } from "@/components/klient/OutdoorTvFeatures";
 import { OutdoorTvPartnerSection } from "@/components/klient/OutdoorTvPartnerSection";
 import { OutdoorTvRealUseGallery } from "@/components/klient/OutdoorTvRealUseGallery";
 import { OutdoorTvTechnicalSpecs } from "@/components/klient/OutdoorTvTechnicalSpecs";
-import { OutdoorTvVideoSection } from "@/components/klient/OutdoorTvVideoSection";
+import { ProjectFeatureTiles } from "@/components/klient/ProjectFeatureTiles";
+import { ProjectVideoSection } from "@/components/klient/ProjectVideoSection";
 import { getDefaultProjectVariant } from "@/lib/data/project-variants";
 import { getProducerById, getProducerPhotoUrl } from "@/lib/data/producers";
 import { getProjectBySlugOrId } from "@/lib/data/projects";
@@ -103,7 +103,9 @@ export default async function OutdoorTvPage({
   // Odwrotność strażnika na /project/[slug] (spec 0056 AC-6): stary lub błędny
   // link na inną rodzinę trafia na jej właściwy route zamiast renderować się
   // tutaj po cichu, na stronie zbudowanej wyłącznie pod outdoor-tv.
-  if (project.family !== "outdoor-tv") redirect(resolveProductHref(project.family, project.id, locale, project.slug));
+  if (project.family !== "outdoor-tv") {
+    redirect(resolveProductHref(project.family, project.id, locale, project.slug, project.spaSubcategory));
+  }
   // Wejście po id, gdy produkt już ma slug, przekierowuje trwale (308) na
   // kanoniczny adres ze slugiem, z zachowaniem całego ciągu zapytania (spec
   // 0058 AC-4); produkt bez sluga jeszcze renderuje się normalnie pod
@@ -289,7 +291,7 @@ export default async function OutdoorTvPage({
             </div>
           </div>
 
-          <OutdoorTvVideoSection
+          <ProjectVideoSection
             productName={project.name}
             videoUrl={project.videoUrl}
             usageNote={project.usageNote}
@@ -309,7 +311,7 @@ export default async function OutdoorTvPage({
 
           {hasFeaturesSection && (
             <div id="cechy" className="scroll-mt-20">
-              <OutdoorTvFeatures features={project.features} />
+              <ProjectFeatureTiles features={project.features} />
             </div>
           )}
 

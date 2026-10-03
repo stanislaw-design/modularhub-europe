@@ -15,7 +15,6 @@ import {
   producerCapacityProfile,
   projectQuote,
   projectRequest,
-  projectRequestTargetProducer,
   users,
 } from "@/lib/db/schema";
 import {
@@ -93,9 +92,12 @@ async function notifyContactOfNewQuote(contactEmail: string, contactName: string
   }
 }
 
-// Producent odpowiada wyceną na project_request (musi mieć wiersz w
-// project_request_target_producer) lub na bulk_product_inquiry dla własnego
-// produktu (AC-3, AC-5). Rewizja tego samego producenta na to samo zapytanie
+// Producent odpowiada wyceną na project_request (musi mieć
+// volumeVerificationStatus = 'approved' i zapytanie musi być wciąż
+// open/quoted, AC-13 spec 0062 — zastępuje dawne sprawdzenie przez
+// project_request_target_producer, tablica ogłoszeń jest otwarta pull, nie
+// push) lub na bulk_product_inquiry dla własnego produktu (AC-3, AC-5 spec
+// 0037, niezmienione). Rewizja tego samego producenta na to samo zapytanie
 // zastępuje poprzednią aktywną wycenę atomowo (ten sam wzorzec co submitOffer,
 // spec 0033), nie sprawdzeniem przed zapisem.
 export async function submitProjectQuote(input: SubmitProjectQuoteInput): Promise<ActionResult> {
@@ -117,23 +119,29 @@ export async function submitProjectQuote(input: SubmitProjectQuoteInput): Promis
   let contact: { name: string; email: string; phone: string | null } | null = null;
 
   if (data.projectRequestId) {
-    const [targetRow] = await db
-      .select({ id: projectRequestTargetProducer.producerId })
-      .from(projectRequestTargetProducer)
-      .where(
-        and(
-          eq(projectRequestTargetProducer.projectRequestId, data.projectRequestId),
-          eq(projectRequestTargetProducer.producerId, producerId),
-        ),
-      );
-    if (!targetRow) {
-      return { ok: false, error: "Nie jesteś przypisany do tego zapytania." };
+    // AC-13: realna granica bezpieczeństwa żyje tutaj, w samej akcji
+    // serwerowej, nie tylko w bramce ekranu /producer/panel/board — ta
+    // akcja jest wołalna niezależnie od UI, które ją woła.
+    const [capacityRow] = await db
+      .select({ status: producerCapacityProfile.volumeVerificationStatus })
+      .from(producerCapacityProfile)
+      .where(eq(producerCapacityProfile.producerId, producerId));
+    if (capacityRow?.status !== "approved") {
+      return { ok: false, error: "Twój profil zdolności produkcyjnej nie jest jeszcze zweryfikowany wolumenowo." };
     }
     const [requestRow] = await db
-      .select({ name: projectRequest.contactName, email: projectRequest.contactEmail, phone: projectRequest.contactPhone })
+      .select({
+        name: projectRequest.contactName,
+        email: projectRequest.contactEmail,
+        phone: projectRequest.contactPhone,
+        status: projectRequest.status,
+      })
       .from(projectRequest)
       .where(eq(projectRequest.id, data.projectRequestId));
     if (!requestRow) return { ok: false, error: "Nie znaleziono zapytania." };
+    if (requestRow.status !== "open" && requestRow.status !== "quoted") {
+      return { ok: false, error: "To zapytanie nie jest już otwarte na wyceny." };
+    }
     contact = { name: requestRow.name, email: requestRow.email, phone: requestRow.phone };
   } else if (data.bulkProductInquiryId) {
     const [inquiryRow] = await db
@@ -171,7 +179,7 @@ export async function submitProjectQuote(input: SubmitProjectQuoteInput): Promis
         ? db.execute(sql`
             INSERT INTO "project_quote" ("id", "project_request_id", "producer_id", "currency", "unit_price_cents", "total_price_cents", "proposed_lead_time_weeks", "notes", "status", "submitted_at", "created_at")
             SELECT ${newQuoteId}, ${data.projectRequestId}, ${producerId}, 'EUR', ${unitPriceCents}, ${totalPriceCents}, ${data.proposedLeadTimeWeeks ?? null}, ${data.notes ?? null}, 'active', now(), now()
-            WHERE NOT EXISTS (SELECT 1 FROM "project_quote" WHERE "project_request_id" = ${data.projectRequestId} AND "producer_id" = ${producerId} AND "status" = 'accepted')
+            WHERE NOT EXISTS (SELECT 1 FROM "project_quote" WHERE "project_request_id" = ${data.projectRequestId} AND "status" = 'accepted')
           `)
         : db.execute(sql`
             INSERT INTO "project_quote" ("id", "bulk_product_inquiry_id", "producer_id", "currency", "unit_price_cents", "total_price_cents", "proposed_lead_time_weeks", "notes", "status", "submitted_at", "created_at")
@@ -186,13 +194,10 @@ export async function submitProjectQuote(input: SubmitProjectQuoteInput): Promis
     }
 
     if (data.projectRequestId) {
-      await db.batch([
-        db.update(projectRequest).set({ status: "quoted" }).where(and(eq(projectRequest.id, data.projectRequestId), eq(projectRequest.status, "open"))),
-        db
-          .update(projectRequestTargetProducer)
-          .set({ status: "quoted" })
-          .where(and(eq(projectRequestTargetProducer.projectRequestId, data.projectRequestId), eq(projectRequestTargetProducer.producerId, producerId))),
-      ]);
+      await db
+        .update(projectRequest)
+        .set({ status: "quoted" })
+        .where(and(eq(projectRequest.id, data.projectRequestId), eq(projectRequest.status, "open")));
     } else {
       await db
         .update(bulkProductInquiry)
@@ -206,37 +211,6 @@ export async function submitProjectQuote(input: SubmitProjectQuoteInput): Promis
 
   await notifyContactOfNewQuote(contact.email, contact.name, contact.phone);
   trackEvent("project_quote_submitted", { quoteId: newQuoteId }, session.user.id);
-  return { ok: true };
-}
-
-// AC-2: producent oznacza zapytanie jako obejrzane albo odrzuca je, tylko dla
-// własnego wiersza project_request_target_producer.
-export async function markProjectRequestViewedOrDeclined(
-  projectRequestId: string,
-  decision: "viewed" | "declined",
-): Promise<ActionResult> {
-  const session = await auth();
-  if (!session || session.user.role !== "producer") {
-    return { ok: false, error: "Musisz być zalogowany jako producent." };
-  }
-  const producerId = await getProducerIdForUser(session.user.id);
-  if (!producerId) {
-    return { ok: false, error: "Nie znaleziono konta producenta." };
-  }
-
-  const updated = await db
-    .update(projectRequestTargetProducer)
-    .set({ status: decision, viewedAt: decision === "viewed" ? new Date() : undefined })
-    .where(
-      and(
-        eq(projectRequestTargetProducer.projectRequestId, projectRequestId),
-        eq(projectRequestTargetProducer.producerId, producerId),
-      ),
-    )
-    .returning({ producerId: projectRequestTargetProducer.producerId });
-  if (updated.length === 0) {
-    return { ok: false, error: "Nie znaleziono zapytania." };
-  }
   return { ok: true };
 }
 
@@ -281,7 +255,12 @@ export async function acceptProjectQuote(quoteId: string): Promise<ActionResult>
 
   try {
     await db.batch([
-      db.update(projectQuote).set({ status: "accepted" }).where(and(eq(projectQuote.id, quoteId), eq(projectQuote.status, "active"))),
+      // AC-7: contactRevealedAt ustawiane w tej samej operacji, w której
+      // status przechodzi na 'accepted' — nigdy osobnym krokiem.
+      db
+        .update(projectQuote)
+        .set({ status: "accepted", contactRevealedAt: new Date() })
+        .where(and(eq(projectQuote.id, quoteId), eq(projectQuote.status, "active"))),
       quoteRow.projectRequestId
         ? db.execute(sql`
             UPDATE "project_quote" SET "status" = 'rejected'

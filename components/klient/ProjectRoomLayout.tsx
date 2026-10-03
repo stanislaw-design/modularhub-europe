@@ -13,8 +13,11 @@ interface ProjectRoomLayoutProps {
   // Project.rooms/bathrooms (dedykowane kolumny produktu), nie policzone z
   // rooms.length — ta lista miesza pokoje z korytarzami/wiatrołapem/kotłownią,
   // więc "3 pomieszczenia" nic nie mówiło klientowi o realnej liczbie pokoi.
-  roomCount: number;
-  bathroomCount: number;
+  // null = producent jeszcze nie podał tej wartości (Project.rooms/bathrooms
+  // z lib/data/types.ts); cały kafelek statystyki znika wtedy niżej, ten sam
+  // wzorzec co kafelek gwarancji w ProducerRealizationsSection.
+  roomCount: number | null;
+  bathroomCount: number | null;
   projectName: string;
   coverImageUrl: string;
   // Rzut (purpose "product_floor_plan") pokazuje faktyczny rozkład
@@ -168,28 +171,32 @@ export function ProjectRoomLayout({
                 {t("totalAreaLabel")}
               </Text>
             </div>
-            <div className="flex items-baseline gap-brand-2">
-              <span className="text-brand-v5-muted" aria-hidden="true">
-                &middot;
-              </span>
-              <DataText surface="v5" className="text-h3 font-black">
-                {roomCount}
-              </DataText>
-              <Text tone="muted" surface="v5" className="font-semibold">
-                {t(`roomsLabel.${roomCountBucket(roomCount)}`)}
-              </Text>
-            </div>
-            <div className="flex items-baseline gap-brand-2">
-              <span className="text-brand-v5-muted" aria-hidden="true">
-                &middot;
-              </span>
-              <DataText surface="v5" className="text-h3 font-black">
-                {bathroomCount}
-              </DataText>
-              <Text tone="muted" surface="v5" className="font-semibold">
-                {t(`bathroomsLabel.${roomCountBucket(bathroomCount)}`)}
-              </Text>
-            </div>
+            {roomCount !== null && (
+              <div className="flex items-baseline gap-brand-2">
+                <span className="text-brand-v5-muted" aria-hidden="true">
+                  &middot;
+                </span>
+                <DataText surface="v5" className="text-h3 font-black">
+                  {roomCount}
+                </DataText>
+                <Text tone="muted" surface="v5" className="font-semibold">
+                  {t(`roomsLabel.${roomCountBucket(roomCount)}`)}
+                </Text>
+              </div>
+            )}
+            {bathroomCount !== null && (
+              <div className="flex items-baseline gap-brand-2">
+                <span className="text-brand-v5-muted" aria-hidden="true">
+                  &middot;
+                </span>
+                <DataText surface="v5" className="text-h3 font-black">
+                  {bathroomCount}
+                </DataText>
+                <Text tone="muted" surface="v5" className="font-semibold">
+                  {t(`bathroomsLabel.${roomCountBucket(bathroomCount)}`)}
+                </Text>
+              </div>
+            )}
           </div>
 
           {/* Jedna, wspólna ramka i zaokrąglenie dla obu tabel naraz

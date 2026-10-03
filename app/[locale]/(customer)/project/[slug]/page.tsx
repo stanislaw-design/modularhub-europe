@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { notFound, permanentRedirect, redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { Button, Card, DataText, Heading, StatusPill, Text } from "@/components/ui";
+import { Button, Card, Container, DataText, Heading, StatusPill, Text } from "@/components/ui";
 import { BulkProductInquiryModal } from "@/components/klient/BulkProductInquiryModal";
 import { FavoriteButton } from "@/components/klient/FavoriteButton";
 import { ProducerRealizationsSection } from "@/components/klient/ProducerRealizationsSection";
@@ -13,17 +13,25 @@ import { ProjectDocumentsAndFaq } from "@/components/klient/ProjectDocumentsAndF
 import { ProjectGalleryTabs, type GalleryTabKey } from "@/components/klient/ProjectGalleryTabs";
 import { GalleryLightboxProvider } from "@/components/klient/ProjectGalleryLightbox";
 import { ProjectLogistics } from "@/components/klient/ProjectLogistics";
+import { ProjectOptionsConfigurator } from "@/components/klient/ProjectOptionsConfigurator";
 import { ProjectRoomLayout } from "@/components/klient/ProjectRoomLayout";
 import { ProjectSectionNav } from "@/components/klient/ProjectSectionNav";
+import { ProjectStickyPriceBar } from "@/components/klient/ProjectStickyPriceBar";
 import { ProjectTechnicalSpecs } from "@/components/klient/ProjectTechnicalSpecs";
 import { ProjectTimeline } from "@/components/klient/ProjectTimeline";
 import { ProjectVariantPicker } from "@/components/klient/ProjectVariantPicker";
 import { getCountries } from "@/lib/data/countries";
-import { getDefaultProjectVariant } from "@/lib/data/project-variants";
+import {
+  flattenSelectedProductOptionIds,
+  getDefaultProjectVariant,
+  getSelectedProductOptionsPrice,
+  resolveSelectedProductOptions,
+  toggleProductOption,
+} from "@/lib/data/project-variants";
 import { getProducerById } from "@/lib/data/producers";
 import { getEligibilityByCountry, getProducerVolumeProfile, getProjectBySlugOrId } from "@/lib/data/projects";
 import type { CompletionStandard, EligibilityByCountry } from "@/lib/data/types";
-import { getClientIdForUser, getFavoritedProductIds } from "@/lib/db/queries";
+import { getClientIdForUser, getFavoritedProductIds, getProductOptionGroups } from "@/lib/db/queries";
 import { routing, type Locale } from "@/lib/i18n/routing";
 import { resolveProductHref } from "@/lib/product-family-groups";
 import { parseResultsSearchParams } from "@/lib/results-filters";
@@ -69,13 +77,21 @@ export async function generateMetadata({
     getProjectBySlugOrId(slug, locale as Locale),
     getTranslations({ locale, namespace: "KlientProjektPage" }),
   ]);
-  if (!project || project.family === "outdoor-tv") return {};
+  if (!project || project.family === "outdoor-tv" || (project.family === "spa-modulowe" && project.spaSubcategory === "sauna")) {
+    return {};
+  }
 
   const priceLabel = project.priceOnRequest
     ? t("priceOnRequest").toLowerCase()
     : `${t("from")} ${priceFormatter.format(project.priceMin)} €`;
-  const roomsLabel = t(`roomsLabel.${countBucket(project.rooms)}`);
-  const description = `${project.name} ${t("from")} ${project.producerName} — ${project.floorAreaM2} m², ${project.rooms} ${roomsLabel}, ${priceLabel}.`;
+  // floorAreaM2/rooms bywają jeszcze nieuzupełnione przez producenta (null) —
+  // ten fragment opisu po prostu wypada wtedy z meta description, zamiast
+  // pisać do wyszukiwarki "null m²" albo nieprawdziwe "0 m²".
+  const sizeAndRoomsLabel =
+    project.floorAreaM2 !== null && project.rooms !== null
+      ? `${project.floorAreaM2} m², ${project.rooms} ${t(`roomsLabel.${countBucket(project.rooms)}`)}, `
+      : "";
+  const description = `${project.name} ${t("from")} ${project.producerName} — ${sizeAndRoomsLabel}${priceLabel}.`;
   // Adres kanoniczny liczony od sluga, gdy istnieje, inaczej id (spec 0058
   // AC-7) — ten sam wzorzec fallbacku co resolveProductHref.
   const canonicalSegment = project.slug ?? project.id;
@@ -126,7 +142,9 @@ export default async function ProjektPage({
   // Strona domu nie ma sekcji, jakich potrzebuje katalogowy produkt outdoor-tv
   // (spec 0056 AC-6): każdy stary lub błędny link na tę rodzinę trafia na jej
   // właściwy route zamiast renderować się tutaj po cichu.
-  if (project.family === "outdoor-tv") redirect(resolveProductHref(project.family, project.id, locale, project.slug));
+  if (project.family === "outdoor-tv" || (project.family === "spa-modulowe" && project.spaSubcategory === "sauna")) {
+    redirect(resolveProductHref(project.family, project.id, locale, project.slug, project.spaSubcategory));
+  }
   // Wejście po id, gdy produkt już ma slug, przekierowuje trwale (308) na
   // kanoniczny adres ze slugiem, z zachowaniem całego ciągu zapytania (spec
   // 0058 AC-4); produkt bez sluga jeszcze (kreator w toku, bez nazwy) renderuje
@@ -137,7 +155,7 @@ export default async function ProjektPage({
 
   const { countryCode } = parseResultsSearchParams(rawSearchParams);
 
-  const [countries, producer, eligibilityRows, session, volumeProfile] = await Promise.all([
+  const [countries, producer, eligibilityRows, session, volumeProfile, optionGroups] = await Promise.all([
     getCountries(),
     getProducerById(project.producerId),
     countryCode
@@ -145,6 +163,7 @@ export default async function ProjektPage({
       : Promise.resolve<EligibilityByCountry[]>([]),
     auth(),
     getProducerVolumeProfile(project.producerId),
+    getProductOptionGroups(project.id),
   ]);
 
   const isClientSession = session?.user.role === "client";
@@ -192,11 +211,24 @@ export default async function ProjektPage({
   const zakladkaParam = firstParam(rawSearchParams.zakladka);
   const activeGalleryTab: GalleryTabKey = zakladkaParam === "rzut" ? zakladkaParam : "wizualizacje";
 
+  // Spec 0059 AC-3, AC-6: `opcje` jest jedynym parametrem adresu dla
+  // konfiguratora, rozwiązywany tolerancyjnie (nieznane/nieaktualne id po
+  // cichu ignorowane, grupa single zawsze dostaje dokładnie jedną zaznaczoną
+  // opcję, z fallbackiem na is_default).
+  const resolvedOptions = resolveSelectedProductOptions(optionGroups, firstParam(rawSearchParams.opcje));
+  const selectedOptionIds = flattenSelectedProductOptionIds(resolvedOptions);
+  const optionsPrice = getSelectedProductOptionsPrice(optionGroups, selectedOptionIds);
+
   function hrefForVariant(variantId: string): string {
     return `/${locale}/project/${slug}${buildQueryHref(rawSearchParams, { wariant: variantId })}`;
   }
   function hrefForGalleryTab(tab: GalleryTabKey): string {
     return `/${locale}/project/${slug}${buildQueryHref(rawSearchParams, { zakladka: tab === "wizualizacje" ? undefined : tab })}`;
+  }
+  function hrefForOption(groupId: string, optionId: string): string {
+    return `/${locale}/project/${slug}${buildQueryHref(rawSearchParams, {
+      opcje: toggleProductOption(optionGroups, resolvedOptions, groupId, optionId),
+    })}`;
   }
 
   const standardLabel: Record<CompletionStandard, string> = {
@@ -213,7 +245,21 @@ export default async function ProjektPage({
   // Sekcja bez żadnej prawdziwej treści znika całkowicie, nagłówek włącznie,
   // a jej pozycja w ProjectSectionNav dostaje `disabled` zamiast zniknąć z
   // paska (spec 0054 AC-8, ten sam wzorzec co dzisiejsza pozycja "podobne").
-  const hasCenaSection = project.variants.length > 0;
+  // Produkty katalogowe (kontenery-modulowe, spec 0059) dziś nigdy nie mają
+  // wpisanych pozycji kosztowych — "Cena i zakres" bez nich pokazywałaby
+  // tylko gołą tabelę z placeholderem "do uzupełnienia przez producenta", bez
+  // żadnej realnej treści (inżynier, 2026-10-01), więc dla tej rodziny sekcja
+  // wymaga realnych costLineItems, nie tylko istnienia wariantu.
+  const hasRealCostLineItems = project.variants.some((variant) => variant.costLineItems.length > 0);
+  const hasCenaSection =
+    project.variants.length > 0 && (project.family !== "kontenery-modulowe" || hasRealCostLineItems);
+  const hasOptionsSection = optionGroups.length > 0;
+  // Ten sam powód co hasCenaSection wyżej: produkty katalogowe nie mają dziś
+  // wpisanego rozkładu pomieszczeń (nie ma go sensu wpisywać dla kontenera),
+  // ProjectRoomLayout domyślnie renderuje placeholder zamiast znikać (świadoma
+  // decyzja dla rodziny "dom"), ale ten placeholder nie ma sensu dla rodziny,
+  // która nigdy nie dostanie tych danych — sekcja więc znika całkowicie.
+  const hasUkladSection = project.family !== "kontenery-modulowe" || (project.roomLayout?.length ?? 0) > 0;
   const hasDzialkaSection =
     Boolean(project.externalDimensions) || Boolean(project.foundationOptions) || (project.clientRequirements?.length ?? 0) > 0;
   const hasHarmonogramSection = (selectedVariant?.timelineStages.length ?? 0) > 0;
@@ -229,10 +275,75 @@ export default async function ProjektPage({
 
   const query = countryCode ? `&country=${countryCode}` : "";
   // Wariant przenosi się dalej do linku zapytania (AC-1), żeby wybór nie
-  // zgubił się przy przejściu do formularza.
-  const variantQuery = selectedVariant ? `&wariant=${selectedVariant.completionStandard}` : "";
+  // zgubił się przy przejściu do formularza. Po variant.id, nie
+  // completionStandard (spec 0059 AC-9): dla produktów katalogowych z wieloma
+  // wariantami completionStandard jest zawsze "katalogowy" dla każdego z nich,
+  // więc nie odróżniałby, który wariant klient faktycznie skonfigurował —
+  // ten sam powód co komentarz w ProjectVariantPicker.tsx.
+  const variantQuery = selectedVariant ? `&wariant=${selectedVariant.id}` : "";
   const zapytanieHref = `/${locale}/inquiry?projects=${project.id}${query}${variantQuery}`;
   const shortlistHref = `/${locale}/results?projects=${project.id}${query}`;
+
+  // Spec 0059 AC-3, AC-4: cena = cena bazowa WYBRANEGO wariantu + suma
+  // zaznaczonych opcji, nigdy płaska project.priceMin (cena "od" dla
+  // najtańszego wariantu produktu, patrz lib/db/AGENTS.md price_sync_trigger)
+  // — ten sam fallback, gdy produkt nie ma jeszcze żadnego wariantu.
+  const showPriceOnRequest = project.priceOnRequest || selectedVariant?.priceOnRequest || optionsPrice.priceOnRequest;
+  const totalPriceEur =
+    selectedVariant?.priceMin !== undefined && !optionsPrice.priceOnRequest
+      ? selectedVariant.priceMin + optionsPrice.totalEur
+      : undefined;
+
+  // Treść desktopowego floating bara (ProjectStickyPriceBar, 2026-10-02):
+  // ten sam kształt ceny co karta w hero (wariant + suma opcji, nigdy płaska
+  // project.priceMin jak w mobilnym pasku poniżej — tu chodzi o dokładną
+  // kontynuację tego, co klient już widział w karcie, zanim ją przewinął).
+  const floatingPriceBar = (
+    <Container className="flex items-center justify-between gap-brand-4 py-brand-2">
+      <div className="flex min-w-0 flex-col">
+        {showPriceOnRequest ? (
+          <DataText surface="v5" className="truncate text-body-l font-semibold">
+            {t("priceOnRequest")}
+          </DataText>
+        ) : selectedVariant?.priceMin !== undefined ? (
+          <>
+            <Text variant="label" tone="muted" surface="v5">
+              {selectedVariant.variantLabel ?? standardLabel[selectedVariant.completionStandard]}
+            </Text>
+            <DataText surface="v5" className="text-body-l font-black leading-none">
+              {priceFormatter.format(totalPriceEur ?? selectedVariant.priceMin)} €{" "}
+              <Text as="span" tone="muted" surface="v5" className="text-data font-normal">
+                {t("netVat")}
+              </Text>
+            </DataText>
+          </>
+        ) : (
+          <>
+            <Text variant="label" tone="muted" surface="v5">
+              {t("from")}
+            </Text>
+            <DataText surface="v5" className="text-body-l font-black leading-none">
+              {priceFormatter.format(project.priceMin)} €
+            </DataText>
+          </>
+        )}
+      </div>
+      <div className="flex shrink-0 items-center gap-brand-3">
+        <FavoriteButton
+          productId={project.id}
+          productName={project.name}
+          locale={locale}
+          isClientSession={isClientSession}
+          initialFavorited={isFavorited}
+          surface="v5"
+          className="shrink-0 border border-brand-v5-line"
+        />
+        <Button as="a" href={zapytanieHref} size="md" surface="v5" className="shrink-0">
+          {t("sendInquiry")}
+        </Button>
+      </div>
+    </Container>
+  );
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -241,13 +352,13 @@ export default async function ProjektPage({
     description: project.description || undefined,
     image: [project.coverImageUrl],
     brand: { "@type": "Organization", name: project.producerName },
-    ...(project.priceOnRequest
+    ...(showPriceOnRequest
       ? {}
       : {
           offers: {
             "@type": "Offer",
             priceCurrency: "EUR",
-            price: project.priceMin,
+            price: totalPriceEur ?? project.priceMin,
             availability: "https://schema.org/InStock",
           },
         }),
@@ -313,12 +424,14 @@ export default async function ProjektPage({
                 ariaLabel={t("variantPickerAriaLabel")}
               />
 
+              <ProjectStickyPriceBar floatingBar={floatingPriceBar}>
               <Card padding="lg" surface="v5" className="flex flex-col gap-brand-3 border-brand-v5-amber-strong/30">
                 {/* Spec 0050 AC-13, AC-37: wariant może być priceOnRequest niezależnie
                     od flagi produktu wyżej — sprawdzany tu jawnie, inaczej wpadałby w
                     gałąź "do uzupełnienia" niżej (selectedVariant.priceMin też undefined,
-                    ale z innego powodu). */}
-                {project.priceOnRequest || selectedVariant?.priceOnRequest ? (
+                    ale z innego powodu). Spec 0059 AC-4: dowolna zaznaczona opcja
+                    priceOnRequest ma ten sam efekt (showPriceOnRequest wyżej). */}
+                {showPriceOnRequest ? (
                   <>
                     <Text variant="label" tone="muted" surface="v5">
                       {t("price")}
@@ -333,10 +446,18 @@ export default async function ProjektPage({
                 ) : selectedVariant?.priceMin !== undefined ? (
                   <>
                     <Text variant="label" tone="muted" surface="v5">
-                      {t("priceForStandard", { standard: standardLabel[selectedVariant.completionStandard] })}
+                      {t("priceForStandard", {
+                        // variantLabel pierwszy (spec 0059 AC-9): dla produktów
+                        // katalogowych standardLabel[completionStandard] jest
+                        // zawsze tym samym generycznym "Wariant" niezależnie od
+                        // tego, który wariant jest wybrany (wszystkie dzielą
+                        // completionStandard = 'katalogowy'), ten sam fallback
+                        // co w ProjectVariantPicker.tsx.
+                        standard: selectedVariant.variantLabel ?? standardLabel[selectedVariant.completionStandard],
+                      })}
                     </Text>
                     <DataText as="p" surface="v5" className="text-h2 font-semibold">
-                      {priceFormatter.format(selectedVariant.priceMin)} €{" "}
+                      {priceFormatter.format(totalPriceEur ?? selectedVariant.priceMin)} €{" "}
                       <Text as="span" tone="muted" surface="v5" className="text-body-l font-normal">
                         {t("netVat")}
                       </Text>
@@ -397,6 +518,7 @@ export default async function ProjektPage({
                   </Text>
                 </div>
               </Card>
+              </ProjectStickyPriceBar>
             </div>
 
             {/* Szybkie sygnały zaufania, przypięte do dołu kolumny — ten sam moment
@@ -441,7 +563,8 @@ export default async function ProjektPage({
 
         <ProjectSectionNav
           items={[
-            { id: "uklad", label: t("sectionNav.uklad") },
+            { id: "opcje", label: t("sectionNav.opcje"), disabled: !hasOptionsSection },
+            { id: "uklad", label: t("sectionNav.uklad"), disabled: !hasUkladSection },
             { id: "cena", label: t("sectionNav.cena"), disabled: !hasCenaSection },
             { id: "dzialka", label: t("sectionNav.dzialka"), disabled: !hasDzialkaSection },
             { id: "harmonogram", label: t("sectionNav.harmonogram"), disabled: !hasHarmonogramSection },
@@ -455,7 +578,26 @@ export default async function ProjektPage({
           scrollRightLabel={t("sectionNavScrollRight")}
         />
 
-        <div className="flex flex-col gap-brand-5">
+        {/* Spec 0059 + follow-up (2026-10-01): opcje dodatkowe konfiguratora
+            katalogowego jako pierwsza sekcja po hero, przed układem i ceną —
+            klient widzi dopłaty i decyduje o konfiguracji zanim przewinie do
+            pozostałej treści. Pełna szerokość (nie wąska kolumna obok ceny),
+            żeby siatka kart opcji faktycznie wykorzystała dostępną przestrzeń. */}
+        {hasOptionsSection && (
+          <div id="opcje" className="scroll-mt-20">
+            <ProjectOptionsConfigurator
+              groups={optionGroups}
+              selectedOptionIds={selectedOptionIds}
+              hrefFor={hrefForOption}
+              heading={t("optionsHeading")}
+              ariaLabel={t("optionsAriaLabel")}
+              includedLabel={t("optionIncluded")}
+              priceOnRequestLabel={t("optionPriceOnRequest")}
+            />
+          </div>
+        )}
+
+        {hasUkladSection && (
           <div id="uklad" className="scroll-mt-20">
             <ProjectRoomLayout
               rooms={project.roomLayout ?? []}
@@ -466,12 +608,13 @@ export default async function ProjektPage({
               documents={project.documents}
             />
           </div>
-
-        </div>
+        )}
 
         {/* Cena i zakres: tabela porównawcza pokazuje dokładnie tyle kolumn,
             ile projekt ma prawdziwych wariantów (spec 0054 AC-1, AC-2); cała
-            sekcja znika, gdy nie ma żadnego (AC-8). */}
+            sekcja znika, gdy nie ma żadnego (AC-8), albo (kontenery-modulowe,
+            spec 0059 follow-up) gdy żaden wariant nie ma realnych pozycji
+            kosztowych. */}
         {hasCenaSection && (
           <div id="cena" className="scroll-mt-20">
             <ProjectCostComparisonTable variants={project.variants} heading={t("priceAndScopeHeading")} />

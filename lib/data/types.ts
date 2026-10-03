@@ -71,13 +71,24 @@ export interface ProductTechnicalSpecsDraft {
   constructionTechnologyOther?: string;
   fireResistance?: string;
   windResistance?: string;
-  // spa-modulowe
+  // spa-modulowe: jacuzzi/wellness-combo (niezmienione, spec 0061 Decision)
   seatingCapacity?: number;
   waterVolumeLiters?: number;
   heatingType?: "electric" | "heat-pump" | "wood-fired";
   filtrationSystem?: string;
   shellMaterial?: string;
   electricalRequirement?: string;
+  // spa-modulowe: sauna (spec 0061 Feature design; seatingCapacity/
+  // electricalRequirement dzielone z jacuzzi wyżej, insulationType dzielone z
+  // kontenerami niżej — ten sam kitchen-sink, bez duplikowania pola o tej
+  // samej nazwie i typie)
+  claddingMaterial?: string;
+  interiorWoodType?: string;
+  benchMaterial?: string;
+  glazingType?: string;
+  hasChangingArea?: boolean;
+  /** Znaczący tylko gdy hasChangingArea === true. */
+  changingAreaDescription?: string;
   // kontenery-modulowe, wspólne trzem podkategoriom (spec 0039)
   dimensions?: string;
   structureMaterial?: string;
@@ -193,18 +204,25 @@ export interface Project {
   /** `robots: noindex` na stronie klienta dla wszystkiego innego niż "published" (spec 0058 AC-7). */
   status: "draft" | "published";
   countryOfProduction: CountryCode;
-  floorAreaM2: number;
-  builtUpAreaM2: number;
-  rooms: number;
-  bedrooms: number;
-  bathrooms: number;
-  storeys: number;
+  // null = producent jeszcze nie podał tej wartości, odróżnione od "naprawdę
+  // 0" (dawniej oba mapowały się na 0 w projects.ts, więc np. karta wyniku
+  // renderowała dosłowne "0 m²" dla niekompletnego importu).
+  floorAreaM2: number | null;
+  builtUpAreaM2: number | null;
+  rooms: number | null;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  storeys: number | null;
   externalDimensions: string;
   roofType: string;
   // Zawsze "dom" dziś: dane przykładowe i lokalny podgląd (lib/local-client-projects.ts)
   // reprezentują wyłącznie domy (spec 0022, Build plan zadanie 6).
   family: ProductFamily;
   category: ProjectCategory;
+  /** Znacząca tylko dla family = "spa-modulowe" (spec 0061 AC-3): resolveProductHref
+   * ją odczytuje, żeby produkt podkategorii "sauna" wylądował pod /sauna/[slug], nie
+   * /project/[slug]. null/undefined dla każdej innej rodziny. */
+  spaSubcategory?: SpaSubcategory | null;
   constructionSystem: string;
   foundationOptions: string;
   customizationScope: string;
@@ -222,6 +240,25 @@ export interface Project {
   heatSource: string;
   fireResistance: string;
   windResistance: string;
+  /** Specyfikacja techniczna sauny (spec 0061 AC-7): wypełniona tylko dla
+   * family = "spa-modulowe" + spaSubcategory = "sauna", na realnym,
+   * dedykowanym schemacie (saunaSpecsShape, lib/product-technical-specs.ts) —
+   * nigdy przez generyczną tabelę jsonb (technicalSpecs/technicalSpecsLabels
+   * niżej, ten wzorzec zostaje tylko dla rodzin bez własnego schematu, np.
+   * outdoor-tv). Każde pole renderuje się niezależnie tylko gdy wypełnione
+   * (ten sam wzorzec co pola domu wyżej); undefined dla każdy inny produkt. */
+  saunaTechnicalSpecs?: {
+    claddingMaterial: string;
+    interiorWoodType: string;
+    benchMaterial: string;
+    insulationType: string;
+    glazingType: string;
+    seatingCapacity: number | null;
+    hasChangingArea: boolean | null;
+    /** Znaczący tylko gdy hasChangingArea === true. */
+    changingAreaDescription: string;
+    electricalRequirement: string;
+  };
   // Osobna, pełna para cena/zakres na standard wykończenia (spec 0041/0042),
   // zastępuje dawny płaski Project.commercial. Pusta tablica (produkt bez
   // żadnego aktywnego wariantu) renderuje się jak priceOnRequest (spec 0042

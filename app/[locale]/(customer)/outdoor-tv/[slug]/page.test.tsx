@@ -117,6 +117,18 @@ describe("OutdoorTvPage (spec 0058)", () => {
     expect(redirectMock).toHaveBeenCalledWith("/pl/project/pomerania-40");
   });
 
+  // Spec 0061 AC-3/AC-11: a spa-modulowe/sauna product redirects to /sauna,
+  // not /project — this route's guard reads spaSubcategory off the record
+  // instead of assuming every non-outdoor-tv family goes to /project.
+  it("redirects to /sauna when the resolved product is spa-modulowe/sauna (spec 0061 AC-11)", async () => {
+    getProjectBySlugOrIdMock.mockResolvedValue(
+      outdoorTvProject({ id: PUBLISHED_ID, family: "spa-modulowe", spaSubcategory: "sauna", slug: "relax-550" }),
+    );
+
+    await expect(renderPage(PUBLISHED_ID)).rejects.toThrow();
+    expect(redirectMock).toHaveBeenCalledWith("/pl/sauna/relax-550");
+  });
+
   // AC-4: entering by id once the product already has a slug issues a
   // permanent (308) redirect to the canonical slug address, preserving the
   // rest of the query string untouched.

@@ -79,7 +79,7 @@ export default async function RealizacjaPage({
         {t("heading", { name: project.name })}
       </Heading>
       <Text tone="muted" surface="v5">
-        {project.producerName} · {project.floorAreaM2} m²
+        {project.producerName} · {project.floorAreaM2 !== null ? `${project.floorAreaM2} m²` : t("areaUnknown")}
       </Text>
 
       {isComplete && (

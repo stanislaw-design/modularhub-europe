@@ -1,7 +1,8 @@
-import { and, asc, desc, eq, ilike, inArray, isNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
 import { db } from "./client";
 import { buildPublicUrl } from "@/lib/storage/r2-client";
 import {
+  bulkProductInquiry,
   client,
   costLineItem,
   country,
@@ -12,14 +13,19 @@ import {
   offer,
   offerItem,
   producer,
+  producerCapacityProfile,
   producerDeliveryCountry,
   producerMember,
   product,
   productCountryEligibility,
   productFamilyEnum,
+  productOption,
+  productOptionGroup,
+  productOptionGroupAssignment,
   productTimelineStage,
   productTranslation,
   productVariant,
+  projectQuote,
   projectRequest,
   users,
 } from "./schema";
@@ -281,6 +287,60 @@ export async function getProducerVariantsForEdit(productId: string): Promise<Pro
         durationMaxDays: row.durationMaxDays,
         startsFromLabel: row.startsFromLabel,
         responsibleParty: row.responsibleParty,
+      })),
+  }));
+}
+
+export interface ProductOptionGroupOption {
+  id: string;
+  label: string;
+  priceCents: number | null;
+  priceOnRequest: boolean;
+  isDefault: boolean;
+  imageUrl: string | null;
+}
+
+export interface ProductOptionGroup {
+  id: string;
+  name: string;
+  selectionType: (typeof productOptionGroup.$inferSelect)["selectionType"];
+  options: ProductOptionGroupOption[];
+}
+
+// Publiczna: zasila ProjectOptionsConfigurator na /project/[slug] (spec 0059
+// AC-1). Pusta lista gdy produkt nie ma przypisanej żadnej grupy (dziś prawie
+// cały katalog) — nie błąd, patrz spec 0059 API surface. Grupy i opcje
+// posortowane wg sort_order (NULL na końcu, ten sam porządek co
+// resolveProductVariants), usunięte miękko (deleted_at) wiersze pominięte.
+export async function getProductOptionGroups(productId: string): Promise<ProductOptionGroup[]> {
+  const groupRows = await db
+    .select({ id: productOptionGroup.id, name: productOptionGroup.name, selectionType: productOptionGroup.selectionType, sortOrder: productOptionGroup.sortOrder })
+    .from(productOptionGroupAssignment)
+    .innerJoin(productOptionGroup, eq(productOptionGroupAssignment.groupId, productOptionGroup.id))
+    .where(and(eq(productOptionGroupAssignment.productId, productId), isNull(productOptionGroup.deletedAt)))
+    .orderBy(asc(productOptionGroup.sortOrder));
+  if (groupRows.length === 0) return [];
+
+  const groupIds = groupRows.map((row) => row.id);
+  const optionRows = await db
+    .select()
+    .from(productOption)
+    .where(and(inArray(productOption.groupId, groupIds), isNull(productOption.deletedAt)))
+    .orderBy(asc(productOption.sortOrder));
+
+  return groupRows.map((group) => ({
+    id: group.id,
+    name: group.name,
+    selectionType: group.selectionType,
+    options: optionRows
+      .filter((row) => row.groupId === group.id)
+      .map((row) => ({
+        id: row.id,
+        label: row.label,
+        priceCents: row.priceCents,
+        priceOnRequest: row.priceOnRequest,
+        isDefault: row.isDefault,
+        imageUrl: row.imageUrl,
       })),
   }));
 }
@@ -687,6 +747,340 @@ export async function getAllProducersForAdmin({
   ]);
 
   return { items: rows, totalCount: countRow[0]?.count ?? 0 };
+}
+
+// ---------------------------------------------------------------------------
+// Tablica ogłoszeń B2B (spec 0062): otwarta pull, zastępuje dawny automatyczny
+// push po kraju dostawy. Żadne z poniższych zapytań nie wybiera
+// contactName/contactEmail/contactPhone zapytania — maskowanie na poziomie
+// zapytania SQL (Key invariants), nie na poziomie tego, co renderuje UI.
+// ---------------------------------------------------------------------------
+
+// Bramka ekranu /producer/panel/board (AC-3): osobna, prosta funkcja, żeby
+// strona nie musiała sama składać zapytania do producer_capacity_profile.
+export async function getProducerVolumeVerificationStatus(
+  producerId: string,
+): Promise<(typeof producerCapacityProfile.$inferSelect)["volumeVerificationStatus"] | null> {
+  const [row] = await db
+    .select({ status: producerCapacityProfile.volumeVerificationStatus })
+    .from(producerCapacityProfile)
+    .where(eq(producerCapacityProfile.producerId, producerId));
+  return row?.status ?? null;
+}
+
+export const PROJECT_REQUESTS_BOARD_PAGE_SIZE = 20;
+
+export interface ProjectRequestBoardItem {
+  id: string;
+  trustSignal: (typeof projectRequest.$inferSelect)["trustSignal"];
+  countryCode: string;
+  countryName: string;
+  projectType: (typeof projectRequest.$inferSelect)["projectType"];
+  families: (typeof projectRequest.$inferSelect)["families"];
+  unitCountMin: number;
+  unitCountMax: number | null;
+  floorAreaM2Min: number | null;
+  floorAreaM2Max: number | null;
+  completionStandard: (typeof projectRequest.$inferSelect)["completionStandard"];
+  startWindowFrom: string | null;
+  startWindowTo: string | null;
+  deliveryWindowFrom: string | null;
+  deliveryWindowTo: string | null;
+  locationDetail: string | null;
+  extrasNote: string | null;
+  status: "open" | "quoted";
+  createdAt: Date;
+}
+
+export interface ProjectRequestsForBoardPage {
+  items: ProjectRequestBoardItem[];
+  totalCount: number;
+}
+
+const BOARD_COLUMNS = {
+  id: projectRequest.id,
+  trustSignal: projectRequest.trustSignal,
+  countryCode: projectRequest.countryCode,
+  countryName: country.name,
+  projectType: projectRequest.projectType,
+  families: projectRequest.families,
+  unitCountMin: projectRequest.unitCountMin,
+  unitCountMax: projectRequest.unitCountMax,
+  floorAreaM2Min: projectRequest.floorAreaM2Min,
+  floorAreaM2Max: projectRequest.floorAreaM2Max,
+  completionStandard: projectRequest.completionStandard,
+  startWindowFrom: projectRequest.startWindowFrom,
+  startWindowTo: projectRequest.startWindowTo,
+  deliveryWindowFrom: projectRequest.deliveryWindowFrom,
+  deliveryWindowTo: projectRequest.deliveryWindowTo,
+  locationDetail: projectRequest.locationDetail,
+  extrasNote: projectRequest.extrasNote,
+  status: projectRequest.status,
+  createdAt: projectRequest.createdAt,
+} as const;
+
+// Zasila /producer/panel/board (AC-2): tablica widzialna dla każdego
+// zweryfikowanego wolumenowo producenta, nie tylko tych dopasowanych po
+// kraju dostawy (Option 3, rationale.md) — stąd brak jakiegokolwiek filtra
+// producentId tutaj. Status open/quoted (chowa accepted/closed, Feature
+// design "Reguła widoczności tablicy").
+export async function getOpenProjectRequestsForBoard({
+  page,
+}: {
+  page: number;
+}): Promise<ProjectRequestsForBoardPage> {
+  const whereClause = inArray(projectRequest.status, ["open", "quoted"]);
+
+  const [countRow, rows] = await Promise.all([
+    db.select({ count: sql<number>`count(*)::int` }).from(projectRequest).where(whereClause),
+    db
+      .select(BOARD_COLUMNS)
+      .from(projectRequest)
+      .innerJoin(country, eq(country.code, projectRequest.countryCode))
+      .where(whereClause)
+      .orderBy(desc(projectRequest.createdAt))
+      .limit(PROJECT_REQUESTS_BOARD_PAGE_SIZE)
+      .offset((page - 1) * PROJECT_REQUESTS_BOARD_PAGE_SIZE),
+  ]);
+
+  return { items: rows as ProjectRequestBoardItem[], totalCount: countRow[0]?.count ?? 0 };
+}
+
+export interface ProjectRequestBoardDetail extends ProjectRequestBoardItem {
+  ownQuoteStatus: (typeof projectQuote.$inferSelect)["status"] | null;
+}
+
+// Zasila /producer/panel/board/[id] (AC-4): pełne dane do wyceny (bez
+// kontaktu) plus status własnej wyceny tego producenta, jeśli istnieje.
+// Zapytanie poza open/quoted zostaje widoczne wyłącznie temu producentowi,
+// który już na nie odpowiedział (żeby zobaczył wynik swojej wyceny), nigdy
+// nikomu innemu — ta sama zasada maskowania co lista, rozszerzona o
+// "własny udział" jako drugi powód widoczności.
+export async function getProjectRequestForBoardDetail(
+  id: string,
+  producerId: string,
+): Promise<ProjectRequestBoardDetail | null> {
+  const [row] = await db
+    .select(BOARD_COLUMNS)
+    .from(projectRequest)
+    .innerJoin(country, eq(country.code, projectRequest.countryCode))
+    .where(eq(projectRequest.id, id));
+  if (!row) return null;
+
+  const [ownQuote] = await db
+    .select({ status: projectQuote.status })
+    .from(projectQuote)
+    .where(and(eq(projectQuote.projectRequestId, id), eq(projectQuote.producerId, producerId)))
+    .orderBy(desc(projectQuote.submittedAt))
+    .limit(1);
+
+  const isOpenOrQuoted = row.status === "open" || row.status === "quoted";
+  if (!isOpenOrQuoted && !ownQuote) return null;
+
+  return { ...(row as ProjectRequestBoardItem), ownQuoteStatus: ownQuote?.status ?? null };
+}
+
+export interface ProjectQuoteForProducer {
+  id: string;
+  source: "project_request" | "bulk_product_inquiry";
+  sourceId: string;
+  status: (typeof projectQuote.$inferSelect)["status"];
+  totalPriceCents: number;
+  unitPriceCents: number | null;
+  proposedLeadTimeWeeks: number | null;
+  submittedAt: Date;
+  contactName: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
+}
+
+// Zasila /producer/panel/board-quotes (AC-5, AC-15): status własnych wycen
+// producenta, obie ścieżki (tablica i modal bulk_product_inquiry). Kontakt
+// inwestora wybierany w samym SQL (CASE WHEN contact_revealed_at IS NOT NULL),
+// nie po fakcie w JS (AC-15: "tym samym sprawdzeniem na poziomie zapytania
+// SQL co AC-2") — wiersz bez ujawnienia wraca z NULL już z bazy.
+export async function getProjectQuotesForProducer(producerId: string): Promise<ProjectQuoteForProducer[]> {
+  const rows = await db
+    .select({
+      id: projectQuote.id,
+      projectRequestId: projectQuote.projectRequestId,
+      bulkProductInquiryId: projectQuote.bulkProductInquiryId,
+      status: projectQuote.status,
+      totalPriceCents: projectQuote.totalPriceCents,
+      unitPriceCents: projectQuote.unitPriceCents,
+      proposedLeadTimeWeeks: projectQuote.proposedLeadTimeWeeks,
+      submittedAt: projectQuote.submittedAt,
+      contactName: sql<string | null>`CASE WHEN ${projectQuote.contactRevealedAt} IS NOT NULL THEN COALESCE(${projectRequest.contactName}, ${bulkProductInquiry.contactName}) ELSE NULL END`,
+      contactEmail: sql<string | null>`CASE WHEN ${projectQuote.contactRevealedAt} IS NOT NULL THEN COALESCE(${projectRequest.contactEmail}, ${bulkProductInquiry.contactEmail}) ELSE NULL END`,
+      contactPhone: sql<string | null>`CASE WHEN ${projectQuote.contactRevealedAt} IS NOT NULL THEN COALESCE(${projectRequest.contactPhone}, ${bulkProductInquiry.contactPhone}) ELSE NULL END`,
+    })
+    .from(projectQuote)
+    .leftJoin(projectRequest, eq(projectRequest.id, projectQuote.projectRequestId))
+    .leftJoin(bulkProductInquiry, eq(bulkProductInquiry.id, projectQuote.bulkProductInquiryId))
+    .where(eq(projectQuote.producerId, producerId))
+    .orderBy(desc(projectQuote.submittedAt));
+
+  return rows.map((row) => ({
+    id: row.id,
+    source: row.projectRequestId ? ("project_request" as const) : ("bulk_product_inquiry" as const),
+    sourceId: (row.projectRequestId ?? row.bulkProductInquiryId) as string,
+    status: row.status,
+    totalPriceCents: row.totalPriceCents,
+    unitPriceCents: row.unitPriceCents,
+    proposedLeadTimeWeeks: row.proposedLeadTimeWeeks,
+    submittedAt: row.submittedAt,
+    contactName: row.contactName,
+    contactEmail: row.contactEmail,
+    contactPhone: row.contactPhone,
+  }));
+}
+
+export interface ClientReceivedQuote {
+  id: string;
+  producerId: string;
+  producerName: string;
+  status: (typeof projectQuote.$inferSelect)["status"];
+  totalPriceCents: number;
+  unitPriceCents: number | null;
+  proposedLeadTimeWeeks: number | null;
+  notes: string | null;
+  submittedAt: Date;
+  contactRevealedAt: Date | null;
+}
+
+export interface ClientProjectRequestWithQuotes {
+  source: "project_request";
+  id: string;
+  countryCode: string;
+  projectType: (typeof projectRequest.$inferSelect)["projectType"];
+  families: (typeof projectRequest.$inferSelect)["families"];
+  unitCountMin: number;
+  status: (typeof projectRequest.$inferSelect)["status"];
+  createdAt: Date;
+  quotes: ClientReceivedQuote[];
+}
+
+export interface ClientBulkInquiryWithQuotes {
+  source: "bulk_product_inquiry";
+  id: string;
+  productId: string;
+  productName: string;
+  unitCountMin: number;
+  status: (typeof bulkProductInquiry.$inferSelect)["status"];
+  createdAt: Date;
+  quotes: ClientReceivedQuote[];
+}
+
+export type ClientRequestWithQuotes = ClientProjectRequestWithQuotes | ClientBulkInquiryWithQuotes;
+
+// Zasila ekran panelu klienta "otrzymane wyceny" (AC-6): własne project_request
+// i bulk_product_inquiry zalogowanego klienta, każde z własną listą wycen.
+// Tożsamość producenta jest już publiczna (spec 0062 Context) — producerName
+// zawsze widoczny, niezależnie od contactRevealedAt (to pole chroni tylko
+// dane kontaktowe INWESTORA, nigdy nazwę producenta).
+export async function getProjectRequestsWithQuotesForClient(clientId: string): Promise<ClientRequestWithQuotes[]> {
+  const [requestRows, bulkRows] = await Promise.all([
+    db
+      .select({
+        id: projectRequest.id,
+        countryCode: projectRequest.countryCode,
+        projectType: projectRequest.projectType,
+        families: projectRequest.families,
+        unitCountMin: projectRequest.unitCountMin,
+        status: projectRequest.status,
+        createdAt: projectRequest.createdAt,
+      })
+      .from(projectRequest)
+      .where(eq(projectRequest.clientId, clientId))
+      .orderBy(desc(projectRequest.createdAt)),
+    db
+      .select({
+        id: bulkProductInquiry.id,
+        productId: bulkProductInquiry.productId,
+        productName: product.name,
+        unitCountMin: bulkProductInquiry.unitCountMin,
+        status: bulkProductInquiry.status,
+        createdAt: bulkProductInquiry.createdAt,
+      })
+      .from(bulkProductInquiry)
+      .innerJoin(product, eq(product.id, bulkProductInquiry.productId))
+      .where(eq(bulkProductInquiry.clientId, clientId))
+      .orderBy(desc(bulkProductInquiry.createdAt)),
+  ]);
+
+  const requestIds = requestRows.map((row) => row.id);
+  const bulkIds = bulkRows.map((row) => row.id);
+
+  const quoteRows =
+    requestIds.length === 0 && bulkIds.length === 0
+      ? []
+      : await db
+          .select({
+            id: projectQuote.id,
+            projectRequestId: projectQuote.projectRequestId,
+            bulkProductInquiryId: projectQuote.bulkProductInquiryId,
+            producerId: projectQuote.producerId,
+            producerName: producer.name,
+            status: projectQuote.status,
+            totalPriceCents: projectQuote.totalPriceCents,
+            unitPriceCents: projectQuote.unitPriceCents,
+            proposedLeadTimeWeeks: projectQuote.proposedLeadTimeWeeks,
+            notes: projectQuote.notes,
+            submittedAt: projectQuote.submittedAt,
+            contactRevealedAt: projectQuote.contactRevealedAt,
+          })
+          .from(projectQuote)
+          .innerJoin(producer, eq(producer.id, projectQuote.producerId))
+          .where(
+            or(
+              requestIds.length > 0 ? inArray(projectQuote.projectRequestId, requestIds) : undefined,
+              bulkIds.length > 0 ? inArray(projectQuote.bulkProductInquiryId, bulkIds) : undefined,
+            ),
+          );
+
+  const quotesByParentId = new Map<string, ClientReceivedQuote[]>();
+  for (const row of quoteRows) {
+    const key = (row.projectRequestId ?? row.bulkProductInquiryId) as string;
+    const quote: ClientReceivedQuote = {
+      id: row.id,
+      producerId: row.producerId,
+      producerName: row.producerName,
+      status: row.status,
+      totalPriceCents: row.totalPriceCents,
+      unitPriceCents: row.unitPriceCents,
+      proposedLeadTimeWeeks: row.proposedLeadTimeWeeks,
+      notes: row.notes,
+      submittedAt: row.submittedAt,
+      contactRevealedAt: row.contactRevealedAt,
+    };
+    const existing = quotesByParentId.get(key);
+    if (existing) existing.push(quote);
+    else quotesByParentId.set(key, [quote]);
+  }
+
+  const projectRequestItems: ClientRequestWithQuotes[] = requestRows.map((row) => ({
+    source: "project_request",
+    id: row.id,
+    countryCode: row.countryCode,
+    projectType: row.projectType,
+    families: row.families,
+    unitCountMin: row.unitCountMin,
+    status: row.status,
+    createdAt: row.createdAt,
+    quotes: quotesByParentId.get(row.id) ?? [],
+  }));
+  const bulkInquiryItems: ClientRequestWithQuotes[] = bulkRows.map((row) => ({
+    source: "bulk_product_inquiry",
+    id: row.id,
+    productId: row.productId,
+    productName: row.productName ?? "",
+    unitCountMin: row.unitCountMin,
+    status: row.status,
+    createdAt: row.createdAt,
+    quotes: quotesByParentId.get(row.id) ?? [],
+  }));
+
+  return [...projectRequestItems, ...bulkInquiryItems].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 }
 
 export interface ProductForAdmin {

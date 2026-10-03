@@ -22,6 +22,11 @@ const nextConfig: NextConfig = {
         hostname: "domihaus.com",
         pathname: "/wp-content/uploads/**",
       },
+      {
+        protocol: "https",
+        hostname: "konfigurator.dampol-investment.com",
+        pathname: "/static/thumbnail/shop-configurator-option/**",
+      },
       ...(r2PublicDomain
         ? [
             {

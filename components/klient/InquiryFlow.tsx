@@ -181,7 +181,7 @@ export function InquiryFlow({
                       >
                         {t("homeMeta", {
                           producer: project.producerName,
-                          area: project.floorAreaM2,
+                          area: project.floorAreaM2 !== null ? `${project.floorAreaM2} m²` : t("areaUnknown"),
                         })}
                       </Text>
                     </li>

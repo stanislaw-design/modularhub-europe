@@ -19,6 +19,13 @@ interface ProjectVariantPickerProps {
 // renderuje jako widoczna, niekliklana "bieżąca" pozycja, dla spójności
 // układu z projektami mającymi dwa albo trzy warianty (spec 0054 AC-3).
 //
+// scroll={false} (2026-10-02, inżynier): przełączenie wariantu zmienia tylko
+// ?wariant= na TEJ SAME stronie, Link bez tego atrybutu i tak przewijał
+// widok do samego początku przy każdym kliknięciu — ten sam powód co
+// router.push(..., { scroll: false }) w FavoritesGrid.tsx, tylko tu przez
+// <Link>, nie router. Dotyczy wyłącznie tego przełącznika: inna nawigacja na
+// stronie (np. do innego produktu) ma nadal przewijać normalnie.
+//
 // hrefFor klucze po variant.id, nie completionStandard: rodziny katalogowe
 // (outdoor-tv, spec 0056 Follow-up) mają wiele aktywnych wariantów
 // dzielących completionStandard = 'katalogowy' naraz (rozróżnianych przez
@@ -77,6 +84,7 @@ export function ProjectVariantPicker({
             <Link
               key={variant.id}
               href={hrefFor(variant.id)}
+              scroll={false}
               aria-current={active ? "true" : undefined}
               className={`focus-ring flex-1 whitespace-nowrap rounded-full border px-brand-2 py-1 text-center text-data font-medium transition-colors ${
                 active

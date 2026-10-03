@@ -368,6 +368,9 @@ export function ProjectRequestFlow({ locale, countries }: ProjectRequestFlowProp
                   value={locationDetail}
                   onChange={(event) => setLocationDetail(event.target.value)}
                 />
+                <Text tone="muted" surface="v5" className="text-data">
+                  {t("locationDetailVisibilityHint")}
+                </Text>
               </Stack>
             </Stack>
           )}
@@ -508,6 +511,9 @@ export function ProjectRequestFlow({ locale, countries }: ProjectRequestFlowProp
                   value={extrasNote}
                   onChange={(event) => setExtrasNote(event.target.value)}
                 />
+                <Text tone="muted" surface="v5" className="text-data">
+                  {t("extrasNoteVisibilityHint")}
+                </Text>
               </Stack>
               <Text tone="muted" surface="v5" className="text-data">
                 {t("dataSharingNotice")}

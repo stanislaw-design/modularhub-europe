@@ -15,6 +15,8 @@ The real (production) database client, introduced by spec 0017 (choice of produc
 - This repo's driver (`drizzle-orm/neon-http`) does not support interactive multi statement transactions (`db.transaction`); a write that must be atomic across several statements (e.g. `setCoverPhoto` clearing `isCover` on every other photo before setting the new one, `lib/product-photo-actions.ts`) uses `db.batch([...])` instead, which sends one atomic batch of independent queries. Reach for `db.batch`, not `db.transaction`, for any future multi statement write on this driver.
 - Flipping an "exactly one true per group" boolean flag (e.g. `product_variant.isDefault`, spec 0041) must be a single `UPDATE ... SET flag = (id = <new>) WHERE <group>`, never two separate UPDATE statements (clear-old then set-new), even via `db.batch`: two statements leave a real, briefly observable window with zero rows flagged, which a dependent trigger (the price sync trigger above) can read and act on. One statement, one trigger firing, no window.
 
+- Every `lib/**/*.test.ts` that writes real rows through `client.ts` (whenever `DATABASE_URL` is set) must target the dev Neon project, never production: `vitest.setup.ts` calls `assertDevDatabase()` (`dev-database-guard.ts`) once per test file before any test body runs, comparing the `neon.project_id` GUC (survives branch/endpoint recreation, unlike parsing the connection string's hostname) against the known dev project id. A misconfigured `.env.local` then fails loudly instead of silently writing fixtures for real.
+
 Governing spec: `docs/specs/0017-zaplecze-produkcyjne/`.
 
 _Drafted by /sync from the introducing change, worth a quick human pass._

@@ -56,11 +56,13 @@
   },
   "KlientRealizacjaPage": {
     "heading": "Realizacja — {name}",
+    "areaUnknown": "metraż do ustalenia",
     "completionBanner": "Zamówienie zrealizowane — wszystkie etapy zostały ukończone.",
     "backToOffer": "Wróć do zapytań"
   },
   "ProducentRealizacjaPage": {
     "heading": "Realizacja — {name}",
+    "areaUnknown": "metraż do ustalenia",
     "deliveredBanner": "Zamówienie odebrane — można teraz przejść do weryfikacji firmy przed pierwszą wypłatą.",
     "backToList": "Wróć do realizacji",
     "verification": "Weryfikacja firmy i wypłata"
@@ -69,6 +71,7 @@
     "heading": "Realizacje",
     "intro": "Oś statusu produkcji, transportu, montażu i odbioru — ta sama, którą widzi klient dla tego samego zamówienia. Po odbiorze odblokowuje się weryfikacja firmy przed pierwszą wypłatą.",
     "empty": "Brak realizacji — pojawią się tu zamówienia z zaakceptowaną ofertą.",
+    "areaUnknown": "metraż do ustalenia",
     "readyForVerification": "Gotowe do weryfikacji firmy",
     "currentStage": "Aktualny etap: {stage}",
     "viewTimeline": "Zobacz oś statusu"
@@ -78,8 +81,9 @@
   },
   "PopularHomeCard": {
     "coverAlt": "{name}, dom modułowy",
-    "summary": "{area} m² · {rooms} pokoi",
-    "summaryNoRooms": "{area} m²",
+    "summary": "{area} · {rooms} pokoi",
+    "summaryNoRooms": "{area}",
+    "areaUnknown": "metraż do ustalenia",
     "priceOnRequest": "Wycena indywidualna",
     "priceFrom": "od {price} €"
   },
@@ -104,7 +108,13 @@
     "selectForInquiry": "Zaznacz {name} do zapytania",
     "selectionLimitReached": "Można zaznaczyć maksymalnie 3 projekty",
     "needsMoreDocuments": "Wymaga dodatkowych dokumentów",
-    "summary": "{area} m² użytkowe · {rooms} {roomsLabel} · {storeys} kond.",
+    "summary": "{area} · {rooms} · {storeys}",
+    "areaValue": "{area} m² użytkowe",
+    "areaUnknown": "metraż do ustalenia",
+    "roomsValue": "{rooms} {roomsLabel}",
+    "roomsUnknown": "liczba pokoi do ustalenia",
+    "storeysValue": "{storeys} kond.",
+    "storeysUnknown": "liczba kondygnacji do ustalenia",
     "rooms": {
       "one": "pokój",
       "few": "pokoje",
@@ -181,6 +191,7 @@
       "blocked": "Niedopuszczone"
     },
     "noAnalysisData": "Brak danych analizy dla tego projektu; spróbuj ponownie później.",
+    "areaUnknown": "metraż do ustalenia",
     "servicePrice": "Cena usługi",
     "plotAreaLabel": "Metraż działki (m²)",
     "plotAreaError": "Podaj metraż w zakresie {min}–{max} m².",
@@ -206,6 +217,7 @@
     "compareLimitReached": "Można porównać maksymalnie 3 domy",
     "unavailable": "Produkt niedostępny",
     "floorArea": "{area} m² użytkowe",
+    "floorAreaUnknown": "Metraż do ustalenia",
     "priceFrom": "od {price} €"
   },
   "FavoriteCompareTable": {
@@ -806,6 +818,29 @@
       "legacy_direct": "Zapytanie bezpośrednie"
     }
   },
+  "ClientPanelQuotesPage": {
+    "heading": "Wyceny",
+    "emptyTitle": "Nie masz jeszcze żadnych wycen",
+    "emptyDescription": "Wyceny producentów na Twoje zapytania pojawią się tutaj.",
+    "requestHeading": "Zapytanie o projekt",
+    "bulkInquiryHeadingPrefix": "Zapytanie o produkt: ",
+    "producerColumn": "Producent",
+    "priceColumn": "Cena",
+    "leadTimeColumn": "Czas realizacji",
+    "statusColumn": "Status",
+    "statusActive": "Aktywna",
+    "statusAccepted": "Zaakceptowana",
+    "statusRejected": "Odrzucona",
+    "statusSuperseded": "Zastąpiona",
+    "leadTimeWeeks": "{weeks} tyg.",
+    "notesColumn": "Notatka"
+  },
+  "AcceptQuoteButton": {
+    "accept": "Akceptuj",
+    "accepting": "Akceptowanie…",
+    "accepted": "Zaakceptowano",
+    "genericError": "Nie udało się zaakceptować wyceny. Spróbuj ponownie."
+  },
   "ClientInquiryDetailPage": {
     "heading": "Szczegóły zapytania",
     "statusOpen": "Oczekuje na odpowiedź",
@@ -896,6 +931,10 @@
       "few": "+ {count} pozycje do wyceny",
       "many": "+ {count} pozycji do wyceny"
     },
+    "optionsHeading": "Opcje dodatkowe",
+    "optionsAriaLabel": "Opcje dodatkowe",
+    "optionIncluded": "w cenie",
+    "optionPriceOnRequest": "cena na zapytanie",
     "compareWithAnother": "Porównaj z innym domem",
     "inquiryGoesToAdvisor": "Twoje zapytanie trafi do doradcy ModularHub Europe, który odezwie się w przeciągu 48h.",
     "noPurchaseObligation": "bez zobowiązania zakupowego",
@@ -905,6 +944,7 @@
     "sectionNav": {
       "uklad": "Układ domu",
       "cena": "Cena i zakres",
+      "opcje": "Opcje dodatkowe",
       "dzialka": "Działka i dostawa",
       "harmonogram": "Harmonogram",
       "komfort": "Komfort i technologia",
@@ -922,14 +962,10 @@
     "sendInquiry": "Wyślij zapytanie",
     "variantPickerAriaLabel": "Wybór wariantu",
     "variantFallbackLabel": "Wariant",
-    "videoLabel": "Wideo produktu {name}",
-    "featuresHeading": "Cechy",
     "specsHeading": "Specyfikacja techniczna",
     "showMore": "Pokaż więcej ({count})",
     "showFewer": "Pokaż mniej",
-    "realUseHeading": "Jak to wygląda w praktyce",
     "realUsePhotosHeading": "Zdjęcia z realizacji",
-    "usageNoteEyebrow": "Do czego jest ten wariant",
     "realUsePhotoAlt": "{name} w praktyce, zdjęcie {index}",
     "partnerHeading": "O partnerze",
     "sectionNavAriaLabel": "Nawigacja po sekcjach strony",
@@ -942,6 +978,14 @@
       "partner": "Partner",
       "faq": "Dokumenty i pytania"
     }
+  },
+  "ProjectVideoSection": {
+    "realUseHeading": "Jak to wygląda w praktyce",
+    "usageNoteEyebrow": "Do czego jest ten wariant",
+    "videoLabel": "Wideo produktu {name}"
+  },
+  "ProjectFeatureTiles": {
+    "featuresHeading": "Cechy"
   },
   "Faq": {
     "heading": "Najczęstsze pytania",
@@ -1168,6 +1212,45 @@
       "inne": "Niestandardowe źródło ciepła — szczegóły do ustalenia z producentem."
     }
   },
+  "SaunaTechnicalSpecs": {
+    "heading": "Specyfikacja techniczna",
+    "claddingMaterial": "Okładzina zewnętrzna",
+    "interiorWoodType": "Drewno wnętrza",
+    "benchMaterial": "Materiał ławek",
+    "insulationType": "Rodzaj izolacji",
+    "glazingType": "Rodzaj przeszklenia",
+    "seatingCapacity": "Liczba miejsc",
+    "electricalRequirement": "Wymagania elektryczne",
+    "hasChangingArea": "Strefa dodatkowa",
+    "changingAreaDescription": "Opis strefy dodatkowej",
+    "yes": "Tak",
+    "no": "Nie"
+  },
+  "SaunaPage": {
+    "price": "Cena",
+    "priceOnRequest": "Wycena indywidualna",
+    "netVat": "netto",
+    "estimatedPackage": "Cena orientacyjna",
+    "from": "od",
+    "sendInquiry": "Wyślij zapytanie",
+    "variantPickerAriaLabel": "Wybór wariantu",
+    "variantFallbackLabel": "Wariant",
+    "optionsHeading": "Opcje dodatkowe",
+    "optionsAriaLabel": "Opcje dodatkowe",
+    "optionIncluded": "w cenie",
+    "optionPriceOnRequest": "cena na zapytanie",
+    "sectionNavAriaLabel": "Nawigacja po sekcjach strony",
+    "sectionNavScrollLeft": "Przewiń pasek sekcji w lewo",
+    "sectionNavScrollRight": "Przewiń pasek sekcji w prawo",
+    "sectionNav": {
+      "opcje": "Opcje dodatkowe",
+      "cechy": "Cechy",
+      "specyfikacja": "Specyfikacja",
+      "dzialka": "Działka i dostawa",
+      "partner": "Partner",
+      "dokumenty": "Dokumenty i pytania"
+    }
+  },
   "ResultsFilterBar": {
     "sortPriceAsc": "Cena: rosnąco",
     "sortPriceDesc": "Cena: malejąco",
@@ -1205,7 +1288,11 @@
     "budgetAriaLabel": "Budżet",
     "areaLabel": "Powierzchnia",
     "areaPlaceholder": "Dowolna",
-    "searchButton": "Szukaj domów"
+    "searchButton": "Szukaj domów",
+    "categoryLinksAriaLabel": "Kategorie w grupie Więcej niż dom",
+    "categoryLinkSpa": "Spa modułowe",
+    "categoryLinkContainers": "Kontenery",
+    "categoryLinkOutdoorTv": "Outdoor TV"
   },
   "FloatingSearchButton": {
     "prompt": "Czego dziś szukasz?",
@@ -1294,7 +1381,8 @@
     "howItWorksStep3": "Producenci dostają brief dopiero po Twojej zgodzie.",
     "selectedHomesLabel": "Wybrane domy",
     "sectionAddressHeading": "Adres działki",
-    "homeMeta": "{producer} · {area} m²",
+    "homeMeta": "{producer} · {area}",
+    "areaUnknown": "metraż do ustalenia",
     "streetLabel": "Ulica i numer",
     "postalCodeLabel": "Kod pocztowy",
     "cityLabel": "Miejscowość",
@@ -1621,6 +1709,79 @@
     "statusClosed": "Zamknięte",
     "unreadDecisionLabel": "Klient podjął decyzję"
   },
+  "ProducerPanelBoardPage": {
+    "heading": "Tablica ogłoszeń",
+    "intro": "Otwarte zapytania o duże zamówienia od wszystkich inwestorów — złóż wycenę na dowolne z nich.",
+    "notApprovedHeading": "Tablica jest dostępna tylko dla zweryfikowanych wolumenowo producentów",
+    "notApprovedDescription": "Uzupełnij swój profil zdolności produkcyjnej, żeby administrator mógł Cię zweryfikować.",
+    "completeProfileLink": "Uzupełnij profil zdolności",
+    "emptyMessage": "Brak otwartych zapytań na tablicy.",
+    "columnCountry": "Kraj",
+    "columnProjectType": "Typ przedsięwzięcia",
+    "columnUnits": "Sztuki",
+    "columnStatus": "Status",
+    "columnDate": "Data",
+    "statusOpen": "Otwarte",
+    "statusQuoted": "Z wycenami",
+    "trustSignalNew": "Nowe",
+    "trustSignalComplete": "Dane kompletne",
+    "previousPage": "Poprzednia",
+    "nextPage": "Następna",
+    "pageLabel": "Strona {current} z {total}",
+    "paginationAriaLabel": "Strony tablicy ogłoszeń",
+    "columnFamilies": "Rodziny",
+    "columnFloorArea": "Metraż (m²)"
+  },
+  "ProducerBoardDetailPage": {
+    "heading": "Szczegóły zapytania",
+    "backToBoard": "Wróć do tablicy",
+    "countryLabel": "Kraj",
+    "projectTypeLabel": "Typ przedsięwzięcia",
+    "familiesLabel": "Rodziny produktu",
+    "unitCountLabel": "Liczba sztuk",
+    "floorAreaLabel": "Powierzchnia (m²)",
+    "completionStandardLabel": "Standard wykończenia",
+    "startWindowLabel": "Okno startu",
+    "deliveryWindowLabel": "Okno dostawy",
+    "locationDetailLabel": "Lokalizacja",
+    "extrasNoteLabel": "Dodatkowe uwagi",
+    "trustSignalLabel": "Dane kontaktowe inwestora",
+    "trustSignalNew": "Nowe",
+    "trustSignalComplete": "Dane kompletne",
+    "ownQuoteStatusLabel": "Twoja wycena",
+    "ownQuoteStatusActive": "Aktywna",
+    "ownQuoteStatusAccepted": "Zaakceptowana",
+    "ownQuoteStatusRejected": "Odrzucona",
+    "ownQuoteStatusSuperseded": "Zastąpiona nowszą"
+  },
+  "QuoteForm": {
+    "intro": "Podaj wycenę na to zapytanie.",
+    "revisionIntro": "Poprawiasz wcześniej złożoną wycenę — nowa wersja zastąpi poprzednią.",
+    "totalPriceLabel": "Cena całkowita (€)",
+    "unitPriceLabel": "Cena za sztukę (€, opcjonalnie)",
+    "leadTimeLabel": "Proponowany czas realizacji (tygodnie, opcjonalnie)",
+    "notesLabel": "Notatka (opcjonalnie)",
+    "submitQuote": "Wyślij wycenę",
+    "submitRevision": "Wyślij poprawioną wycenę",
+    "submitting": "Wysyłanie…",
+    "submittedMessage": "Wycena wysłana.",
+    "genericError": "Nie udało się zapisać wyceny. Spróbuj ponownie."
+  },
+  "ProducerPanelBoardQuotesPage": {
+    "heading": "Moje wyceny",
+    "emptyMessage": "Nie złożyłeś jeszcze żadnej wyceny.",
+    "columnSource": "Zapytanie",
+    "columnPrice": "Cena",
+    "columnStatus": "Status",
+    "columnDate": "Data",
+    "sourceProjectRequest": "Tablica ogłoszeń",
+    "sourceBulkProductInquiry": "Zapytanie o produkt",
+    "statusActive": "Aktywna",
+    "statusAccepted": "Zaakceptowana",
+    "statusRejected": "Odrzucona",
+    "statusSuperseded": "Zastąpiona",
+    "contactRevealedLabel": "Kontakt inwestora"
+  },
   "ProducerInquiryDetailPage": {
     "heading": "Szczegóły zapytania",
     "deliveryCountryLabel": "Kraj dostawy",
@@ -1689,7 +1850,7 @@
     "nameLabel": "Imię i nazwisko",
     "emailInvalidError": "Podaj prawidłowy adres e-mail.",
     "phoneLabel": "Telefon (opcjonalnie)",
-    "dataSharingNotice": "Twoje dane kontaktowe zostaną udostępnione dopasowanym, zweryfikowanym producentom, żeby mogli przesłać wyceny.",
+    "dataSharingNotice": "Twoje dane kontaktowe są widoczne wyłącznie producentowi, którego wycenę zaakceptujesz — do tego momentu pozostają zamaskowane.",
     "sendingLabel": "Wysyłanie…",
     "retrySendLabel": "Ponów wysyłanie",
     "sendLabel": "Wyślij zapytanie",
@@ -1711,7 +1872,9 @@
     "backStepLabel": "Wstecz",
     "nextStepLabel": "Dalej",
     "stepperLabel": "Postęp formularza",
-    "stepAnnouncement": "Krok {current} z {total}: {label}"
+    "stepAnnouncement": "Krok {current} z {total}: {label}",
+    "locationDetailVisibilityHint": "Ta informacja jest widoczna dla wszystkich zweryfikowanych wolumenowo producentów na tablicy ogłoszeń — nie wpisuj tu danych, które Cię identyfikują.",
+    "extrasNoteVisibilityHint": "Ta notatka jest widoczna dla wszystkich zweryfikowanych wolumenowo producentów na tablicy ogłoszeń — nie wpisuj tu danych, które Cię identyfikują."
   },
   "ProjectRequestConfirmationCard": {
     "statusLabel": "Wysłano",
@@ -1775,7 +1938,9 @@
     "closeMenu": "Zamknij menu",
     "menu": "Menu",
     "collapseSidebar": "Zwiń menu",
-    "expandSidebar": "Rozwiń menu"
+    "expandSidebar": "Rozwiń menu",
+    "board": "Tablica ogłoszeń",
+    "boardQuotes": "Moje wyceny"
   },
   "ClientPanelSidebar": {
     "navAriaLabel": "Panel klienta",
@@ -1789,7 +1954,8 @@
     "closeMenu": "Zamknij menu",
     "menu": "Menu",
     "collapseSidebar": "Zwiń menu",
-    "expandSidebar": "Rozwiń menu"
+    "expandSidebar": "Rozwiń menu",
+    "quotes": "Wyceny"
   },
   "CaseChat": {
     "heading": "Rozmowa z doradcą",

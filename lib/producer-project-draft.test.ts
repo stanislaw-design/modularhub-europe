@@ -19,9 +19,12 @@ import {
   alignFaqTranslation,
   alignRoomLayoutTranslation,
   createEmptyDraft,
+  getSpaSubcategoryOptions,
   isStepComplete,
   sanitizeDraftForSave,
 } from "./producer-project-draft";
+
+const t = ((key: string) => key) as unknown as Parameters<typeof getSpaSubcategoryOptions>[0];
 
 function completeDraft(): ProjectDraft {
   return {
@@ -285,6 +288,22 @@ describe("CONTAINER_TECHNICAL_FIELDS_BY_SUBCATEGORY", () => {
   it("configures mieszkalne's bathroomIncluded as a boolean field", () => {
     const field = CONTAINER_TECHNICAL_FIELDS_BY_SUBCATEGORY.mieszkalne.find((f) => f.key === "bathroomIncluded");
     expect(field?.type).toBe("boolean");
+  });
+});
+
+// spec 0061 AC-10: the producer wizard selector hides "sauna" (it would save
+// the jacuzzi-shaped technical fields against a real sauna), while every
+// other caller (client subcategory filter, wizard summary label lookup)
+// keeps seeing all three values by default.
+describe("getSpaSubcategoryOptions", () => {
+  it("includes sauna by default", () => {
+    const values = getSpaSubcategoryOptions(t).map((option) => option.value);
+    expect(values).toEqual(["sauna", "jacuzzi", "wellness-combo"]);
+  });
+
+  it("excludes sauna when excludeSauna is true (producer wizard selector)", () => {
+    const values = getSpaSubcategoryOptions(t, { excludeSauna: true }).map((option) => option.value);
+    expect(values).toEqual(["jacuzzi", "wellness-combo"]);
   });
 });
 

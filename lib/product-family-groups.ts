@@ -1,4 +1,4 @@
-import type { ProductFamily } from "@/lib/data/types";
+import type { ProductFamily, SpaSubcategory } from "@/lib/data/types";
 
 // Grupa, do której może należeć rodzina produktu w wyszukiwaniu (spec 0035):
 // "dom" jest zarówno prawdziwą rodziną, jak i jednoelementową grupą samą w
@@ -46,16 +46,34 @@ export function resolveFamilies(value: FamilyFilterValue): ProductFamily[] {
 
 // Jedyne miejsce, które wie, pod jakim route'em żyje strona produktu danej
 // rodziny (spec 0056 AC-5): outdoor-tv ma własną, katalogową stronę produktu
-// (/outdoor-tv/[slug]), każda inna rodzina używa strony domu (/project/[slug]).
-// Każde miejsce budujące link do produktu (lista wyników, ulubione,
-// porównywarka) przechodzi przez tę funkcję zamiast składać ścieżkę samemu,
-// żeby dodanie kolejnej rodziny katalogowej w przyszłości było jedną zmianą
-// tutaj, nie zmianą we wszystkich miejscach linkujących.
+// (/outdoor-tv/[slug]), sauna (spa-modulowe/sauna, spec 0061 AC-3) ma swoją
+// własną (/sauna/[slug]), każda inna rodzina/podkategoria używa strony domu
+// (/project/[slug]). Każde miejsce budujące link do produktu (lista wyników,
+// ulubione, porównywarka) przechodzi przez tę funkcję zamiast składać ścieżkę
+// samemu, żeby dodanie kolejnej rodziny katalogowej w przyszłości było jedną
+// zmianą tutaj, nie zmianą we wszystkich miejscach linkujących.
 //
 // slug wstawiany zamiast id, gdy produkt go ma (spec 0058 AC-6): czytelny
 // adres wszędzie tam, gdzie jest dostępny, z id jako trwałym fallbackiem dla
 // produktów bez jeszcze wyliczonego sluga (kreator w toku, bez nazwy).
-export function resolveProductHref(family: ProductFamily, id: string, locale: string, slug?: string | null): string {
-  const segment = family === "outdoor-tv" ? "outdoor-tv" : "project";
+//
+// spaSubcategory (spec 0061 AC-3): opcjonalny w typach (reszta rodzin go nie
+// ma), ale każde miejsce wywołujące tę funkcję dla produktu, który może być
+// spa-modulowe, musi odczytać tę wartość wprost z rekordu produktu (nigdy jej
+// nie zgadywać ani zostawiać pominiętej) — pominięcie po cichu linkuje saunę
+// pod /project/... zamiast /sauna/..., bez błędu kompilacji ani wykonania.
+export function resolveProductHref(
+  family: ProductFamily,
+  id: string,
+  locale: string,
+  slug?: string | null,
+  spaSubcategory?: SpaSubcategory | null,
+): string {
+  const segment =
+    family === "outdoor-tv"
+      ? "outdoor-tv"
+      : family === "spa-modulowe" && spaSubcategory === "sauna"
+        ? "sauna"
+        : "project";
   return `/${locale}/${segment}/${slug ?? id}`;
 }

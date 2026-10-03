@@ -69,32 +69,35 @@ export function ProjectCompareTable({ locale, columns, hasUnavailable, resultsHr
       {
         key: "floorArea",
         label: t("floorAreaLabel"),
-        getValue: (c) => c.project?.floorAreaM2,
-        render: (c) => (c.project ? t("areaValue", { area: c.project.floorAreaM2 }) : undefined),
+        getValue: (c) => c.project?.floorAreaM2 ?? undefined,
+        // "—" (nie generyczne t("notProvided")) dla pola nieuzupełnionego na
+        // istniejącym projekcie — odróżnione od kolumny całkiem bez projektu
+        // niżej, która wciąż trafia do t("notProvided") (linia renderująca komórkę).
+        render: (c) => (c.project ? (c.project.floorAreaM2 !== null ? t("areaValue", { area: c.project.floorAreaM2 }) : "—") : undefined),
       },
       {
         key: "builtUpArea",
         label: t("builtUpAreaLabel"),
-        getValue: (c) => c.project?.builtUpAreaM2,
-        render: (c) => (c.project ? t("areaValue", { area: c.project.builtUpAreaM2 }) : undefined),
+        getValue: (c) => c.project?.builtUpAreaM2 ?? undefined,
+        render: (c) => (c.project ? (c.project.builtUpAreaM2 !== null ? t("areaValue", { area: c.project.builtUpAreaM2 }) : "—") : undefined),
       },
       {
         key: "bedrooms",
         label: t("bedroomsLabel"),
-        getValue: (c) => c.project?.bedrooms,
-        render: (c) => c.project?.bedrooms.toString(),
+        getValue: (c) => c.project?.bedrooms ?? undefined,
+        render: (c) => (c.project ? (c.project.bedrooms !== null ? c.project.bedrooms.toString() : "—") : undefined),
       },
       {
         key: "bathrooms",
         label: t("bathroomsLabel"),
-        getValue: (c) => c.project?.bathrooms,
-        render: (c) => c.project?.bathrooms.toString(),
+        getValue: (c) => c.project?.bathrooms ?? undefined,
+        render: (c) => (c.project ? (c.project.bathrooms !== null ? c.project.bathrooms.toString() : "—") : undefined),
       },
       {
         key: "storeys",
         label: t("storeysLabel"),
-        getValue: (c) => c.project?.storeys,
-        render: (c) => c.project?.storeys.toString(),
+        getValue: (c) => c.project?.storeys ?? undefined,
+        render: (c) => (c.project ? (c.project.storeys !== null ? c.project.storeys.toString() : "—") : undefined),
       },
       {
         key: "externalDimensions",
@@ -217,7 +220,13 @@ export function ProjectCompareTable({ locale, columns, hasUnavailable, resultsHr
                         )}
                       </div>
                       <Link
-                        href={resolveProductHref(column.project.family, column.project.id, locale, column.project.slug)}
+                        href={resolveProductHref(
+                          column.project.family,
+                          column.project.id,
+                          locale,
+                          column.project.slug,
+                          column.project.spaSubcategory,
+                        )}
                         className="focus-ring rounded-data font-display text-body-l font-semibold text-brand-v5-ink underline-offset-2 hover:underline"
                       >
                         {column.project.name}

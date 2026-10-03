@@ -444,6 +444,7 @@ async function validatePublishReadiness(productId: string, fields: ProducerProdu
     productRow.family,
     "published",
     fields.containerSubcategory ?? undefined,
+    fields.spaSubcategory ?? undefined,
   ).safeParse(fields.technicalSpecs);
   if (!specsResult.success) {
     return "Uzupełnij wszystkie dane techniczne przed publikacją.";

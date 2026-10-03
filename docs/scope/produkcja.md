@@ -61,6 +61,9 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 45 | Outdoor TV: rodzina produktu i partnerstwo reseller MirageVision | Foundation | in progress |
 | 46 | Wieloosobowe konta producenta | Slice 2b | in progress |
 | 47 | Czytelne adresy i metadane produktów (slug) | Utwardzenie | done |
+| 48 | Płatne opcje konfiguratora dla produktów katalogowych | Foundation | in-progress |
+| 49 | Tablica ogłoszeń B2B i odpowiadanie na nią | Slice 12 | in progress |
+| 50 | Strona produktu dla sauny (podkategoria spa modułowe) | Foundation | in progress |
 
 ## Foundations
 
@@ -292,6 +295,16 @@ Hero na stronie głównej i `FamilyTabs` na `/wyniki` pokazują dziś trzy płas
   - [x] Tłumaczenia `pl`/`en`/`nl` i testy (`SearchCard`, `FamilyTabs`, `results-filters.ts`, `projects.test.ts`), satisfies AC-1, AC-3, AC-8
 - [x] Zweryfikuj: `/check verify grupy wyszukiwania: domy i więcej niż dom` (PASS, patrz raport builda 2026-09-12)
 - [ ] Testuj: `/test grupy wyszukiwania: domy i więcej niż dom`
+
+### 49. Podkategorie "Więcej niż dom" bezpośrednio w hero (klient) · in progress
+Karta wyszukiwania w hero (funkcja 30) po wybraniu "Więcej niż dom" dziś nie pozwala od razu wskazać konkretnej kategorii stylu życia (Spa modułowe, Kontenery modułowe, Outdoor TV) — trzeba dopiero przejść na wyniki i tam zawęzić. Ta funkcja dodaje trzy klikalne linki podkategorii wprost w hero, zastępujące pola Gdzie/Budżet/Powierzchnia i Szukaj dla tej zakładki; wybranie linku od razu otwiera wyniki z gotowym filtrem, bez pośredniego kroku. Widok łączony znika z hero (zostaje tylko na stronie wyników).
+**Done when:** zakładka "Więcej niż dom" w hero pokazuje trzy linki podkategorii wyprowadzone z `FAMILY_GROUPS`, kliknięcie dowolnego od razu nawiguje na `/results?family=...` bez wymogu kraju i bez klikania Szukaj, zakładka "Domy" zostaje bez zmian, a działanie jest spójne w pl/en/nl.
+- [x] Zaprojektuj (spec): [0060](../specs/0060-podkategorie-wiecej-niz-dom-hero/index.md) (linki podkategorii zastępują pola wyszukiwania pod "Więcej niż dom" zamiast dokładać kolejny rząd obok nich; widok łączony świadomie usunięty z hero, zostaje na /results)
+- [x] Build it: `/develop podkategorie więcej niż dom bezpośrednio w hero` (code in `components/klient/SearchCard.tsx`, `messages/{pl,en,nl,de}.json`)
+  - [x] Komponent i tłumaczenia: przebudowa `SearchCard.tsx` (linki z `FAMILY_GROUPS["wiecej-niz-dom"]` zamiast pól Gdzie/Budżet/Powierzchnia + Szukaj dla tej zakładki) i nowe klucze w przestrzeni `SearchCard` w `messages/{pl,en,nl}.json`, satisfies AC-1, AC-2, AC-3, AC-4, AC-6, AC-7
+  - [x] Testy: poprawa dwóch dzisiejszych testów `SearchCard.test.tsx` (spec 0035 AC-2/AC-5, teraz zawężonych do zakładki Domy) plus nowe testy nawigacji z linków i rozszerzalności z `FAMILY_GROUPS`, satisfies AC-1, AC-2, AC-3, AC-4
+- [ ] Verify it: `/check verify podkategorie więcej niż dom bezpośrednio w hero`
+- [ ] Test it: `/test podkategorie więcej niż dom bezpośrednio w hero`
 
 ### 35. Poprawa flow logowania i rejestracji · in progress
 Dziś rejestracja stoi na dwóch osobnych, niepowiązanych stronach (klient, producent), nagłówek "Zacznij" kieruje wyłącznie do producenta, a link do rejestracji na ekranie logowania pokazuje się tylko po nieudanej próbie. Ta funkcja ujednolica wejście w jeden wspólny wizard pod `/registration` (krok 1: wybór Klient/Producent), poprawia kilka drobnych rzeczy na ekranie logowania, i dokłada rozróżnienie inwestor/klient prywatny (z warunkowym NIP, reużywając pól z funkcji 32) po stronie klienta oraz skalę produkcji po stronie producenta, usuwając przy okazji z rejestracji producenta pole "Technologia".
@@ -565,6 +578,19 @@ Pierwsze widoczne wejście do modelu danych z funkcji 32: nowa sekcja na stronie
 - [ ] Zweryfikuj: `/check verify ekrany wejściowe dla dużych zamówień B2B`
 - [ ] Testuj: `/test ekrany wejściowe dla dużych zamówień B2B`
 
+### 49. Tablica ogłoszeń B2B i odpowiadanie na nią · full · in progress
+Backend wycen z funkcji 32 nie ma dziś żadnego ekranu po obu stronach: zastępuje dzisiejsze ciche, automatyczne dopasowanie zapytania do producentów po kraju dostawy (push) otwartą tablicą ogłoszeń, na której każdy zweryfikowany wolumenowo producent widzi wszystkie otwarte zapytania i może złożyć wycenę, dodaje ekran producenta do przeglądania własnych wycen i ekran klienta do przeglądania otrzymanych wycen i ich akceptacji. Dane kontaktowe inwestora są zamaskowane dla producenta, aż klient zaakceptuje jego wycenę, co dzieje się automatycznie.
+**Done when:** zweryfikowany wolumenowo producent widzi tablicę otwartych zapytań i może złożyć wycenę bez danych kontaktowych inwestora, klient widzi otrzymane wyceny i może zaakceptować jedną z nich, a akceptacja automatycznie ujawnia kontakt wyłącznie zaakceptowanemu producentowi.
+- [x] Zaprojektuj (spec): [0062](../specs/0062-tablica-ogloszen-b2b/index.md)
+- [x] Zbuduj: `/develop tablica ogłoszeń B2B i odpowiadanie na nią` — code in `lib/project-request-actions.ts`, `lib/project-quote-actions.ts`, `lib/db/queries.ts`, `app/[locale]/producer/panel/board/`, `app/[locale]/producer/panel/board-quotes/`, `app/[locale]/panel/quotes/`
+  - [x] Migracja i autoryzacja zamiast push: nowe kolumny `trust_signal`/`contact_revealed_at`, przepisanie `submitProjectQuote` na sprawdzenie `volumeVerificationStatus`/status zapytania wewnątrz funkcji, usunięcie `project_request_target_producer`/`autoTargetProducers`/`markProjectRequestViewedOrDeclined`, satisfies AC-1, AC-9, AC-13, AC-14
+  - [x] Tablica producenta: lista i szczegóły ogłoszenia z formularzem wyceny, bramka `volumeVerificationStatus`, satisfies AC-2, AC-3, AC-4
+  - [x] Moje wyceny producenta i ujawnienie kontaktu: ekran statusu własnych wycen, `acceptProjectQuote` ustawia `contactRevealedAt`, satisfies AC-5, AC-7, AC-8, AC-12, AC-15
+  - [x] Panel klienta i hint w formularzu: ekran otrzymanych wycen z akceptacją, ostrzeżenie pod polami wolnego tekstu na `/project-request`, satisfies AC-6, AC-10
+  - [x] Tłumaczenia, dostępność i testy dla wszystkich nowych/zmienionych ekranów, satisfies AC-11 i regresje
+- [ ] Zweryfikuj: `/check verify tablica ogłoszeń B2B i odpowiadanie na nią`
+- [ ] Testuj: `/test tablica ogłoszeń B2B i odpowiadanie na nią`
+
 ## Utwardzenie przed startem
 
 ### 20. SEO podstawowe stron publicznych · needs a decision
@@ -598,6 +624,30 @@ Adres strony produktu (dom, spa, kontener, outdoor tv) dostaje czytelny slug wyl
   - [x] Wyrównanie danych i testy: jednorazowy skrypt dla istniejących produktów, aktualizacja testów stron produktu, nowe testy przekierowania i przejścia bez sluga, satisfies AC-8, AC-9
 - [x] Verify it: `/check verify czytelne adresy i metadane produktów`
 - [x] Test it: `/test czytelne adresy i metadane produktów`
+
+### 48. Płatne opcje konfiguratora dla produktów katalogowych · full · in-progress
+Produkty katalogowe (`completion_standard = 'katalogowy'`, dziś `outdoor-tv`, wkrótce kontenery Dampola) dostają płatne opcje dodatkowe (na przykład poziom ocieplenia, kominek, klimatyzacja) grupowane we współdzielony katalog producenta i przypisywane do wielu jego produktów naraz, z ceną liczoną na żywo na stronie produktu. Wywołane potrzebą zaimportowania katalogu Dampola, którego strona sprzedaje kontenery dokładnie w ten sposób. Dane wpisuje się na start ręcznie przez Neon MCP, bez nowego UI producenta.
+**Done when:** produkt katalogowy z przypisanymi grupami opcji pokazuje je na `/project/[slug]` z ceną liczoną na żywo (wariant + zaznaczone opcje), produkt bez opcji renderuje się bez zmian, a dokładnie jeden prawdziwy produkt (Dampol Model 3) działa end to end na realnych danych.
+- [x] Zaprojektuj (spec): [0059](../specs/0059-platne-opcje-konfiguratora-katalogowego/index.md)
+- [x] Build it: `/develop płatne opcje konfiguratora dla produktów katalogowych` — code in `lib/db/schema.ts`, `lib/db/queries.ts`, `lib/data/project-variants.ts`, `components/klient/ProjectOptionsConfigurator.tsx`, `app/[locale]/(customer)/project/[slug]/page.tsx`
+  - [x] Migracja i model danych: trzy nowe tabele (`product_option_group`, `product_option`, `product_option_group_assignment`), zweryfikowane na tymczasowej gałęzi Neon, satisfies AC-8
+  - [x] Backend i logika ceny: `getProductOptionGroups`, funkcja liczenia łącznej ceny, tolerancyjny parser `opcje`, naprawa linku zapytania/etykiety ceny/JSON-LD dla katalogowych produktów z wieloma wariantami, satisfies AC-1, AC-2, AC-3, AC-4, AC-6, AC-9
+  - [x] UI klienta: `ProjectOptionsConfigurator` obok `ProjectVariantPicker`, wpięcie łącznej ceny w istniejący blok, satisfies AC-1, AC-2, AC-5
+  - [x] Prawdziwe dane: ręczny zasiew Dampol Model 3 (producent, 4 warianty rozmiaru, siedem grup single odzwierciedlających cały konfigurator Dampola: Poziom ocieplenia, Konstrukcja, Klimatyzacja, Przeszklenie, Roleta zewnętrzna, Aneks kuchenny, WC, realne ceny ze strony Dampola) przez Neon MCP, dowodzi całej ścieżki end to end, satisfies AC-1 do AC-9. Bez grupy multi: żywy konfigurator Dampola okazał się w całości single-select (patrz spec Follow-up), inżynier potwierdził trzymać się tego 1:1 zamiast wymuszać sztuczną grupę multi na tym produkcie — pokrycie typu multi zostaje w testach jednostkowych/komponentu (dane syntetyczne), nie w tym realnym zasiewie. Cena produktu renderuje się nad konfiguratorem opcji (nie pod nim).
+- [ ] Verify it: `/check verify płatne opcje konfiguratora dla produktów katalogowych`
+- [ ] Test it: `/test płatne opcje konfiguratora dla produktów katalogowych`
+
+### 50. Strona produktu dla sauny (podkategoria spa modułowe) · Foundation · in progress
+Sauna (`spaSubcategory = "sauna"`, rodzina `spa-modulowe`) dostaje własną, dedykowaną stronę produktu `/sauna/[slug]`, wzorowaną na `/outdoor-tv/[slug]`, zamiast dzielenia strony domu. Dotychczasowy model danych technicznych rodziny był zbudowany pod jacuzzi (woda, filtracja) i nie pasuje do suchej sauny; dwaj producenci referencyjni (Kora, Wooden Dream House) pokazują model cenowy bez standardów wykończenia, z piecem i dodatkami jako płatnymi opcjami konfiguratora (funkcja 48). Dane wpisywane na start ręcznie przez Neon MCP, bez nowego UI producenta.
+**Done when:** opublikowany produkt sauny renderuje się pod `/{locale}/sauna/{slug}` z poprawną specyfikacją techniczną, konfiguratorem płatnych opcji zaraz po hero i sekcją logistyki, żadna inna trasa produktu nie renderuje go pod swoim adresem, a dwa prawdziwe produkty (Kora Relax 550, Wooden Dream House Qube) działają end to end na realnych danych.
+- [x] Zaprojektuj (spec): [0061](../specs/0061-strona-produktu-sauna/index.md) (dedykowana trasa zamiast reużycia `/project/[slug]`; nowy, forkowany schemat Zod `saunaSpecsShape` tylko dla podkategorii sauna; jacuzzi i wellness combo świadomie bez decyzji do czasu realnego producenta)
+- [ ] Build it: `/develop strona produktu dla sauny` — code in `lib/product-technical-specs.ts`, `lib/product-family-groups.ts`, `lib/data/types.ts`, `lib/data/projects.ts`, `lib/producer-project-draft.ts`, `components/klient/SaunaTechnicalSpecs.tsx`, `components/klient/ProjectVideoSection.tsx`, `components/klient/ProjectFeatureTiles.tsx`, `app/[locale]/(customer)/sauna/[slug]/page.tsx`
+  - [x] Model danych i routing: `saunaSpecsShape` plus rozszerzenie `getTechnicalSpecsSchema` o wymagany `spaSubcategory`, ukrycie "sauna" w kreatorze producenta, rozszerzenie `resolveProductHref` i przegląd wszystkich jego wywołań, strażnik 404 między trasami, satisfies AC-2, AC-3, AC-10, AC-11
+  - [x] Strona klienta: nowa trasa `/sauna/[slug]` (hero, konfigurator opcji zaraz po nim), promocja komponentów wideo/cechy (`ProjectVideoSection`/`ProjectFeatureTiles`) do wspólnego użytku z `/outdoor-tv/[slug]`, nowy komponent specyfikacji technicznej (`SaunaTechnicalSpecs`, na typowanym `Project.saunaTechnicalSpecs`, nie generycznej tabeli jsonb), reużyte sekcje logistyki/dokumentów/partnera, satisfies AC-1, AC-4, AC-5, AC-6, AC-7, AC-8
+  - [x] `robots: noindex` plus fallback na `id` dla statusu szkic, satisfies AC-9 (pierwsza połowa)
+  - [ ] Dane realne: ręczny zasiew Kory (Relax 550) i Wooden Dream House (Qube) przez Neon MCP — **zrobione na `modularhub-dev`** (sprawdzone end to end: `/pl/sauna/relax-550`, `/pl/sauna/qube`, oba strażniki 404/redirect), **brakuje powtórzenia na `modularhub` (prod)**, satisfies AC-9 (druga połowa). `seatingCapacity` dla obu produktów jest oszacowaniem (strony producentów nie podają liczby miejsc wprost) — do potwierdzenia przy realnym onboardingu (patrz spec Follow-up).
+- [ ] Verify it: `/check verify strona produktu dla sauny`
+- [ ] Test it: `/test strona produktu dla sauny`
 
 ## Deferred
 Poza zakresem tej epiki, świadomie odłożone.

@@ -96,7 +96,7 @@ export function PlotAnalysisRow({ locale, project, address, request, onChangeReq
             {project.name}
           </Text>
           <Text as="span" tone="muted" surface="v5">
-            {project.producerName} · {project.floorAreaM2} m²
+            {project.producerName} · {project.floorAreaM2 !== null ? `${project.floorAreaM2} m²` : t("areaUnknown")}
           </Text>
         </span>
         <ChevronDown

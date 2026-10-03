@@ -22,6 +22,18 @@ function loadEnvLocal(): void {
 }
 loadEnvLocal();
 
+// Integration tests under lib/**/*.test.ts write real rows straight through
+// lib/db/client.ts whenever DATABASE_URL is set (spec 0018 AC-5); they must
+// never do that against anything but the dev database. Checked once per test
+// file, before any test body runs, so a misconfigured .env.local (pointing at
+// production or any other project) fails loudly here instead of silently
+// writing fixtures for real — see lib/db/dev-database-guard.ts for why this
+// checks the Neon project id rather than the connection string.
+if (process.env.DATABASE_URL) {
+  const { assertDevDatabase } = await import("./lib/db/dev-database-guard");
+  await assertDevDatabase();
+}
+
 // jsdom has no ResizeObserver; Headless UI's Listbox (components/ui/Select) reads it
 // on open/close, so any test that interacts with a Select throws without this stub.
 class ResizeObserverStub {
@@ -30,6 +42,21 @@ class ResizeObserverStub {
   disconnect() {}
 }
 globalThis.ResizeObserver ??= ResizeObserverStub as unknown as typeof ResizeObserver;
+
+// jsdom has no IntersectionObserver; ProjectStickyPriceBar (spec 0059
+// follow-up, 2026-10-02) reads it to show the desktop floating CTA once the
+// price card scrolls out of view. Never fires (no real layout/scrolling in
+// jsdom), so affected tests only assert the always-visible content, not the
+// observer-driven floating bar itself.
+class IntersectionObserverStub {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+  takeRecords() {
+    return [];
+  }
+}
+globalThis.IntersectionObserver ??= IntersectionObserverStub as unknown as typeof IntersectionObserver;
 
 // jsdom has no matchMedia; ThemeProvider (components/ui, spec 0043) reads it
 // to detect the system color scheme preference when no theme cookie is set.

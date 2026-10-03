@@ -56,11 +56,13 @@
   },
   "KlientRealizacjaPage": {
     "heading": "Fulfillment — {name}",
+    "areaUnknown": "floor area to be determined",
     "completionBanner": "Order complete — every stage has been finished.",
     "backToOffer": "Back to inquiries"
   },
   "ProducentRealizacjaPage": {
     "heading": "Fulfillment — {name}",
+    "areaUnknown": "floor area to be determined",
     "deliveredBanner": "Order handed over — you can now proceed to company verification before the first payout.",
     "backToList": "Back to fulfillment",
     "verification": "Company verification and payout"
@@ -69,6 +71,7 @@
     "heading": "Fulfillment",
     "intro": "The production, transport, assembly, and handover status axis — the same one the client sees for this order. Company verification unlocks after handover, before the first payout.",
     "empty": "No fulfillments yet — orders with an accepted offer will appear here.",
+    "areaUnknown": "floor area to be determined",
     "readyForVerification": "Ready for company verification",
     "currentStage": "Current stage: {stage}",
     "viewTimeline": "View status axis"
@@ -78,8 +81,9 @@
   },
   "PopularHomeCard": {
     "coverAlt": "{name}, a modular house",
-    "summary": "{area} m² · {rooms} rooms",
-    "summaryNoRooms": "{area} m²",
+    "summary": "{area} · {rooms} rooms",
+    "summaryNoRooms": "{area}",
+    "areaUnknown": "floor area to be determined",
     "priceOnRequest": "Price on request",
     "priceFrom": "from €{price}"
   },
@@ -104,7 +108,13 @@
     "selectForInquiry": "Select {name} for the inquiry",
     "selectionLimitReached": "You can select up to 3 projects",
     "needsMoreDocuments": "Needs additional documents",
-    "summary": "{area} m² usable · {rooms} {roomsLabel} · {storeys} floors",
+    "summary": "{area} · {rooms} · {storeys}",
+    "areaValue": "{area} m² usable",
+    "areaUnknown": "usable floor area to be determined",
+    "roomsValue": "{rooms} {roomsLabel}",
+    "roomsUnknown": "number of rooms to be determined",
+    "storeysValue": "{storeys} floors",
+    "storeysUnknown": "number of floors to be determined",
     "rooms": {
       "one": "room",
       "few": "rooms",
@@ -181,6 +191,7 @@
       "blocked": "Not allowed"
     },
     "noAnalysisData": "No analysis data for this project; please try again later.",
+    "areaUnknown": "floor area to be determined",
     "servicePrice": "Service price",
     "plotAreaLabel": "Plot area (m²)",
     "plotAreaError": "Enter an area between {min}–{max} m².",
@@ -206,6 +217,7 @@
     "compareLimitReached": "You can compare up to 3 homes",
     "unavailable": "Product unavailable",
     "floorArea": "{area} m² usable",
+    "floorAreaUnknown": "Floor area to be determined",
     "priceFrom": "from €{price}"
   },
   "FavoriteCompareTable": {
@@ -806,6 +818,29 @@
       "legacy_direct": "Direct request"
     }
   },
+  "ClientPanelQuotesPage": {
+    "heading": "Quotes",
+    "emptyTitle": "You don't have any quotes yet",
+    "emptyDescription": "Producer quotes on your requests will show up here.",
+    "requestHeading": "Project request",
+    "bulkInquiryHeadingPrefix": "Product inquiry: ",
+    "producerColumn": "Producer",
+    "priceColumn": "Price",
+    "leadTimeColumn": "Lead time",
+    "statusColumn": "Status",
+    "statusActive": "Active",
+    "statusAccepted": "Accepted",
+    "statusRejected": "Rejected",
+    "statusSuperseded": "Superseded",
+    "leadTimeWeeks": "{weeks} wk",
+    "notesColumn": "Note"
+  },
+  "AcceptQuoteButton": {
+    "accept": "Accept",
+    "accepting": "Accepting…",
+    "accepted": "Accepted",
+    "genericError": "Couldn't accept the quote. Please try again."
+  },
   "KlientPanelUlubionePage": {
     "heading": "Favorites",
     "emptyTitle": "You don't have any favorite houses yet",
@@ -889,6 +924,10 @@
       "few": "+ {count} items still to be quoted",
       "many": "+ {count} items still to be quoted"
     },
+    "optionsHeading": "Additional options",
+    "optionsAriaLabel": "Additional options",
+    "optionIncluded": "included",
+    "optionPriceOnRequest": "price on request",
     "compareWithAnother": "Compare with another house",
     "inquiryGoesToAdvisor": "Your inquiry will go to a ModularHub Europe advisor, who will respond within 48h.",
     "noPurchaseObligation": "no purchase obligation",
@@ -898,6 +937,7 @@
     "sectionNav": {
       "uklad": "House layout",
       "cena": "Price and scope",
+      "opcje": "Additional options",
       "dzialka": "Plot and delivery",
       "harmonogram": "Timeline",
       "komfort": "Comfort and technology",
@@ -915,14 +955,10 @@
     "sendInquiry": "Send inquiry",
     "variantPickerAriaLabel": "Variant selection",
     "variantFallbackLabel": "Variant",
-    "videoLabel": "{name} product video",
-    "featuresHeading": "Features",
     "specsHeading": "Technical specification",
     "showMore": "Show more ({count})",
     "showFewer": "Show fewer",
-    "realUseHeading": "How it looks in real use",
     "realUsePhotosHeading": "Photos from real installations",
-    "usageNoteEyebrow": "What this variant is for",
     "realUsePhotoAlt": "{name} in real use, photo {index}",
     "partnerHeading": "About the partner",
     "sectionNavAriaLabel": "Section navigation",
@@ -935,6 +971,14 @@
       "partner": "Partner",
       "faq": "Documents and questions"
     }
+  },
+  "ProjectVideoSection": {
+    "realUseHeading": "How it looks in real use",
+    "usageNoteEyebrow": "What this variant is for",
+    "videoLabel": "{name} product video"
+  },
+  "ProjectFeatureTiles": {
+    "featuresHeading": "Features"
   },
   "Faq": {
     "heading": "Frequently asked questions",
@@ -1161,6 +1205,45 @@
       "inne": "A custom heat source — details to confirm with the manufacturer."
     }
   },
+  "SaunaTechnicalSpecs": {
+    "heading": "Technical specification",
+    "claddingMaterial": "Exterior cladding",
+    "interiorWoodType": "Interior wood",
+    "benchMaterial": "Bench material",
+    "insulationType": "Insulation type",
+    "glazingType": "Glazing type",
+    "seatingCapacity": "Seating capacity",
+    "electricalRequirement": "Electrical requirements",
+    "hasChangingArea": "Additional area",
+    "changingAreaDescription": "Additional area description",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "SaunaPage": {
+    "price": "Price",
+    "priceOnRequest": "Custom quote",
+    "netVat": "net",
+    "estimatedPackage": "Estimated price",
+    "from": "from",
+    "sendInquiry": "Send inquiry",
+    "variantPickerAriaLabel": "Variant selection",
+    "variantFallbackLabel": "Variant",
+    "optionsHeading": "Additional options",
+    "optionsAriaLabel": "Additional options",
+    "optionIncluded": "included",
+    "optionPriceOnRequest": "price on request",
+    "sectionNavAriaLabel": "Section navigation",
+    "sectionNavScrollLeft": "Scroll section bar left",
+    "sectionNavScrollRight": "Scroll section bar right",
+    "sectionNav": {
+      "opcje": "Additional options",
+      "cechy": "Features",
+      "specyfikacja": "Specification",
+      "dzialka": "Plot and delivery",
+      "partner": "Partner",
+      "dokumenty": "Documents and questions"
+    }
+  },
   "ResultsFilterBar": {
     "sortPriceAsc": "Price: ascending",
     "sortPriceDesc": "Price: descending",
@@ -1198,7 +1281,11 @@
     "budgetAriaLabel": "Budget",
     "areaLabel": "Floor area",
     "areaPlaceholder": "Any",
-    "searchButton": "Search houses"
+    "searchButton": "Search houses",
+    "categoryLinksAriaLabel": "Categories within More than a house",
+    "categoryLinkSpa": "Modular spas",
+    "categoryLinkContainers": "Modular containers",
+    "categoryLinkOutdoorTv": "Outdoor TV"
   },
   "FloatingSearchButton": {
     "prompt": "What are you looking for today?",
@@ -1287,7 +1374,8 @@
     "howItWorksStep3": "Manufacturers only receive the brief after you agree.",
     "selectedHomesLabel": "Selected homes",
     "sectionAddressHeading": "Plot address",
-    "homeMeta": "{producer} · {area} m²",
+    "homeMeta": "{producer} · {area}",
+    "areaUnknown": "floor area to be determined",
     "streetLabel": "Street and number",
     "postalCodeLabel": "Postal code",
     "cityLabel": "City",
@@ -1614,6 +1702,79 @@
     "statusClosed": "Closed",
     "unreadDecisionLabel": "Client made a decision"
   },
+  "ProducerPanelBoardPage": {
+    "heading": "Board",
+    "intro": "Open large-order requests from every investor — submit a quote on any of them.",
+    "notApprovedHeading": "The board is only available to volume-verified producers",
+    "notApprovedDescription": "Fill in your production capacity profile so an administrator can verify you.",
+    "completeProfileLink": "Complete your capacity profile",
+    "emptyMessage": "No open requests on the board.",
+    "columnCountry": "Country",
+    "columnProjectType": "Project type",
+    "columnUnits": "Units",
+    "columnStatus": "Status",
+    "columnDate": "Date",
+    "statusOpen": "Open",
+    "statusQuoted": "Quoted",
+    "trustSignalNew": "New",
+    "trustSignalComplete": "Details complete",
+    "previousPage": "Previous",
+    "nextPage": "Next",
+    "pageLabel": "Page {current} of {total}",
+    "paginationAriaLabel": "Board pages",
+    "columnFamilies": "Families",
+    "columnFloorArea": "Floor area (m²)"
+  },
+  "ProducerBoardDetailPage": {
+    "heading": "Request details",
+    "backToBoard": "Back to the board",
+    "countryLabel": "Country",
+    "projectTypeLabel": "Project type",
+    "familiesLabel": "Product families",
+    "unitCountLabel": "Unit count",
+    "floorAreaLabel": "Floor area (m²)",
+    "completionStandardLabel": "Completion standard",
+    "startWindowLabel": "Start window",
+    "deliveryWindowLabel": "Delivery window",
+    "locationDetailLabel": "Location",
+    "extrasNoteLabel": "Additional notes",
+    "trustSignalLabel": "Investor contact details",
+    "trustSignalNew": "New",
+    "trustSignalComplete": "Details complete",
+    "ownQuoteStatusLabel": "Your quote",
+    "ownQuoteStatusActive": "Active",
+    "ownQuoteStatusAccepted": "Accepted",
+    "ownQuoteStatusRejected": "Rejected",
+    "ownQuoteStatusSuperseded": "Superseded"
+  },
+  "QuoteForm": {
+    "intro": "Submit your quote for this request.",
+    "revisionIntro": "You're revising a quote you already submitted — the new version replaces the previous one.",
+    "totalPriceLabel": "Total price (€)",
+    "unitPriceLabel": "Price per unit (€, optional)",
+    "leadTimeLabel": "Proposed lead time (weeks, optional)",
+    "notesLabel": "Note (optional)",
+    "submitQuote": "Submit quote",
+    "submitRevision": "Submit revised quote",
+    "submitting": "Submitting…",
+    "submittedMessage": "Quote submitted.",
+    "genericError": "Couldn't save the quote. Please try again."
+  },
+  "ProducerPanelBoardQuotesPage": {
+    "heading": "My quotes",
+    "emptyMessage": "You haven't submitted any quotes yet.",
+    "columnSource": "Request",
+    "columnPrice": "Price",
+    "columnStatus": "Status",
+    "columnDate": "Date",
+    "sourceProjectRequest": "Board",
+    "sourceBulkProductInquiry": "Product inquiry",
+    "statusActive": "Active",
+    "statusAccepted": "Accepted",
+    "statusRejected": "Rejected",
+    "statusSuperseded": "Superseded",
+    "contactRevealedLabel": "Investor contact"
+  },
   "ProducerInquiryDetailPage": {
     "heading": "Inquiry details",
     "deliveryCountryLabel": "Delivery country",
@@ -1689,7 +1850,7 @@
     "nameLabel": "Full name",
     "emailInvalidError": "Enter a valid e-mail address.",
     "phoneLabel": "Phone (optional)",
-    "dataSharingNotice": "Your contact details will be shared with matched, verified producers so they can send you quotes.",
+    "dataSharingNotice": "Your contact details are only ever shown to the producer whose quote you accept — until then they stay masked.",
     "sendingLabel": "Sending…",
     "retrySendLabel": "Retry sending",
     "sendLabel": "Send request",
@@ -1711,7 +1872,9 @@
     "backStepLabel": "Back",
     "nextStepLabel": "Next",
     "stepperLabel": "Form progress",
-    "stepAnnouncement": "Step {current} of {total}: {label}"
+    "stepAnnouncement": "Step {current} of {total}: {label}",
+    "locationDetailVisibilityHint": "This detail is visible to every volume-verified producer on the board — don't enter anything that identifies you personally.",
+    "extrasNoteVisibilityHint": "This note is visible to every volume-verified producer on the board — don't enter anything that identifies you personally."
   },
   "ProjectRequestConfirmationCard": {
     "statusLabel": "Sent",
@@ -1775,7 +1938,9 @@
     "closeMenu": "Close menu",
     "menu": "Menu",
     "collapseSidebar": "Collapse sidebar",
-    "expandSidebar": "Expand sidebar"
+    "expandSidebar": "Expand sidebar",
+    "board": "Board",
+    "boardQuotes": "My quotes"
   },
   "ClientPanelSidebar": {
     "navAriaLabel": "Client panel",
@@ -1789,7 +1954,8 @@
     "closeMenu": "Close menu",
     "menu": "Menu",
     "collapseSidebar": "Collapse sidebar",
-    "expandSidebar": "Expand sidebar"
+    "expandSidebar": "Expand sidebar",
+    "quotes": "Quotes"
   },
   "CaseChat": {
     "heading": "Conversation with your advisor",

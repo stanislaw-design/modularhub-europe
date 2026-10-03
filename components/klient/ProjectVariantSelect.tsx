@@ -28,7 +28,10 @@ export function ProjectVariantSelect({ options, selectedValue, ariaLabel }: Proj
   function handleChange(value: string) {
     const next = options.find((option) => option.value === value);
     if (!next || next.disabled) return;
-    router.push(next.href);
+    // scroll: false (2026-10-02): ten sam powód co <Link scroll={false}> w
+    // ProjectVariantPicker.tsx (desktop odpowiednik tego selecta) — samo
+    // ?wariant= na tej samej stronie nie powinno przewijać do początku.
+    router.push(next.href, { scroll: false });
   }
 
   return (

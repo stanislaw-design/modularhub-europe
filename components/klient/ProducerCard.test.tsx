@@ -88,4 +88,9 @@ describe("ProducerCard", () => {
     expect(screen.queryByText("Możliwe odwiedziny osobiste")).not.toBeInTheDocument();
     expect(screen.queryByText(/Odpowiada w ciągu/)).not.toBeInTheDocument();
   });
+
+  it("never shows a rating/review count — the platform doesn't let anyone leave reviews yet", async () => {
+    render(await ProducerCard({ producer: makeProducer() }));
+    expect(screen.queryByText(/opinii/)).not.toBeInTheDocument();
+  });
 });

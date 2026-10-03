@@ -115,6 +115,11 @@ export const productFamilyEnum = pgEnum("product_family", [
 // jednokierunkowe rozszerzenie, nie przebudowa typu.
 export const productTranslationLocaleEnum = pgEnum("product_translation_locale", ["en", "nl", "de"]);
 
+// Spec 0059: grupa opcji konfiguratora jest "single" (dokładnie jedna
+// zaznaczona opcja, np. poziom ocieplenia) albo "multi" (niezależne
+// przełączniki, np. kominek, klimatyzacja) — patrz productOptionGroup niżej.
+export const productOptionSelectionTypeEnum = pgEnum("product_option_selection_type", ["single", "multi"]);
+
 export const spaSubcategoryEnum = pgEnum("spa_subcategory", ["sauna", "jacuzzi", "wellness-combo"]);
 
 // Zastępuje dawny pergolaSubcategoryEnum (spec 0039): trzy zastosowania
@@ -314,12 +319,11 @@ export const bulkRequestStatusEnum = pgEnum("bulk_request_status", [
   "closed",
 ]);
 
-export const targetProducerStatusEnum = pgEnum("target_producer_status", [
-  "invited",
-  "viewed",
-  "quoted",
-  "declined",
-]);
+// Tablica ogłoszeń B2B (spec 0062 AC-1): etykieta kosmetyczna, nigdy
+// weryfikacja tożsamości przez ModularHub ("complete" znaczy tylko "dane
+// kontaktowe wyglądają kompletne"). Ustawiana raz w submitProjectRequest,
+// nigdy przeliczana później.
+export const trustSignalEnum = pgEnum("trust_signal", ["new", "complete"]);
 
 export const clientVerificationStatusEnum = pgEnum("client_verification_status", [
   "not_submitted",
@@ -839,6 +843,97 @@ export const productTimelineStage = pgTable(
 );
 
 // ---------------------------------------------------------------------------
+// Płatne opcje konfiguratora dla produktów katalogowych (spec 0059 Decision,
+// Option 2): katalog opcji współdzielony per producent, przypisywany do wielu
+// jego produktów naraz (product_option_group_assignment niżej), zamiast
+// wpisywany osobno na każdym. Wywołane importem katalogu Dampola, gdzie ta
+// sama lista dopłat (okna, ocieplenie, ogrzewanie) powtarza się między jego
+// modelami. Zapis wyłącznie ręczny przez Neon MCP na ten etap (spec 0059
+// Security model) — żadna ścieżka aplikacji nie wymusza, że grupę przypisuje
+// się tylko do produktu TEGO SAMEGO producenta (table.producerId na grupie
+// musi zgadzać się z product.producerId po stronie przypisania); sprawdzać to
+// ręcznie przy każdym zapisie, patrz spec 0059 Follow-up.
+// ---------------------------------------------------------------------------
+
+export const productOptionGroup = pgTable(
+  "product_option_group",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    producerId: uuid("producer_id")
+      .notNull()
+      .references(() => producer.id),
+    name: text("name").notNull(),
+    selectionType: productOptionSelectionTypeEnum("selection_type").notNull(),
+    sortOrder: integer("sort_order"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  },
+  (table) => [index("product_option_group_producer_id_idx").on(table.producerId)],
+);
+
+export const productOption = pgTable(
+  "product_option",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    groupId: uuid("group_id")
+      .notNull()
+      .references(() => productOptionGroup.id),
+    label: text("label").notNull(),
+    priceCents: integer("price_cents"),
+    priceOnRequest: boolean("price_on_request").notNull().default(false),
+    isDefault: boolean("is_default").notNull().default(false),
+    // Opcjonalna ikona/zdjęcie opcji (spec 0059 follow-up, 2026-10-01): zwykły
+    // zewnętrzny URL, ten sam wzorzec co product.coverImageUrl/videoUrl, nie
+    // pełny pipeline lib/storage (zbyt ciężki dla kilku małych ikon
+    // konfiguratora). Puste → opcja renderuje się bez ikony, ten sam fallback
+    // co dziś (żadna opcja nie miała obrazka).
+    imageUrl: text("image_url"),
+    sortOrder: integer("sort_order"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  },
+  (table) => [
+    // Ściślejsze niż product_variant_price_on_request wyżej (jednokierunkowy
+    // CHECK): tu obie połówki są wymuszone, bo opcja nie ma stanu "draft", w
+    // którym cena bywa tymczasowo nieustawiona (spec 0059 Feature design >
+    // Key invariants) — price_cents IS NULL przy price_on_request = false nie
+    // powinno się nigdy zdarzyć.
+    check(
+      "product_option_price_on_request",
+      sql`(${table.priceOnRequest} = true AND ${table.priceCents} IS NULL) OR (${table.priceOnRequest} = false AND ${table.priceCents} IS NOT NULL)`,
+    ),
+    // Co najwyżej jedna opcja is_default = true na grupę, ten sam wzorzec
+    // częściowego indeksu co product_variant_one_default_per_product.
+    uniqueIndex("product_option_one_default_per_group")
+      .on(table.groupId)
+      .where(sql`${table.isDefault} AND ${table.deletedAt} IS NULL`),
+    index("product_option_group_id_idx").on(table.groupId),
+  ],
+);
+
+// Przypisanie wiele-do-wielu grupy do produktu (spec 0059 Decision): ta sama
+// grupa reużyta na dowolnej liczbie produktów tego samego producenta.
+export const productOptionGroupAssignment = pgTable(
+  "product_option_group_assignment",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => product.id),
+    groupId: uuid("group_id")
+      .notNull()
+      .references(() => productOptionGroup.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    unique("product_option_group_assignment_product_group_unique").on(table.productId, table.groupId),
+    index("product_option_group_assignment_product_id_idx").on(table.productId),
+  ],
+);
+
+// ---------------------------------------------------------------------------
 // Zgodność: trzy osobne tabele, ten sam kształt {status, reason}, różne klucze
 // biznesowe (patrz spec 0018 Rationale).
 // ---------------------------------------------------------------------------
@@ -1295,6 +1390,8 @@ export const projectRequest = pgTable(
     deliveryWindowTo: date("delivery_window_to"),
     extrasNote: text("extras_note"),
     status: bulkRequestStatusEnum("status").notNull().default("open"),
+    // AC-1 (spec 0062): ustawiane raz przy wstawieniu, nigdy przeliczane.
+    trustSignal: trustSignalEnum("trust_signal").notNull().default("new"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
@@ -1316,26 +1413,6 @@ export const projectRequest = pgTable(
     index("project_request_contact_email_idx").on(table.contactEmail),
     index("project_request_client_id_idx").on(table.clientId),
   ],
-);
-
-// Kto został automatycznie powiadomiony o project_request (AC-2): tylko
-// producenci z volumeVerificationStatus = 'approved' dostarczający do kraju
-// zapytania w chwili wysłania; brak dopasowanych producentów nie jest błędem
-// (zero wierszy, spec 0037 Key invariants).
-export const projectRequestTargetProducer = pgTable(
-  "project_request_target_producer",
-  {
-    projectRequestId: uuid("project_request_id")
-      .notNull()
-      .references(() => projectRequest.id),
-    producerId: uuid("producer_id")
-      .notNull()
-      .references(() => producer.id),
-    status: targetProducerStatusEnum("status").notNull().default("invited"),
-    notifiedAt: timestamp("notified_at", { withTimezone: true }).defaultNow().notNull(),
-    viewedAt: timestamp("viewed_at", { withTimezone: true }),
-  },
-  (table) => [primaryKey({ columns: [table.projectRequestId, table.producerId] })],
 );
 
 // Zapytanie o konkretny, opublikowany produkt w dużej ilości (AC-4): odbiorca
@@ -1404,6 +1481,11 @@ export const projectQuote = pgTable(
     proposedLeadTimeWeeks: integer("proposed_lead_time_weeks"),
     notes: text("notes"),
     status: offerStatusEnum("status").notNull().default("active"),
+    // AC-7 (spec 0062): ustawiane wyłącznie przez acceptProjectQuote, w tej
+    // samej operacji, w której status przechodzi na 'accepted'; nigdy cofane.
+    // Dziś matematycznie równoważne status = 'accepted' tej samej wyceny, ale
+    // trzymane jako osobna kolumna pod odłożony ręczny override (Follow-up).
+    contactRevealedAt: timestamp("contact_revealed_at", { withTimezone: true }),
     submittedAt: timestamp("submitted_at", { withTimezone: true }).defaultNow().notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },

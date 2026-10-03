@@ -120,12 +120,21 @@ export function getProjectCategoryOptions(t: Translate): { value: ProjectCategor
   ];
 }
 
-export function getSpaSubcategoryOptions(t: Translate): { value: SpaSubcategory; label: string }[] {
-  return [
+// excludeSauna (spec 0061 AC-10): dopóki TECHNICAL_FIELDS_BY_FAMILY nie
+// rozróżnia pól technicznym spa według podkategorii, kreator producenta (ten
+// jedyny wywołujący z excludeSauna: true) nie może dać producentowi wybrać
+// "sauna" i zapisać ją z błędnym, jacuzziowym zestawem pól. Domyślnie (klient
+// filtrujący wyniki, podsumowanie kreatora) opcja zostaje widoczna.
+export function getSpaSubcategoryOptions(
+  t: Translate,
+  { excludeSauna = false }: { excludeSauna?: boolean } = {},
+): { value: SpaSubcategory; label: string }[] {
+  const options: { value: SpaSubcategory; label: string }[] = [
     { value: "sauna", label: t("spaSubcategory.sauna") },
     { value: "jacuzzi", label: t("spaSubcategory.jacuzzi") },
     { value: "wellness-combo", label: t("spaSubcategory.wellness-combo") },
   ];
+  return options.filter((option) => !excludeSauna || option.value !== "sauna");
 }
 
 export function getContainerSubcategoryOptions(t: Translate): { value: ContainerSubcategory; label: string }[] {

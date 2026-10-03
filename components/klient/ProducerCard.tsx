@@ -1,7 +1,7 @@
 import { BadgeCheck, CircleHelp, Home, XCircle } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import Image from "next/image";
-import { StarRating, Text } from "@/components/ui";
+import { Text } from "@/components/ui";
 import type { CountryCode, Producer } from "@/lib/data/types";
 
 const countryFlag: Record<CountryCode, string> = { PL: "🇵🇱", DE: "🇩🇪", NL: "🇳🇱" };
@@ -53,7 +53,9 @@ export async function ProducerCard({ producer, showTrustDetails = false }: Produ
             {countryFlag[producer.countryCode]}
           </span>
         </div>
-        <StarRating rating={producer.rating} reviewCount={producer.reviewCount} />
+        {/* Ocena/opinie świadomie nieshowowane: platforma nie daje jeszcze
+            możliwości zostawiania recenzji, więc "0.0 (0)" wyglądałoby jak
+            realna, zweryfikowana ocena, nie jak brak funkcji. */}
         <Text tone="muted" className="text-data">
           {t("modelsAndSize", {
             models: producer.modelsCount,

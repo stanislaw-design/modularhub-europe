@@ -144,7 +144,7 @@ export function ProjectWizardBasicInfoStep({
               <Select
                 value={field.value}
                 onChange={field.onChange}
-                options={getSpaSubcategoryOptions(tOptions)}
+                options={getSpaSubcategoryOptions(tOptions, { excludeSauna: true })}
                 invalid={subcategoryInvalid}
                 aria-labelledby="wizard-spa-subcategory-label"
               />

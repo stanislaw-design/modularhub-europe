@@ -98,6 +98,15 @@ const domSpecsShape = {
 export const SPA_HEATING_TYPES = ["electric", "heat-pump", "wood-fired"] as const;
 export type SpaHeatingType = (typeof SPA_HEATING_TYPES)[number];
 
+// Podkategorie spa modułowego (spec 0022): drugi przypadek w tym kodzie (po
+// kontenerach), gdzie o kształcie technicalSpecs decyduje subcategory, nie
+// tylko family — patrz getTechnicalSpecsSchema niżej (spec 0061 AC-2).
+export const SPA_SUBCATEGORIES = ["sauna", "jacuzzi", "wellness-combo"] as const;
+export type SpaSubcategory = (typeof SPA_SUBCATEGORIES)[number];
+
+// Kształt myślany pod jacuzzi (woda, filtracja, ogrzewanie wody) — zostaje
+// niezmieniony dla "jacuzzi"/"wellness-combo" (spec 0061 Decision: świadomie
+// odłożone do czasu pierwszego realnego producenta tej podkategorii).
 const spaModuloweSpecsShape = {
   seatingCapacity: z.number(),
   waterVolumeLiters: z.number(),
@@ -108,21 +117,54 @@ const spaModuloweSpecsShape = {
   foundationType: z.string(),
 };
 
+// Kształt dedykowany podkategorii "sauna" (spec 0061 Feature design): sucha
+// sauna nie ma wody do filtrowania, więc spaModuloweSpecsShape wyżej (myślany
+// pod jacuzzi) do niej nie pasuje. Piec (typ/moc/marka), kolor impregnacji i
+// panele podczerwieni NIE są tu polami — żyją wyłącznie jako
+// product_option_group/product_option (spec 0059/0061 Kluczowe niezmienniki).
+// foundationType też nie jest tu polem: fundament sauny żyje w już istniejącym
+// Project.foundationOptions, żeby nie powstały dwa źródła prawdy.
+const saunaSpecsShape = {
+  claddingMaterial: z.string(),
+  interiorWoodType: z.string(),
+  benchMaterial: z.string(),
+  insulationType: z.string(),
+  glazingType: z.string(),
+  seatingCapacity: z.number(),
+  hasChangingArea: z.boolean(),
+  // Znaczący tylko gdy hasChangingArea === true.
+  changingAreaDescription: z.string().optional(),
+  electricalRequirement: z.string(),
+};
+
 // Kompletny kształt (wymagany od status = 'published'): każdy schemat jest
 // .strict() (odrzuca nieznane pola) i wymaga wszystkich swoich pól (spec 0022
-// AC-4, Feature design). Rodziny "dom" i "spa-modulowe" mają jeden kształt na
-// całą rodzinę; "kontenery-modulowe" nie żyje w tej mapie (patrz niżej, jej
-// kształt zależy od containerSubcategory, nie samej family, spec 0039 AC-4).
+// AC-4, Feature design). "dom" ma jeden kształt na całą rodzinę;
+// "kontenery-modulowe" i "spa-modulowe" nie żyją w tej mapie (ich kształt
+// zależy od subcategory, nie samej family, spec 0039 AC-4 / spec 0061 AC-2).
 const publishedTechnicalSpecsSchemaByFamily = {
   dom: z.object(domSpecsShape).strict(),
-  "spa-modulowe": z.object(spaModuloweSpecsShape).strict(),
-} satisfies Record<Exclude<ProductFamily, "kontenery-modulowe" | "outdoor-tv">, z.ZodTypeAny>;
+} satisfies Record<Exclude<ProductFamily, "kontenery-modulowe" | "outdoor-tv" | "spa-modulowe">, z.ZodTypeAny>;
 
 // Kształt dopuszczalny podczas status = 'draft': te same pola, wszystkie opcjonalne.
 const draftTechnicalSpecsSchemaByFamily = {
   dom: publishedTechnicalSpecsSchemaByFamily.dom.partial(),
-  "spa-modulowe": publishedTechnicalSpecsSchemaByFamily["spa-modulowe"].partial(),
-} satisfies Record<Exclude<ProductFamily, "kontenery-modulowe" | "outdoor-tv">, z.ZodTypeAny>;
+} satisfies Record<Exclude<ProductFamily, "kontenery-modulowe" | "outdoor-tv" | "spa-modulowe">, z.ZodTypeAny>;
+
+// "jacuzzi"/"wellness-combo" zwracają niezmieniony spaModuloweSpecsShape (zero
+// regresji, spec 0061 AC-2); tylko "sauna" dostaje nowy, dedykowany kształt.
+// Ten sam wzorzec co publishedContainerSpecsSchemaBySubcategory niżej.
+const publishedSpaSpecsSchemaBySubcategory = {
+  sauna: z.object(saunaSpecsShape).strict(),
+  jacuzzi: z.object(spaModuloweSpecsShape).strict(),
+  "wellness-combo": z.object(spaModuloweSpecsShape).strict(),
+} satisfies Record<SpaSubcategory, z.ZodTypeAny>;
+
+const draftSpaSpecsSchemaBySubcategory = {
+  sauna: publishedSpaSpecsSchemaBySubcategory.sauna.partial(),
+  jacuzzi: publishedSpaSpecsSchemaBySubcategory.jacuzzi.partial(),
+  "wellness-combo": publishedSpaSpecsSchemaBySubcategory["wellness-combo"].partial(),
+} satisfies Record<SpaSubcategory, z.ZodTypeAny>;
 
 // Pola dzielone przez wszystkie trzy podkategorie kontenera modułowego (spec
 // 0039 Follow-up: wspólny bazowy kształt rozszerzany per podkategoria, żeby
@@ -173,15 +215,16 @@ const draftContainerSpecsSchemaBySubcategory = {
   mieszkalne: publishedContainerSpecsSchemaBySubcategory.mieszkalne.partial(),
 } satisfies Record<ContainerSubcategory, z.ZodTypeAny>;
 
-// containerSubcategory jest wymagany dla family = "kontenery-modulowe" (rzuca
-// błąd, jeśli go zabraknie — w praktyce nieosiągalne przez UI, bo krok
+// containerSubcategory/spaSubcategory są wymagane dla ich rodziny (rzucają
+// błąd, jeśli ich zabraknie — w praktyce nieosiągalne przez UI, bo krok
 // techniczny kreatora nie renderuje się bez wybranej podkategorii, ale
 // strażnik czasu działania jest tańszy niż cichy zły kształt walidacji, spec
-// 0039 Kluczowe niezmienniki); ignorowany dla pozostałych rodzin.
+// 0039 Kluczowe niezmienniki / spec 0061 AC-2); ignorowane dla pozostałych rodzin.
 export function getTechnicalSpecsSchema(
   family: ProductFamily,
   status: "draft" | "published",
   containerSubcategory?: ContainerSubcategory,
+  spaSubcategory?: SpaSubcategory,
 ): z.ZodTypeAny {
   if (family === "kontenery-modulowe") {
     if (!containerSubcategory) {
@@ -190,6 +233,14 @@ export function getTechnicalSpecsSchema(
     return status === "published"
       ? publishedContainerSpecsSchemaBySubcategory[containerSubcategory]
       : draftContainerSpecsSchemaBySubcategory[containerSubcategory];
+  }
+  if (family === "spa-modulowe") {
+    if (!spaSubcategory) {
+      throw new Error("getTechnicalSpecsSchema: spaSubcategory is required for family 'spa-modulowe'");
+    }
+    return status === "published"
+      ? publishedSpaSpecsSchemaBySubcategory[spaSubcategory]
+      : draftSpaSpecsSchemaBySubcategory[spaSubcategory];
   }
   // outdoor-tv (partnerstwo reseller MirageVision): brak schematu technicalSpecs
   // do czasu ustalenia katalogu/danych technicznych; w praktyce nieosiągalne przez
@@ -203,8 +254,9 @@ export function getTechnicalSpecsSchema(
 }
 
 export type DomTechnicalSpecs = z.infer<typeof publishedTechnicalSpecsSchemaByFamily.dom>;
+export type SaunaTechnicalSpecs = z.infer<(typeof publishedSpaSpecsSchemaBySubcategory)["sauna"]>;
 export type SpaModuloweTechnicalSpecs = z.infer<
-  (typeof publishedTechnicalSpecsSchemaByFamily)["spa-modulowe"]
+  (typeof publishedSpaSpecsSchemaBySubcategory)["jacuzzi"]
 >;
 export type ContainerGastronomiczneTechnicalSpecs = z.infer<
   (typeof publishedContainerSpecsSchemaBySubcategory)["gastronomiczne"]

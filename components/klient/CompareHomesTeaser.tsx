@@ -85,7 +85,9 @@ export async function CompareHomesTeaser({ locale, projects }: CompareHomesTease
                 </th>
                 {compareProjects.map((project) => (
                   <td key={project.id} className="p-brand-2">
-                    <DataText className="text-body">{project.floorAreaM2} m²</DataText>
+                    <DataText className="text-body">
+                      {project.floorAreaM2 !== null ? `${project.floorAreaM2} m²` : "—"}
+                    </DataText>
                   </td>
                 ))}
               </tr>
@@ -95,7 +97,7 @@ export async function CompareHomesTeaser({ locale, projects }: CompareHomesTease
                 </th>
                 {compareProjects.map((project) => (
                   <td key={project.id} className="p-brand-2">
-                    <DataText className="text-body">{project.rooms}</DataText>
+                    <DataText className="text-body">{project.rooms !== null ? project.rooms : "—"}</DataText>
                   </td>
                 ))}
               </tr>

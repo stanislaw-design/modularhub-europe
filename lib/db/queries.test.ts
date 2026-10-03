@@ -6,17 +6,24 @@ import {
   getInquiryDetailForClient,
   getInquiryDetailForProducer,
   getOffersByInquiryIdForAdmin,
+  getOpenProjectRequestsForBoard,
   getProducerProductForEdit,
   getProducerVariantsForEdit,
+  getProducerVolumeVerificationStatus,
   getProductFamilyCounts,
   getProductForAdmin,
+  getProductOptionGroups,
   getProductPhotosForAdmin,
   getProductsForProducer,
+  getProjectQuotesForProducer,
+  getProjectRequestForBoardDetail,
+  getProjectRequestsWithQuotesForClient,
   getUnreadDecisionInquiryIds,
   getUnreadOfferInquiryIds,
 } from "./queries";
 import {
   auditLog,
+  bulkProductInquiry,
   client,
   costLineItem,
   document,
@@ -25,10 +32,16 @@ import {
   offer,
   offerItem,
   producer,
+  producerCapacityProfile,
   product,
+  productOption,
+  productOptionGroup,
+  productOptionGroupAssignment,
   productTimelineStage,
   productTranslation,
   productVariant,
+  projectQuote,
+  projectRequest,
   users,
 } from "./schema";
 
@@ -580,6 +593,122 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: getProducerVariantsF
   });
 });
 
+// Spec 0059 AC-1, AC-5: grupy opcji konfiguratora dla produktów katalogowych.
+describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: getProductOptionGroups", () => {
+  const userId = crypto.randomUUID();
+  const producerId = crypto.randomUUID();
+  const productId = crypto.randomUUID();
+  const unassignedProductId = crypto.randomUUID();
+  const insulationGroupId = crypto.randomUUID();
+  const extrasGroupId = crypto.randomUUID();
+  const deletedGroupId = crypto.randomUUID();
+  const standardOptionId = crypto.randomUUID();
+  const premiumOptionId = crypto.randomUUID();
+  const fireplaceOptionId = crypto.randomUUID();
+  const deletedOptionId = crypto.randomUUID();
+
+  beforeAll(async () => {
+    await db.insert(users).values({
+      id: userId,
+      email: `option-groups-${userId}@example.test`,
+      phone: "+48000000000",
+      role: "producer",
+    });
+    await db.insert(producer).values({
+      id: producerId,
+      userId,
+      nip: `OPG${producerId.slice(0, 9)}`,
+      name: "Option Groups Query Test Producer",
+      countryCode: "PL",
+      technology: "modulowa-stal-lekka",
+    });
+    await db.insert(product).values([
+      { id: productId, producerId, family: "kontenery-modulowe", name: "Option Groups Query Test Product" },
+      { id: unassignedProductId, producerId, family: "kontenery-modulowe", name: "Product Without Options" },
+    ]);
+    await db.insert(productOptionGroup).values([
+      { id: insulationGroupId, producerId, name: "Poziom ocieplenia", selectionType: "single", sortOrder: 0 },
+      { id: extrasGroupId, producerId, name: "Dodatki", selectionType: "multi", sortOrder: 1 },
+      // Miękko usunięta grupa: nie powinna się nigdy pojawić, choć wciąż jest przypisana.
+      { id: deletedGroupId, producerId, name: "Usunięta grupa", selectionType: "single", deletedAt: new Date() },
+    ]);
+    await db.insert(productOption).values([
+      {
+        id: standardOptionId,
+        groupId: insulationGroupId,
+        label: "Standard",
+        priceCents: 650_000,
+        isDefault: true,
+        sortOrder: 0,
+        imageUrl: "https://konfigurator.dampol-investment.com/static/thumbnail/shop-configurator-option/med/168.webp",
+      },
+      {
+        id: premiumOptionId,
+        groupId: insulationGroupId,
+        label: "Premium",
+        priceCents: 980_000,
+        isDefault: false,
+        sortOrder: 1,
+      },
+      { id: fireplaceOptionId, groupId: extrasGroupId, label: "Kominek", priceCents: 250_000, sortOrder: 0 },
+      // Miękko usunięta opcja tej samej, żywej grupy: nie powinna się pojawić.
+      { id: deletedOptionId, groupId: extrasGroupId, label: "Usunięta opcja", priceCents: 0, deletedAt: new Date() },
+    ]);
+    await db.insert(productOptionGroupAssignment).values([
+      { productId, groupId: insulationGroupId },
+      { productId, groupId: extrasGroupId },
+      { productId, groupId: deletedGroupId },
+    ]);
+  });
+
+  afterAll(async () => {
+    await db
+      .delete(productOptionGroupAssignment)
+      .where(inArray(productOptionGroupAssignment.groupId, [insulationGroupId, extrasGroupId, deletedGroupId]));
+    await db
+      .delete(productOption)
+      .where(inArray(productOption.id, [standardOptionId, premiumOptionId, fireplaceOptionId, deletedOptionId]));
+    await db
+      .delete(productOptionGroup)
+      .where(inArray(productOptionGroup.id, [insulationGroupId, extrasGroupId, deletedGroupId]));
+    await db.delete(product).where(inArray(product.id, [productId, unassignedProductId]));
+    await db.delete(producer).where(eq(producer.id, producerId));
+    await db.delete(users).where(eq(users.id, userId));
+    await db.delete(auditLog).where(inArray(auditLog.recordId, [userId, producerId]));
+  });
+
+  it("returns assigned groups with their options, ordered by sortOrder, excluding soft-deleted rows (AC-1)", async () => {
+    const results = await getProductOptionGroups(productId);
+
+    expect(results.map((group) => group.id)).toEqual([insulationGroupId, extrasGroupId]);
+
+    const insulation = results[0];
+    expect(insulation).toMatchObject({ name: "Poziom ocieplenia", selectionType: "single" });
+    expect(insulation.options).toEqual([
+      {
+        id: standardOptionId,
+        label: "Standard",
+        priceCents: 650_000,
+        priceOnRequest: false,
+        isDefault: true,
+        imageUrl: "https://konfigurator.dampol-investment.com/static/thumbnail/shop-configurator-option/med/168.webp",
+      },
+      { id: premiumOptionId, label: "Premium", priceCents: 980_000, priceOnRequest: false, isDefault: false, imageUrl: null },
+    ]);
+
+    const extras = results[1];
+    expect(extras).toMatchObject({ name: "Dodatki", selectionType: "multi" });
+    expect(extras.options).toEqual([
+      { id: fireplaceOptionId, label: "Kominek", priceCents: 250_000, priceOnRequest: false, isDefault: false, imageUrl: null },
+    ]);
+  });
+
+  it("returns an empty array for a product with no assigned group (AC-5)", async () => {
+    const results = await getProductOptionGroups(unassignedProductId);
+    expect(results).toEqual([]);
+  });
+});
+
 // Spec 0053 AC-6: confirms the edit screen's read path resolves
 // externalDimensions/foundationOptions from product and foundationOptions'
 // three translation variants from product_translation, the same shape
@@ -649,5 +778,205 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: getProducerProductFo
     expect(row?.externalDimensions).toBeNull();
     expect(row?.foundationOptions).toBeNull();
     expect(row?.foundationOptionsEn).toBeNull();
+  });
+});
+
+// Tablica ogłoszeń B2B (spec 0062): confirms the contact-masking guarantees
+// live at the SQL query level (AC-2, AC-15), not just in what a page renders.
+describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: project request board (spec 0062)", () => {
+  const clientUserId = crypto.randomUUID();
+  const clientId = crypto.randomUUID();
+  const producerUserId = crypto.randomUUID();
+  const producerId = crypto.randomUUID();
+  const unapprovedProducerUserId = crypto.randomUUID();
+  const unapprovedProducerId = crypto.randomUUID();
+  const bulkProductId = crypto.randomUUID();
+  const openRequestId = crypto.randomUUID();
+  const closedRequestId = crypto.randomUUID();
+  const bulkInquiryId = crypto.randomUUID();
+  const revealedQuoteId = crypto.randomUUID();
+  const activeQuoteId = crypto.randomUUID();
+
+  beforeAll(async () => {
+    await db.insert(users).values([
+      { id: clientUserId, email: `qb-client-${clientUserId}@example.test`, phone: "+48000000020", role: "client" },
+      { id: producerUserId, email: `qb-producer-${producerUserId}@example.test`, phone: "+48000000021", role: "producer" },
+      { id: unapprovedProducerUserId, email: `qb-producer2-${unapprovedProducerUserId}@example.test`, phone: "+48000000022", role: "producer" },
+    ]);
+    await db.insert(client).values({ id: clientId, userId: clientUserId });
+    await db.insert(producer).values([
+      { id: producerId, userId: producerUserId, nip: `QB1${producerId.slice(0, 7)}`, name: "Board Query Producer", countryCode: "PL", technology: "szkielet-drewniany" },
+      { id: unapprovedProducerId, userId: unapprovedProducerUserId, nip: `QB2${unapprovedProducerId.slice(0, 7)}`, name: "Board Query Producer (unapproved)", countryCode: "PL", technology: "szkielet-drewniany" },
+    ]);
+    await db.insert(producerCapacityProfile).values({ producerId, volumeVerificationStatus: "approved" });
+    await db.insert(product).values({ id: bulkProductId, producerId, family: "dom", status: "published", name: "QB Bulk Product" });
+    await db.insert(projectRequest).values([
+      {
+        id: openRequestId,
+        clientId,
+        contactName: "Board Query Investor",
+        contactEmail: `qb-investor-${openRequestId}@example.test`,
+        contactPhone: "+48000000099",
+        countryCode: "PL",
+        projectType: "resort",
+        families: ["dom"],
+        unitCountMin: 15,
+        status: "open",
+      },
+      {
+        id: closedRequestId,
+        contactName: "Closed Investor",
+        contactEmail: `qb-closed-${closedRequestId}@example.test`,
+        countryCode: "PL",
+        projectType: "resort",
+        families: ["dom"],
+        unitCountMin: 10,
+        status: "closed",
+      },
+    ]);
+    await db.insert(bulkProductInquiry).values({
+      id: bulkInquiryId,
+      clientId,
+      productId: bulkProductId,
+      contactName: "Bulk Board Investor",
+      contactEmail: `qb-bulk-${bulkInquiryId}@example.test`,
+      contactPhone: "+48000000098",
+      unitCountMin: 20,
+      deliveryCountryCode: "PL",
+      status: "open",
+    });
+    await db.insert(projectQuote).values([
+      {
+        id: revealedQuoteId,
+        projectRequestId: openRequestId,
+        producerId,
+        totalPriceCents: 1_000_000,
+        status: "accepted",
+        contactRevealedAt: new Date(),
+      },
+      {
+        id: activeQuoteId,
+        bulkProductInquiryId: bulkInquiryId,
+        producerId,
+        totalPriceCents: 2_000_000,
+        status: "active",
+      },
+    ]);
+  });
+
+  afterAll(async () => {
+    await db.delete(projectQuote).where(inArray(projectQuote.id, [revealedQuoteId, activeQuoteId]));
+    await db.delete(bulkProductInquiry).where(eq(bulkProductInquiry.id, bulkInquiryId));
+    await db.delete(projectRequest).where(inArray(projectRequest.id, [openRequestId, closedRequestId]));
+    await db.delete(product).where(eq(product.id, bulkProductId));
+    await db.delete(producerCapacityProfile).where(eq(producerCapacityProfile.producerId, producerId));
+    await db.delete(producer).where(inArray(producer.id, [producerId, unapprovedProducerId]));
+    await db.delete(client).where(eq(client.id, clientId));
+    await db.delete(users).where(inArray(users.id, [clientUserId, producerUserId, unapprovedProducerUserId]));
+  });
+
+  describe("getProducerVolumeVerificationStatus", () => {
+    it("returns the status for a producer with a capacity profile row", async () => {
+      expect(await getProducerVolumeVerificationStatus(producerId)).toBe("approved");
+    });
+
+    it("returns null for a producer with no capacity profile row at all", async () => {
+      expect(await getProducerVolumeVerificationStatus(unapprovedProducerId)).toBeNull();
+    });
+  });
+
+  describe("getOpenProjectRequestsForBoard", () => {
+    it("lists an open request without any contact column, hides a closed one", async () => {
+      const { items, totalCount } = await getOpenProjectRequestsForBoard({ page: 1 });
+
+      const row = items.find((item) => item.id === openRequestId);
+      expect(row).toBeDefined();
+      expect(row).not.toHaveProperty("contactName");
+      expect(row).not.toHaveProperty("contactEmail");
+      expect(row).not.toHaveProperty("contactPhone");
+      expect(items.find((item) => item.id === closedRequestId)).toBeUndefined();
+      expect(totalCount).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  describe("getProjectRequestForBoardDetail", () => {
+    it("returns the masked detail plus this producer's own quote status (the fixture's accepted quote)", async () => {
+      const detail = await getProjectRequestForBoardDetail(openRequestId, producerId);
+
+      expect(detail).not.toBeNull();
+      expect(detail).not.toHaveProperty("contactEmail");
+      expect(detail?.ownQuoteStatus).toBe("accepted");
+    });
+
+    it("returns null ownQuoteStatus for a producer who has not quoted this request yet", async () => {
+      const detail = await getProjectRequestForBoardDetail(openRequestId, unapprovedProducerId);
+
+      expect(detail).not.toBeNull();
+      expect(detail?.ownQuoteStatus).toBeNull();
+    });
+
+    it("returns null for a producer with no quote once the request is closed", async () => {
+      const detail = await getProjectRequestForBoardDetail(closedRequestId, unapprovedProducerId);
+      expect(detail).toBeNull();
+    });
+
+    it("still returns detail for a producer who already quoted, even after the request closed", async () => {
+      const quotedClosedId = crypto.randomUUID();
+      await db.insert(projectRequest).values({
+        id: quotedClosedId,
+        contactName: "Quoted Then Closed",
+        contactEmail: `qb-quoted-closed-${quotedClosedId}@example.test`,
+        countryCode: "PL",
+        projectType: "resort",
+        families: ["dom"],
+        unitCountMin: 10,
+        status: "closed",
+      });
+      const quoteId = crypto.randomUUID();
+      await db.insert(projectQuote).values({ id: quoteId, projectRequestId: quotedClosedId, producerId, totalPriceCents: 500_000, status: "rejected" });
+
+      const detail = await getProjectRequestForBoardDetail(quotedClosedId, producerId);
+
+      expect(detail).not.toBeNull();
+      expect(detail?.ownQuoteStatus).toBe("rejected");
+
+      await db.delete(projectQuote).where(eq(projectQuote.id, quoteId));
+      await db.delete(projectRequest).where(eq(projectRequest.id, quotedClosedId));
+    });
+  });
+
+  describe("getProjectQuotesForProducer", () => {
+    // AC-15: the contact columns come back null at the SQL level for a
+    // non-revealed row, present only for the row whose contactRevealedAt is set.
+    it("reveals contact only on the accepted (contactRevealedAt set) row, never on the active one", async () => {
+      const rows = await getProjectQuotesForProducer(producerId);
+
+      const revealed = rows.find((row) => row.id === revealedQuoteId);
+      const notRevealed = rows.find((row) => row.id === activeQuoteId);
+      expect(revealed?.contactEmail).toBe(`qb-investor-${openRequestId}@example.test`);
+      expect(notRevealed?.contactEmail).toBeNull();
+      expect(notRevealed?.contactName).toBeNull();
+      expect(notRevealed?.contactPhone).toBeNull();
+    });
+
+    it("tags the source correctly for each quote", async () => {
+      const rows = await getProjectQuotesForProducer(producerId);
+
+      expect(rows.find((row) => row.id === revealedQuoteId)?.source).toBe("project_request");
+      expect(rows.find((row) => row.id === activeQuoteId)?.source).toBe("bulk_product_inquiry");
+    });
+  });
+
+  describe("getProjectRequestsWithQuotesForClient", () => {
+    it("returns the client's own project_request and bulk_product_inquiry, each with its quotes and the producer's public name", async () => {
+      const items = await getProjectRequestsWithQuotesForClient(clientId);
+
+      const requestItem = items.find((item) => item.source === "project_request" && item.id === openRequestId);
+      const bulkItem = items.find((item) => item.source === "bulk_product_inquiry" && item.id === bulkInquiryId);
+      expect(requestItem?.quotes).toHaveLength(1);
+      expect(requestItem?.quotes[0]).toMatchObject({ id: revealedQuoteId, producerName: "Board Query Producer", status: "accepted" });
+      expect(bulkItem?.quotes).toHaveLength(1);
+      expect(bulkItem?.quotes[0]).toMatchObject({ id: activeQuoteId, producerName: "Board Query Producer", status: "active" });
+    });
   });
 });

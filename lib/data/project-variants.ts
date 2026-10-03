@@ -1,3 +1,4 @@
+import type { ProductOptionGroup } from "@/lib/db/queries";
 import type { Project, ProjectVariant } from "./types";
 
 // Wariant "wyświetlany" gdy strona/karta nie ma jeszcze wybranego wariantu
@@ -59,4 +60,86 @@ export function getProjectPriceDisplay(project: Project): ProjectPriceDisplay {
   // TS narrows `variant.priceMin` at this point but not the `variant`
   // binding's own declared type; the guard above already proved it.
   return { priceOnRequest: false, variant: variant as ProjectVariant & { priceMin: number } };
+}
+
+/** groupId -> selected option id(s), already defaulted/tolerant (spec 0059 AC-2, AC-6). */
+export type SelectedProductOptionsByGroup = Map<string, string[]>;
+
+// Rozwiązuje parametr adresu `opcje` (lista id rozdzielona przecinkami) na
+// faktycznie zaznaczone opcje per grupa, tolerancyjnie (spec 0059 AC-6):
+// nieznane/nieaktualne id są po cichu ignorowane, a dla grupy single więcej
+// niż jedno id z tej samej grupy w adresie rozwiązuje się do pierwszego z
+// nich (reszta z tej grupy jest pomijana). Grupa single bez żadnego
+// prawidłowego id w adresie spada na jej is_default opcję, a w jej braku (błąd
+// danych) na pierwszą wg sort_order — ten sam fallback co
+// getDefaultProjectVariant wyżej (spec 0059 AC-2).
+export function resolveSelectedProductOptions(
+  groups: ProductOptionGroup[],
+  rawParam: string | undefined,
+): SelectedProductOptionsByGroup {
+  const rawIds = rawParam ? rawParam.split(",").filter(Boolean) : [];
+  const resolved: SelectedProductOptionsByGroup = new Map();
+  for (const group of groups) {
+    const ownOptionIds = new Set(group.options.map((option) => option.id));
+    const matchingRawIds = rawIds.filter((id) => ownOptionIds.has(id));
+    if (group.selectionType === "single") {
+      const chosenId =
+        matchingRawIds[0] ?? group.options.find((option) => option.isDefault)?.id ?? group.options[0]?.id;
+      resolved.set(group.id, chosenId ? [chosenId] : []);
+    } else {
+      const deduped: string[] = [];
+      for (const id of matchingRawIds) {
+        if (!deduped.includes(id)) deduped.push(id);
+      }
+      resolved.set(group.id, deduped);
+    }
+  }
+  return resolved;
+}
+
+export function flattenSelectedProductOptionIds(selected: SelectedProductOptionsByGroup): string[] {
+  return [...selected.values()].flat();
+}
+
+// Wylicza nową wartość parametru `opcje` po zaznaczeniu/odznaczeniu jednej
+// opcji (spec 0059 AC-3): serializuje PEŁNY, już rozwiązany wybór wszystkich
+// grup (defaulty włącznie), nie tylko zmienioną grupę — żeby skopiowany link
+// odtwarzał dokładnie tę konfigurację, nawet jeśli domyślna opcja grupy
+// zmieni się później. Grupa single: zamienia zaznaczenie na optionId. Grupa
+// multi: przełącza przynależność (dodaje/usuwa).
+export function toggleProductOption(
+  groups: ProductOptionGroup[],
+  currentSelection: SelectedProductOptionsByGroup,
+  groupId: string,
+  optionId: string,
+): string {
+  const group = groups.find((candidate) => candidate.id === groupId);
+  if (!group) return flattenSelectedProductOptionIds(currentSelection).join(",");
+
+  const next = new Map(currentSelection);
+  if (group.selectionType === "single") {
+    next.set(groupId, [optionId]);
+  } else {
+    const current = next.get(groupId) ?? [];
+    next.set(groupId, current.includes(optionId) ? current.filter((id) => id !== optionId) : [...current, optionId]);
+  }
+  return flattenSelectedProductOptionIds(next).join(",");
+}
+
+export type SelectedProductOptionsPrice = { priceOnRequest: true } | { priceOnRequest: false; totalEur: number };
+
+// Czysta funkcja liczenia ceny zaznaczonych opcji (spec 0059 AC-4): propaguje
+// priceOnRequest z DOWOLNEJ zaznaczonej opcji, nigdy nie pokazuje mylącej
+// dokładnej sumy, gdy jeden ze składników nie ma ustalonej ceny. Jednostka
+// euro, ten sam wzorzec co ProjectVariant.priceMin/Project.priceMin (cena w
+// bazie jest w centach, przeliczana tu raz).
+export function getSelectedProductOptionsPrice(
+  groups: ProductOptionGroup[],
+  selectedOptionIds: string[],
+): SelectedProductOptionsPrice {
+  const selectedIdSet = new Set(selectedOptionIds);
+  const selectedOptions = groups.flatMap((group) => group.options.filter((option) => selectedIdSet.has(option.id)));
+  if (selectedOptions.some((option) => option.priceOnRequest)) return { priceOnRequest: true };
+  const totalCents = selectedOptions.reduce((sum, option) => sum + (option.priceCents ?? 0), 0);
+  return { priceOnRequest: false, totalEur: totalCents / 100 };
 }

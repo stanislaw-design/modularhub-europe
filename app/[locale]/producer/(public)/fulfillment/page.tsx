@@ -85,7 +85,7 @@ export default async function ProducerRealizacjaPage({
       <DemoScreenNotice />
       <Heading level="h1">{t("heading", { name: project.name })}</Heading>
       <Text tone="muted">
-        {project.producerName} · {project.floorAreaM2} m²
+        {project.producerName} · {project.floorAreaM2 !== null ? `${project.floorAreaM2} m²` : t("areaUnknown")}
       </Text>
 
       {isDelivered && (

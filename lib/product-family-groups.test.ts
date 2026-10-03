@@ -102,9 +102,34 @@ describe("resolveProductHref", () => {
     );
   });
 
-  it("routes every non-outdoor-tv family to /project", () => {
+  it("routes every non-outdoor-tv, non-sauna family to /project", () => {
     expect(resolveProductHref("spa-modulowe", "id", "pl", "sauna-18")).toBe("/pl/project/sauna-18");
     expect(resolveProductHref("kontenery-modulowe", "id", "pl", "bistro-24")).toBe("/pl/project/bistro-24");
+  });
+
+  // spec 0061 AC-3: routes to /sauna only for family spa-modulowe AND
+  // subcategory sauna; jacuzzi/wellness-combo (and spa-modulowe with no
+  // subcategory passed at all) stay on /project, zero regression.
+  describe("spa-modulowe / sauna (spec 0061)", () => {
+    it("routes spa-modulowe + sauna to its own segment", () => {
+      expect(resolveProductHref("spa-modulowe", "id", "pl", "relax-550", "sauna")).toBe("/pl/sauna/relax-550");
+    });
+
+    it("keeps spa-modulowe + jacuzzi on /project (zero regression)", () => {
+      expect(resolveProductHref("spa-modulowe", "id", "pl", "bubble-9", "jacuzzi")).toBe("/pl/project/bubble-9");
+    });
+
+    it("keeps spa-modulowe + wellness-combo on /project (zero regression)", () => {
+      expect(resolveProductHref("spa-modulowe", "id", "pl", "combo-1", "wellness-combo")).toBe("/pl/project/combo-1");
+    });
+
+    it("falls back to /project when spaSubcategory is omitted (caller didn't read it from the record)", () => {
+      expect(resolveProductHref("spa-modulowe", "id", "pl", "unknown-18")).toBe("/pl/project/unknown-18");
+    });
+
+    it("never routes a non-spa-modulowe family to /sauna even if sauna is passed by mistake", () => {
+      expect(resolveProductHref("dom", "id", "pl", "pomerania-40", "sauna")).toBe("/pl/project/pomerania-40");
+    });
   });
 
   it("carries the locale segment through unchanged", () => {

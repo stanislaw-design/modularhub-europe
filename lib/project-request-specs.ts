@@ -30,6 +30,31 @@ export function normalizeContactEmail(email: string): string {
   return email.trim().toLowerCase();
 }
 
+// Krótka, własna lista domen jednorazowych (spec 0062 AC-1): nie weryfikacja
+// tożsamości, tylko kosmetyczna etykieta "dane kontaktowe wyglądają
+// kompletne". Domena spoza tej listy + podany telefon => "complete"; inaczej
+// "new". Ustawiane raz w submitProjectRequest, nigdy przeliczane później
+// (spec 0062 Key invariants).
+const DISPOSABLE_EMAIL_DOMAINS = new Set([
+  "mailinator.com",
+  "tempmail.com",
+  "temp-mail.org",
+  "guerrillamail.com",
+  "10minutemail.com",
+  "yopmail.com",
+  "trashmail.com",
+  "throwawaymail.com",
+  "fakeinbox.com",
+  "discard.email",
+]);
+
+export function computeTrustSignal(contactEmail: string, contactPhone: string | null | undefined): "new" | "complete" {
+  const domain = contactEmail.split("@")[1]?.toLowerCase().trim();
+  const isDisposableDomain = !domain || DISPOSABLE_EMAIL_DOMAINS.has(domain);
+  const hasPhone = Boolean(contactPhone && contactPhone.trim().length > 0);
+  return !isDisposableDomain && hasPhone ? "complete" : "new";
+}
+
 export const BULK_REQUEST_EMAIL_LIMIT_ERROR =
   "Masz już 3 nierozstrzygnięte zgłoszenia na ten adres e mail. Poczekaj na odpowiedź albo zamknij jedno z nich, zanim wyślesz kolejne.";
 

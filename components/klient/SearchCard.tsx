@@ -1,12 +1,13 @@
 "use client";
 
-import { Home, Layers, Search } from "lucide-react";
-import { motion, useReducedMotion } from "motion/react";
+import { ChevronRight, Home, Layers, Search } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import type { Country, CountryCode } from "@/lib/data/types";
-import type { FamilyFilterValue } from "@/lib/product-family-groups";
+import type { Country, CountryCode, ProductFamily } from "@/lib/data/types";
+import { FAMILY_GROUPS, resolveFamilyGroup, type FamilyFilterValue } from "@/lib/product-family-groups";
 import { SIZE_RANGE_OPTIONS } from "@/lib/size-thresholds";
 import { SearchSegment, type SegmentOption } from "./SearchSegment";
 
@@ -71,6 +72,17 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
     { family: "wiecej-niz-dom", icon: Layers, label: t("categoryMore") },
   ];
 
+  // Spec 0060: "Więcej niż dom" swaps the Gdzie/Budżet/Powierzchnia + Szukaj
+  // row for one row of subcategory links straight to /wyniki, so the list
+  // itself stays wired to FAMILY_GROUPS (AC-4) — only each link's label text
+  // needs its own translation key, since a family id isn't human readable.
+  const activeGroup = resolveFamilyGroup(activeCategory);
+  const categoryLinkLabels: Partial<Record<ProductFamily, string>> = {
+    "spa-modulowe": t("categoryLinkSpa"),
+    "kontenery-modulowe": t("categoryLinkContainers"),
+    "outdoor-tv": t("categoryLinkOutdoorTv"),
+  };
+
   function handleSearch() {
     if (!country) return;
     const params = new URLSearchParams({ country });
@@ -123,43 +135,103 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
             );
           })}
         </div>
-        <div className="flex flex-col divide-y divide-brand-v5-line rounded-v5-card sm:flex-row sm:items-stretch sm:divide-x sm:divide-y-0">
-          <SearchSegment
-            label={t("whereLabel")}
-            value={country}
-            onChange={(value) => setCountry(value as CountryCode)}
-            options={countryOptions}
-            placeholder={t("wherePlaceholder")}
-            ariaLabel={t("whereAriaLabel")}
-          />
-          <SearchSegment
-            label={t("budgetLabel")}
-            value={budgetRangeValue}
-            onChange={setBudgetRangeValue}
-            options={budgetRangeOptions}
-            placeholder={t("budgetAny")}
-            ariaLabel={t("budgetAriaLabel")}
-          />
-          <SearchSegment
-            label={t("areaLabel")}
-            value={sizeRangeValue}
-            onChange={setSizeRangeValue}
-            options={sizeRangeOptions}
-            placeholder={t("areaPlaceholder")}
-            ariaLabel={t("areaLabel")}
-          />
-          <div className="flex items-center justify-center p-brand-2">
-            <button
-              type="button"
-              onClick={handleSearch}
-              disabled={!country}
-              className="focus-ring flex w-full items-center justify-center gap-brand-1 rounded-v5-pill bg-brand-v5-amber px-brand-4 py-brand-2 text-body font-semibold text-brand-v5-amber-foreground transition-opacity hover:bg-brand-v5-amber-strong disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
+        {/* Same height: 0 <-> "auto" + overflow-hidden recipe SearchSegment's
+            dropdown already uses, not the `layout` prop: `layout` animates via
+            a transform scale trick that only self-corrects for nested *motion*
+            children, so plain children (SearchSegment, Link) visibly warped
+            instead of the card calmly resizing — this animates the real
+            `height` CSS property instead, which reflows normally. mode="wait"
+            (collapse old, then expand new) over "popLayout" (both at once):
+            with two very differently-shaped branches, overlapping them
+            mid-crossfade looked worse than the brief, eased collapse/expand. */}
+        <AnimatePresence mode="wait" initial={false}>
+          {activeGroup === "wiecej-niz-dom" ? (
+            // AC-1/AC-2: a one-click shortcut straight to filtered /wyniki, no
+            // Szukaj step and no country requirement — Gdzie/Budżet/Powierzchnia
+            // don't apply to a single lifestyle category pick.
+            <motion.div
+              key="wiecej-niz-dom"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="overflow-hidden"
             >
-              <Search className="size-4" aria-hidden="true" />
-              {t("searchButton")}
-            </button>
-          </div>
-        </div>
+              <nav
+                aria-label={t("categoryLinksAriaLabel")}
+                className="flex items-center gap-brand-2 overflow-x-auto px-brand-1 py-brand-1 [scrollbar-width:none] sm:gap-brand-3 [&::-webkit-scrollbar]:hidden"
+              >
+                {FAMILY_GROUPS["wiecej-niz-dom"].map((family) => (
+                  <Link
+                    key={family}
+                    href={`/${locale}/results?family=${family}`}
+                    // Amber-tinted chip (same border/bg/text combo SubcategoryFilterBar
+                    // already uses for an active chip), not a solid black fill: sitting
+                    // right under the solid-black active category tab, an equally solid
+                    // black pill row read as one undifferentiated stack with no
+                    // hierarchy between "which group" (the tab) and "which category"
+                    // (these links). Amber ties it to the Szukaj button's accent instead,
+                    // signalling "this is the action for this tab."
+                    className="group focus-ring flex shrink-0 items-center gap-1.5 rounded-v5-pill border border-brand-v5-amber-strong/30 bg-brand-v5-amber/10 px-brand-3 py-brand-2 text-body font-semibold whitespace-nowrap text-brand-v5-ink transition-colors hover:border-brand-v5-amber-strong hover:bg-brand-v5-amber/20"
+                  >
+                    {categoryLinkLabels[family] ?? family}
+                    <ChevronRight
+                      className="size-4 shrink-0 text-brand-v5-amber-strong transition-transform group-hover:translate-x-0.5"
+                      aria-hidden="true"
+                    />
+                  </Link>
+                ))}
+              </nav>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="dom"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="overflow-hidden"
+            >
+              <div className="flex flex-col divide-y divide-brand-v5-line rounded-v5-card sm:flex-row sm:items-stretch sm:divide-x sm:divide-y-0">
+                <SearchSegment
+                  label={t("whereLabel")}
+                  value={country}
+                  onChange={(value) => setCountry(value as CountryCode)}
+                  options={countryOptions}
+                  placeholder={t("wherePlaceholder")}
+                  ariaLabel={t("whereAriaLabel")}
+                />
+                <SearchSegment
+                  label={t("budgetLabel")}
+                  value={budgetRangeValue}
+                  onChange={setBudgetRangeValue}
+                  options={budgetRangeOptions}
+                  placeholder={t("budgetAny")}
+                  ariaLabel={t("budgetAriaLabel")}
+                />
+                <SearchSegment
+                  label={t("areaLabel")}
+                  value={sizeRangeValue}
+                  onChange={setSizeRangeValue}
+                  options={sizeRangeOptions}
+                  placeholder={t("areaPlaceholder")}
+                  ariaLabel={t("areaLabel")}
+                />
+                <div className="flex items-center justify-center p-brand-2">
+                  <button
+                    type="button"
+                    onClick={handleSearch}
+                    disabled={!country}
+                    className="focus-ring flex w-full items-center justify-center gap-brand-1 rounded-v5-pill bg-brand-v5-amber px-brand-4 py-brand-2 text-body font-semibold text-brand-v5-amber-foreground transition-opacity hover:bg-brand-v5-amber-strong disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
+                  >
+                    <Search className="size-4" aria-hidden="true" />
+                    {t("searchButton")}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

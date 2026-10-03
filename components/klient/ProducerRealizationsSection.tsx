@@ -1,7 +1,7 @@
 import { BadgeCheck, Camera, CircleHelp, Home, XCircle } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import Image from "next/image";
-import { DataText, Heading, StarRating, Text } from "@/components/ui";
+import { DataText, Heading, Text } from "@/components/ui";
 import { SafetyIcon } from "@/components/klient/ProjectSpecIcons";
 import type { CountryCode, Producer, ProjectDocument } from "@/lib/data/types";
 
@@ -86,17 +86,20 @@ export async function ProducerRealizationsSection({
               {countryFlag[producer.countryCode]}
             </span>
           </div>
+          {/* Ocena/opinie świadomie nieshowowane: platforma nie daje jeszcze
+              możliwości zostawiania recenzji, więc "0.0 (0)" wyglądałoby jak
+              realna, zweryfikowana ocena, nie jak brak funkcji. */}
           <div className="flex flex-wrap items-center gap-brand-2">
-            <StarRating rating={producer.rating} reviewCount={producer.reviewCount} />
-            <span aria-hidden="true" className="text-brand-v5-line">
-              ·
-            </span>
-            <Text tone="muted" className="text-data">
-              {t("completedProjects", { count: producer.completedProjectsCount })}
-            </Text>
-            <span aria-hidden="true" className="text-brand-v5-line">
-              ·
-            </span>
+            {producer.completedProjectsCount > 0 && (
+              <>
+                <Text tone="muted" className="text-data">
+                  {t("completedProjects", { count: producer.completedProjectsCount })}
+                </Text>
+                <span aria-hidden="true" className="text-brand-v5-line">
+                  ·
+                </span>
+              </>
+            )}
             <Text tone="muted" className="text-data">
               {t("modelsInOffer", { count: producer.modelsCount })}
             </Text>
@@ -128,19 +131,25 @@ export async function ProducerRealizationsSection({
             </Text>
           )}
         </div>
-        <div className="flex shrink-0 items-center gap-brand-2 rounded-v5-card border border-status-approved/40 bg-status-approved/5 p-brand-3 sm:self-stretch">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-data bg-status-approved/15">
-            <SafetyIcon className="size-5 text-status-approved" />
-          </span>
-          <div className="flex flex-col">
-            <Text variant="label" tone="muted" className="text-data">
-              {t("warrantyLabel")}
-            </Text>
-            <DataText className="text-h3 font-medium leading-snug">
-              {t("warrantyValue", { years: structuralWarrantyYears })}
-            </DataText>
+        {/* Brak wpisanej gwarancji wygląda identycznie jak 0 (lib/data/projects.ts
+            koaleskuje null do 0) — ten sam warunek co w page.tsx przy sygnałach
+            zaufania, tak żeby "0 lat gwarancji" nigdy nie wyświetlało się jako
+            realna wartość. */}
+        {structuralWarrantyYears > 0 && (
+          <div className="flex shrink-0 items-center gap-brand-2 rounded-v5-card border border-status-approved/40 bg-status-approved/5 p-brand-3 sm:self-stretch">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-data bg-status-approved/15">
+              <SafetyIcon className="size-5 text-status-approved" />
+            </span>
+            <div className="flex flex-col">
+              <Text variant="label" tone="muted" className="text-data">
+                {t("warrantyLabel")}
+              </Text>
+              <DataText className="text-h3 font-medium leading-snug">
+                {t("warrantyValue", { years: structuralWarrantyYears })}
+              </DataText>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div className="flex flex-col gap-brand-3">

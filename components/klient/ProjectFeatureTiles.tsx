@@ -2,7 +2,7 @@ import { CheckCircle2 } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { Heading, Text } from "@/components/ui";
 
-interface OutdoorTvFeaturesProps {
+interface ProjectFeatureTilesProps {
   features?: string[];
 }
 
@@ -10,11 +10,17 @@ interface OutdoorTvFeaturesProps {
 // "Specyfikacja techniczna" (spec 0056 Follow-up) — pierwsze, szybko czytelne
 // wrażenie, zanim klient dojdzie do gęstszej tabeli specyfikacji. Puste lub
 // brak → sekcja nie renderuje się (ten sam wzorzec co reszta strony, AC-4).
-export async function OutdoorTvFeatures({ features }: OutdoorTvFeaturesProps) {
+//
+// Promowany z OutdoorTvFeatures (spec 0061 Build plan zadanie 6): drugi
+// katalogowy route (/sauna/[slug]) potrzebuje tej samej sekcji, więc żyje
+// teraz pod własną, dzieloną nazwą/namespace'em zamiast kopii pod outdoor-tv.
+// Zachowanie na /outdoor-tv/[slug] bez zmian (ten sam string, przeniesiony z
+// namespace'u OutdoorTvPage do własnego ProjectFeatureTiles).
+export async function ProjectFeatureTiles({ features }: ProjectFeatureTilesProps) {
   const entries = features?.filter((feature) => feature.trim().length > 0) ?? [];
   if (entries.length === 0) return null;
 
-  const t = await getTranslations("OutdoorTvPage");
+  const t = await getTranslations("ProjectFeatureTiles");
 
   return (
     <div className="flex flex-col gap-brand-4">

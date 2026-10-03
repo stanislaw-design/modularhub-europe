@@ -26,7 +26,7 @@ const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0
 export function FavoriteCard({ entry, locale, selected, selectionDisabled, onToggleSelect }: FavoriteCardProps) {
   const t = useTranslations("FavoriteCard");
   const { project, available } = entry;
-  const href = resolveProductHref(project.family, project.id, locale, project.slug);
+  const href = resolveProductHref(project.family, project.id, locale, project.slug, project.spaSubcategory);
 
   return (
     <Card
@@ -86,7 +86,7 @@ export function FavoriteCard({ entry, locale, selected, selectionDisabled, onTog
           </Text>
         </div>
         <Text surface="v5" className="font-medium">
-          {t("floorArea", { area: project.floorAreaM2 })}
+          {project.floorAreaM2 !== null ? t("floorArea", { area: project.floorAreaM2 }) : t("floorAreaUnknown")}
         </Text>
         <DataText surface="v5" className="mt-auto border-t border-brand-v5-line pt-brand-2 text-body-l font-semibold">
           {t("priceFrom", { price: priceFormatter.format(project.priceMin) })}

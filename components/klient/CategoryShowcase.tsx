@@ -95,7 +95,9 @@ export async function CategoryShowcase({ locale }: CategoryShowcaseProps) {
       description: familyDescriptions[family],
       image: project?.coverImageUrl ?? FAMILY_IMAGES[family],
       imageAlt: t("imageAlt", { category: name }),
-      href: project ? resolveProductHref(project.family, project.id, locale, project.slug) : allResultsHref,
+      href: project
+        ? resolveProductHref(project.family, project.id, locale, project.slug, project.spaSubcategory)
+        : allResultsHref,
       offerLabel,
       dotLabel: t("dotLabel", { category: name }),
     };

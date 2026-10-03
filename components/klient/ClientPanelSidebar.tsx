@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
-import { ChevronsLeft, ChevronsRight, Heart, House, Inbox, LogOut, Menu, User, X, type LucideIcon } from "lucide-react";
+import { ChevronsLeft, ChevronsRight, FileText, Heart, House, Inbox, LogOut, Menu, User, X, type LucideIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -39,6 +39,7 @@ export function ClientPanelSidebar({ locale, hasUnreadZapytania }: ClientPanelSi
 
   const navItems: PanelNavItem[] = [
     { key: "zapytania", path: "inquiries", label: t("zapytania"), icon: Inbox },
+    { key: "quotes", path: "quotes", label: t("quotes"), icon: FileText },
     { key: "ulubione", path: "favorites", label: t("ulubione"), icon: Heart },
     { key: "profil", path: "profile", label: t("profil"), icon: User },
   ];

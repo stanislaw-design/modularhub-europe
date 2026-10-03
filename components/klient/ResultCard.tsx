@@ -64,12 +64,15 @@ export function ResultCard({
     // unlike the dom-only comparison components.
     katalogowy: t("completionStandard.katalogowy"),
   } as const;
-  const roomsLabel = t(`rooms.${roomsCountBucket(project.rooms)}`);
+  const roomsLabel = project.rooms !== null ? t(`rooms.${roomsCountBucket(project.rooms)}`) : "";
   const countryQuery = countryCode ? `country=${countryCode}` : "";
-  const productHref = resolveProductHref(project.family, project.id, locale, project.slug);
+  const productHref = resolveProductHref(project.family, project.id, locale, project.slug, project.spaSubcategory);
   const href = `${productHref}${countryQuery ? `?${countryQuery}` : ""}`;
   const defaultVariant = getDefaultProjectVariant(project);
   const priceDisplay = getProjectPriceDisplay(project);
+  // Sauny (spec 0061) nie mają metrażu/pokoi/kondygnacji ani pozycji
+  // kosztowych "w cenie" w bazie — to samo rozumowanie co outdoor-tv niżej.
+  const isSauna = project.spaSubcategory === "sauna";
   // Dokument bez productVariantId dotyczy każdego wariantu (spec 0041 Feature
   // design); karta pyta tylko o istnienie choćby jednego rzutu w ogóle (spec
   // 0044 AC-3), bez zawężania do wybranego wariantu.
@@ -149,13 +152,33 @@ export function ResultCard({
             <span>{project.producerName} · {countryName}</span>
           </Text>
         </div>
-        <Text surface="v5" className="font-medium">
-          {t("summary", { area: project.floorAreaM2, rooms: project.rooms, roomsLabel, storeys: project.storeys })}
-        </Text>
-        <Text tone="muted" surface="v5" className="text-data">
-          {project.constructionSystem}
-          {defaultVariant ? ` · ${standardLabel[defaultVariant.completionStandard]}` : ""}
-        </Text>
+        {/* Metraż/pokoje/kondygnacje i system konstrukcyjny są pojęciami domu
+            (spec 0056 AC-3: outdoor-tv nie ma żadnej z tych wartości, więc
+            karta pokazywałaby same "do ustalenia"/pusty wiersz zamiast
+            realnej treści; sauny tak samo, spec 0061) — ta sama zasada
+            "sekcja bez treści znika w całości" co na stronie produktu,
+            przeniesiona na kafelek wyników. */}
+        {project.family !== "outdoor-tv" && !isSauna && (
+          <>
+            <Text surface="v5" className="font-medium">
+              {t("summary", {
+                area: project.floorAreaM2 !== null ? t("areaValue", { area: project.floorAreaM2 }) : t("areaUnknown"),
+                rooms:
+                  project.rooms !== null && project.rooms > 0
+                    ? t("roomsValue", { rooms: project.rooms, roomsLabel })
+                    : t("roomsUnknown"),
+                storeys:
+                  project.storeys !== null && project.storeys > 0
+                    ? t("storeysValue", { storeys: project.storeys })
+                    : t("storeysUnknown"),
+              })}
+            </Text>
+            <Text tone="muted" surface="v5" className="text-data">
+              {project.constructionSystem}
+              {defaultVariant ? ` · ${standardLabel[defaultVariant.completionStandard]}` : ""}
+            </Text>
+          </>
+        )}
         {hasFloorPlan && (
           <Link
             href={floorPlanHref}
@@ -183,13 +206,24 @@ export function ResultCard({
               <DataText as="p" surface="v5" className="mt-1 text-body-l font-semibold">
                 {t("priceFrom", { price: priceFormatter.format(priceDisplay.variant.priceMin) })}
               </DataText>
-              <Text tone="muted" surface="v5" className="mt-1 text-data">
-                {(() => {
-                  const { labels, extraCount } = getInPriceCostLineItemLabels(priceDisplay.variant);
-                  if (labels.length === 0) return t("costIncludedFallback");
-                  return extraCount > 0 ? `${labels.join(", ")} ${t("costIncludedMore", { count: extraCount })}` : labels.join(", ");
-                })()}
-              </Text>
+              {(() => {
+                const { labels, extraCount } = getInPriceCostLineItemLabels(priceDisplay.variant);
+                if (labels.length === 0) {
+                  // Sauny nie mają pozycji kosztowych "w cenie" w bazie (spec
+                  // 0061); "Zakres do potwierdzenia" nic by im nie dodawał.
+                  if (isSauna) return null;
+                  return (
+                    <Text tone="muted" surface="v5" className="mt-1 text-data">
+                      {t("costIncludedFallback")}
+                    </Text>
+                  );
+                }
+                return (
+                  <Text tone="muted" surface="v5" className="mt-1 text-data">
+                    {extraCount > 0 ? `${labels.join(", ")} ${t("costIncludedMore", { count: extraCount })}` : labels.join(", ")}
+                  </Text>
+                );
+              })()}
             </>
           )}
         </div>

@@ -51,7 +51,7 @@ export async function ProducerFulfillmentList({ locale, orders, projects }: Prod
                 <Stack gap={2} align="start">
                   <Heading level="h2">{project.name}</Heading>
                   <Text tone="muted">
-                    {project.producerName} · {project.floorAreaM2} m²
+                    {project.producerName} · {project.floorAreaM2 !== null ? `${project.floorAreaM2} m²` : t("areaUnknown")}
                   </Text>
                   <StatusPill status={isDelivered ? "approved" : "conditional"}>
                     {isDelivered ? t("readyForVerification") : t("currentStage", { stage: stageLabel[order.currentStage] })}

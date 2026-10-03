@@ -1,7 +1,8 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { Country } from "@/lib/data/types";
+import { FAMILY_GROUPS } from "@/lib/product-family-groups";
 import { SearchCard } from "./SearchCard";
 
 // jsdom has no matchMedia (same gap noted in CategoryShowcase.test.tsx): motion/react's
@@ -73,18 +74,6 @@ describe("SearchCard", () => {
     expect(screen.getByRole("tab", { name: "Więcej niż dom" })).toHaveAttribute("aria-selected", "false");
   });
 
-  it("navigates to /wyniki with family=wiecej-niz-dom when that tab is active on search (AC-2)", async () => {
-    const user = userEvent.setup();
-    render(<SearchCard locale="pl" countries={countries} />);
-
-    await user.click(screen.getByRole("tab", { name: "Więcej niż dom" }));
-    await user.click(screen.getByRole("button", { name: "Kraj docelowy" }));
-    await user.click(screen.getByRole("option", { name: "Polska" }));
-    await user.click(screen.getByRole("button", { name: /szukaj/i }));
-
-    expect(push).toHaveBeenCalledWith("/pl/results?country=PL&family=wiecej-niz-dom");
-  });
-
   it("omits family from the URL when Domy (the default) is active on search (AC-1)", async () => {
     const user = userEvent.setup();
     render(<SearchCard locale="pl" countries={countries} />);
@@ -96,13 +85,65 @@ describe("SearchCard", () => {
     expect(push).toHaveBeenCalledWith("/pl/results?country=PL");
   });
 
-  it("keeps Budżet and Powierzchnia unchanged regardless of the active family tab (AC-5)", async () => {
+  it("keeps Budżet, Powierzchnia and Szukaj on the Domy tab, unchanged from before spec 0060 (AC-3)", () => {
+    render(<SearchCard locale="pl" countries={countries} />);
+
+    expect(screen.getByRole("button", { name: "Budżet" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Powierzchnia" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /szukaj/i })).toBeInTheDocument();
+  });
+
+  it("replaces Gdzie/Budżet/Powierzchnia/Szukaj with subcategory links when Więcej niż dom is active (spec 0060 AC-1)", async () => {
     const user = userEvent.setup();
     render(<SearchCard locale="pl" countries={countries} />);
 
     await user.click(screen.getByRole("tab", { name: "Więcej niż dom" }));
 
-    expect(screen.getByRole("button", { name: "Budżet" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Powierzchnia" })).toBeInTheDocument();
+    // The outgoing Domy panel stays mounted (and queryable) for the length of
+    // its AnimatePresence exit fade (spec 0060 follow-up: smoother crossfade
+    // between tabs) — wait it out instead of asserting the instant it's removed.
+    await waitFor(() => {
+      expect(screen.queryByRole("button", { name: "Kraj docelowy" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Budżet" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Powierzchnia" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /szukaj/i })).not.toBeInTheDocument();
+    });
+    expect(screen.getByRole("link", { name: "Spa modułowe" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Kontenery" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Outdoor TV" })).toBeInTheDocument();
+  });
+
+  it("links each subcategory straight to /wyniki with no Szukaj step and no country required (spec 0060 AC-2)", async () => {
+    const user = userEvent.setup();
+    render(<SearchCard locale="pl" countries={countries} />);
+
+    await user.click(screen.getByRole("tab", { name: "Więcej niż dom" }));
+
+    // findBy* waits out the Domy panel's collapse before the links panel
+    // mounts (AnimatePresence mode="wait", spec 0060 follow-up crossfade).
+    expect(await screen.findByRole("link", { name: "Spa modułowe" })).toHaveAttribute(
+      "href",
+      "/pl/results?family=spa-modulowe",
+    );
+    expect(screen.getByRole("link", { name: "Kontenery" })).toHaveAttribute(
+      "href",
+      "/pl/results?family=kontenery-modulowe",
+    );
+    expect(screen.getByRole("link", { name: "Outdoor TV" })).toHaveAttribute(
+      "href",
+      "/pl/results?family=outdoor-tv",
+    );
+  });
+
+  it("renders exactly the families in FAMILY_GROUPS['wiecej-niz-dom'] as links, not a list hardcoded separately in SearchCard (spec 0060 AC-4)", async () => {
+    const user = userEvent.setup();
+    render(<SearchCard locale="pl" countries={countries} />);
+
+    await user.click(screen.getByRole("tab", { name: "Więcej niż dom" }));
+
+    const links = await screen.findAllByRole("link");
+    expect(links.map((link) => link.getAttribute("href"))).toEqual(
+      FAMILY_GROUPS["wiecej-niz-dom"].map((family) => `/pl/results?family=${family}`),
+    );
   });
 });

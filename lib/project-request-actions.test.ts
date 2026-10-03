@@ -1,4 +1,4 @@
-import { and, eq, inArray } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 // @/lib/observability pulls in "server-only", which doesn't resolve under
@@ -8,16 +8,7 @@ const captureErrorMock = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/observability", () => ({ trackEvent: trackEventMock, captureError: captureErrorMock }));
 
 import { db } from "@/lib/db/client";
-import {
-  bulkProductInquiry,
-  producer,
-  producerCapacityProfile,
-  producerDeliveryCountry,
-  product,
-  projectRequest,
-  projectRequestTargetProducer,
-  users,
-} from "@/lib/db/schema";
+import { bulkProductInquiry, producer, product, projectRequest, users } from "@/lib/db/schema";
 import { submitBulkProductInquiry, submitProjectRequest } from "./project-request-actions";
 
 // Hits the real dev database (spec 0037, mirrors lib/offer-actions.test.ts's
@@ -53,8 +44,6 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-request-actions: real DB
 
   afterAll(async () => {
     await db.delete(product).where(inArray(product.id, [publishedProductId, draftProductId]));
-    await db.delete(producerDeliveryCountry).where(eq(producerDeliveryCountry.producerId, producerId));
-    await db.delete(producerCapacityProfile).where(eq(producerCapacityProfile.producerId, producerId));
     await db.delete(producer).where(eq(producer.id, producerId));
     await db.delete(users).where(eq(users.id, producerUserId));
   });
@@ -65,10 +54,6 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-request-actions: real DB
   });
 
   async function cleanupRequestsFor(email: string) {
-    const requests = await db.select({ id: projectRequest.id }).from(projectRequest).where(eq(projectRequest.contactEmail, email));
-    for (const row of requests) {
-      await db.delete(projectRequestTargetProducer).where(eq(projectRequestTargetProducer.projectRequestId, row.id));
-    }
     await db.delete(projectRequest).where(eq(projectRequest.contactEmail, email));
     await db.delete(bulkProductInquiry).where(eq(bulkProductInquiry.contactEmail, email));
   }
@@ -138,54 +123,64 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-request-actions: real DB
       await cleanupRequestsFor(row.contactEmail);
     });
 
-    // AC-2: no producer is verified+delivering to this country -> zero target
-    // rows, not an error (spec 0037 Key invariants).
-    it("creates the request with zero target producers when none are verified for the country", async () => {
+    // AC-1 (spec 0062): a non-disposable email domain plus a phone number
+    // gets the "complete" cosmetic label, never "verified".
+    it("sets trustSignal to 'complete' for a real-looking domain with a phone number", async () => {
       const email = `pra-${crypto.randomUUID()}@example.test`;
       const result = await submitProjectRequest({
-        contactName: "No Match",
+        contactName: "Complete Signal",
         contactEmail: email,
-        countryCode: "DE",
+        contactPhone: "+48123456789",
+        countryCode: "PL",
         projectType: "resort",
         families: ["dom"],
         unitCountMin: 12,
       });
 
       expect(result.ok).toBe(true);
-      const targets = await db.select().from(projectRequestTargetProducer).where(eq(projectRequestTargetProducer.projectRequestId, result.id!));
-      expect(targets).toHaveLength(0);
+      const [row] = await db.select({ trustSignal: projectRequest.trustSignal }).from(projectRequest).where(eq(projectRequest.id, result.id!));
+      expect(row.trustSignal).toBe("complete");
 
       await cleanupRequestsFor(email);
     });
 
-    // AC-2: a producer verified for volume and delivering to the request's
-    // country is auto targeted.
-    it("auto-targets a producer that is volume-verified and delivers to the request's country", async () => {
-      await db
-        .insert(producerCapacityProfile)
-        .values({ producerId, volumeVerificationStatus: "approved" })
-        .onConflictDoUpdate({ target: producerCapacityProfile.producerId, set: { volumeVerificationStatus: "approved" } });
-      await db.insert(producerDeliveryCountry).values({ producerId, countryCode: "NL" }).onConflictDoNothing();
-
-      const email = `pra-${crypto.randomUUID()}@example.test`;
+    // AC-1: a disposable domain gets "new" even with a phone number.
+    it("sets trustSignal to 'new' for a disposable email domain", async () => {
+      const email = `pra-${crypto.randomUUID()}@mailinator.com`;
       const result = await submitProjectRequest({
-        contactName: "Match",
+        contactName: "Disposable Signal",
         contactEmail: email,
-        countryCode: "NL",
+        contactPhone: "+48123456789",
+        countryCode: "PL",
         projectType: "resort",
         families: ["dom"],
         unitCountMin: 12,
       });
 
       expect(result.ok).toBe(true);
-      const targets = await db.select().from(projectRequestTargetProducer).where(eq(projectRequestTargetProducer.projectRequestId, result.id!));
-      expect(targets).toHaveLength(1);
-      expect(targets[0]?.producerId).toBe(producerId);
-      expect(targets[0]?.status).toBe("invited");
+      const [row] = await db.select({ trustSignal: projectRequest.trustSignal }).from(projectRequest).where(eq(projectRequest.id, result.id!));
+      expect(row.trustSignal).toBe("new");
 
       await cleanupRequestsFor(email);
-      await db.delete(producerDeliveryCountry).where(and(eq(producerDeliveryCountry.producerId, producerId), eq(producerDeliveryCountry.countryCode, "NL")));
-      await db.delete(producerCapacityProfile).where(eq(producerCapacityProfile.producerId, producerId));
+    });
+
+    // AC-1: a real domain but no phone number also stays "new".
+    it("sets trustSignal to 'new' when no phone number is given", async () => {
+      const email = `pra-${crypto.randomUUID()}@example.test`;
+      const result = await submitProjectRequest({
+        contactName: "No Phone",
+        contactEmail: email,
+        countryCode: "PL",
+        projectType: "resort",
+        families: ["dom"],
+        unitCountMin: 12,
+      });
+
+      expect(result.ok).toBe(true);
+      const [row] = await db.select({ trustSignal: projectRequest.trustSignal }).from(projectRequest).where(eq(projectRequest.id, result.id!));
+      expect(row.trustSignal).toBe("new");
+
+      await cleanupRequestsFor(email);
     });
 
     // AC-10, /debug regression: the 4th unresolved request for one email is

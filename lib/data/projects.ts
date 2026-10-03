@@ -671,6 +671,23 @@ function mapRowToProject(
   related?: ProjectRelatedRows,
 ): Project {
   const specs = (row.technicalSpecs ?? {}) as ProductTechnicalSpecsDraft & TechnicalSpecsBridgeFields;
+  // Spec 0061 AC-7: sauna dostaje realny, typowany odczyt (nie generyczną
+  // tabelę jsonb jak outdoor-tv niżej) — undefined dla każdy inny produkt,
+  // ten sam warunek co strażnik rodziny/podkategorii na /sauna/[slug].
+  const saunaTechnicalSpecs =
+    row.family === "spa-modulowe" && row.spaSubcategory === "sauna"
+      ? {
+          claddingMaterial: specs.claddingMaterial ?? "",
+          interiorWoodType: specs.interiorWoodType ?? "",
+          benchMaterial: specs.benchMaterial ?? "",
+          insulationType: specs.insulationType ?? "",
+          glazingType: specs.glazingType ?? "",
+          seatingCapacity: specs.seatingCapacity ?? null,
+          hasChangingArea: specs.hasChangingArea ?? null,
+          changingAreaDescription: specs.changingAreaDescription ?? "",
+          electricalRequirement: specs.electricalRequirement ?? "",
+        }
+      : undefined;
   // Wersja surowa, bez typowania pod "dom" (spec 0056 AC-3): dla rodziny bez
   // własnego schematu Zod (outdoor-tv) to jedyny sposób pokazania czegokolwiek
   // ze specyfikacji technicznej. Klucze wewnętrzne (podkreślnik, np.
@@ -716,16 +733,17 @@ function mapRowToProject(
     slug: row.slug,
     status: row.status,
     countryOfProduction: (row.countryOfProduction ?? "PL") as CountryCode,
-    floorAreaM2: row.floorAreaM2 ?? 0,
-    builtUpAreaM2: row.builtUpAreaM2 ?? 0,
-    rooms: row.rooms ?? 0,
-    bedrooms: row.bedrooms ?? 0,
-    bathrooms: row.bathrooms ?? 0,
-    storeys: row.storeys ?? 0,
+    floorAreaM2: row.floorAreaM2,
+    builtUpAreaM2: row.builtUpAreaM2,
+    rooms: row.rooms,
+    bedrooms: row.bedrooms,
+    bathrooms: row.bathrooms,
+    storeys: row.storeys,
     externalDimensions: row.externalDimensions ?? "",
     roofType: row.roofType ?? "",
     family: row.family,
     category: row.category ?? "caloroczny",
+    spaSubcategory: row.spaSubcategory,
     constructionSystem: row.constructionSystem ?? "",
     foundationOptions: resolveTranslatedText(row.foundationOptions, translation?.foundationOptions),
     customizationScope: row.customizationScope ?? "",
@@ -742,6 +760,7 @@ function mapRowToProject(
     heatSource: specs.heatSource ?? "",
     fireResistance: specs.fireResistance ?? "",
     windResistance: specs.windResistance ?? "",
+    saunaTechnicalSpecs,
     variants: related?.variants ?? [],
     roomLayout: roomLayout && roomLayout.length > 0 ? roomLayout : undefined,
     documents: related?.documents ?? [],

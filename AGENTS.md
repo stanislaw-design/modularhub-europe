@@ -54,7 +54,7 @@ Stored in `docs/specs/`. Each is a directory `docs/specs/NNNN-title/` with `inde
 ## Rules
 
 - Tailwind CSS v4 is configured through `@theme` in `app/globals.css`, not a `tailwind.config.js`; brand tokens live in `assets/tokens/brand-v3-tokens.css` and are imported there.
-- Customer and producer routes are separate folders under `app/[locale]/`, each with its own layout, so they never collide on the same address: today that's the route group `app/[locale]/(customer)/` (customer flow: `results/`, `project/`, `plot/`, `inquiry/`, `fulfillment/`, `registration/`, `login/`, `verified-manufacturers/`, `project-request/`), `app/[locale]/panel/` (customer management panel with its own sidebar layout), and `app/[locale]/producer/` (English, not `producent/`). Older docs/specs referring to `klient/`/`producent/` folders predate this naming.
+- Customer and producer routes are separate folders under `app/[locale]/`, each with its own layout, so they never collide on the same address: today that's the route group `app/[locale]/(customer)/` (customer flow: `results/`, `project/`, `plot/`, `inquiry/`, `fulfillment/`, `registration/`, `login/`, `verified-manufacturers/`, `project-request/`), `app/[locale]/panel/` (customer management panel with its own sidebar layout), `app/[locale]/producer/` (English, not `producent/`), and `app/[locale]/internal/` (admin panel, session gated to role `admin`, spec 0055, see its own [AGENTS.md](app/[locale]/internal/AGENTS.md)). Older docs/specs referring to `klient/`/`producent/` folders predate this naming.
 - The locale segment `app/[locale]/` is already in place with only `pl` active; `proxy.ts` redirects unprefixed paths to `/pl` (Next.js 16 renamed `middleware.ts` to `proxy.ts`, use the new convention).
 - Data access functions (even ones just reading a local mock file) are asynchronous from the start, so the second stage can swap in a real API call without changing call signatures.
 - UI state that must survive a route change (e.g. country and budget from the wizard, visible on the results screen) goes through URL search params, not shared component state.
@@ -81,6 +81,8 @@ Stored in `docs/specs/`. Each is a directory `docs/specs/NNNN-title/` with `inde
 - [posthog-instrumentation](.agents/skills/posthog-instrumentation/): `posthog/posthog-for-claude`, PostHog event tracking conventions (business analytics, see `lib/observability/AGENTS.md`)
 - [aws-sdk-js-v3-usage](.agents/skills/aws-sdk-js-v3-usage/): `aws/agent-toolkit-for-aws`, AWS SDK for JavaScript v3 patterns (used for `@aws-sdk/client-s3` against Cloudflare R2, spec 0031, see `lib/storage/AGENTS.md`)
 - [scrape-steel-house](.claude/skills/scrape-steel-house/): bespoke (not vendored), gathers refreshed Steel House (steel-house.com.pl) product data/images into `tmp/house-research/steel-house/` for human review before any import touches `_docs/steelhouse-import-manifest.json` or the real Neon rows; never writes to `lib/data/`, `lib/db/`, or `public/images/`
+- [scrape-kora-wdh](.claude/skills/scrape-kora-wdh/): bespoke (not vendored), gathers sauna model data/images for the two spec 0061 reference producers (Kora, Wooden Dream House) and writes new/refreshed `spa-modulowe`/`sauna` products straight into the dev Neon DB (`bold-tree-78265613`), reusing each producer's existing `product_option_group` rows; never writes to prod directly, `lib/data/`, or `public/images/`
+- [product-family-page-design](.claude/skills/product-family-page-design/): bespoke (not vendored), decision tree for designing a product detail page for a new/differently-shaped product family or subcategory — reuse `/project/[slug]` vs a dedicated route (the `/outdoor-tv/[slug]` precedent), Zod `technicalSpecs` schema vs the generic jsonb bridge table, which house-shaped sections apply, `completionStandard` semantics, the options configurator (spec 0059), producer self-service level; hands the decisions to `/architect` for a formal spec, never writes spec files or page code itself
 
 MCP servers: playwright (connected), Neon (connected), Sentry (connected)
 
@@ -95,6 +97,9 @@ MCP servers: playwright (connected), Neon (connected), Sentry (connected)
 - [lib/db/AGENTS.md](lib/db/AGENTS.md): the real (production) database client, Neon Postgres and Drizzle ORM
 - [lib/observability/AGENTS.md](lib/observability/AGENTS.md): the one sanctioned path to error tracking (Sentry) and business event analytics (PostHog)
 - [lib/storage/AGENTS.md](lib/storage/AGENTS.md): the Cloudflare R2 file storage layer (client, upload validation), spec 0031
+- [lib/cases/AGENTS.md](lib/cases/AGENTS.md): the managed advisory case flow (access control, messaging, email throttling), spec 0048
+- [lib/notifications/AGENTS.md](lib/notifications/AGENTS.md): the shared transactional email sender plus one function per triggering event, spec 0051
+- [app/[locale]/internal/AGENTS.md](app/[locale]/internal/AGENTS.md): the admin panel (dashboard, cases, monitoring, notifications, producers, products), spec 0055
 - [app/[locale]/internal/products/AGENTS.md](app/[locale]/internal/products/AGENTS.md): admin screen for managing product photos, spec 0031
 
 _Drafted by /audit from the repo, worth a quick human pass. Edit freely: once a line stops matching this draft, later runs treat it as curated and will flag rather than overwrite it._

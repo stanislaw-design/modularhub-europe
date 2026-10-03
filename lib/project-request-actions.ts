@@ -3,17 +3,10 @@
 import { z } from "zod";
 import { and, eq, isNull } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import {
-  bulkProductInquiry,
-  producer,
-  producerCapacityProfile,
-  producerDeliveryCountry,
-  product,
-  projectRequest,
-  projectRequestTargetProducer,
-} from "@/lib/db/schema";
+import { bulkProductInquiry, product, projectRequest } from "@/lib/db/schema";
 import {
   BULK_REQUEST_EMAIL_LIMIT_ERROR,
+  computeTrustSignal,
   isBulkRequestEmailLimitError,
   normalizeContactEmail,
   projectRequestFamiliesSchema,
@@ -30,28 +23,6 @@ interface ActionResult {
 
 const GENERIC_ERROR = "Nie udało się wysłać zapytania. Spróbuj ponownie.";
 const dateStringSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Nieprawidłowa data.");
-
-// AC-2: powiadamia tylko producentów zweryfikowanych wolumenowo, dostarczających
-// do kraju zapytania. Brak dopasowanych producentów NIE jest błędem (spec 0037
-// Key invariants) — zapytanie zostaje 'open' z zero wierszy.
-async function autoTargetProducers(projectRequestId: string, countryCode: string): Promise<void> {
-  const matches = await db
-    .select({ producerId: producer.id })
-    .from(producer)
-    .innerJoin(producerCapacityProfile, eq(producerCapacityProfile.producerId, producer.id))
-    .innerJoin(
-      producerDeliveryCountry,
-      and(eq(producerDeliveryCountry.producerId, producer.id), eq(producerDeliveryCountry.countryCode, countryCode)),
-    )
-    .where(and(eq(producerCapacityProfile.volumeVerificationStatus, "approved"), isNull(producer.deletedAt)));
-
-  if (matches.length === 0) return;
-
-  await db
-    .insert(projectRequestTargetProducer)
-    .values(matches.map((match) => ({ projectRequestId, producerId: match.producerId })))
-    .onConflictDoNothing();
-}
 
 const submitProjectRequestSchema = z
   .object({
@@ -101,6 +72,7 @@ export async function submitProjectRequest(input: SubmitProjectRequestInput): Pr
   }
   const data = parsed.data;
   const contactEmail = normalizeContactEmail(data.contactEmail);
+  const trustSignal = computeTrustSignal(contactEmail, data.contactPhone);
 
   try {
     const [inserted] = await db
@@ -123,10 +95,9 @@ export async function submitProjectRequest(input: SubmitProjectRequestInput): Pr
         deliveryWindowFrom: data.deliveryWindowFrom ?? null,
         deliveryWindowTo: data.deliveryWindowTo ?? null,
         extrasNote: data.extrasNote ?? null,
+        trustSignal,
       })
       .returning({ id: projectRequest.id });
-
-    await autoTargetProducers(inserted.id, data.countryCode);
 
     trackEvent("project_request_submitted", { countryCode: data.countryCode, unitCountMin: data.unitCountMin }, inserted.id);
     return { ok: true, id: inserted.id };

@@ -48,7 +48,7 @@ export function FavoriteCompareTable({ favorites }: FavoriteCompareTableProps) {
             </Text>
             {favorites.map(({ project }) => (
               <DataText as="td" key={project.id} surface="v5" className="p-brand-2">
-                {project.floorAreaM2} m²
+                {project.floorAreaM2 !== null ? `${project.floorAreaM2} m²` : "—"}
               </DataText>
             ))}
           </tr>

@@ -63,9 +63,14 @@ export async function VerifiedManufacturerProjectCard({
           {project.name}
         </Heading>
         <Text tone="muted" surface="v5" className="text-data">
-          {project.rooms > 0
-            ? tCard("summary", { area: project.floorAreaM2, rooms: project.rooms })
-            : tCard("summaryNoRooms", { area: project.floorAreaM2 })}{" "}
+          {project.rooms !== null && project.rooms > 0
+            ? tCard("summary", {
+                area: project.floorAreaM2 !== null ? `${project.floorAreaM2} m²` : tCard("areaUnknown"),
+                rooms: project.rooms,
+              })
+            : tCard("summaryNoRooms", {
+                area: project.floorAreaM2 !== null ? `${project.floorAreaM2} m²` : tCard("areaUnknown"),
+              })}{" "}
           · {countryFlag[project.countryOfProduction]} {countryName}
         </Text>
         <DataText as="p" className="text-body-l font-semibold">
