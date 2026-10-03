@@ -371,8 +371,11 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: reads from the da
   });
 
   it("treats a whitespace-only q as no search filter (AC-6)", async () => {
-    const withBlankQ = await getProjects({ q: "   " });
-    const withoutQ = await getProjects();
+    // Fetched concurrently, not sequentially: this reads the whole catalog
+    // against the shared dev DB (not just this suite's fixture rows), which
+    // other processes can mutate between two round trips and make this
+    // comparison flaky.
+    const [withBlankQ, withoutQ] = await Promise.all([getProjects({ q: "   " }), getProjects()]);
     expect(withBlankQ.map((p) => p.id).sort()).toEqual(withoutQ.map((p) => p.id).sort());
   });
 

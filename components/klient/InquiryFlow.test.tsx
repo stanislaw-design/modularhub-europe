@@ -110,7 +110,11 @@ describe("InquiryFlow (spec 0048 AC-1, AC-2)", () => {
     await user.click(screen.getByRole("button", { name: "Wyślij zapytanie do ModularHub" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Nie udało się wysłać zapytania");
 
-    await user.click(screen.getByRole("button", { name: "Ponów wysyłanie" }));
+    // findByRole, not getByRole: the button's accessible name flips to this
+    // label in the same async transition that set the alert above, so under
+    // CPU contention (full parallel suite run) the re-render can still be in
+    // flight right after the alert's own findByRole already resolved.
+    await user.click(await screen.findByRole("button", { name: "Ponów wysyłanie" }));
     await waitFor(() => expect(push).toHaveBeenCalled());
     expect(mockedSubmit.mock.calls[1][0].idempotencyKey).toBe(mockedSubmit.mock.calls[0][0].idempotencyKey);
   });

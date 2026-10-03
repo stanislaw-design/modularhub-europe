@@ -117,7 +117,10 @@ describe("CaseChat (spec 0048 AC-6)", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Nie udało się wysłać wiadomości");
     expect(screen.getByLabelText("Twoja wiadomość")).toHaveValue("Pytanie");
 
-    await user.click(screen.getByRole("button", { name: "Ponów wysyłanie" }));
+    // findByRole, not getByRole: see InquiryFlow.test.tsx for why a sync
+    // query right after the alert's own findByRole can race the button's
+    // label re-render under full-suite CPU contention.
+    await user.click(await screen.findByRole("button", { name: "Ponów wysyłanie" }));
     await waitFor(() => expect(mockedSend).toHaveBeenCalledTimes(2));
     expect(mockedSend.mock.calls[1][0].idempotencyKey).toBe(mockedSend.mock.calls[0][0].idempotencyKey);
   });

@@ -12,7 +12,11 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     setupFiles: ["./vitest.setup.ts"],
-    exclude: ["node_modules/**", "e2e/**"],
+    // .agents/.claude: vendored agent skill packages ship their own test
+    // fixtures (e.g. bun:test imports Vitest can't bundle); tmp/outputs:
+    // gitignored scratch/scraping output that can contain stray
+    // node_modules. None of it belongs to this app's test run.
+    exclude: ["node_modules/**", "e2e/**", ".agents/**", ".claude/**", "tmp/**", "outputs/**"],
     // next-intl's ESM build re-exports bare, extensionless `next/navigation`
     // imports; Vitest externalizes node_modules to Node's own ESM loader by
     // default, which (unlike Vite's resolver) does not auto-resolve missing

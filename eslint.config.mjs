@@ -53,6 +53,14 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored agent skill packages (see AGENTS.md "Agent skills"): third
+    // party template/reference code, not part of the app. Without this,
+    // their own lint violations drown out real findings in this repo.
+    ".agents/**",
+    ".claude/**",
+    // Scratch/scraping output, already gitignored but not excluded from lint.
+    "tmp/**",
+    "outputs/**",
   ]),
 ]);
 
