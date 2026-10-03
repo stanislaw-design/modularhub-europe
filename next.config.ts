@@ -10,6 +10,26 @@ const withNextIntl = createNextIntlPlugin("./lib/i18n/request.ts");
 const r2PublicDomain = process.env.R2_PUBLIC_DOMAIN;
 
 const nextConfig: NextConfig = {
+  // Next.js 16 domyślnie odrzuca akcje serwerowe powyżej 1 MB na poziomie
+  // transportu, zanim walidacja pliku w kodzie akcji w ogóle zobaczy bajty
+  // (spec 0063 AC-12). 24mb daje zapas na narzut multipart ponad limit 20 MB
+  // PDF-a wyceny (lib/project-quote-actions.ts uploadProjectQuotePdf);
+  // globalne dla każdej akcji serwerowej, nie tylko tej jednej.
+  //
+  // Osobny, niezależny limit: `proxy.ts` (nowa nazwa middleware w Next.js 16)
+  // bufferuje całe body żądania do odczytu, z własnym domyślnym limitem 10 MB
+  // (`proxyClientMaxBodySize`, następca przestarzałego `middlewareClientMaxBodySize`).
+  // Matcher w proxy.ts łapie prawie każdą trasę, w tym tę z uploadem PDF-a, więc
+  // bez podniesienia TEGO limitu żądanie powyżej 10 MB jest ucinane w połowie,
+  // zanim w ogóle dotrze do akcji serwerowej (spec 0063, znalezione przez
+  // /check verify: plik 10-20 MB wywalał nieprzechwycony "Unexpected end of
+  // form" zamiast zapisać wycenę i pokazać błąd tylko przy polu pliku).
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "24mb",
+    },
+    proxyClientMaxBodySize: "24mb",
+  },
   images: {
     remotePatterns: [
       {

@@ -233,6 +233,9 @@ export const paymentStatusEnum = pgEnum("payment_status", [
 // "product_sales_pdf" dopisana tak samo jak "product_specification" (spec
 // 0050 AC-25, AC-26): opcjonalny PDF sprzedażowy, ten sam wzorzec co
 // specyfikacja (najwyżej jeden aktywny plik na produkt).
+// "project_quote_pdf" dopisana tak samo (spec 0063 AC-5): opcjonalny PDF
+// wyceny na tablicy ogłoszeń B2B, jedyny purpose trzymany w prywatnym
+// kubełku R2 (lib/storage/private-r2-client.ts), nigdy w publicznym.
 export const documentPurposeEnum = pgEnum("document_purpose", [
   "product_photo",
   "product_floor_plan",
@@ -243,6 +246,7 @@ export const documentPurposeEnum = pgEnum("document_purpose", [
   "ai_source_pdf",
   "product_specification",
   "product_sales_pdf",
+  "project_quote_pdf",
 ]);
 
 export const aiExtractionStatusEnum = pgEnum("ai_extraction_status", [
@@ -1592,6 +1596,10 @@ export const document = pgTable(
     productVariantId: uuid("product_variant_id").references(() => productVariant.id),
     orderStageEventId: uuid("order_stage_event_id").references(() => orderStageEvent.id),
     producerId: uuid("producer_id").references(() => producer.id),
+    // Ustawiane wyłącznie dla purpose = 'project_quote_pdf' (spec 0063 Feature
+    // design), tak jak każde inne specific FK na tej tabeli; bez ON DELETE
+    // CASCADE, bo project_quote nigdy nie jest usuwana, tylko zmienia status.
+    projectQuoteId: uuid("project_quote_id").references(() => projectQuote.id),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },
@@ -1613,6 +1621,12 @@ export const document = pgTable(
     uniqueIndex("document_one_sales_pdf_per_product")
       .on(table.productId)
       .where(sql`${table.purpose} = 'product_sales_pdf' AND ${table.deletedAt} IS NULL`),
+    // Najwyżej jeden aktywny PDF wyceny na wycenę (spec 0063 AC-5), ten sam
+    // wzorzec co wyżej; rewizja wyceny to nowy wiersz project_quote (nowy
+    // id), więc nigdy nie koliduje z plikiem poprzedniej rewizji.
+    uniqueIndex("document_one_quote_pdf_per_quote")
+      .on(table.projectQuoteId)
+      .where(sql`${table.purpose} = 'project_quote_pdf' AND ${table.deletedAt} IS NULL`),
   ],
 );
 

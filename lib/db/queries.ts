@@ -892,6 +892,7 @@ export interface ProjectQuoteForProducer {
   contactName: string | null;
   contactEmail: string | null;
   contactPhone: string | null;
+  hasPdf: boolean;
 }
 
 // Zasila /producer/panel/board-quotes (AC-5, AC-15): status własnych wycen
@@ -913,10 +914,17 @@ export async function getProjectQuotesForProducer(producerId: string): Promise<P
       contactName: sql<string | null>`CASE WHEN ${projectQuote.contactRevealedAt} IS NOT NULL THEN COALESCE(${projectRequest.contactName}, ${bulkProductInquiry.contactName}) ELSE NULL END`,
       contactEmail: sql<string | null>`CASE WHEN ${projectQuote.contactRevealedAt} IS NOT NULL THEN COALESCE(${projectRequest.contactEmail}, ${bulkProductInquiry.contactEmail}) ELSE NULL END`,
       contactPhone: sql<string | null>`CASE WHEN ${projectQuote.contactRevealedAt} IS NOT NULL THEN COALESCE(${projectRequest.contactPhone}, ${bulkProductInquiry.contactPhone}) ELSE NULL END`,
+      // hasPdf (spec 0063 AC-8): sam fakt istnienia, nigdy URL w tej liście --
+      // URL powstaje osobno, na żądanie, przez getProjectQuotePdfUrl.
+      hasPdf: sql<boolean>`${document.id} IS NOT NULL`,
     })
     .from(projectQuote)
     .leftJoin(projectRequest, eq(projectRequest.id, projectQuote.projectRequestId))
     .leftJoin(bulkProductInquiry, eq(bulkProductInquiry.id, projectQuote.bulkProductInquiryId))
+    .leftJoin(
+      document,
+      and(eq(document.projectQuoteId, projectQuote.id), eq(document.purpose, "project_quote_pdf"), isNull(document.deletedAt)),
+    )
     .where(eq(projectQuote.producerId, producerId))
     .orderBy(desc(projectQuote.submittedAt));
 
@@ -932,6 +940,7 @@ export async function getProjectQuotesForProducer(producerId: string): Promise<P
     contactName: row.contactName,
     contactEmail: row.contactEmail,
     contactPhone: row.contactPhone,
+    hasPdf: row.hasPdf,
   }));
 }
 
@@ -946,6 +955,7 @@ export interface ClientReceivedQuote {
   notes: string | null;
   submittedAt: Date;
   contactRevealedAt: Date | null;
+  hasPdf: boolean;
 }
 
 export interface ClientProjectRequestWithQuotes {
@@ -1028,9 +1038,14 @@ export async function getProjectRequestsWithQuotesForClient(clientId: string): P
             notes: projectQuote.notes,
             submittedAt: projectQuote.submittedAt,
             contactRevealedAt: projectQuote.contactRevealedAt,
+            hasPdf: sql<boolean>`${document.id} IS NOT NULL`,
           })
           .from(projectQuote)
           .innerJoin(producer, eq(producer.id, projectQuote.producerId))
+          .leftJoin(
+            document,
+            and(eq(document.projectQuoteId, projectQuote.id), eq(document.purpose, "project_quote_pdf"), isNull(document.deletedAt)),
+          )
           .where(
             or(
               requestIds.length > 0 ? inArray(projectQuote.projectRequestId, requestIds) : undefined,
@@ -1052,6 +1067,7 @@ export async function getProjectRequestsWithQuotesForClient(clientId: string): P
       notes: row.notes,
       submittedAt: row.submittedAt,
       contactRevealedAt: row.contactRevealedAt,
+      hasPdf: row.hasPdf,
     };
     const existing = quotesByParentId.get(key);
     if (existing) existing.push(quote);

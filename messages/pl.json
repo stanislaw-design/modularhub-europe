@@ -841,6 +841,11 @@
     "accepted": "Zaakceptowano",
     "genericError": "Nie udało się zaakceptować wyceny. Spróbuj ponownie."
   },
+  "DownloadQuotePdfButton": {
+    "download": "Pobierz PDF",
+    "preparing": "Przygotowywanie…",
+    "genericError": "Nie udało się przygotować linku do pliku. Spróbuj ponownie."
+  },
   "ClientInquiryDetailPage": {
     "heading": "Szczegóły zapytania",
     "statusOpen": "Oczekuje na odpowiedź",
@@ -1766,6 +1771,14 @@
     "submitting": "Wysyłanie…",
     "submittedMessage": "Wycena wysłana.",
     "genericError": "Nie udało się zapisać wyceny. Spróbuj ponownie."
+  },
+  "ProjectQuotePdfUploadStep": {
+    "label": "PDF wyceny (opcjonalnie)",
+    "chooseFile": "Wybierz plik",
+    "replaceFile": "Zastąp plik",
+    "uploading": "Wgrywanie…",
+    "hint": "PDF, maks. 20 MB.",
+    "uploadError": "Nie udało się wgrać pliku. Spróbuj ponownie."
   },
   "ProducerPanelBoardQuotesPage": {
     "heading": "Moje wyceny",

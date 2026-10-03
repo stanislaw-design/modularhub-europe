@@ -61,6 +61,8 @@ Stored in `docs/specs/`. Each is a directory `docs/specs/NNNN-title/` with `inde
 - No database, no login, no real payments in this stage; every "paid step" and file upload is a mock (see `docs/scope/prototyp.md`, Deferred section).
 - Lint/format/pre commit tooling is not otherwise finalized yet (tracked as scope feature 2), but `eslint.config.mjs` already carries one load bearing custom rule: `no-restricted-imports` blocks any file outside `lib/observability/` from importing `@sentry/nextjs`, `posthog-js`, or `posthog-node` directly (spec 0021).
 - `next.config.ts` allowlists `next/image` remote patterns explicitly (`images.remotePatterns`); mock project cover images come from `picsum.photos` today, add any other external image host there before using it.
+- `next.config.ts` raises `experimental.serverActions.bodySizeLimit` to `"24mb"` (spec 0063): Next.js 16 otherwise caps every server action's request body at 1 MB, rejecting an oversized upload at the transport layer before any in-action validation runs. Global for every server action, not just the one that first needed it.
+- `next.config.ts` also sets `experimental.proxyClientMaxBodySize` to the same `"24mb"` (spec 0063, found by `/check verify`): this is a second, independent request-body cap enforced by `proxy.ts` (Next.js 16's middleware), defaulting to 10 MB regardless of `serverActions.bodySizeLimit`. `proxy.ts`'s matcher covers nearly every route, so without this a file upload between 10 MB and the app-level limit crashes the page with an uncaught "Unexpected end of form" instead of reaching the server action's own validation.
 
 ## Agent skills
 

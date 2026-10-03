@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { AcceptQuoteButton } from "@/components/klient/AcceptQuoteButton";
+import { DownloadQuotePdfButton } from "@/components/klient/DownloadQuotePdfButton";
 import { PanelEmptyState } from "@/components/klient/PanelEmptyState";
 import { DataText, Heading, Stack, Text } from "@/components/ui";
 import { getClientIdForUser, getProjectRequestsWithQuotesForClient, type ClientReceivedQuote } from "@/lib/db/queries";
@@ -96,7 +97,10 @@ export default async function ClientPanelQuotesPage({
                           {quote.notes ?? "—"}
                         </Text>
                         <td className="p-brand-2 text-right">
-                          {quote.status === "active" && <AcceptQuoteButton quoteId={quote.id} />}
+                          <div className="flex flex-col items-end gap-2">
+                            {quote.status === "active" && <AcceptQuoteButton quoteId={quote.id} />}
+                            {quote.hasPdf && <DownloadQuotePdfButton quoteId={quote.id} />}
+                          </div>
                         </td>
                       </tr>
                     ))}

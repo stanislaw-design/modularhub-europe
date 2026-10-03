@@ -25,6 +25,7 @@ export type EventName =
   | "bulk_product_inquiry_submitted"
   | "project_quote_submitted"
   | "project_quote_accepted"
+  | "project_quote_pdf_uploaded"
   | "case_created"
   | "case_first_advisor_reply"
   | "case_brief_approved"

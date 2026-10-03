@@ -1,5 +1,6 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { AuthError } from "next-auth";
@@ -10,6 +11,7 @@ import { getClientIdForUser, getProducerIdForUser } from "@/lib/db/queries";
 import {
   bulkProductInquiry,
   client,
+  document,
   pendingRegistration,
   product,
   producerCapacityProfile,
@@ -24,10 +26,19 @@ import {
   pastProjectReferencesSchema,
 } from "@/lib/producer-capacity-profile-specs";
 import { captureError, trackEvent } from "@/lib/observability";
+import { validateDocumentPdf } from "@/lib/storage/document-pdf-validation";
+import { buildSignedDownloadUrl, uploadPrivateObject } from "@/lib/storage/private-r2-client";
+import { buildR2Key } from "@/lib/storage/r2-client";
 
 interface ActionResult {
   ok: boolean;
   error?: string;
+}
+
+// quoteId w wyniku (spec 0063 AC-1): pozwala QuoteForm wywołać
+// uploadProjectQuotePdf zaraz po udanym złożeniu, bez osobnego odczytu.
+interface SubmitProjectQuoteResult extends ActionResult {
+  quoteId?: string;
 }
 
 const GENERIC_ERROR = "Nie udało się zapisać wyceny. Spróbuj ponownie.";
@@ -100,7 +111,7 @@ async function notifyContactOfNewQuote(contactEmail: string, contactName: string
 // 0037, niezmienione). Rewizja tego samego producenta na to samo zapytanie
 // zastępuje poprzednią aktywną wycenę atomowo (ten sam wzorzec co submitOffer,
 // spec 0033), nie sprawdzeniem przed zapisem.
-export async function submitProjectQuote(input: SubmitProjectQuoteInput): Promise<ActionResult> {
+export async function submitProjectQuote(input: SubmitProjectQuoteInput): Promise<SubmitProjectQuoteResult> {
   const parsed = submitProjectQuoteSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Sprawdź dane formularza." };
@@ -211,7 +222,7 @@ export async function submitProjectQuote(input: SubmitProjectQuoteInput): Promis
 
   await notifyContactOfNewQuote(contact.email, contact.name, contact.phone);
   trackEvent("project_quote_submitted", { quoteId: newQuoteId }, session.user.id);
-  return { ok: true };
+  return { ok: true, quoteId: newQuoteId };
 }
 
 // AC-9: akceptacja wymaga b2bVerificationStatus = 'approved'; akceptuje
@@ -296,6 +307,137 @@ export async function acceptProjectQuote(quoteId: string): Promise<ActionResult>
 
   trackEvent("project_quote_accepted", { quoteId }, session.user.id);
   return { ok: true };
+}
+
+// ---------------------------------------------------------------------------
+// Opcjonalny PDF wyceny (spec 0063): prywatny magazyn, nigdy publiczny R2.
+// ---------------------------------------------------------------------------
+
+const MAX_QUOTE_PDF_BYTES = 20 * 1024 * 1024;
+const QUOTE_PDF_SIGNED_URL_TTL_SECONDS = 10 * 60;
+const QUOTE_NOT_FOUND_ERROR = "Nie znaleziono wyceny.";
+
+export interface UploadProjectQuotePdfResult extends ActionResult {
+  documentId?: string;
+}
+
+// AC-13: sprawdzenie status = 'active' jest częścią tego samego db.batch co
+// zapis (WHERE EXISTS, ten sam wzorzec co EXISTS w acceptProjectQuote
+// wyżej), nie tylko wcześniejszym odczytem -- równoległa akceptacja tej samej
+// wyceny nie może zostawić okna na podmianę pliku na już zaakceptowanej
+// ofercie. Usunięcie starego wiersza jest warunkowane tym samym EXISTS, żeby
+// przegrany wyścig nie skasował istniejącego, już trwałego pliku zaakceptowanej
+// wyceny bez wstawienia nowego w jego miejsce.
+export async function uploadProjectQuotePdf(quoteId: string, file: File): Promise<UploadProjectQuotePdfResult> {
+  const session = await auth();
+  if (!session || session.user.role !== "producer") {
+    return { ok: false, error: "Musisz być zalogowany jako producent." };
+  }
+  const producerId = await getProducerIdForUser(session.user.id);
+  if (!producerId) {
+    return { ok: false, error: "Nie znaleziono konta producenta." };
+  }
+
+  const [quoteRow] = await db
+    .select({ producerId: projectQuote.producerId, status: projectQuote.status })
+    .from(projectQuote)
+    .where(eq(projectQuote.id, quoteId));
+  if (!quoteRow) return { ok: false, error: QUOTE_NOT_FOUND_ERROR };
+  if (quoteRow.producerId !== producerId) return { ok: false, error: "Nie masz dostępu do tej wyceny." };
+  if (quoteRow.status !== "active") return { ok: false, error: RACE_ERROR };
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const validation = validateDocumentPdf(buffer, MAX_QUOTE_PDF_BYTES);
+  if (!validation.ok) {
+    return { ok: false, error: validation.error ?? "Nieprawidłowy plik PDF." };
+  }
+
+  const r2Key = buildR2Key(file.name);
+  try {
+    await uploadPrivateObject(r2Key, buffer, "application/pdf");
+  } catch (error) {
+    captureError(error, { path: "uploadProjectQuotePdf", userId: session.user.id });
+    return { ok: false, error: "Nie udało się wgrać pliku do magazynu. Spróbuj ponownie." };
+  }
+
+  const newDocumentId = randomUUID();
+  const activeQuoteCondition = sql`EXISTS (SELECT 1 FROM "project_quote" WHERE "id" = ${quoteId} AND "producer_id" = ${producerId} AND "status" = 'active')`;
+  try {
+    const batchResults = await db.batch([
+      db.execute(sql`
+        UPDATE "document" SET "deleted_at" = now()
+        WHERE "project_quote_id" = ${quoteId} AND "purpose" = 'project_quote_pdf' AND "deleted_at" IS NULL
+          AND ${activeQuoteCondition}
+      `),
+      db.execute(sql`
+        INSERT INTO "document" ("id", "r2_key", "filename", "mime_type", "size_bytes", "purpose", "owner_user_id", "project_quote_id", "created_at")
+        SELECT ${newDocumentId}, ${r2Key}, ${file.name}, 'application/pdf', ${buffer.byteLength}, 'project_quote_pdf', ${session.user.id}, ${quoteId}, now()
+        WHERE ${activeQuoteCondition}
+      `),
+    ]);
+
+    const insertResult = batchResults[1] as { rowCount: number | null };
+    if ((insertResult.rowCount ?? 0) === 0) {
+      return { ok: false, error: RACE_ERROR };
+    }
+  } catch (error) {
+    captureError(error, { path: "uploadProjectQuotePdf", userId: session.user.id });
+    return { ok: false, error: "Plik trafił do magazynu, ale zapis w bazie się nie powiódł. Spróbuj ponownie." };
+  }
+
+  trackEvent("project_quote_pdf_uploaded", { quoteId }, session.user.id);
+  return { ok: true, documentId: newDocumentId };
+}
+
+export interface GetProjectQuotePdfUrlResult extends ActionResult {
+  url?: string;
+}
+
+// AC-7, AC-10: ten sam błąd „nie znaleziono" dla wyceny nieistniejącej i dla
+// braku uprawnień -- nigdy przecieku istnienia innemu producentowi. URL jest
+// generowany na nowo przy każdym wywołaniu (nigdy zapisywany/cache'owany) i
+// nigdy nie trafia do captureError/trackEvent (tylko quoteId, ten sam wzorzec
+// oczyszczania co lib/observability/scrub.ts).
+export async function getProjectQuotePdfUrl(quoteId: string): Promise<GetProjectQuotePdfUrlResult> {
+  const session = await auth();
+  if (!session) return { ok: false, error: QUOTE_NOT_FOUND_ERROR };
+
+  const [quoteRow] = await db
+    .select({
+      producerId: projectQuote.producerId,
+      projectRequestId: projectQuote.projectRequestId,
+      bulkProductInquiryId: projectQuote.bulkProductInquiryId,
+    })
+    .from(projectQuote)
+    .where(eq(projectQuote.id, quoteId));
+  if (!quoteRow) return { ok: false, error: QUOTE_NOT_FOUND_ERROR };
+
+  let allowed = false;
+  if (session.user.role === "producer") {
+    const producerId = await getProducerIdForUser(session.user.id);
+    allowed = producerId !== null && producerId === quoteRow.producerId;
+  } else if (session.user.role === "client") {
+    const clientId = await getClientIdForUser(session.user.id);
+    const parentClientId = quoteRow.projectRequestId
+      ? (await db.select({ clientId: projectRequest.clientId }).from(projectRequest).where(eq(projectRequest.id, quoteRow.projectRequestId)))[0]?.clientId
+      : (await db.select({ clientId: bulkProductInquiry.clientId }).from(bulkProductInquiry).where(eq(bulkProductInquiry.id, quoteRow.bulkProductInquiryId!)))[0]?.clientId;
+    allowed = clientId !== null && parentClientId !== null && parentClientId === clientId;
+  }
+  if (!allowed) return { ok: false, error: QUOTE_NOT_FOUND_ERROR };
+
+  const [documentRow] = await db
+    .select({ r2Key: document.r2Key, filename: document.filename })
+    .from(document)
+    .where(and(eq(document.projectQuoteId, quoteId), eq(document.purpose, "project_quote_pdf"), isNull(document.deletedAt)));
+  if (!documentRow) return { ok: false, error: QUOTE_NOT_FOUND_ERROR };
+
+  try {
+    const url = await buildSignedDownloadUrl(documentRow.r2Key, QUOTE_PDF_SIGNED_URL_TTL_SECONDS, documentRow.filename);
+    return { ok: true, url };
+  } catch (error) {
+    captureError(error, { path: "getProjectQuotePdfUrl", userId: session.user.id });
+    return { ok: false, error: "Nie udało się przygotować linku do pliku. Spróbuj ponownie." };
+  }
 }
 
 // ---------------------------------------------------------------------------

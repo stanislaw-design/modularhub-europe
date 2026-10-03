@@ -64,6 +64,7 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 48 | Płatne opcje konfiguratora dla produktów katalogowych | Foundation | in-progress |
 | 49 | Tablica ogłoszeń B2B i odpowiadanie na nią | Slice 12 | in progress |
 | 50 | Strona produktu dla sauny (podkategoria spa modułowe) | Foundation | in progress |
+| 51 | Opcjonalny PDF wyceny w tablicy ogłoszeń B2B | Slice 12 | done |
 
 ## Foundations
 
@@ -590,6 +591,18 @@ Backend wycen z funkcji 32 nie ma dziś żadnego ekranu po obu stronach: zastęp
   - [x] Tłumaczenia, dostępność i testy dla wszystkich nowych/zmienionych ekranów, satisfies AC-11 i regresje
 - [ ] Zweryfikuj: `/check verify tablica ogłoszeń B2B i odpowiadanie na nią`
 - [ ] Testuj: `/test tablica ogłoszeń B2B i odpowiadanie na nią`
+
+### 51. Opcjonalny PDF wyceny w tablicy ogłoszeń B2B · full · done
+Producent dołącza do swojej wyceny (funkcja 49) opcjonalny plik PDF przygotowany samemu (Canva/PowerPoint/Word, pełna wolność wizualna), zamiast kreatora wizualnego budowanego w aplikacji. Plik leży w nowym, prywatnym kubełku R2, udostępniany klientowi i producentowi właścicielowi przez krótkoterminowy podpisany URL generowany na żądanie; nigdy widoczny dla konkurencyjnego producenta.
+**Done when:** producent może dołączyć PDF do złożonej wyceny (project_request i bulk_product_inquiry), klient widzi i pobiera ten PDF od razu po złożeniu wyceny niezależnie od jej statusu, żaden inny producent nie może go pobrać, a pola liczbowe wyceny zostają wymagane.
+- [x] Zaprojektuj (spec): [0063](../specs/0063-pdf-wyceny-na-tablicy-b2b/index.md)
+- [x] Zbuduj: `/develop opcjonalny PDF wyceny w tablicy ogłoszeń B2B` — kod w `lib/project-quote-actions.ts`, `lib/storage/private-r2-client.ts`, `lib/db/queries.ts`, `lib/db/schema.ts`, `components/producent/`, `components/klient/`
+  - [x] Infrastruktura i migracja: migracja `document.project_quote_id`/`project_quote_pdf`/indeks unikalny zastosowana na dev DB, limit rozmiaru akcji serwerowej w `next.config.ts` (`serverActions.bodySizeLimit` + `proxyClientMaxBodySize`, oba 24mb — drugi dołożony 2026-10-03 po tym, jak `/check verify` znalazł, że domyślny 10 MB limit bufora `proxy.ts` ucinał żądania w połowie zanim dotarły do pierwszego limitu), prywatny kubełek R2 (`PRIVATE_R2_*`) skonfigurowany (reużyty dawny bucket spod `AI_PRIVATE_R2_*`, spec 0047), satisfies AC-5, AC-6, AC-12
+  - [x] Zaplecze wgrywania i pobierania: `private-r2-client.ts`, `maxBytes` na `validateDocumentPdf`, `quoteId` w wyniku `submitProjectQuote`, `uploadProjectQuotePdf`, `getProjectQuotePdfUrl`, rozszerzone `getProjectQuotesForProducer`/`getProjectRequestsWithQuotesForClient`, satisfies AC-1 do AC-10, AC-13
+  - [x] UI: wybór pliku PDF w tym samym kroku co cena w `QuoteForm` (jedno kliknięcie "Wyślij wycenę" tworzy wycenę i wgrywa plik; nieudane wgranie zostawia wycenę zapisaną i pokazuje krok ponowienia), przycisk „Pobierz PDF" na ekranach producenta i klienta, tłumaczenia pl/en/nl/de, satisfies AC-11 (inżynier poprosił o połączenie kroków po pierwszym przebiegu buildu, odstępstwo od pierwotnego opisu AC-11 w spec, patrz flaga w spec 0063)
+  - [x] Testy: walidacja, własność/status/wyścig, autoryzacja pobrania (klient, producent, odmowa), rozszerzone zapytania, formularz połączonego kroku, komponenty przycisków pobierania i kroku ponowienia, klient `private-r2-client.ts` (1461 testów jednostkowych w całym repo, realna dev DB), plus `e2e/pdf-wyceny-tablica-b2b.spec.ts` rozszerzony 2026-10-03 o trzy scenariusze: AC-12 (plik >1 MB przez przeglądarkę), regresję na plik 15 MB (pilnuje poprawki `proxyClientMaxBodySize`), i pełny przepływ pobierania PDF-a przez klienta i producenta z akceptacją wyceny w trakcie
+- [x] Zweryfikuj: `/check verify opcjonalny PDF wyceny w tablicy ogłoszeń B2B` (2026-10-03, PASS po poprawce `proxyClientMaxBodySize`)
+- [x] Testuj: `/test opcjonalny PDF wyceny w tablicy ogłoszeń B2B` (2026-10-03, 150/150 plików testowych zielonych, nowy regresyjny test e2e na próg 10-20 MB)
 
 ## Utwardzenie przed startem
 

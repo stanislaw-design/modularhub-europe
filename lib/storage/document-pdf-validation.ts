@@ -10,9 +10,12 @@ export interface DocumentPdfValidationResult {
   error?: string;
 }
 
-export function validateDocumentPdf(bytes: Uint8Array): DocumentPdfValidationResult {
-  if (bytes.byteLength === 0 || bytes.byteLength > MAX_DOCUMENT_PDF_BYTES) {
-    return { ok: false, error: "Plik PDF jest pusty albo większy niż 10 MB." };
+// maxBytes (spec 0063 AC-4): opcjonalny, domyślnie zostaje dzisiejsze 10 MB
+// dla każdego dotychczasowego wołającego; PDF wyceny (lib/project-quote-actions.ts)
+// przekazuje własny, wyższy limit 20 MB.
+export function validateDocumentPdf(bytes: Uint8Array, maxBytes: number = MAX_DOCUMENT_PDF_BYTES): DocumentPdfValidationResult {
+  if (bytes.byteLength === 0 || bytes.byteLength > maxBytes) {
+    return { ok: false, error: `Plik PDF jest pusty albo większy niż ${Math.floor(maxBytes / (1024 * 1024))} MB.` };
   }
   const header = Buffer.from(bytes.subarray(0, 8)).toString("latin1");
   if (!header.startsWith("%PDF-")) {

@@ -841,6 +841,11 @@
     "accepted": "Geaccepteerd",
     "genericError": "De offerte kon niet worden geaccepteerd. Probeer het opnieuw."
   },
+  "DownloadQuotePdfButton": {
+    "download": "PDF downloaden",
+    "preparing": "Voorbereiden…",
+    "genericError": "De link naar het bestand kon niet worden voorbereid. Probeer het opnieuw."
+  },
   "KlientPanelUlubionePage": {
     "heading": "Favorieten",
     "emptyTitle": "U heeft nog geen favoriete woningen",
@@ -1759,6 +1764,14 @@
     "submitting": "Verzenden…",
     "submittedMessage": "Offerte verzonden.",
     "genericError": "De offerte kon niet worden opgeslagen. Probeer het opnieuw."
+  },
+  "ProjectQuotePdfUploadStep": {
+    "label": "PDF van offerte (optioneel)",
+    "chooseFile": "Bestand kiezen",
+    "replaceFile": "Bestand vervangen",
+    "uploading": "Uploaden…",
+    "hint": "PDF, max. 20 MB.",
+    "uploadError": "Het bestand kon niet worden geüpload. Probeer het opnieuw."
   },
   "ProducerPanelBoardQuotesPage": {
     "heading": "Mijn offertes",

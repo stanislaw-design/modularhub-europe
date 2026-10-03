@@ -841,6 +841,11 @@
     "accepted": "Accepted",
     "genericError": "Couldn't accept the quote. Please try again."
   },
+  "DownloadQuotePdfButton": {
+    "download": "Download PDF",
+    "preparing": "Preparing…",
+    "genericError": "Couldn't prepare the file link. Please try again."
+  },
   "KlientPanelUlubionePage": {
     "heading": "Favorites",
     "emptyTitle": "You don't have any favorite houses yet",
@@ -1759,6 +1764,14 @@
     "submitting": "Submitting…",
     "submittedMessage": "Quote submitted.",
     "genericError": "Couldn't save the quote. Please try again."
+  },
+  "ProjectQuotePdfUploadStep": {
+    "label": "Quote PDF (optional)",
+    "chooseFile": "Choose file",
+    "replaceFile": "Replace file",
+    "uploading": "Uploading…",
+    "hint": "PDF, max. 20 MB.",
+    "uploadError": "Couldn't upload the file. Please try again."
   },
   "ProducerPanelBoardQuotesPage": {
     "heading": "My quotes",

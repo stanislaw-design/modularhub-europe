@@ -841,6 +841,11 @@
     "accepted": "Angenommen",
     "genericError": "Das Angebot konnte nicht angenommen werden. Bitte versuche es erneut."
   },
+  "DownloadQuotePdfButton": {
+    "download": "PDF herunterladen",
+    "preparing": "Wird vorbereitet…",
+    "genericError": "Der Link zur Datei konnte nicht vorbereitet werden. Bitte versuche es erneut."
+  },
   "ClientInquiryDetailPage": {
     "heading": "Anfragedetails",
     "statusOpen": "Wartet auf Antwort",
@@ -1766,6 +1771,14 @@
     "submitting": "Wird gesendet…",
     "submittedMessage": "Angebot gesendet.",
     "genericError": "Das Angebot konnte nicht gespeichert werden. Bitte versuche es erneut."
+  },
+  "ProjectQuotePdfUploadStep": {
+    "label": "Angebots-PDF (optional)",
+    "chooseFile": "Datei auswählen",
+    "replaceFile": "Datei ersetzen",
+    "uploading": "Wird hochgeladen…",
+    "hint": "PDF, max. 20 MB.",
+    "uploadError": "Die Datei konnte nicht hochgeladen werden. Bitte versuche es erneut."
   },
   "ProducerPanelBoardQuotesPage": {
     "heading": "Meine Angebote",

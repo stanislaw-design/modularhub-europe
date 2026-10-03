@@ -862,9 +862,21 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: project request boar
         status: "active",
       },
     ]);
+    // spec 0063 AC-8: revealedQuoteId has an attached PDF, activeQuoteId does
+    // not -- hasPdf must reflect this per quote, true only for the former.
+    await db.insert(document).values({
+      r2Key: `qb-quote-pdf-${revealedQuoteId}.pdf`,
+      filename: "wycena.pdf",
+      mimeType: "application/pdf",
+      sizeBytes: 100,
+      purpose: "project_quote_pdf",
+      ownerUserId: producerUserId,
+      projectQuoteId: revealedQuoteId,
+    });
   });
 
   afterAll(async () => {
+    await db.delete(document).where(inArray(document.projectQuoteId, [revealedQuoteId, activeQuoteId]));
     await db.delete(projectQuote).where(inArray(projectQuote.id, [revealedQuoteId, activeQuoteId]));
     await db.delete(bulkProductInquiry).where(eq(bulkProductInquiry.id, bulkInquiryId));
     await db.delete(projectRequest).where(inArray(projectRequest.id, [openRequestId, closedRequestId]));
@@ -965,6 +977,14 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: project request boar
       expect(rows.find((row) => row.id === revealedQuoteId)?.source).toBe("project_request");
       expect(rows.find((row) => row.id === activeQuoteId)?.source).toBe("bulk_product_inquiry");
     });
+
+    // AC-8: hasPdf reflects the per-quote document, never a flat true/false for every row.
+    it("reports hasPdf true only for the quote with an attached document", async () => {
+      const rows = await getProjectQuotesForProducer(producerId);
+
+      expect(rows.find((row) => row.id === revealedQuoteId)?.hasPdf).toBe(true);
+      expect(rows.find((row) => row.id === activeQuoteId)?.hasPdf).toBe(false);
+    });
   });
 
   describe("getProjectRequestsWithQuotesForClient", () => {
@@ -974,9 +994,9 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: project request boar
       const requestItem = items.find((item) => item.source === "project_request" && item.id === openRequestId);
       const bulkItem = items.find((item) => item.source === "bulk_product_inquiry" && item.id === bulkInquiryId);
       expect(requestItem?.quotes).toHaveLength(1);
-      expect(requestItem?.quotes[0]).toMatchObject({ id: revealedQuoteId, producerName: "Board Query Producer", status: "accepted" });
+      expect(requestItem?.quotes[0]).toMatchObject({ id: revealedQuoteId, producerName: "Board Query Producer", status: "accepted", hasPdf: true });
       expect(bulkItem?.quotes).toHaveLength(1);
-      expect(bulkItem?.quotes[0]).toMatchObject({ id: activeQuoteId, producerName: "Board Query Producer", status: "active" });
+      expect(bulkItem?.quotes[0]).toMatchObject({ id: activeQuoteId, producerName: "Board Query Producer", status: "active", hasPdf: false });
     });
   });
 });
