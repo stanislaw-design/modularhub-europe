@@ -57,7 +57,7 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 41 | Zarządzany przepływ doradczy: klient, ModularHub i producent | Slice 3b | in progress |
 | 42 | AI w edycji istniejącego produktu (rozpoznawanie układu, wydobywanie standardów) | Slice 2b | in progress |
 | 43 | Wymiary zewnętrzne i wymagania fundamentowe w kreatorze | Slice 2b | done |
-| 44 | Atrybucja audytu panelu admina | Slice 10 | in progress |
+| 44 | Atrybucja audytu panelu admina | Slice 10 | done |
 | 45 | Outdoor TV: rodzina produktu i partnerstwo reseller MirageVision | Foundation | in progress |
 | 46 | Wieloosobowe konta producenta | Slice 2b | in progress |
 | 47 | Czytelne adresy i metadane produktów (slug) | Utwardzenie | done |
@@ -69,6 +69,8 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 53 | Log kto przeglądał dane klienta lub producenta | Slice 10 | planned |
 | 54 | Dwuskładnikowe logowanie dla kont administratora | Slice 10 | planned |
 | 55 | Rozdział certyfikatów producenta od oceny zgodności | Slice 11 | in progress |
+| 56 | Zapytanie o ofertę bez logowania | Slice 3b | in progress |
+| 57 | Tłumaczenia opcji konfiguratora, producenta i pól produktu (EN/DE/NL) | Slice 0 | in progress |
 
 ## Foundations
 
@@ -187,6 +189,18 @@ Rozszerzenie platformy z jednojęzycznego (polskiego) pilotu o pełne wersje ang
 `npx tsc --noEmit` czysty po obu rundach, `npx vitest run` (pliki dotknięte: `lib/data/projects.test.ts`, `ProjectCostComparisonTable.test.tsx`, `ProjectRoomLayout.test.tsx`, `lib/i18n/messages.test.ts`) 60/60 zielone. `getFavoritesForClient` (panel klienta, ulubione) świadomie nietknięty w obu rundach: nie ma dziś `locale` w sygnaturze, ta sama luka dotyczy tam też `product.name`/`description` — nieopisana, osobna sprawa. FAQ (`product.faq`/`product_translation.faq`) ma dokładnie tę samą, jeszcze nienaprawioną lukę co roomLayout miał przed tą rundą (kolumna istnieje, odczyt jej nie czyta) — nikt o to nie prosił w tym uruchomieniu, zostawione bez zmian, warto sprawdzić przy najbliższej okazji.**
 - [ ] Zweryfikuj: `/check verify wersje językowe (EN/NL/DE) i przełącznik języka`
 - [ ] Testuj: `/test wersje językowe (EN/NL/DE) i przełącznik języka`
+
+### 57. Tłumaczenia opcji konfiguratora, producenta i pól produktu (EN/DE/NL) · full · in progress
+Dopełnienie funkcji 25: na stronach produktu w `/en`, `/de`, `/nl` część tekstów z danych nadal wychodzi po polsku (opcje i grupy konfiguratora, opis i notatka producenta, nazwy certyfikatów, pola konstrukcji, dachu, personalizacji, zakresu usług, powody zgodności). Nowe tabele tłumaczeń per encja, cztery kolumny w `product_translation` i słownik dla krótkich powtarzalnych zdań, z fallbackiem na polski i skryptem kontrolnym braków. Edycja tych tłumaczeń przez producenta w panelu jest odłożona (dziś nie ma ekranu edycji tych tekstów).
+**Done when:** `npm run check:translations` na dev i prod zgłasza zero braków dla opublikowanych produktów w `en`, `de`, `nl`, a strony sauny, projektu i listy wyników w tych językach nie zawierają polskich tekstów źródłowych z danych produktu.
+- [x] Zaprojektuj (spec): [0067](../specs/0067-tlumaczenia-opcji-producenta-i-pol-produktu/index.md)
+- [ ] Build it: `/develop tłumaczenia opcji konfiguratora, producenta i pól produktu`
+  - [ ] Migracja i schemat: pięć nowych tabel tłumaczeń i cztery kolumny w `product_translation`, satisfies AC-1, AC-2, AC-3, AC-4, AC-5, AC-7
+  - [ ] Odczyt z fallbackiem: opcje konfiguratora (z tekstem źródłowym dla ikon i opcji "Nie"), producent i certyfikaty, pola produktu na szczegółach i kartach list, słownik zgodności i harmonogramu, satisfies AC-1, AC-2, AC-3, AC-4, AC-5, AC-6, AC-7
+  - [ ] Skrypt kontrolny braków, dane tłumaczeń i backfill dev, potem prod, satisfies AC-8, AC-9
+  - [ ] Reguła w skillach importu i skan końcowy stron w trzech językach, satisfies AC-10, AC-11
+- [ ] Verify it: `/check verify tłumaczenia opcji konfiguratora, producenta i pól produktu`
+- [ ] Test it: `/test tłumaczenia opcji konfiguratora, producenta i pól produktu`
 
 ## Slice 1: klient na realnym zapleczu
 
@@ -467,6 +481,18 @@ Zapytanie klienta o pojedyncze domy trafia wyłącznie do ModularHub, nie do pro
 - [ ] Zweryfikuj: `/check verify zarządzany przepływ doradczy`
 - [ ] Testuj: `/test zarządzany przepływ doradczy`
 
+### 56. Zapytanie o ofertę bez logowania · in progress
+Dziś niezalogowana osoba musi założyć konto, zanim wyśle zapytanie, więc część odpada na bramce i nie zostawia nawet e maila. Ta funkcja pozwala wysłać zapytanie jako gość (imię, e mail, telefon, adres działki), a założenie konta proponuje dopiero po wysłaniu (przycisk na ekranie potwierdzenia i w mailu). Sprawa gościa powstaje bez konta, doradca widzi ją ze znacznikiem „e mail niepotwierdzony", a po zalogowaniu linkiem sprawa dowiązuje się do konta po e mailu. Funkcja dodana ze [spec 0066](../specs/0066-zapytanie-bez-logowania/index.md).
+**Done when:** niezalogowany odwiedzający wysyła zapytanie bez konta i widzi ekran potwierdzenia z propozycją konta, doradca widzi sprawę gościa, a po zalogowaniu linkiem magicznym (także przy pierwszym logowaniu) sprawa jest w panelu klienta i czat działa; ten sam e mail istniejącego klienta dostaje sprawę z mailem „czy to Ty", a limity i pole pułapka chronią przed spamem.
+- [x] Zaprojektuj (spec): [0066](../specs/0066-zapytanie-bez-logowania/index.md) (sprawa gościa z `client_id` NULL i migawką kontaktu, dowiązanie po e mailu przy logowaniu, konto na jawne kliknięcie, limity w bazie bez nowej usługi)
+- [x] Zbuduj: `/develop zapytanie o ofertę bez logowania` (kod w `lib/cases/guest.ts`, `lib/guest-case-actions.ts`, `lib/notifications/guest-inquiry.ts`, `components/klient/InquiryFlow.tsx`, `app/[locale]/(customer)/inquiry/`)
+  - [x] Migracja i cienki wątek: `client_id` nullable, `contact_email_verified_at`, `locale`, formularz gościa, zapis sprawy gościa z idempotencją po e mailu, widok doradcy, satisfies AC-1 do AC-4, AC-14, AC-15
+  - [x] Konto i dowiązanie: ekran potwierdzenia, `requestAccountForGuestCase`, strona claim, dowiązanie przy każdym logowaniu (także pierwszym), przypięcie do istniejącego konta z mailem „czy to Ty", `contact_email_verified_at` przy wiadomości klienta, satisfies AC-6 do AC-10, AC-13
+  - [x] Powiadomienia: `notify.ts` bez `client`, maile do gościa (potwierdzenie, odpowiedź doradcy z limitem), znacznik „niepotwierdzony", satisfies AC-7, AC-11, AC-12
+  - [x] Ochrona, RODO i domknięcie: limity i pole pułapka, informacja o przetwarzaniu PL/EN/NL, analityka, adnotacje w specyfikacjach 0023 i 0048, satisfies AC-5, AC-16 do AC-18
+- [ ] Zweryfikuj: `/check verify zapytanie o ofertę bez logowania`
+- [ ] Testuj: `/test zapytanie o ofertę bez logowania`
+
 ## Slice 4: płatności
 
 ### 12. Realne płatności · needs a decision · full
@@ -538,16 +564,16 @@ Wspólna nawigacja i tryb ciemny spinające dziś rozłączone ekrany panelu (sp
 - [ ] Zweryfikuj: `/check verify panel administracyjny`
 - [ ] Testuj: `/test panel administracyjny`
 
-### 44. Atrybucja audytu panelu admina · full · in progress
+### 44. Atrybucja audytu panelu admina · full · done
 Dokończenie mechanizmu audytu ze spec 0018: tabela `audit_log` i jej trigger już istnieją i zapisują co się zmieniło na danych osobowych, ale nigdy nie zapisywały kto wykonał zmianę, bo nic w aplikacji nie ustawiało zmiennej, którą trigger czyta. Ta funkcja kończy to dla zapisów panelu admina (blokada producenta, weryfikacja B2B klienta, zarządzanie członkami producenta) i dokłada log (same metadane, bez treści) dla rozmów doradczych administratora w sprawach klient/producent (spec 0048), które dziś nie są objęte audytem wcale. Pierwotny, szerszy zamysł funkcji (samoobsługowe role, log przeglądania, 2FA) został świadomie rozdzielony na osobne funkcje 52, 53, 54 podczas projektowania tej decyzji.
 **Done when:** każdy zapis administratora na tabeli objętej audytem (`users`, `producer`, `client`, `inquiry`, `payment`, `document`, `message`) zapisuje w `audit_log`, który administrator go wykonał; rozmowy doradcze w sprawach są objęte audytem bez treści wiadomości; mechanizm ma test regresyjny przeciw cichemu powrotowi do braku atrybucji i jest zweryfikowany bezpośrednio na produkcji (brak stagingu).
 - [x] Zaprojektuj (spec): [0064](../specs/0064-atrybucja-audytu-panelu-admina/index.md)
-- [ ] Zbuduj: `/develop atrybucja audytu panelu admina` — kod w `drizzle/0048_message_audit_trigger.sql` (nowy), `lib/db/with-admin-actor.ts` (nowy), `lib/producer-block-actions.ts`, `lib/producer-member-actions.ts`, `lib/project-quote-actions.ts`, `lib/cases/messaging.ts`, `lib/cases/cards.ts`, `lib/product-photo-actions.ts`, `lib/producer-block-actions.test.ts` (nowy); `lib/producer-project-translation-actions.ts`/`lib/producer-room-layout-actions.ts` sprawdzone przy budowie — żadna z tych dwóch funkcji nie zapisuje dziś niczego same z siebie (zapis dzieje się gdzie indziej), więc nie było tu nic do podłączenia
+- [x] Zbuduj: `/develop atrybucja audytu panelu admina` — kod w `drizzle/0048_message_audit_trigger.sql` (nowy), `lib/db/with-admin-actor.ts` (nowy), `lib/producer-block-actions.ts`, `lib/producer-member-actions.ts`, `lib/project-quote-actions.ts`, `lib/cases/messaging.ts`, `lib/cases/cards.ts`, `lib/product-photo-actions.ts`, `lib/producer-block-actions.test.ts` (nowy); `lib/producer-project-translation-actions.ts`/`lib/producer-room-layout-actions.ts` sprawdzone przy budowie — żadna z tych dwóch funkcji nie zapisuje dziś niczego same z siebie (zapis dzieje się gdzie indziej), więc nie było tu nic do podłączenia
   - [x] Migracja: rozszerzenie `audit_log_capture()` o allowlist pól dla `message` i `CREATE TRIGGER message_audit`, zweryfikowana na jednorazowej gałęzi Neon przed zastosowaniem, zastosowana na dev, satisfies AC-3, AC-4
   - [x] Wspólny mechanizm: `lib/db/with-admin-actor.ts` (`set_config` w `db.batch`, bez przesunięcia indeksów istniejących wyników) plus pierwsze podłączenie (`lib/producer-block-actions.ts`) jako dowód end to end, satisfies AC-1
   - [x] Test regresyjny (`audit_log.actor_user_id` faktycznie wypełnione po akcji admina) i podłączenie pozostałych miejsc zapisu z tabeli w spec 0064 (w tym ~8 funkcji w `lib/product-photo-actions.ts`, więcej niż jedna pozycja w pierwotnej tabeli spec 0064 sugerowała), satisfies AC-1, AC-2, AC-5
-  - [ ] Weryfikacja na produkcji: migracja zastosowana (Neon MCP), jedna realna akcja admina potwierdzona, satisfies AC-6
-- [ ] Zweryfikuj: `/check verify atrybucja audytu panelu admina` — AC-1 do AC-5 zweryfikowane na żywym dev (sesja admina w przeglądarce + bezpośrednie zapytania do bazy); AC-6 zablokowane, czeka na deploy
+  - [x] Weryfikacja na produkcji: migracja zastosowana (Neon MCP), jedna realna akcja admina potwierdzona, satisfies AC-6
+- [x] Zweryfikuj: `/check verify atrybucja audytu panelu admina` — AC-1 do AC-5 zweryfikowane na żywym dev, AC-6 na produkcji (blokada i odblokowanie producenta testowego przez admina, `audit_log.actor_user_id` wypełnione)
 - [x] Testuj: `/test atrybucja audytu panelu admina` — 1493/1493 testów zielonych (`npm run test`), w tym nowe/rozszerzone pliki dla AC-1, AC-2, AC-3, AC-5
 
 ### 52. Samoobsługowe role i konta w panelu admina · needs a decision · full
