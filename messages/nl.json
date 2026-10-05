@@ -117,7 +117,6 @@
     }
   },
   "PopularHomeCard": {
-    "coverAlt": "{name}, een modulaire woning",
     "summary": "{area} · {rooms} kamers",
     "summaryNoRooms": "{area}",
     "areaUnknown": "oppervlakte nog te bepalen",
@@ -1588,8 +1587,7 @@
       "few": "{count} foto's",
       "many": "{count} foto's"
     },
-    "coverAlt": "{name}, modulaire woning",
-    "thumbnailAlt": "{name}, foto {index}",
+    "thumbnailAlt": "{subject}, foto {index}",
     "lightboxOpen": "Afbeelding op volledig formaat openen: {alt}",
     "lightboxClose": "Fotoweergave sluiten",
     "lightboxPrev": "Vorige foto",

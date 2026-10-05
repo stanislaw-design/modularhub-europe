@@ -6,7 +6,7 @@ interface ProjectGalleryCoverProps {
   coverImageUrl: string;
   /** Łączna liczba zdjęć (okładka + galeria), do odznaki w rogu; 1 → odznaka się nie pokazuje. */
   totalCount: number;
-  projectName: string;
+  altSubject: string;
   className?: string;
 }
 
@@ -20,9 +20,9 @@ function photoCountBucket(count: number): "few" | "many" {
 // prawą kolumnę (nazwa, cena, CTA) w tym samym wierszu siatki co samo zdjęcie
 // główne — wyrównaną do jego wysokości, a nie do wysokości całej galerii razem
 // z paskiem miniatur pod spodem.
-export async function ProjectGalleryCover({ coverImageUrl, totalCount, projectName, className }: ProjectGalleryCoverProps) {
+export async function ProjectGalleryCover({ coverImageUrl, totalCount, altSubject, className }: ProjectGalleryCoverProps) {
   const t = await getTranslations("ProjectGallery");
-  const alt = t("coverAlt", { name: projectName });
+  const alt = altSubject;
   return (
     <GalleryImageButton
       index={0}
@@ -49,7 +49,7 @@ export async function ProjectGalleryCover({ coverImageUrl, totalCount, projectNa
 interface ProjectGalleryCarouselProps {
   coverImageUrl: string;
   galleryImageUrls?: string[];
-  projectName: string;
+  altSubject: string;
   className?: string;
 }
 
@@ -58,7 +58,7 @@ interface ProjectGalleryCarouselProps {
 // zamiast osobnej okładki + paska miniatur pod spodem — ten sam zestaw zdjęć
 // co ProjectGalleryCover/Thumbnails razem, w tej samej kolejności, więc
 // indeksy trafiają do tego samego GalleryLightboxProvider.
-export async function ProjectGalleryCarousel({ coverImageUrl, galleryImageUrls, projectName, className }: ProjectGalleryCarouselProps) {
+export async function ProjectGalleryCarousel({ coverImageUrl, galleryImageUrls, altSubject, className }: ProjectGalleryCarouselProps) {
   const t = await getTranslations("ProjectGallery");
   const extraImages = galleryImageUrls?.filter((url) => url.length > 0) ?? [];
   const images = [coverImageUrl, ...extraImages];
@@ -68,7 +68,7 @@ export async function ProjectGalleryCarousel({ coverImageUrl, galleryImageUrls, 
       className={`flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${className ?? ""}`}
     >
       {images.map((url, index) => {
-        const alt = index === 0 ? t("coverAlt", { name: projectName }) : t("thumbnailAlt", { name: projectName, index: index + 1 });
+        const alt = index === 0 ? altSubject : t("thumbnailAlt", { subject: altSubject, index: index + 1 });
         return (
           <GalleryImageButton
             key={`${url}-${index}`}
@@ -91,13 +91,13 @@ export async function ProjectGalleryCarousel({ coverImageUrl, galleryImageUrls, 
 
 interface ProjectGalleryThumbnailsProps {
   galleryImageUrls?: string[];
-  projectName: string;
+  altSubject: string;
 }
 
 // coverImageUrl (renderowany przez ProjectGalleryCover) zostaje pierwszym/głównym
 // zdjęciem niezależnie od galleryImageUrls (spec 0020 Feature design); brak
 // dodatkowych zdjęć nie renderuje pustego paska miniatur.
-export async function ProjectGalleryThumbnails({ galleryImageUrls, projectName }: ProjectGalleryThumbnailsProps) {
+export async function ProjectGalleryThumbnails({ galleryImageUrls, altSubject }: ProjectGalleryThumbnailsProps) {
   const extraImages = galleryImageUrls?.filter((url) => url.length > 0) ?? [];
   if (extraImages.length === 0) return null;
 
@@ -108,7 +108,7 @@ export async function ProjectGalleryThumbnails({ galleryImageUrls, projectName }
     // siatka od sm w górę — ten sam DOM, dwa układy przez warianty responsywne.
     <div className="-mx-[6%] flex snap-x snap-mandatory gap-brand-2 overflow-x-auto px-[6%] pb-1 [scrollbar-width:none] sm:mx-0 sm:grid sm:snap-none sm:grid-cols-4 sm:gap-brand-2 sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden">
       {extraImages.map((url, index) => {
-        const alt = t("thumbnailAlt", { name: projectName, index: index + 2 });
+        const alt = t("thumbnailAlt", { subject: altSubject, index: index + 2 });
         return (
           <GalleryImageButton
             key={url}

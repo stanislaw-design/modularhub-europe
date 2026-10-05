@@ -22,6 +22,7 @@ import { ProjectTechnicalSpecs } from "@/components/klient/ProjectTechnicalSpecs
 import { ProjectTimeline } from "@/components/klient/ProjectTimeline";
 import { ProjectVariantPicker } from "@/components/klient/ProjectVariantPicker";
 import { getCountries } from "@/lib/data/countries";
+import { getProductAltSubject } from "@/lib/product-alt";
 import {
   flattenSelectedProductOptionIds,
   getDefaultProjectVariant,
@@ -97,6 +98,7 @@ export async function generateMetadata({
     project.floorAreaM2 !== null && project.rooms !== null
       ? `${project.floorAreaM2} m², ${project.rooms} ${t(`roomsLabel.${countBucket(project.rooms)}`)}, `
       : "";
+  const altSubject = await getProductAltSubject(project, locale);
   const description = `${project.name} ${t("from")} ${project.producerName} — ${sizeAndRoomsLabel}${priceLabel}.`;
   // Adres kanoniczny liczony od sluga, gdy istnieje, inaczej id (spec 0058
   // AC-7) — ten sam wzorzec fallbacku co resolveProductHref.
@@ -124,7 +126,7 @@ export async function generateMetadata({
       title: project.name,
       description,
       url: canonicalPath,
-      images: [{ url: project.coverImageUrl }],
+      images: [{ url: project.coverImageUrl, alt: altSubject }],
     },
   };
 }
@@ -187,16 +189,17 @@ export default async function ProjektPage({
     ? (countryNameByCode.get(countryCode) ?? countryCode)
     : undefined;
   const eligibility = eligibilityRows.find((row) => row.projectId === project.id);
+  const altSubject = await getProductAltSubject(project);
   const galleryExtraImages = project.galleryImageUrls?.filter((url) => url.length > 0) ?? [];
   // Ta sama kolejność co okładka (index 0) + miniatury (index 1+) w
   // ProjectGalleryTabs (zakładka Wizualizacje) — GalleryLightboxProvider musi
   // widzieć dokładnie ten sam zestaw zdjęć w tej samej kolejności, żeby
   // strzałki w modalu odpowiadały temu, na co kliknięto.
   const lightboxImages = [
-    { src: project.coverImageUrl, alt: tGallery("coverAlt", { name: project.name }) },
+    { src: project.coverImageUrl, alt: altSubject },
     ...galleryExtraImages.map((url, index) => ({
       src: url,
-      alt: tGallery("thumbnailAlt", { name: project.name, index: index + 2 }),
+      alt: tGallery("thumbnailAlt", { subject: altSubject, index: index + 2 }),
     })),
   ];
 
@@ -390,6 +393,7 @@ export default async function ProjektPage({
           <div className="lg:col-span-7">
             <ProjectGalleryTabs
               projectName={project.name}
+              altSubject={altSubject}
               coverImageUrl={project.coverImageUrl}
               galleryImageUrls={project.galleryImageUrls}
               documents={project.documents}

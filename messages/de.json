@@ -117,7 +117,6 @@
     }
   },
   "PopularHomeCard": {
-    "coverAlt": "{name}, Modulhaus",
     "summary": "{area} · {rooms} Zimmer",
     "summaryNoRooms": "{area}",
     "areaUnknown": "Wohnfläche wird noch festgelegt",
@@ -1595,8 +1594,7 @@
       "few": "{count} Fotos",
       "many": "{count} Fotos"
     },
-    "coverAlt": "{name}, Modulhaus",
-    "thumbnailAlt": "{name}, Foto {index}",
+    "thumbnailAlt": "{subject}, Foto {index}",
     "lightboxOpen": "Foto in voller Größe öffnen: {alt}",
     "lightboxClose": "Fotoansicht schließen",
     "lightboxPrev": "Vorheriges Foto",

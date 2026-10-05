@@ -12,6 +12,7 @@ function withLightbox(children: ReactNode) {
 
 const baseProps = {
   projectName: "Modulor Family 90",
+  altSubject: "Dom modułowy Test – Producent",
   coverImageUrl: "/cover.webp",
   galleryImageUrls: ["/a.webp"],
   selectedVariantId: "variant-1",

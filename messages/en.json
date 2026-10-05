@@ -117,7 +117,6 @@
     }
   },
   "PopularHomeCard": {
-    "coverAlt": "{name}, a modular house",
     "summary": "{area} · {rooms} rooms",
     "summaryNoRooms": "{area}",
     "areaUnknown": "floor area to be determined",
@@ -1588,8 +1587,7 @@
       "few": "{count} photos",
       "many": "{count} photos"
     },
-    "coverAlt": "{name}, modular house",
-    "thumbnailAlt": "{name}, photo {index}",
+    "thumbnailAlt": "{subject}, photo {index}",
     "lightboxOpen": "Open full-size image: {alt}",
     "lightboxClose": "Close image viewer",
     "lightboxPrev": "Previous photo",

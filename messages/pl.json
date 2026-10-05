@@ -117,7 +117,6 @@
     }
   },
   "PopularHomeCard": {
-    "coverAlt": "{name}, dom modułowy",
     "summary": "{area} · {rooms} pokoi",
     "summaryNoRooms": "{area}",
     "areaUnknown": "metraż do ustalenia",
@@ -1595,8 +1594,7 @@
       "few": "{count} zdjęcia",
       "many": "{count} zdjęć"
     },
-    "coverAlt": "{name}, dom modułowy",
-    "thumbnailAlt": "{name}, zdjęcie {index}",
+    "thumbnailAlt": "{subject}, zdjęcie {index}",
     "lightboxOpen": "Otwórz zdjęcie w pełnym rozmiarze: {alt}",
     "lightboxClose": "Zamknij podgląd zdjęcia",
     "lightboxPrev": "Poprzednie zdjęcie",

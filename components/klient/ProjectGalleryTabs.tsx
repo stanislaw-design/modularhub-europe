@@ -10,6 +10,8 @@ export type GalleryTabKey = "wizualizacje" | "rzut";
 
 interface ProjectGalleryTabsProps {
   projectName: string;
+  /** Gotowy tekst alt zdjęć, np. "Sauna ogrodowa Loki – Wooden Dream House" (lib/product-alt.ts). */
+  altSubject: string;
   coverImageUrl: string;
   galleryImageUrls?: string[];
   documents: ProjectDocument[];
@@ -41,6 +43,7 @@ function documentsForTab(
 // producent" (ProducerRealizationsSection), nie jako trzecia zakładka tutaj.
 export async function ProjectGalleryTabs({
   projectName,
+  altSubject,
   coverImageUrl,
   galleryImageUrls,
   documents,
@@ -88,16 +91,16 @@ export async function ProjectGalleryTabs({
         {effectiveTab === "wizualizacje" && (
           <>
             <div className="lg:hidden">
-              <ProjectGalleryCarousel coverImageUrl={coverImageUrl} galleryImageUrls={galleryImageUrls} projectName={projectName} />
+              <ProjectGalleryCarousel coverImageUrl={coverImageUrl} galleryImageUrls={galleryImageUrls} altSubject={altSubject} />
             </div>
             <div className="hidden lg:block">
               <ProjectGalleryCover
                 coverImageUrl={coverImageUrl}
                 totalCount={(galleryImageUrls?.length ?? 0) + 1}
-                projectName={projectName}
+                altSubject={altSubject}
               />
               <div className="mt-brand-2">
-                <ProjectGalleryThumbnails galleryImageUrls={galleryImageUrls} projectName={projectName} />
+                <ProjectGalleryThumbnails galleryImageUrls={galleryImageUrls} altSubject={altSubject} />
               </div>
             </div>
           </>

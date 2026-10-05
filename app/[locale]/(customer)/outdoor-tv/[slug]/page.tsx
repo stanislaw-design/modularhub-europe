@@ -15,6 +15,7 @@ import { OutdoorTvTechnicalSpecs } from "@/components/klient/OutdoorTvTechnicalS
 import { ProjectFeatureTiles } from "@/components/klient/ProjectFeatureTiles";
 import { ProjectVideoSection } from "@/components/klient/ProjectVideoSection";
 import { getDefaultProjectVariant } from "@/lib/data/project-variants";
+import { getProductAltSubject } from "@/lib/product-alt";
 import { getProducerById, getProducerPhotoUrl } from "@/lib/data/producers";
 import { getProjectBySlugOrId } from "@/lib/data/projects";
 import type { CompletionStandard } from "@/lib/data/types";
@@ -59,7 +60,8 @@ export async function generateMetadata({
   const priceLabel = project.priceOnRequest
     ? t("priceOnRequest").toLowerCase()
     : `${t("from")} ${priceFormatter.format(project.priceMin)} €`;
-  const description = `${project.name} — ${project.producerName}, ${priceLabel}.`;
+  const altSubject = await getProductAltSubject(project, locale);
+  const description = `${altSubject}, ${priceLabel}.`;
   const canonicalSegment = project.slug ?? project.id;
   const canonicalPath = `/${locale}/outdoor-tv/${canonicalSegment}`;
 
@@ -68,7 +70,7 @@ export async function generateMetadata({
   );
 
   return {
-    title: `${project.name} — ${project.producerName} | ModularHub Europe`,
+    title: `${altSubject} | ModularHub Europe`,
     description,
     alternates: {
       canonical: canonicalPath,
@@ -80,7 +82,7 @@ export async function generateMetadata({
       title: project.name,
       description,
       url: canonicalPath,
-      images: [{ url: project.coverImageUrl }],
+      images: [{ url: project.coverImageUrl, alt: altSubject }],
     },
   };
 }
@@ -127,12 +129,13 @@ export default async function OutdoorTvPage({
     if (clientId) isFavorited = (await getFavoritedProductIds(clientId)).has(project.id);
   }
 
+  const altSubject = await getProductAltSubject(project);
   const galleryExtraImages = project.galleryImageUrls?.filter((url) => url.length > 0) ?? [];
   const lightboxImages = [
-    { src: project.coverImageUrl, alt: tGallery("coverAlt", { name: project.name }) },
+    { src: project.coverImageUrl, alt: altSubject },
     ...galleryExtraImages.map((url, index) => ({
       src: url,
-      alt: tGallery("thumbnailAlt", { name: project.name, index: index + 2 }),
+      alt: tGallery("thumbnailAlt", { subject: altSubject, index: index + 2 }),
     })),
   ];
 
@@ -199,16 +202,16 @@ export default async function OutdoorTvPage({
           <div className="grid grid-cols-1 items-stretch gap-brand-4 lg:grid-cols-12">
             <div className="flex flex-col gap-brand-3 lg:col-span-7">
               <div className="lg:hidden">
-                <ProjectGalleryCarousel coverImageUrl={project.coverImageUrl} galleryImageUrls={project.galleryImageUrls} projectName={project.name} />
+                <ProjectGalleryCarousel coverImageUrl={project.coverImageUrl} galleryImageUrls={project.galleryImageUrls} altSubject={altSubject} />
               </div>
               <div className="hidden lg:block">
                 <ProjectGalleryCover
                   coverImageUrl={project.coverImageUrl}
                   totalCount={galleryExtraImages.length + 1}
-                  projectName={project.name}
+                  altSubject={altSubject}
                 />
                 <div className="mt-brand-2">
-                  <ProjectGalleryThumbnails galleryImageUrls={project.galleryImageUrls} projectName={project.name} />
+                  <ProjectGalleryThumbnails galleryImageUrls={project.galleryImageUrls} altSubject={altSubject} />
                 </div>
               </div>
             </div>

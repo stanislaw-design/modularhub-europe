@@ -4,9 +4,9 @@ import { describe, expect, it } from "vitest";
 import { GalleryImageButton, GalleryLightboxProvider } from "./ProjectGalleryLightbox";
 
 const images = [
-  { src: "/cover.webp", alt: "Modulor Family 90, dom modułowy" },
-  { src: "/a.webp", alt: "Modulor Family 90, zdjęcie 2" },
-  { src: "/b.webp", alt: "Modulor Family 90, zdjęcie 3" },
+  { src: "/cover.webp", alt: "Dom modułowy Modulor Family 90 – Modulor" },
+  { src: "/a.webp", alt: "Dom modułowy Modulor Family 90 – Modulor, zdjęcie 2" },
+  { src: "/b.webp", alt: "Dom modułowy Modulor Family 90 – Modulor, zdjęcie 3" },
 ];
 
 function Gallery() {

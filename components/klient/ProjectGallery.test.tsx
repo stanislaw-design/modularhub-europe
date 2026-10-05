@@ -17,12 +17,12 @@ describe("ProjectGalleryCover", () => {
     render(
       await resolveAsyncTree(
         withLightbox(
-          <ProjectGalleryCover coverImageUrl="/cover.webp" totalCount={1} projectName="Modulor Family 90" />
+          <ProjectGalleryCover coverImageUrl="/cover.webp" totalCount={1} altSubject="Sauna ogrodowa Loki – Wooden Dream House" />
         )
       )
     );
 
-    expect(screen.getByRole("img", { name: "Modulor Family 90, dom modułowy" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Sauna ogrodowa Loki – Wooden Dream House" })).toBeInTheDocument();
     expect(screen.queryByText(/zdjęć/)).not.toBeInTheDocument();
   });
 
@@ -30,7 +30,7 @@ describe("ProjectGalleryCover", () => {
     render(
       await resolveAsyncTree(
         withLightbox(
-          <ProjectGalleryCover coverImageUrl="/cover.webp" totalCount={4} projectName="Modulor Family 90" />
+          <ProjectGalleryCover coverImageUrl="/cover.webp" totalCount={4} altSubject="Sauna ogrodowa Loki – Wooden Dream House" />
         )
       )
     );
@@ -42,7 +42,7 @@ describe("ProjectGalleryCover", () => {
 describe("ProjectGalleryThumbnails", () => {
   it("renders nothing when galleryImageUrls is absent (spec 0020 Feature design)", async () => {
     const { container } = render(
-      await resolveAsyncTree(withLightbox(<ProjectGalleryThumbnails projectName="Modulor Family 90" />))
+      await resolveAsyncTree(withLightbox(<ProjectGalleryThumbnails altSubject="Sauna ogrodowa Loki – Wooden Dream House" />))
     );
     expect(container).toBeEmptyDOMElement();
   });
@@ -50,7 +50,7 @@ describe("ProjectGalleryThumbnails", () => {
   it("renders nothing when galleryImageUrls is empty (spec 0020 AC-4)", async () => {
     const { container } = render(
       await resolveAsyncTree(
-        withLightbox(<ProjectGalleryThumbnails galleryImageUrls={[]} projectName="Modulor Family 90" />)
+        withLightbox(<ProjectGalleryThumbnails galleryImageUrls={[]} altSubject="Sauna ogrodowa Loki – Wooden Dream House" />)
       )
     );
     expect(container).toBeEmptyDOMElement();
@@ -62,21 +62,21 @@ describe("ProjectGalleryThumbnails", () => {
         withLightbox(
           <ProjectGalleryThumbnails
             galleryImageUrls={["/a.webp", "/b.webp", "/c.webp"]}
-            projectName="Modulor Family 90"
+            altSubject="Sauna ogrodowa Loki – Wooden Dream House"
           />
         )
       )
     );
 
-    expect(screen.getByRole("img", { name: "Modulor Family 90, zdjęcie 2" })).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "Modulor Family 90, zdjęcie 3" })).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "Modulor Family 90, zdjęcie 4" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Sauna ogrodowa Loki – Wooden Dream House, zdjęcie 2" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Sauna ogrodowa Loki – Wooden Dream House, zdjęcie 3" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Sauna ogrodowa Loki – Wooden Dream House, zdjęcie 4" })).toBeInTheDocument();
   });
 
   it("filters out empty-string urls from galleryImageUrls", async () => {
     render(
       await resolveAsyncTree(
-        withLightbox(<ProjectGalleryThumbnails galleryImageUrls={["", "/a.webp", ""]} projectName="Modulor Family 90" />)
+        withLightbox(<ProjectGalleryThumbnails galleryImageUrls={["", "/a.webp", ""]} altSubject="Sauna ogrodowa Loki – Wooden Dream House" />)
       )
     );
     expect(screen.getAllByRole("img")).toHaveLength(1);
