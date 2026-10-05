@@ -1421,7 +1421,19 @@
     "backToResults": "Zurück zu den Ergebnissen",
     "genericSendError": "Die Anfrage konnte nicht gesendet werden. Bitte versuchen Sie es erneut.",
     "unsupportedCountryError": "Dieses Land wird noch nicht unterstützt.",
-    "authError": "Melden Sie sich als Kunde an, um eine Anfrage zu senden."
+    "authError": "Melden Sie sich als Kunde an, um eine Anfrage zu senden.",
+    "sectionContactHeading": "Ihre Kontaktdaten",
+    "contactNameLabel": "Vor und Nachname",
+    "contactEmailLabel": "E Mail Adresse",
+    "contactPhoneLabel": "Telefon",
+    "privacyNote": "Wir verwenden Ihre Daten (E Mail, Telefon, Grundstücksadresse) nur, um diese Anfrage zu bearbeiten und Sie dazu zu kontaktieren, ohne Werbung.",
+    "privacyLinkLabel": "Datenschutzerklärung",
+    "rateLimitedError": "Von dieser E Mail Adresse wurden bereits mehrere Anfragen gesendet. Versuchen Sie es morgen erneut oder warten Sie auf den Berater.",
+    "confirmTitle": "Anfrage gesendet",
+    "confirmBody": "Ein ModularHub Berater meldet sich per E Mail bei Ihnen. Sie können auch ein Konto anlegen, um den Fall zu verfolgen und in der App mit dem Berater zu schreiben.",
+    "createAccountCta": "Konto anlegen und Fall verfolgen",
+    "accountSentMessage": "Prüfen Sie Ihr Postfach: Wir haben einen Link gesendet, der das Anlegen des Kontos abschließt.",
+    "accountSendError": "Der Link konnte nicht gesendet werden. Bitte versuchen Sie es erneut."
   },
   "ProfileForm": {
     "nameLabel": "Vollständiger Name",
@@ -2045,7 +2057,8 @@
     "newCaseBody": "Ein Kunde hat eine neue Anfrage zu Häusern gesendet. Öffnen Sie den Fall, um zu antworten.",
     "newMessageSubject": "Neue Nachricht in Ihrem ModularHub-Fall",
     "newMessageBodyClient": "Ihr ModularHub-Berater hat Ihnen im Gespräch geschrieben. Öffnen Sie den Fall, um die Nachricht zu lesen.",
-    "newMessageBodyAdvisor": "Der Kunde hat im Gespräch geschrieben. Öffnen Sie den Fall, um zu antworten."
+    "newMessageBodyAdvisor": "Der Kunde hat im Gespräch geschrieben. Öffnen Sie den Fall, um zu antworten.",
+    "newMessageBodyGuest": "Ein ModularHub Berater hat auf Ihre Anfrage geantwortet. Melden Sie sich an oder legen Sie ein Konto an, um zu antworten."
   },
   "LoginLinkEmail": {
     "subject": "Ihr Anmeldelink für ModularHub Europe",
@@ -2216,5 +2229,36 @@
         }
       }
     }
+  },
+  "ProductAlt": {
+    "subject": "{kind} {model} – {producer}",
+    "kind": {
+      "house": "Modulhaus",
+      "sauna": "Gartensauna",
+      "spa": "Modul-Spa",
+      "container": "Modulcontainer",
+      "outdoorTv": "Outdoor-Fernseher"
+    }
+  },
+  "InquiryClaim": {
+    "heading": "Konto anlegen und Anfrage verfolgen",
+    "body": "Nach dem Klick senden wir einen Anmeldelink an Ihre E Mail Adresse. Nach der Anmeldung sehen Sie Ihren Fall und können mit dem Berater schreiben.",
+    "cta": "Konto anlegen",
+    "sending": "Wird gesendet…",
+    "retry": "Erneut versuchen",
+    "sent": "Wenn möglich, haben wir einen Anmeldelink an die Adresse aus Ihrer Anfrage gesendet. Prüfen Sie Ihr Postfach.",
+    "error": "Der Link konnte nicht gesendet werden. Bitte versuchen Sie es erneut."
+  },
+  "GuestInquiryConfirmationEmail": {
+    "subject": "Wir haben Ihre Anfrage erhalten",
+    "heading": "Vielen Dank für Ihre Anfrage",
+    "body": "Wir haben Ihre Anfrage zu Modulhäusern erhalten. Ein ModularHub Berater meldet sich per E Mail bei Ihnen. Sie können ein Konto anlegen, um den Fall zu verfolgen und mit dem Berater zu schreiben.",
+    "cta": "Konto anlegen und Fall verfolgen"
+  },
+  "GuestIdentityCheckEmail": {
+    "subject": "Haben Sie eine Anfrage gesendet?",
+    "heading": "Waren Sie das?",
+    "body": "Jemand hat mit dieser E Mail Adresse eine ModularHub Anfrage zu Modulhäusern gesendet, und wir haben sie Ihrem Konto zugeordnet. Wenn Sie es waren, müssen Sie nichts tun. Wenn nicht, antworten Sie auf diese E Mail.",
+    "cta": "Anfrage ansehen"
   }
 }

@@ -13,12 +13,23 @@ export const plotAddressSchema = z.object({
   countryCode: z.string().trim().min(2).max(2),
 });
 
+// Dane kontaktowe gościa (spec 0066 AC-2). E mail zawsze małymi literami.
+export const guestContactSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  email: z.string().trim().toLowerCase().pipe(z.email().max(254)),
+  phone: z.string().trim().min(5).max(40),
+});
+
 export const submitAdvisoryInquirySchema = z.object({
   projectIds: z.array(z.uuid()).min(1).max(MAX_ADVISORY_HOMES),
   plot: plotAddressSchema,
   message: z.string().trim().max(MAX_MESSAGE_LENGTH).optional(),
   idempotencyKey: z.string().min(8).max(100),
   locale: z.string().min(2).max(5),
+  // Tylko dla gościa; zalogowany klient bierze dane z konta.
+  contact: guestContactSchema.optional(),
+  // Ukryte pole pułapka (spec 0066 AC-5): człowiek go nie widzi i nie wypełnia.
+  website: z.string().max(200).optional(),
 });
 
 export type SubmitAdvisoryInquiryInput = z.input<typeof submitAdvisoryInquirySchema>;

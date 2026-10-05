@@ -1,7 +1,7 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, gt, ne, sql } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
 import { db } from "@/lib/db/client";
-import { channelReadState, client, inquiry, users } from "@/lib/db/schema";
+import { channel, channelReadState, client, inquiry, message, users } from "@/lib/db/schema";
 import { sendNotificationEmail } from "@/lib/notifications/send";
 import { captureError } from "@/lib/observability";
 import type { Clock } from "./clock";
@@ -11,8 +11,15 @@ import { shouldEmailForMessage } from "./email-policy";
 // wyłącznie link i powód, nigdy treść wiadomości. Wszystko best effort: błąd
 // wysyłki nie cofa zapisanej sprawy ani wiadomości.
 
+const GUEST_EMAIL_WINDOW_MS = 10 * 60 * 1000;
+
 function baseUrl(): string {
   return (process.env.AUTH_URL ?? "http://localhost:3000").replace(/\/$/, "");
+}
+
+// Strona z jednym przyciskiem "załóż konto" dla sprawy gościa (spec 0066 AC-7).
+export function claimLink(locale: string, inquiryId: string): string {
+  return `${baseUrl()}/${locale}/inquiry/claim/${inquiryId}`;
 }
 
 export function caseLink(role: "client" | "advisor", locale: string, inquiryId: string): string {
@@ -64,7 +71,7 @@ export async function notifyAdvisorOfNewCase(inquiryId: string): Promise<void> {
 interface Recipient {
   userId: string | null;
   email: string;
-  role: "client" | "advisor";
+  role: "client" | "advisor" | "guest";
   locale: string;
 }
 
@@ -74,11 +81,23 @@ async function resolveRecipient(
   messageLocale: string,
 ): Promise<Recipient | null> {
   const [row] = await db
-    .select({ email: inquiry.email, clientUserId: client.userId, assignedAdvisorId: inquiry.assignedAdvisorId })
+    .select({
+      email: inquiry.email,
+      guestLocale: inquiry.locale,
+      clientId: inquiry.clientId,
+      clientUserId: client.userId,
+      assignedAdvisorId: inquiry.assignedAdvisorId,
+    })
     .from(inquiry)
-    .innerJoin(client, eq(client.id, inquiry.clientId))
+    .leftJoin(client, eq(client.id, inquiry.clientId))
     .where(eq(inquiry.id, inquiryId));
   if (!row) return null;
+
+  if (authorKind === "advisor" && !row.clientId) {
+    // Sprawa gościa (spec 0066 AC-12): mail na e mail z migawki, w języku
+    // zapisanym w sprawie, bo gość nie ma konta ani czatu.
+    return { userId: null, email: row.email, role: "guest", locale: row.guestLocale ?? messageLocale };
+  }
 
   if (authorKind === "advisor") {
     return { userId: row.clientUserId, email: row.email, role: "client", locale: messageLocale };
@@ -98,6 +117,45 @@ async function resolveRecipient(
   return { userId: advisor?.id ?? null, email: fallback, role: "advisor", locale: "pl" };
 }
 
+// Mail do gościa po odpowiedzi doradcy (AC-12): tylko link do założenia konta,
+// najwyżej raz na 10 minut na sprawę. Limit liczymy z samych wiadomości doradcy
+// w kanale (bez osobnej kolumny): nowa wiadomość już jest zapisana, więc
+// wcześniejsza w oknie oznacza, że mail już poszedł.
+async function notifyGuestOfAdvisorReply(
+  inquiryId: string,
+  channelId: string,
+  recipient: Recipient,
+  clock: Clock,
+): Promise<void> {
+  const windowStart = new Date(clock.now().getTime() - GUEST_EMAIL_WINDOW_MS);
+  const [recent] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(message)
+    .innerJoin(channel, eq(channel.id, message.channelId))
+    .where(
+      and(
+        eq(message.channelId, channelId),
+        eq(channel.inquiryId, inquiryId),
+        eq(message.authorKind, "advisor"),
+        ne(message.type, "system_notice"),
+        gt(message.createdAt, windowStart),
+      ),
+    );
+  if ((recent?.count ?? 0) > 1) return;
+
+  const t = await getTranslations({ locale: recipient.locale, namespace: "CaseEmail" });
+  await sendCaseEmail({
+    to: recipient.email,
+    subject: t("newMessageSubject"),
+    text: `${t("newMessageBodyGuest")}
+
+${claimLink(recipient.locale, inquiryId)}`,
+    emailType: "case_new_message",
+    inquiryId,
+    distinctId: inquiryId,
+  });
+}
+
 // E mail o zwykłej wiadomości: jeden na odbiorcę i kanał w oknie 10 minut,
 // żaden dla odbiorcy aktywnego w kanale w ciągu 90 sekund (AC-10).
 export async function notifyMessageRecipient(input: {
@@ -111,6 +169,11 @@ export async function notifyMessageRecipient(input: {
     if (input.authorKind === "producer") return;
     const recipient = await resolveRecipient(input.inquiryId, input.authorKind, input.locale);
     if (!recipient) return;
+
+    if (recipient.role === "guest") {
+      await notifyGuestOfAdvisorReply(input.inquiryId, input.channelId, recipient, input.clock);
+      return;
+    }
 
     const now = input.clock.now();
     let lastEmailAt: Date | null = null;

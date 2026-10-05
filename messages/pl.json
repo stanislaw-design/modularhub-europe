@@ -1421,7 +1421,19 @@
     "backToResults": "Wróć do wyników",
     "genericSendError": "Nie udało się wysłać zapytania. Spróbuj ponownie.",
     "unsupportedCountryError": "Ten kraj nie jest jeszcze obsługiwany.",
-    "authError": "Zaloguj się jako klient, żeby wysłać zapytanie."
+    "authError": "Zaloguj się jako klient, żeby wysłać zapytanie.",
+    "sectionContactHeading": "Twoje dane kontaktowe",
+    "contactNameLabel": "Imię i nazwisko",
+    "contactEmailLabel": "Adres e mail",
+    "contactPhoneLabel": "Telefon",
+    "privacyNote": "Twoje dane (e mail, telefon, adres działki) przetwarzamy wyłącznie po to, żeby obsłużyć to zapytanie i skontaktować się z Tobą w tej sprawie, bez marketingu.",
+    "privacyLinkLabel": "Polityka prywatności",
+    "rateLimitedError": "Wysłano już kilka zapytań z tego adresu e mail. Spróbuj ponownie jutro albo poczekaj na kontakt doradcy.",
+    "confirmTitle": "Zapytanie wysłane",
+    "confirmBody": "Doradca ModularHub odezwie się do Ciebie mailem. Możesz też założyć konto, żeby śledzić sprawę i rozmawiać z doradcą w aplikacji.",
+    "createAccountCta": "Załóż konto i śledź sprawę",
+    "accountSentMessage": "Sprawdź skrzynkę: wysłaliśmy link, który dokończy zakładanie konta.",
+    "accountSendError": "Nie udało się wysłać linku. Spróbuj ponownie."
   },
   "ProfileForm": {
     "nameLabel": "Imię i nazwisko",
@@ -2045,7 +2057,8 @@
     "newCaseBody": "Klient wysłał nowe zapytanie o domy. Otwórz sprawę, żeby odpisać.",
     "newMessageSubject": "Nowa wiadomość w sprawie w ModularHub",
     "newMessageBodyClient": "Doradca ModularHub napisał do Ciebie w rozmowie. Otwórz sprawę, żeby przeczytać wiadomość.",
-    "newMessageBodyAdvisor": "Klient napisał w rozmowie. Otwórz sprawę, żeby odpisać."
+    "newMessageBodyAdvisor": "Klient napisał w rozmowie. Otwórz sprawę, żeby odpisać.",
+    "newMessageBodyGuest": "Doradca ModularHub odpowiedział na Twoje zapytanie. Zaloguj się lub załóż konto, żeby odpowiedzieć."
   },
   "LoginLinkEmail": {
     "subject": "Twój link do logowania w ModularHub Europe",
@@ -2216,5 +2229,36 @@
         }
       }
     }
+  },
+  "ProductAlt": {
+    "subject": "{kind} {model} – {producer}",
+    "kind": {
+      "house": "Dom modułowy",
+      "sauna": "Sauna ogrodowa",
+      "spa": "Spa modułowe",
+      "container": "Kontener modułowy",
+      "outdoorTv": "Telewizor zewnętrzny"
+    }
+  },
+  "InquiryClaim": {
+    "heading": "Załóż konto i śledź swoje zapytanie",
+    "body": "Po kliknięciu wyślemy na Twój adres e mail link do logowania. Po zalogowaniu zobaczysz swoją sprawę i porozmawiasz z doradcą.",
+    "cta": "Załóż konto",
+    "sending": "Wysyłanie…",
+    "retry": "Ponów wysyłanie",
+    "sent": "Jeśli to możliwe, wysłaliśmy link do logowania na adres podany w zapytaniu. Sprawdź skrzynkę.",
+    "error": "Nie udało się wysłać linku. Spróbuj ponownie."
+  },
+  "GuestInquiryConfirmationEmail": {
+    "subject": "Otrzymaliśmy Twoje zapytanie",
+    "heading": "Dziękujemy za zapytanie",
+    "body": "Otrzymaliśmy Twoje zapytanie o domy modułowe. Doradca ModularHub skontaktuje się z Tobą mailem. Możesz założyć konto, żeby śledzić sprawę i rozmawiać z doradcą.",
+    "cta": "Załóż konto i śledź sprawę"
+  },
+  "GuestIdentityCheckEmail": {
+    "subject": "Czy to Ty wysłałeś zapytanie?",
+    "heading": "Czy to Ty?",
+    "body": "Ktoś wysłał w ModularHub zapytanie o domy modułowe na ten adres e mail i dopisaliśmy je do Twojego konta. Jeśli to Ty, nic nie musisz robić. Jeśli nie, odpowiedz na tego maila.",
+    "cta": "Zobacz zapytanie"
   }
 }

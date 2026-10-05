@@ -174,7 +174,12 @@ async function advanceCaseAfterMessage(
   if (actor.kind === "client") {
     await db
       .update(inquiry)
-      .set({ lastClientActivityAt: now, waitingOn: "advisor" })
+      .set({
+        lastClientActivityAt: now,
+        waitingOn: "advisor",
+        // Spec 0066 AC-13: właściciel konta zaangażował się w sprawę.
+        contactEmailVerifiedAt: sql`coalesce(${inquiry.contactEmailVerifiedAt}, ${now.toISOString()}::timestamptz)`,
+      })
       .where(eq(inquiry.id, input.inquiryId));
     return false;
   }

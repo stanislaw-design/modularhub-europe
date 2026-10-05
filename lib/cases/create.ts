@@ -6,7 +6,8 @@ import { microOffsetTimestamp, type Clock } from "./clock";
 import { START_CARDS } from "./start-cards";
 
 export interface CreateAdvisoryCaseInput {
-  clientId: string;
+  // null = sprawa gościa (spec 0066): bez konta, tylko migawka kontaktu.
+  clientId: string | null;
   contact: { name: string; email: string; phone: string };
   projectIds: string[];
   plot: { street: string; postalCode: string; city: string; countryCode: string };
@@ -15,7 +16,21 @@ export interface CreateAdvisoryCaseInput {
   locale: string;
   // Treść pierwszej wiadomości systemowej w języku klienta (AC-3).
   systemNoticeBody: string;
+  // Spec 0066 AC-14: zalogowany klient ma kontakt potwierdzony od razu, gość
+  // nie (null).
+  contactEmailVerifiedAt?: Date | null;
 }
+
+// Ten sam klucz idempotencji użyty z innym e mailem albo innym klientem
+// (spec 0066 AC-4): nigdy nie zwracamy cudzej sprawy.
+export class IdempotencyConflictError extends Error {
+  constructor() {
+    super("Idempotency key already used by a different requester");
+    this.name = "IdempotencyConflictError";
+  }
+}
+
+type CaseRequester = { clientId: string | null; email: string };
 
 export interface CreateAdvisoryCaseResult {
   inquiryId: string;
@@ -23,12 +38,20 @@ export interface CreateAdvisoryCaseResult {
   created: boolean;
 }
 
-async function findExisting(idempotencyKey: string, clientId: string) {
+// Dla klienta pasuje klucz i client_id, dla gościa klucz i e mail (sprawa
+// mogła już zostać przypięta do konta, ale to nadal jego zgłoszenie).
+function isSameRequester(row: { clientId: string | null; email: string }, requester: CaseRequester): boolean {
+  if (requester.clientId) return row.clientId === requester.clientId;
+  return row.email.toLowerCase() === requester.email.toLowerCase();
+}
+
+export async function findExistingAdvisoryCase(idempotencyKey: string, requester: CaseRequester) {
   const [row] = await db
-    .select({ id: inquiry.id, clientId: inquiry.clientId })
+    .select({ id: inquiry.id, clientId: inquiry.clientId, email: inquiry.email })
     .from(inquiry)
     .where(eq(inquiry.idempotencyKey, idempotencyKey));
-  if (!row || row.clientId !== clientId) return null;
+  if (!row) return null;
+  if (!isSameRequester(row, requester)) throw new IdempotencyConflictError();
 
   const [channelRow] = await db.select({ id: channel.id }).from(channel).where(eq(channel.inquiryId, row.id));
   return channelRow ? { inquiryId: row.id, channelId: channelRow.id } : null;
@@ -43,7 +66,8 @@ export async function createAdvisoryCase(
   input: CreateAdvisoryCaseInput,
   clock: Clock,
 ): Promise<CreateAdvisoryCaseResult> {
-  const existing = await findExisting(input.idempotencyKey, input.clientId);
+  const requester = { clientId: input.clientId, email: input.contact.email };
+  const existing = await findExistingAdvisoryCase(input.idempotencyKey, requester);
   if (existing) return { ...existing, created: false };
 
   const inquiryId = crypto.randomUUID();
@@ -78,6 +102,8 @@ export async function createAdvisoryCase(
         plotCity: input.plot.city,
         clientMessage: input.message,
         stage: "nowe",
+        locale: input.locale,
+        contactEmailVerifiedAt: input.contactEmailVerifiedAt ?? null,
         waitingOn: "advisor",
         lastClientActivityAt: now,
       }),
@@ -106,7 +132,7 @@ export async function createAdvisoryCase(
     ]);
   } catch (error) {
     if (getPgErrorCode(error) !== "23505") throw error;
-    const winner = await findExisting(input.idempotencyKey, input.clientId);
+    const winner = await findExistingAdvisoryCase(input.idempotencyKey, requester);
     if (!winner) throw error;
     return { ...winner, created: false };
   }

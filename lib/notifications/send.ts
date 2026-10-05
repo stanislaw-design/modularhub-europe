@@ -17,7 +17,9 @@ export type NotificationEmailType =
   | "order_status_changed"
   | "payment_confirmed"
   | "case_new_case_alert"
-  | "case_new_message";
+  | "case_new_message"
+  | "guest_inquiry_confirmation"
+  | "guest_identity_check";
 
 export interface SendNotificationEmailInput {
   to: string;
@@ -30,6 +32,8 @@ export interface SendNotificationEmailInput {
   // Wyłącznie dla e maila logowania (AC-10): jedyna droga dostarczenia
   // magic linku, więc błąd wysyłki rzuca dalej zamiast być połknięty.
   throwOnFailure?: boolean;
+  // Spec 0066 AC-10: adres, na który trafia odpowiedź (mail "czy to Ty").
+  replyTo?: string;
 }
 
 function fromAddress(): string {
@@ -55,6 +59,7 @@ export async function sendNotificationEmail(input: SendNotificationEmailInput): 
         from: fromAddress(),
         to: [input.to],
         subject: input.subject,
+        ...(input.replyTo ? { reply_to: input.replyTo } : {}),
         ...(input.html ? { html: input.html } : {}),
         ...(input.text ? { text: input.text } : {}),
       }),

@@ -1414,7 +1414,19 @@
     "backToResults": "Terug naar de resultaten",
     "genericSendError": "De aanvraag kon niet worden verzonden. Probeer het opnieuw.",
     "unsupportedCountryError": "Dit land wordt nog niet ondersteund.",
-    "authError": "Log in als klant om een aanvraag te versturen."
+    "authError": "Log in als klant om een aanvraag te versturen.",
+    "sectionContactHeading": "Uw contactgegevens",
+    "contactNameLabel": "Voor en achternaam",
+    "contactEmailLabel": "E mailadres",
+    "contactPhoneLabel": "Telefoon",
+    "privacyNote": "Wij gebruiken uw gegevens (e mail, telefoon, perceeladres) alleen om deze aanvraag te behandelen en u daarover te contacteren, zonder marketing.",
+    "privacyLinkLabel": "Privacybeleid",
+    "rateLimitedError": "Vanaf dit e mailadres zijn al meerdere aanvragen verstuurd. Probeer het morgen opnieuw of wacht op de adviseur.",
+    "confirmTitle": "Aanvraag verstuurd",
+    "confirmBody": "Een ModularHub adviseur neemt per e mail contact met u op. U kunt ook een account aanmaken om uw dossier te volgen en in de app met de adviseur te praten.",
+    "createAccountCta": "Account aanmaken en dossier volgen",
+    "accountSentMessage": "Controleer uw inbox: we hebben een link gestuurd waarmee u het account afrondt.",
+    "accountSendError": "De link kon niet worden verstuurd. Probeer het opnieuw."
   },
   "ProfileForm": {
     "nameLabel": "Volledige naam",
@@ -2045,7 +2057,8 @@
     "newCaseBody": "Een klant heeft een nieuwe aanvraag over woningen gestuurd. Open het dossier om te antwoorden.",
     "newMessageSubject": "Nieuw bericht in uw ModularHub-dossier",
     "newMessageBodyClient": "Uw ModularHub-adviseur heeft u geschreven in het gesprek. Open het dossier om het bericht te lezen.",
-    "newMessageBodyAdvisor": "De klant heeft in het gesprek geschreven. Open het dossier om te antwoorden."
+    "newMessageBodyAdvisor": "De klant heeft in het gesprek geschreven. Open het dossier om te antwoorden.",
+    "newMessageBodyGuest": "Een ModularHub adviseur heeft op uw aanvraag gereageerd. Log in of maak een account aan om te antwoorden."
   },
   "LoginLinkEmail": {
     "subject": "Uw inloglink voor ModularHub Europe",
@@ -2216,5 +2229,36 @@
         }
       }
     }
+  },
+  "ProductAlt": {
+    "subject": "{kind} {model} – {producer}",
+    "kind": {
+      "house": "Modulaire woning",
+      "sauna": "Tuinsauna",
+      "spa": "Modulaire spa",
+      "container": "Modulaire container",
+      "outdoorTv": "Buitentelevisie"
+    }
+  },
+  "InquiryClaim": {
+    "heading": "Account aanmaken en uw aanvraag volgen",
+    "body": "Na uw klik sturen we een inloglink naar uw e mailadres. Na het inloggen ziet u uw dossier en kunt u met de adviseur praten.",
+    "cta": "Account aanmaken",
+    "sending": "Versturen…",
+    "retry": "Opnieuw proberen",
+    "sent": "Indien mogelijk hebben we een inloglink gestuurd naar het adres uit uw aanvraag. Controleer uw inbox.",
+    "error": "De link kon niet worden verstuurd. Probeer het opnieuw."
+  },
+  "GuestInquiryConfirmationEmail": {
+    "subject": "We hebben uw aanvraag ontvangen",
+    "heading": "Bedankt voor uw aanvraag",
+    "body": "We hebben uw aanvraag over modulaire huizen ontvangen. Een ModularHub adviseur neemt per e mail contact met u op. U kunt een account aanmaken om uw dossier te volgen en met de adviseur te praten.",
+    "cta": "Account aanmaken en dossier volgen"
+  },
+  "GuestIdentityCheckEmail": {
+    "subject": "Heeft u een aanvraag verstuurd?",
+    "heading": "Was u dit?",
+    "body": "Iemand heeft met dit e mailadres een ModularHub aanvraag over modulaire huizen verstuurd en we hebben die aan uw account gekoppeld. Was u het, dan hoeft u niets te doen. Zo niet, antwoord dan op deze e mail.",
+    "cta": "Aanvraag bekijken"
   }
 }

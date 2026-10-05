@@ -32,7 +32,10 @@ export default async function InternalCasePage({ params }: { params: Promise<{ l
           <Text>Doradca: {view.advisorName ?? "nieprzypisana"}</Text>
           {view.advisorId !== session.user.id && <AssignToMeButton inquiryId={view.id} />}
         </Stack>
-        <Text tone="muted">Klient: {view.clientName}</Text>
+        <Text tone="muted">
+          Klient: {view.clientName} · {view.contact.email} · {view.contact.phone}
+        </Text>
+        {view.emailUnverified && <Text tone="muted">E mail niepotwierdzony</Text>}
         <CaseChat
           inquiryId={view.id}
           channelId={view.channelId}

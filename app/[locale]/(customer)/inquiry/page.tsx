@@ -22,20 +22,6 @@ function buildResultsHref(
   return `/${locale}/results${query ? `?${query}` : ""}`;
 }
 
-// Zachowuje dokładnie ten sam URL (wliczając projects=), żeby po zalogowaniu
-// klient wrócił na ten sam wybór produktów (spec 0023 AC-5).
-function buildSelfHref(
-  locale: string,
-  searchParams: { [key: string]: string | string[] | undefined }
-): string {
-  const params = new URLSearchParams();
-  for (const [key, value] of Object.entries(searchParams)) {
-    if (typeof value === "string") params.set(key, value);
-  }
-  const query = params.toString();
-  return `/${locale}/inquiry${query ? `?${query}` : ""}`;
-}
-
 export default async function ZapytaniePage({
   params,
   searchParams,
@@ -46,15 +32,12 @@ export default async function ZapytaniePage({
   const [{ locale }, rawSearchParams] = await Promise.all([params, searchParams]);
   const resultsHref = buildResultsHref(locale, rawSearchParams);
 
+  // Spec 0066 AC-1: bez sesji pokazujemy formularz gościa, nie przekierowanie do logowania.
   const session = await auth();
-  if (!session) {
-    const selfHref = buildSelfHref(locale, rawSearchParams);
-    redirect(`/${locale}/login?callbackUrl=${encodeURIComponent(selfHref)}`);
-  }
-  if (session.user.role === "producer") {
+  if (session?.user.role === "producer") {
     redirect(`/${locale}/producer`);
   }
-  if (session.user.role === "admin") {
+  if (session?.user.role === "admin") {
     redirect(`/${locale}/internal`);
   }
 
@@ -81,6 +64,7 @@ export default async function ZapytaniePage({
       resultsHref={resultsHref}
       countries={countries}
       initialCountryCode={initialCountryCode}
+      isGuest={!session}
     />
   );
 }

@@ -1101,11 +1101,13 @@ export const producerExportReadiness = pgTable(
 // Zapytanie -> oferta -> zamówienie
 // ---------------------------------------------------------------------------
 
-export const inquiry = pgTable("inquiry", {
+export const inquiry = pgTable(
+  "inquiry",
+  {
   id: uuid("id").primaryKey().defaultRandom(),
-  clientId: uuid("client_id")
-    .notNull()
-    .references(() => client.id),
+  // Nullable od specyfikacji 0066: sprawa gościa (zapytanie bez logowania)
+  // nie ma klienta do czasu dowiązania po e mailu przy logowaniu.
+  clientId: uuid("client_id").references(() => client.id),
   // Migawka danych kontaktowych w chwili wysłania (spec 0018 Rationale):
   // niezależna od tego, co klient później zmieni na swoim koncie.
   name: text("name").notNull(),
@@ -1142,7 +1144,15 @@ export const inquiry = pgTable("inquiry", {
   closedAt: timestamp("closed_at", { withTimezone: true }),
   lastClientActivityAt: timestamp("last_client_activity_at", { withTimezone: true }),
   lastAdvisorActivityAt: timestamp("last_advisor_activity_at", { withTimezone: true }),
-});
+  // Spec 0066: kiedy właściciel e maila potwierdził kontakt (logowanie
+  // linkiem, zapytanie zalogowanego klienta, pierwsza wiadomość klienta).
+  // NULL u sprawy utworzonej po wdrożeniu znaczy "e mail niepotwierdzony".
+  contactEmailVerifiedAt: timestamp("contact_email_verified_at", { withTimezone: true }),
+  // Język maili do gościa (spec 0066 AC-12), zapisywany przy wysyłce.
+  locale: text("locale"),
+  },
+  (table) => [index("inquiry_email_received_idx").on(sql`lower(${table.email})`, table.receivedAt)],
+);
 
 export const inquiryItem = pgTable(
   "inquiry_item",

@@ -153,13 +153,29 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     // patrz lib/project-quote-actions.ts linkRequestsToClientOnLogin).
     // Import wewnątrz handlera, nie na górze pliku: unika cyklu
     // auth.ts -> project-quote-actions.ts -> auth.ts (signIn).
+    // Spec 0066 AC-9: to samo dla spraw gości (inquiry.client_id NULL). Rolę
+    // czytamy z bazy po user.id, bo obiekt z createUser jej nie niesie, więc
+    // pierwsze logowanie (konto powstaje właśnie w createUser) było pomijane.
+    // Błąd dowiązania nie blokuje logowania.
     async signIn({ user }) {
-      const dbUser = user as unknown as typeof users.$inferSelect;
-      if (dbUser.role !== "client" || !dbUser.email) return;
-      const { getClientIdForUser } = await import("@/lib/db/queries");
-      const { linkRequestsToClientOnLogin } = await import("@/lib/project-quote-actions");
-      const clientId = await getClientIdForUser(dbUser.id);
-      if (clientId) await linkRequestsToClientOnLogin(dbUser.email, clientId);
+      if (!user.id) return;
+      try {
+        const [dbUser] = await db
+          .select({ id: users.id, role: users.role, email: users.email })
+          .from(users)
+          .where(eq(users.id, user.id));
+        if (!dbUser || dbUser.role !== "client" || !dbUser.email) return;
+        const { getClientIdForUser } = await import("@/lib/db/queries");
+        const { linkRequestsToClientOnLogin } = await import("@/lib/project-quote-actions");
+        const { linkGuestCasesToClientOnLogin } = await import("@/lib/cases/guest");
+        const clientId = await getClientIdForUser(dbUser.id);
+        if (!clientId) return;
+        await linkRequestsToClientOnLogin(dbUser.email, clientId);
+        await linkGuestCasesToClientOnLogin(dbUser.email, clientId);
+      } catch (error) {
+        const { captureError } = await import("@/lib/observability");
+        captureError(error, { path: "auth:events.signIn" });
+      }
     },
   },
 });

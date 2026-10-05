@@ -34,6 +34,10 @@ export interface CaseView {
   plot: { street: string | null; postalCode: string | null; city: string | null; countryCode: string };
   clientMessage: string | null;
   clientName: string;
+  // Migawka kontaktu z chwili wysłania (spec 0066 AC-11).
+  contact: { email: string; phone: string };
+  // true dla spraw gości i przypiętych z AC-10 (contact_email_verified_at NULL).
+  emailUnverified: boolean;
   advisorId: string | null;
   advisorName: string | null;
   channelId: string;
@@ -184,6 +188,9 @@ export async function getCaseView(actor: CaseActor, inquiryId: string): Promise<
       countryCode: inquiry.deliveryCountryCode,
       clientMessage: inquiry.clientMessage,
       clientName: inquiry.name,
+      contactEmail: inquiry.email,
+      contactPhone: inquiry.phone,
+      contactEmailVerifiedAt: inquiry.contactEmailVerifiedAt,
       advisorId: inquiry.assignedAdvisorId,
       advisorName: users.name,
     })
@@ -217,6 +224,8 @@ export async function getCaseView(actor: CaseActor, inquiryId: string): Promise<
     plot: { street: row.street, postalCode: row.postalCode, city: row.city, countryCode: row.countryCode },
     clientMessage: row.clientMessage,
     clientName: row.clientName,
+    contact: { email: row.contactEmail, phone: row.contactPhone },
+    emailUnverified: row.contactEmailVerifiedAt === null,
     advisorId: row.advisorId,
     advisorName: row.advisorName,
     channelId: channelRow.id,

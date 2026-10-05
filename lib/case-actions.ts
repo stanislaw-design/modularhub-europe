@@ -23,9 +23,11 @@ import { requireCaseAccess } from "@/lib/cases/access";
 import { getCaseActor } from "@/lib/cases/actor";
 import { answerCard as answerCardData, assessReadiness as assessReadinessData, upsertCaseField as upsertCaseFieldData } from "@/lib/cases/cards";
 import { systemClock } from "@/lib/cases/clock";
-import { createAdvisoryCase } from "@/lib/cases/create";
+import { createAdvisoryCase, findExistingAdvisoryCase, IdempotencyConflictError } from "@/lib/cases/create";
+import { isGuestRateLimited } from "@/lib/cases/guest";
 import { postMessage, touchChannel } from "@/lib/cases/messaging";
 import { notifyAdvisorOfNewCase, notifyMessageRecipient } from "@/lib/cases/notify";
+import { notifyGuestOfNewCase } from "@/lib/notifications/guest-inquiry";
 import { notifyClientOfNewCase } from "@/lib/notifications/new-inquiry";
 import { getCountries } from "@/lib/data/countries";
 import { getPublishedProductIds } from "@/lib/data/projects";
@@ -43,16 +45,21 @@ import { captureError, trackEvent } from "@/lib/observability";
 export interface SubmitAdvisoryInquiryResult {
   ok: boolean;
   inquiryId?: string;
-  error?: "auth" | "invalid" | "no_client" | "unsupported_country" | "generic";
+  // true: sprawa gościa (bez konta), UI pokazuje ekran potwierdzenia zamiast przekierowania.
+  guest?: boolean;
+  error?: "auth" | "invalid" | "no_client" | "unsupported_country" | "rate_limited" | "generic";
 }
 
 function isKnownLocale(locale: string): boolean {
   return (routing.locales as readonly string[]).includes(locale);
 }
 
+// Zapytanie doradcze (spec 0048, rozszerzone przez 0066): sesja roli client
+// daje kontakt z konta, brak sesji oznacza gościa z kontaktem z formularza.
+// client_id i potwierdzenie kontaktu pochodzą zawsze z serwera (AC-15).
 export async function submitAdvisoryInquiry(input: SubmitAdvisoryInquiryInput): Promise<SubmitAdvisoryInquiryResult> {
   const session = await auth();
-  if (!session || session.user.role !== "client") {
+  if (session && session.user.role !== "client") {
     return { ok: false, error: "auth" };
   }
 
@@ -61,12 +68,17 @@ export async function submitAdvisoryInquiry(input: SubmitAdvisoryInquiryInput): 
   const data = parsed.data;
   if (!isKnownLocale(data.locale)) return { ok: false, error: "invalid" };
 
+  const isGuest = !session;
+  if (isGuest && !data.contact) return { ok: false, error: "invalid" };
+  // Pole pułapka (AC-5): odpowiedź wygląda na sukces, nic nie jest zapisane ani wysłane.
+  if (isGuest && data.website) return { ok: true, inquiryId: crypto.randomUUID(), guest: true };
+
   const [countries, knownIds, clientId] = await Promise.all([
     getCountries(),
     getPublishedProductIds(),
-    getClientIdForUser(session.user.id),
+    session ? getClientIdForUser(session.user.id) : Promise.resolve(null),
   ]);
-  if (!clientId) return { ok: false, error: "no_client" };
+  if (session && !clientId) return { ok: false, error: "no_client" };
 
   const countryCode = data.plot.countryCode.toUpperCase();
   if (!countries.some((country) => country.code === countryCode)) return { ok: false, error: "unsupported_country" };
@@ -74,34 +86,46 @@ export async function submitAdvisoryInquiry(input: SubmitAdvisoryInquiryInput): 
   const projectIds = [...new Set(data.projectIds)];
   if (projectIds.length > 3 || projectIds.some((id) => !knownIds.has(id))) return { ok: false, error: "invalid" };
 
+  const contact = session
+    ? { name: session.user.name ?? "", email: session.user.email ?? "", phone: session.user.phone ?? "" }
+    : data.contact!;
+  const distinctId = session?.user.id;
+
   try {
+    // Powtórka tej samej wysyłki zwraca istniejącą sprawę i nie liczy się do limitu (AC-4).
+    const requester = { clientId, email: contact.email };
+    const existing = await findExistingAdvisoryCase(data.idempotencyKey, requester);
+    if (existing) return { ok: true, inquiryId: existing.inquiryId, guest: isGuest };
+
+    if (isGuest && (await isGuestRateLimited(contact.email, systemClock.now()))) {
+      return { ok: false, error: "rate_limited" };
+    }
+
     const t = await getTranslations({ locale: data.locale, namespace: "CaseSystem" });
     const result = await createAdvisoryCase(
       {
         clientId,
-        contact: {
-          name: session.user.name ?? "",
-          email: session.user.email ?? "",
-          phone: session.user.phone ?? "",
-        },
+        contact,
         projectIds,
         plot: { ...data.plot, countryCode },
         message: data.message ? data.message : null,
         idempotencyKey: data.idempotencyKey,
         locale: data.locale,
         systemNoticeBody: t("caseReceived"),
+        contactEmailVerifiedAt: isGuest ? null : systemClock.now(),
       },
       systemClock,
     );
 
     if (result.created) {
-      trackEvent("case_created", { homeCount: projectIds.length, countryCode }, session.user.id);
+      trackEvent("case_created", { homeCount: projectIds.length, countryCode, guest: isGuest }, distinctId ?? result.inquiryId);
       after(() => notifyAdvisorOfNewCase(result.inquiryId));
-      after(() => notifyClientOfNewCase(result.inquiryId));
+      after(() => (isGuest ? notifyGuestOfNewCase(result.inquiryId) : notifyClientOfNewCase(result.inquiryId)));
     }
-    return { ok: true, inquiryId: result.inquiryId };
+    return { ok: true, inquiryId: result.inquiryId, guest: isGuest };
   } catch (error) {
-    captureError(error, { path: "submitAdvisoryInquiry", userId: session.user.id });
+    if (error instanceof IdempotencyConflictError) return { ok: false, error: "invalid" };
+    captureError(error, { path: "submitAdvisoryInquiry", userId: distinctId });
     return { ok: false, error: "generic" };
   }
 }

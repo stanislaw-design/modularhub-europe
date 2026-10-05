@@ -2,12 +2,16 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { submitAdvisoryInquiry } from "@/lib/case-actions";
+import { requestAccountForGuestCase } from "@/lib/guest-case-actions";
 import type { Country, Project } from "@/lib/data/types";
 import { createMockProject } from "@/test/fixtures/project";
 import { InquiryFlow } from "./InquiryFlow";
 
 vi.mock("@/lib/case-actions", () => ({
   submitAdvisoryInquiry: vi.fn(),
+}));
+vi.mock("@/lib/guest-case-actions", () => ({
+  requestAccountForGuestCase: vi.fn(),
 }));
 
 const push = vi.fn();
@@ -17,6 +21,7 @@ vi.mock("next/navigation", async (importOriginal) => ({
 }));
 
 const mockedSubmit = vi.mocked(submitAdvisoryInquiry);
+const mockedRequestAccount = vi.mocked(requestAccountForGuestCase);
 
 function makeProject(id: string, name: string): Project {
   return createMockProject({ id, producerId: "prod-1", producerName: "Producent", name, floorAreaM2: 80, priceMin: 100000 });
@@ -28,9 +33,15 @@ const countries: Country[] = [
   { code: "DE", name: "Niemcy" },
 ];
 
-function renderFlow(initialCountryCode: "PL" | "DE" | null = null) {
+function renderFlow(initialCountryCode: "PL" | "DE" | null = null, isGuest = false) {
   render(
-    <InquiryFlow projects={twoProjects} resultsHref="/pl/results" countries={countries} initialCountryCode={initialCountryCode} />,
+    <InquiryFlow
+      projects={twoProjects}
+      resultsHref="/pl/results"
+      countries={countries}
+      initialCountryCode={initialCountryCode}
+      isGuest={isGuest}
+    />,
   );
 }
 
@@ -42,6 +53,7 @@ async function fillAddress(user: ReturnType<typeof userEvent.setup>) {
 
 beforeEach(() => {
   mockedSubmit.mockReset();
+  mockedRequestAccount.mockReset();
   push.mockReset();
 });
 
@@ -129,5 +141,84 @@ describe("InquiryFlow (spec 0048 AC-1, AC-2)", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent("nie jest jeszcze obsługiwany");
     expect(push).not.toHaveBeenCalled();
+  });
+});
+
+// Spec 0066: zapytanie bez logowania.
+describe("InquiryFlow as a guest (spec 0066 AC-2, AC-6, AC-17)", () => {
+  async function fillContact(user: ReturnType<typeof userEvent.setup>) {
+    await user.type(screen.getByLabelText(/imię i nazwisko/i), "Jan Gość");
+    await user.type(screen.getByLabelText(/adres e mail/i), "jan@example.test");
+    await user.type(screen.getByLabelText(/telefon/i), "+48123456789");
+  }
+
+  it("does not show contact fields to a logged in client (AC-2)", () => {
+    renderFlow("PL", false);
+
+    expect(screen.queryByLabelText(/adres e mail/i)).not.toBeInTheDocument();
+  });
+
+  it("requires name, email and phone before the guest can send (AC-2)", async () => {
+    const user = userEvent.setup();
+    renderFlow("PL", true);
+    const submit = screen.getByRole("button", { name: "Wyślij zapytanie do ModularHub" });
+
+    await fillAddress(user);
+    expect(submit).toBeDisabled();
+
+    await fillContact(user);
+    expect(submit).toBeEnabled();
+  });
+
+  it("shows the data processing note with a privacy link under the button (AC-17)", () => {
+    renderFlow("PL", true);
+
+    expect(screen.getByText(/bez marketingu/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Polityka prywatności" })).toHaveAttribute("href", "/pl/privacy");
+  });
+
+  it("sends the contact and an empty honeypot, then stays on the page with the confirmation (AC-6)", async () => {
+    mockedSubmit.mockResolvedValue({ ok: true, inquiryId: "inq-g", guest: true });
+    const user = userEvent.setup();
+    renderFlow("PL", true);
+
+    await fillAddress(user);
+    await fillContact(user);
+    await user.click(screen.getByRole("button", { name: "Wyślij zapytanie do ModularHub" }));
+
+    expect(await screen.findByText("Zapytanie wysłane")).toBeInTheDocument();
+    expect(push).not.toHaveBeenCalled();
+    const input = mockedSubmit.mock.calls[0][0];
+    expect(input.contact).toEqual({ name: "Jan Gość", email: "jan@example.test", phone: "+48123456789" });
+    expect(input.website).toBe("");
+    expect(screen.getByRole("button", { name: "Załóż konto i śledź sprawę" })).toBeInTheDocument();
+  });
+
+  it("asks for the account on click and confirms (AC-6, AC-8)", async () => {
+    mockedSubmit.mockResolvedValue({ ok: true, inquiryId: "inq-g", guest: true });
+    mockedRequestAccount.mockResolvedValue({ ok: true });
+    const user = userEvent.setup();
+    renderFlow("PL", true);
+
+    await fillAddress(user);
+    await fillContact(user);
+    await user.click(screen.getByRole("button", { name: "Wyślij zapytanie do ModularHub" }));
+    await user.click(await screen.findByRole("button", { name: "Załóż konto i śledź sprawę" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent("wysłaliśmy link");
+    expect(mockedRequestAccount).toHaveBeenCalledWith({ inquiryId: "inq-g", locale: "pl" });
+  });
+
+  it("shows a message and keeps the form on rate_limited (AC-5)", async () => {
+    mockedSubmit.mockResolvedValue({ ok: false, error: "rate_limited" });
+    const user = userEvent.setup();
+    renderFlow("PL", true);
+
+    await fillAddress(user);
+    await fillContact(user);
+    await user.click(screen.getByRole("button", { name: "Wyślij zapytanie do ModularHub" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("kilka zapytań");
+    expect(screen.getByLabelText(/adres e mail/i)).toHaveValue("jan@example.test");
   });
 });

@@ -1414,7 +1414,19 @@
     "backToResults": "Back to results",
     "genericSendError": "We could not send your request. Please try again.",
     "unsupportedCountryError": "This country is not supported yet.",
-    "authError": "Log in as a client to send a request."
+    "authError": "Log in as a client to send a request.",
+    "sectionContactHeading": "Your contact details",
+    "contactNameLabel": "Full name",
+    "contactEmailLabel": "Email address",
+    "contactPhoneLabel": "Phone",
+    "privacyNote": "We use your details (email, phone, plot address) only to handle this request and to contact you about it, with no marketing.",
+    "privacyLinkLabel": "Privacy policy",
+    "rateLimitedError": "Several requests were already sent from this email address. Try again tomorrow or wait for the advisor to contact you.",
+    "confirmTitle": "Request sent",
+    "confirmBody": "A ModularHub advisor will contact you by email. You can also create an account to follow your case and chat with the advisor in the app.",
+    "createAccountCta": "Create an account and follow your case",
+    "accountSentMessage": "Check your inbox: we sent a link that finishes creating your account.",
+    "accountSendError": "We could not send the link. Please try again."
   },
   "ProfileForm": {
     "nameLabel": "Full name",
@@ -2045,7 +2057,8 @@
     "newCaseBody": "A client sent a new request about homes. Open the case to reply.",
     "newMessageSubject": "New message in your ModularHub case",
     "newMessageBodyClient": "Your ModularHub advisor wrote to you in the conversation. Open the case to read the message.",
-    "newMessageBodyAdvisor": "The client wrote in the conversation. Open the case to reply."
+    "newMessageBodyAdvisor": "The client wrote in the conversation. Open the case to reply.",
+    "newMessageBodyGuest": "A ModularHub advisor replied to your request. Sign in or create an account to reply."
   },
   "LoginLinkEmail": {
     "subject": "Your ModularHub Europe login link",
@@ -2216,5 +2229,36 @@
         }
       }
     }
+  },
+  "ProductAlt": {
+    "subject": "{kind} {model} – {producer}",
+    "kind": {
+      "house": "Modular house",
+      "sauna": "Garden sauna",
+      "spa": "Modular spa",
+      "container": "Modular container",
+      "outdoorTv": "Outdoor TV"
+    }
+  },
+  "InquiryClaim": {
+    "heading": "Create an account and follow your request",
+    "body": "After you click, we will email a sign in link to your address. Once signed in you will see your case and can chat with the advisor.",
+    "cta": "Create account",
+    "sending": "Sending…",
+    "retry": "Retry",
+    "sent": "If possible, we sent a sign in link to the address from your request. Check your inbox.",
+    "error": "We could not send the link. Please try again."
+  },
+  "GuestInquiryConfirmationEmail": {
+    "subject": "We received your request",
+    "heading": "Thank you for your request",
+    "body": "We received your request about modular homes. A ModularHub advisor will contact you by email. You can create an account to follow your case and chat with the advisor.",
+    "cta": "Create an account and follow your case"
+  },
+  "GuestIdentityCheckEmail": {
+    "subject": "Did you send a request?",
+    "heading": "Was this you?",
+    "body": "Someone sent a ModularHub request about modular homes using this email address, and we added it to your account. If it was you, you do not need to do anything. If not, reply to this email.",
+    "cta": "View the request"
   }
 }

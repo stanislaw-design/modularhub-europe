@@ -17,7 +17,8 @@ type ChannelKind = (typeof channel.$inferSelect)["kind"];
 export interface CaseAccessContext {
   inquiry: {
     id: string;
-    clientId: string;
+    // null: sprawa gościa (spec 0066), żaden klient jej jeszcze nie widzi.
+    clientId: string | null;
     stage: (typeof inquiry.$inferSelect)["stage"];
     // Producent oferty wskazanej w finalist_offer_id, null przed wyborem.
     finalistProducerId: string | null;

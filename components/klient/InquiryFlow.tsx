@@ -1,14 +1,17 @@
 "use client";
 
 import {
+  CircleCheck,
   Home,
   MapPin,
+  UserRound,
   MessageCircle,
   Send,
   ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type FormEvent, type ReactNode, useState, useTransition } from "react";
 import {
@@ -23,6 +26,7 @@ import {
   Textarea,
 } from "@/components/ui";
 import { submitAdvisoryInquiry } from "@/lib/case-actions";
+import { requestAccountForGuestCase } from "@/lib/guest-case-actions";
 import type { Country, CountryCode, Project } from "@/lib/data/types";
 
 interface InquiryFlowProps {
@@ -30,6 +34,8 @@ interface InquiryFlowProps {
   resultsHref: string;
   countries: Country[];
   initialCountryCode: CountryCode | null;
+  // Spec 0066: niezalogowany odwiedzający wysyła zapytanie jako gość.
+  isGuest?: boolean;
 }
 
 const HOW_IT_WORKS_STEPS: { icon: LucideIcon; key: string }[] = [
@@ -63,6 +69,7 @@ export function InquiryFlow({
   resultsHref,
   countries,
   initialCountryCode,
+  isGuest = false,
 }: InquiryFlowProps) {
   const t = useTranslations("InquiryFlow");
   const locale = useLocale();
@@ -74,6 +81,13 @@ export function InquiryFlow({
     initialCountryCode,
   );
   const [message, setMessage] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  // Pole pułapka (spec 0066 AC-5): ukryte przed człowiekiem, boty je wypełniają.
+  const [website, setWebsite] = useState("");
+  const [guestInquiryId, setGuestInquiryId] = useState<string | null>(null);
+  const [accountState, setAccountState] = useState<"idle" | "sent" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   // Wygenerowany raz, przy otwarciu formularza: ponowienie po błędzie wysyła
@@ -85,6 +99,8 @@ export function InquiryFlow({
     postalCode.trim().length > 0 &&
     city.trim().length > 0 &&
     countryCode !== null &&
+    (!isGuest ||
+      (contactName.trim().length > 0 && contactEmail.includes("@") && contactPhone.trim().length >= 5)) &&
     !isPending;
 
   function handleSubmit(event: FormEvent) {
@@ -99,6 +115,12 @@ export function InquiryFlow({
         message: message.trim() || undefined,
         idempotencyKey,
         locale,
+        ...(isGuest
+          ? {
+              contact: { name: contactName, email: contactEmail, phone: contactPhone },
+              website,
+            }
+          : {}),
       });
 
       if (!result.ok || !result.inquiryId) {
@@ -107,8 +129,15 @@ export function InquiryFlow({
             ? t("unsupportedCountryError")
             : result.error === "auth"
               ? t("authError")
-              : t("genericSendError"),
+              : result.error === "rate_limited"
+                ? t("rateLimitedError")
+                : t("genericSendError"),
         );
+        return;
+      }
+
+      if (result.guest) {
+        setGuestInquiryId(result.inquiryId);
         return;
       }
 
@@ -116,10 +145,64 @@ export function InquiryFlow({
     });
   }
 
+  function handleCreateAccount() {
+    if (!guestInquiryId) return;
+    setAccountState("idle");
+    startTransition(async () => {
+      const result = await requestAccountForGuestCase({ inquiryId: guestInquiryId, locale });
+      setAccountState(result.ok ? "sent" : "error");
+    });
+  }
+
   const countryOptions = countries.map((country) => ({
     value: country.code,
     label: country.name,
   }));
+
+  if (guestInquiryId) {
+    return (
+      <div className="mx-auto flex max-w-xl flex-col gap-brand-4 py-brand-6">
+        <h1 className="sr-only">{t("heading")}</h1>
+        <Card surface="v5" padding="lg" className="shadow-sm">
+          <Stack gap={4}>
+            <div className="flex items-center gap-2">
+              <CircleCheck className="size-6 text-brand-v5-amber-strong" aria-hidden="true" />
+              <Heading level="h2" surface="v5" className="text-2xl font-bold tracking-tight">
+                {t("confirmTitle")}
+              </Heading>
+            </div>
+            <Text surface="v5">{t("confirmBody")}</Text>
+            {accountState === "sent" ? (
+              <p className="font-sans text-body text-brand-v5-ink" role="status">
+                {t("accountSentMessage")}
+              </p>
+            ) : (
+              <>
+                {accountState === "error" && (
+                  <p className="font-sans text-body text-status-blocked" role="alert">
+                    {t("accountSendError")}
+                  </p>
+                )}
+                <Button
+                  type="button"
+                  surface="v5"
+                  size="lg"
+                  className="w-fit"
+                  disabled={isPending}
+                  onClick={handleCreateAccount}
+                >
+                  {isPending ? t("sendingLabel") : accountState === "error" ? t("retrySendLabel") : t("createAccountCta")}
+                </Button>
+              </>
+            )}
+            <Button as="a" href={resultsHref} variant="secondary" surface="v5" size="lg" className="w-fit">
+              {t("backToResults")}
+            </Button>
+          </Stack>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="relative left-1/2 right-1/2 w-screen -ml-[50vw] -mr-[50vw] px-4 sm:px-8 lg:pl-10 lg:pr-10 xl:pl-14 xl:pr-14 2xl:pl-16 2xl:pr-16">
@@ -269,6 +352,68 @@ export function InquiryFlow({
                     surface="v5"
                   />
                 </Stack>
+                {isGuest && (
+                  <>
+                    <SectionHeading icon={UserRound}>{t("sectionContactHeading")}</SectionHeading>
+                    <Stack gap={1}>
+                      <Label htmlFor="inquiry-contact-name" required surface="v5">
+                        {t("contactNameLabel")}
+                      </Label>
+                      <Input
+                        id="inquiry-contact-name"
+                        name="contactName"
+                        type="text"
+                        autoComplete="name"
+                        required
+                        surface="v5"
+                        value={contactName}
+                        onChange={(event) => setContactName(event.target.value)}
+                      />
+                    </Stack>
+                    <Stack gap={1}>
+                      <Label htmlFor="inquiry-contact-email" required surface="v5">
+                        {t("contactEmailLabel")}
+                      </Label>
+                      <Input
+                        id="inquiry-contact-email"
+                        name="contactEmail"
+                        type="email"
+                        autoComplete="email"
+                        required
+                        surface="v5"
+                        value={contactEmail}
+                        onChange={(event) => setContactEmail(event.target.value)}
+                      />
+                    </Stack>
+                    <Stack gap={1}>
+                      <Label htmlFor="inquiry-contact-phone" required surface="v5">
+                        {t("contactPhoneLabel")}
+                      </Label>
+                      <Input
+                        id="inquiry-contact-phone"
+                        name="contactPhone"
+                        type="tel"
+                        autoComplete="tel"
+                        required
+                        surface="v5"
+                        value={contactPhone}
+                        onChange={(event) => setContactPhone(event.target.value)}
+                      />
+                    </Stack>
+                    <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
+                      <label htmlFor="inquiry-website">Website</label>
+                      <input
+                        id="inquiry-website"
+                        name="website"
+                        type="text"
+                        tabIndex={-1}
+                        autoComplete="off"
+                        value={website}
+                        onChange={(event) => setWebsite(event.target.value)}
+                      />
+                    </div>
+                  </>
+                )}
               </Stack>
             </div>
 
@@ -280,6 +425,14 @@ export function InquiryFlow({
                 >
                   {error}
                 </p>
+              )}
+              {isGuest && (
+                <Text tone="muted" surface="v5" className="text-data">
+                  {t("privacyNote")}{" "}
+                  <Link href={`/${locale}/privacy`} className="focus-ring underline">
+                    {t("privacyLinkLabel")}
+                  </Link>
+                </Text>
               )}
               <Stack direction="row" gap={2} className="flex-wrap">
                 <Button
