@@ -1,4 +1,7 @@
 {
+  "SkipLink": {
+    "label": "Skip to content"
+  },
   "SiteHeader": {
     "nav": {
       "projects": "Projects",
@@ -77,7 +80,24 @@
     "viewTimeline": "View status axis"
   },
   "ProjectCertifications": {
-    "heading": "Certifications"
+    "heading": "Certifications",
+    "confirmed": "Confirmed by the platform, {date}",
+    "declared": "Producer declaration, not confirmed"
+  },
+  "ProjectComplianceAssessments": {
+    "heading": "Compliance assessment of this project",
+    "confirmed": "Confirmed by the platform, {date}",
+    "declared": "Not confirmed by the platform",
+    "country": {
+      "PL": "Poland",
+      "DE": "Germany",
+      "NL": "Netherlands"
+    },
+    "status": {
+      "approved": "Compliant",
+      "conditional": "Requires additional documents",
+      "blocked": "Not available in this country"
+    }
   },
   "PopularHomeCard": {
     "coverAlt": "{name}, a modular house",
@@ -90,6 +110,7 @@
   "ProducerCard": {
     "photoAlt": "A project by {name}",
     "verified": "Verified by ModularHub",
+    "verifiedIdentity": "Verified company identity",
     "countryOfProduction": "Country of production: {country}",
     "modelsAndSize": "{models} models · {min}–{max} m²",
     "modelsOnly": "{models} models",
@@ -865,8 +886,8 @@
     "warrantyYears": "{years}-year structural warranty",
     "warrantyYearsValue": "{years} yrs",
     "certifiedCount": {
-      "one": "Verified by {count} certificate",
-      "other": "Verified by {count} certificates"
+      "one": "Producer certification: {count}",
+      "other": "Producer certifications: {count}"
     },
     "assemblyDays": "On-site assembly in {min}–{max} days",
     "assemblyDaysOne": "On-site assembly in {count} day",
@@ -1902,7 +1923,7 @@
     "heading": "Verified volume manufacturers",
     "ctaLabel": "Submit a request",
     "requestPromoHeading": "Know exactly what you're looking for?",
-    "verifiedBadge": "Volume-verified producer",
+    "verifiedBadge": "Verified volume capacity",
     "capacityLabel": "{units} homes/month",
     "certificationsLabel": "Certifications: {list}",
     "deliveryLabel": "Delivery: {list}",

@@ -38,6 +38,7 @@ import {
   productComplianceAssessment,
   productCountryEligibility,
   productTimelineStage,
+  productTranslation,
   productVariant,
   users,
 } from "@/lib/db/schema";
@@ -177,6 +178,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: reads from the da
         floorAreaM2: 16,
         countryOfProduction: "PL",
         spaSubcategory: "sauna",
+        technicalSpecs: { glazingType: "Szkło hartowane przyciemniane", benchMaterial: "Abachi" },
       },
       {
         id: searchableDomId,
@@ -213,9 +215,16 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: reads from the da
       { productId: publishedDomId, countryCode: "DE", status: "approved", reason: "Test" },
       { productId: publishedDomId, countryCode: "NL", status: "blocked", reason: "Test" },
     ]);
+    // Tylko glazingType jest przetłumaczone: benchMaterial ma spaść na polski.
+    await db.insert(productTranslation).values({
+      productId: saunaSpaId,
+      locale: "en",
+      technicalSpecs: { specs: { glazingType: { value: "Tinted tempered glass" } } },
+    });
   });
 
   afterAll(async () => {
+    await db.delete(productTranslation).where(eq(productTranslation.productId, saunaSpaId));
     await db
       .delete(productCountryEligibility)
       .where(inArray(productCountryEligibility.productId, [publishedDomId, draftDomId, featuredContainerId]));
@@ -355,6 +364,17 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: reads from the da
 
     expect(sauna.map((p) => p.id)).toContain(saunaSpaId);
     expect(jacuzzi.map((p) => p.id)).not.toContain(saunaSpaId);
+  });
+
+  // Spec 0061 AC-7 + tłumaczenia: wartości specyfikacji sauny czytane z
+  // product_translation.technicalSpecs po nazwie pola, z fallbackiem na polski.
+  it("translates sauna technical spec values per locale and falls back to Polish when missing", async () => {
+    const en = await getProjectById(saunaSpaId, "en");
+    expect(en?.saunaTechnicalSpecs?.glazingType).toBe("Tinted tempered glass");
+    expect(en?.saunaTechnicalSpecs?.benchMaterial).toBe("Abachi");
+
+    const pl = await getProjectById(saunaSpaId, "pl");
+    expect(pl?.saunaTechnicalSpecs?.glazingType).toBe("Szkło hartowane przyciemniane");
   });
 
   // spec 0026 AC-6: full-text search, case-insensitive, prefix matching.

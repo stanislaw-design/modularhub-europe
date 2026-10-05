@@ -1,4 +1,7 @@
 {
+  "SkipLink": {
+    "label": "Ga naar de inhoud"
+  },
   "SiteHeader": {
     "nav": {
       "projects": "Projecten",
@@ -77,7 +80,24 @@
     "viewTimeline": "Bekijk statusas"
   },
   "ProjectCertifications": {
-    "heading": "Certificeringen"
+    "heading": "Certificeringen",
+    "confirmed": "Bevestigd door het platform, {date}",
+    "declared": "Verklaring van de producent, niet bevestigd"
+  },
+  "ProjectComplianceAssessments": {
+    "heading": "Conformiteitsbeoordeling van dit project",
+    "confirmed": "Bevestigd door het platform, {date}",
+    "declared": "Niet bevestigd door het platform",
+    "country": {
+      "PL": "Polen",
+      "DE": "Duitsland",
+      "NL": "Nederland"
+    },
+    "status": {
+      "approved": "Conform de regelgeving",
+      "conditional": "Vereist aanvullende documenten",
+      "blocked": "Niet beschikbaar in dit land"
+    }
   },
   "PopularHomeCard": {
     "coverAlt": "{name}, een modulaire woning",
@@ -90,6 +110,7 @@
   "ProducerCard": {
     "photoAlt": "Een project van {name}",
     "verified": "Geverifieerd door ModularHub",
+    "verifiedIdentity": "Geverifieerde bedrijfsidentiteit",
     "countryOfProduction": "Productieland: {country}",
     "modelsAndSize": "{models} modellen · {min}–{max} m²",
     "modelsOnly": "{models} modellen",
@@ -865,8 +886,8 @@
     "warrantyYears": "{years} jaar constructiegarantie",
     "warrantyYearsValue": "{years} jaar",
     "certifiedCount": {
-      "one": "Geverifieerd met {count} certificaat",
-      "other": "Geverifieerd met {count} certificaten"
+      "one": "Certificaat van de producent: {count}",
+      "other": "Certificaten van de producent: {count}"
     },
     "assemblyDays": "Montage op locatie in {min}–{max} dagen",
     "assemblyDaysOne": "Montage op locatie in {count} dag",
@@ -1902,7 +1923,7 @@
     "heading": "Geverifieerde volumeproducenten",
     "ctaLabel": "Aanvraag indienen",
     "requestPromoHeading": "Weet u precies wat u zoekt?",
-    "verifiedBadge": "Volume-geverifieerde producent",
+    "verifiedBadge": "Geverifieerde volumecapaciteit",
     "capacityLabel": "{units} woningen/maand",
     "certificationsLabel": "Certificaten: {list}",
     "deliveryLabel": "Levering: {list}",

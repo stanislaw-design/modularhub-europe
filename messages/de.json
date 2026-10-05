@@ -1,4 +1,7 @@
 {
+  "SkipLink": {
+    "label": "Zum Inhalt springen"
+  },
   "SiteHeader": {
     "nav": {
       "projects": "Projekte",
@@ -77,7 +80,24 @@
     "viewTimeline": "Statusleiste ansehen"
   },
   "ProjectCertifications": {
-    "heading": "Zertifikate"
+    "heading": "Zertifikate",
+    "confirmed": "Von der Plattform bestätigt, {date}",
+    "declared": "Erklärung des Herstellers, nicht bestätigt"
+  },
+  "ProjectComplianceAssessments": {
+    "heading": "Konformitätsbewertung dieses Projekts",
+    "confirmed": "Von der Plattform bestätigt, {date}",
+    "declared": "Von der Plattform nicht bestätigt",
+    "country": {
+      "PL": "Polen",
+      "DE": "Deutschland",
+      "NL": "Niederlande"
+    },
+    "status": {
+      "approved": "Konform mit den Vorschriften",
+      "conditional": "Erfordert zusätzliche Unterlagen",
+      "blocked": "In diesem Land nicht verfügbar"
+    }
   },
   "PopularHomeCard": {
     "coverAlt": "{name}, Modulhaus",
@@ -90,6 +110,7 @@
   "ProducerCard": {
     "photoAlt": "Referenzprojekt von {name}",
     "verified": "Verifiziert von ModularHub",
+    "verifiedIdentity": "Verifizierte Firmenidentität",
     "countryOfProduction": "Produktionsland: {country}",
     "modelsAndSize": "{models} Modelle · {min}–{max} m²",
     "modelsOnly": "{models} Modelle",
@@ -872,8 +893,8 @@
     "warrantyYears": "{years} Jahre Konstruktionsgarantie",
     "warrantyYearsValue": "{years} Jahre",
     "certifiedCount": {
-      "one": "Bestätigt durch {count} Zertifikat",
-      "other": "Bestätigt durch {count} Zertifikate"
+      "one": "Zertifikat des Herstellers: {count}",
+      "other": "Zertifikate des Herstellers: {count}"
     },
     "assemblyDays": "Montage vor Ort in {min}–{max} Tagen",
     "assemblyDaysOne": "Montage vor Ort in {count} Tag",
@@ -1902,7 +1923,7 @@
     "heading": "Verifizierte Volumenhersteller",
     "ctaLabel": "Anfrage einreichen",
     "requestPromoHeading": "Wissen Sie genau, wonach Sie suchen?",
-    "verifiedBadge": "Volumenverifizierter Hersteller",
+    "verifiedBadge": "Verifizierte Volumenkapazität",
     "capacityLabel": "{units} Häuser/Monat",
     "certificationsLabel": "Zertifikate: {list}",
     "deliveryLabel": "Lieferung: {list}",

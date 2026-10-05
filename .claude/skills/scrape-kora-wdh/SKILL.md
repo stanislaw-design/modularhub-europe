@@ -251,5 +251,18 @@ Nigdy nie kończ ciszą. Podsumowanie musi zawierać:
 - Prawa do zdjęć Kory/WDH są już potwierdzone na stałe (patrz góra pliku) — nie pytaj ponownie dla
   kolejnych modeli tych dwóch producentów, ale **każdy nowy, trzeci producent wymaga własnego,
   świeżego potwierdzenia**.
+- **Nigdy nie wpisuj danych kontaktowych producenta** (e-mail, telefon, strona www) do
+  `producer.description` ani nigdzie indziej widocznego dla klienta — sekcja "partner" na stronie
+  produktu pokazuje ten opis publicznie, a kontakt ma iść wyłącznie przez platformę. Opis ma być
+  samym streszczeniem oferty. Przy każdym imporcie/odświeżeniu sprawdź, że opis nie zawiera `@`,
+  numeru telefonu ani domeny (dotyczy też promocji dev → prod).
+- **Polskie teksty zawsze z polskimi znakami** (ą ć ę ł ń ó ś ź ż) w `technicalSpecs`, `constructionSystem`,
+  `foundationOptions`, nazwach grup opcji i opcjach, opisie producenta — nigdy ASCII ("Szklo", "Welna",
+  "podloga"). Do każdego importowanego produktu sauny dopisz też wiersze `product_translation` dla
+  `en`, `de`, `nl`: `technical_specs` w kształcie `{"specs":{"<klucz pola>":{"value":"..."}}}` (klucze
+  angielskie: claddingMaterial, interiorWoodType, benchMaterial, insulationType, glazingType,
+  changingAreaDescription, electricalRequirement) oraz `foundation_options`. Strona sauny czyta je przez
+  `resolveTranslatedSpecValue` w `lib/data/projects.ts`, brak wiersza = polski tekst. Nazwy grup opcji i
+  opcji nie mają tabeli tłumaczeń, zostają po polsku.
 - Jeśli współdzielona przeglądarka Playwright jest zajęta — zatrzymaj się i zgłoś, nie zabijaj procesu
   (ten sam wzorzec co scrape-steel-house).

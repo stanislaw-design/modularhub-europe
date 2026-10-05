@@ -479,6 +479,22 @@ function resolveTranslatedFaq(base: ProjectFaqItem[], translated: unknown): Proj
   });
 }
 
+// Sauna (spec 0061) ma typowany odczyt technicalSpecs po angielskich kluczach
+// (claddingMaterial, ...), więc tłumaczenie bierze wartość z tego samego
+// kształtu `{ specs: { "<klucz>": { value } } }` co outdoor-tv wyżej, tylko
+// kluczem jest nazwa pola schematu, nie polski napis. Brak tłumaczenia albo
+// pusta wartość spada na polski tekst (ten sam fallback AC-6).
+function resolveTranslatedSpecValue(base: string | undefined, translated: unknown, key: string): string {
+  const specs =
+    translated && typeof translated === "object" ? (translated as { specs?: unknown }).specs : undefined;
+  const entry = specs && typeof specs === "object" ? (specs as Record<string, unknown>)[key] : undefined;
+  const value =
+    entry && typeof entry === "object" && typeof (entry as { value?: unknown }).value === "string"
+      ? (entry as { value: string }).value.trim()
+      : "";
+  return value || (base ?? "");
+}
+
 interface TranslatedTechnicalSpecs {
   rawTechnicalSpecs: Record<string, string>;
   technicalSpecsLabels?: Record<string, string>;
@@ -700,15 +716,23 @@ function mapRowToProject(
   const saunaTechnicalSpecs =
     row.family === "spa-modulowe" && row.spaSubcategory === "sauna"
       ? {
-          claddingMaterial: specs.claddingMaterial ?? "",
-          interiorWoodType: specs.interiorWoodType ?? "",
-          benchMaterial: specs.benchMaterial ?? "",
-          insulationType: specs.insulationType ?? "",
-          glazingType: specs.glazingType ?? "",
+          claddingMaterial: resolveTranslatedSpecValue(specs.claddingMaterial, translation?.technicalSpecs, "claddingMaterial"),
+          interiorWoodType: resolveTranslatedSpecValue(specs.interiorWoodType, translation?.technicalSpecs, "interiorWoodType"),
+          benchMaterial: resolveTranslatedSpecValue(specs.benchMaterial, translation?.technicalSpecs, "benchMaterial"),
+          insulationType: resolveTranslatedSpecValue(specs.insulationType, translation?.technicalSpecs, "insulationType"),
+          glazingType: resolveTranslatedSpecValue(specs.glazingType, translation?.technicalSpecs, "glazingType"),
           seatingCapacity: specs.seatingCapacity ?? null,
           hasChangingArea: specs.hasChangingArea ?? null,
-          changingAreaDescription: specs.changingAreaDescription ?? "",
-          electricalRequirement: specs.electricalRequirement ?? "",
+          changingAreaDescription: resolveTranslatedSpecValue(
+            specs.changingAreaDescription,
+            translation?.technicalSpecs,
+            "changingAreaDescription",
+          ),
+          electricalRequirement: resolveTranslatedSpecValue(
+            specs.electricalRequirement,
+            translation?.technicalSpecs,
+            "electricalRequirement",
+          ),
         }
       : undefined;
   // Wersja surowa, bez typowania pod "dom" (spec 0056 AC-3): dla rodziny bez
