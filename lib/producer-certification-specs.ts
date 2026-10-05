@@ -13,4 +13,4 @@ export const producerCertificationInputSchema = z.object({
     .transform((value) => (value ? value : null)),
 });
 
-export type ProducerCertificationInput = z.infer<typeof producerCertificationInputSchema>;
+export type ProducerCertificationFormInput = z.input<typeof producerCertificationInputSchema>;

@@ -17,5 +17,4 @@ export type LeadTimeTier = z.infer<typeof leadTimeTierSchema>;
 export const COMPLETION_STANDARDS = ["surowy-zamkniety", "deweloperski", "pod-klucz"] as const;
 export const completionStandardsSupportedSchema = z.array(z.enum(COMPLETION_STANDARDS));
 
-export const certificationsSchema = z.array(z.string().trim().min(1));
 export const pastProjectReferencesSchema = z.array(z.string().trim().min(1));

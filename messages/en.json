@@ -79,6 +79,23 @@
     "currentStage": "Current stage: {stage}",
     "viewTimeline": "View status axis"
   },
+  "ProducerCertificationsSection": {
+    "heading": "Company certifications",
+    "intro": "Certifications are shown publicly. Until the platform confirms them, we mark them as a producer declaration.",
+    "empty": "No certifications added yet.",
+    "add": "Add certification",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "remove": "Remove",
+    "nameLabel": "Certification name",
+    "issuerLabel": "Issuer (optional)",
+    "confirmed": "Confirmed by the platform, {date}",
+    "declared": "Producer declaration, not confirmed",
+    "editHint": "Changing the name or issuer marks the certification as a declaration again, until the platform confirms it.",
+    "confirmDelete": "Remove the certification \"{name}\"?",
+    "genericError": "Could not save the changes. Please try again."
+  },
   "ProjectCertifications": {
     "heading": "Certifications",
     "confirmed": "Confirmed by the platform, {date}",
@@ -1159,6 +1176,7 @@
   },
   "ProducerRealizationsSection": {
     "verified": "Verified by ModularHub",
+    "verifiedIdentity": "Verified company identity",
     "completedProjects": "{count} completed projects",
     "modelsInOffer": "{count} models on offer",
     "showroomVisitAvailable": "In-person visits available",

@@ -743,7 +743,18 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       const [row] = await db.select().from(producerCapacityProfile).where(eq(producerCapacityProfile.producerId, producer1Id));
       expect(row.unitsPerMonth).toBe(12);
       expect(row.leadTimeTiers).toEqual([{ units: 10, weeks: 8 }]);
-      expect(row.certifications).toEqual([]);
+    });
+
+    it("never writes certifications, which now live in producer_certification (spec 0065 AC-16)", async () => {
+      authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
+      await updateProducerCapacityProfile({ unitsPerMonth: 12 });
+      await db.update(producerCapacityProfile).set({ certifications: ["Legacy"] }).where(eq(producerCapacityProfile.producerId, producer1Id));
+
+      await updateProducerCapacityProfile({ unitsPerMonth: 15 });
+
+      const [row] = await db.select().from(producerCapacityProfile).where(eq(producerCapacityProfile.producerId, producer1Id));
+      expect(row.unitsPerMonth).toBe(15);
+      expect(row.certifications).toEqual(["Legacy"]);
     });
 
     it("updates an existing profile (upsert) without resetting volumeVerificationStatus", async () => {
@@ -751,12 +762,11 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       await updateProducerCapacityProfile({ unitsPerMonth: 12 });
       await db.update(producerCapacityProfile).set({ volumeVerificationStatus: "approved" }).where(eq(producerCapacityProfile.producerId, producer1Id));
 
-      const result = await updateProducerCapacityProfile({ unitsPerMonth: 30, certifications: ["ISO 9001"] });
+      const result = await updateProducerCapacityProfile({ unitsPerMonth: 30 });
 
       expect(result.ok).toBe(true);
       const [row] = await db.select().from(producerCapacityProfile).where(eq(producerCapacityProfile.producerId, producer1Id));
       expect(row.unitsPerMonth).toBe(30);
-      expect(row.certifications).toEqual(["ISO 9001"]);
       expect(row.volumeVerificationStatus).toBe("approved");
     });
   });

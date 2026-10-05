@@ -8,6 +8,7 @@ import { BulkProductInquiryModal } from "@/components/klient/BulkProductInquiryM
 import { FavoriteButton } from "@/components/klient/FavoriteButton";
 import { ProducerRealizationsSection } from "@/components/klient/ProducerRealizationsSection";
 import { ProjectCertifications } from "@/components/klient/ProjectCertifications";
+import { ProjectComplianceAssessments } from "@/components/klient/ProjectComplianceAssessments";
 import { ProjectCostComparisonTable } from "@/components/klient/ProjectCostComparisonTable";
 import { ProjectDocumentsAndFaq } from "@/components/klient/ProjectDocumentsAndFaq";
 import { ProjectGalleryTabs, type GalleryTabKey } from "@/components/klient/ProjectGalleryTabs";
@@ -29,7 +30,12 @@ import {
   toggleProductOption,
 } from "@/lib/data/project-variants";
 import { getProducerById } from "@/lib/data/producers";
-import { getEligibilityByCountry, getProducerVolumeProfile, getProjectBySlugOrId } from "@/lib/data/projects";
+import {
+  getEligibilityByCountry,
+  getProducerVolumeProfile,
+  getProductComplianceAssessments,
+  getProjectBySlugOrId,
+} from "@/lib/data/projects";
 import type { CompletionStandard, EligibilityByCountry } from "@/lib/data/types";
 import { getClientIdForUser, getFavoritedProductIds, getProductOptionGroups } from "@/lib/db/queries";
 import { routing, type Locale } from "@/lib/i18n/routing";
@@ -155,16 +161,18 @@ export default async function ProjektPage({
 
   const { countryCode } = parseResultsSearchParams(rawSearchParams);
 
-  const [countries, producer, eligibilityRows, session, volumeProfile, optionGroups] = await Promise.all([
-    getCountries(),
-    getProducerById(project.producerId),
-    countryCode
-      ? getEligibilityByCountry(countryCode)
-      : Promise.resolve<EligibilityByCountry[]>([]),
-    auth(),
-    getProducerVolumeProfile(project.producerId),
-    getProductOptionGroups(project.id),
-  ]);
+  const [countries, producer, eligibilityRows, session, volumeProfile, optionGroups, complianceAssessments] =
+    await Promise.all([
+      getCountries(),
+      getProducerById(project.producerId),
+      countryCode
+        ? getEligibilityByCountry(countryCode)
+        : Promise.resolve<EligibilityByCountry[]>([]),
+      auth(),
+      getProducerVolumeProfile(project.producerId),
+      getProductOptionGroups(project.id),
+      getProductComplianceAssessments(project.id),
+    ]);
 
   const isClientSession = session?.user.role === "client";
   let isFavorited = false;
@@ -638,7 +646,7 @@ export default async function ProjektPage({
 
           {Boolean(project.certifications?.length) && (
             <div className="flex flex-col gap-brand-2">
-              <ProjectCertifications certifications={project.certifications?.map((certification) => certification.name)} />
+              <ProjectCertifications certifications={project.certifications} locale={locale} />
             </div>
           )}
         </div>
@@ -675,6 +683,8 @@ export default async function ProjektPage({
             </Text>
           </div>
         )}
+
+        <ProjectComplianceAssessments assessments={complianceAssessments} locale={locale} />
 
         {volumeProfile && (
           <div className="flex flex-col gap-brand-2 rounded-v5-card border border-brand-v5-amber-strong/30 bg-brand-v5-amber/5 p-brand-4">

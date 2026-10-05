@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  certificationsSchema,
   completionStandardsSupportedSchema,
   COMPLETION_STANDARDS,
   leadTimeTierSchema,
@@ -59,18 +58,12 @@ describe("completionStandardsSupportedSchema", () => {
   });
 });
 
-describe("certificationsSchema / pastProjectReferencesSchema", () => {
+describe("pastProjectReferencesSchema", () => {
   it("accepts a list of non-empty strings", () => {
-    expect(certificationsSchema.safeParse(["ISO 9001", "CE"]).success).toBe(true);
     expect(pastProjectReferencesSchema.safeParse(["Osiedle Zielone Wzgórze"]).success).toBe(true);
   });
 
-  it("rejects a blank string entry (whitespace only)", () => {
-    expect(certificationsSchema.safeParse(["   "]).success).toBe(false);
-  });
-
   it("accepts an empty list", () => {
-    expect(certificationsSchema.safeParse([]).success).toBe(true);
     expect(pastProjectReferencesSchema.safeParse([]).success).toBe(true);
   });
 });

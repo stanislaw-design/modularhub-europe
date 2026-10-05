@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Button, Card, Heading, Stack, Text } from "@/components/ui";
-import { getProducerIdForUser, getProducerProfile } from "@/lib/db/queries";
+import { ProducerCertificationsSection } from "@/components/producent/ProducerCertificationsSection";
+import { getProducerCertifications, getProducerIdForUser, getProducerProfile } from "@/lib/db/queries";
 import { requirePanelProducerSession } from "@/lib/panel-session";
 import { PRODUCER_TECHNOLOGIES } from "@/lib/producer-technologies";
 
@@ -27,6 +28,7 @@ export default async function ProducerPanelPage({
 
   const producerId = await getProducerIdForUser(session.user.id);
   const profile = producerId ? await getProducerProfile(producerId) : null;
+  const certifications = producerId ? await getProducerCertifications(producerId) : [];
 
   if (!profile) {
     return (
@@ -86,6 +88,7 @@ export default async function ProducerPanelPage({
           </Stack>
         </Stack>
       </Card>
+      <ProducerCertificationsSection certifications={certifications} />
       <Stack gap={2}>
         <Button as="a" href={`/${locale}/producer/panel/inquiries`} size="sm" className="w-fit">
           {t("inquiriesOffers")}

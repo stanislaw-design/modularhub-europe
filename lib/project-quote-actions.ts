@@ -21,7 +21,6 @@ import {
   users,
 } from "@/lib/db/schema";
 import {
-  certificationsSchema,
   completionStandardsSupportedSchema,
   leadTimeTiersSchema,
   pastProjectReferencesSchema,
@@ -451,7 +450,6 @@ const capacityProfileSchema = z.object({
   leadTimeTiers: leadTimeTiersSchema.default([]),
   maxModuleSizeM2: z.number().positive().optional(),
   completionStandardsSupported: completionStandardsSupportedSchema.default([]),
-  certifications: certificationsSchema.default([]),
   canCustomizeClientDesign: z.boolean().default(false),
   customizationNote: z.string().trim().min(1).optional(),
   canHandleTransport: z.boolean().default(false),
@@ -489,7 +487,6 @@ export async function updateProducerCapacityProfile(input: CapacityProfileInput)
     leadTimeTiers: data.leadTimeTiers,
     maxModuleSizeM2: data.maxModuleSizeM2 ?? null,
     completionStandardsSupported: data.completionStandardsSupported,
-    certifications: data.certifications,
     canCustomizeClientDesign: data.canCustomizeClientDesign,
     customizationNote: data.customizationNote ?? null,
     canHandleTransport: data.canHandleTransport,

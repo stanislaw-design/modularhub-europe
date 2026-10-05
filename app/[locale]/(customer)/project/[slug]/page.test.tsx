@@ -53,10 +53,12 @@ vi.mock("next/navigation", async (importOriginal) => {
 const getProjectBySlugOrIdMock = vi.fn();
 const getEligibilityByCountryMock = vi.fn();
 const getProducerVolumeProfileMock = vi.fn();
+const getProductComplianceAssessmentsMock = vi.fn();
 vi.mock("@/lib/data/projects", () => ({
   getProjectBySlugOrId: (...args: unknown[]) => getProjectBySlugOrIdMock(...args),
   getEligibilityByCountry: (...args: unknown[]) => getEligibilityByCountryMock(...args),
   getProducerVolumeProfile: (...args: unknown[]) => getProducerVolumeProfileMock(...args),
+  getProductComplianceAssessments: (...args: unknown[]) => getProductComplianceAssessmentsMock(...args),
 }));
 
 const getCountriesMock = vi.fn();
@@ -85,6 +87,7 @@ beforeEach(() => {
   getProjectBySlugOrIdMock.mockReset();
   getEligibilityByCountryMock.mockReset().mockResolvedValue([]);
   getProducerVolumeProfileMock.mockReset().mockResolvedValue(null);
+  getProductComplianceAssessmentsMock.mockReset().mockResolvedValue([]);
   getCountriesMock.mockReset().mockResolvedValue([]);
   getProducerByIdMock.mockReset().mockResolvedValue(null);
   getClientIdForUserMock.mockReset();

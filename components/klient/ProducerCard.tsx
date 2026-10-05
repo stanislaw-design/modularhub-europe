@@ -44,7 +44,7 @@ export async function ProducerCard({
         {producer.verified && (
           <span className="absolute right-brand-2 top-brand-2 flex items-center gap-1 rounded-v5-pill bg-brand-v5-surface/95 px-brand-2 py-1 text-data font-semibold text-brand-v5-ink shadow-sm">
             <BadgeCheck className="size-4 text-status-approved" aria-hidden="true" />
-            {t("verified")}
+            {t("verifiedIdentity")}
           </span>
         )}
       </div>

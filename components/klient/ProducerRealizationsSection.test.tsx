@@ -35,7 +35,7 @@ describe("ProducerRealizationsSection", () => {
     expect(screen.getByText("Steel House")).toBeInTheDocument();
     expect(screen.getByText("143 zrealizowanych projektów")).toBeInTheDocument();
     expect(screen.getByText("27 modeli w ofercie")).toBeInTheDocument();
-    expect(screen.getByText("Zweryfikowany przez ModularHub")).toBeInTheDocument();
+    expect(screen.getByText("Zweryfikowana tożsamość firmy")).toBeInTheDocument();
   });
 
   it("shows the placeholder when this project has no real realization photos yet", async () => {

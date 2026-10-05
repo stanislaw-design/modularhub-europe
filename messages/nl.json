@@ -79,6 +79,23 @@
     "currentStage": "Huidige fase: {stage}",
     "viewTimeline": "Bekijk statusas"
   },
+  "ProducerCertificationsSection": {
+    "heading": "Certificeringen van het bedrijf",
+    "intro": "Certificeringen zijn openbaar zichtbaar. Totdat het platform ze bevestigt, markeren we ze als verklaring van de producent.",
+    "empty": "Nog geen certificering toegevoegd.",
+    "add": "Certificering toevoegen",
+    "save": "Opslaan",
+    "cancel": "Annuleren",
+    "edit": "Bewerken",
+    "remove": "Verwijderen",
+    "nameLabel": "Naam van de certificering",
+    "issuerLabel": "Uitgever (optioneel)",
+    "confirmed": "Bevestigd door het platform, {date}",
+    "declared": "Verklaring van de producent, niet bevestigd",
+    "editHint": "Een wijziging van naam of uitgever markeert de certificering opnieuw als verklaring, totdat het platform haar bevestigt.",
+    "confirmDelete": "De certificering \"{name}\" verwijderen?",
+    "genericError": "De wijzigingen konden niet worden opgeslagen. Probeer het opnieuw."
+  },
   "ProjectCertifications": {
     "heading": "Certificeringen",
     "confirmed": "Bevestigd door het platform, {date}",
@@ -1159,6 +1176,7 @@
   },
   "ProducerRealizationsSection": {
     "verified": "Geverifieerd door ModularHub",
+    "verifiedIdentity": "Geverifieerde bedrijfsidentiteit",
     "completedProjects": "{count} opgeleverde projecten",
     "modelsInOffer": "{count} modellen in het assortiment",
     "showroomVisitAvailable": "Bezoek op locatie mogelijk",

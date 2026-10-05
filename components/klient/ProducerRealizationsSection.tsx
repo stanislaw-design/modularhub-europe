@@ -75,7 +75,7 @@ export async function ProducerRealizationsSection({
             {producer.verified && (
               <span className="flex items-center gap-1 text-data font-semibold text-status-approved">
                 <BadgeCheck className="size-4" aria-hidden="true" />
-                {t("verified")}
+                {t("verifiedIdentity")}
               </span>
             )}
             <span

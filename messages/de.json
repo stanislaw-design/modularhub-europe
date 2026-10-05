@@ -79,6 +79,23 @@
     "currentStage": "Aktuelle Phase: {stage}",
     "viewTimeline": "Statusleiste ansehen"
   },
+  "ProducerCertificationsSection": {
+    "heading": "Zertifikate des Unternehmens",
+    "intro": "Zertifikate sind öffentlich sichtbar. Bis die Plattform sie bestätigt, kennzeichnen wir sie als Erklärung des Herstellers.",
+    "empty": "Noch kein Zertifikat hinzugefügt.",
+    "add": "Zertifikat hinzufügen",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "edit": "Bearbeiten",
+    "remove": "Entfernen",
+    "nameLabel": "Name des Zertifikats",
+    "issuerLabel": "Aussteller (optional)",
+    "confirmed": "Von der Plattform bestätigt, {date}",
+    "declared": "Erklärung des Herstellers, nicht bestätigt",
+    "editHint": "Eine Änderung von Name oder Aussteller kennzeichnet das Zertifikat wieder als Erklärung, bis die Plattform es bestätigt.",
+    "confirmDelete": "Zertifikat „{name}“ entfernen?",
+    "genericError": "Die Änderungen konnten nicht gespeichert werden. Bitte versuchen Sie es erneut."
+  },
   "ProjectCertifications": {
     "heading": "Zertifikate",
     "confirmed": "Von der Plattform bestätigt, {date}",
@@ -1166,6 +1183,7 @@
   },
   "ProducerRealizationsSection": {
     "verified": "Verifiziert von ModularHub",
+    "verifiedIdentity": "Verifizierte Firmenidentität",
     "completedProjects": "{count} realisierte Projekte",
     "modelsInOffer": "{count} Modelle im Angebot",
     "showroomVisitAvailable": "Besichtigung vor Ort möglich",

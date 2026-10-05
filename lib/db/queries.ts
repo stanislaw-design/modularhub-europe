@@ -14,6 +14,7 @@ import {
   offerItem,
   producer,
   producerCapacityProfile,
+  producerCertification,
   producerDeliveryCountry,
   producerMember,
   product,
@@ -94,6 +95,37 @@ export async function getProducerProfile(producerId: string): Promise<ProducerPr
     verificationStatus: row.verificationStatus,
     deliveryCountries,
   };
+}
+
+export interface ProducerCertificationRow {
+  id: string;
+  name: string;
+  issuer: string | null;
+  confirmed: boolean;
+  confirmedAt: Date | null;
+}
+
+// Odczyt do panelu producenta (spec 0065 AC-9): wszystkie wpisy firmy, także
+// niepotwierdzone, z jawnym stanem. confirmedBy celowo nie jest wybierane.
+export async function getProducerCertifications(producerId: string): Promise<ProducerCertificationRow[]> {
+  const rows = await db
+    .select({
+      id: producerCertification.id,
+      name: producerCertification.name,
+      issuer: producerCertification.issuer,
+      confirmationStatus: producerCertification.confirmationStatus,
+      confirmedAt: producerCertification.confirmedAt,
+    })
+    .from(producerCertification)
+    .where(eq(producerCertification.producerId, producerId))
+    .orderBy(asc(producerCertification.name));
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    issuer: row.issuer,
+    confirmed: row.confirmationStatus === "platform_confirmed",
+    confirmedAt: row.confirmedAt,
+  }));
 }
 
 export interface ProducerProductForEdit {
