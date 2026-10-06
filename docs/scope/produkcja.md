@@ -199,7 +199,7 @@ Dopełnienie funkcji 25: na stronach produktu w `/en`, `/de`, `/nl` część tek
   - [x] Odczyt z fallbackiem: opcje konfiguratora (z tekstem źródłowym dla ikon i opcji "Nie"), producent i certyfikaty, pola produktu na szczegółach i kartach list, słownik zgodności i harmonogramu, satisfies AC-1, AC-2, AC-3, AC-4, AC-5, AC-6, AC-7
   - [x] Skrypt kontrolny braków, dane tłumaczeń i backfill dev, potem prod, satisfies AC-8, AC-9 (backfill zapisany na dev i prod 2026-10-06, zero braków na obu)
   - [x] Reguła w skillach importu i skan końcowy stron w trzech językach, satisfies AC-10, AC-11 (skan 45 stron na dev czysty, poza produktem usuniętym miękko, który lista wyników nadal pokazuje)
-- [ ] Verify it: `/check verify tłumaczenia opcji konfiguratora, producenta i pól produktu`
+- [x] Verify it: `/check verify tłumaczenia opcji konfiguratora, producenta i pól produktu`
 - [ ] Test it: `/test tłumaczenia opcji konfiguratora, producenta i pól produktu`
 
 ## Slice 1: klient na realnym zapleczu
