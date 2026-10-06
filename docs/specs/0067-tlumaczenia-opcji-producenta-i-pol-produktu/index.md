@@ -1,7 +1,7 @@
 # 0067. Tłumaczenia EN, DE i NL dla opcji konfiguratora, producenta i pól produktu
 
 **Date**: 2026-10-05
-**Status**: In Progress
+**Status**: Accepted
 
 ## Summary
 
