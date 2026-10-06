@@ -20,6 +20,7 @@ import {
   product,
   productCountryEligibility,
   productFamilyEnum,
+  productComplianceAssessment,
   productOption,
   productOptionGroup,
   productOptionGroupAssignment,
@@ -132,6 +133,108 @@ export interface ProducerProductForEdit {
   id: string;
   producerId: string;
   status: (typeof product.$inferSelect)["status"];
+export interface AdminProducerCertificationRow {
+  id: string;
+  name: string;
+  issuer: string | null;
+  confirmed: boolean;
+  confirmedAt: Date | null;
+  version: number;
+}
+
+// Strona /internal/producers/[id] (spec 0065 AC-10): wszystkie wpisy firmy z
+// wersją, bo potwierdzenie wysyła ją jako expectedVersion.
+export async function getProducerCertificationsForAdmin(producerId: string): Promise<AdminProducerCertificationRow[]> {
+  const rows = await db
+    .select({
+      id: producerCertification.id,
+      name: producerCertification.name,
+      issuer: producerCertification.issuer,
+      confirmationStatus: producerCertification.confirmationStatus,
+      confirmedAt: producerCertification.confirmedAt,
+      version: producerCertification.version,
+    })
+    .from(producerCertification)
+    .where(eq(producerCertification.producerId, producerId))
+    .orderBy(asc(producerCertification.name));
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    issuer: row.issuer,
+    confirmed: row.confirmationStatus === "platform_confirmed",
+    confirmedAt: row.confirmedAt,
+    version: row.version,
+  }));
+}
+
+export interface AdminProductAssessmentRow {
+  id: string;
+  countryCode: string;
+  rule: string;
+  status: "approved" | "conditional" | "blocked";
+  reason: string;
+  confirmed: boolean;
+  confirmedAt: Date | null;
+  version: number;
+}
+
+export interface AdminProducerProductRow {
+  id: string;
+  name: string | null;
+  status: string;
+  assessments: AdminProductAssessmentRow[];
+}
+
+// Produkty producenta z ich ocenami zgodności (spec 0065 AC-10), wszystkie
+// statusy, także szkice: ocenę można przygotować przed publikacją.
+export async function getProducerProductsWithAssessmentsForAdmin(producerId: string): Promise<AdminProducerProductRow[]> {
+  const products = await db
+    .select({ id: product.id, name: product.name, status: product.status })
+    .from(product)
+    .where(and(eq(product.producerId, producerId), isNull(product.deletedAt)))
+    .orderBy(asc(product.name));
+  if (products.length === 0) return [];
+
+  const assessmentRows = await db
+    .select({
+      id: productComplianceAssessment.id,
+      productId: productComplianceAssessment.productId,
+      countryCode: productComplianceAssessment.countryCode,
+      rule: productComplianceAssessment.rule,
+      status: productComplianceAssessment.status,
+      reason: productComplianceAssessment.reason,
+      confirmationStatus: productComplianceAssessment.confirmationStatus,
+      confirmedAt: productComplianceAssessment.confirmedAt,
+      version: productComplianceAssessment.version,
+    })
+    .from(productComplianceAssessment)
+    .where(
+      inArray(
+        productComplianceAssessment.productId,
+        products.map((item) => item.id),
+      ),
+    )
+    .orderBy(asc(productComplianceAssessment.countryCode), asc(productComplianceAssessment.rule));
+
+  return products.map((item) => ({
+    id: item.id,
+    name: item.name,
+    status: item.status,
+    assessments: assessmentRows
+      .filter((row) => row.productId === item.id)
+      .map((row) => ({
+        id: row.id,
+        countryCode: row.countryCode,
+        rule: row.rule,
+        status: row.status,
+        reason: row.reason,
+        confirmed: row.confirmationStatus === "platform_confirmed",
+        confirmedAt: row.confirmedAt,
+        version: row.version,
+      })),
+  }));
+}
+
   name: string;
   family: (typeof product.$inferSelect)["family"];
   category: (typeof product.$inferSelect)["category"];

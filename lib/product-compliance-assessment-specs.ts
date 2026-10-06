@@ -12,3 +12,12 @@ export const productComplianceAssessmentInputSchema = z.object({
 });
 
 export type ProductComplianceAssessmentInput = z.infer<typeof productComplianceAssessmentInputSchema>;
+
+// Kraj i przepis identyfikują wpis (unikat product_id, country_code, rule),
+// więc po utworzeniu zmienia się tylko status i powód.
+export const productComplianceAssessmentUpdateSchema = productComplianceAssessmentInputSchema.pick({
+  status: true,
+  reason: true,
+});
+
+export type ProductComplianceAssessmentUpdateInput = z.infer<typeof productComplianceAssessmentUpdateSchema>;

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { ProducerBlockControl } from "@/components/internal/ProducerBlockControl";
@@ -89,6 +90,9 @@ export default async function InternalProducersPage({
                     )}
                   </td>
                   <td className="p-brand-2 text-right">
+                    <Link href={`/${locale}/internal/producers/${row.producerId}`} className="focus-ring mr-brand-3 rounded-data text-brand-passage-blue underline">
+                      Szczegóły
+                    </Link>
                     <ProducerBlockControl producerId={row.producerId} isBlocked={row.blockedAt !== null} />
                   </td>
                 </tr>
