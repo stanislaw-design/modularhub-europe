@@ -362,3 +362,27 @@ describe("generateMetadata (spec 0058 AC-7)", () => {
     expect(metadata.alternates?.canonical).toBe(`/pl/project/${PUBLISHED_ID}`);
   });
 });
+
+// Spec 0067: strona przekazuje aktywny locale do wszystkich odczytów danych
+// tłumaczonych, inaczej en/de/nl dostałyby polskie teksty.
+describe("ProjektPage (spec 0067: locale w danych tłumaczonych)", () => {
+  it("passes the active locale to the options, producer, eligibility and compliance reads (AC-1, AC-2, AC-5)", async () => {
+    getProjectBySlugOrIdMock.mockResolvedValue(createCatalogProject());
+
+    await renderPage("dampol-model-3", { country: "NL" }, "en");
+
+    expect(getProductOptionGroupsMock).toHaveBeenCalledWith(PUBLISHED_ID, "en");
+    expect(getProducerByIdMock).toHaveBeenCalledWith(expect.any(String), "en");
+    expect(getEligibilityByCountryMock).toHaveBeenCalledWith("NL", "en");
+    expect(getProductComplianceAssessmentsMock).toHaveBeenCalledWith(PUBLISHED_ID, "en");
+  });
+
+  it("passes pl for the Polish page (AC-7)", async () => {
+    getProjectBySlugOrIdMock.mockResolvedValue(createCatalogProject());
+
+    await renderPage("dampol-model-3");
+
+    expect(getProductOptionGroupsMock).toHaveBeenCalledWith(PUBLISHED_ID, "pl");
+    expect(getProducerByIdMock).toHaveBeenCalledWith(expect.any(String), "pl");
+  });
+});

@@ -279,3 +279,25 @@ describe("generateMetadata (spec 0061 AC-9)", () => {
     expect(metadata.robots).toEqual({ index: false, follow: false });
   });
 });
+
+// Spec 0067 AC-1, AC-2, AC-7: strona sauny przekazuje aktywny locale do
+// odczytu opcji konfiguratora i producenta.
+describe("SaunaPage (spec 0067: locale w danych tłumaczonych)", () => {
+  it("passes the active locale to the option groups and producer reads (AC-1, AC-2)", async () => {
+    getProjectBySlugOrIdMock.mockResolvedValue(saunaProject({ id: PUBLISHED_ID, slug: "relax-550" }));
+
+    await renderPage("relax-550", {}, "de");
+
+    expect(getProductOptionGroupsMock).toHaveBeenCalledWith(PUBLISHED_ID, "de");
+    expect(getProducerByIdMock).toHaveBeenCalledWith(expect.any(String), "de");
+  });
+
+  it("passes pl for the Polish page (AC-7)", async () => {
+    getProjectBySlugOrIdMock.mockResolvedValue(saunaProject({ id: PUBLISHED_ID, slug: "relax-550" }));
+
+    await renderPage("relax-550");
+
+    expect(getProductOptionGroupsMock).toHaveBeenCalledWith(PUBLISHED_ID, "pl");
+    expect(getProducerByIdMock).toHaveBeenCalledWith(expect.any(String), "pl");
+  });
+});

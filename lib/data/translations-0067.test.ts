@@ -13,11 +13,16 @@ import {
   producerCertificationTranslation,
   producerTranslation,
   product,
+  productComplianceAssessment,
+  productCountryEligibility,
+  productTimelineStage,
   productTranslation,
+  productVariant,
+  referenceTextTranslation,
   users,
 } from "@/lib/db/schema";
 import { getProducerById } from "./producers";
-import { getProjectById, getProjects } from "./projects";
+import { getEligibilityByCountry, getProductComplianceAssessments, getProjectById, getProjects } from "./projects";
 
 // Spec 0067 AC-2, AC-3, AC-4, AC-6, AC-7: tlumaczenia producenta, certyfikatow
 // i czterech pol produktu, z fallbackiem na polski per pole. Dev DB.
@@ -26,6 +31,12 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data: translations (spec 0067)",
   const producerId = crypto.randomUUID();
   const productId = crypto.randomUUID();
   const certificationId = crypto.randomUUID();
+  const variantId = crypto.randomUUID();
+  // Unikalne teksty, żeby słownik (po dokładnym polskim tekście) nie kolidował z prawdziwymi danymi.
+  const suffix = crypto.randomUUID().slice(0, 8);
+  const reasonPl = `Powód zgodności ${suffix}`;
+  const partyPl = `Odpowiedzialny ${suffix}`;
+  const startsPl = `Start etapu ${suffix}`;
 
   beforeAll(async () => {
     await db.insert(users).values({
@@ -78,6 +89,41 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data: translations (spec 0067)",
       locale: "de",
       name: "Qualitaetszertifikat",
     });
+    await db.insert(productVariant).values({
+      id: variantId,
+      productId,
+      completionStandard: "katalogowy",
+      priceMinCents: 1000000,
+      isDefault: true,
+      sortOrder: 1,
+    });
+    await db.insert(productTimelineStage).values({
+      productVariantId: variantId,
+      stageKey: "montaz",
+      durationMinDays: 3,
+      durationMaxDays: 5,
+      startsFromLabel: startsPl,
+      responsibleParty: partyPl,
+    });
+    await db.insert(productCountryEligibility).values({
+      productId,
+      countryCode: "DE",
+      status: "conditional",
+      reason: reasonPl,
+    });
+    await db.insert(productComplianceAssessment).values({
+      productId,
+      countryCode: "DE",
+      rule: `Przepis ${suffix}`,
+      status: "conditional",
+      reason: reasonPl,
+    });
+    await db.insert(referenceTextTranslation).values([
+      { sourcePl: reasonPl, locale: "en", translated: "Reason EN" },
+      { sourcePl: reasonPl, locale: "de", translated: "Grund DE" },
+      { sourcePl: partyPl, locale: "de", translated: "Verantwortlich DE" },
+      { sourcePl: startsPl, locale: "de", translated: "Start DE" },
+    ]);
     await db.insert(productTranslation).values([
       { productId, locale: "nl", roofType: "Zadeldak", constructionSystem: "Stalen frame" },
       // Tylko jedno pole przetlumaczone, reszta po polsku.
@@ -86,6 +132,11 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data: translations (spec 0067)",
   });
 
   afterAll(async () => {
+    await db.delete(referenceTextTranslation).where(inArray(referenceTextTranslation.sourcePl, [reasonPl, partyPl, startsPl]));
+    await db.delete(productComplianceAssessment).where(eq(productComplianceAssessment.productId, productId));
+    await db.delete(productCountryEligibility).where(eq(productCountryEligibility.productId, productId));
+    await db.delete(productTimelineStage).where(eq(productTimelineStage.productVariantId, variantId));
+    await db.delete(productVariant).where(eq(productVariant.id, variantId));
     await db.delete(productTranslation).where(eq(productTranslation.productId, productId));
     await db
       .delete(producerCertificationTranslation)
@@ -145,6 +196,28 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data: translations (spec 0067)",
     const list = await getProjects({ locale: "nl", family: "kontenery-modulowe" });
     const found = list.find((project) => project.id === productId);
     expect(found).toMatchObject({ roofType: "Zadeldak", constructionSystem: "Stalen frame" });
+  });
+
+  it("translates the eligibility reason through the dictionary and keeps Polish for pl or a missing entry (AC-5, AC-6, AC-7)", async () => {
+    const find = (rows: Awaited<ReturnType<typeof getEligibilityByCountry>>) => rows.find((row) => row.projectId === productId);
+    expect(find(await getEligibilityByCountry("DE", "en"))?.reason).toBe("Reason EN");
+    expect(find(await getEligibilityByCountry("DE", "de"))?.reason).toBe("Grund DE");
+    // Brak wpisu w słowniku dla nl: polski tekst, nigdy pusty.
+    expect(find(await getEligibilityByCountry("DE", "nl"))?.reason).toBe(reasonPl);
+    expect(find(await getEligibilityByCountry("DE"))?.reason).toBe(reasonPl);
+  });
+
+  it("translates the compliance assessment reason through the dictionary (AC-5, AC-6)", async () => {
+    expect((await getProductComplianceAssessments(productId, "de"))[0]?.reason).toBe("Grund DE");
+    expect((await getProductComplianceAssessments(productId, "nl"))[0]?.reason).toBe(reasonPl);
+    expect((await getProductComplianceAssessments(productId))[0]?.reason).toBe(reasonPl);
+  });
+
+  it("translates the timeline stage responsible party and start label through the dictionary (AC-5, AC-6)", async () => {
+    const de = await getProjectById(productId, "de");
+    expect(de?.variants[0]?.timelineStages[0]).toMatchObject({ responsibleParty: "Verantwortlich DE", startsFromLabel: "Start DE" });
+    const nl = await getProjectById(productId, "nl");
+    expect(nl?.variants[0]?.timelineStages[0]).toMatchObject({ responsibleParty: partyPl, startsFromLabel: startsPl });
   });
 
   it("returns Polish product fields for pl (AC-7)", async () => {

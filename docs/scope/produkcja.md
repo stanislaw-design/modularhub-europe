@@ -70,7 +70,7 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 54 | Dwuskładnikowe logowanie dla kont administratora | Slice 10 | planned |
 | 55 | Rozdział certyfikatów producenta od oceny zgodności | Slice 11 | in progress |
 | 56 | Zapytanie o ofertę bez logowania | Slice 3b | in progress |
-| 57 | Tłumaczenia opcji konfiguratora, producenta i pól produktu (EN/DE/NL) | Slice 0 | in progress |
+| 57 | Tłumaczenia opcji konfiguratora, producenta i pól produktu (EN/DE/NL) | Slice 0 | done |
 
 ## Foundations
 
@@ -190,7 +190,7 @@ Rozszerzenie platformy z jednojęzycznego (polskiego) pilotu o pełne wersje ang
 - [ ] Zweryfikuj: `/check verify wersje językowe (EN/NL/DE) i przełącznik języka`
 - [ ] Testuj: `/test wersje językowe (EN/NL/DE) i przełącznik języka`
 
-### 57. Tłumaczenia opcji konfiguratora, producenta i pól produktu (EN/DE/NL) · full · in progress
+### 57. Tłumaczenia opcji konfiguratora, producenta i pól produktu (EN/DE/NL) · full · done
 Dopełnienie funkcji 25: na stronach produktu w `/en`, `/de`, `/nl` część tekstów z danych nadal wychodzi po polsku (opcje i grupy konfiguratora, opis i notatka producenta, nazwy certyfikatów, pola konstrukcji, dachu, personalizacji, zakresu usług, powody zgodności). Nowe tabele tłumaczeń per encja, cztery kolumny w `product_translation` i słownik dla krótkich powtarzalnych zdań, z fallbackiem na polski i skryptem kontrolnym braków. Edycja tych tłumaczeń przez producenta w panelu jest odłożona (dziś nie ma ekranu edycji tych tekstów).
 **Done when:** `npm run check:translations` na dev i prod zgłasza zero braków dla opublikowanych produktów w `en`, `de`, `nl`, a strony sauny, projektu i listy wyników w tych językach nie zawierają polskich tekstów źródłowych z danych produktu.
 - [x] Zaprojektuj (spec): [0067](../specs/0067-tlumaczenia-opcji-producenta-i-pol-produktu/index.md)
@@ -200,7 +200,7 @@ Dopełnienie funkcji 25: na stronach produktu w `/en`, `/de`, `/nl` część tek
   - [x] Skrypt kontrolny braków, dane tłumaczeń i backfill dev, potem prod, satisfies AC-8, AC-9 (backfill zapisany na dev i prod 2026-10-06, zero braków na obu)
   - [x] Reguła w skillach importu i skan końcowy stron w trzech językach, satisfies AC-10, AC-11 (skan 45 stron na dev czysty, poza produktem usuniętym miękko, który lista wyników nadal pokazuje)
 - [x] Verify it: `/check verify tłumaczenia opcji konfiguratora, producenta i pól produktu`
-- [ ] Test it: `/test tłumaczenia opcji konfiguratora, producenta i pól produktu`
+- [x] Test it: `/test tłumaczenia opcji konfiguratora, producenta i pól produktu`
 
 ## Slice 1: klient na realnym zapleczu
 
