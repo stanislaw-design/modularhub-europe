@@ -102,7 +102,7 @@ export function ProjectOptionsConfigurator({
       <div aria-label={ariaLabel} className="flex flex-col gap-brand-5">
         {groups.map((group) => {
           const isSingle = group.selectionType === "single";
-          const GroupIcon = getGroupIcon(group.name);
+          const GroupIcon = getGroupIcon(group.sourceName);
           // Grupa dwuopcyjna bez żadnego zdjęcia (np. "Tak"/"Nie" sterowania WiFi,
           // systemu audio, pakietu świetlnego — spec 0061) nigdy nie skorzysta z
           // dużej karty ze zdjęciem/ikoną myślanej pod katalog wizualnych opcji
@@ -181,7 +181,7 @@ export function ProjectOptionsConfigurator({
                   // dodatku a jego wyborem. Przekreślenie tylko na tę jedną, dosłowną
                   // wartość (nie np. "Brak" w Klimatyzacji, która ma własną, już odróżniającą
                   // się ikonę) (inżynier, 2026-10-01).
-                  const isNegativeOption = option.label.trim().toLowerCase() === "nie";
+                  const isNegativeOption = option.sourceLabel.trim().toLowerCase() === "nie";
                   return (
                     <Link
                       key={option.id}

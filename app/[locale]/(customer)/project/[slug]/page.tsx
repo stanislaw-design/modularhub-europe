@@ -166,14 +166,14 @@ export default async function ProjektPage({
   const [countries, producer, eligibilityRows, session, volumeProfile, optionGroups, complianceAssessments] =
     await Promise.all([
       getCountries(),
-      getProducerById(project.producerId),
+      getProducerById(project.producerId, locale as Locale),
       countryCode
-        ? getEligibilityByCountry(countryCode)
+        ? getEligibilityByCountry(countryCode, locale as Locale)
         : Promise.resolve<EligibilityByCountry[]>([]),
       auth(),
-      getProducerVolumeProfile(project.producerId),
-      getProductOptionGroups(project.id),
-      getProductComplianceAssessments(project.id),
+      getProducerVolumeProfile(project.producerId, locale as Locale),
+      getProductOptionGroups(project.id, locale as Locale),
+      getProductComplianceAssessments(project.id, locale as Locale),
     ]);
 
   const isClientSession = session?.user.role === "client";

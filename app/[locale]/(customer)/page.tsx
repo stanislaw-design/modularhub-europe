@@ -27,7 +27,7 @@ export default async function KlientHomePage({
   const [countries, projects, producers] = await Promise.all([
     getCountries(),
     getProjects({ locale: locale as Locale }),
-    getProducers(),
+    getProducers(locale as Locale),
   ]);
 
   return (

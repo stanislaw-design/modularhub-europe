@@ -117,7 +117,7 @@ export default async function OutdoorTvPage({
   }
 
   const [producer, producerPhotoUrl, session] = await Promise.all([
-    getProducerById(project.producerId),
+    getProducerById(project.producerId, locale as Locale),
     getProducerPhotoUrl(project.producerId),
     auth(),
   ]);

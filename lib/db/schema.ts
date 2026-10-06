@@ -959,6 +959,91 @@ export const productCountryEligibility = pgTable(
   (table) => [primaryKey({ columns: [table.productId, table.countryCode] })],
 );
 
+// Tłumaczenia opcji konfiguratora, producenta i certyfikatów oraz słownik
+// krótkich powtarzalnych zdań (spec 0067). Tłumaczenie pasuje po id wiersza
+// źródłowego (nigdy po pozycji), brak/puste pole spada na polski tekst
+// (resolveTranslatedText, spec 0028 AC-6). Zapisują tu tylko backfill i
+// skrypty importu, żadna ścieżka aplikacji.
+export const productOptionGroupTranslation = pgTable(
+  "product_option_group_translation",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    groupId: uuid("group_id")
+      .notNull()
+      .references(() => productOptionGroup.id),
+    locale: productTranslationLocaleEnum("locale").notNull(),
+    name: text("name").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex("product_option_group_translation_group_locale_idx").on(table.groupId, table.locale)],
+);
+
+export const productOptionTranslation = pgTable(
+  "product_option_translation",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    optionId: uuid("option_id")
+      .notNull()
+      .references(() => productOption.id),
+    locale: productTranslationLocaleEnum("locale").notNull(),
+    label: text("label").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex("product_option_translation_option_locale_idx").on(table.optionId, table.locale)],
+);
+
+export const producerTranslation = pgTable(
+  "producer_translation",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    producerId: uuid("producer_id")
+      .notNull()
+      .references(() => producer.id),
+    locale: productTranslationLocaleEnum("locale").notNull(),
+    description: text("description"),
+    showroomVisitNote: text("showroom_visit_note"),
+    inquiryResponseTimeLabel: text("inquiry_response_time_label"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex("producer_translation_producer_locale_idx").on(table.producerId, table.locale)],
+);
+
+export const producerCertificationTranslation = pgTable(
+  "producer_certification_translation",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    certificationId: uuid("certification_id")
+      .notNull()
+      .references(() => producerCertification.id, { onDelete: "cascade" }),
+    locale: productTranslationLocaleEnum("locale").notNull(),
+    name: text("name").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("producer_certification_translation_cert_locale_idx").on(table.certificationId, table.locale),
+  ],
+);
+
+// Słownik po dokładnym polskim tekście (bez klucza obcego), ten sam wzorzec co
+// costLineItemLabelTranslation: powody zgodności, responsible_party i
+// starts_from_label harmonogramu.
+export const referenceTextTranslation = pgTable(
+  "reference_text_translation",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    sourcePl: text("source_pl").notNull(),
+    locale: productTranslationLocaleEnum("locale").notNull(),
+    translated: text("translated").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex("reference_text_translation_source_locale_idx").on(table.sourcePl, table.locale)],
+);
+
 // Tłumaczenie EN/NL nazwy i opisu produktu, wprowadzane ręcznie przez
 // producenta (spec 0028 Decision, Feature design). Co najwyżej jeden wiersz
 // na (product, locale); name/description nullable, brak lub puste pole
@@ -1015,6 +1100,12 @@ export const productTranslation = pgTable(
     // definicji wyżej czyni go "własnością producenta" — bezpieczny domyślny
     // stan, żadne istniejące tłumaczenie nie zaczyna się nagle automatycznie
     // zmieniać.
+    // Tłumaczenie pól tekstowych produktu (spec 0067 AC-3): zwykły text, null =
+    // spada na polskie pole na `product` (resolveTranslatedText, AC-6).
+    constructionSystem: text("construction_system"),
+    roofType: text("roof_type"),
+    customizationScope: text("customization_scope"),
+    serviceScopeDescription: text("service_scope_description"),
     aiGeneratedName: text("ai_generated_name"),
     aiGeneratedDescription: text("ai_generated_description"),
     aiTranslatedFromName: text("ai_translated_from_name"),

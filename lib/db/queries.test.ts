@@ -37,6 +37,8 @@ import {
   productOption,
   productOptionGroup,
   productOptionGroupAssignment,
+  productOptionGroupTranslation,
+  productOptionTranslation,
   productTimelineStage,
   productTranslation,
   productVariant,
@@ -688,19 +690,57 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: getProductOptionGrou
       {
         id: standardOptionId,
         label: "Standard",
+        sourceLabel: "Standard",
         priceCents: 650_000,
         priceOnRequest: false,
         isDefault: true,
         imageUrl: "https://konfigurator.dampol-investment.com/static/thumbnail/shop-configurator-option/med/168.webp",
       },
-      { id: premiumOptionId, label: "Premium", priceCents: 980_000, priceOnRequest: false, isDefault: false, imageUrl: null },
+      { id: premiumOptionId, label: "Premium", sourceLabel: "Premium", priceCents: 980_000, priceOnRequest: false, isDefault: false, imageUrl: null },
     ]);
 
     const extras = results[1];
     expect(extras).toMatchObject({ name: "Dodatki", selectionType: "multi" });
     expect(extras.options).toEqual([
-      { id: fireplaceOptionId, label: "Kominek", priceCents: 250_000, priceOnRequest: false, isDefault: false, imageUrl: null },
+      {
+        id: fireplaceOptionId,
+        label: "Kominek",
+        sourceLabel: "Kominek",
+        priceCents: 250_000,
+        priceOnRequest: false,
+        isDefault: false,
+        imageUrl: null,
+      },
     ]);
+  });
+
+  it("returns translated names and labels for en, keeps the Polish source, falls back per field (spec 0067 AC-1, AC-6)", async () => {
+    await db.insert(productOptionGroupTranslation).values([
+      { groupId: insulationGroupId, locale: "en", name: "Insulation level" },
+      { groupId: extrasGroupId, locale: "en", name: "   " },
+    ]);
+    await db.insert(productOptionTranslation).values([
+      { optionId: standardOptionId, locale: "en", label: "Standard (EN)" },
+      { optionId: fireplaceOptionId, locale: "en", label: "Fireplace" },
+    ]);
+    try {
+      const results = await getProductOptionGroups(productId, "en");
+      expect(results[0]).toMatchObject({ name: "Insulation level", sourceName: "Poziom ocieplenia" });
+      expect(results[0].options.map((o) => [o.label, o.sourceLabel])).toEqual([
+        ["Standard (EN)", "Standard"],
+        ["Premium", "Premium"],
+      ]);
+      // Whitespace only translation falls back to Polish.
+      expect(results[1]).toMatchObject({ name: "Dodatki", sourceName: "Dodatki" });
+      expect(results[1].options[0]).toMatchObject({ label: "Fireplace", sourceLabel: "Kominek" });
+
+      const polish = await getProductOptionGroups(productId, "pl");
+      expect(polish[0].name).toBe("Poziom ocieplenia");
+      expect(polish[0].options[0].label).toBe("Standard");
+    } finally {
+      await db.delete(productOptionTranslation).where(inArray(productOptionTranslation.optionId, [standardOptionId, fireplaceOptionId]));
+      await db.delete(productOptionGroupTranslation).where(inArray(productOptionGroupTranslation.groupId, [insulationGroupId, extrasGroupId]));
+    }
   });
 
   it("returns an empty array for a product with no assigned group (AC-5)", async () => {

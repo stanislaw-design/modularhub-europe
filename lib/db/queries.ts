@@ -1,6 +1,8 @@
 import { and, asc, desc, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
 import { db } from "./client";
 import { buildPublicUrl } from "@/lib/storage/r2-client";
+import type { Locale } from "@/lib/i18n/routing";
+import { resolveTranslatedText } from "@/lib/i18n/resolve-translated-text";
 import {
   bulkProductInquiry,
   client,
@@ -18,12 +20,14 @@ import {
   producerDeliveryCountry,
   producerMember,
   product,
+  productComplianceAssessment,
   productCountryEligibility,
   productFamilyEnum,
-  productComplianceAssessment,
   productOption,
   productOptionGroup,
   productOptionGroupAssignment,
+  productOptionGroupTranslation,
+  productOptionTranslation,
   productTimelineStage,
   productTranslation,
   productVariant,
@@ -129,10 +133,6 @@ export async function getProducerCertifications(producerId: string): Promise<Pro
   }));
 }
 
-export interface ProducerProductForEdit {
-  id: string;
-  producerId: string;
-  status: (typeof product.$inferSelect)["status"];
 export interface AdminProducerCertificationRow {
   id: string;
   name: string;
@@ -235,6 +235,10 @@ export async function getProducerProductsWithAssessmentsForAdmin(producerId: str
   }));
 }
 
+export interface ProducerProductForEdit {
+  id: string;
+  producerId: string;
+  status: (typeof product.$inferSelect)["status"];
   name: string;
   family: (typeof product.$inferSelect)["family"];
   category: (typeof product.$inferSelect)["category"];
@@ -429,6 +433,9 @@ export async function getProducerVariantsForEdit(productId: string): Promise<Pro
 export interface ProductOptionGroupOption {
   id: string;
   label: string;
+  // Polski tekst źródłowy (spec 0067 AC-1): logika (wykrywanie opcji negatywnej)
+  // dopasowuje po nim, nigdy po przetłumaczonym `label`.
+  sourceLabel: string;
   priceCents: number | null;
   priceOnRequest: boolean;
   isDefault: boolean;
@@ -438,6 +445,8 @@ export interface ProductOptionGroupOption {
 export interface ProductOptionGroup {
   id: string;
   name: string;
+  // Polski tekst źródłowy (spec 0067 AC-1), dla ikony grupy.
+  sourceName: string;
   selectionType: (typeof productOptionGroup.$inferSelect)["selectionType"];
   options: ProductOptionGroupOption[];
 }
@@ -447,7 +456,13 @@ export interface ProductOptionGroup {
 // cały katalog) — nie błąd, patrz spec 0059 API surface. Grupy i opcje
 // posortowane wg sort_order (NULL na końcu, ten sam porządek co
 // resolveProductVariants), usunięte miękko (deleted_at) wiersze pominięte.
-export async function getProductOptionGroups(productId: string): Promise<ProductOptionGroup[]> {
+//
+// Spec 0067 AC-1/AC-7: dla en/de/nl left join tłumaczeń grup i opcji (po id,
+// fallback na polski), dla pl żadnej tabeli tłumaczeń nie dotykamy.
+export async function getProductOptionGroups(
+  productId: string,
+  locale: Locale = "pl",
+): Promise<ProductOptionGroup[]> {
   const groupRows = await db
     .select({ id: productOptionGroup.id, name: productOptionGroup.name, selectionType: productOptionGroup.selectionType, sortOrder: productOptionGroup.sortOrder })
     .from(productOptionGroupAssignment)
@@ -463,15 +478,44 @@ export async function getProductOptionGroups(productId: string): Promise<Product
     .where(and(inArray(productOption.groupId, groupIds), isNull(productOption.deletedAt)))
     .orderBy(asc(productOption.sortOrder));
 
+  const groupNames = new Map<string, string>();
+  const optionLabels = new Map<string, string>();
+  if (locale !== "pl") {
+    const [groupTranslations, optionTranslations] = await Promise.all([
+      db
+        .select({ groupId: productOptionGroupTranslation.groupId, name: productOptionGroupTranslation.name })
+        .from(productOptionGroupTranslation)
+        .where(and(inArray(productOptionGroupTranslation.groupId, groupIds), eq(productOptionGroupTranslation.locale, locale))),
+      optionRows.length === 0
+        ? Promise.resolve([] as { optionId: string; label: string }[])
+        : db
+            .select({ optionId: productOptionTranslation.optionId, label: productOptionTranslation.label })
+            .from(productOptionTranslation)
+            .where(
+              and(
+                inArray(
+                  productOptionTranslation.optionId,
+                  optionRows.map((row) => row.id),
+                ),
+                eq(productOptionTranslation.locale, locale),
+              ),
+            ),
+    ]);
+    for (const row of groupTranslations) groupNames.set(row.groupId, row.name);
+    for (const row of optionTranslations) optionLabels.set(row.optionId, row.label);
+  }
+
   return groupRows.map((group) => ({
     id: group.id,
-    name: group.name,
+    name: resolveTranslatedText(group.name, groupNames.get(group.id)),
+    sourceName: group.name,
     selectionType: group.selectionType,
     options: optionRows
       .filter((row) => row.groupId === group.id)
       .map((row) => ({
         id: row.id,
-        label: row.label,
+        label: resolveTranslatedText(row.label, optionLabels.get(row.id)),
+        sourceLabel: row.label,
         priceCents: row.priceCents,
         priceOnRequest: row.priceOnRequest,
         isDefault: row.isDefault,

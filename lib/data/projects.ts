@@ -8,6 +8,7 @@ import {
   producer,
   producerCapacityProfile,
   producerCertification,
+  producerCertificationTranslation,
   producerDeliveryCountry,
   product,
   productComplianceAssessment,
@@ -18,11 +19,13 @@ import {
   productVariantTranslation,
 } from "@/lib/db/schema";
 import type { Locale } from "@/lib/i18n/routing";
+import { resolveTranslatedText } from "@/lib/i18n/resolve-translated-text";
+import { loadReferenceTranslator } from "./reference-text";
 import type { EnergyClass, VentilationType } from "@/lib/product-technical-specs";
 import { captureError } from "@/lib/observability/errors";
 import { resolveFamilies, type FamilyFilterValue } from "@/lib/product-family-groups";
 import { clientRequirementsSchema, type ClientRequirementRow } from "@/lib/product-client-requirements";
-import { resolveHeatSourceValues, type HeatSourceFilterValue, type PriceThreshold, type StoreysFilter } from "@/lib/results-filters";
+import { resolveHeatSourceValues, type HeatSourceFilterValue, type StoreysFilter } from "@/lib/results-filters";
 import { buildPublicUrl } from "@/lib/storage/r2-client";
 import type {
   ContainerSubcategory,
@@ -174,6 +177,13 @@ export async function resolveProductVariants(
         .from(productTimelineStage)
         .where(inArray(productTimelineStage.productVariantId, variantIds));
 
+      // Spec 0067 AC-5: startsFromLabel i responsibleParty przez słownik po
+      // polskim tekście (dla pl bez zapytania).
+      const translateReference = await loadReferenceTranslator(
+        stageRows.flatMap((row) => [row.startsFromLabel, row.responsibleParty]),
+        locale,
+      );
+
       const stageRowsByVariant = new Map<string, typeof stageRows>();
       for (const row of stageRows) {
         const list = stageRowsByVariant.get(row.productVariantId) ?? [];
@@ -190,8 +200,8 @@ export async function resolveProductVariants(
             stageKey: row.stageKey,
             durationMinDays: row.durationMinDays ?? undefined,
             durationMaxDays: row.durationMaxDays ?? undefined,
-            startsFromLabel: row.startsFromLabel ?? undefined,
-            responsibleParty: row.responsibleParty ?? undefined,
+            startsFromLabel: row.startsFromLabel ? translateReference(row.startsFromLabel) : undefined,
+            responsibleParty: row.responsibleParty ? translateReference(row.responsibleParty) : undefined,
           })),
         );
       }
@@ -324,8 +334,15 @@ interface GetProjectsFilters {
   ventilation?: VentilationType;
   energyClass?: EnergyClass;
   storeys?: StoreysFilter;
-  priceMin?: PriceThreshold;
-  priceMax?: PriceThreshold;
+  // Liczby w EUR, nie zamknięty typ progu: dom (PRICE_THRESHOLDS) i sauna
+  // (SAUNA_PRICE_THRESHOLDS, spec 0068 AC-11) mają osobne skale, a walidacja
+  // wartości należy do parsera parametrów URL, nie do tego zapytania.
+  priceMin?: number;
+  priceMax?: number;
+  // Minimalna liczba miejsc w saunie (spec 0068 AC-7), z technicalSpecs.seatingCapacity.
+  seatingMin?: number;
+  // Id producenta (spec 0068 AC-9); niepoprawny uuid jest pomijany, nie rzuca błędem bazy.
+  producerId?: string;
   // Znaczące tylko dla family dopasowanej do ich nazwy (ta sama granica co category, spec 0022).
   spaSubcategory?: SpaSubcategory;
   containerSubcategory?: ContainerSubcategory;
@@ -387,6 +404,11 @@ interface ProductTranslationText {
   // insert przez Neon MCP) mogą nie mieć `id`, więc dopasowanie tam spada na
   // pozycję w tablicy zamiast na `id` (patrz komentarz przy tej funkcji).
   roomLayout: unknown;
+  // Spec 0067 AC-3: pola tekstowe produktu, null/puste spada na polski.
+  constructionSystem?: string | null;
+  roofType?: string | null;
+  customizationScope?: string | null;
+  serviceScopeDescription?: string | null;
   // Tłumaczenie pozycji własnych "Co musi zapewnić klient"
   // (product_translation.client_requirements, spec 0050 AC-28, AC-35): tylko
   // custom: true wpisy mają tu odpowiednik, ten sam wzorzec dopasowania po
@@ -413,9 +435,6 @@ interface ProductTranslationText {
   technicalSpecs?: unknown;
 }
 
-function resolveTranslatedText(base: string | null, translated: string | null | undefined): string {
-  return translated && translated.trim().length > 0 ? translated : (base ?? "");
-}
 
 // floorLevel zastępuje isMezzanine (spec 0050 AC-8): migracja jednorazowa, na
 // granicy aplikacji, tego samego typu co roomLayoutRowSchema w
@@ -665,11 +684,12 @@ function applyDocuments(projectItem: Project, documents: ProjectDocument[] | und
 // listing na /verified-manufacturers nigdy nie dostaje deklaracji.
 async function resolveProducerCertifications(
   producerIds: string[],
-  options: { onlyConfirmed?: boolean } = {},
+  options: { onlyConfirmed?: boolean; locale?: Locale } = {},
 ): Promise<Map<string, ProducerCertification[]>> {
   if (producerIds.length === 0) return new Map();
   const rows = await db
     .select({
+      id: producerCertification.id,
       producerId: producerCertification.producerId,
       name: producerCertification.name,
       issuer: producerCertification.issuer,
@@ -684,11 +704,30 @@ async function resolveProducerCertifications(
       ),
     )
     .orderBy(producerCertification.name);
+  // Spec 0067 AC-4/AC-7: tłumaczenie nazwy po id certyfikatu, klucz i
+  // sortowanie zostają na polskiej nazwie; dla pl bez joina.
+  const locale = options.locale ?? "pl";
+  const translatedNames = new Map<string, string>();
+  if (locale !== "pl" && rows.length > 0) {
+    const translations = await db
+      .select({ certificationId: producerCertificationTranslation.certificationId, name: producerCertificationTranslation.name })
+      .from(producerCertificationTranslation)
+      .where(
+        and(
+          inArray(
+            producerCertificationTranslation.certificationId,
+            rows.map((row) => row.id),
+          ),
+          eq(producerCertificationTranslation.locale, locale),
+        ),
+      );
+    for (const translation of translations) translatedNames.set(translation.certificationId, translation.name);
+  }
   const map = new Map<string, ProducerCertification[]>();
   for (const row of rows) {
     const list = map.get(row.producerId) ?? [];
     list.push({
-      name: row.name,
+      name: resolveTranslatedText(row.name, translatedNames.get(row.id)),
       issuer: row.issuer,
       confirmed: row.confirmationStatus === "platform_confirmed",
       confirmedAt: row.confirmedAt,
@@ -787,13 +826,13 @@ function mapRowToProject(
     bathrooms: row.bathrooms,
     storeys: row.storeys,
     externalDimensions: row.externalDimensions ?? "",
-    roofType: row.roofType ?? "",
+    roofType: resolveTranslatedText(row.roofType, translation?.roofType),
     family: row.family,
     category: row.category ?? "caloroczny",
     spaSubcategory: row.spaSubcategory,
-    constructionSystem: row.constructionSystem ?? "",
+    constructionSystem: resolveTranslatedText(row.constructionSystem, translation?.constructionSystem),
     foundationOptions: resolveTranslatedText(row.foundationOptions, translation?.foundationOptions),
-    customizationScope: row.customizationScope ?? "",
+    customizationScope: resolveTranslatedText(row.customizationScope, translation?.customizationScope),
     structuralWarrantyYears: row.structuralWarrantyYears ?? 0,
     priceMin: (row.priceMinCents ?? 0) / 100,
     currency: "EUR",
@@ -814,7 +853,9 @@ function mapRowToProject(
     faq: faq && faq.length > 0 ? faq : undefined,
     clientRequirements: clientRequirements.length > 0 ? clientRequirements : undefined,
     installationWarrantyYears: row.installationWarrantyYears ?? undefined,
-    serviceScopeDescription: row.serviceScopeDescription ?? undefined,
+    serviceScopeDescription: row.serviceScopeDescription
+      ? resolveTranslatedText(row.serviceScopeDescription, translation?.serviceScopeDescription)
+      : undefined,
     transportDimensions: row.transportDimensions ?? undefined,
     craneRequirements: row.craneRequirements ?? undefined,
     minPlotWidthM: row.minPlotWidthM ?? undefined,
@@ -861,6 +902,8 @@ export async function getProjects(filters?: GetProjectsFilters): Promise<Project
     storeys,
     priceMin,
     priceMax,
+    seatingMin,
+    producerId,
     spaSubcategory,
     containerSubcategory,
     q,
@@ -913,6 +956,18 @@ export async function getProjects(filters?: GetProjectsFilters): Promise<Project
     if (priceMax !== undefined) conditions.push(lte(product.priceMinCents, priceMax * 100));
   }
 
+  // Liczba miejsc czytana z jsonb bez rzutowania na ślepo (spec 0068 Key
+  // invariants): jeden rekord z tekstem w seatingCapacity nie może wywrócić
+  // całej listy, taki produkt po prostu nie przechodzi filtra.
+  if (seatingMin !== undefined) {
+    conditions.push(
+      sql`CASE WHEN jsonb_typeof(${product.technicalSpecs}->'seatingCapacity') = 'number' THEN (${product.technicalSpecs}->>'seatingCapacity')::numeric >= ${seatingMin} ELSE false END`,
+    );
+  }
+  if (producerId !== undefined && UUID_PATTERN.test(producerId)) {
+    conditions.push(eq(product.producerId, producerId));
+  }
+
   if (q !== undefined) {
     const tsQuery = buildPrefixTsQuery(q);
     if (tsQuery !== null) conditions.push(sql`${product.searchVector} @@ to_tsquery('simple', ${tsQuery})`);
@@ -927,6 +982,10 @@ export async function getProjects(filters?: GetProjectsFilters): Promise<Project
         translationName: productTranslation.name,
         translationDescription: productTranslation.description,
         translationRoomLayout: productTranslation.roomLayout,
+        translationConstructionSystem: productTranslation.constructionSystem,
+        translationRoofType: productTranslation.roofType,
+        translationCustomizationScope: productTranslation.customizationScope,
+        translationServiceScopeDescription: productTranslation.serviceScopeDescription,
       })
       .from(product)
       .innerJoin(producer, eq(product.producerId, producer.id))
@@ -940,6 +999,10 @@ export async function getProjects(filters?: GetProjectsFilters): Promise<Project
         name: row.translationName,
         description: row.translationDescription,
         roomLayout: row.translationRoomLayout,
+        constructionSystem: row.translationConstructionSystem,
+        roofType: row.translationRoofType,
+        customizationScope: row.translationCustomizationScope,
+        serviceScopeDescription: row.translationServiceScopeDescription,
       }),
     );
   } else {
@@ -970,12 +1033,38 @@ export async function getProjects(filters?: GetProjectsFilters): Promise<Project
   const [documentPhotos, variantsByProduct, certificationsByProducer] = await Promise.all([
     resolveProductDocumentPhotos(projectIds),
     resolveProductVariants(projectIds, { locale }),
-    resolveProducerCertifications(producerIds),
+    resolveProducerCertifications(producerIds, { locale }),
   ]);
   return projects.map((project) => ({
     ...applyVariants(applyDocumentPhotos(project, documentPhotos.get(project.id)), variantsByProduct.get(project.id)),
     certifications: certificationsByProducer.get(project.producerId),
   }));
+}
+
+export interface SaunaProducerOption {
+  id: string;
+  name: string;
+  count: number;
+}
+
+// Producenci z co najmniej jedną opublikowaną sauną, do chipów filtra na
+// /sauna (spec 0068 AC-9). Lista rośnie sama razem z katalogiem, bez zmiany
+// kodu. Pusta lista zamiast błędu, gdy nie ma żadnej sauny.
+export async function getSaunaProducerOptions(): Promise<SaunaProducerOption[]> {
+  const rows = await db
+    .select({ id: producer.id, name: producer.name, count: sql<number>`count(*)::int` })
+    .from(product)
+    .innerJoin(producer, eq(product.producerId, producer.id))
+    .where(
+      and(
+        eq(product.status, "published"),
+        eq(product.family, "spa-modulowe"),
+        eq(product.spaSubcategory, "sauna"),
+      ),
+    )
+    .groupBy(producer.id, producer.name)
+    .orderBy(producer.name);
+  return rows;
 }
 
 // Id existence check for the zapytanie/dzialka flows (spec 0023 AC-... /
@@ -1008,6 +1097,10 @@ export async function getProjectById(id: string, locale: Locale = "pl"): Promise
         translationName: productTranslation.name,
         translationDescription: productTranslation.description,
         translationRoomLayout: productTranslation.roomLayout,
+        translationConstructionSystem: productTranslation.constructionSystem,
+        translationRoofType: productTranslation.roofType,
+        translationCustomizationScope: productTranslation.customizationScope,
+        translationServiceScopeDescription: productTranslation.serviceScopeDescription,
         translationClientRequirements: productTranslation.clientRequirements,
         translationFoundationOptions: productTranslation.foundationOptions,
         // Kolumna istniała w schemacie od dawna (spec 0045 AC-10), ale
@@ -1032,7 +1125,7 @@ export async function getProjectById(id: string, locale: Locale = "pl"): Promise
       resolveProductDocumentPhotos([id]),
       resolveProductVariants([id], { withDetails: true, locale }),
       resolveProductDocuments([id]),
-      resolveProducerCertifications([row.product.producerId]),
+      resolveProducerCertifications([row.product.producerId], { locale }),
     ]);
     return {
       ...applyDocuments(
@@ -1042,6 +1135,10 @@ export async function getProjectById(id: string, locale: Locale = "pl"): Promise
               name: row.translationName,
               description: row.translationDescription,
               roomLayout: row.translationRoomLayout,
+              constructionSystem: row.translationConstructionSystem,
+              roofType: row.translationRoofType,
+              customizationScope: row.translationCustomizationScope,
+              serviceScopeDescription: row.translationServiceScopeDescription,
               clientRequirements: row.translationClientRequirements,
               foundationOptions: row.translationFoundationOptions,
               faq: row.translationFaq,
@@ -1068,7 +1165,7 @@ export async function getProjectById(id: string, locale: Locale = "pl"): Promise
     resolveProductDocumentPhotos([id]),
     resolveProductVariants([id], { withDetails: true, locale }),
     resolveProductDocuments([id]),
-    resolveProducerCertifications([row.product.producerId]),
+    resolveProducerCertifications([row.product.producerId], { locale }),
   ]);
   return {
     ...applyDocuments(
@@ -1085,7 +1182,10 @@ export async function getProjectById(id: string, locale: Locale = "pl"): Promise
 // Spec 0065 AC-6: wiersze ocen zgodności dla jednego produktu, z podpisem
 // tego, czego dotyczą (kraj i przepis). Zastrzeżenie Compliance Engine renderuje
 // komponent, nie ta funkcja.
-export async function getProductComplianceAssessments(productId: string): Promise<ProductComplianceAssessment[]> {
+export async function getProductComplianceAssessments(
+  productId: string,
+  locale: Locale = "pl",
+): Promise<ProductComplianceAssessment[]> {
   if (!UUID_PATTERN.test(productId)) return [];
   const rows = await db
     .select({
@@ -1099,11 +1199,15 @@ export async function getProductComplianceAssessments(productId: string): Promis
     .from(productComplianceAssessment)
     .where(eq(productComplianceAssessment.productId, productId))
     .orderBy(productComplianceAssessment.countryCode, productComplianceAssessment.rule);
+  const translateReference = await loadReferenceTranslator(
+    rows.map((row) => row.reason),
+    locale,
+  );
   return rows.map((row) => ({
     countryCode: row.countryCode as CountryCode,
     rule: row.rule,
     status: row.status,
-    reason: row.reason,
+    reason: row.reason ? translateReference(row.reason) : row.reason,
     confirmed: row.confirmationStatus === "platform_confirmed",
     confirmedAt: row.confirmedAt,
   }));
@@ -1136,6 +1240,10 @@ export async function getFeaturedProjectByFamily(
         translationName: productTranslation.name,
         translationDescription: productTranslation.description,
         translationRoomLayout: productTranslation.roomLayout,
+        translationConstructionSystem: productTranslation.constructionSystem,
+        translationRoofType: productTranslation.roofType,
+        translationCustomizationScope: productTranslation.customizationScope,
+        translationServiceScopeDescription: productTranslation.serviceScopeDescription,
       })
       .from(product)
       .innerJoin(producer, eq(product.producerId, producer.id))
@@ -1156,6 +1264,10 @@ export async function getFeaturedProjectByFamily(
           name: row.translationName,
           description: row.translationDescription,
           roomLayout: row.translationRoomLayout,
+          constructionSystem: row.translationConstructionSystem,
+          roofType: row.translationRoofType,
+          customizationScope: row.translationCustomizationScope,
+          serviceScopeDescription: row.translationServiceScopeDescription,
         }),
         documentPhotos.get(row.product.id),
       ),
@@ -1181,18 +1293,25 @@ export async function getFeaturedProjectByFamily(
 }
 
 export async function getEligibilityByCountry(
-  countryCode: CountryCode
+  countryCode: CountryCode,
+  locale: Locale = "pl",
 ): Promise<EligibilityByCountry[]> {
   const rows = await db
     .select()
     .from(productCountryEligibility)
     .where(eq(productCountryEligibility.countryCode, countryCode));
 
+  // Spec 0067 AC-5: powód decyzji przez słownik (strona /results nie podaje
+  // locale, bo czyta tylko status, więc dla niej bez dodatkowego zapytania).
+  const translateReference = await loadReferenceTranslator(
+    rows.map((row) => row.reason),
+    locale,
+  );
   return rows.map((row) => ({
     projectId: row.productId,
     countryCode: row.countryCode as CountryCode,
     status: row.status,
-    reason: row.reason,
+    reason: row.reason ? translateReference(row.reason) : row.reason,
   }));
 }
 
@@ -1324,6 +1443,10 @@ export async function getVerifiedVolumeManufacturerProjects(
         translationName: productTranslation.name,
         translationDescription: productTranslation.description,
         translationRoomLayout: productTranslation.roomLayout,
+        translationConstructionSystem: productTranslation.constructionSystem,
+        translationRoofType: productTranslation.roofType,
+        translationCustomizationScope: productTranslation.customizationScope,
+        translationServiceScopeDescription: productTranslation.serviceScopeDescription,
       })
       .from(product)
       .innerJoin(producer, eq(product.producerId, producer.id))
@@ -1339,6 +1462,10 @@ export async function getVerifiedVolumeManufacturerProjects(
           name: row.translationName,
           description: row.translationDescription,
           roomLayout: row.translationRoomLayout,
+          constructionSystem: row.translationConstructionSystem,
+          roofType: row.translationRoofType,
+          customizationScope: row.translationCustomizationScope,
+          serviceScopeDescription: row.translationServiceScopeDescription,
         }),
       );
       projectsByProducer.set(row.product.producerId, list);
@@ -1371,7 +1498,7 @@ export async function getVerifiedVolumeManufacturerProjects(
   }
 
   const deliveryMap = await loadDeliveryCountriesByProducer(producerIds);
-  const confirmedCertificationsByProducer = await resolveProducerCertifications(producerIds, { onlyConfirmed: true });
+  const confirmedCertificationsByProducer = await resolveProducerCertifications(producerIds, { onlyConfirmed: true, locale });
   const eligibleProducerIds = new Set(producerIds);
 
   // Producent bez ani jednego pasującego projektu znika z listy razem z
@@ -1396,6 +1523,7 @@ export async function getVerifiedVolumeManufacturerProjects(
 // 'approved' condition as getVerifiedVolumeManufacturerProjects above.
 export async function getProducerVolumeProfile(
   producerId: string,
+  locale: Locale = "pl",
 ): Promise<Omit<VerifiedVolumeManufacturer, "projects"> | null> {
   if (!UUID_PATTERN.test(producerId)) return null;
 
@@ -1418,7 +1546,7 @@ export async function getProducerVolumeProfile(
 
   const [deliveryMap, certificationsByProducer] = await Promise.all([
     loadDeliveryCountriesByProducer([producerId]),
-    resolveProducerCertifications([producerId], { onlyConfirmed: true }),
+    resolveProducerCertifications([producerId], { onlyConfirmed: true, locale }),
   ]);
 
   return {

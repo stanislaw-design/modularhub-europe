@@ -5,21 +5,21 @@ import { ProjectOptionsConfigurator } from "./ProjectOptionsConfigurator";
 
 const INSULATION_GROUP: ProductOptionGroup = {
   id: "g-insulation",
-  name: "Poziom ocieplenia",
+  name: "Poziom ocieplenia", sourceName: "Poziom ocieplenia",
   selectionType: "single",
   options: [
-    { id: "o-standard", label: "Standard", priceCents: 650000, priceOnRequest: false, isDefault: true, imageUrl: null },
-    { id: "o-premium", label: "Premium", priceCents: 980000, priceOnRequest: false, isDefault: false, imageUrl: null },
+    { id: "o-standard", label: "Standard", sourceLabel: "Standard", priceCents: 650000, priceOnRequest: false, isDefault: true, imageUrl: null },
+    { id: "o-premium", label: "Premium", sourceLabel: "Premium", priceCents: 980000, priceOnRequest: false, isDefault: false, imageUrl: null },
   ],
 };
 const EXTRAS_GROUP: ProductOptionGroup = {
   id: "g-extras",
-  name: "Dodatki",
+  name: "Dodatki", sourceName: "Dodatki",
   selectionType: "multi",
   options: [
-    { id: "o-fireplace", label: "Kominek", priceCents: 250000, priceOnRequest: false, isDefault: false, imageUrl: null },
-    { id: "o-ac", label: "Klimatyzacja", priceCents: 0, priceOnRequest: true, isDefault: false, imageUrl: null },
-    { id: "o-blinds", label: "Rolety", priceCents: 0, priceOnRequest: false, isDefault: false, imageUrl: null },
+    { id: "o-fireplace", label: "Kominek", sourceLabel: "Kominek", priceCents: 250000, priceOnRequest: false, isDefault: false, imageUrl: null },
+    { id: "o-ac", label: "Klimatyzacja", sourceLabel: "Klimatyzacja", priceCents: 0, priceOnRequest: true, isDefault: false, imageUrl: null },
+    { id: "o-blinds", label: "Rolety", sourceLabel: "Rolety", priceCents: 0, priceOnRequest: false, isDefault: false, imageUrl: null },
   ],
 };
 
@@ -101,18 +101,18 @@ describe("ProjectOptionsConfigurator (spec 0059)", () => {
   it("renders the option's image when set, and a fallback icon (no broken <img>) when it isn't", () => {
     const groupWithImage: ProductOptionGroup = {
       id: "g-panel",
-      name: "Panel",
+      name: "Panel", sourceName: "Panel",
       selectionType: "single",
       options: [
         {
           id: "o-styropian",
-          label: "Styropian",
+          label: "Styropian", sourceLabel: "Styropian",
           priceCents: null,
           priceOnRequest: false,
           isDefault: true,
           imageUrl: "https://konfigurator.dampol-investment.com/static/thumbnail/shop-configurator-option/med/168.webp",
         },
-        { id: "o-no-image", label: "Bez zdjęcia", priceCents: null, priceOnRequest: false, isDefault: false, imageUrl: null },
+        { id: "o-no-image", label: "Bez zdjęcia", sourceLabel: "Bez zdjęcia", priceCents: null, priceOnRequest: false, isDefault: false, imageUrl: null },
       ],
     };
     const { container } = render(
@@ -144,21 +144,21 @@ describe("ProjectOptionsConfigurator (spec 0059)", () => {
       { ...INSULATION_GROUP, options: [{ ...INSULATION_GROUP.options[0], imageUrl: null }] },
       {
         id: "g-ac",
-        name: "Klimatyzacja",
+        name: "Klimatyzacja", sourceName: "Klimatyzacja",
         selectionType: "single",
-        options: [{ id: "o-none", label: "Brak", priceCents: 0, priceOnRequest: false, isDefault: true, imageUrl: null }],
+        options: [{ id: "o-none", label: "Brak", sourceLabel: "Brak", priceCents: 0, priceOnRequest: false, isDefault: true, imageUrl: null }],
       },
       {
         id: "g-wc",
-        name: "WC",
+        name: "WC", sourceName: "WC",
         selectionType: "single",
-        options: [{ id: "o-wc-no", label: "Nie", priceCents: 0, priceOnRequest: false, isDefault: true, imageUrl: null }],
+        options: [{ id: "o-wc-no", label: "Nie", sourceLabel: "Nie", priceCents: 0, priceOnRequest: false, isDefault: true, imageUrl: null }],
       },
       {
         id: "g-mystery",
-        name: "Coś zupełnie nieoczekiwanego",
+        name: "Coś zupełnie nieoczekiwanego", sourceName: "Coś zupełnie nieoczekiwanego",
         selectionType: "single",
-        options: [{ id: "o-x", label: "X", priceCents: 0, priceOnRequest: false, isDefault: true, imageUrl: null }],
+        options: [{ id: "o-x", label: "X", sourceLabel: "X", priceCents: 0, priceOnRequest: false, isDefault: true, imageUrl: null }],
       },
     ];
     render(
@@ -193,14 +193,14 @@ describe("ProjectOptionsConfigurator (spec 0059)", () => {
   it("strikes through the fallback icon for a literal 'Nie' option sharing its group icon with two real siblings", () => {
     const wcGroup: ProductOptionGroup = {
       id: "g-wc",
-      name: "WC",
+      name: "WC", sourceName: "WC",
       selectionType: "single",
       options: [
-        { id: "o-wc-no", label: "Nie", priceCents: 0, priceOnRequest: false, isDefault: true, imageUrl: null },
-        { id: "o-wc-yes", label: "Tak", priceCents: 125939, priceOnRequest: false, isDefault: false, imageUrl: null },
+        { id: "o-wc-no", label: "Nie", sourceLabel: "Nie", priceCents: 0, priceOnRequest: false, isDefault: true, imageUrl: null },
+        { id: "o-wc-yes", label: "Tak", sourceLabel: "Tak", priceCents: 125939, priceOnRequest: false, isDefault: false, imageUrl: null },
         {
           id: "o-wc-yes-prysznic",
-          label: "Tak, z prysznicem",
+          label: "Tak, z prysznicem", sourceLabel: "Tak, z prysznicem",
           priceCents: 189900,
           priceOnRequest: false,
           isDefault: false,
@@ -210,9 +210,9 @@ describe("ProjectOptionsConfigurator (spec 0059)", () => {
     };
     const acGroup: ProductOptionGroup = {
       id: "g-ac",
-      name: "Klimatyzacja",
+      name: "Klimatyzacja", sourceName: "Klimatyzacja",
       selectionType: "single",
-      options: [{ id: "o-ac-none", label: "Brak", priceCents: 0, priceOnRequest: false, isDefault: true, imageUrl: null }],
+      options: [{ id: "o-ac-none", label: "Brak", sourceLabel: "Brak", priceCents: 0, priceOnRequest: false, isDefault: true, imageUrl: null }],
     };
     render(
       <ProjectOptionsConfigurator
@@ -246,11 +246,11 @@ describe("ProjectOptionsConfigurator (spec 0059)", () => {
   it("renders a 2-option, no-image group as a compact side-by-side toggle, not the big icon card grid", () => {
     const wifiGroup: ProductOptionGroup = {
       id: "g-wifi",
-      name: "Sterowanie WiFi",
+      name: "Sterowanie WiFi", sourceName: "Sterowanie WiFi",
       selectionType: "single",
       options: [
-        { id: "o-wifi-no", label: "Bez sterowania WiFi", priceCents: 0, priceOnRequest: false, isDefault: true, imageUrl: null },
-        { id: "o-wifi-yes", label: "Ze sterowaniem WiFi", priceCents: null, priceOnRequest: true, isDefault: false, imageUrl: null },
+        { id: "o-wifi-no", label: "Bez sterowania WiFi", sourceLabel: "Bez sterowania WiFi", priceCents: 0, priceOnRequest: false, isDefault: true, imageUrl: null },
+        { id: "o-wifi-yes", label: "Ze sterowaniem WiFi", sourceLabel: "Ze sterowaniem WiFi", priceCents: null, priceOnRequest: true, isDefault: false, imageUrl: null },
       ],
     };
     render(
@@ -278,5 +278,39 @@ describe("ProjectOptionsConfigurator (spec 0059)", () => {
     expect(noRadio.querySelector(".rotate-45")).toBeNull();
     expect(noRadio).toHaveTextContent("w cenie");
     expect(yesRadio).toHaveTextContent("cena na zapytanie");
+  });
+
+  // Spec 0067 AC-1: wyświetlany tekst jest przetłumaczony, ale ikona grupy i
+  // przekreślenie opcji negatywnej opierają się na polskim tekście źródłowym.
+  it("keeps the group icon and the negative option strikethrough driven by the Polish source when translated", () => {
+    const group: ProductOptionGroup = {
+      id: "g-wc-en",
+      name: "Toilet",
+      sourceName: "WC",
+      selectionType: "single",
+      options: [
+        { id: "o-no", label: "No", sourceLabel: "Nie", priceCents: 0, priceOnRequest: false, isDefault: true, imageUrl: null },
+        { id: "o-yes", label: "Yes", sourceLabel: "Tak", priceCents: 125939, priceOnRequest: false, isDefault: false, imageUrl: null },
+        { id: "o-yes2", label: "Yes, with shower", sourceLabel: "Tak, z prysznicem", priceCents: 189900, priceOnRequest: false, isDefault: false, imageUrl: null },
+      ],
+    };
+    render(
+      <ProjectOptionsConfigurator
+        groups={[group]}
+        selectedOptionIds={[]}
+        hrefFor={(groupId, optionId) => `?opcje=${groupId}:${optionId}`}
+        heading="Options"
+        ariaLabel="Options"
+        includedLabel="included"
+        priceOnRequestLabel="price on request"
+      />,
+    );
+
+    expect(screen.getByText("Toilet")).toBeInTheDocument();
+    expect(screen.queryByText("WC")).toBeNull();
+    const noRadio = screen.getByRole("radio", { name: /^No[^,]/ });
+    const yesRadio = screen.getByRole("radio", { name: /^Yes[^,]/ });
+    expect(noRadio.querySelector(".rotate-45")).not.toBeNull();
+    expect(yesRadio.querySelector(".rotate-45")).toBeNull();
   });
 });

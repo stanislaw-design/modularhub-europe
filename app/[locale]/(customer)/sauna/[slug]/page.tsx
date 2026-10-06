@@ -130,10 +130,10 @@ export default async function SaunaPage({
   }
 
   const [producer, producerPhotoUrl, session, optionGroups] = await Promise.all([
-    getProducerById(project.producerId),
+    getProducerById(project.producerId, locale as Locale),
     getProducerPhotoUrl(project.producerId),
     auth(),
-    getProductOptionGroups(project.id),
+    getProductOptionGroups(project.id, locale as Locale),
   ]);
 
   const isClientSession = session?.user.role === "client";

@@ -262,7 +262,17 @@ Nigdy nie kończ ciszą. Podsumowanie musi zawierać:
   `en`, `de`, `nl`: `technical_specs` w kształcie `{"specs":{"<klucz pola>":{"value":"..."}}}` (klucze
   angielskie: claddingMaterial, interiorWoodType, benchMaterial, insulationType, glazingType,
   changingAreaDescription, electricalRequirement) oraz `foundation_options`. Strona sauny czyta je przez
-  `resolveTranslatedSpecValue` w `lib/data/projects.ts`, brak wiersza = polski tekst. Nazwy grup opcji i
-  opcji nie mają tabeli tłumaczeń, zostają po polsku.
+  `resolveTranslatedSpecValue` w `lib/data/projects.ts`, brak wiersza = polski tekst.
+- **Tłumaczenia opcji, producenta i pól produktu powstają razem z importem** (spec 0067), nie później.
+  Dla każdej nowej lub zmienionej grupy opcji, opcji, producenta i produktu dopisz (en, de, nl):
+  `product_option_group_translation.name` (po `group_id`), `product_option_translation.label` (po
+  `option_id`), `producer_translation` (`description`, `showroom_visit_note`,
+  `inquiry_response_time_label`) oraz w `product_translation` kolumny `construction_system`, `roof_type`,
+  `customization_scope`, `service_scope_description`. Powody zgodności, `responsible_party` i
+  `starts_from_label` tłumaczy słownik `reference_text_translation` po dokładnym polskim tekście.
+  Wiersze wstawiaj z `ON CONFLICT DO NOTHING` (unikalność po kluczu źródłowym i `locale`). Na końcu
+  uruchom `npm run check:translations`: dla importowanych produktów ma zgłosić zero braków. Ikona grupy i
+  opcja "Nie" w konfiguratorze opierają się na polskim tekście źródłowym, więc nie zmieniaj polskich nazw
+  grup przy tłumaczeniu.
 - Jeśli współdzielona przeglądarka Playwright jest zajęta — zatrzymaj się i zgłoś, nie zabijaj procesu
   (ten sam wzorzec co scrape-steel-house).

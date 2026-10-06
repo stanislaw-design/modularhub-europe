@@ -273,10 +273,11 @@ describe("ProjektPage (spec 0059: płatne opcje konfiguratora)", () => {
       {
         id: "g-insulation",
         name: "Poziom ocieplenia",
+        sourceName: "Poziom ocieplenia",
         selectionType: "single",
         options: [
-          { id: "o-standard", label: "Standard", priceCents: 650000, priceOnRequest: false, isDefault: true },
-          { id: "o-premium", label: "Premium", priceCents: 980000, priceOnRequest: false, isDefault: false },
+          { id: "o-standard", label: "Standard", sourceLabel: "Standard", priceCents: 650000, priceOnRequest: false, isDefault: true },
+          { id: "o-premium", label: "Premium", sourceLabel: "Premium", priceCents: 980000, priceOnRequest: false, isDefault: false },
         ],
       },
     ]);

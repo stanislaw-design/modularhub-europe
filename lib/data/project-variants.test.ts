@@ -104,20 +104,20 @@ describe("getInPriceCostLineItemLabels (spec 0051 AC-6)", () => {
 // Spec 0059: grupy opcji konfiguratora dla produktów katalogowych.
 const INSULATION_GROUP: ProductOptionGroup = {
   id: "g-insulation",
-  name: "Poziom ocieplenia",
+  name: "Poziom ocieplenia", sourceName: "Poziom ocieplenia",
   selectionType: "single",
   options: [
-    { id: "o-standard", label: "Standard", priceCents: 650000, priceOnRequest: false, isDefault: true, imageUrl: null },
-    { id: "o-premium", label: "Premium", priceCents: 980000, priceOnRequest: false, isDefault: false, imageUrl: null },
+    { id: "o-standard", label: "Standard", sourceLabel: "Standard", priceCents: 650000, priceOnRequest: false, isDefault: true, imageUrl: null },
+    { id: "o-premium", label: "Premium", sourceLabel: "Premium", priceCents: 980000, priceOnRequest: false, isDefault: false, imageUrl: null },
   ],
 };
 const EXTRAS_GROUP: ProductOptionGroup = {
   id: "g-extras",
-  name: "Dodatki",
+  name: "Dodatki", sourceName: "Dodatki",
   selectionType: "multi",
   options: [
-    { id: "o-fireplace", label: "Kominek", priceCents: 250000, priceOnRequest: false, isDefault: false, imageUrl: null },
-    { id: "o-ac", label: "Klimatyzacja", priceCents: 0, priceOnRequest: true, isDefault: false, imageUrl: null },
+    { id: "o-fireplace", label: "Kominek", sourceLabel: "Kominek", priceCents: 250000, priceOnRequest: false, isDefault: false, imageUrl: null },
+    { id: "o-ac", label: "Klimatyzacja", sourceLabel: "Klimatyzacja", priceCents: 0, priceOnRequest: true, isDefault: false, imageUrl: null },
   ],
 };
 

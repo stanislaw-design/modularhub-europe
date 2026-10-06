@@ -1,3 +1,5 @@
+// Spec 0067: tłumaczenia (en, de, nl) opcji, producenta i pól produktu powstają razem z importem,
+// patrz .claude/skills/scrape-kora-wdh/SKILL.md. Po imporcie uruchom `npm run check:translations`.
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { and, eq, isNull } from "drizzle-orm";

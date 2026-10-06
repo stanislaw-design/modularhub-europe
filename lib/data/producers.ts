@@ -1,6 +1,15 @@
 import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { document, offer, order, producer, producerDeliveryCountry, product } from "@/lib/db/schema";
+import {
+  document,
+  offer,
+  order,
+  producer,
+  producerDeliveryCountry,
+  producerTranslation,
+  product,
+} from "@/lib/db/schema";
+import type { Locale } from "@/lib/i18n/routing";
 import { buildPublicUrl } from "@/lib/storage/r2-client";
 import { resolveProductDocumentPhotos } from "./projects";
 import type { CountryCode, Producer } from "./types";
@@ -115,6 +124,43 @@ async function loadFeaturedPhotoByProducer(producerIds: string[]): Promise<Map<s
   return result;
 }
 
+// Spec 0067 AC-2/AC-6/AC-7: dla en/de/nl nakłada tłumaczenia opisu, notatki
+// showroomu i etykiety czasu odpowiedzi na wiersze producentów (pole puste lub
+// bez tłumaczenia zostaje po polsku). Dla pl nie dotyka tabeli tłumaczeń.
+async function applyProducerTranslations(
+  rows: (typeof producer.$inferSelect)[],
+  locale: Locale,
+): Promise<(typeof producer.$inferSelect)[]> {
+  if (locale === "pl" || rows.length === 0) return rows;
+
+  const translations = await db
+    .select()
+    .from(producerTranslation)
+    .where(
+      and(
+        inArray(
+          producerTranslation.producerId,
+          rows.map((row) => row.id),
+        ),
+        eq(producerTranslation.locale, locale),
+      ),
+    );
+  const byProducer = new Map(translations.map((translation) => [translation.producerId, translation]));
+  const pick = (base: string | null, translated: string | null | undefined) =>
+    translated && translated.trim().length > 0 ? translated : base;
+
+  return rows.map((row) => {
+    const translation = byProducer.get(row.id);
+    if (!translation) return row;
+    return {
+      ...row,
+      description: pick(row.description, translation.description),
+      showroomVisitNote: pick(row.showroomVisitNote, translation.showroomVisitNote),
+      inquiryResponseTimeLabel: pick(row.inquiryResponseTimeLabel, translation.inquiryResponseTimeLabel),
+    };
+  });
+}
+
 function mapRowToProducer(
   row: typeof producer.$inferSelect,
   aggregate: ProductAggregate,
@@ -167,15 +213,18 @@ export async function getProducerPhotoUrl(producerId: string): Promise<string | 
 // ("prod-budman", …) never matched a real producer uuid, so the producer
 // card never actually rendered. Skips any producer with zero published
 // products, same boundary as loadProductAggregatesByProducer.
-export async function getProducers(): Promise<Producer[]> {
+export async function getProducers(locale: Locale = "pl"): Promise<Producer[]> {
   const aggregates = await loadProductAggregatesByProducer();
   const producerIds = [...aggregates.keys()];
   if (producerIds.length === 0) return [];
 
-  const rows = await db
-    .select()
-    .from(producer)
-    .where(and(inArray(producer.id, producerIds), isNull(producer.deletedAt)));
+  const rows = await applyProducerTranslations(
+    await db
+      .select()
+      .from(producer)
+      .where(and(inArray(producer.id, producerIds), isNull(producer.deletedAt))),
+    locale,
+  );
 
   const [deliveryMap, photoMap, completedMap] = await Promise.all([
     loadDeliveryCountriesByProducer(producerIds),
@@ -194,14 +243,15 @@ export async function getProducers(): Promise<Producer[]> {
   );
 }
 
-export async function getProducerById(id: string): Promise<Producer | null> {
+export async function getProducerById(id: string, locale: Locale = "pl"): Promise<Producer | null> {
   if (!UUID_PATTERN.test(id)) return null;
 
-  const [row] = await db
+  const [sourceRow] = await db
     .select()
     .from(producer)
     .where(and(eq(producer.id, id), isNull(producer.deletedAt)));
-  if (!row) return null;
+  if (!sourceRow) return null;
+  const [row] = await applyProducerTranslations([sourceRow], locale);
 
   const aggregates = await loadProductAggregatesByProducer([id]);
   const aggregate = aggregates.get(id);
