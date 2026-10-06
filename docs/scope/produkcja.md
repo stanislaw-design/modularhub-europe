@@ -194,11 +194,11 @@ Rozszerzenie platformy z jednojęzycznego (polskiego) pilotu o pełne wersje ang
 Dopełnienie funkcji 25: na stronach produktu w `/en`, `/de`, `/nl` część tekstów z danych nadal wychodzi po polsku (opcje i grupy konfiguratora, opis i notatka producenta, nazwy certyfikatów, pola konstrukcji, dachu, personalizacji, zakresu usług, powody zgodności). Nowe tabele tłumaczeń per encja, cztery kolumny w `product_translation` i słownik dla krótkich powtarzalnych zdań, z fallbackiem na polski i skryptem kontrolnym braków. Edycja tych tłumaczeń przez producenta w panelu jest odłożona (dziś nie ma ekranu edycji tych tekstów).
 **Done when:** `npm run check:translations` na dev i prod zgłasza zero braków dla opublikowanych produktów w `en`, `de`, `nl`, a strony sauny, projektu i listy wyników w tych językach nie zawierają polskich tekstów źródłowych z danych produktu.
 - [x] Zaprojektuj (spec): [0067](../specs/0067-tlumaczenia-opcji-producenta-i-pol-produktu/index.md)
-- [ ] Build it: `/develop tłumaczenia opcji konfiguratora, producenta i pól produktu`
+- [x] Build it: `/develop tłumaczenia opcji konfiguratora, producenta i pól produktu`
   - [x] Migracja i schemat: pięć nowych tabel tłumaczeń i cztery kolumny w `product_translation`, satisfies AC-1, AC-2, AC-3, AC-4, AC-5, AC-7
   - [x] Odczyt z fallbackiem: opcje konfiguratora (z tekstem źródłowym dla ikon i opcji "Nie"), producent i certyfikaty, pola produktu na szczegółach i kartach list, słownik zgodności i harmonogramu, satisfies AC-1, AC-2, AC-3, AC-4, AC-5, AC-6, AC-7
-  - [ ] Skrypt kontrolny braków, dane tłumaczeń i backfill dev, potem prod, satisfies AC-8, AC-9 (skrypt `npm run check:translations` gotowy; backfill dev i prod do zrobienia)
-  - [ ] Reguła w skillach importu i skan końcowy stron w trzech językach, satisfies AC-10, AC-11
+  - [x] Skrypt kontrolny braków, dane tłumaczeń i backfill dev, potem prod, satisfies AC-8, AC-9 (backfill zapisany na dev i prod 2026-10-06, zero braków na obu)
+  - [x] Reguła w skillach importu i skan końcowy stron w trzech językach, satisfies AC-10, AC-11 (skan 45 stron na dev czysty, poza produktem usuniętym miękko, który lista wyników nadal pokazuje)
 - [ ] Verify it: `/check verify tłumaczenia opcji konfiguratora, producenta i pól produktu`
 - [ ] Test it: `/test tłumaczenia opcji konfiguratora, producenta i pól produktu`
 
