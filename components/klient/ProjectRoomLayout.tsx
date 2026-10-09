@@ -145,6 +145,9 @@ export function ProjectRoomLayout({
   // (np. 5.71 + 9.03 + ...) nie pokazała klientowi 140.23999999999998.
   const totalAreaM2 =
     floorAreaM2 ?? Math.round(rooms.reduce((sum, room) => sum + (room.areaM2 ?? 0), 0) * 100) / 100;
+  // Producent bywa, że podaje same nazwy pomieszczeń bez metrażu (rzut bez wymiarów):
+  // wtedy suma to 0, a "0 m²" byłoby błędną informacją, więc kafelek znika.
+  const hasTotalArea = totalAreaM2 > 0;
   const previewRooms = rooms.slice(0, PREVIEW_ROOM_COUNT);
   const extraRooms = rooms.slice(PREVIEW_ROOM_COUNT);
   const hasMore = extraRooms.length > 0;
@@ -200,19 +203,23 @@ export function ProjectRoomLayout({
         </div>
         <div className="flex flex-col gap-brand-3 lg:col-span-7">
           <div className="flex flex-wrap items-baseline gap-x-brand-3 gap-y-1 border-b border-brand-v5-line pb-brand-3">
-            <div className="flex items-baseline gap-brand-2">
-              <DataText surface="v5" className="text-h3 font-black">
-                {t("areaValue", { area: totalAreaM2 })}
-              </DataText>
-              <Text tone="muted" surface="v5" className="font-semibold">
-                {t("totalAreaLabel")}
-              </Text>
-            </div>
+            {hasTotalArea && (
+              <div className="flex items-baseline gap-brand-2">
+                <DataText surface="v5" className="text-h3 font-black">
+                  {t("areaValue", { area: totalAreaM2 })}
+                </DataText>
+                <Text tone="muted" surface="v5" className="font-semibold">
+                  {t("totalAreaLabel")}
+                </Text>
+              </div>
+            )}
             {roomCount !== null && (
               <div className="flex items-baseline gap-brand-2">
-                <span className="text-brand-v5-muted" aria-hidden="true">
-                  &middot;
-                </span>
+                {hasTotalArea && (
+                  <span className="text-brand-v5-muted" aria-hidden="true">
+                    &middot;
+                  </span>
+                )}
                 <DataText surface="v5" className="text-h3 font-black">
                   {roomCount}
                 </DataText>

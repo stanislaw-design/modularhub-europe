@@ -639,7 +639,11 @@ export default async function ProjektPage({
               projectName={project.name}
               coverImageUrl={project.coverImageUrl}
               documents={floorPlans}
-              floorAreaM2={resolvedLayout.floorAreaM2}
+              floorAreaM2={
+                resolvedLayout.floorAreaM2 ??
+                // Pomieszczenia bez metrażu (rzut producenta bez wymiarów): bez tego suma to 0 m².
+                ((resolvedLayout.rooms ?? []).some((room) => room.areaM2 !== undefined) ? null : project.floorAreaM2)
+              }
               description={resolvedLayout.description}
             />
           </div>
