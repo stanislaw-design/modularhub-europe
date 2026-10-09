@@ -17,8 +17,12 @@ vi.mock("@/lib/project-request-actions", () => ({ submitBulkProductInquiry: vi.f
 // own returned JSX). Unrelated to spec 0058 (this page never touched the
 // gallery), stubbed out so the routing/metadata behavior under test isn't
 // blocked by a pre-existing test-infra gap in a different area.
+const galleryTabsPropsMock = vi.hoisted(() => vi.fn());
 vi.mock("@/components/klient/ProjectGalleryTabs", () => ({
-  ProjectGalleryTabs: () => null,
+  ProjectGalleryTabs: (props: unknown) => {
+    galleryTabsPropsMock(props);
+    return null;
+  },
 }));
 
 const authMock = vi.hoisted(() => vi.fn<() => Promise<Session | null>>());
@@ -54,7 +58,9 @@ const getProjectBySlugOrIdMock = vi.fn();
 const getEligibilityByCountryMock = vi.fn();
 const getProducerVolumeProfileMock = vi.fn();
 const getProductComplianceAssessmentsMock = vi.fn();
+const getProductOptionLayoutsMock = vi.fn();
 vi.mock("@/lib/data/projects", () => ({
+  getProductOptionLayouts: (...args: unknown[]) => getProductOptionLayoutsMock(...args),
   getProjectBySlugOrId: (...args: unknown[]) => getProjectBySlugOrIdMock(...args),
   getEligibilityByCountry: (...args: unknown[]) => getEligibilityByCountryMock(...args),
   getProducerVolumeProfile: (...args: unknown[]) => getProducerVolumeProfileMock(...args),
@@ -93,6 +99,8 @@ beforeEach(() => {
   getClientIdForUserMock.mockReset();
   getFavoritedProductIdsMock.mockReset();
   getProductOptionGroupsMock.mockReset().mockResolvedValue([]);
+  getProductOptionLayoutsMock.mockReset().mockResolvedValue(new Map());
+  galleryTabsPropsMock.mockClear();
   authMock.mockReset().mockResolvedValue(null);
 });
 
@@ -384,5 +392,110 @@ describe("ProjektPage (spec 0067: locale w danych tłumaczonych)", () => {
 
     expect(getProductOptionGroupsMock).toHaveBeenCalledWith(PUBLISHED_ID, "pl");
     expect(getProducerByIdMock).toHaveBeenCalledWith(expect.any(String), "pl");
+  });
+});
+
+// Spec 0069: wersje układu wnętrz wybierane opcją (?opcje=).
+describe("ProjektPage (spec 0069: wersje układu wnętrz)", () => {
+  const GROUP = {
+    id: "g-layout",
+    name: "Wersja układu",
+    sourceName: "Wersja układu",
+    selectionType: "single",
+    options: [
+      { id: "o-base", label: "Wersja podstawowa", sourceLabel: "Wersja podstawowa", priceCents: 0, priceOnRequest: false, isDefault: true },
+      { id: "o-v2", label: "Wersja 2", sourceLabel: "Wersja 2", priceCents: 300000, priceOnRequest: false, isDefault: false },
+    ],
+  };
+  const LAYOUTS = new Map([
+    [
+      "o-v2",
+      {
+        optionId: "o-v2",
+        floorAreaM2: 91.05,
+        rooms: 6,
+        bedrooms: 3,
+        bathrooms: null,
+        roomLayout: [{ name: "Garderoba wersji dwa", areaM2: 4.5, floorLevel: "parter" }],
+        description: "Trzy sypialnie i garderoba.",
+      },
+    ],
+  ]);
+  const PLANS = [
+    { url: "/base.webp", purpose: "product_floor_plan" },
+    { url: "/v2.webp", purpose: "product_floor_plan", productOptionId: "o-v2", floorLevel: "parter" },
+  ];
+  function createBingo() {
+    return createMockProject({
+      id: PUBLISHED_ID,
+      slug: "bingo-a",
+      name: "Bingo A",
+      floorAreaM2: 82.09,
+      rooms: 4,
+      roomLayout: [{ name: "Salon bazowy", areaM2: 30, floorLevel: "parter" }],
+      documents: PLANS as never,
+    });
+  }
+  function lastGalleryProps() {
+    return galleryTabsPropsMock.mock.calls.at(-1)?.[0] as { floorPlans: { url: string }[]; floorPlanVersionLabel?: string };
+  }
+
+  it("shows the selected version's rooms, area, description and floor plans (AC-1, AC-2, AC-4)", async () => {
+    getProjectBySlugOrIdMock.mockResolvedValue(createBingo());
+    getProductOptionGroupsMock.mockResolvedValue([GROUP]);
+    getProductOptionLayoutsMock.mockResolvedValue(LAYOUTS);
+
+    await renderPage("bingo-a", { opcje: "o-v2" });
+
+    expect(screen.getByText("Garderoba wersji dwa")).toBeInTheDocument();
+    expect(screen.queryByText("Salon bazowy")).not.toBeInTheDocument();
+    expect(screen.getByText(/91[.,]05\s*m²/)).toBeInTheDocument();
+    expect(screen.getByText("Trzy sypialnie i garderoba.")).toBeInTheDocument();
+    expect(lastGalleryProps().floorPlans.map((d) => d.url)).toEqual(["/v2.webp"]);
+    expect(lastGalleryProps().floorPlanVersionLabel).toBe("Wersja 2");
+  });
+
+  it("falls back to the product's rooms and plans for the default option without its own data (AC-3)", async () => {
+    getProjectBySlugOrIdMock.mockResolvedValue(createBingo());
+    getProductOptionGroupsMock.mockResolvedValue([GROUP]);
+    getProductOptionLayoutsMock.mockResolvedValue(LAYOUTS);
+
+    await renderPage("bingo-a");
+
+    expect(screen.getByText("Salon bazowy")).toBeInTheDocument();
+    expect(screen.queryByText("Trzy sypialnie i garderoba.")).not.toBeInTheDocument();
+    expect(lastGalleryProps().floorPlans.map((d) => d.url)).toEqual(["/base.webp"]);
+  });
+
+  it("looks exactly as before for a product without layout data on its options (AC-3, AC-9)", async () => {
+    getProjectBySlugOrIdMock.mockResolvedValue(createBingo());
+    getProductOptionGroupsMock.mockResolvedValue([GROUP]);
+
+    await renderPage("bingo-a", { opcje: "o-v2" });
+
+    expect(screen.getByText("Salon bazowy")).toBeInTheDocument();
+    expect(lastGalleryProps().floorPlans.map((d) => d.url)).toEqual(["/base.webp"]);
+  });
+
+  it("keeps the base area and rooms in metadata and JSON-LD whatever ?opcje= says (AC-5)", async () => {
+    getProjectBySlugOrIdMock.mockResolvedValue(createBingo());
+    getProductOptionGroupsMock.mockResolvedValue([GROUP]);
+    getProductOptionLayoutsMock.mockResolvedValue(LAYOUTS);
+
+    const metadata = await generateMetadata({ params: Promise.resolve({ locale: "pl", slug: "bingo-a" }) });
+    expect(metadata.description).toContain("82.09 m²");
+    expect(metadata.description).not.toContain("91");
+
+    await renderPage("bingo-a", { opcje: "o-v2" });
+    const jsonLd = JSON.parse(document.querySelector('script[type="application/ld+json"]')?.innerHTML ?? "{}");
+    expect(JSON.stringify(jsonLd)).not.toContain("91");
+  });
+
+  it("passes the active locale to the layout read (AC-6)", async () => {
+    getProjectBySlugOrIdMock.mockResolvedValue(createBingo());
+
+    await renderPage("bingo-a", {}, "de");
+
+    expect(getProductOptionLayoutsMock).toHaveBeenCalledWith(PUBLISHED_ID, "de");
   });
 });

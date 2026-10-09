@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Text } from "@/components/ui";
 import { ProjectGalleryCarousel, ProjectGalleryCover, ProjectGalleryThumbnails } from "./ProjectGallery";
-import type { ProjectDocument, ProjectDocumentPurpose } from "@/lib/data/types";
+import type { ProjectDocument } from "@/lib/data/types";
 
 export type GalleryTabKey = "wizualizacje" | "rzut";
 
@@ -14,23 +14,12 @@ interface ProjectGalleryTabsProps {
   altSubject: string;
   coverImageUrl: string;
   galleryImageUrls?: string[];
-  documents: ProjectDocument[];
-  selectedVariantId?: string;
+  /** Rzuty już wybrane przez selectFloorPlans (wariant standardu, wersja układu, kolejność pięter, spec 0069). */
+  floorPlans: ProjectDocument[];
+  /** Nazwa wybranej wersji układu, do podpisu rzutu tej wersji ("Wersja 2 · Parter"). */
+  floorPlanVersionLabel?: string;
   activeTab: GalleryTabKey;
   hrefFor: (tab: GalleryTabKey) => string;
-}
-
-// Dokument z pustym productVariantId dotyczy każdego wariantu (spec 0041
-// Feature design); dokument przypisany do konkretnego wariantu pokazuje się
-// tylko przy tym wariancie (spec 0042 AC-7).
-function documentsForTab(
-  documents: ProjectDocument[],
-  purpose: ProjectDocumentPurpose,
-  selectedVariantId: string | undefined,
-): ProjectDocument[] {
-  return documents.filter(
-    (doc) => doc.purpose === purpose && (doc.productVariantId === undefined || doc.productVariantId === selectedVariantId),
-  );
 }
 
 // Zakładka Wizualizacje reużywa dzisiejszy coverImageUrl/galleryImageUrls
@@ -38,7 +27,8 @@ function documentsForTab(
 // do mocka/starych pól, spec 0031 strangler), zamiast czytać documents wprost
 // — produkt bez jeszcze zmigrowanych wierszy document nie traci jedynego
 // realnego zdjęcia. Rzut nie ma takiego dawnego odpowiednika, więc czyta
-// documents bezpośrednio (spec 0042 AC-7). Zdjęcia z realizacji tego projektu
+// dokumentów, wybranych przez selectFloorPlans (spec 0042 AC-7, spec 0069
+// AC-2/AC-3: wariant standardu i wersja układu). Zdjęcia z realizacji tego projektu
 // (purpose product_realization_photo) żyją teraz w sekcji "Realizacje i
 // producent" (ProducerRealizationsSection), nie jako trzecia zakładka tutaj.
 export async function ProjectGalleryTabs({
@@ -46,14 +36,20 @@ export async function ProjectGalleryTabs({
   altSubject,
   coverImageUrl,
   galleryImageUrls,
-  documents,
-  selectedVariantId,
+  floorPlans,
+  floorPlanVersionLabel,
   activeTab,
   hrefFor,
 }: ProjectGalleryTabsProps) {
   const t = await getTranslations("ProjectGalleryTabs");
 
-  const floorPlanDocs = documentsForTab(documents, "product_floor_plan", selectedVariantId);
+  // Podpis rzutu (spec 0069 AC-2, AC-9): nazwa wersji i piętro, a rzut bez
+  // piętra dostaje neutralne "Rzut N". Nazwy pięter z tekstów interfejsu.
+  function captionFor(doc: ProjectDocument, index: number): string {
+    if (!doc.floorLevel) return t("floorPlanCaption", { index: index + 1 });
+    const floor = t(`floorLevel.${doc.floorLevel}`);
+    return doc.productOptionId && floorPlanVersionLabel ? `${floorPlanVersionLabel} · ${floor}` : floor;
+  }
 
   // Obie zakładki renderują się zawsze (placeholder albo treść), żeby klient
   // widział cały układ galerii od razu — świadome odejście od pierwotnego
@@ -107,21 +103,23 @@ export async function ProjectGalleryTabs({
         )}
 
         {effectiveTab === "rzut" &&
-          (floorPlanDocs.length > 0 ? (
+          (floorPlans.length > 0 ? (
             <div className="grid grid-cols-1 gap-brand-2 px-[6%] sm:grid-cols-2 lg:px-0">
-              {floorPlanDocs.map((doc, index) => (
-                <div
-                  key={doc.url}
-                  className="relative aspect-[4/3] overflow-hidden rounded-v5-card border border-brand-v5-line bg-brand-v5-surface"
-                >
-                  <Image
-                    src={doc.url}
-                    alt={t("floorPlanAlt", { name: projectName, index: index + 1 })}
-                    fill
-                    sizes="(min-width: 640px) 50vw, 100vw"
-                    className="object-contain"
-                  />
-                </div>
+              {floorPlans.map((doc, index) => (
+                <figure key={doc.url} className="m-0 flex flex-col gap-1">
+                  <div className="relative aspect-[4/3] overflow-hidden rounded-v5-card border border-brand-v5-line bg-brand-v5-surface">
+                    <Image
+                      src={doc.url}
+                      alt={t("floorPlanAlt", { name: projectName, index: index + 1 })}
+                      fill
+                      sizes="(min-width: 640px) 50vw, 100vw"
+                      className="object-contain"
+                    />
+                  </div>
+                  <Text as="figcaption" tone="muted" surface="v5" className="text-data">
+                    {captionFor(doc, index)}
+                  </Text>
+                </figure>
               ))}
             </div>
           ) : (

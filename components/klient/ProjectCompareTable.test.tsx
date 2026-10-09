@@ -26,6 +26,24 @@ describe("ProjectCompareTable", () => {
     expect(screen.getAllByText("Brak rzutu")).toHaveLength(2);
   });
 
+  it("counts only base floor plans, not plans of a layout version (spec 0069 AC-5)", () => {
+    render(
+      <ProjectCompareTable
+        locale="pl"
+        columns={[
+          makeColumn("a", {
+            documents: [{ url: "/v2.png", purpose: "product_floor_plan", productOptionId: "o-v2", floorLevel: "parter" }],
+          }),
+          makeColumn("b", { documents: [{ url: "/base.png", purpose: "product_floor_plan" }] }),
+        ]}
+        hasUnavailable={false}
+        resultsHref="/pl/results"
+      />
+    );
+
+    expect(screen.getAllByText("Brak rzutu")).toHaveLength(1);
+  });
+
   // spec 0058 AC-6: resolveProductHref is called with column.project.slug, so
   // the product name link uses the slug when the product has one.
   it("links the product name through the slug when the product has one (spec 0058 AC-6)", () => {

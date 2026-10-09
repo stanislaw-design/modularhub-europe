@@ -15,7 +15,6 @@ const baseProps = {
   altSubject: "Dom modułowy Test – Producent",
   coverImageUrl: "/cover.webp",
   galleryImageUrls: ["/a.webp"],
-  selectedVariantId: "variant-1",
   hrefFor: (tab: string) => `?zakladka=${tab}`,
 };
 
@@ -23,7 +22,7 @@ describe("ProjectGalleryTabs", () => {
   it("shows both tabs even when there is no floor plan document (placeholder instead of hiding)", async () => {
     render(
       await resolveAsyncTree(
-        withLightbox(<ProjectGalleryTabs {...baseProps} documents={[]} activeTab="wizualizacje" />),
+        withLightbox(<ProjectGalleryTabs {...baseProps} floorPlans={[]} activeTab="wizualizacje" />),
       ),
     );
 
@@ -34,7 +33,7 @@ describe("ProjectGalleryTabs", () => {
   it("shows the Rzut placeholder when there is no floor plan document for the selected variant", async () => {
     render(
       await resolveAsyncTree(
-        withLightbox(<ProjectGalleryTabs {...baseProps} documents={[]} activeTab="rzut" />),
+        withLightbox(<ProjectGalleryTabs {...baseProps} floorPlans={[]} activeTab="rzut" />),
       ),
     );
 
@@ -42,14 +41,59 @@ describe("ProjectGalleryTabs", () => {
   });
 
   it("shows the Rzut tab once a floor plan document exists for the selected variant", async () => {
-    const documents: ProjectDocument[] = [{ url: "/plan.webp", purpose: "product_floor_plan" }];
+    const floorPlans: ProjectDocument[] = [{ url: "/plan.webp", purpose: "product_floor_plan" }];
     render(
       await resolveAsyncTree(
-        withLightbox(<ProjectGalleryTabs {...baseProps} documents={documents} activeTab="rzut" />),
+        withLightbox(<ProjectGalleryTabs {...baseProps} floorPlans={floorPlans} activeTab="rzut" />),
       ),
     );
 
     expect(screen.getByRole("tab", { name: "Rzut" })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: /Rzut Modulor Family 90/ })).toBeInTheDocument();
+  });
+
+  it("captions a plan without a floor neutrally as Rzut N (AC-9)", async () => {
+    const floorPlans: ProjectDocument[] = [
+      { url: "/a.webp", purpose: "product_floor_plan" },
+      { url: "/b.webp", purpose: "product_floor_plan" },
+    ];
+    render(
+      await resolveAsyncTree(
+        withLightbox(<ProjectGalleryTabs {...baseProps} floorPlans={floorPlans} activeTab="rzut" />),
+      ),
+    );
+
+    expect(screen.getByText("Rzut 1")).toBeInTheDocument();
+    expect(screen.getByText("Rzut 2")).toBeInTheDocument();
+  });
+
+  it("captions a version's plans with the version name and the floor (AC-2)", async () => {
+    const floorPlans: ProjectDocument[] = [
+      { url: "/p.webp", purpose: "product_floor_plan", productOptionId: "o-v2", floorLevel: "parter" },
+      { url: "/q.webp", purpose: "product_floor_plan", productOptionId: "o-v2", floorLevel: "poddasze" },
+    ];
+    render(
+      await resolveAsyncTree(
+        withLightbox(
+          <ProjectGalleryTabs {...baseProps} floorPlans={floorPlans} floorPlanVersionLabel="Wersja 2" activeTab="rzut" />,
+        ),
+      ),
+    );
+
+    expect(screen.getByText("Wersja 2 · Parter")).toBeInTheDocument();
+    expect(screen.getByText("Wersja 2 · Poddasze")).toBeInTheDocument();
+  });
+
+  it("captions a base plan that has a floor with the floor only", async () => {
+    const floorPlans: ProjectDocument[] = [{ url: "/p.webp", purpose: "product_floor_plan", floorLevel: "pietro" }];
+    render(
+      await resolveAsyncTree(
+        withLightbox(
+          <ProjectGalleryTabs {...baseProps} floorPlans={floorPlans} floorPlanVersionLabel="Wersja 2" activeTab="rzut" />,
+        ),
+      ),
+    );
+
+    expect(screen.getByText("Piętro")).toBeInTheDocument();
   });
 });

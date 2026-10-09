@@ -1138,7 +1138,14 @@
     "showAllRooms": "Pokaż wszystkie pomieszczenia ({count})",
     "showFewerRooms": "Pokaż mniej",
     "zoomOpenLabel": "Powiększ rzut domu",
-    "zoomCloseLabel": "Zamknij powiększenie"
+    "zoomCloseLabel": "Zamknij powiększenie",
+    "planLabel": {
+      "parter": "Parter",
+      "pietro": "Piętro",
+      "poddasze": "Poddasze"
+    },
+    "planFallback": "Rzut {index}",
+    "planPickerLabel": "Wybór rzutu"
   },
   "ProjectLogistics": {
     "heading": "Działka i dostawa",
@@ -1178,7 +1185,13 @@
     "tabWizualizacje": "Wizualizacje",
     "tabRzut": "Rzut",
     "floorPlanAlt": "Rzut {name}, widok {index}",
-    "rzutPlaceholder": "Rzut do uzupełnienia przez producenta"
+    "rzutPlaceholder": "Rzut do uzupełnienia przez producenta",
+    "floorPlanCaption": "Rzut {index}",
+    "floorLevel": {
+      "parter": "Parter",
+      "pietro": "Piętro",
+      "poddasze": "Poddasze"
+    }
   },
   "ProducerRealizationsSection": {
     "verified": "Zweryfikowany przez ModularHub",

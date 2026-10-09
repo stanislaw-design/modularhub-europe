@@ -192,6 +192,11 @@ export interface ProjectDocument {
   purpose: ProjectDocumentPurpose;
   /** Puste znaczy: dokument dotyczy każdego wariantu produktu (spec 0041 AC-4). */
   productVariantId?: string;
+  /** Wersja układu wnętrz, do której należy rzut (opcja z grupy single, spec 0069).
+   * Puste: rzut produktu bez wersji. Dotyczy tylko purpose "product_floor_plan". */
+  productOptionId?: string;
+  /** Piętro rzutu (spec 0069), puste: podpis neutralny "Rzut N". */
+  floorLevel?: FloorLevel;
 }
 
 export interface Project {

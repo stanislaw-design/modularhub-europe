@@ -35,12 +35,15 @@ interface CompareRow {
 }
 
 // Dokument bez productVariantId dotyczy każdego wariantu (spec 0041 Feature
-// design), ten sam wzorzec co ProjectGalleryTabs.
+// design), ten sam wzorzec co ProjectGalleryTabs. Spec 0069 AC-5: porównywarka
+// zawsze pokazuje wersję bazową, więc rzut przypisany do wersji układu
+// (productOptionId) się nie liczy.
 function hasFloorPlan(column: CompareTableColumn): boolean {
   if (!column.project) return false;
   return column.project.documents.some(
     (doc) =>
       doc.purpose === "product_floor_plan" &&
+      doc.productOptionId === undefined &&
       (doc.productVariantId === undefined || doc.productVariantId === column.selectedVariant?.id)
   );
 }

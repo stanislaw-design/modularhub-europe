@@ -40,6 +40,47 @@ export function findTranslationGaps(items: TranslationCheckItem[]): TranslationG
   return gaps;
 }
 
+export interface LayoutCheckInput {
+  // Czytelny opis opcji układu (producent, produkt, nazwa opcji).
+  ref: string;
+  description: string | null | undefined;
+  // product_option_layout.room_layout: [{id, name, ...}], surowy jsonb.
+  roomLayout: unknown;
+  // product_option_layout_translation per język: opis i [{id, name}].
+  translations: Partial<Record<CheckedLocale, { description: string | null | undefined; roomLayout: unknown } | undefined>>;
+}
+
+// Wersja układu opcji (spec 0069 AC-7): opis i nazwa każdego pomieszczenia to
+// osobne pola do przetłumaczenia, pomieszczenia dopasowane po `id`.
+export function layoutTranslationItems(input: LayoutCheckInput): TranslationCheckItem[] {
+  const items: TranslationCheckItem[] = [
+    {
+      entity: "product_option_layout",
+      field: "description",
+      ref: input.ref,
+      source: input.description,
+      translations: Object.fromEntries(CHECKED_LOCALES.map((locale) => [locale, input.translations[locale]?.description])),
+    },
+  ];
+  const rooms = Array.isArray(input.roomLayout) ? input.roomLayout : [];
+  for (const room of rooms) {
+    if (!room || typeof room !== "object") continue;
+    const { id, name } = room as { id?: unknown; name?: unknown };
+    if (typeof id !== "string" || typeof name !== "string") continue;
+    const translations: Partial<Record<CheckedLocale, string | null>> = {};
+    for (const locale of CHECKED_LOCALES) {
+      const translated = input.translations[locale]?.roomLayout;
+      const match = Array.isArray(translated)
+        ? translated.find((entry) => entry && typeof entry === "object" && (entry as { id?: unknown }).id === id)
+        : undefined;
+      const translatedName = match ? (match as { name?: unknown }).name : undefined;
+      translations[locale] = typeof translatedName === "string" ? translatedName : null;
+    }
+    items.push({ entity: "product_option_layout", field: "room_layout.name", ref: `${input.ref} / ${name}`, source: name, translations });
+  }
+  return items;
+}
+
 // Wypis per język, encja i pole, z listą wierszy (ucięta do `limit` na grupę).
 export function formatTranslationGaps(gaps: TranslationGap[], limit = 20): string {
   if (gaps.length === 0) return "Brak braków w tłumaczeniach (en, de, nl).";

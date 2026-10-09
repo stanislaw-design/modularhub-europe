@@ -1138,7 +1138,14 @@
     "showAllRooms": "Alle Räume anzeigen ({count})",
     "showFewerRooms": "Weniger anzeigen",
     "zoomOpenLabel": "Grundriss vergrößern",
-    "zoomCloseLabel": "Vergrößerung schließen"
+    "zoomCloseLabel": "Vergrößerung schließen",
+    "planLabel": {
+      "parter": "Erdgeschoss",
+      "pietro": "Obergeschoss",
+      "poddasze": "Dachgeschoss"
+    },
+    "planFallback": "Grundriss {index}",
+    "planPickerLabel": "Grundriss wählen"
   },
   "ProjectLogistics": {
     "heading": "Grundstück und Anlieferung",
@@ -1178,7 +1185,13 @@
     "tabWizualizacje": "Visualisierungen",
     "tabRzut": "Grundriss",
     "floorPlanAlt": "Grundriss {name}, Ansicht {index}",
-    "rzutPlaceholder": "Grundriss vom Hersteller noch zu ergänzen"
+    "rzutPlaceholder": "Grundriss vom Hersteller noch zu ergänzen",
+    "floorPlanCaption": "Grundriss {index}",
+    "floorLevel": {
+      "parter": "Erdgeschoss",
+      "pietro": "Obergeschoss",
+      "poddasze": "Dachgeschoss"
+    }
   },
   "ProducerRealizationsSection": {
     "verified": "Verifiziert von ModularHub",

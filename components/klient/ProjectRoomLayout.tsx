@@ -27,6 +27,11 @@ interface ProjectRoomLayoutProps {
   // dostępny"). Ignoruje przypisanie do wariantu — sam układ pomieszczeń
   // (Project.roomLayout) też jest polem na poziomie produktu, nie wariantu.
   documents?: ProjectDocument[];
+  // Wersja układu wnętrz (spec 0069 AC-4): metraż z danych wybranej opcji
+  // zastępuje sumę pomieszczeń (91,05 m² wersji 2 nie musi równać się sumie
+  // listy), a opis wersji pokazuje się pod nagłówkiem, tylko gdy niepusty.
+  floorAreaM2?: number | null;
+  description?: string | null;
 }
 
 function roomCountBucket(count: number): "one" | "few" | "many" {
@@ -102,6 +107,8 @@ export function ProjectRoomLayout({
   projectName,
   coverImageUrl,
   documents = [],
+  floorAreaM2 = null,
+  description = null,
 }: ProjectRoomLayoutProps) {
   const t = useTranslations("ProjectRoomLayout");
   const [expanded, setExpanded] = useState(false);
@@ -111,7 +118,12 @@ export function ProjectRoomLayout({
   // strzałkami między nimi — jedno zdjęcie, samo powiększenie wystarczy.
   const [isZoomOpen, setIsZoomOpen] = useState(false);
   const extraRoomsId = useId();
-  const floorPlanUrl = documents.find((doc) => doc.purpose === "product_floor_plan")?.url;
+  // Wszystkie rzuty wybranej wersji (parter, piętro, ...), pod rzutem przełącznik
+  // pięter; wcześniej sekcja pokazywała tylko pierwszy rzut z listy.
+  const floorPlans = documents.filter((doc) => doc.purpose === "product_floor_plan");
+  const [planIndex, setPlanIndex] = useState(0);
+  const activePlanIndex = Math.min(planIndex, Math.max(floorPlans.length - 1, 0));
+  const floorPlanUrl = floorPlans[activePlanIndex]?.url;
 
   if (rooms.length === 0) {
     return (
@@ -131,7 +143,8 @@ export function ProjectRoomLayout({
 
   // Zaokrąglone do 2 miejsc, żeby suma zmiennoprzecinkowa kilkunastu wartości
   // (np. 5.71 + 9.03 + ...) nie pokazała klientowi 140.23999999999998.
-  const totalAreaM2 = Math.round(rooms.reduce((sum, room) => sum + (room.areaM2 ?? 0), 0) * 100) / 100;
+  const totalAreaM2 =
+    floorAreaM2 ?? Math.round(rooms.reduce((sum, room) => sum + (room.areaM2 ?? 0), 0) * 100) / 100;
   const previewRooms = rooms.slice(0, PREVIEW_ROOM_COUNT);
   const extraRooms = rooms.slice(PREVIEW_ROOM_COUNT);
   const hasMore = extraRooms.length > 0;
@@ -141,6 +154,11 @@ export function ProjectRoomLayout({
       <Heading level="h2" surface="v5" className="text-h3">
         {t("heading")}
       </Heading>
+      {description && (
+        <Text tone="muted" surface="v5">
+          {description}
+        </Text>
+      )}
       <div className="grid grid-cols-1 gap-brand-4 lg:grid-cols-12 lg:items-start lg:gap-brand-6">
         <div className="lg:col-span-5">
           <button
@@ -160,6 +178,25 @@ export function ProjectRoomLayout({
               <ZoomIn className="size-5" aria-hidden="true" />
             </span>
           </button>
+          {floorPlans.length > 1 && (
+            <div role="group" aria-label={t("planPickerLabel")} className="mt-brand-2 flex flex-wrap gap-brand-2">
+              {floorPlans.map((plan, index) => (
+                <button
+                  key={plan.url}
+                  type="button"
+                  onClick={() => setPlanIndex(index)}
+                  aria-pressed={index === activePlanIndex}
+                  className={`focus-ring rounded-full border px-brand-3 py-1.5 text-body font-medium transition-colors ${
+                    index === activePlanIndex
+                      ? "border-brand-v5-amber-strong bg-brand-v5-amber/10 text-brand-v5-ink"
+                      : "border-brand-v5-line text-brand-v5-muted hover:text-brand-v5-ink"
+                  }`}
+                >
+                  {plan.floorLevel ? t(`planLabel.${plan.floorLevel}`) : t("planFallback", { index: index + 1 })}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <div className="flex flex-col gap-brand-3 lg:col-span-7">
           <div className="flex flex-wrap items-baseline gap-x-brand-3 gap-y-1 border-b border-brand-v5-line pb-brand-3">

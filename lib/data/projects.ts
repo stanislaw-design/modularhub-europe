@@ -13,6 +13,11 @@ import {
   product,
   productComplianceAssessment,
   productCountryEligibility,
+  productOption,
+  productOptionGroup,
+  productOptionGroupAssignment,
+  productOptionLayout,
+  productOptionLayoutTranslation,
   productTimelineStage,
   productTranslation,
   productVariant,
@@ -21,6 +26,8 @@ import {
 import type { Locale } from "@/lib/i18n/routing";
 import { resolveTranslatedText } from "@/lib/i18n/resolve-translated-text";
 import { loadReferenceTranslator } from "./reference-text";
+import type { ProductOptionLayout } from "./project-layout";
+import { FLOOR_LEVELS, roomLayoutSchema, type FloorLevel } from "@/lib/product-room-layout";
 import type { EnergyClass, VentilationType } from "@/lib/product-technical-specs";
 import { captureError } from "@/lib/observability/errors";
 import { resolveFamilies, type FamilyFilterValue } from "@/lib/product-family-groups";
@@ -275,6 +282,8 @@ export async function resolveProductDocuments(productIds: string[]): Promise<Map
         r2Key: document.r2Key,
         purpose: document.purpose,
         productVariantId: document.productVariantId,
+        productOptionId: document.productOptionId,
+        floorLevel: document.floorLevel,
         sortOrder: document.sortOrder,
       })
       .from(document)
@@ -305,6 +314,10 @@ export async function resolveProductDocuments(productIds: string[]): Promise<Map
           url: buildPublicUrl(row.r2Key),
           purpose: row.purpose as ProjectDocumentPurpose,
           productVariantId: row.productVariantId ?? undefined,
+          productOptionId: row.productOptionId ?? undefined,
+          floorLevel: (FLOOR_LEVELS as readonly string[]).includes(row.floorLevel ?? "")
+            ? (row.floorLevel as FloorLevel)
+            : undefined,
         })),
       );
     }
@@ -313,6 +326,80 @@ export async function resolveProductDocuments(productIds: string[]): Promise<Map
     captureError(error, { path: "resolveProductDocuments" });
     return new Map();
   }
+}
+
+// Dane układu wnętrz przypięte do opcji produktu (spec 0069), mapa
+// option_id -> układ z rozwiązanymi tłumaczeniami (opis i nazwy pomieszczeń po
+// `id`, brak tłumaczenia spada na polski, AC-6). Bierze tylko opcje z grup
+// aktualnie przypisanych do produktu, pomija usunięte miękko opcje i grupy
+// (AC: opcja usunięta jest, jakby nie niosła układu). Pusta mapa, gdy produkt
+// nie ma żadnych — wtedy nie ma też drugiego zapytania o tłumaczenia.
+export async function getProductOptionLayouts(
+  productId: string,
+  locale: Locale = "pl",
+): Promise<Map<string, ProductOptionLayout>> {
+  const rows = await db
+    .select({
+      optionId: productOptionLayout.optionId,
+      floorAreaM2: productOptionLayout.floorAreaM2,
+      rooms: productOptionLayout.rooms,
+      bedrooms: productOptionLayout.bedrooms,
+      bathrooms: productOptionLayout.bathrooms,
+      roomLayout: productOptionLayout.roomLayout,
+      description: productOptionLayout.description,
+    })
+    .from(productOptionLayout)
+    .innerJoin(productOption, eq(productOption.id, productOptionLayout.optionId))
+    .innerJoin(productOptionGroup, eq(productOptionGroup.id, productOption.groupId))
+    .innerJoin(productOptionGroupAssignment, eq(productOptionGroupAssignment.groupId, productOptionGroup.id))
+    .where(
+      and(
+        eq(productOptionGroupAssignment.productId, productId),
+        isNull(productOption.deletedAt),
+        isNull(productOptionGroup.deletedAt),
+      ),
+    );
+  if (rows.length === 0) return new Map();
+
+  const translations = new Map<string, { description: string | null; roomLayout: unknown }>();
+  if (locale !== "pl") {
+    const translationRows = await db
+      .select({
+        optionId: productOptionLayoutTranslation.optionId,
+        description: productOptionLayoutTranslation.description,
+        roomLayout: productOptionLayoutTranslation.roomLayout,
+      })
+      .from(productOptionLayoutTranslation)
+      .where(
+        and(
+          inArray(
+            productOptionLayoutTranslation.optionId,
+            rows.map((row) => row.optionId),
+          ),
+          eq(productOptionLayoutTranslation.locale, locale),
+        ),
+      );
+    for (const row of translationRows) translations.set(row.optionId, row);
+  }
+
+  const result = new Map<string, ProductOptionLayout>();
+  for (const row of rows) {
+    const translation = translations.get(row.optionId);
+    // safeParse, nie parse: zły jsonb jednej opcji nie może zablokować strony
+    // produktu, wtedy opcja po prostu bierze pomieszczenia z produktu.
+    const parsedRooms = row.roomLayout === null ? null : roomLayoutSchema.safeParse(row.roomLayout);
+    const baseRooms = parsedRooms?.success ? parsedRooms.data : null;
+    result.set(row.optionId, {
+      optionId: row.optionId,
+      floorAreaM2: row.floorAreaM2,
+      rooms: row.rooms,
+      bedrooms: row.bedrooms,
+      bathrooms: row.bathrooms,
+      roomLayout: baseRooms && baseRooms.length > 0 ? resolveTranslatedRoomLayout(baseRooms, translation?.roomLayout) : null,
+      description: row.description ? resolveTranslatedText(row.description, translation?.description) : null,
+    });
+  }
+  return result;
 }
 
 interface GetProjectsFilters {

@@ -107,4 +107,59 @@ describe("ProjectRoomLayout", () => {
     render(<ProjectRoomLayout {...baseProps} rooms={[{ name: "Salon", areaM2: 28 }]} documents={[]} />);
     expect(screen.getByRole("img", { name: /Modulor Family 90, wnętrze domu/ })).toBeInTheDocument();
   });
+
+  // Spec 0069 AC-4: dane wybranej wersji układu.
+  it("shows the version's area instead of the room sum, and the description under the heading", () => {
+    render(
+      <ProjectRoomLayout
+        {...baseProps}
+        rooms={[{ name: "Salon", areaM2: 28 }]}
+        floorAreaM2={91.05}
+        description="Trzy sypialnie i garderoba."
+      />,
+    );
+
+    expect(screen.getByText(/91[.,]05\s*m²/)).toBeInTheDocument();
+    expect(screen.queryByText("28 m²", { selector: "p, span" })).toBeInTheDocument();
+    expect(screen.getByText("Trzy sypialnie i garderoba.")).toBeInTheDocument();
+  });
+
+  it("renders no description paragraph when it is empty and keeps the room sum (AC-9)", () => {
+    const { container } = render(
+      <ProjectRoomLayout {...baseProps} rooms={[{ name: "Salon", areaM2: 28 }]} description={null} floorAreaM2={null} />,
+    );
+
+    expect(screen.getAllByText("28 m²").length).toBeGreaterThan(0);
+    expect(container.querySelectorAll("h2 + p")).toHaveLength(0);
+  });
+
+  it("lets the client switch between floor plans of the selected version", async () => {
+    const user = userEvent.setup();
+    render(
+      <ProjectRoomLayout
+        {...baseProps}
+        rooms={[{ name: "Salon", areaM2: 28 }]}
+        documents={[
+          { url: "/parter.webp", purpose: "product_floor_plan", floorLevel: "parter" },
+          { url: "/pietro.webp", purpose: "product_floor_plan", floorLevel: "pietro" },
+        ]}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "Parter" })).toHaveAttribute("aria-pressed", "true");
+    await user.click(screen.getByRole("button", { name: "Piętro" }));
+    expect(screen.getByRole("button", { name: "Piętro" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("img", { name: /rzut kondygnacji/ }).getAttribute("src")).toContain("pietro");
+  });
+
+  it("shows no floor picker for a single floor plan", () => {
+    render(
+      <ProjectRoomLayout
+        {...baseProps}
+        rooms={[{ name: "Salon", areaM2: 28 }]}
+        documents={[{ url: "/p.webp", purpose: "product_floor_plan" }]}
+      />,
+    );
+    expect(screen.queryByRole("group", { name: "Wybór rzutu" })).not.toBeInTheDocument();
+  });
 });

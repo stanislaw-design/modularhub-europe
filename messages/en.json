@@ -1131,7 +1131,14 @@
     "showAllRooms": "Show all rooms ({count})",
     "showFewerRooms": "Show fewer",
     "zoomOpenLabel": "Enlarge floor plan",
-    "zoomCloseLabel": "Close enlarged view"
+    "zoomCloseLabel": "Close enlarged view",
+    "planLabel": {
+      "parter": "Ground floor",
+      "pietro": "First floor",
+      "poddasze": "Attic"
+    },
+    "planFallback": "Floor plan {index}",
+    "planPickerLabel": "Choose floor plan"
   },
   "ProjectLogistics": {
     "heading": "Plot and delivery",
@@ -1171,7 +1178,13 @@
     "tabWizualizacje": "Renderings",
     "tabRzut": "Floor plan",
     "floorPlanAlt": "Floor plan {name}, view {index}",
-    "rzutPlaceholder": "Floor plan to be provided by the producer"
+    "rzutPlaceholder": "Floor plan to be provided by the producer",
+    "floorPlanCaption": "Floor plan {index}",
+    "floorLevel": {
+      "parter": "Ground floor",
+      "pietro": "First floor",
+      "poddasze": "Attic"
+    }
   },
   "ProducerRealizationsSection": {
     "verified": "Verified by ModularHub",

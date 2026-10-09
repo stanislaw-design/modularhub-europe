@@ -153,6 +153,14 @@ describe("ResultCard", () => {
     expect(link).toHaveAttribute("href", `/pl/project/${withPlan.id}?zakladka=rzut`);
   });
 
+  it("ignores floor plans that belong to a layout version: the card shows the base version (spec 0069 AC-5)", () => {
+    const onlyVersionPlan = createMockProject({
+      documents: [{ url: "/v2.png", purpose: "product_floor_plan", productOptionId: "o-v2", floorLevel: "parter" }],
+    });
+    render(<ResultCard project={onlyVersionPlan} countryName="Polska" locale="pl" />);
+    expect(screen.queryByText("Rzut dostępny")).not.toBeInTheDocument();
+  });
+
   it("preserves the country param on the floor-plan link (spec 0044 AC-3)", () => {
     const withPlan = createMockProject({ documents: [{ url: "/plan.png", purpose: "product_floor_plan" }] });
     render(<ResultCard project={withPlan} countryName="Polska" locale="pl" countryCode="DE" />);

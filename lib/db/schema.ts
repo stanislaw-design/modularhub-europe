@@ -994,6 +994,58 @@ export const productOptionTranslation = pgTable(
   (table) => [uniqueIndex("product_option_translation_option_locale_idx").on(table.optionId, table.locale)],
 );
 
+// Układ wnętrz przypisany do opcji, czyli "wersja układu" (spec 0069): jeden
+// wiersz na opcję niosącą własne pomieszczenia, metraż i opis. Wszystkie pola
+// poza kluczem puste dozwolone, puste oznacza wartość z produktu. Reguły, że
+// najwyżej jedna grupa single na produkt niesie układ i że opcja należy do
+// grupy przypisanej do produktu rzutu, pilnuje kod (assertLayoutGroupRule w
+// lib/data/project-layout.ts), nie baza. Zapisują tu tylko skrypty importu i
+// ręczne zapisy, żadna ścieżka aplikacji. Klucz obcy bez ON DELETE (usuwanie
+// opcji jest miękkie).
+export const productOptionLayout = pgTable(
+  "product_option_layout",
+  {
+    optionId: uuid("option_id")
+      .primaryKey()
+      .references(() => productOption.id),
+    floorAreaM2: real("floor_area_m2"),
+    rooms: integer("rooms"),
+    bedrooms: integer("bedrooms"),
+    bathrooms: integer("bathrooms"),
+    // Ten sam kształt co product.room_layout ([{id, name, areaM2, floorLevel}]),
+    // walidowany tym samym roomLayoutSchema na granicy aplikacji.
+    roomLayout: jsonb("room_layout"),
+    description: text("description"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    check(
+      "product_option_layout_floor_area_positive",
+      sql`${table.floorAreaM2} IS NULL OR ${table.floorAreaM2} > 0`,
+    ),
+  ],
+);
+
+export const productOptionLayoutTranslation = pgTable(
+  "product_option_layout_translation",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    optionId: uuid("option_id")
+      .notNull()
+      .references(() => productOptionLayout.optionId),
+    locale: productTranslationLocaleEnum("locale").notNull(),
+    description: text("description"),
+    // [{id, name}] dopasowane po id pomieszczenia, jak product_translation.room_layout.
+    roomLayout: jsonb("room_layout"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("product_option_layout_translation_option_locale_idx").on(table.optionId, table.locale),
+  ],
+);
+
 export const producerTranslation = pgTable(
   "producer_translation",
   {
@@ -1775,10 +1827,27 @@ export const document = pgTable(
     // design), tak jak każde inne specific FK na tej tabeli; bez ON DELETE
     // CASCADE, bo project_quote nigdy nie jest usuwana, tylko zmienia status.
     projectQuoteId: uuid("project_quote_id").references(() => projectQuote.id),
+    // Wersja układu wnętrz (spec 0069): opcja z grupy single, do której należy
+    // ten rzut. Puste znaczy rzut produktu bez wersji (zapasowy, jak dotąd).
+    // Tylko dla purpose = 'product_floor_plan' (CHECK niżej).
+    productOptionId: uuid("product_option_id").references(() => productOption.id),
+    // Piętro rzutu: parter, pietro albo poddasze (spec 0069). Tekst z CHECK
+    // zamiast enuma Postgresa, bo enum jest nieodwracalny. Puste: podpis
+    // neutralny "Rzut N".
+    floorLevel: text("floor_level"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },
   (table) => [
+    check(
+      "document_product_option_floor_plan_only",
+      sql`${table.productOptionId} IS NULL OR ${table.purpose} = 'product_floor_plan'`,
+    ),
+    check(
+      "document_floor_level_values",
+      sql`${table.floorLevel} IS NULL OR ${table.floorLevel} IN ('parter', 'pietro', 'poddasze')`,
+    ),
+    index("document_product_option_idx").on(table.productId, table.productOptionId),
     // Najwyżej jedna okładka (is_cover) na produkt, filtrowane też po purpose
     // (spec 0031 Feature design): bez tego filtru zdjęcie i przyszły rzut
     // techniczny tego samego produktu mogłyby rywalizować o ten sam indeks.

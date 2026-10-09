@@ -76,7 +76,11 @@ export function ResultCard({
   // Dokument bez productVariantId dotyczy każdego wariantu (spec 0041 Feature
   // design); karta pyta tylko o istnienie choćby jednego rzutu w ogóle (spec
   // 0044 AC-3), bez zawężania do wybranego wariantu.
-  const hasFloorPlan = project.documents.some((doc) => doc.purpose === "product_floor_plan");
+  // Spec 0069 AC-5: karta zawsze pokazuje wersję bazową, więc liczą się tylko
+  // rzuty bez przypisanej wersji układu (productOptionId).
+  const hasFloorPlan = project.documents.some(
+    (doc) => doc.purpose === "product_floor_plan" && doc.productOptionId === undefined,
+  );
   const floorPlanHref = `${productHref}?${[countryQuery, "zakladka=rzut"].filter(Boolean).join("&")}`;
   // Harmonogram żyje dziś w dniach na wariancie (spec 0041/0042), ale ta karta
   // zachowuje dawny, tygodniowy zapis czasu produkcji (t("leadTime")) — stąd

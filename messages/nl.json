@@ -1131,7 +1131,14 @@
     "showAllRooms": "Toon alle ruimtes ({count})",
     "showFewerRooms": "Toon minder",
     "zoomOpenLabel": "Plattegrond vergroten",
-    "zoomCloseLabel": "Vergroting sluiten"
+    "zoomCloseLabel": "Vergroting sluiten",
+    "planLabel": {
+      "parter": "Begane grond",
+      "pietro": "Verdieping",
+      "poddasze": "Zolder"
+    },
+    "planFallback": "Plattegrond {index}",
+    "planPickerLabel": "Plattegrond kiezen"
   },
   "ProjectLogistics": {
     "heading": "Perceel en levering",
@@ -1171,7 +1178,13 @@
     "tabWizualizacje": "Visualisaties",
     "tabRzut": "Plattegrond",
     "floorPlanAlt": "Plattegrond {name}, weergave {index}",
-    "rzutPlaceholder": "Plattegrond nog aan te vullen door de producent"
+    "rzutPlaceholder": "Plattegrond nog aan te vullen door de producent",
+    "floorPlanCaption": "Plattegrond {index}",
+    "floorLevel": {
+      "parter": "Begane grond",
+      "pietro": "Verdieping",
+      "poddasze": "Zolder"
+    }
   },
   "ProducerRealizationsSection": {
     "verified": "Geverifieerd door ModularHub",

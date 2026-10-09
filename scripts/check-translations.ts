@@ -16,6 +16,7 @@ import {
   CHECKED_LOCALES,
   findTranslationGaps,
   formatTranslationGaps,
+  layoutTranslationItems,
   type CheckedLocale,
   type TranslationCheckItem,
 } from "@/lib/translations/gaps";
@@ -246,6 +247,43 @@ async function collectItems(): Promise<TranslationCheckItem[]> {
       source: row.source,
       translations: costLabels.get(row.source ?? "") ?? {},
     });
+  }
+
+  // 7. Wersje układu wnętrz opcji (spec 0069 AC-7): opis i nazwy pomieszczeń,
+  // dla opcji grup przypisanych do opublikowanych produktów.
+  const layouts = await query(sql`
+    select distinct l.option_id as id, l.description, l.room_layout::text as room_layout,
+           o.label as option_label, g.name as group_name, pr.name as producer_name
+    from product_option_layout l
+    join product_option o on o.id = l.option_id and o.deleted_at is null
+    join product_option_group g on g.id = o.group_id and g.deleted_at is null
+    join product_option_group_assignment a on a.group_id = g.id
+    join product p on p.id = a.product_id
+    join producer pr on pr.id = g.producer_id
+    where ${PUBLISHED}`);
+  const layoutTranslations = new Map<
+    string,
+    Partial<Record<CheckedLocale, { description: string | null; roomLayout: unknown }>>
+  >();
+  for (const row of await query(sql`
+    select option_id, locale::text as locale, description, room_layout::text as room_layout
+    from product_option_layout_translation`)) {
+    const entry = layoutTranslations.get(row.option_id!) ?? {};
+    entry[row.locale as CheckedLocale] = {
+      description: row.description,
+      roomLayout: row.room_layout ? JSON.parse(row.room_layout) : null,
+    };
+    layoutTranslations.set(row.option_id!, entry);
+  }
+  for (const row of layouts) {
+    items.push(
+      ...layoutTranslationItems({
+        ref: `${row.producer_name} / ${row.group_name} / ${row.option_label}`,
+        description: row.description,
+        roomLayout: row.room_layout ? JSON.parse(row.room_layout) : null,
+        translations: layoutTranslations.get(row.id!) ?? {},
+      }),
+    );
   }
 
   return items;

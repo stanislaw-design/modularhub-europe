@@ -30,11 +30,13 @@ import {
   resolveSelectedProductOptions,
   toggleProductOption,
 } from "@/lib/data/project-variants";
+import { resolveProjectLayout, selectFloorPlans } from "@/lib/data/project-layout";
 import { getProducerById } from "@/lib/data/producers";
 import {
   getEligibilityByCountry,
   getProducerVolumeProfile,
   getProductComplianceAssessments,
+  getProductOptionLayouts,
   getProjectBySlugOrId,
 } from "@/lib/data/projects";
 import type { CompletionStandard, EligibilityByCountry } from "@/lib/data/types";
@@ -163,7 +165,7 @@ export default async function ProjektPage({
 
   const { countryCode } = parseResultsSearchParams(rawSearchParams);
 
-  const [countries, producer, eligibilityRows, session, volumeProfile, optionGroups, complianceAssessments] =
+  const [countries, producer, eligibilityRows, session, volumeProfile, optionGroups, complianceAssessments, optionLayouts] =
     await Promise.all([
       getCountries(),
       getProducerById(project.producerId, locale as Locale),
@@ -174,6 +176,9 @@ export default async function ProjektPage({
       getProducerVolumeProfile(project.producerId, locale as Locale),
       getProductOptionGroups(project.id, locale as Locale),
       getProductComplianceAssessments(project.id, locale as Locale),
+      // Wersje układu wnętrz (spec 0069): pusta mapa dla produktu bez opcji
+      // niosących układ, wtedy strona wygląda jak przed tą zmianą.
+      getProductOptionLayouts(project.id, locale as Locale),
     ]);
 
   const isClientSession = session?.user.role === "client";
@@ -230,6 +235,22 @@ export default async function ProjektPage({
   const selectedOptionIds = flattenSelectedProductOptionIds(resolvedOptions);
   const optionsPrice = getSelectedProductOptionsPrice(optionGroups, selectedOptionIds);
 
+  // Spec 0069 AC-1 do AC-4: układ i rzuty wybranej wersji. Wersję bazową
+  // (project.floorAreaM2, rooms, roomLayout) zostawiają nietknięte lista
+  // wyników, porównywarka, metadane, JSON-LD i zapytanie (AC-5), bo czytają
+  // pola project, nie ten wynik.
+  const resolvedLayout = resolveProjectLayout({
+    project,
+    groups: optionGroups,
+    layouts: optionLayouts,
+    selected: resolvedOptions,
+  });
+  const floorPlans = selectFloorPlans(project.documents, {
+    selectedVariantId: selectedVariant?.id,
+    layoutOptionId: resolvedLayout.layoutOptionId,
+    allowedOptionIds: optionGroups.flatMap((group) => group.options.map((option) => option.id)),
+  });
+
   function hrefForVariant(variantId: string): string {
     return `/${locale}/project/${slug}${buildQueryHref(rawSearchParams, { wariant: variantId })}`;
   }
@@ -270,7 +291,7 @@ export default async function ProjektPage({
   // ProjectRoomLayout domyślnie renderuje placeholder zamiast znikać (świadoma
   // decyzja dla rodziny "dom"), ale ten placeholder nie ma sensu dla rodziny,
   // która nigdy nie dostanie tych danych — sekcja więc znika całkowicie.
-  const hasUkladSection = project.family !== "kontenery-modulowe" || (project.roomLayout?.length ?? 0) > 0;
+  const hasUkladSection = project.family !== "kontenery-modulowe" || (resolvedLayout.rooms?.length ?? 0) > 0;
   const hasDzialkaSection =
     Boolean(project.externalDimensions) || Boolean(project.foundationOptions) || (project.clientRequirements?.length ?? 0) > 0;
   const hasHarmonogramSection = (selectedVariant?.timelineStages.length ?? 0) > 0;
@@ -396,8 +417,8 @@ export default async function ProjektPage({
               altSubject={altSubject}
               coverImageUrl={project.coverImageUrl}
               galleryImageUrls={project.galleryImageUrls}
-              documents={project.documents}
-              selectedVariantId={selectedVariant?.id}
+              floorPlans={floorPlans}
+              floorPlanVersionLabel={resolvedLayout.layoutOptionLabel ?? undefined}
               activeTab={activeGalleryTab}
               hrefFor={hrefForGalleryTab}
             />
@@ -612,12 +633,14 @@ export default async function ProjektPage({
         {hasUkladSection && (
           <div id="uklad" className="scroll-mt-20">
             <ProjectRoomLayout
-              rooms={project.roomLayout ?? []}
-              roomCount={project.rooms}
-              bathroomCount={project.bathrooms}
+              rooms={resolvedLayout.rooms ?? []}
+              roomCount={resolvedLayout.roomCount}
+              bathroomCount={resolvedLayout.bathroomCount}
               projectName={project.name}
               coverImageUrl={project.coverImageUrl}
-              documents={project.documents}
+              documents={floorPlans}
+              floorAreaM2={resolvedLayout.floorAreaM2}
+              description={resolvedLayout.description}
             />
           </div>
         )}
