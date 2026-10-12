@@ -57,3 +57,6 @@ __pycache__/
 # generated outputs
 /outputs/
 /tmp/
+
+# Ciasteczko obejscia ochrony Vercel dla e2e na stagingu
+/e2e/.auth/

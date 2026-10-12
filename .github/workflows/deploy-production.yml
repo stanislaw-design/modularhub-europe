@@ -22,6 +22,7 @@ jobs:
       - name: Sprawdź e2e na aktualnym stagingu
         env:
           PLAYWRIGHT_BASE_URL: ${{ vars.STAGING_URL }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: npm run test:e2e
 
   deploy:

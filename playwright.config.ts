@@ -4,6 +4,8 @@ import { defineConfig, devices } from "@playwright/test";
 // wdrożonego środowiska staging zamiast lokalnego builda; wtedy nie ma sensu
 // odpalać lokalnego `next dev`.
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
+// Ciasteczko obejścia ochrony wdrożeń Vercel dla stagingu, tworzone w e2e/global-setup.ts.
+const useBypass = Boolean(process.env.PLAYWRIGHT_BASE_URL && process.env.VERCEL_AUTOMATION_BYPASS_SECRET);
 
 export default defineConfig({
   testDir: "./e2e",
@@ -12,8 +14,10 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: "list",
+  globalSetup: "./e2e/global-setup.ts",
   use: {
     baseURL,
+    ...(useBypass ? { storageState: "e2e/.auth/vercel-bypass.json" } : {}),
     trace: "on-first-retry",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
