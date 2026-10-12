@@ -174,6 +174,7 @@
     "floorPlanAvailable": "Plattegrond beschikbaar",
     "floorPlanLinkLabel": "Bekijk de plattegrond van {name}",
     "selectForCompare": "Vergelijk {name} met andere woningen",
+    "selectForCompareSauna": "Vergelijk {name} met andere sauna's",
     "compareLabel": "Vergelijk"
   },
   "ProductFamilyNoun": {
@@ -832,7 +833,7 @@
     "ctaLogin": "Inloggen"
   },
   "KlientPanelZapytaniaPage": {
-    "heading": "Aanvragen",
+    "heading": "Aanvragen bij ModularHub",
     "emptyTitle": "U heeft nog geen aanvragen verstuurd",
     "emptyDescription": "Kies een woning op de resultatenpagina en stuur een aanvraag om deze hier met de status te zien.",
     "columnProducts": "Producten",
@@ -842,7 +843,6 @@
     "statusOffered": "Aanbod ontvangen",
     "statusClosed": "Gesloten",
     "unreadOfferLabel": "Nieuw aanbod",
-    "advisoryHeading": "Aanvragen bij ModularHub",
     "caseStage": {
       "nowe": "Nieuwe aanvraag",
       "rozmowa": "Gesprek met de adviseur",
@@ -854,7 +854,10 @@
       "wspolne_ustalenia": "Gezamenlijke afspraken",
       "zamkniete_bez_wyboru": "Afgesloten zonder keuze",
       "legacy_direct": "Directe aanvraag"
-    }
+    },
+    "addInquiry": "Aanvraag grote bestelling toevoegen",
+    "verifyHint": "Verifieer uw bedrijfsaccount om na het kiezen van een offerte het contact met de producent te krijgen.",
+    "verifyLink": "Account verifiëren"
   },
   "ClientPanelQuotesPage": {
     "heading": "Offertes",
@@ -1301,6 +1304,49 @@
       "dokumenty": "Documenten en vragen"
     }
   },
+  "SaunaCategoryPage": {
+    "metaTitle": "Sauna's | ModularHub Europe",
+    "metaDescription": "Modulaire sauna's van geselecteerde producenten. Vergelijk zitplaatsen, hout, isolatie en prijs, filter op producent en stuur een aanvraag.",
+    "heading": "Sauna's",
+    "modelCount": "Modellen: {count}",
+    "intro": "Kant en klare modulaire sauna's van producenten op ons platform. Beperk de lijst op zitplaatsen, prijs of producent en zet maximaal drie modellen naast elkaar.",
+    "breadcrumbAriaLabel": "Kruimelpad",
+    "breadcrumbHome": "Home",
+    "breadcrumbCurrent": "Sauna's",
+    "filtersAriaLabel": "Saunafilters",
+    "seatingLabel": "Zitplaatsen",
+    "seatingOption": "{count}+ plaatsen",
+    "priceLabel": "Prijs vanaf",
+    "priceUpTo": "tot € {max}",
+    "priceRange": "€ {min} tot € {max}",
+    "priceFrom": "vanaf € {min}",
+    "producerLabel": "Producent",
+    "sortLabel": "Sorteren",
+    "sortPriceAsc": "Prijs oplopend",
+    "sortPriceDesc": "Prijs aflopend",
+    "clearFilters": "Filters wissen",
+    "compare": {
+      "heading": "Saunavergelijking",
+      "back": "Terug naar de sauna's",
+      "model": "Model",
+      "producer": "Producent",
+      "price": "Prijs vanaf",
+      "priceOnRequest": "Offerte op maat",
+      "seating": "Zitplaatsen",
+      "interiorWood": "Hout binnenin",
+      "cladding": "Bekleding",
+      "benchMaterial": "Materiaal banken",
+      "insulation": "Isolatie",
+      "glazing": "Beglazing",
+      "changingArea": "Kleedruimte",
+      "changingAreaYes": "Ja",
+      "changingAreaNo": "Nee",
+      "electrical": "Elektrische eisen",
+      "unavailable": "Deze sauna is niet beschikbaar",
+      "unavailableNotice": "Een deel van de gekozen sauna's is niet meer beschikbaar.",
+      "noData": "Geen gegevens"
+    }
+  },
   "ResultsFilterBar": {
     "sortPriceAsc": "Prijs: oplopend",
     "sortPriceDesc": "Prijs: aflopend",
@@ -1342,7 +1388,8 @@
     "categoryLinksAriaLabel": "Categorieën binnen Meer dan een woning",
     "categoryLinkSpa": "Modulaire spa's",
     "categoryLinkContainers": "Modulaire containers",
-    "categoryLinkOutdoorTv": "Outdoor TV"
+    "categoryLinkOutdoorTv": "Outdoor TV",
+    "categoryLinkSauna": "Sauna's"
   },
   "FloatingSearchButton": {
     "prompt": "Waar bent u vandaag naar op zoek?",
@@ -1453,10 +1500,10 @@
     "privacyLinkLabel": "Privacybeleid",
     "rateLimitedError": "Vanaf dit e mailadres zijn al meerdere aanvragen verstuurd. Probeer het morgen opnieuw of wacht op de adviseur.",
     "confirmTitle": "Aanvraag verstuurd",
-    "confirmBody": "Een ModularHub adviseur neemt per e mail contact met u op. U kunt ook een account aanmaken om uw dossier te volgen en in de app met de adviseur te praten.",
-    "createAccountCta": "Account aanmaken en dossier volgen",
-    "accountSentMessage": "Controleer uw inbox: we hebben een link gestuurd waarmee u het account afrondt.",
-    "accountSendError": "De link kon niet worden verstuurd. Probeer het opnieuw."
+    "confirmBody": "Controleer uw inbox, we hebben een link naar uw dossier gestuurd. Eén klik in de e mail opent het en maakt uw account aan. Een ModularHub adviseur neemt ook per e mail contact met u op.",
+    "linkSendError": "We hebben uw aanvraag opgeslagen, maar de link naar uw dossier kon niet worden verstuurd. Probeer het opnieuw.",
+    "resendPrompt": "Geen e mail ontvangen?",
+    "resendLabel": "Opnieuw verzenden"
   },
   "ProfileForm": {
     "nameLabel": "Volledige naam",
@@ -1615,7 +1662,9 @@
     "selectedCount": "Geselecteerd om te vergelijken: {count}/{max}",
     "needTwoHint": "Selecteer nog minstens één woning",
     "compareCta": "Woningen vergelijken",
-    "clear": "Wissen"
+    "clear": "Wissen",
+    "compareCtaSauna": "Sauna's vergelijken",
+    "needTwoHintSauna": "Selecteer nog minstens één sauna"
   },
   "DeleteProductDialog": {
     "heading": "Product verwijderen?",
@@ -1645,7 +1694,7 @@
     "sectionContactHeading": "Uw gegevens",
     "sectionInvestorHeading": "Investeerdersstatus",
     "investorLabel": "Ik ben een investeerder",
-    "investorDescription": "U plant een bestelling van 10 of meer woningen.",
+    "investorDescription": "U plant een bestelling van 3 of meer woningen.",
     "nameLabel": "Volledige naam",
     "phoneLabel": "Telefoon",
     "companyNameLabel": "Bedrijfsnaam",
@@ -1771,6 +1820,10 @@
     "unreadDecisionLabel": "Klant heeft een beslissing genomen"
   },
   "ProducerPanelBoardPage": {
+    "filtersAriaLabel": "Filters van het prikbord",
+    "filterAll": "Alle",
+    "filterClear": "Filters wissen",
+    "emptyFiltered": "Geen aanvragen komen overeen met de gekozen filters.",
     "heading": "Prikbord",
     "intro": "Openstaande grootschalige aanvragen van alle investeerders — dien op elke aanvraag een offerte in.",
     "notApprovedHeading": "Het prikbord is alleen beschikbaar voor volumegeverifieerde producenten",
@@ -1794,6 +1847,8 @@
     "columnFloorArea": "Vloeroppervlak (m²)"
   },
   "ProducerBoardDetailPage": {
+    "scopeHeading": "Omvang van de opdracht",
+    "scheduleHeading": "Planning en locatie",
     "heading": "Aanvraagdetails",
     "backToBoard": "Terug naar het prikbord",
     "countryLabel": "Land",
@@ -1816,12 +1871,13 @@
     "ownQuoteStatusSuperseded": "Vervangen"
   },
   "QuoteForm": {
+    "heading": "Uw offerte",
     "intro": "Dien je offerte in voor deze aanvraag.",
     "revisionIntro": "Je past een eerder ingediende offerte aan — de nieuwe versie vervangt de vorige.",
     "totalPriceLabel": "Totaalprijs (€)",
-    "unitPriceLabel": "Prijs per eenheid (€, optioneel)",
-    "leadTimeLabel": "Voorgestelde levertijd (weken, optioneel)",
-    "notesLabel": "Notitie (optioneel)",
+    "unitPriceLabel": "Prijs per eenheid (€)",
+    "leadTimeLabel": "Voorgestelde levertijd (weken)",
+    "notesLabel": "Notitie",
     "submitQuote": "Offerte verzenden",
     "submitRevision": "Aangepaste offerte verzenden",
     "submitting": "Verzenden…",
@@ -1829,7 +1885,7 @@
     "genericError": "De offerte kon niet worden opgeslagen. Probeer het opnieuw."
   },
   "ProjectQuotePdfUploadStep": {
-    "label": "PDF van offerte (optioneel)",
+    "label": "PDF van offerte",
     "chooseFile": "Bestand kiezen",
     "replaceFile": "Bestand vervangen",
     "uploading": "Uploaden…",
@@ -1879,9 +1935,9 @@
   },
   "BulkOrdersShowcase": {
     "heading": "Investeringsprojecten en serieproductie",
-    "subheading": "Grote bestellingen vanaf 10 woningen: één aanvraag bereikt geverifieerde producenten die klaar zijn voor volume.",
+    "subheading": "Grote bestellingen vanaf 3 woningen: één aanvraag bereikt geverifieerde producenten die klaar zijn voor volume.",
     "investorHeading": "Voor investeerders",
-    "investorSubheading": "10+ woningen",
+    "investorSubheading": "vanaf 3 woningen",
     "investorPoint1": "Individuele producentvergelijking",
     "investorPoint2": "Ondersteuning bij grote projecten",
     "investorPoint3": "Termijnen, capaciteit en standaard",
@@ -1898,12 +1954,12 @@
     "producerSignatureLine2": "Bouwen we meer"
   },
   "ProjectRequestPage": {
-    "metaTitle": "Dien een groot B2B project in (10+ woningen) | ModularHub Europe",
-    "metaDescription": "Stuur één aanvraag voor een groot investeringsproject (10 of meer modulaire woningen) naar geverifieerde producenten in heel Europa, geen account nodig."
+    "metaTitle": "Dien een groot B2B project in (vanaf 3 woningen) | ModularHub Europe",
+    "metaDescription": "Stuur één aanvraag voor een groot investeringsproject (3 of meer modulaire woningen) naar geverifieerde producenten in heel Europa, geen account nodig."
   },
   "ProjectRequestFlow": {
     "heading": "Dien een groot project in",
-    "intro": "Stuur één aanvraag voor een project van 10 of meer modulaire woningen — deze bereikt geverifieerde producenten die klaar zijn voor volume in het gekozen land.",
+    "intro": "Stuur één aanvraag voor een project van 3 of meer modulaire woningen — deze bereikt geverifieerde producenten die klaar zijn voor volume in het gekozen land.",
     "sentHeading": "Aanvraag verzonden",
     "backToHome": "Terug naar de startpagina",
     "sectionAboutHeading": "Over het project",
@@ -1912,8 +1968,10 @@
     "familiesLegend": "Productfamilie",
     "locationDetailLabel": "Locatie (optioneel)",
     "sectionDetailsHeading": "Details",
-    "unitCountMinLabel": "Minimaal aantal eenheden",
-    "unitCountMaxLabel": "Maximaal aantal eenheden (optioneel)",
+    "unitCountLabel": "Aantal woningen",
+    "unitCountHint": "Geef één exact aantal op, vanaf 3 woningen. Nog niet bekend? Vul het aantal voor de eerste fase in en beschrijf de rest in de opmerkingen.",
+    "unitCountSmallHint": "Bij 1 of 2 woningen gebruikt u de gewone aanvraagroute:",
+    "unitCountSmallHintLink": "kies een project in de catalogus en vraag de producent.",
     "floorAreaMinLabel": "Woonoppervlak vanaf (m², optioneel)",
     "floorAreaMaxLabel": "Woonoppervlak tot (m², optioneel)",
     "completionStandardLabel": "Afbouwniveau (optioneel)",
@@ -1990,8 +2048,10 @@
     "heading": "Vraag naar een grotere hoeveelheid",
     "nameLabel": "Volledige naam",
     "phoneLabel": "Telefoon (optioneel)",
-    "unitCountMinLabel": "Minimumaantal",
-    "unitCountMaxLabel": "Maximumaantal (optioneel)",
+    "unitCountLabel": "Aantal woningen",
+    "unitCountHint": "Geef één exact aantal op, vanaf 3 woningen. Nog niet bekend? Vul het aantal voor de eerste fase in en beschrijf de rest in de opmerkingen.",
+    "unitCountSmallHint": "Bij 1 of 2 woningen gebruikt u de gewone aanvraagroute:",
+    "unitCountSmallHintLink": "kies een project in de catalogus en vraag de producent.",
     "deliveryCountryLabel": "Land van levering",
     "noteLabel": "Aanvullende opmerkingen (optioneel)",
     "cancel": "Annuleren",
@@ -2016,7 +2076,8 @@
     "collapseSidebar": "Menu inklappen",
     "expandSidebar": "Menu uitklappen",
     "board": "Prikbord",
-    "boardQuotes": "Mijn offertes"
+    "boardQuotes": "Mijn offertes",
+    "capacity": "Capaciteitsprofiel"
   },
   "ClientPanelSidebar": {
     "navAriaLabel": "Klantenpaneel",
@@ -2031,7 +2092,8 @@
     "menu": "Menu",
     "collapseSidebar": "Menu inklappen",
     "expandSidebar": "Menu uitklappen",
-    "quotes": "Offertes"
+    "quotes": "Offertes",
+    "weryfikacja": "Account verifiëren"
   },
   "CaseChat": {
     "heading": "Gesprek met de adviseur",
@@ -2270,24 +2332,106 @@
     }
   },
   "InquiryClaim": {
-    "heading": "Account aanmaken en uw aanvraag volgen",
-    "body": "Na uw klik sturen we een inloglink naar uw e mailadres. Na het inloggen ziet u uw dossier en kunt u met de adviseur praten.",
-    "cta": "Account aanmaken",
+    "heading": "Ontvang de link naar uw dossier",
+    "body": "Na uw klik sturen we een link naar uw dossier naar uw e mailadres. Eén klik in de e mail logt u in en opent het dossier, waar u met de adviseur kunt praten.",
+    "cta": "Stuur mij de link naar mijn dossier",
     "sending": "Versturen…",
     "retry": "Opnieuw proberen",
-    "sent": "Indien mogelijk hebben we een inloglink gestuurd naar het adres uit uw aanvraag. Controleer uw inbox.",
+    "sent": "Indien mogelijk hebben we een link gestuurd naar het adres uit uw aanvraag. Controleer uw inbox.",
     "error": "De link kon niet worden verstuurd. Probeer het opnieuw."
   },
-  "GuestInquiryConfirmationEmail": {
-    "subject": "We hebben uw aanvraag ontvangen",
+  "GuestLinkNewEmail": {
+    "subject": "Uw aanvraag bij ModularHub Europe",
     "heading": "Bedankt voor uw aanvraag",
-    "body": "We hebben uw aanvraag over modulaire huizen ontvangen. Een ModularHub adviseur neemt per e mail contact met u op. U kunt een account aanmaken om uw dossier te volgen en met de adviseur te praten.",
-    "cta": "Account aanmaken en dossier volgen"
+    "body": "Bedankt voor uw aanvraag. Klik om uw dossier te bekijken en uw account aan te maken. De link is beperkt geldig en kan maar één keer worden gebruikt.",
+    "cta": "Dossier bekijken"
   },
-  "GuestIdentityCheckEmail": {
-    "subject": "Heeft u een aanvraag verstuurd?",
+  "GuestLinkExistingEmail": {
+    "subject": "Een aanvraag is aan uw account toegevoegd",
     "heading": "Was u dit?",
-    "body": "Iemand heeft met dit e mailadres een ModularHub aanvraag over modulaire huizen verstuurd en we hebben die aan uw account gekoppeld. Was u het, dan hoeft u niets te doen. Zo niet, antwoord dan op deze e mail.",
+    "body": "Iemand heeft een aanvraag naar dit adres gestuurd en we hebben die aan uw account toegevoegd. Was u het, klik dan om hem te bekijken. Zo niet, negeer deze e mail of beantwoord hem.",
     "cta": "Aanvraag bekijken"
+  },
+  "Privacy": {
+    "heading": "Privacy",
+    "testNotice": "Dit is een testversie van de dienst. Het volledige privacybeleid verschijnt voor de publieke start.",
+    "purpose": "Wij verwerken de gegevens uit het aanvraagformulier (naam, e mail, telefoon, perceeladres, bericht) uitsluitend om uw aanvraag te behandelen en u daarover te contacteren.",
+    "noMarketing": "Wij gebruiken deze gegevens niet voor marketing en delen ze met niemand, behalve met de producenten naar wie u de aanvraag zelf laat doorsturen.",
+    "deletion": "U kunt vragen om uw gegevens te verwijderen. Dergelijke verzoeken behandelen we handmatig.",
+    "contact": "Contact over uw gegevens:"
+  },
+  "ProducerPanelCapacityPage": {
+    "heading": "Productiecapaciteitsprofiel",
+    "intro": "Vul uw profiel aan zodat een beheerder u kan verifiëren. Geverifieerde producenten zien grote bestelaanvragen die passen bij hun leverlanden, productfamilies en capaciteit.",
+    "noProducer": "Geen producentenaccount gevonden.",
+    "status": {
+      "not_submitted": "Status: profiel nog niet ingediend ter verificatie.",
+      "pending": "Status: profiel wacht op beoordeling door de beheerder.",
+      "approved": "Status: profiel goedgekeurd. Wijzigingen worden opgeslagen zonder nieuwe beoordeling.",
+      "rejected": "Status: profiel afgewezen. Pas de gegevens aan en dien opnieuw in."
+    },
+    "deliveryCountriesHeading": "Leverlanden",
+    "deliveryCountriesHelp": "Aanvragen uit landen die u hier niet selecteert, bereiken u niet.",
+    "unitsPerMonth": "Productiecapaciteit: hoeveel huizen u per maand produceert",
+    "productionLines": "Productielijnen",
+    "maxModuleSizeM2": "Maximale modulegrootte (m²)",
+    "leadTimeHeading": "Levertijden",
+    "leadTimeHelp": "Hoeveel weken een bestelling van een bepaald aantal stuks duurt.",
+    "tierUnits": "Aantal stuks",
+    "tierWeeks": "Weken",
+    "addTier": "Schijf toevoegen",
+    "removeTier": "Verwijderen",
+    "standardsHeading": "Ondersteunde afwerkingsniveaus",
+    "standards": {
+      "surowy-zamkniety": "Ruwbouw, gesloten",
+      "deweloperski": "Ontwikkelaarsniveau",
+      "pod-klucz": "Sleutelklaar"
+    },
+    "servicesHeading": "Diensten",
+    "canHandleTransport": "Ik regel het transport",
+    "canHandleAssembly": "Ik verzorg de montage",
+    "canCustomize": "Ik pas het ontwerp aan de wensen van de klant aan",
+    "customizationNote": "Beschrijving van de aanpassingsmogelijkheden",
+    "capabilityNote": "Beschrijving van de productiecapaciteit",
+    "references": "Referenties (afgeronde projecten)",
+    "referencesHelp": "Eén referentie per regel.",
+    "save": "Profiel opslaan",
+    "submitForReview": "Indienen ter verificatie",
+    "saved": "Opgeslagen.",
+    "submitted": "Profiel ingediend ter verificatie.",
+    "saveError": "Het profiel kon niet worden opgeslagen.",
+    "submitError": "Het profiel kon niet ter verificatie worden ingediend.",
+    "unitsPerMonthHelp": "Het aantal huizen of modules dat u per maand kunt produceren. Op basis daarvan koppelen we u aan grote bestellingen.",
+    "unitsRequired": "Vul uw productiecapaciteit (huizen per maand) in voordat u het profiel ter verificatie indient."
+  },
+  "ClientB2bDetailsForm": {
+    "heading": "Bedrijfsgegevens",
+    "intro": "Voor grote bestellingen is een geverifieerd bedrijf nodig. Vul de bedrijfsnaam en het belastingnummer in, het ModularHub-team controleert ze.",
+    "status": {
+      "not_submitted": "Status: bedrijfsgegevens nog niet ingediend.",
+      "pending": "Status: gegevens wachten op verificatie.",
+      "approved": "Status: bedrijf geverifieerd.",
+      "rejected": "Status: gegevens afgewezen. Pas ze aan en dien opnieuw in."
+    },
+    "companyLabel": "Bedrijfsnaam",
+    "nipLabel": "Belastingnummer of EU-btw-nummer",
+    "nipHelp": "10 cijfers voor een Pools bedrijf, of een EU-btw-nummer met landprefix, bijvoorbeeld DE123456789 of NL123456789B01.",
+    "submit": "Indienen ter verificatie",
+    "saving": "Opslaan…",
+    "saved": "Bedrijfsgegevens ingediend ter verificatie.",
+    "genericError": "De bedrijfsgegevens konden niet worden opgeslagen. Probeer het opnieuw."
+  },
+  "LargeOrderTeamNewRequestEmail": {
+    "subject": "Nieuwe aanvraag grote bestelling ({units} huizen, {country})",
+    "greeting": "Hallo,",
+    "intro": "Een klant heeft een nieuwe aanvraag voor een grote bestelling ingediend. Details en contactgegevens staan in het beheerpaneel.",
+    "countryLabel": "Land",
+    "unitsLabel": "Aantal huizen",
+    "deadlineLabel": "Uiterste datum voor offertes",
+    "languageLabel": "Taal van de klant",
+    "cta": "Open de aanvraag in het paneel"
+  },
+  "KlientPanelWeryfikacjaPage": {
+    "heading": "Accountverificatie"
   }
 }

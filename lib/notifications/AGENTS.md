@@ -12,6 +12,7 @@ Transactional email (spec 0051, "powiadomienia e mail"): one shared Resend sende
 | `new-offer.ts` | Notifies the client of a new offer. |
 | `order-status.ts` | Order/fulfillment status change email. |
 | `payment.ts` | Payment confirmation email. |
+| `large-order-team.ts` | Polish alert to the team when a large order request (`project_request` or `bulk_product_inquiry`) is submitted, spec 0070. Goes to `OPERATIONS_NOTIFY_EMAIL`, falling back to `ADVISOR_NOTIFY_EMAIL`; sends nothing when neither is set. |
 | `templates/` | `TransactionalEmail.tsx` (the one shared `@react-email` layout), `text.ts` (plain text counterpart, always sent alongside the HTML), `reference.ts` (`shortReference()`, the short id shown in email subjects/bodies), `contact.ts`. |
 
 ## Conventions

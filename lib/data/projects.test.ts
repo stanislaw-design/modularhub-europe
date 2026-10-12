@@ -51,6 +51,7 @@ import {
   getProjectBySlugOrId,
   getProjects,
   getPublishedProductIds,
+  getSaunaProducerOptions,
   getVerifiedVolumeManufacturerProjects,
 } from "./projects";
 
@@ -70,6 +71,10 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: reads from the da
   const gasHeatedDomId = crypto.randomUUID();
   const priceOnRequestDomId = crypto.randomUUID();
   const saunaSpaId = crypto.randomUUID();
+  // spec 0068: filtr liczby miejsc czyta jsonb, wiec potrzebny jest produkt z
+  // liczba, jeden z tekstem w tym polu (nie moze wywrocic zapytania) i jeden bez pola.
+  const saunaFourSeatsId = crypto.randomUUID();
+  const saunaTextSeatsId = crypto.randomUUID();
   const searchableDomId = crypto.randomUUID();
   // spec 0058: a product with a slug already set, and a second one without
   // (AC-3, AC-5).
@@ -179,6 +184,30 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: reads from the da
         countryOfProduction: "PL",
         spaSubcategory: "sauna",
         technicalSpecs: { glazingType: "Szkło hartowane przyciemniane", benchMaterial: "Abachi" },
+      },
+      {
+        id: saunaFourSeatsId,
+        producerId,
+        family: "spa-modulowe",
+        status: "published",
+        name: "Sauna Four Seats",
+        floorAreaM2: 16,
+        countryOfProduction: "PL",
+        spaSubcategory: "sauna",
+        priceMinCents: 800000,
+        technicalSpecs: { seatingCapacity: 4 },
+      },
+      {
+        id: saunaTextSeatsId,
+        producerId,
+        family: "spa-modulowe",
+        status: "published",
+        name: "Sauna Text Seats",
+        floorAreaM2: 16,
+        countryOfProduction: "PL",
+        spaSubcategory: "sauna",
+        priceMinCents: 800000,
+        technicalSpecs: { seatingCapacity: "cztery" },
       },
       {
         id: searchableDomId,
@@ -364,6 +393,55 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: reads from the da
 
     expect(sauna.map((p) => p.id)).toContain(saunaSpaId);
     expect(jacuzzi.map((p) => p.id)).not.toContain(saunaSpaId);
+  });
+
+  // spec 0068 AC-7: liczba miejsc z jsonb, zly rekord nie wywraca zapytania.
+  it("filters saunas by seatingMin and never fails on a non numeric seatingCapacity (spec 0068 AC-7)", async () => {
+    const atLeastFour = await getProjects({ family: "spa-modulowe", spaSubcategory: "sauna", seatingMin: 4 });
+    const atLeastSix = await getProjects({ family: "spa-modulowe", spaSubcategory: "sauna", seatingMin: 6 });
+    const ids = atLeastFour.map((p) => p.id);
+
+    expect(ids).toContain(saunaFourSeatsId);
+    expect(ids).not.toContain(saunaTextSeatsId);
+    expect(ids).not.toContain(saunaSpaId);
+    expect(atLeastSix.map((p) => p.id)).not.toContain(saunaFourSeatsId);
+  });
+
+  // spec 0068 AC-9, AC-10: producent po id, zly uuid pomijany bez bledu bazy.
+  it("filters by producerId and ignores a malformed id (spec 0068 AC-9, AC-10)", async () => {
+    const mine = await getProjects({ family: "spa-modulowe", spaSubcategory: "sauna", producerId });
+    const other = await getProjects({
+      family: "spa-modulowe",
+      spaSubcategory: "sauna",
+      producerId: crypto.randomUUID(),
+    });
+    const malformed = await getProjects({ family: "spa-modulowe", spaSubcategory: "sauna", producerId: "abc" });
+
+    expect(mine.map((p) => p.id)).toContain(saunaFourSeatsId);
+    expect(other).toEqual([]);
+    expect(malformed.map((p) => p.id)).toContain(saunaFourSeatsId);
+  });
+
+  // spec 0068 AC-8, AC-11: prog ceny to cena "od", liczba w EUR.
+  it("applies a sauna price range to the from price (spec 0068 AC-8)", async () => {
+    const inRange = await getProjects({
+      family: "spa-modulowe",
+      spaSubcategory: "sauna",
+      priceMin: 5000,
+      priceMax: 10000,
+    });
+    const tooHigh = await getProjects({ family: "spa-modulowe", spaSubcategory: "sauna", priceMin: 15000 });
+
+    expect(inRange.map((p) => p.id)).toContain(saunaFourSeatsId);
+    expect(tooHigh.map((p) => p.id)).not.toContain(saunaFourSeatsId);
+  });
+
+  it("lists producers with a published sauna (spec 0068 AC-9)", async () => {
+    const options = await getSaunaProducerOptions();
+    const mine = options.find((option) => option.id === producerId);
+
+    expect(mine).toBeDefined();
+    expect(mine?.count).toBeGreaterThanOrEqual(3);
   });
 
   // Spec 0061 AC-7 + tłumaczenia: wartości specyfikacji sauny czytane z

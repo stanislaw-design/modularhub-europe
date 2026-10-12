@@ -42,7 +42,7 @@ describe("ProjectQuotePdfUploadStep", () => {
     render(<ProjectQuotePdfUploadStep quoteId="quote-1" />);
 
     const file = pdfFile("nowa-oferta.pdf");
-    await user.upload(screen.getByLabelText("PDF wyceny (opcjonalnie)"), file);
+    await user.upload(screen.getByLabelText("PDF wyceny"), file);
 
     await waitFor(() => {
       expect(mockedUploadProjectQuotePdf).toHaveBeenCalledWith("quote-1", file);
@@ -56,7 +56,7 @@ describe("ProjectQuotePdfUploadStep", () => {
     mockedUploadProjectQuotePdf.mockResolvedValue({ ok: true, documentId: "doc-2" });
     render(<ProjectQuotePdfUploadStep quoteId="quote-1" initialFilename="stara-oferta.pdf" />);
 
-    await user.upload(screen.getByLabelText("PDF wyceny (opcjonalnie)"), pdfFile("nowa-wersja.pdf"));
+    await user.upload(screen.getByLabelText("PDF wyceny"), pdfFile("nowa-wersja.pdf"));
 
     await waitFor(() => {
       expect(screen.getByText("nowa-wersja.pdf")).toBeInTheDocument();
@@ -71,7 +71,7 @@ describe("ProjectQuotePdfUploadStep", () => {
     mockedUploadProjectQuotePdf.mockResolvedValue({ ok: false, error: "Plik PDF jest pusty albo większy niż 20 MB." });
     render(<ProjectQuotePdfUploadStep quoteId="quote-1" />);
 
-    await user.upload(screen.getByLabelText("PDF wyceny (opcjonalnie)"), pdfFile("za-duzy.pdf"));
+    await user.upload(screen.getByLabelText("PDF wyceny"), pdfFile("za-duzy.pdf"));
 
     await waitFor(() => {
       expect(screen.getByRole("alert")).toHaveTextContent("Plik PDF jest pusty albo większy niż 20 MB.");
@@ -85,7 +85,7 @@ describe("ProjectQuotePdfUploadStep", () => {
     mockedUploadProjectQuotePdf.mockResolvedValue({ ok: false });
     render(<ProjectQuotePdfUploadStep quoteId="quote-1" />);
 
-    await user.upload(screen.getByLabelText("PDF wyceny (opcjonalnie)"), pdfFile());
+    await user.upload(screen.getByLabelText("PDF wyceny"), pdfFile());
 
     await waitFor(() => {
       expect(screen.getByRole("alert")).toHaveTextContent("Nie udało się wgrać pliku. Spróbuj ponownie.");
@@ -97,11 +97,11 @@ describe("ProjectQuotePdfUploadStep", () => {
     mockedUploadProjectQuotePdf.mockResolvedValueOnce({ ok: false, error: "Zawartość pliku nie ma prawidłowej sygnatury PDF." });
     render(<ProjectQuotePdfUploadStep quoteId="quote-1" />);
 
-    await user.upload(screen.getByLabelText("PDF wyceny (opcjonalnie)"), pdfFile("zle.pdf"));
+    await user.upload(screen.getByLabelText("PDF wyceny"), pdfFile("zle.pdf"));
     await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument());
 
     mockedUploadProjectQuotePdf.mockResolvedValueOnce({ ok: true, documentId: "doc-3" });
-    await user.upload(screen.getByLabelText("PDF wyceny (opcjonalnie)"), pdfFile("poprawny.pdf"));
+    await user.upload(screen.getByLabelText("PDF wyceny"), pdfFile("poprawny.pdf"));
 
     await waitFor(() => {
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();

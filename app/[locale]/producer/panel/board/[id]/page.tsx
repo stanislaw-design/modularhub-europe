@@ -1,8 +1,14 @@
 import { getTranslations } from "next-intl/server";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { QuoteForm } from "@/components/producent/QuoteForm";
-import { Button, Heading, Stack, Text } from "@/components/ui";
-import { getProducerIdForUser, getProducerVolumeVerificationStatus, getProjectRequestForBoardDetail } from "@/lib/db/queries";
+import { Heading, Stack, StatusPill, Text } from "@/components/ui";
+import {
+  getProducerIdForUser,
+  getProducerVolumeVerificationStatus,
+  getProjectRequestForBoardDetail,
+} from "@/lib/db/queries";
 import { requirePanelProducerSession } from "@/lib/panel-session";
 
 const dateFormatter = new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium" });
@@ -25,11 +31,15 @@ export default async function ProducerBoardDetailPage({
   ]);
 
   const producerId = await getProducerIdForUser(session.user.id);
-  const volumeStatus = producerId ? await getProducerVolumeVerificationStatus(producerId) : null;
+  const volumeStatus = producerId
+    ? await getProducerVolumeVerificationStatus(producerId)
+    : null;
   if (volumeStatus !== "approved") {
     redirect(`/${locale}/producer/panel/board`);
   }
-  const detail = producerId ? await getProjectRequestForBoardDetail(id, producerId) : null;
+  const detail = producerId
+    ? await getProjectRequestForBoardDetail(id, producerId)
+    : null;
   if (!detail) {
     notFound();
   }
@@ -46,117 +56,163 @@ export default async function ProducerBoardDetailPage({
   };
 
   const isLocked = detail.ownQuoteStatus === "accepted";
+  const ownQuoteStatusTone: Record<
+    string,
+    "approved" | "conditional" | "blocked"
+  > = {
+    active: "conditional",
+    accepted: "approved",
+    rejected: "blocked",
+    superseded: "conditional",
+  };
+
+  const unitCount = String(detail.unitCount);
+  const floorArea =
+    detail.floorAreaM2Min || detail.floorAreaM2Max
+      ? `${detail.floorAreaM2Min ?? "—"}${detail.floorAreaM2Max ? `–${detail.floorAreaM2Max}` : ""} m²`
+      : null;
+  const formatDay = (value: string | null) =>
+    value ? dateFormatter.format(new Date(`${value}T00:00:00`)) : "—";
+  const hasStart = detail.startWindowFrom || detail.startWindowTo;
+  const hasDelivery = detail.deliveryWindowFrom || detail.deliveryWindowTo;
+  const hasSchedule = hasStart || hasDelivery || detail.locationDetail;
 
   return (
-    <Stack gap={4}>
-      <Stack gap={1}>
-        <Heading level="h1">{t("heading")}</Heading>
-        <Text tone="muted">
-          {t("trustSignalLabel")}: {trustSignalLabel[detail.trustSignal]}
-        </Text>
-      </Stack>
-
-      <div className="grid grid-cols-1 gap-brand-3 sm:grid-cols-2">
-        <Stack gap={1}>
-          <Text variant="label" tone="muted">
-            {t("countryLabel")}
-          </Text>
-          <Text>{detail.countryName}</Text>
-        </Stack>
-        <Stack gap={1}>
-          <Text variant="label" tone="muted">
-            {t("projectTypeLabel")}
-          </Text>
-          <Text>{tProjectRequest(`projectType.${detail.projectType}`)}</Text>
-        </Stack>
-        <Stack gap={1}>
-          <Text variant="label" tone="muted">
-            {t("familiesLabel")}
-          </Text>
-          <Text>{detail.families.map((family) => tOptions(`family.${family}`)).join(", ")}</Text>
-        </Stack>
-        <Stack gap={1}>
-          <Text variant="label" tone="muted">
-            {t("unitCountLabel")}
-          </Text>
-          <Text>
-            {detail.unitCountMin}
-            {detail.unitCountMax ? `–${detail.unitCountMax}` : "+"}
-          </Text>
-        </Stack>
-        {(detail.floorAreaM2Min || detail.floorAreaM2Max) && (
-          <Stack gap={1}>
-            <Text variant="label" tone="muted">
-              {t("floorAreaLabel")}
-            </Text>
-            <Text>
-              {detail.floorAreaM2Min ?? "—"}
-              {detail.floorAreaM2Max ? `–${detail.floorAreaM2Max}` : ""}
-            </Text>
-          </Stack>
-        )}
-        {detail.completionStandard && (
-          <Stack gap={1}>
-            <Text variant="label" tone="muted">
-              {t("completionStandardLabel")}
-            </Text>
-            <Text>{tProjectRequest(`completionStandard.${detail.completionStandard}`)}</Text>
-          </Stack>
-        )}
-        {(detail.startWindowFrom || detail.startWindowTo) && (
-          <Stack gap={1}>
-            <Text variant="label" tone="muted">
-              {t("startWindowLabel")}
-            </Text>
-            <Text>
-              {detail.startWindowFrom ?? "—"} – {detail.startWindowTo ?? "—"}
-            </Text>
-          </Stack>
-        )}
-        {(detail.deliveryWindowFrom || detail.deliveryWindowTo) && (
-          <Stack gap={1}>
-            <Text variant="label" tone="muted">
-              {t("deliveryWindowLabel")}
-            </Text>
-            <Text>
-              {detail.deliveryWindowFrom ?? "—"} – {detail.deliveryWindowTo ?? "—"}
-            </Text>
-          </Stack>
-        )}
-        {detail.locationDetail && (
-          <Stack gap={1}>
-            <Text variant="label" tone="muted">
-              {t("locationDetailLabel")}
-            </Text>
-            <Text>{detail.locationDetail}</Text>
-          </Stack>
-        )}
-      </div>
-
-      {detail.extrasNote && (
-        <Stack gap={1}>
-          <Text variant="label" tone="muted">
-            {t("extrasNoteLabel")}
-          </Text>
-          <Text measure>{detail.extrasNote}</Text>
-        </Stack>
-      )}
-
-      <Text tone="muted" variant="label">
-        {dateFormatter.format(detail.createdAt)}
-      </Text>
-
-      {detail.ownQuoteStatus && (
-        <Text className="font-medium">
-          {t("ownQuoteStatusLabel")}: {ownQuoteStatusLabel[detail.ownQuoteStatus] ?? detail.ownQuoteStatus}
-        </Text>
-      )}
-
-      {!isLocked && <QuoteForm projectRequestId={detail.id} isRevision={detail.ownQuoteStatus !== null} />}
-
-      <Button as="a" href={`/${locale}/producer/panel/board`} variant="secondary" className="w-fit">
+    <Stack gap={5}>
+      <Link
+        href={`/${locale}/producer/panel/board`}
+        className="focus-ring inline-flex w-fit items-center gap-brand-1 rounded-data text-body text-brand-technical-graphite hover:text-brand-foundation-navy"
+      >
+        <ArrowLeft className="size-4" aria-hidden="true" />
         {t("backToBoard")}
-      </Button>
+      </Link>
+
+      <div className="grid grid-cols-1 items-start gap-brand-5 lg:grid-cols-[minmax(0,1fr)_26rem]">
+        <Stack gap={5}>
+          <Stack gap={2}>
+            <Heading level="h1">{t("heading")}</Heading>
+            <div className="flex flex-wrap items-center gap-x-brand-3 gap-y-brand-1">
+              <StatusPill
+                status={
+                  detail.trustSignal === "complete" ? "approved" : "conditional"
+                }
+              >
+                {`${t("trustSignalLabel")}: ${trustSignalLabel[detail.trustSignal]}`}
+              </StatusPill>
+              <Text as="span" tone="muted">
+                {dateFormatter.format(detail.createdAt)}
+              </Text>
+            </div>
+          </Stack>
+
+          <section className="flex flex-col gap-brand-3">
+            <Heading level="h3">{t("scopeHeading")}</Heading>
+            <dl className="grid grid-cols-1 gap-x-brand-4 gap-y-brand-3 sm:grid-cols-2">
+              <Fact label={t("countryLabel")} value={detail.countryName} />
+              <Fact
+                label={t("projectTypeLabel")}
+                value={tProjectRequest(`projectType.${detail.projectType}`)}
+              />
+              <Fact label={t("unitCountLabel")} value={unitCount} emphasis />
+              {floorArea && (
+                <Fact label={t("floorAreaLabel")} value={floorArea} emphasis />
+              )}
+              <Fact
+                label={t("familiesLabel")}
+                value={detail.families
+                  .map((family) => tOptions(`family.${family}`))
+                  .join(", ")}
+              />
+              {detail.completionStandard && (
+                <Fact
+                  label={t("completionStandardLabel")}
+                  value={tProjectRequest(
+                    `completionStandard.${detail.completionStandard}`,
+                  )}
+                />
+              )}
+            </dl>
+          </section>
+
+          {hasSchedule && (
+            <section className="flex flex-col gap-brand-3 border-t border-brand-steel pt-brand-4">
+              <Heading level="h3">{t("scheduleHeading")}</Heading>
+              <dl className="grid grid-cols-1 gap-x-brand-4 gap-y-brand-3 sm:grid-cols-2">
+                {hasStart && (
+                  <Fact
+                    label={t("startWindowLabel")}
+                    value={`${formatDay(detail.startWindowFrom)} – ${formatDay(detail.startWindowTo)}`}
+                  />
+                )}
+                {hasDelivery && (
+                  <Fact
+                    label={t("deliveryWindowLabel")}
+                    value={`${formatDay(detail.deliveryWindowFrom)} – ${formatDay(detail.deliveryWindowTo)}`}
+                  />
+                )}
+                {detail.locationDetail && (
+                  <Fact
+                    label={t("locationDetailLabel")}
+                    value={detail.locationDetail}
+                  />
+                )}
+              </dl>
+            </section>
+          )}
+
+          {detail.extrasNote && (
+            <section className="flex flex-col gap-brand-2 border-t border-brand-steel pt-brand-4">
+              <Heading level="h3">{t("extrasNoteLabel")}</Heading>
+              <Text measure>{detail.extrasNote}</Text>
+            </section>
+          )}
+        </Stack>
+
+        <aside className="flex flex-col gap-brand-3 lg:sticky lg:top-brand-3">
+          {detail.ownQuoteStatus && (
+            <div className="flex flex-wrap items-center gap-brand-2">
+              <Text as="span" tone="muted">
+                {t("ownQuoteStatusLabel")}
+              </Text>
+              <StatusPill
+                status={
+                  ownQuoteStatusTone[detail.ownQuoteStatus] ?? "conditional"
+                }
+              >
+                {ownQuoteStatusLabel[detail.ownQuoteStatus] ??
+                  detail.ownQuoteStatus}
+              </StatusPill>
+            </div>
+          )}
+          {!isLocked && (
+            <QuoteForm
+              projectRequestId={detail.id}
+              isRevision={detail.ownQuoteStatus !== null}
+            />
+          )}
+        </aside>
+      </div>
     </Stack>
+  );
+}
+
+function Fact({
+  label,
+  value,
+  emphasis,
+}: {
+  label: string;
+  value: string;
+  emphasis?: boolean;
+}) {
+  return (
+    <div className="flex flex-col gap-brand-1">
+      <Text as="dt" variant="label" tone="muted">
+        {label}
+      </Text>
+      <Text as="dd" className={emphasis ? "text-h3 font-semibold" : undefined}>
+        {value}
+      </Text>
+    </div>
   );
 }

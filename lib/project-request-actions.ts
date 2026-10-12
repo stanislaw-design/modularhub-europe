@@ -13,7 +13,21 @@ import {
   PROJECT_TYPES,
 } from "@/lib/project-request-specs";
 import { COMPLETION_STANDARDS } from "@/lib/producer-capacity-profile-specs";
+import { notifyTeamOfNewLargeOrder } from "@/lib/notifications/large-order-team";
+import { auth } from "@/auth";
+import { getClientIdForUser } from "@/lib/db/queries";
 import { captureError, trackEvent } from "@/lib/observability";
+
+// Spec 0070: zalogowany klient nie wpisuje danych drugi raz, formularz bierze je
+// z konta. Zapytanie wiąże się z kontem od razu (clientId), ale tylko gdy
+// podany e mail jest e mailem z sesji: zmieniony adres traktujemy jak zapytanie
+// anonimowe, które dowiąże się przy logowaniu tym adresem (spec 0037, AC-7).
+async function resolveSignedInClientId(contactEmail: string): Promise<string | null> {
+  const session = await auth();
+  if (!session || session.user.role !== "client" || !session.user.email) return null;
+  if (normalizeContactEmail(session.user.email) !== contactEmail) return null;
+  return getClientIdForUser(session.user.id);
+}
 
 interface ActionResult {
   ok: boolean;
@@ -22,6 +36,13 @@ interface ActionResult {
 }
 
 const GENERIC_ERROR = "Nie udało się wysłać zapytania. Spróbuj ponownie.";
+// Spec 0070 AC-9: język strony, na której złożono zapytanie, zapisywany jako
+// contact_locale i używany do maili do klienta.
+const CONTACT_LOCALES = ["pl", "en", "de", "nl"];
+const contactLocaleSchema = z
+  .string()
+  .optional()
+  .transform((value) => (value && CONTACT_LOCALES.includes(value) ? value : "pl"));
 const dateStringSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Nieprawidłowa data.");
 
 const submitProjectRequestSchema = z
@@ -29,12 +50,12 @@ const submitProjectRequestSchema = z
     contactName: z.string().trim().min(1, "Podaj imię i nazwisko."),
     contactEmail: z.email("Podaj prawidłowy adres e mail."),
     contactPhone: z.string().trim().min(1).optional(),
+    locale: contactLocaleSchema,
     countryCode: z.string().min(1, "Wybierz kraj."),
     locationDetail: z.string().trim().min(1).optional(),
     projectType: z.enum(PROJECT_TYPES),
     families: projectRequestFamiliesSchema,
-    unitCountMin: z.number().int().min(10, "Minimalna liczba sztuk to 10."),
-    unitCountMax: z.number().int().optional(),
+    unitCount: z.number().int().min(3, "Minimalna liczba domów to 3."),
     floorAreaM2Min: z.number().positive().optional(),
     floorAreaM2Max: z.number().positive().optional(),
     completionStandard: z.enum(COMPLETION_STANDARDS).optional(),
@@ -43,10 +64,6 @@ const submitProjectRequestSchema = z
     deliveryWindowFrom: dateStringSchema.optional(),
     deliveryWindowTo: dateStringSchema.optional(),
     extrasNote: z.string().trim().min(1).optional(),
-  })
-  .refine((data) => data.unitCountMax === undefined || data.unitCountMax >= data.unitCountMin, {
-    message: "Maksymalna liczba sztuk musi być większa lub równa minimalnej.",
-    path: ["unitCountMax"],
   })
   .refine((data) => !data.startWindowFrom || !data.startWindowTo || data.startWindowTo >= data.startWindowFrom, {
     message: "Data 'do' okna startu musi być równa lub późniejsza niż 'od'.",
@@ -75,9 +92,11 @@ export async function submitProjectRequest(input: SubmitProjectRequestInput): Pr
   const trustSignal = computeTrustSignal(contactEmail, data.contactPhone);
 
   try {
+    const clientId = await resolveSignedInClientId(contactEmail);
     const [inserted] = await db
       .insert(projectRequest)
       .values({
+        clientId,
         contactName: data.contactName,
         contactEmail,
         contactPhone: data.contactPhone ?? null,
@@ -85,8 +104,9 @@ export async function submitProjectRequest(input: SubmitProjectRequestInput): Pr
         locationDetail: data.locationDetail ?? null,
         projectType: data.projectType,
         families: data.families,
-        unitCountMin: data.unitCountMin,
-        unitCountMax: data.unitCountMax ?? null,
+        unitCount: data.unitCount,
+        // Do migracji 5 stare kolumny zakresu są jeszcze w tabeli; stary kod czyta min.
+        unitCountMin: data.unitCount,
         floorAreaM2Min: data.floorAreaM2Min ?? null,
         floorAreaM2Max: data.floorAreaM2Max ?? null,
         completionStandard: data.completionStandard ?? null,
@@ -96,10 +116,19 @@ export async function submitProjectRequest(input: SubmitProjectRequestInput): Pr
         deliveryWindowTo: data.deliveryWindowTo ?? null,
         extrasNote: data.extrasNote ?? null,
         trustSignal,
+        contactLocale: data.locale,
       })
-      .returning({ id: projectRequest.id });
+      .returning({ id: projectRequest.id, deadlineAt: projectRequest.deadlineAt });
 
-    trackEvent("project_request_submitted", { countryCode: data.countryCode, unitCountMin: data.unitCountMin }, inserted.id);
+    trackEvent("project_request_submitted", { countryCode: data.countryCode, unitCount: data.unitCount }, inserted.id);
+    await notifyTeamOfNewLargeOrder({
+      kind: "request",
+      id: inserted.id,
+      countryCode: data.countryCode,
+      unitCount: data.unitCount,
+      deadlineAt: inserted.deadlineAt,
+      contactLocale: data.locale,
+    });
     return { ok: true, id: inserted.id };
   } catch (error) {
     if (isBulkRequestEmailLimitError(error)) {
@@ -116,18 +145,14 @@ const submitBulkProductInquirySchema = z
     contactName: z.string().trim().min(1, "Podaj imię i nazwisko."),
     contactEmail: z.email("Podaj prawidłowy adres e mail."),
     contactPhone: z.string().trim().min(1).optional(),
-    unitCountMin: z.number().int().min(10, "Minimalna liczba sztuk to 10."),
-    unitCountMax: z.number().int().optional(),
+    locale: contactLocaleSchema,
+    unitCount: z.number().int().min(3, "Minimalna liczba domów to 3."),
     deliveryCountryCode: z.string().min(1, "Wybierz kraj dostawy."),
     startWindowFrom: dateStringSchema.optional(),
     startWindowTo: dateStringSchema.optional(),
     deliveryWindowFrom: dateStringSchema.optional(),
     deliveryWindowTo: dateStringSchema.optional(),
     note: z.string().trim().min(1).optional(),
-  })
-  .refine((data) => data.unitCountMax === undefined || data.unitCountMax >= data.unitCountMin, {
-    message: "Maksymalna liczba sztuk musi być większa lub równa minimalnej.",
-    path: ["unitCountMax"],
   })
   .refine((data) => !data.startWindowFrom || !data.startWindowTo || data.startWindowTo >= data.startWindowFrom, {
     message: "Data 'do' okna startu musi być równa lub późniejsza niż 'od'.",
@@ -162,29 +187,41 @@ export async function submitBulkProductInquiry(input: SubmitBulkProductInquiryIn
       return { ok: false, error: "Nie znaleziono opublikowanego produktu." };
     }
 
+    const clientId = await resolveSignedInClientId(contactEmail);
     const [inserted] = await db
       .insert(bulkProductInquiry)
       .values({
+        clientId,
         productId: data.productId,
         contactName: data.contactName,
         contactEmail,
         contactPhone: data.contactPhone ?? null,
-        unitCountMin: data.unitCountMin,
-        unitCountMax: data.unitCountMax ?? null,
+        unitCount: data.unitCount,
+        // Do migracji 5 stare kolumny zakresu są jeszcze w tabeli; stary kod czyta min.
+        unitCountMin: data.unitCount,
         deliveryCountryCode: data.deliveryCountryCode,
         startWindowFrom: data.startWindowFrom ?? null,
         startWindowTo: data.startWindowTo ?? null,
         deliveryWindowFrom: data.deliveryWindowFrom ?? null,
         deliveryWindowTo: data.deliveryWindowTo ?? null,
         note: data.note ?? null,
+        contactLocale: data.locale,
       })
-      .returning({ id: bulkProductInquiry.id });
+      .returning({ id: bulkProductInquiry.id, deadlineAt: bulkProductInquiry.deadlineAt });
 
     trackEvent(
       "bulk_product_inquiry_submitted",
-      { productId: data.productId, unitCountMin: data.unitCountMin },
+      { productId: data.productId, unitCount: data.unitCount },
       inserted.id,
     );
+    await notifyTeamOfNewLargeOrder({
+      kind: "product",
+      id: inserted.id,
+      countryCode: data.deliveryCountryCode,
+      unitCount: data.unitCount,
+      deadlineAt: inserted.deadlineAt,
+      contactLocale: data.locale,
+    });
     return { ok: true, id: inserted.id };
   } catch (error) {
     if (isBulkRequestEmailLimitError(error)) {

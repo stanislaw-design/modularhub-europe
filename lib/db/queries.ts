@@ -956,8 +956,7 @@ export interface ProjectRequestBoardItem {
   countryName: string;
   projectType: (typeof projectRequest.$inferSelect)["projectType"];
   families: (typeof projectRequest.$inferSelect)["families"];
-  unitCountMin: number;
-  unitCountMax: number | null;
+  unitCount: number;
   floorAreaM2Min: number | null;
   floorAreaM2Max: number | null;
   completionStandard: (typeof projectRequest.$inferSelect)["completionStandard"];
@@ -983,8 +982,7 @@ const BOARD_COLUMNS = {
   countryName: country.name,
   projectType: projectRequest.projectType,
   families: projectRequest.families,
-  unitCountMin: projectRequest.unitCountMin,
-  unitCountMax: projectRequest.unitCountMax,
+  unitCount: projectRequest.unitCount,
   floorAreaM2Min: projectRequest.floorAreaM2Min,
   floorAreaM2Max: projectRequest.floorAreaM2Max,
   completionStandard: projectRequest.completionStandard,
@@ -1003,12 +1001,26 @@ const BOARD_COLUMNS = {
 // kraju dostawy (Option 3, rationale.md) — stąd brak jakiegokolwiek filtra
 // producentId tutaj. Status open/quoted (chowa accepted/closed, Feature
 // design "Reguła widoczności tablicy").
+export interface ProjectRequestBoardFilters {
+  countryCode?: string;
+  projectType?: ProjectRequestBoardItem["projectType"];
+  family?: ProjectRequestBoardItem["families"][number];
+  status?: ProjectRequestBoardItem["status"];
+}
+
 export async function getOpenProjectRequestsForBoard({
   page,
+  filters = {},
 }: {
   page: number;
+  filters?: ProjectRequestBoardFilters;
 }): Promise<ProjectRequestsForBoardPage> {
-  const whereClause = inArray(projectRequest.status, ["open", "quoted"]);
+  const whereClause = and(
+    inArray(projectRequest.status, filters.status ? [filters.status] : ["open", "quoted"]),
+    filters.countryCode ? eq(projectRequest.countryCode, filters.countryCode) : undefined,
+    filters.projectType ? eq(projectRequest.projectType, filters.projectType) : undefined,
+    filters.family ? sql`${projectRequest.families} @> ${JSON.stringify([filters.family])}::jsonb` : undefined,
+  );
 
   const [countRow, rows] = await Promise.all([
     db.select({ count: sql<number>`count(*)::int` }).from(projectRequest).where(whereClause),
@@ -1143,7 +1155,7 @@ export interface ClientProjectRequestWithQuotes {
   countryCode: string;
   projectType: (typeof projectRequest.$inferSelect)["projectType"];
   families: (typeof projectRequest.$inferSelect)["families"];
-  unitCountMin: number;
+  unitCount: number;
   status: (typeof projectRequest.$inferSelect)["status"];
   createdAt: Date;
   quotes: ClientReceivedQuote[];
@@ -1154,7 +1166,7 @@ export interface ClientBulkInquiryWithQuotes {
   id: string;
   productId: string;
   productName: string;
-  unitCountMin: number;
+  unitCount: number;
   status: (typeof bulkProductInquiry.$inferSelect)["status"];
   createdAt: Date;
   quotes: ClientReceivedQuote[];
@@ -1175,7 +1187,7 @@ export async function getProjectRequestsWithQuotesForClient(clientId: string): P
         countryCode: projectRequest.countryCode,
         projectType: projectRequest.projectType,
         families: projectRequest.families,
-        unitCountMin: projectRequest.unitCountMin,
+        unitCount: projectRequest.unitCount,
         status: projectRequest.status,
         createdAt: projectRequest.createdAt,
       })
@@ -1187,7 +1199,7 @@ export async function getProjectRequestsWithQuotesForClient(clientId: string): P
         id: bulkProductInquiry.id,
         productId: bulkProductInquiry.productId,
         productName: product.name,
-        unitCountMin: bulkProductInquiry.unitCountMin,
+        unitCount: bulkProductInquiry.unitCount,
         status: bulkProductInquiry.status,
         createdAt: bulkProductInquiry.createdAt,
       })
@@ -1259,7 +1271,7 @@ export async function getProjectRequestsWithQuotesForClient(clientId: string): P
     countryCode: row.countryCode,
     projectType: row.projectType,
     families: row.families,
-    unitCountMin: row.unitCountMin,
+    unitCount: row.unitCount,
     status: row.status,
     createdAt: row.createdAt,
     quotes: quotesByParentId.get(row.id) ?? [],
@@ -1269,7 +1281,7 @@ export async function getProjectRequestsWithQuotesForClient(clientId: string): P
     id: row.id,
     productId: row.productId,
     productName: row.productName ?? "",
-    unitCountMin: row.unitCountMin,
+    unitCount: row.unitCount,
     status: row.status,
     createdAt: row.createdAt,
     quotes: quotesByParentId.get(row.id) ?? [],
@@ -1710,4 +1722,472 @@ export async function getOffersByInquiryIdForAdmin(): Promise<Map<string, AdminO
     byInquiryId.set(inquiryId, entry);
   });
   return byInquiryId;
+}
+
+// ---------------------------------------------------------------------------
+// Duże zamówienia w panelu admina (spec 0070 część A, AC-1, AC-2). Admin widzi
+// wszystko: pełny kontakt klienta i wszystkie oferty, także nieopublikowane.
+// ---------------------------------------------------------------------------
+
+export const LARGE_ORDERS_PAGE_SIZE = 25;
+
+export type LargeOrderKind = "request" | "product";
+
+export const LARGE_ORDER_STATUSES = ["open", "quoted", "published", "accepted", "closed"] as const;
+export type LargeOrderStatus = (typeof LARGE_ORDER_STATUSES)[number];
+
+export interface LargeOrderListItem {
+  kind: LargeOrderKind;
+  id: string;
+  countryCode: string;
+  unitCount: number;
+  deadlineAt: Date;
+  status: LargeOrderStatus;
+  quoteCount: number;
+  pendingPublicationCount: number;
+  createdAt: Date;
+  // Nazwa inwestora do pierwszej kolumny: firma klienta, w razie braku imię i
+  // nazwisko z zapytania, w ostateczności sam e mail (spec 0070 AC-1).
+  investorName: string;
+  investorEmail: string;
+}
+
+export interface LargeOrdersPage {
+  items: LargeOrderListItem[];
+  totalCount: number;
+}
+
+// Jedna lista z dwóch tabel (UNION ALL): identyfikatory są w osobnych
+// tabelach, więc wiersz niesie `kind`, a liczniki ofert łączą się po kluczu
+// właściwym dla rodzaju. Oferta "czeka na publikację", gdy jest aktywna i nie
+// ma jeszcze published_to_client_at (bramka z części B).
+export async function getLargeOrdersForAdmin({
+  status,
+  kind,
+  page,
+}: {
+  status?: LargeOrderStatus;
+  kind?: LargeOrderKind;
+  page: number;
+}): Promise<LargeOrdersPage> {
+  const filters = [status ? sql`o.status = ${status}` : undefined, kind ? sql`o.kind = ${kind}` : undefined].filter(
+    (part) => part !== undefined,
+  );
+  const where = filters.length > 0 ? sql`where ${sql.join(filters, sql` and `)}` : sql``;
+  const offset = (Math.max(1, page) - 1) * LARGE_ORDERS_PAGE_SIZE;
+
+  const orders = sql`
+    select 'request'::text as kind, pr.id, pr.country_code, pr.unit_count, pr.deadline_at,
+           pr.status::text as status, pr.created_at,
+           coalesce(nullif(trim(c.company_name), ''), nullif(trim(pr.contact_name), ''), pr.contact_email) as investor_name,
+           pr.contact_email as investor_email
+      from project_request pr
+      left join client c on c.id = pr.client_id
+    union all
+    select 'product'::text, b.id, b.delivery_country_code, b.unit_count, b.deadline_at,
+           b.status::text, b.created_at,
+           coalesce(nullif(trim(c.company_name), ''), nullif(trim(b.contact_name), ''), b.contact_email),
+           b.contact_email
+      from bulk_product_inquiry b
+      left join client c on c.id = b.client_id`;
+
+  const [countResult, listResult] = await Promise.all([
+    db.execute<{ count: number }>(sql`with o as (${orders}) select count(*)::int as count from o ${where}`),
+    db.execute<{
+      kind: LargeOrderKind;
+      id: string;
+      country_code: string;
+      unit_count: number;
+      deadline_at: string | Date;
+      status: LargeOrderStatus;
+      created_at: string | Date;
+      quote_count: number;
+      pending_publication_count: number;
+      investor_name: string;
+      investor_email: string;
+    }>(sql`
+      with o as (${orders})
+      select o.*,
+        (select count(*)::int from project_quote q
+          where q.status = 'active'
+            and ((o.kind = 'request' and q.project_request_id = o.id)
+              or (o.kind = 'product' and q.bulk_product_inquiry_id = o.id))) as quote_count,
+        (select count(*)::int from project_quote q
+          where q.status = 'active' and q.published_to_client_at is null
+            and ((o.kind = 'request' and q.project_request_id = o.id)
+              or (o.kind = 'product' and q.bulk_product_inquiry_id = o.id))) as pending_publication_count
+      from o ${where}
+      order by o.created_at desc
+      limit ${LARGE_ORDERS_PAGE_SIZE} offset ${offset}`),
+  ]);
+
+  return {
+    totalCount: countResult.rows[0]?.count ?? 0,
+    items: listResult.rows.map((row) => ({
+      kind: row.kind,
+      id: row.id,
+      countryCode: row.country_code,
+      unitCount: row.unit_count,
+      deadlineAt: new Date(row.deadline_at),
+      status: row.status,
+      quoteCount: row.quote_count,
+      pendingPublicationCount: row.pending_publication_count,
+      createdAt: new Date(row.created_at),
+      investorName: row.investor_name,
+      investorEmail: row.investor_email,
+    })),
+  };
+}
+
+export interface LargeOrderQuoteForAdmin {
+  id: string;
+  producerId: string;
+  producerName: string;
+  status: (typeof projectQuote.$inferSelect)["status"];
+  currency: string;
+  totalPriceCents: number;
+  unitPriceCents: number | null;
+  proposedLeadTimeWeeks: number | null;
+  notes: string | null;
+  priceTaxMode: (typeof projectQuote.$inferSelect)["priceTaxMode"];
+  vatRatePercent: string | null;
+  scopeIncluded: string | null;
+  scopeExcluded: string | null;
+  logistics: Record<string, unknown>;
+  paymentPlan: string | null;
+  validUntil: string | null;
+  warrantyNote: string | null;
+  deliveryWindowFrom: string | null;
+  deliveryWindowTo: string | null;
+  advisorNote: string | null;
+  publishedToClientAt: Date | null;
+  contactRevealedAt: Date | null;
+  producerOutcome: (typeof projectQuote.$inferSelect)["producerOutcome"];
+  submittedAt: Date;
+  hasPdf: boolean;
+}
+
+export interface LargeOrderDetail {
+  kind: LargeOrderKind;
+  id: string;
+  status: LargeOrderStatus;
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string | null;
+  contactLocale: string;
+  clientId: string | null;
+  countryCode: string;
+  countryName: string;
+  // Tylko zapytanie wolne (project_request); dla zapytania o produkt null.
+  projectType: (typeof projectRequest.$inferSelect)["projectType"] | null;
+  families: string[];
+  productName: string | null;
+  unitCount: number;
+  deadlineAt: Date;
+  note: string | null;
+  createdAt: Date;
+  summaryPublishedAt: Date | null;
+  selectedAt: Date | null;
+  selectedQuoteId: string | null;
+  closedAt: Date | null;
+  closedReason: (typeof projectRequest.$inferSelect)["closedReason"];
+  createdByStaffUserId: string | null;
+  quotes: LargeOrderQuoteForAdmin[];
+}
+
+export async function getLargeOrderForAdmin(kind: LargeOrderKind, id: string): Promise<LargeOrderDetail | null> {
+  let base: Omit<LargeOrderDetail, "quotes"> | null = null;
+
+  if (kind === "request") {
+    const [row] = await db
+      .select({ request: projectRequest, countryName: country.name })
+      .from(projectRequest)
+      .innerJoin(country, eq(country.code, projectRequest.countryCode))
+      .where(eq(projectRequest.id, id));
+    if (row) {
+      const r = row.request;
+      base = {
+        kind,
+        id: r.id,
+        status: r.status,
+        contactName: r.contactName,
+        contactEmail: r.contactEmail,
+        contactPhone: r.contactPhone,
+        contactLocale: r.contactLocale,
+        clientId: r.clientId,
+        countryCode: r.countryCode,
+        countryName: row.countryName,
+        projectType: r.projectType,
+        families: r.families,
+        productName: null,
+        unitCount: r.unitCount,
+        deadlineAt: r.deadlineAt,
+        note: r.extrasNote,
+        createdAt: r.createdAt,
+        summaryPublishedAt: r.summaryPublishedAt,
+        selectedAt: r.selectedAt,
+        selectedQuoteId: r.selectedQuoteId,
+        closedAt: r.closedAt,
+        closedReason: r.closedReason,
+        createdByStaffUserId: r.createdByStaffUserId,
+      };
+    }
+  } else {
+    const [row] = await db
+      .select({ inquiry: bulkProductInquiry, countryName: country.name, productName: product.name })
+      .from(bulkProductInquiry)
+      .innerJoin(country, eq(country.code, bulkProductInquiry.deliveryCountryCode))
+      .innerJoin(product, eq(product.id, bulkProductInquiry.productId))
+      .where(eq(bulkProductInquiry.id, id));
+    if (row) {
+      const r = row.inquiry;
+      base = {
+        kind,
+        id: r.id,
+        status: r.status,
+        contactName: r.contactName,
+        contactEmail: r.contactEmail,
+        contactPhone: r.contactPhone,
+        contactLocale: r.contactLocale,
+        clientId: r.clientId,
+        countryCode: r.deliveryCountryCode,
+        countryName: row.countryName,
+        projectType: null,
+        families: [],
+        productName: row.productName,
+        unitCount: r.unitCount,
+        deadlineAt: r.deadlineAt,
+        note: r.note,
+        createdAt: r.createdAt,
+        summaryPublishedAt: r.summaryPublishedAt,
+        selectedAt: r.selectedAt,
+        selectedQuoteId: r.selectedQuoteId,
+        closedAt: r.closedAt,
+        closedReason: r.closedReason,
+        createdByStaffUserId: r.createdByStaffUserId,
+      };
+    }
+  }
+  if (!base) return null;
+
+  const quoteRows = await db
+    .select({
+      quote: projectQuote,
+      producerName: producer.name,
+      hasPdf: sql<boolean>`exists (select 1 from ${document} d where d.project_quote_id = ${projectQuote.id} and d.purpose = 'project_quote_pdf' and d.deleted_at is null)`,
+    })
+    .from(projectQuote)
+    .innerJoin(producer, eq(producer.id, projectQuote.producerId))
+    .where(kind === "request" ? eq(projectQuote.projectRequestId, id) : eq(projectQuote.bulkProductInquiryId, id))
+    .orderBy(desc(projectQuote.submittedAt));
+
+  return {
+    ...base,
+    quotes: quoteRows.map(({ quote: q, producerName, hasPdf }) => ({
+      id: q.id,
+      producerId: q.producerId,
+      producerName,
+      status: q.status,
+      currency: q.currency,
+      totalPriceCents: q.totalPriceCents,
+      unitPriceCents: q.unitPriceCents,
+      proposedLeadTimeWeeks: q.proposedLeadTimeWeeks,
+      notes: q.notes,
+      priceTaxMode: q.priceTaxMode,
+      vatRatePercent: q.vatRatePercent,
+      scopeIncluded: q.scopeIncluded,
+      scopeExcluded: q.scopeExcluded,
+      logistics: q.logistics,
+      paymentPlan: q.paymentPlan,
+      validUntil: q.validUntil,
+      warrantyNote: q.warrantyNote,
+      deliveryWindowFrom: q.deliveryWindowFrom,
+      deliveryWindowTo: q.deliveryWindowTo,
+      advisorNote: q.advisorNote,
+      publishedToClientAt: q.publishedToClientAt,
+      contactRevealedAt: q.contactRevealedAt,
+      producerOutcome: q.producerOutcome,
+      submittedAt: q.submittedAt,
+      hasPdf,
+    })),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Zatwierdzenia dla admina (spec 0070 część A, AC-3, AC-4).
+// ---------------------------------------------------------------------------
+
+export interface ProducerVolumeVerificationItem {
+  producerId: string;
+  name: string;
+  countryName: string;
+  status: (typeof producerCapacityProfile.$inferSelect)["volumeVerificationStatus"];
+  unitsPerMonth: number | null;
+  productionLines: number | null;
+  maxModuleSizeM2: number | null;
+  completionStandardsSupported: string[];
+  canHandleTransport: boolean;
+  canHandleAssembly: boolean;
+  capabilityNote: string | null;
+  pastProjectReferences: string[];
+  deliveryCountryCodes: string[];
+  // Pola, których brak admin widzi jako ostrzeżenie przy decyzji.
+  missingFields: string[];
+}
+
+// Lista profili zdolności w danym statusie (domyślnie 'pending'), z profilem
+// obok przycisków decyzji. Zatwierdzenie bez pełnego profilu jest możliwe, ale
+// missingFields pokazuje, czego brakuje.
+export async function getProducersForVolumeVerification(
+  status: (typeof producerCapacityProfile.$inferSelect)["volumeVerificationStatus"] = "pending",
+): Promise<ProducerVolumeVerificationItem[]> {
+  const rows = await db
+    .select({
+      producerId: producer.id,
+      name: producer.name,
+      countryName: country.name,
+      profile: producerCapacityProfile,
+    })
+    .from(producerCapacityProfile)
+    .innerJoin(producer, eq(producer.id, producerCapacityProfile.producerId))
+    .innerJoin(country, eq(country.code, producer.countryCode))
+    .where(eq(producerCapacityProfile.volumeVerificationStatus, status))
+    .orderBy(asc(producer.name));
+  if (rows.length === 0) return [];
+
+  const countryRows = await db
+    .select({ producerId: producerDeliveryCountry.producerId, countryCode: producerDeliveryCountry.countryCode })
+    .from(producerDeliveryCountry)
+    .where(
+      inArray(
+        producerDeliveryCountry.producerId,
+        rows.map((row) => row.producerId),
+      ),
+    );
+
+  return rows.map(({ producerId, name, countryName, profile }) => {
+    const deliveryCountryCodes = countryRows
+      .filter((row) => row.producerId === producerId)
+      .map((row) => row.countryCode)
+      .sort();
+    const missingFields: string[] = [];
+    if (deliveryCountryCodes.length === 0) missingFields.push("kraje dostawy");
+    if (profile.unitsPerMonth === null) missingFields.push("jednostek na miesiąc");
+    if (profile.productionLines === null) missingFields.push("linie produkcyjne");
+    if (profile.completionStandardsSupported.length === 0) missingFields.push("standardy wykończenia");
+    return {
+      producerId,
+      name,
+      countryName,
+      status: profile.volumeVerificationStatus,
+      unitsPerMonth: profile.unitsPerMonth,
+      productionLines: profile.productionLines,
+      maxModuleSizeM2: profile.maxModuleSizeM2,
+      completionStandardsSupported: profile.completionStandardsSupported,
+      canHandleTransport: profile.canHandleTransport,
+      canHandleAssembly: profile.canHandleAssembly,
+      capabilityNote: profile.capabilityNote,
+      pastProjectReferences: profile.pastProjectReferences,
+      deliveryCountryCodes,
+      missingFields,
+    };
+  });
+}
+
+export interface ClientB2bVerificationItem {
+  clientId: string;
+  name: string | null;
+  email: string;
+  // Telefon z konta, żeby zespół mógł od razu zadzwonić przy weryfikacji.
+  phone: string;
+  nip: string | null;
+  companyName: string | null;
+  status: (typeof client.$inferSelect)["b2bVerificationStatus"];
+}
+
+export async function getClientsForB2bVerification(
+  status: (typeof client.$inferSelect)["b2bVerificationStatus"] = "pending",
+): Promise<ClientB2bVerificationItem[]> {
+  return db
+    .select({
+      clientId: client.id,
+      name: users.name,
+      email: users.email,
+      phone: users.phone,
+      nip: client.nip,
+      companyName: client.companyName,
+      status: client.b2bVerificationStatus,
+    })
+    .from(client)
+    .innerJoin(users, eq(users.id, client.userId))
+    .where(eq(client.b2bVerificationStatus, status))
+    .orderBy(asc(users.email));
+}
+
+export interface CountryOption {
+  code: string;
+  name: string;
+}
+
+// Lista krajów do wyboru krajów dostawy (spec 0070 AC-5), z tabeli country.
+export async function getAllCountries(): Promise<CountryOption[]> {
+  return db.select({ code: country.code, name: country.name }).from(country).orderBy(asc(country.name));
+}
+
+export interface ProducerCapacityProfileForPanel {
+  unitsPerMonth: number | null;
+  productionLines: number | null;
+  leadTimeTiers: { units: number; weeks: number }[];
+  maxModuleSizeM2: number | null;
+  completionStandardsSupported: string[];
+  canCustomizeClientDesign: boolean;
+  customizationNote: string | null;
+  canHandleTransport: boolean;
+  canHandleAssembly: boolean;
+  capabilityNote: string | null;
+  pastProjectReferences: string[];
+  volumeVerificationStatus: (typeof producerCapacityProfile.$inferSelect)["volumeVerificationStatus"];
+  deliveryCountryCodes: string[];
+}
+
+// Profil zdolności do formularza w panelu producenta (spec 0070 AC-5). Brak
+// wiersza to profil jeszcze niezłożony (status not_submitted, puste pola).
+export async function getProducerCapacityProfileForPanel(producerId: string): Promise<ProducerCapacityProfileForPanel> {
+  const [[profile], countryRows] = await Promise.all([
+    db.select().from(producerCapacityProfile).where(eq(producerCapacityProfile.producerId, producerId)),
+    db
+      .select({ code: producerDeliveryCountry.countryCode })
+      .from(producerDeliveryCountry)
+      .where(eq(producerDeliveryCountry.producerId, producerId)),
+  ]);
+  return {
+    unitsPerMonth: profile?.unitsPerMonth ?? null,
+    productionLines: profile?.productionLines ?? null,
+    leadTimeTiers: profile?.leadTimeTiers ?? [],
+    maxModuleSizeM2: profile?.maxModuleSizeM2 ?? null,
+    completionStandardsSupported: profile?.completionStandardsSupported ?? [],
+    canCustomizeClientDesign: profile?.canCustomizeClientDesign ?? false,
+    customizationNote: profile?.customizationNote ?? null,
+    canHandleTransport: profile?.canHandleTransport ?? false,
+    canHandleAssembly: profile?.canHandleAssembly ?? false,
+    capabilityNote: profile?.capabilityNote ?? null,
+    pastProjectReferences: profile?.pastProjectReferences ?? [],
+    volumeVerificationStatus: profile?.volumeVerificationStatus ?? "not_submitted",
+    deliveryCountryCodes: countryRows.map((row) => row.code).sort(),
+  };
+}
+
+export interface ClientB2bDetails {
+  nip: string | null;
+  companyName: string | null;
+  status: (typeof client.$inferSelect)["b2bVerificationStatus"];
+}
+
+// Sekcja danych firmy w /panel/profile (spec 0070 AC-6).
+export async function getClientB2bDetails(userId: string): Promise<ClientB2bDetails | null> {
+  const [row] = await db
+    .select({ nip: client.nip, companyName: client.companyName, status: client.b2bVerificationStatus })
+    .from(client)
+    .where(eq(client.userId, userId));
+  return row ?? null;
 }

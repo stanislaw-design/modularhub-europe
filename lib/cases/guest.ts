@@ -1,10 +1,10 @@
 import { and, eq, gt, isNull, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { client, inquiry, users, verificationTokens } from "@/lib/db/schema";
+import { client, inquiry, pendingRegistration, users, verificationTokens } from "@/lib/db/schema";
 
 // Sprawy gości (spec 0066): zapytanie bez konta zapisane z client_id NULL i
-// migawką kontaktu. Konto powstaje dopiero na jawne kliknięcie, a sprawa
-// dowiązuje się po e mailu przy logowaniu.
+// migawką kontaktu. Gość dostaje jeden mail z linkiem magicznym: pierwsze
+// kliknięcie zakłada konto, a sprawa dowiązuje się po e mailu przy logowaniu.
 
 // Limity z AC-5, liczone z samej tabeli inquiry (bez nowej usługi). Liczenie
 // przed zapisem na neon-http dopuszcza wyścig dwóch równoległych wysyłek,
@@ -54,4 +54,51 @@ export async function countActiveLoginTokens(email: string, now: Date): Promise<
     .from(verificationTokens)
     .where(and(eq(verificationTokens.identifier, email.toLowerCase()), gt(verificationTokens.expires, now)));
   return row?.count ?? 0;
+}
+
+export interface GuestLinkPlan {
+  // Czy wolno wysłać link magiczny na ten adres.
+  send: boolean;
+  // Czy trzeba zapisać pending_registration (nowy e mail, brak konta i rejestracji).
+  stagePending: boolean;
+}
+
+// AC-8: jedna reguła dla zapytania i ponownej wysyłki. Konta i oczekujące
+// rejestracje producenta lub administratora nigdy nie dostają linku gościa,
+// istniejącej oczekującej rejestracji nie nadpisujemy, a na adres idzie
+// najwyżej 3 aktywne linki naraz.
+export async function getGuestLinkPlan(email: string, now: Date): Promise<GuestLinkPlan> {
+  const address = email.toLowerCase();
+  const none: GuestLinkPlan = { send: false, stagePending: false };
+
+  const [existingUser] = await db.select({ role: users.role }).from(users).where(eq(users.email, address));
+  let stagePending = false;
+  if (existingUser) {
+    if (existingUser.role !== "client") return none;
+  } else {
+    const [pending] = await db
+      .select({ role: pendingRegistration.role })
+      .from(pendingRegistration)
+      .where(eq(pendingRegistration.email, address));
+    if (pending) {
+      if (pending.role !== "client") return none;
+    } else {
+      stagePending = true;
+    }
+  }
+
+  if ((await countActiveLoginTokens(address, now)) >= MAX_ACTIVE_LOGIN_TOKENS) return none;
+  return { send: true, stagePending };
+}
+
+// AC-10: sprawa gościa z e mailem istniejącego klienta od razu dostaje jego
+// client_id (kontakt dalej niepotwierdzony). Zwraca id klienta albo null.
+export async function pinGuestCaseToExistingClient(inquiryId: string, email: string): Promise<string | null> {
+  const clientId = await findClientIdByEmail(email);
+  if (!clientId) return null;
+  await db
+    .update(inquiry)
+    .set({ clientId })
+    .where(and(eq(inquiry.id, inquiryId), isNull(inquiry.clientId)));
+  return clientId;
 }

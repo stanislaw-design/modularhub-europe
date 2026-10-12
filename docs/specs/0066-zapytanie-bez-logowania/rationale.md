@@ -70,7 +70,7 @@ Przy wysyłce zapisujemy `pending_registration` i wysyłamy jeden mail: link mag
 - Wysyła link logowania do każdego bez żadnego kroku „zaproponuj konto", czyli ekran potwierdzenia nie może go zaoferować jako wyboru.
 - Podczepia wstępnie wypełnione dane konta do e maila, którego nikt nie potwierdził, już przy wysyłce, a nie na kliknięcie.
 
-Odrzucona, bo właściciel produktu chce jawnego kroku „najpierw wyślij, potem zaproponuj konto". Przegląd wskazał tę opcję jako prostszą, więc warto do niej wrócić, jeśli koszt claim okaże się za duży.
+Pierwotnie odrzucona, bo właściciel produktu chciał jawnego kroku „najpierw wyślij, potem zaproponuj konto". Przegląd wskazał ją jako prostszą i zalecił powrót, jeśli koszt claim okaże się za duży. **Wybrana ponownie 2026-10-07**, patrz Rationale, rewizja 1.
 
 ## Rationale
 
@@ -81,3 +81,13 @@ Czat dopiero po założeniu konta wynika z modelu dostępu w 0048: dostęp opier
 Limit w bazie (3 sprawy na e mail na dobę) i pole pułapka wybrano zamiast Upstash Redis i Cloudflare Turnstile, bo nie ma jeszcze danych o nadużyciach, a każda nowa usługa to klucze, koszt i kolejna rzecz do utrzymania. Limit po IP pominięto celowo, żeby nie trzymać dodatkowych danych osobowych. Do rewizji po pierwszym spamie (Follow up).
 
 Właściciel produktu wybrał przypięcie sprawy od razu do istniejącego konta po samym e mailu, mimo że rekomendowałem wariant z oznaczeniem lub dowiązaniem dopiero po logowaniu. Wybrany wariant jest świadomie przyjętym ryzykiem: obca osoba może podrzucić sprawę z własną treścią na cudze konto. Zostało to złagodzone mailem „czy to Ty? Jeśli tak, nic nie rób, jeśli nie, odpowiedz", z Reply-To na zespół, oraz tym, że szkoda jest niewielka (sprawa jest widoczna tylko właścicielowi i doradcy, nie daje dostępu do niczego poza samą sprawą). Ekran gościa jest identyczny dla nowego i istniejącego e maila, więc ta ścieżka nie ujawnia, które adresy mają konto.
+
+### Rewizja 1 (2026-10-07): wracamy do Option 4
+
+`/check verify` na dev pokazał realny przebieg: gość dostawał mail z linkiem do strony claim, tam klikał „Załóż konto", dostawał drugi mail z linkiem magicznym i dopiero nim wchodził do swojej sprawy (pięć kroków). Dla istniejącego e maila ekran po wysłaniu mówił o zakładaniu konta, choć konto już istniało. Właściciel produktu uznał, że to psuje cel funkcji, czyli minimalne tarcie przy zostawianiu kontaktu.
+
+Wybrano jeden mail z linkiem magicznym dla nowych i istniejących e maili. Przyjęte koszty: osierocone wiersze `pending_registration` (czyszczenie przed publicznym startem), możliwość zużycia linku przez skaner poczty (zapas: „Wyślij ponownie" i strona claim, które i tak były zbudowane), jeden mail logowania na cudzy adres przy nadużyciu (ogranicza go limit spraw i limit aktywnych tokenów, a link loguje tylko właściciela skrzynki). Prod jest na razie środowiskiem testowym dla zespołu, więc ryzyko jest małe.
+
+Ekran potwierdzenia pozostaje identyczny dla wszystkich adresów, żeby wybór nie ujawniał, kto ma konto. Zamiast pytać o konto, mówi „Sprawdź skrzynkę". Mail do istniejącego klienta łączy „czy to Ty" z linkiem magicznym. Samo kliknięcie takiego linku nie oznacza kontaktu jako potwierdzonego, bo zalogowanie nie dowodzi, kto wysłał zapytanie (AC-13 zostaje).
+
+Mechanizm wybrano tak, żeby tokeny nadal tworzył Auth.js: `signIn("resend")` wywołane w akcji, a wariant treści wybiera marker `welcome` w adresie powrotu (Auth.js przekazuje `callbackUrl` w adresie linku do `sendVerificationRequest`, potwierdzone w `@auth/core/lib/actions/signin/send-token.js`). Odrzucono ręczne budowanie tokena i adresu callbacku, bo kopiowałoby wewnętrzny format Auth.js (hash tokena z sekretem) i mogłoby się zepsuć przy aktualizacji biblioteki.

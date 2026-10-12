@@ -1,7 +1,8 @@
 "use client";
 
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 import { type FormEvent, useState, useTransition } from "react";
 import { Button, Input, Label, Select, Stack, Text, Textarea } from "@/components/ui";
 import type { Country, CountryCode } from "@/lib/data/types";
@@ -10,34 +11,35 @@ import { submitBulkProductInquiry } from "@/lib/project-request-actions";
 interface BulkProductInquiryModalProps {
   productId: string;
   countries: Country[];
+  // Dane zalogowanego klienta, żeby nie wpisywał ich drugi raz.
+  prefill?: { name: string; email: string; phone: string };
 }
 
 // AC-15/AC-16: pierwsza, uproszczona wersja "zapytaj o model", nie prawdziwy
 // konfigurator (spec 0038 Follow-up) — woła wprost już przetestowaną
 // submitBulkProductInquiry (spec 0037), ten sam wzorzec useTransition/isPending
 // i błędu limitu co ProjectRequestFlow, bez opuszczania /project/[id].
-export function BulkProductInquiryModal({ productId, countries }: BulkProductInquiryModalProps) {
+export function BulkProductInquiryModal({ productId, countries, prefill }: BulkProductInquiryModalProps) {
   const t = useTranslations("BulkProductInquiryModal");
+  const locale = useLocale();
 
   const [open, setOpen] = useState(false);
   const [phase, setPhase] = useState<"form" | "sent">("form");
-  const [contactName, setContactName] = useState("");
-  const [contactEmail, setContactEmail] = useState("");
-  const [contactPhone, setContactPhone] = useState("");
-  const [unitCountMin, setUnitCountMin] = useState("");
-  const [unitCountMax, setUnitCountMax] = useState("");
+  const [contactName, setContactName] = useState(prefill?.name ?? "");
+  const [contactEmail, setContactEmail] = useState(prefill?.email ?? "");
+  const [contactPhone, setContactPhone] = useState(prefill?.phone ?? "");
+  const [unitCount, setUnitCount] = useState("");
   const [deliveryCountryCode, setDeliveryCountryCode] = useState<CountryCode | null>(null);
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const unitCountMinValue = Number(unitCountMin);
-  const unitCountMinValid =
-    unitCountMin.trim().length > 0 && Number.isInteger(unitCountMinValue) && unitCountMinValue >= 10;
+  const unitCountValue = Number(unitCount);
+  const unitCountValid = unitCount.trim().length > 0 && Number.isInteger(unitCountValue) && unitCountValue >= 3;
   const canSubmit =
     contactName.trim().length > 0 &&
     contactEmail.trim().length > 0 &&
-    unitCountMinValid &&
+    unitCountValid &&
     deliveryCountryCode !== null &&
     !isPending;
 
@@ -55,11 +57,11 @@ export function BulkProductInquiryModal({ productId, countries }: BulkProductInq
     startTransition(async () => {
       const result = await submitBulkProductInquiry({
         productId,
+        locale,
         contactName: contactName.trim(),
         contactEmail: contactEmail.trim(),
         contactPhone: contactPhone.trim() ? contactPhone.trim() : undefined,
-        unitCountMin: unitCountMinValue,
-        unitCountMax: unitCountMax.trim() ? Number(unitCountMax) : undefined,
+        unitCount: unitCountValue,
         deliveryCountryCode,
         note: note.trim() ? note.trim() : undefined,
       });
@@ -151,37 +153,32 @@ export function BulkProductInquiryModal({ productId, countries }: BulkProductInq
                     onChange={(event) => setContactPhone(event.target.value)}
                   />
                 </Stack>
-                <div className="grid grid-cols-1 gap-brand-3 sm:grid-cols-2">
-                  <Stack gap={1}>
-                    <Label htmlFor="bulk-inquiry-unit-min" required surface="v5">
-                      {t("unitCountMinLabel")}
-                    </Label>
-                    <Input
-                      id="bulk-inquiry-unit-min"
-                      type="number"
-                      min={10}
-                      step={1}
-                      required
-                      surface="v5"
-                      value={unitCountMin}
-                      onChange={(event) => setUnitCountMin(event.target.value)}
-                    />
-                  </Stack>
-                  <Stack gap={1}>
-                    <Label htmlFor="bulk-inquiry-unit-max" surface="v5">
-                      {t("unitCountMaxLabel")}
-                    </Label>
-                    <Input
-                      id="bulk-inquiry-unit-max"
-                      type="number"
-                      min={10}
-                      step={1}
-                      surface="v5"
-                      value={unitCountMax}
-                      onChange={(event) => setUnitCountMax(event.target.value)}
-                    />
-                  </Stack>
-                </div>
+                <Stack gap={1}>
+                  <Label htmlFor="bulk-inquiry-unit-count" required surface="v5">
+                    {t("unitCountLabel")}
+                  </Label>
+                  <Input
+                    id="bulk-inquiry-unit-count"
+                    type="number"
+                    min={3}
+                    step={1}
+                    required
+                    surface="v5"
+                    value={unitCount}
+                    onChange={(event) => setUnitCount(event.target.value)}
+                  />
+                  <Text tone="muted" surface="v5" className="text-data">
+                    {t("unitCountHint")}
+                  </Text>
+                  {unitCount.trim().length > 0 && !unitCountValid && (
+                    <Text tone="muted" surface="v5" className="text-data">
+                      {t("unitCountSmallHint")}{" "}
+                      <Link href={`/${locale}/results`} className="underline">
+                        {t("unitCountSmallHintLink")}
+                      </Link>
+                    </Text>
+                  )}
+                </Stack>
                 <Stack gap={1}>
                   <Label id="bulk-inquiry-country-label" required surface="v5">
                     {t("deliveryCountryLabel")}

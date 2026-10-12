@@ -43,7 +43,7 @@ describe("LanguageSwitcher (spec 0028 AC-4)", () => {
     await user.click(screen.getByRole("button", { name: "Zmień język" }));
     await user.click(screen.getByRole("menuitem", { name: "English" }));
 
-    expect(replace).toHaveBeenCalledWith("/results?sizeMin=80", { locale: "en" });
+    expect(replace).toHaveBeenCalledWith("/results?sizeMin=80", { locale: "en", scroll: false });
   });
 
   it("omits the query string entirely when there are no search params", async () => {
@@ -54,7 +54,7 @@ describe("LanguageSwitcher (spec 0028 AC-4)", () => {
     await user.click(screen.getByRole("button", { name: "Zmień język" }));
     await user.click(screen.getByRole("menuitem", { name: "Nederlands" }));
 
-    expect(replace).toHaveBeenCalledWith("/results", { locale: "nl" });
+    expect(replace).toHaveBeenCalledWith("/results", { locale: "nl", scroll: false });
   });
 
   it("does not navigate when the already active locale is picked again", async () => {

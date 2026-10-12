@@ -71,6 +71,9 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 55 | Rozdział certyfikatów producenta od oceny zgodności | Slice 11 | in progress |
 | 56 | Zapytanie o ofertę bez logowania | Slice 3b | in progress |
 | 57 | Tłumaczenia opcji konfiguratora, producenta i pól produktu (EN/DE/NL) | Slice 0 | done |
+| 58 | Strona kategorii Sauny z filtrami i porównaniem | Slice 2 | done |
+| 59 | Wersje układu wnętrz: rzuty, pomieszczenia i metraż przypisane do opcji | Slice 2 | in progress |
+| 60 | Przetarg na duże zamówienia z podsumowaniem ModularHub | Slice 12 | in progress |
 
 ## Foundations
 
@@ -485,11 +488,12 @@ Zapytanie klienta o pojedyncze domy trafia wyłącznie do ModularHub, nie do pro
 Dziś niezalogowana osoba musi założyć konto, zanim wyśle zapytanie, więc część odpada na bramce i nie zostawia nawet e maila. Ta funkcja pozwala wysłać zapytanie jako gość (imię, e mail, telefon, adres działki), a założenie konta proponuje dopiero po wysłaniu (przycisk na ekranie potwierdzenia i w mailu). Sprawa gościa powstaje bez konta, doradca widzi ją ze znacznikiem „e mail niepotwierdzony", a po zalogowaniu linkiem sprawa dowiązuje się do konta po e mailu. Funkcja dodana ze [spec 0066](../specs/0066-zapytanie-bez-logowania/index.md).
 **Done when:** niezalogowany odwiedzający wysyła zapytanie bez konta i widzi ekran potwierdzenia z propozycją konta, doradca widzi sprawę gościa, a po zalogowaniu linkiem magicznym (także przy pierwszym logowaniu) sprawa jest w panelu klienta i czat działa; ten sam e mail istniejącego klienta dostaje sprawę z mailem „czy to Ty", a limity i pole pułapka chronią przed spamem.
 - [x] Zaprojektuj (spec): [0066](../specs/0066-zapytanie-bez-logowania/index.md) (sprawa gościa z `client_id` NULL i migawką kontaktu, dowiązanie po e mailu przy logowaniu, konto na jawne kliknięcie, limity w bazie bez nowej usługi)
-- [x] Zbuduj: `/develop zapytanie o ofertę bez logowania` (kod w `lib/cases/guest.ts`, `lib/guest-case-actions.ts`, `lib/notifications/guest-inquiry.ts`, `components/klient/InquiryFlow.tsx`, `app/[locale]/(customer)/inquiry/`)
+- [ ] Zbuduj: `/develop zapytanie o ofertę bez logowania` (kod w `lib/cases/guest.ts`, `lib/cases/guest-link.ts`, `lib/guest-case-actions.ts`, `lib/notifications/login.ts`, `lib/notifications/login-callback.ts`, `components/klient/InquiryFlow.tsx`, `app/[locale]/(customer)/inquiry/`)
   - [x] Migracja i cienki wątek: `client_id` nullable, `contact_email_verified_at`, `locale`, formularz gościa, zapis sprawy gościa z idempotencją po e mailu, widok doradcy, satisfies AC-1 do AC-4, AC-14, AC-15
   - [x] Konto i dowiązanie: ekran potwierdzenia, `requestAccountForGuestCase`, strona claim, dowiązanie przy każdym logowaniu (także pierwszym), przypięcie do istniejącego konta z mailem „czy to Ty", `contact_email_verified_at` przy wiadomości klienta, satisfies AC-6 do AC-10, AC-13
   - [x] Powiadomienia: `notify.ts` bez `client`, maile do gościa (potwierdzenie, odpowiedź doradcy z limitem), znacznik „niepotwierdzony", satisfies AC-7, AC-11, AC-12
   - [x] Ochrona, RODO i domknięcie: limity i pole pułapka, informacja o przetwarzaniu PL/EN/NL, analityka, adnotacje w specyfikacjach 0023 i 0048, satisfies AC-5, AC-16 do AC-18
+  - [ ] Jeden mail z linkiem magicznym (zmiana z 2026-10-07): kwalifikacja adresu i `pending_registration` przy wysyłce, `signIn` w akcji, warianty maila z markerem `welcome`, ekran „Sprawdź skrzynkę" z „Wyślij ponownie", `resendGuestCaseLink` i strona claim jako zapas, satisfies AC-6 do AC-10, AC-16
 - [ ] Zweryfikuj: `/check verify zapytanie o ofertę bez logowania`
 - [ ] Testuj: `/test zapytanie o ofertę bez logowania`
 
@@ -668,6 +672,17 @@ Producent dołącza do swojej wyceny (funkcja 49) opcjonalny plik PDF przygotowa
 - [x] Zweryfikuj: `/check verify opcjonalny PDF wyceny w tablicy ogłoszeń B2B` (2026-10-03, PASS po poprawce `proxyClientMaxBodySize`)
 - [x] Testuj: `/test opcjonalny PDF wyceny w tablicy ogłoszeń B2B` (2026-10-03, 150/150 plików testowych zielonych, nowy regresyjny test e2e na próg 10-20 MB)
 
+### 60. Przetarg na duże zamówienia z podsumowaniem ModularHub · full · in progress
+Zmienia model dużych zamówień (od 3 domów) z otwartej tablicy (funkcja 49) na przetarg: zapytanie trafia do producentów dopasowanych regułami (kraj dostawy, rodzina, standard, moc), producenci składają oferty w jednym formacie przed terminem, ModularHub publikuje klientowi podsumowanie z porównaniem, klient wybiera, a ModularHub łączy strony i zapisuje zwycięzcę. Dodaje ekrany admina (duże zamówienia, zatwierdzenia producentów i klientów B2B), brakujące formularze (profil zdolności z krajami dostawy, NIP klienta), maile w czterech językach i przypomnienia. Rynek główny to Niemcy i Holandia, pilotaż z jednym dużym inwestorem. Strony prawne (polityka, regulamin z zasadą dostępu do przetargów, Impressum, cookies) to osobna specyfikacja po dokumencie od prawnika.
+**Done when:** inwestor składa zapytanie od 3 domów (sam albo przez doradcę), dopasowani producenci dostają mail i składają oferty we wspólnym formacie przed terminem, zespół publikuje podsumowanie, klient wybiera ofertę i dostaje połączenie z producentem po zatwierdzeniu B2B, a zespół widzi w panelu admina każde zapytanie, ofertę i wybór.
+- [x] Zaprojektuj (spec): [0070](../specs/0070-przetarg-duze-zamowienia/index.md)
+- [ ] Zbuduj: `/develop przetarg na duże zamówienia z podsumowaniem ModularHub`
+  - [x] Tydzień 1, odblokowanie obecnej ścieżki (część A i część C w zarysie): migracja 1, ekran admina "Duże zamówienia", zatwierdzenia producentów i klientów B2B, formularz profilu zdolności z krajami dostawy, formularz NIP klienta, maile w języku odbiorcy i mail do zespołu, test zgodności kluczy tłumaczeń, satisfies AC-1 do AC-7, AC-9 (język), AC-23, AC-26
+  - [ ] Tydzień 2, nowy model (część B): próg 3 domów, dopasowanie z wyjątkami admina, format oferty, termin, bramka publikacji (migracja 3), podsumowanie klienta, wybór i połączenie stron, zapytanie o produkt na tej samej ścieżce, zapytanie doradcy, wynik producenta, zamknięcie i wznowienie, satisfies AC-8 do AC-22
+  - [ ] Tydzień 3, domknięcie (część C i pilotaż): pozostałe maile, przypomnienia i zadanie cykliczne, testy end to end całej ścieżki, pilotaż z jednym dużym inwestorem, satisfies AC-17, AC-24, AC-25, AC-26
+- [ ] Zweryfikuj: `/check verify przetarg na duże zamówienia z podsumowaniem ModularHub`
+- [ ] Testuj: `/test przetarg na duże zamówienia z podsumowaniem ModularHub`
+
 ## Utwardzenie przed startem
 
 ### 20. SEO podstawowe stron publicznych · needs a decision
@@ -725,6 +740,28 @@ Sauna (`spaSubcategory = "sauna"`, rodzina `spa-modulowe`) dostaje własną, ded
   - [ ] Dane realne: ręczny zasiew Kory (Relax 550) i Wooden Dream House (Qube) przez Neon MCP — **zrobione na `modularhub-dev`** (sprawdzone end to end: `/pl/sauna/relax-550`, `/pl/sauna/qube`, oba strażniki 404/redirect), **brakuje powtórzenia na `modularhub` (prod)**, satisfies AC-9 (druga połowa). `seatingCapacity` dla obu produktów jest oszacowaniem (strony producentów nie podają liczby miejsc wprost) — do potwierdzenia przy realnym onboardingu (patrz spec Follow-up).
 - [ ] Verify it: `/check verify strona produktu dla sauny`
 - [ ] Test it: `/test strona produktu dla sauny`
+
+### 58. Strona kategorii Sauny z filtrami i porównaniem · Slice 2 · done
+`/{locale}/sauna` dziś zwraca 404 (istnieje tylko `/sauna/[slug]`). Dedykowana strona kategorii: lista wszystkich saun, filtry (liczba miejsc, cena, producent), porównanie do trzech saun, własne SEO. Wspólne zapytanie i karty z `/results`, zero migracji. Powstało z `/architect` (wariant B), from spec 0068.
+**Done when:** `/pl/sauna` (i en, de, nl) zwraca 200 z listą saun, filtry w URL zawężają listę bez błędów na złych parametrach, a zaznaczenie dwóch lub trzech saun otwiera tabelę porównania; `/results` i porównanie domów działają jak dotąd.
+- [x] Zaprojektuj (spec): [0068](../specs/0068-kategoria-sauny/index.md)
+- [x] Build it: `/develop kategoria sauny` — code in `app/[locale]/(customer)/sauna/page.tsx`, `lib/sauna-filters.ts`, `lib/compare-rows.ts`, `components/klient/SaunaFilterBar.tsx`, `components/klient/SaunaCompareTable.tsx`, `app/[locale]/(customer)/compare/page.tsx`
+  - [x] Etap 1, lista i SEO (usuwa 404): trasa `/sauna`, własny H1, canonical/hreflang/JSON-LD, tłumaczenia, chip w hero, satisfies AC-1 do AC-6
+  - [x] Etap 2, filtry: `lib/sauna-filters.ts`, rozszerzenie `getProjects`, producenci z bazy, `SaunaFilterBar`, satisfies AC-7 do AC-11
+  - [x] Etap 3, porównanie: parametr `kind` w `/compare`, `SaunaCompareTable`, mapa wierszy, E2E, satisfies AC-12 do AC-15
+- [x] Verify it: `/check verify kategoria sauny`
+- [x] Test it: `/test kategoria sauny`
+
+### 59. Wersje układu wnętrz: rzuty, pomieszczenia i metraż przypisane do opcji · Slice 2 · in progress
+Wersja układu wnętrz (np. Bingo od Logbar: podstawowa i wersje 1, 2, 3) jest dziś zwykłą opcją z dopłatą, więc zmienia tylko cenę, a strona dalej pokazuje jeden rzut, jedną listę pomieszczeń i jeden metraż. Ta funkcja przypina do opcji własne rzuty, pomieszczenia, metraż i opis, tak że wybór wersji zmienia je na stronie produktu. Lista wyników, filtry i porównywarka zostają przy wersji bazowej. Ogólne dla wszystkich producentów, bez ekranu w panelu producenta (import i ręczny zapis).
+**Done when:** na Bingo A do D wybór wersji układu zmienia rzuty w zakładce Rzut, listę pomieszczeń, metraż i opis (pl, en, de, nl), produkty bez danych układu wyglądają jak dotąd, a `npm run check:translations` pokazuje zero braków.
+- [x] Zaprojektuj (spec): [0069](../specs/0069-rzuty-wersji-ukladu/index.md)
+- [x] Build it: `/develop wersje układu wnętrz` — code in `lib/data/project-layout.ts`, `lib/data/projects.ts` (`getProductOptionLayouts`), `lib/db/schema.ts` + `drizzle/0053_uneven_fixer.sql`, `app/[locale]/(customer)/project/[slug]/page.tsx`, `components/klient/ProjectGalleryTabs.tsx`, `components/klient/ProjectRoomLayout.tsx`, `lib/translations/gaps.ts`, `scripts/import-logbar-catalog.ts`
+  - [x] Etap 1, baza i logika: migracja (2 tabele, 2 kolumny w `document`), czyste funkcje `resolveProjectLayout`, `selectFloorPlans`, `assertLayoutGroupRule`, zapytanie o układy, satisfies AC-1 do AC-4, AC-8, AC-9
+  - [x] Etap 2, strona i tłumaczenia: podpięcie `/project/[slug]`, podpisy rzutów, teksty w czterech językach, wymuszenie wersji bazowej na listach, porównywarce, metadanych i zapytaniu, kontrola tłumaczeń, satisfies AC-5 do AC-7
+  - [x] Etap 3, Logbar (dev; produkcja to osobny, jawnie zlecony krok): dane układu i osiem rzutów na produkt Bingo A do D (import na dev), test end to end, satisfies AC-10
+- [ ] Verify it: `/check verify wersje układu wnętrz`
+- [ ] Test it: `/test wersje układu wnętrz`
 
 ## Deferred
 Poza zakresem tej epiki, świadomie odłożone.

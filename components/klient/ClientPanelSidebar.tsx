@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
-import { ChevronsLeft, ChevronsRight, FileText, Heart, House, Inbox, LogOut, Menu, User, X, type LucideIcon } from "lucide-react";
+import { BadgeCheck, ChevronsLeft, ChevronsRight, FileText, Heart, House, Inbox, LogOut, Menu, User, X, type LucideIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -42,10 +42,11 @@ export function ClientPanelSidebar({ locale, hasUnreadZapytania }: ClientPanelSi
     { key: "quotes", path: "quotes", label: t("quotes"), icon: FileText },
     { key: "ulubione", path: "favorites", label: t("ulubione"), icon: Heart },
     { key: "profil", path: "profile", label: t("profil"), icon: User },
+    { key: "weryfikacja", path: "verification", label: t("weryfikacja"), icon: BadgeCheck },
   ];
 
   const renderNav = (onNavigate?: () => void, collapsed = false) => (
-    <nav aria-label={t("navAriaLabel")} className="flex flex-col gap-1">
+    <nav aria-label={t("navAriaLabel")} className="flex flex-col">
       {navItems.map((item) => {
         const href = `/${locale}/panel${item.path ? `/${item.path}` : ""}`;
         const isCurrent = pathname === href || (item.path !== "" && pathname.startsWith(`${href}/`));
@@ -57,7 +58,7 @@ export function ClientPanelSidebar({ locale, hasUnreadZapytania }: ClientPanelSi
             onClick={onNavigate}
             aria-current={isCurrent ? "page" : undefined}
             title={collapsed ? item.label : undefined}
-            className={`focus-ring relative flex items-center gap-2 rounded-data px-brand-2 py-brand-2 text-body font-medium transition-colors ${
+            className={`focus-ring relative flex items-center gap-2 px-brand-3 py-brand-2 text-body font-medium transition-colors ${
               isCurrent
                 ? "bg-brand-v5-amber-strong/10 text-brand-v5-ink font-semibold"
                 : "text-brand-v5-muted hover:bg-brand-v5-line/30 hover:text-brand-v5-ink"
@@ -83,7 +84,7 @@ export function ClientPanelSidebar({ locale, hasUnreadZapytania }: ClientPanelSi
   );
 
   const renderFooter = (onNavigate?: () => void, collapsed = false) => (
-    <div className="flex flex-col gap-brand-3 border-t border-brand-v5-line pt-brand-3">
+    <div className="flex flex-col gap-brand-3 border-t border-brand-v5-line px-brand-3 pt-brand-3">
       <div className={`flex gap-brand-2 ${collapsed ? "flex-col items-center" : "items-center justify-between"}`}>
         <Link
           href={`/${locale}`}
@@ -119,12 +120,12 @@ export function ClientPanelSidebar({ locale, hasUnreadZapytania }: ClientPanelSi
     <>
       <aside
         data-collapsed={isCollapsed}
-        className={`hidden shrink-0 flex-col justify-between gap-brand-4 overflow-x-hidden overflow-y-auto border-r border-brand-v5-line p-brand-3 transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none md:sticky md:top-0 md:flex md:h-screen md:self-start ${
-          isCollapsed ? "md:w-[calc(2*(var(--spacing-brand-3)+var(--spacing-brand-2)+0.5rem)+1px)]" : "md:w-64"
+        className={`hidden shrink-0 flex-col justify-between gap-brand-4 overflow-x-hidden overflow-y-auto border-r border-brand-v5-line py-brand-3 transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none md:sticky md:top-0 md:flex md:h-screen md:self-start ${
+          isCollapsed ? "md:w-[calc(2*var(--spacing-brand-3)+1rem+1px)]" : "md:w-[17rem]"
         }`}
       >
         <div className="flex flex-col gap-brand-4">
-          <div className="flex h-8 items-center justify-between">
+          <div className="flex h-8 items-center justify-between px-brand-3">
             <Link
               href={`/${locale}`}
               aria-label="ModularHub Europe"
@@ -181,9 +182,9 @@ export function ClientPanelSidebar({ locale, hasUnreadZapytania }: ClientPanelSi
         <div className="fixed inset-0 flex">
           <DialogPanel
             transition
-            className="flex h-full w-full max-w-xs flex-col gap-brand-4 overflow-y-auto bg-brand-v5-surface p-brand-4 shadow-xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] data-[closed]:-translate-x-full"
+            className="flex h-full w-full max-w-xs flex-col gap-brand-4 overflow-y-auto bg-brand-v5-surface py-brand-4 shadow-xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] data-[closed]:-translate-x-full"
           >
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between px-brand-3">
               <span className="text-body font-medium text-brand-v5-ink">{t("menu")}</span>
               <button
                 type="button"

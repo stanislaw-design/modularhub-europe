@@ -40,4 +40,10 @@ describe("EmptyResults", () => {
       "/pl/results?family=wiecej-niz-dom"
     );
   });
+
+  // spec 0068 AC-2: strona kategorii podaje własny adres czyszczenia filtrów.
+  it("uses clearHref for the clear-filters link when given (spec 0068 AC-2)", () => {
+    render(<EmptyResults locale="pl" family="spa-modulowe" clearHref="/pl/sauna" />);
+    expect(screen.getByRole("link", { name: /wyczyść filtry/i })).toHaveAttribute("href", "/pl/sauna");
+  });
 });

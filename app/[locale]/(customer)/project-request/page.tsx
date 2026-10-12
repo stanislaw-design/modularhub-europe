@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+import { auth } from "@/auth";
 import { ProjectRequestFlow } from "@/components/klient/ProjectRequestFlow";
 import { getCountries } from "@/lib/data/countries";
 import { routing } from "@/lib/i18n/routing";
@@ -42,7 +43,12 @@ export default async function ProjectRequestPage({
   params: Promise<PageParams>;
 }) {
   const { locale } = await params;
-  const countries = await getCountries();
+  const [countries, session] = await Promise.all([getCountries(), auth()]);
+  // Zalogowany klient nie podaje danych kontaktowych drugi raz.
+  const prefill =
+    session?.user.role === "client" && session.user.email
+      ? { name: session.user.name ?? "", email: session.user.email, phone: session.user.phone ?? "" }
+      : undefined;
 
-  return <ProjectRequestFlow locale={locale} countries={countries} />;
+  return <ProjectRequestFlow locale={locale} countries={countries} prefill={prefill} />;
 }

@@ -26,6 +26,8 @@ export type EventName =
   | "project_quote_submitted"
   | "project_quote_accepted"
   | "project_quote_pdf_uploaded"
+  | "producer_volume_verification_decided"
+  | "client_b2b_verification_decided"
   | "case_created"
   | "case_first_advisor_reply"
   | "case_brief_approved"

@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { ProducerDeliveryCountriesAdminSection } from "@/components/internal/ProducerDeliveryCountriesAdminSection";
 import { ProducerCertificationAdminSection } from "@/components/internal/ProducerCertificationAdminSection";
 import { ProductComplianceAdminSection } from "@/components/internal/ProductComplianceAdminSection";
 import { Heading, Stack, Text } from "@/components/ui";
 import {
+  getAllCountries,
   getProducerCertificationsForAdmin,
   getProducerProductsWithAssessmentsForAdmin,
   getProducerProfile,
@@ -35,9 +37,10 @@ export default async function InternalProducerDetailPage({
   const profile = await getProducerProfile(id);
   if (!profile) notFound();
 
-  const [certifications, products] = await Promise.all([
+  const [certifications, products, countries] = await Promise.all([
     getProducerCertificationsForAdmin(id),
     getProducerProductsWithAssessmentsForAdmin(id),
+    getAllCountries(),
   ]);
 
   return (
@@ -47,6 +50,12 @@ export default async function InternalProducerDetailPage({
       </Link>
       <Heading level="h1">{profile.name}</Heading>
       <Text tone="muted">NIP {profile.nip}</Text>
+
+      <ProducerDeliveryCountriesAdminSection
+        producerId={id}
+        countries={countries}
+        selectedCodes={profile.deliveryCountries.map((item) => item.code)}
+      />
 
       <ProducerCertificationAdminSection certifications={certifications} />
 

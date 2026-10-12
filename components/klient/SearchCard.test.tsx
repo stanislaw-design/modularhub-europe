@@ -135,15 +135,25 @@ describe("SearchCard", () => {
     );
   });
 
-  it("renders exactly the families in FAMILY_GROUPS['wiecej-niz-dom'] as links, not a list hardcoded separately in SearchCard (spec 0060 AC-4)", async () => {
+  it("renders the families in FAMILY_GROUPS['wiecej-niz-dom'] as links, not a list hardcoded separately in SearchCard, plus the one explicit Sauny exception (spec 0060 AC-4, spec 0068 AC-6)", async () => {
     const user = userEvent.setup();
     render(<SearchCard locale="pl" countries={countries} />);
 
     await user.click(screen.getByRole("tab", { name: "Więcej niż dom" }));
 
     const links = await screen.findAllByRole("link");
-    expect(links.map((link) => link.getAttribute("href"))).toEqual(
-      FAMILY_GROUPS["wiecej-niz-dom"].map((family) => `/pl/results?family=${family}`),
-    );
+    expect(links.map((link) => link.getAttribute("href"))).toEqual([
+      ...FAMILY_GROUPS["wiecej-niz-dom"].map((family) => `/pl/results?family=${family}`),
+      "/pl/sauna",
+    ]);
+  });
+
+  it("links Sauny to the /sauna category page, not /results (spec 0068 AC-6)", async () => {
+    const user = userEvent.setup();
+    render(<SearchCard locale="pl" countries={countries} />);
+
+    await user.click(screen.getByRole("tab", { name: "Więcej niż dom" }));
+
+    expect(await screen.findByRole("link", { name: "Sauny" })).toHaveAttribute("href", "/pl/sauna");
   });
 });

@@ -319,9 +319,25 @@ export const auditActionEnum = pgEnum("audit_action", ["create", "update", "dele
 export const bulkRequestStatusEnum = pgEnum("bulk_request_status", [
   "open",
   "quoted",
+  // Spec 0070: podsumowanie opublikowane klientowi (między quoted a accepted).
+  "published",
   "accepted",
   "closed",
 ]);
+
+// Spec 0070: powód zamknięcia dużego zamówienia.
+export const bulkCloseReasonEnum = pgEnum("bulk_close_reason", [
+  "client_cancelled",
+  "no_offers",
+  "expired",
+  "staff_closed",
+]);
+
+// Spec 0070: tryb ceny w ofercie (netto lub brutto), wynik zwycięskiego producenta
+// i rodzaj wyjątku admina od reguły dopasowania.
+export const quotePriceTaxModeEnum = pgEnum("quote_price_tax_mode", ["net", "gross"]);
+export const quoteProducerOutcomeEnum = pgEnum("quote_producer_outcome", ["signed", "no_agreement", "withdrew"]);
+export const projectRequestOverrideModeEnum = pgEnum("project_request_override_mode", ["include", "exclude"]);
 
 // Tablica ogłoszeń B2B (spec 0062 AC-1): etykieta kosmetyczna, nigdy
 // weryfikacja tożsamości przez ModularHub ("complete" znaczy tylko "dane
@@ -1536,7 +1552,10 @@ export const projectRequest = pgTable(
     locationDetail: text("location_detail"),
     projectType: projectTypeEnum("project_type").notNull(),
     families: jsonb("families").$type<(typeof productFamilyEnum.enumValues)[number][]>().notNull(),
-    unitCountMin: integer("unit_count_min").notNull(),
+    // Spec 0070 AC-8: jedna dokładna liczba domów. Stare kolumny zakresu zostają
+    // do migracji 5 (zwężenie), nowy kod ich nie czyta, ale zapisuje min = liczba.
+    unitCount: integer("unit_count").notNull(),
+    unitCountMin: integer("unit_count_min"),
     unitCountMax: integer("unit_count_max"),
     floorAreaM2Min: real("floor_area_m2_min"),
     floorAreaM2Max: real("floor_area_m2_max"),
@@ -1549,12 +1568,35 @@ export const projectRequest = pgTable(
     status: bulkRequestStatusEnum("status").notNull().default("open"),
     // AC-1 (spec 0062): ustawiane raz przy wstawieniu, nigdy przeliczane.
     trustSignal: trustSignalEnum("trust_signal").notNull().default("new"),
+    // Spec 0070: przetarg. Termin składania ofert (domyślnie 14 dni od złożenia).
+    deadlineAt: timestamp("deadline_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now() + interval '14 days'`),
+    // Wybór klienta przed połączeniem stron: jeden zapis na zapytaniu.
+    selectedQuoteId: uuid("selected_quote_id").references((): AnyPgColumn => projectQuote.id),
+    selectedAt: timestamp("selected_at", { withTimezone: true }),
+    // Język maili do klienta, z języka strony, na której złożono zapytanie.
+    contactLocale: text("contact_locale").notNull().default("pl"),
+    createdByStaffUserId: text("created_by_staff_user_id").references(() => users.id),
+    staffConsentNote: text("staff_consent_note"),
+    summaryPublishedAt: timestamp("summary_published_at", { withTimezone: true }),
+    closedAt: timestamp("closed_at", { withTimezone: true }),
+    closedReason: bulkCloseReasonEnum("closed_reason"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
     check("project_request_families_not_empty", sql`jsonb_array_length(${table.families}) > 0`),
-    check("project_request_unit_count_min", sql`${table.unitCountMin} >= 10`),
+    check("project_request_unit_count", sql`${table.unitCount} >= 3`),
+    check("project_request_contact_locale", sql`${table.contactLocale} IN ('pl', 'en', 'de', 'nl')`),
+    check(
+      "project_request_staff_consent",
+      sql`${table.createdByStaffUserId} IS NULL OR ${table.staffConsentNote} IS NOT NULL`,
+    ),
+    check(
+      "project_request_closed_consistent",
+      sql`(${table.status} = 'closed') = (${table.closedAt} IS NOT NULL AND ${table.closedReason} IS NOT NULL)`,
+    ),
     check(
       "project_request_unit_count_max",
       sql`${table.unitCountMax} IS NULL OR ${table.unitCountMax} >= ${table.unitCountMin}`,
@@ -1585,7 +1627,10 @@ export const bulkProductInquiry = pgTable(
     contactName: text("contact_name").notNull(),
     contactEmail: text("contact_email").notNull(),
     contactPhone: text("contact_phone"),
-    unitCountMin: integer("unit_count_min").notNull(),
+    // Spec 0070 AC-8: jedna dokładna liczba domów. Stare kolumny zakresu zostają
+    // do migracji 5 (zwężenie), nowy kod ich nie czyta, ale zapisuje min = liczba.
+    unitCount: integer("unit_count").notNull(),
+    unitCountMin: integer("unit_count_min"),
     unitCountMax: integer("unit_count_max"),
     deliveryCountryCode: text("delivery_country_code")
       .notNull()
@@ -1596,11 +1641,34 @@ export const bulkProductInquiry = pgTable(
     deliveryWindowTo: date("delivery_window_to"),
     note: text("note"),
     status: bulkRequestStatusEnum("status").notNull().default("open"),
+    // Spec 0070: przetarg. Termin składania ofert (domyślnie 14 dni od złożenia).
+    deadlineAt: timestamp("deadline_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now() + interval '14 days'`),
+    // Wybór klienta przed połączeniem stron: jeden zapis na zapytaniu.
+    selectedQuoteId: uuid("selected_quote_id").references((): AnyPgColumn => projectQuote.id),
+    selectedAt: timestamp("selected_at", { withTimezone: true }),
+    // Język maili do klienta, z języka strony, na której złożono zapytanie.
+    contactLocale: text("contact_locale").notNull().default("pl"),
+    createdByStaffUserId: text("created_by_staff_user_id").references(() => users.id),
+    staffConsentNote: text("staff_consent_note"),
+    summaryPublishedAt: timestamp("summary_published_at", { withTimezone: true }),
+    closedAt: timestamp("closed_at", { withTimezone: true }),
+    closedReason: bulkCloseReasonEnum("closed_reason"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
-    check("bulk_product_inquiry_unit_count_min", sql`${table.unitCountMin} >= 10`),
+    check("bulk_product_inquiry_unit_count", sql`${table.unitCount} >= 3`),
+    check("bulk_product_inquiry_contact_locale", sql`${table.contactLocale} IN ('pl', 'en', 'de', 'nl')`),
+    check(
+      "bulk_product_inquiry_staff_consent",
+      sql`${table.createdByStaffUserId} IS NULL OR ${table.staffConsentNote} IS NOT NULL`,
+    ),
+    check(
+      "bulk_product_inquiry_closed_consistent",
+      sql`(${table.status} = 'closed') = (${table.closedAt} IS NOT NULL AND ${table.closedReason} IS NOT NULL)`,
+    ),
     check(
       "bulk_product_inquiry_unit_count_max",
       sql`${table.unitCountMax} IS NULL OR ${table.unitCountMax} >= ${table.unitCountMin}`,
@@ -1643,6 +1711,26 @@ export const projectQuote = pgTable(
     // Dziś matematycznie równoważne status = 'accepted' tej samej wyceny, ale
     // trzymane jako osobna kolumna pod odłożony ręczny override (Follow-up).
     contactRevealedAt: timestamp("contact_revealed_at", { withTimezone: true }),
+    // Spec 0070: wspólny format oferty. scope_included i valid_until są wymagane
+    // w akcji, w bazie nullable (stare oferty ich nie mają).
+    priceTaxMode: quotePriceTaxModeEnum("price_tax_mode").notNull().default("net"),
+    vatRatePercent: numeric("vat_rate_percent", { precision: 4, scale: 1 }),
+    scopeIncluded: text("scope_included"),
+    scopeExcluded: text("scope_excluded"),
+    // { transport, assembly, crane }, każdy { mode: amount | range | tbd, ... }, Zod w aplikacji.
+    logistics: jsonb("logistics").$type<Record<string, unknown>>().notNull().default(sql`'{}'::jsonb`),
+    paymentPlan: text("payment_plan"),
+    validUntil: date("valid_until"),
+    warrantyNote: text("warranty_note"),
+    deliveryWindowFrom: date("delivery_window_from"),
+    deliveryWindowTo: date("delivery_window_to"),
+    // Komentarz ModularHub, widoczny klientowi po publikacji.
+    advisorNote: text("advisor_note"),
+    // Bramka widoczności dla klienta. Default now() jest TYMCZASOWY (migracja 1):
+    // oferty z tygodnia 1 mają zostać widoczne. Migracja 3 usuwa default.
+    publishedToClientAt: timestamp("published_to_client_at", { withTimezone: true }).defaultNow(),
+    producerOutcome: quoteProducerOutcomeEnum("producer_outcome"),
+    producerOutcomeAt: timestamp("producer_outcome_at", { withTimezone: true }),
     submittedAt: timestamp("submitted_at", { withTimezone: true }).defaultNow().notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
@@ -1653,6 +1741,10 @@ export const projectQuote = pgTable(
     ),
     check("project_quote_unit_price_positive", sql`${table.unitPriceCents} IS NULL OR ${table.unitPriceCents} > 0`),
     check("project_quote_total_price_positive", sql`${table.totalPriceCents} > 0`),
+    check(
+      "project_quote_delivery_window_order",
+      sql`${table.deliveryWindowFrom} IS NULL OR ${table.deliveryWindowTo} IS NULL OR ${table.deliveryWindowTo} >= ${table.deliveryWindowFrom}`,
+    ),
     // Najwyżej jedna wycena 'active' na parę (zapytanie, producent), osobny
     // indeks na każdy opcjonalny klucz obcy (NULL nigdy nie koliduje z NULL,
     // patrz lib/db/AGENTS.md, document_one_cover_per_product, więc rząd z
@@ -1706,6 +1798,51 @@ export const producerCapacityProfile = pgTable("producer_capacity_profile", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
+
+// Spec 0070: wyjątki admina od reguły dopasowania producentów (tylko project_request).
+export const projectRequestProducerOverride = pgTable(
+  "project_request_producer_override",
+  {
+    projectRequestId: uuid("project_request_id")
+      .notNull()
+      .references(() => projectRequest.id),
+    producerId: uuid("producer_id")
+      .notNull()
+      .references(() => producer.id),
+    mode: projectRequestOverrideModeEnum("mode").notNull(),
+    createdByUserId: text("created_by_user_id")
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.projectRequestId, table.producerId] })],
+);
+
+// Spec 0070: dziennik wysłanych przypomnień, pilnuje, żeby wyszły dokładnie raz.
+export const projectNotificationLog = pgTable(
+  "project_notification_log",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    projectRequestId: uuid("project_request_id").references(() => projectRequest.id),
+    bulkProductInquiryId: uuid("bulk_product_inquiry_id").references(() => bulkProductInquiry.id),
+    producerId: uuid("producer_id").references(() => producer.id),
+    kind: text("kind").notNull(),
+    sentAt: timestamp("sent_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    check(
+      "project_notification_log_exactly_one_target",
+      sql`((${table.projectRequestId} IS NOT NULL)::int + (${table.bulkProductInquiryId} IS NOT NULL)::int) = 1`,
+    ),
+    // Wiersz z producent NULL (alert zespołu) nie koliduje sam ze sobą w zwykłym
+    // unikalnym indeksie, więc COALESCE na stałą zamyka tę lukę.
+    uniqueIndex("project_notification_log_unique_idx").on(
+      sql`coalesce(${table.projectRequestId}, ${table.bulkProductInquiryId})`,
+      sql`coalesce(${table.producerId}, '00000000-0000-0000-0000-000000000000'::uuid)`,
+      table.kind,
+    ),
+  ],
+);
 
 // Spec 0065: certyfikat firmy i ocena zgodności projektu z przepisami kraju
 // rozdzielone od płaskiej listy certyfikatów. Status potwierdzenia ustawia

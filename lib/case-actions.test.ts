@@ -27,10 +27,14 @@ vi.mock("@/lib/cases/create", () => ({
 }));
 
 const isGuestRateLimitedMock = vi.hoisted(() => vi.fn());
-vi.mock("@/lib/cases/guest", () => ({ isGuestRateLimited: isGuestRateLimitedMock }));
+const pinGuestCaseMock = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/cases/guest", () => ({
+  isGuestRateLimited: isGuestRateLimitedMock,
+  pinGuestCaseToExistingClient: pinGuestCaseMock,
+}));
 
-const notifyGuestOfNewCaseMock = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
-vi.mock("@/lib/notifications/guest-inquiry", () => ({ notifyGuestOfNewCase: notifyGuestOfNewCaseMock }));
+const sendGuestCaseLinkMock = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/cases/guest-link", () => ({ sendGuestCaseLink: sendGuestCaseLinkMock }));
 
 const notifyAdvisorOfNewCaseMock = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
 const notifyMessageRecipientMock = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
@@ -86,7 +90,8 @@ describe("submitAdvisoryInquiry", () => {
     createAdvisoryCaseMock.mockReset();
     findExistingAdvisoryCaseMock.mockReset().mockResolvedValue(null);
     isGuestRateLimitedMock.mockReset().mockResolvedValue(false);
-    notifyGuestOfNewCaseMock.mockClear();
+    sendGuestCaseLinkMock.mockReset().mockResolvedValue("sent");
+    pinGuestCaseMock.mockReset().mockResolvedValue(null);
     notifyAdvisorOfNewCaseMock.mockClear();
     notifyClientOfNewCaseMock.mockClear();
     getCountriesMock.mockReset().mockResolvedValue([{ code: "PL", name: "Polska" }]);
@@ -172,7 +177,8 @@ describe("submitAdvisoryInquiry as a guest (spec 0066)", () => {
     afterMock.mockClear();
     trackEventMock.mockClear();
     captureErrorMock.mockClear();
-    notifyGuestOfNewCaseMock.mockClear();
+    sendGuestCaseLinkMock.mockReset().mockResolvedValue("sent");
+    pinGuestCaseMock.mockReset().mockResolvedValue(null);
     notifyClientOfNewCaseMock.mockClear();
     getCountriesMock.mockReset().mockResolvedValue([{ code: "PL", name: "Polska" }]);
     getPublishedProductIdsMock.mockReset().mockResolvedValue(new Set([PROJECT_ID]));
@@ -191,14 +197,53 @@ describe("submitAdvisoryInquiry as a guest (spec 0066)", () => {
     expect(getClientIdForUserMock).not.toHaveBeenCalled();
   });
 
-  // AC-7, AC-16: guest gets the guest mail, not the panel link mail; analytics use the case id.
-  it("queues the guest mail instead of the client mail and tracks by inquiry id", async () => {
-    await submitAdvisoryInquiry(guestInput());
+  // AC-7, AC-16: guest gets one magic link mail (awaited in the action, not in after()),
+  // not the panel link mail; analytics use the case id.
+  it("sends the magic link in the action instead of the client mail and tracks by inquiry id", async () => {
+    const result = await submitAdvisoryInquiry(guestInput());
 
     await drainAfterQueue();
-    expect(notifyGuestOfNewCaseMock).toHaveBeenCalledWith("inquiry-g");
+    expect(sendGuestCaseLinkMock).toHaveBeenCalledWith({
+      inquiryId: "inquiry-g",
+      email: "gosc@example.test",
+      name: "Gość",
+      phone: "+48123456789",
+      locale: "pl",
+      variant: "new",
+    });
+    expect(result.linkFailed).toBeUndefined();
     expect(notifyClientOfNewCaseMock).not.toHaveBeenCalled();
     expect(trackEventMock).toHaveBeenCalledWith("case_created", expect.objectContaining({ guest: true }), "inquiry-g");
+  });
+
+  // AC-10: existing client email pins the case first, then the "was this you" variant goes out.
+  it("pins to an existing client before sending and uses the existing variant", async () => {
+    pinGuestCaseMock.mockResolvedValue("client-9");
+
+    await submitAdvisoryInquiry(guestInput());
+
+    expect(pinGuestCaseMock).toHaveBeenCalledWith("inquiry-g", "gosc@example.test");
+    expect(sendGuestCaseLinkMock).toHaveBeenCalledWith(expect.objectContaining({ variant: "existing" }));
+    expect(pinGuestCaseMock.mock.invocationCallOrder[0]).toBeLessThan(sendGuestCaseLinkMock.mock.invocationCallOrder[0]);
+  });
+
+  // AC-6, AC-8: only a failed send is visible to the guest, the case stays saved; a skipped send looks like success.
+  it("reports linkFailed only when sending failed, a skipped send looks the same as a sent one", async () => {
+    sendGuestCaseLinkMock.mockResolvedValue("failed");
+    expect(await submitAdvisoryInquiry(guestInput())).toMatchObject({ ok: true, guest: true, linkFailed: true });
+
+    sendGuestCaseLinkMock.mockResolvedValue("skipped");
+    const skipped = await submitAdvisoryInquiry(guestInput());
+    expect(skipped).toMatchObject({ ok: true, guest: true });
+    expect(skipped.linkFailed).toBeUndefined();
+  });
+
+  it("sends no link on an idempotent replay", async () => {
+    findExistingAdvisoryCaseMock.mockResolvedValue({ inquiryId: "inquiry-old", channelId: "channel-old" });
+
+    await submitAdvisoryInquiry(guestInput());
+
+    expect(sendGuestCaseLinkMock).not.toHaveBeenCalled();
   });
 
   // AC-4
@@ -237,6 +282,7 @@ describe("submitAdvisoryInquiry as a guest (spec 0066)", () => {
     expect(result).toMatchObject({ ok: true, guest: true });
     expect(createAdvisoryCaseMock).not.toHaveBeenCalled();
     expect(afterMock).not.toHaveBeenCalled();
+    expect(sendGuestCaseLinkMock).not.toHaveBeenCalled();
   });
 
   it("rejects an invalid guest email", async () => {

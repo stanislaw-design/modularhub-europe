@@ -1,8 +1,9 @@
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { PanelEmptyState } from "@/components/klient/PanelEmptyState";
-import { Heading, Stack, Text } from "@/components/ui";
+import { Button, Heading, Stack, Text } from "@/components/ui";
 import {
+  getClientB2bDetails,
   getClientIdForUser,
   getInquiriesForClient,
   getUnreadOfferInquiryIds,
@@ -38,16 +39,29 @@ export default async function ZapytaniaPanelPage({
     ? await Promise.all([getInquiriesForClient(clientId), getUnreadOfferInquiryIds(clientId), listCasesForClient(clientId)])
     : [[], new Set<string>(), []];
 
+  const b2b = await getClientB2bDetails(session.user.id);
+  const isVerified = b2b?.status === "approved";
+
   return (
     <Stack gap={4}>
-      <Heading level="h1" surface="v5">
-        {t("heading")}
-      </Heading>
+      <div className="flex flex-wrap items-center justify-between gap-brand-3">
+        <Heading level="h1" surface="v5">
+          {t("heading")}
+        </Heading>
+        <Button as="a" href={`/${locale}/project-request`} surface="v5">
+          {t("addInquiry")}
+        </Button>
+      </div>
+      {!isVerified && (
+        <Text surface="v5" tone="muted">
+          {t("verifyHint")}{" "}
+          <Link href={`/${locale}/panel/verification`} className="focus-ring rounded-data font-medium text-brand-v5-amber-strong underline">
+            {t("verifyLink")}
+          </Link>
+        </Text>
+      )}
       {cases.length > 0 && (
         <Stack gap={2}>
-          <Heading level="h2" surface="v5">
-            {t("advisoryHeading")}
-          </Heading>
           <ul className="flex flex-col gap-brand-2">
             {cases.map((row) => (
               <li key={row.id} className="rounded-v5-card border border-brand-v5-line p-brand-2">

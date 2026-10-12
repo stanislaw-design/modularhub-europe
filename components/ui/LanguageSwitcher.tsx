@@ -78,7 +78,10 @@ function LanguageSwitcherMenu({ locale, surface, align, triggerClassName = "" }:
   function switchTo(nextLocale: Locale) {
     if (nextLocale === locale) return;
     startTransition(() => {
-      router.replace(target, { locale: nextLocale });
+      // `scroll: false`: a locale change is the same page in another
+      // language, so Next's default scroll-to-top on navigation would jump
+      // the visitor (and the sticky header) back to the top of the page.
+      router.replace(target, { locale: nextLocale, scroll: false });
     });
   }
 

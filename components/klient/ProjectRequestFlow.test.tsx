@@ -33,8 +33,8 @@ async function completeAboutStep(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByLabelText("Dom"));
 }
 
-async function completeDetailsStep(user: ReturnType<typeof userEvent.setup>, unitCountMin = "12") {
-  await user.type(screen.getByLabelText(/minimalna liczba sztuk/i), unitCountMin);
+async function completeDetailsStep(user: ReturnType<typeof userEvent.setup>, unitCount = "12") {
+  await user.type(screen.getByLabelText(/liczba domów/i), unitCount);
 }
 
 async function goToDetailsStep(user: ReturnType<typeof userEvent.setup>) {
@@ -54,6 +54,45 @@ beforeEach(() => {
 });
 
 describe("ProjectRequestFlow", () => {
+  // Spec 0070: zalogowany klient nie podaje danych kontaktowych drugi raz.
+  describe("with the contact data of a signed in client", () => {
+    const prefill = { name: "Jan Kowalski", email: "jan@example.com", phone: "+48 600 100 200" };
+
+    it("skips the contact step and starts at the project step", () => {
+      render(<ProjectRequestFlow locale="pl" countries={countries} prefill={prefill} />);
+
+      expect(screen.queryByLabelText(/imię i nazwisko/i)).toBeNull();
+      expect(screen.getByRole("heading", { level: 2, name: "O projekcie" })).toBeTruthy();
+    });
+
+    it("sends the prefilled contact data with the request", async () => {
+      const user = userEvent.setup();
+      mockedSubmitProjectRequest.mockResolvedValue({ ok: true, id: "r1" });
+      render(<ProjectRequestFlow locale="pl" countries={countries} prefill={prefill} />);
+
+      await completeAboutStep(user);
+      await user.click(screen.getByRole("button", { name: "Dalej" }));
+      await completeDetailsStep(user);
+      await user.click(screen.getByRole("button", { name: /wyślij/i }));
+
+      await waitFor(() => expect(mockedSubmitProjectRequest).toHaveBeenCalled());
+      expect(mockedSubmitProjectRequest.mock.calls[0][0]).toMatchObject({
+        contactName: "Jan Kowalski",
+        contactEmail: "jan@example.com",
+        contactPhone: "+48 600 100 200",
+      });
+    });
+
+    it("lets the client go back and edit the contact data", async () => {
+      const user = userEvent.setup();
+      render(<ProjectRequestFlow locale="pl" countries={countries} prefill={prefill} />);
+
+      await user.click(screen.getByRole("button", { name: "Wstecz" }));
+
+      expect((screen.getByLabelText(/imię i nazwisko/i) as HTMLInputElement).value).toBe("Jan Kowalski");
+    });
+  });
+
   it("renders exactly one H1, and each step's own H2 heading as the wizard advances (AC-4)", async () => {
     const user = userEvent.setup();
     render(<ProjectRequestFlow locale="pl" countries={countries} />);
@@ -92,17 +131,17 @@ describe("ProjectRequestFlow", () => {
     expect(submit).toBeEnabled();
   });
 
-  it("keeps the final step's submit button disabled while unitCountMin is below the minimum of 10 (AC-5)", async () => {
+  it("keeps the final step's submit button disabled while unitCount is below the minimum of 3 (AC-8)", async () => {
     const user = userEvent.setup();
     render(<ProjectRequestFlow locale="pl" countries={countries} />);
 
     await goToDetailsStep(user);
-    await user.type(screen.getByLabelText(/minimalna liczba sztuk/i), "5");
+    await user.type(screen.getByLabelText(/liczba domów/i), "2");
 
     expect(screen.getByRole("button", { name: "Wyślij zapytanie" })).toBeDisabled();
   });
 
-  it("does not require any field beyond country, project type, families, unit count min, name and e-mail (AC-5)", async () => {
+  it("does not require any field beyond country, project type, families, unit count, name and e-mail (AC-5)", async () => {
     const user = userEvent.setup();
     render(<ProjectRequestFlow locale="pl" countries={countries} />);
 
@@ -114,7 +153,7 @@ describe("ProjectRequestFlow", () => {
 
     await completeAboutStep(user);
     await user.click(screen.getByRole("button", { name: "Dalej" }));
-    expect(screen.getByLabelText(/maksymalna liczba sztuk/i)).not.toBeRequired();
+    expect(screen.queryByLabelText(/maksymalna liczba/i)).not.toBeInTheDocument();
   });
 
   it("lets the user go back to a previous step without losing what they already entered", async () => {
@@ -150,7 +189,7 @@ describe("ProjectRequestFlow", () => {
         countryCode: "PL",
         projectType: "resort",
         families: ["dom"],
-        unitCountMin: 12,
+        unitCount: 12,
       })
     );
   });
@@ -195,7 +234,7 @@ describe("ProjectRequestFlow", () => {
     await waitFor(() => {
       expect(screen.getByRole("alert")).toHaveTextContent(/masz już 3 nierozstrzygnięte zgłoszenia/i);
     });
-    expect(screen.getByLabelText(/minimalna liczba sztuk/i)).toHaveValue(12);
+    expect(screen.getByLabelText(/liczba domów/i)).toHaveValue(12);
   });
 
   it("disables the submit button while the request is pending (AC-9)", async () => {

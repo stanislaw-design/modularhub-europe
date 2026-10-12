@@ -1,6 +1,7 @@
 "use client";
 
 import { Building2, CheckCircle2, Mail, SlidersHorizontal, type LucideIcon } from "lucide-react";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { type FormEvent, type ReactNode, type RefObject, useEffect, useRef, useState, useTransition } from "react";
 import { Button, Card, Checkbox, Input, Label, Select, Stack, Text, Textarea } from "@/components/ui";
@@ -14,9 +15,18 @@ import { ProjectRequestConfirmationCard } from "./ProjectRequestConfirmationCard
 type ProjectType = (typeof PROJECT_TYPES)[number];
 type WizardStep = 0 | 1 | 2;
 
+export interface ContactPrefill {
+  name: string;
+  email: string;
+  phone: string;
+}
+
 interface ProjectRequestFlowProps {
   locale: string;
   countries: Country[];
+  // Dane zalogowanego klienta: krok kontaktowy jest wtedy już wypełniony i
+  // pominięty (wizard zaczyna od kroku "O projekcie"), wciąż dostępny przyciskiem Wstecz.
+  prefill?: ContactPrefill;
 }
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -53,18 +63,17 @@ function StepHeading({
   );
 }
 
-export function ProjectRequestFlow({ locale, countries }: ProjectRequestFlowProps) {
+export function ProjectRequestFlow({ locale, countries, prefill }: ProjectRequestFlowProps) {
   const t = useTranslations("ProjectRequestFlow");
   const tOptions = useTranslations("ProjectOptions");
 
   const [phase, setPhase] = useState<"form" | "sent">("form");
-  const [step, setStep] = useState<WizardStep>(0);
+  const [step, setStep] = useState<WizardStep>(prefill?.name && prefill.email ? 1 : 0);
   const [countryCode, setCountryCode] = useState<CountryCode | null>(null);
   const [projectType, setProjectType] = useState<ProjectType | null>(null);
   const [families, setFamilies] = useState<ProductFamily[]>([]);
   const [locationDetail, setLocationDetail] = useState("");
-  const [unitCountMin, setUnitCountMin] = useState("");
-  const [unitCountMax, setUnitCountMax] = useState("");
+  const [unitCount, setUnitCount] = useState("");
   const [floorAreaM2Min, setFloorAreaM2Min] = useState("");
   const [floorAreaM2Max, setFloorAreaM2Max] = useState("");
   // "katalogowy" (spec 0056 Follow-up, slot dla outdoor-tv) nie ma sensu jako
@@ -77,9 +86,9 @@ export function ProjectRequestFlow({ locale, countries }: ProjectRequestFlowProp
   const [deliveryWindowFrom, setDeliveryWindowFrom] = useState("");
   const [deliveryWindowTo, setDeliveryWindowTo] = useState("");
   const [extrasNote, setExtrasNote] = useState("");
-  const [contactName, setContactName] = useState("");
-  const [contactEmail, setContactEmail] = useState("");
-  const [contactPhone, setContactPhone] = useState("");
+  const [contactName, setContactName] = useState(prefill?.name ?? "");
+  const [contactEmail, setContactEmail] = useState(prefill?.email ?? "");
+  const [contactPhone, setContactPhone] = useState(prefill?.phone ?? "");
   const [emailTouched, setEmailTouched] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -90,12 +99,12 @@ export function ProjectRequestFlow({ locale, countries }: ProjectRequestFlowProp
   }, [step, phase]);
 
   const emailValid = EMAIL_PATTERN.test(contactEmail);
-  const unitCountMinValue = Number(unitCountMin);
-  const unitCountMinValid = unitCountMin.trim().length > 0 && Number.isInteger(unitCountMinValue) && unitCountMinValue >= 10;
+  const unitCountValue = Number(unitCount);
+  const unitCountValid = unitCount.trim().length > 0 && Number.isInteger(unitCountValue) && unitCountValue >= 3;
 
   const contactValid = contactName.trim().length > 0 && emailValid;
   const aboutValid = countryCode !== null && projectType !== null && families.length > 0;
-  const detailsValid = unitCountMinValid;
+  const detailsValid = unitCountValid;
   const canSubmit = contactValid && aboutValid && detailsValid && !isPending;
 
   function toggleFamily(family: ProductFamily) {
@@ -123,15 +132,15 @@ export function ProjectRequestFlow({ locale, countries }: ProjectRequestFlowProp
     setError(null);
 
     const input: SubmitProjectRequestInput = {
+      locale,
       contactName: contactName.trim(),
       contactEmail: contactEmail.trim(),
       countryCode,
       projectType,
       families,
-      unitCountMin: unitCountMinValue,
+      unitCount: unitCountValue,
       contactPhone: toOptionalString(contactPhone),
       locationDetail: toOptionalString(locationDetail),
-      unitCountMax: toOptionalNumber(unitCountMax),
       floorAreaM2Min: toOptionalNumber(floorAreaM2Min),
       floorAreaM2Max: toOptionalNumber(floorAreaM2Max),
       completionStandard: completionStandard ?? undefined,
@@ -378,37 +387,32 @@ export function ProjectRequestFlow({ locale, countries }: ProjectRequestFlowProp
           {step === 2 && (
             <Stack gap={4}>
               <StepHeading headingRef={stepHeadingRef}>{t("sectionDetailsHeading")}</StepHeading>
-              <div className="grid grid-cols-1 gap-brand-3 sm:grid-cols-2">
-                <Stack gap={1}>
-                  <Label htmlFor="project-request-unit-min" required surface="v5">
-                    {t("unitCountMinLabel")}
-                  </Label>
-                  <Input
-                    id="project-request-unit-min"
-                    type="number"
-                    min={10}
-                    step={1}
-                    required
-                    surface="v5"
-                    value={unitCountMin}
-                    onChange={(event) => setUnitCountMin(event.target.value)}
-                  />
-                </Stack>
-                <Stack gap={1}>
-                  <Label htmlFor="project-request-unit-max" surface="v5">
-                    {t("unitCountMaxLabel")}
-                  </Label>
-                  <Input
-                    id="project-request-unit-max"
-                    type="number"
-                    min={10}
-                    step={1}
-                    surface="v5"
-                    value={unitCountMax}
-                    onChange={(event) => setUnitCountMax(event.target.value)}
-                  />
-                </Stack>
-              </div>
+              <Stack gap={1}>
+                <Label htmlFor="project-request-unit-count" required surface="v5">
+                  {t("unitCountLabel")}
+                </Label>
+                <Input
+                  id="project-request-unit-count"
+                  type="number"
+                  min={3}
+                  step={1}
+                  required
+                  surface="v5"
+                  value={unitCount}
+                  onChange={(event) => setUnitCount(event.target.value)}
+                />
+                <Text tone="muted" surface="v5" className="text-data">
+                  {t("unitCountHint")}
+                </Text>
+                {unitCount.trim().length > 0 && !unitCountValid && (
+                  <Text tone="muted" surface="v5" className="text-data">
+                    {t("unitCountSmallHint")}{" "}
+                    <Link href={`/${locale}/results`} className="underline">
+                      {t("unitCountSmallHintLink")}
+                    </Link>
+                  </Text>
+                )}
+              </Stack>
               <div className="grid grid-cols-1 gap-brand-3 sm:grid-cols-2">
                 <Stack gap={1}>
                   <Label htmlFor="project-request-area-min" surface="v5">

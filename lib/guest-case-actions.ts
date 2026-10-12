@@ -2,22 +2,19 @@
 
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { signIn } from "@/auth";
-import { countActiveLoginTokens, MAX_ACTIVE_LOGIN_TOKENS } from "@/lib/cases/guest";
+import { sendGuestCaseLink } from "@/lib/cases/guest-link";
 import { db } from "@/lib/db/client";
-import { inquiry, pendingRegistration, users } from "@/lib/db/schema";
+import { inquiry } from "@/lib/db/schema";
 import { routing } from "@/lib/i18n/routing";
 import { captureError } from "@/lib/observability";
 
-// Spec 0066 AC-8: konto na jawne kliknięcie gościa. Akcja jest publiczna, więc
-// odpowiada zawsze tak samo i niczego nie zdradza o istnieniu kont: tylko błąd
-// samej wysyłki linku daje { ok: false }, żeby dało się ponowić.
+// Spec 0066 AC-8: ponowna wysyłka linku do sprawy gościa (ekran potwierdzenia
+// i strona claim). Akcja jest publiczna, więc odpowiada zawsze tak samo i
+// niczego nie zdradza o istnieniu kont: tylko błąd samej wysyłki linku daje
+// { ok: false }, żeby dało się ponowić.
 const inputSchema = z.object({ inquiryId: z.uuid(), locale: z.string().min(2).max(5) });
 
-export async function requestAccountForGuestCase(input: {
-  inquiryId: string;
-  locale: string;
-}): Promise<{ ok: boolean }> {
+export async function resendGuestCaseLink(input: { inquiryId: string; locale: string }): Promise<{ ok: boolean }> {
   const parsed = inputSchema.safeParse(input);
   if (!parsed.success || !(routing.locales as readonly string[]).includes(parsed.data.locale)) return { ok: true };
   const { inquiryId, locale } = parsed.data;
@@ -33,35 +30,20 @@ export async function requestAccountForGuestCase(input: {
       })
       .from(inquiry)
       .where(eq(inquiry.id, inquiryId));
-    // Tylko sprawa gościa z niepotwierdzonym kontaktem (przypięte z AC-10 nic nie robią).
-    if (!row || row.clientId !== null || row.verifiedAt !== null) return { ok: true };
-    const email = row.email.toLowerCase();
+    // Tylko sprawy z niepotwierdzonym kontaktem (gość albo przypięta z AC-10).
+    if (!row || row.verifiedAt !== null) return { ok: true };
 
-    const [existingUser] = await db.select({ role: users.role }).from(users).where(eq(users.email, email));
-    if (existingUser) {
-      if (existingUser.role !== "client") return { ok: true };
-    } else {
-      const [pending] = await db
-        .select({ role: pendingRegistration.role })
-        .from(pendingRegistration)
-        .where(eq(pendingRegistration.email, email));
-      if (pending) {
-        // Istniejącej oczekującej rejestracji nigdy nie nadpisujemy.
-        if (pending.role !== "client") return { ok: true };
-      } else {
-        await db
-          .insert(pendingRegistration)
-          .values({ email, role: "client", payload: { name: row.name, phone: row.phone } })
-          .onConflictDoNothing({ target: pendingRegistration.email });
-      }
-    }
-
-    if ((await countActiveLoginTokens(email, new Date())) >= MAX_ACTIVE_LOGIN_TOKENS) return { ok: true };
-
-    await signIn("resend", { email, redirect: false, redirectTo: `/${locale}/panel/inquiries/${inquiryId}` });
-    return { ok: true };
+    const result = await sendGuestCaseLink({
+      inquiryId,
+      email: row.email,
+      name: row.name,
+      phone: row.phone,
+      locale,
+      variant: row.clientId ? "existing" : "new",
+    });
+    return { ok: result !== "failed" };
   } catch (error) {
-    captureError(error, { path: "requestAccountForGuestCase" });
+    captureError(error, { path: "resendGuestCaseLink" });
     return { ok: false };
   }
 }

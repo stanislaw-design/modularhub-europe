@@ -1,0 +1,67 @@
+# 0070 część B. Przetarg, format oferty, publikacja, wybór i połączenie
+
+## Summary
+
+Część B wprowadza nowy model: zapytanie ma termin, producenci dopasowani regułami składają oferty we wspólnym formacie, klient widzi oferty dopiero po publikacji podsumowania przez ModularHub, wybiera jedną, a ModularHub łączy strony i zapisuje zwycięzcę. Obejmuje też próg 3 domów i zapytanie składane przez doradcę. To serce zmiany, budowane w tygodniu 2.
+
+Kryteria: **AC-8 do AC-22** oraz **AC-27** (migracja jednej liczby domów) z [index.md](index.md). Załączniki inwestora to osobna [część D](0070-czesc-d-zalaczniki-inwestora.md). Model danych, funkcja dopasowania, niezmienniki i bezpieczeństwo są w [index.md](index.md) i nie są tu powtarzane.
+
+## Zakres
+
+**W zakresie**: próg 3, termin, dopasowanie i wyjątki, format oferty, bramka publikacji, podsumowanie klienta, wybór i połączenie, wynik producenta, zamknięcie i wznowienie, zapytanie doradcy, zapytanie o produkt na tej samej ścieżce. **Poza zakresem**: maile i przypomnienia (część C), strony prawne.
+
+## Zachowanie i akcje
+
+**Próg 3 i jedna liczba (AC-8, AC-27).** Liczba domów w zapytaniu to jedna dokładna liczba całkowita od 3, bo producent potrzebuje dokładnej liczby do oferty. Pola `unitCountMin` i `unitCountMax` zastępuje jedno pole `unitCount` (kolumna `unit_count`) na obu tabelach, bez zakresu, bez plusa i bez trybu orientacyjnego. Kto nie zna liczby, podaje liczbę pierwszego etapu i opisuje resztę w uwagach (wskazówka pod polem). Zmiana w `lib/project-request-actions.ts` (dwa schematy Zod, usunięte `refine` na zakres), `lib/project-request-specs.ts`, `lib/db/schema.ts`, `lib/db/queries.ts` (w tym surowy SQL z `row.unit_count_min`), `lib/notifications/large-order-team.ts` (mail zespołu bez "+"), ekranach admina i producenta, w `ProjectRequestFlow`, `BulkProductInquiryModal`, w czterech plikach `messages/*.json`, w `CHECK` obu tabel (migracja 2, rozszerz) oraz w testach i `e2e`. Stare kolumny znikają migracją 5 (zwęż), po przejściu całego kodu. Stare zapytania z zakresem dostają `unit_count` z dawnego minimum i zdanie o zakresie w uwagach. Funkcja dopasowania porównuje moc producenta (`unitsPerMonth` razy 12) z `unit_count`. Pod polem liczby domów dla 1 lub 2 pojawia się wskazówka z linkiem do zwykłej ścieżki zapytania. Wskazówka pod polami `extrasNote` i `locationDetail` mówi teraz, że zapytanie widzą dopasowani producenci.
+
+**Termin i język (AC-9).** `submitProjectRequest` i `submitBulkProductInquiry` ustawiają `deadline_at` na teraz plus 14 dni i `contact_locale` z języka strony (parametr `locale` przekazany z komponentu formularza, walidowany do pl, en, de, nl). `extendDeadline(id, kind, newDeadline, reason)` (admin) zmienia termin. Nowy termin musi być w przyszłości. Skrócenie poniżej teraz jest niedozwolone (do tego służy zamknięcie).
+
+**Dopasowanie (AC-10).** Zapytanie SQL z sekcji "Dopasowanie" w [index.md](index.md) jako jedna funkcja w `lib/db/queries.ts` (fragment SQL wielokrotnego użytku oraz wariant dla pojedynczego producenta i zapytania, a do tego odwrotna `getMatchedProducersForRequest`). Używana w `getOpenProjectRequestsForBoard`, `getProjectRequestForBoardDetail` i w `submitProjectQuote` (zastępuje sprawdzenie samego statusu `approved` z AC-13 specyfikacji 0062). Filtry statusu w tych trzech miejscach (dziś `open` i `quoted`, `queries.ts` i `project-quote-actions.ts`) rozszerzamy o `published`. Zapytanie bez dopasowanych producentów: zespół dostaje alert (część C). Ekran wyjątków w szczegółach admina: lista producentów z przełącznikiem dodaj lub wyklucz, woła `setProducerOverride`. Tablica pokazuje producentowi termin i stan jego własnej oferty, nie status zapytania (AC-22).
+
+**Format oferty (AC-11).** `submitProjectQuote` przyjmuje nowe pola z [index.md](index.md). Schemat Zod w nowym `lib/project-quote-specs.ts` (obok `lib/project-request-specs.ts`). `QuoteForm` dostaje sekcje: cena, zakres, logistyka, warunki, plik PDF. Każda pozycja logistyki ma przełącznik trybu (kwota, widełki, do późniejszej wyceny). Walidacja: pola obowiązkowe z AC-11, `valid_until` w przyszłości, `maxAmountCents` nie mniejsze niż `amountCents`.
+
+**Blokady (AC-12).** Warunki: `now() <= deadline_at`, brak `selected_quote_id`, status zapytania `open`, `quoted` lub `published`. Obowiązują w SQL obu kroków batcha zapisu oferty: w kroku, który ustawia poprzednią aktywną ofertę producenta na `superseded`, i w kroku `INSERT` (warunek `EXISTS` na zapytaniu). Samo sprawdzenie w odczycie przed batchem nie wystarcza, bo wyścig z wyborem klienta mógłby zastąpić wybraną ofertę. Po przedłużeniu terminu oferty składane są normalnie, ale mają `published_to_client_at = NULL` do publikacji. Producent z już opublikowaną ofertą nie może złożyć nowej wersji, dopóki administrator nie wywoła `unpublishQuote` (wtedy oferta wraca do stanu nieopublikowanego i producent może ją poprawić).
+
+**Bramka publikacji (AC-13, AC-14).** Wszystkie odczyty klienta (`getProjectRequestsWithQuotesForClient`, `getProjectQuotePdfUrl`) filtrują oferty po `published_to_client_at IS NOT NULL` i statusie `active`, `accepted` lub `rejected` (nigdy `superseded`). Złożenie oferty nie wysyła klientowi żadnego maila ani linku logowania: wywołanie `notifyContactOfNewQuote` w `submitProjectQuote` jest usuwane, a tworzenie `pending_registration` przenosi się do maila o publikacji (część C). `publishSummary(id, kind, reviewedAttachments)` (admin) wymaga potwierdzenia przeglądu PDF i tekstów ofert pod kątem danych kontaktowych producenta i co najmniej jednej aktywnej oferty. W jednym `db.batch` ustawia `published_to_client_at = now()` na aktywnych ofertach bez znacznika, status zapytania na `published` i `summary_published_at` przy pierwszej publikacji. `setAdvisorNote(quoteId, text)` zapisuje komentarz, do 500 znaków, widoczny klientowi dopiero po publikacji tej oferty. `unpublishQuote(quoteId)` ustawia `published_to_client_at` na NULL, tylko gdy zapytanie nie ma wyboru klienta.
+
+**Podsumowanie klienta (AC-15).** Rozbudowa `/panel/quotes`: dla każdego zapytania tabela porównawcza z wierszami: cena (z oznaczeniem netto lub brutto), cena za sztukę, zakres w cenie, zakres poza ceną, transport, montaż, dźwig, plan płatności, ważność, gwarancja, termin produkcji, okno dostawy, komentarz ModularHub, certyfikaty producenta. Kolumny to producenci. Wiersze, w których oferta nie podała wartości, pokazują "brak danych" lub "do wyceny", nigdy zero (nieznany koszt jest pokazany jako nieznany, zasada z badania doradczego). Brak maila, telefonu i adresu strony producenta w polach systemu. Pod tabelą lista załączników (PDF przez podpisane linki).
+
+**Wybór i połączenie (AC-16, AC-17).** `selectProjectQuote(quoteId)` (klient, własne zapytanie, oferta `active` i opublikowana):
+1. Zapisuje na zapytaniu `selected_quote_id` i `selected_at = now()`, w jednym zapisie jednego wiersza. Warunek w SQL: zapytanie bez połączenia (`contact_revealed_at` na jego ofertach jest puste) i oferta nadal `active`. Zmiana wyboru to ten sam zapis z inną ofertą.
+2. Woła `connectSelection(zapytanie)`.
+
+`connectSelection` czyta wybór i `b2bVerificationStatus` klienta w samym SQL kroku zapisu i jest idempotentna. Gdy zapytanie ma wybór, a B2B klienta to `approved`, wykonuje w jednym `db.batch`: wybrana oferta na `accepted` z `contact_revealed_at = now()`, pozostałe aktywne oferty zapytania na `rejected`, zapytanie na `accepted`. Gdy B2B nie jest zatwierdzone, nic nie zmienia, a klient widzi komunikat "Czekamy na potwierdzenie danych firmy, producent otrzyma Twój kontakt zaraz po niej". Zespół dostaje powiadomienie (część C). Wołają ją cztery miejsca: `selectProjectQuote`, `setClientB2bVerification` (po zapisaniu statusu `approved`, dla wszystkich zapytań tego klienta z wyborem bez połączenia), godzinne zadanie czyszczące (część C) i przycisk w adminie dla oczekujących. Kolejność "najpierw zapis faktu, potem `connectSelection`" po obu stronach (wybór klienta i zatwierdzenie B2B) powoduje, że przy równoczesnych zdarzeniach drugie zdarzenie zawsze widzi oba fakty. Po `contact_revealed_at` zmiana wyboru jest odrzucana ("Skontaktuj się z ModularHub"). Zmiana po połączeniu jest ręczna, poza zakresem kodu.
+
+**Wynik producenta (AC-18).** `reportQuoteOutcome(quoteId, outcome)` (zwycięski producent) ustawia `producer_outcome` i `producer_outcome_at`, tylko raz, zmiana wymaga admina. Przy połączeniu przegrani producenci (z aktywną ofertą) dostają neutralną informację (część C), bez nazwy zwycięzcy i bez cen. Panel `board-quotes` pokazuje status "wybrano innego producenta" bez szczegółów.
+
+**Zamknięcie i wznowienie (AC-19).** `closeRequest(id, kind, reason)` (admin) ustawia `status = closed`, `closed_at`, `closed_reason` i wysyła neutralną informację producentom z aktywną ofertą. `reopenRequest(id, kind)` (klient, tylko własne zapytanie, tylko gdy `closed_at` jest nie starsze niż 30 dni i powód to `client_cancelled`, `no_offers` lub `expired`) przywraca status `open` lub `quoted`, ustawia nowy `deadline_at` na teraz plus 14 dni, czyści `closed_at`, `closed_reason`, `selected_quote_id` i `selected_at`.
+
+**Zapytanie w imieniu klienta (AC-20).** `createRequestOnBehalf` (admin) używa tej samej walidacji co `submitProjectRequest`, wymaga adresu e mail klienta, jawnego wyboru języka klienta (bez wartości domyślnej, bo admin pracuje po polsku) i niepustego `staff_consent_note`, ustawia `created_by_staff_user_id`, nie ustawia `clientId`. Klient dostaje mail (część C) i dowiązuje się przy pierwszym logowaniu tym adresem, jak w 0037. Limit trzech otwartych zapytań na e mail nadal obowiązuje.
+
+**Zapytanie o produkt (AC-21).** Te same pola terminu, ta sama bramka publikacji i wybór. Dla `bulk_product_inquiry` odbiorcą jest `product.producerId`, bez dopasowania. Tabela podsumowania ma jedną kolumnę.
+
+## Przypadki brzegowe
+
+- Dwa równoległe wybory klienta: zapis jednego wiersza zapytania wygrywa ostatni, bez indeksu unikalnego, więc nie ma błędu naruszenia unikalności.
+- Producent składa ofertę w chwili wyboru klienta: warunek `selected_quote_id IS NULL` w obu krokach batcha sprawia, że wybrana oferta nie zostanie zastąpiona.
+- Klient wybiera ofertę, która w międzyczasie przestała być `active` lub opublikowana (admin cofnął publikację): akcja odrzuca z komunikatem i prosi o odświeżenie.
+- Zatwierdzenie B2B po wyborze, gdy zapytanie zostało w międzyczasie zamknięte: `connectSelection` pomija zamknięte zapytania.
+- Wznowienie zamkniętego zapytania, które miało wybór: wybór jest zerowany.
+- Zapytanie bez ofert po terminie: zostaje w `open`, zespół dostaje alert (część C), zamknięcie z powodem `expired` robi administrator.
+
+## Krytyczne scenariusze testowe
+
+- Pełna ścieżka dwóch producentów aż do wyniku, verifies **AC-9, AC-10, AC-11, AC-14, AC-15, AC-16, AC-17, AC-18**
+- Producent bez dopasowania wywołuje `submitProjectQuote` bezpośrednio i dostaje odmowę, verifies **AC-10**
+- Oferta po terminie odrzucona, po przedłużeniu przyjęta i ukryta, także dla zapytania w statusie `published`, verifies **AC-12, AC-13**
+- Klient próbuje otworzyć PDF nieopublikowanej oferty i dostaje "nie znaleziono", złożenie oferty nie wysyła mu maila, verifies **AC-13**
+- Wyścig wyboru i nowej oferty: wybrana oferta pozostaje `active`, verifies **AC-12, AC-16**
+- Wybór bez B2B, potem zatwierdzenie łączy strony, także przy zdarzeniach równoległych, verifies **AC-17**
+- Zmiana wyboru przed połączeniem poprawna, po połączeniu odrzucona, verifies **AC-16**
+- Cofnięcie publikacji pozwala na nową wersję oferty, bez cofnięcia nowa wersja jest odrzucona, verifies **AC-14**
+- Zapytanie na 2 domy odrzucone, na 3 przyjęte, a pole zakresu nie jest już przyjmowane, verifies **AC-8**
+- Migracja liczby: dawny zakres 10 do 20 daje `unit_count = 10` i zdanie w uwagach, verifies **AC-27**
+- Doradca bez `staff_consent_note` lub bez wybranego języka dostaje odmowę, verifies **AC-20**
+- Zapytanie o produkt przechodzi tę samą ścieżkę z jedną kolumną, verifies **AC-21**
+- Producent nie widzi cudzych ofert ani kontaktu przed połączeniem, ani statusu zapytania, verifies **AC-22**
+- Wznowienie po 31 dniach odrzucone, verifies **AC-19**

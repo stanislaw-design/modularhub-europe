@@ -244,7 +244,7 @@ export function ResultCard({
         )}
         {onToggleCompare && (
           <label className="focus-ring relative z-10 flex w-fit cursor-pointer items-center gap-2 rounded-data">
-            <span className="sr-only">{t("selectForCompare", { name: project.name })}</span>
+            <span className="sr-only">{t(project.spaSubcategory === "sauna" ? "selectForCompareSauna" : "selectForCompare", { name: project.name })}</span>
             <Checkbox
               surface="v5"
               checked={compareSelected ?? false}

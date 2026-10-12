@@ -174,6 +174,7 @@
     "floorPlanAvailable": "Rzut dostępny",
     "floorPlanLinkLabel": "Zobacz rzut projektu {name}",
     "selectForCompare": "Porównaj {name} z innymi domami",
+    "selectForCompareSauna": "Porównaj {name} z innymi saunami",
     "compareLabel": "Porównaj"
   },
   "ProductFamilyNoun": {
@@ -832,7 +833,7 @@
     "ctaLogin": "Zaloguj się"
   },
   "KlientPanelZapytaniaPage": {
-    "heading": "Zapytania",
+    "heading": "Zapytania do ModularHub",
     "emptyTitle": "Nie masz jeszcze żadnych wysłanych zapytań",
     "emptyDescription": "Wybierz dom na wynikach wyszukiwania i wyślij zapytanie, żeby zobaczyć je tutaj wraz ze statusem.",
     "columnProducts": "Produkty",
@@ -842,7 +843,6 @@
     "statusOffered": "Otrzymano ofertę",
     "statusClosed": "Zamknięte",
     "unreadOfferLabel": "Nowa oferta",
-    "advisoryHeading": "Zapytania do ModularHub",
     "caseStage": {
       "nowe": "Nowe zapytanie",
       "rozmowa": "Rozmowa z doradcą",
@@ -854,7 +854,10 @@
       "wspolne_ustalenia": "Wspólne ustalenia",
       "zamkniete_bez_wyboru": "Zakończone bez wyboru",
       "legacy_direct": "Zapytanie bezpośrednie"
-    }
+    },
+    "addInquiry": "Dodaj zapytanie o duże zamówienie",
+    "verifyHint": "Zweryfikuj konto firmy, żeby po wyborze oferty dostać kontakt z producentem.",
+    "verifyLink": "Zweryfikuj konto"
   },
   "ClientPanelQuotesPage": {
     "heading": "Wyceny",
@@ -1308,6 +1311,49 @@
       "dokumenty": "Dokumenty i pytania"
     }
   },
+  "SaunaCategoryPage": {
+    "metaTitle": "Sauny | ModularHub Europe",
+    "metaDescription": "Sauny modułowe od sprawdzonych producentów. Porównaj liczbę miejsc, drewno, izolację i cenę, filtruj po producencie i wyślij zapytanie.",
+    "heading": "Sauny",
+    "modelCount": "Modeli: {count}",
+    "intro": "Gotowe sauny modułowe od producentów z naszej platformy. Zawęź listę po liczbie miejsc, cenie lub producencie, a potem zestaw do trzech modeli obok siebie.",
+    "breadcrumbAriaLabel": "Ścieżka nawigacji",
+    "breadcrumbHome": "Strona główna",
+    "breadcrumbCurrent": "Sauny",
+    "filtersAriaLabel": "Filtry saun",
+    "seatingLabel": "Liczba miejsc",
+    "seatingOption": "{count}+ miejsc",
+    "priceLabel": "Cena od",
+    "priceUpTo": "do {max} €",
+    "priceRange": "{min} do {max} €",
+    "priceFrom": "od {min} €",
+    "producerLabel": "Producent",
+    "sortLabel": "Sortuj",
+    "sortPriceAsc": "Cena rosnąco",
+    "sortPriceDesc": "Cena malejąco",
+    "clearFilters": "Wyczyść filtry",
+    "compare": {
+      "heading": "Porównanie saun",
+      "back": "Wróć do listy saun",
+      "model": "Model",
+      "producer": "Producent",
+      "price": "Cena od",
+      "priceOnRequest": "Wycena indywidualna",
+      "seating": "Liczba miejsc",
+      "interiorWood": "Drewno wnętrza",
+      "cladding": "Okładzina",
+      "benchMaterial": "Materiał ławek",
+      "insulation": "Izolacja",
+      "glazing": "Przeszklenie",
+      "changingArea": "Przebieralnia",
+      "changingAreaYes": "Tak",
+      "changingAreaNo": "Nie",
+      "electrical": "Wymagania elektryczne",
+      "unavailable": "Ta sauna jest niedostępna",
+      "unavailableNotice": "Część wybranych saun nie jest już dostępna.",
+      "noData": "Brak danych"
+    }
+  },
   "ResultsFilterBar": {
     "sortPriceAsc": "Cena: rosnąco",
     "sortPriceDesc": "Cena: malejąco",
@@ -1349,7 +1395,8 @@
     "categoryLinksAriaLabel": "Kategorie w grupie Więcej niż dom",
     "categoryLinkSpa": "Spa modułowe",
     "categoryLinkContainers": "Kontenery",
-    "categoryLinkOutdoorTv": "Outdoor TV"
+    "categoryLinkOutdoorTv": "Outdoor TV",
+    "categoryLinkSauna": "Sauny"
   },
   "FloatingSearchButton": {
     "prompt": "Czego dziś szukasz?",
@@ -1460,10 +1507,10 @@
     "privacyLinkLabel": "Polityka prywatności",
     "rateLimitedError": "Wysłano już kilka zapytań z tego adresu e mail. Spróbuj ponownie jutro albo poczekaj na kontakt doradcy.",
     "confirmTitle": "Zapytanie wysłane",
-    "confirmBody": "Doradca ModularHub odezwie się do Ciebie mailem. Możesz też założyć konto, żeby śledzić sprawę i rozmawiać z doradcą w aplikacji.",
-    "createAccountCta": "Załóż konto i śledź sprawę",
-    "accountSentMessage": "Sprawdź skrzynkę: wysłaliśmy link, który dokończy zakładanie konta.",
-    "accountSendError": "Nie udało się wysłać linku. Spróbuj ponownie."
+    "confirmBody": "Sprawdź skrzynkę, wysłaliśmy link do Twojej sprawy. Jedno kliknięcie w mailu otworzy ją i założy Twoje konto. Doradca ModularHub odezwie się też mailem.",
+    "linkSendError": "Zapytanie zapisaliśmy, ale nie udało się wysłać linku do Twojej sprawy. Spróbuj ponownie.",
+    "resendPrompt": "Nie dostałeś maila?",
+    "resendLabel": "Wyślij ponownie"
   },
   "ProfileForm": {
     "nameLabel": "Imię i nazwisko",
@@ -1622,7 +1669,9 @@
     "selectedCount": "Do porównania: {count}/{max}",
     "needTwoHint": "Wybierz jeszcze co najmniej jeden dom",
     "compareCta": "Porównaj domy",
-    "clear": "Wyczyść"
+    "clear": "Wyczyść",
+    "compareCtaSauna": "Porównaj sauny",
+    "needTwoHintSauna": "Wybierz jeszcze co najmniej jedną saunę"
   },
   "DeleteProductDialog": {
     "heading": "Usunąć produkt?",
@@ -1652,7 +1701,7 @@
     "sectionContactHeading": "Twoje dane",
     "sectionInvestorHeading": "Status inwestora",
     "investorLabel": "Jestem inwestorem",
-    "investorDescription": "Planujesz zamówienie od 10 domów wzwyż.",
+    "investorDescription": "Planujesz zamówienie od 3 domów wzwyż.",
     "nameLabel": "Imię i nazwisko",
     "phoneLabel": "Telefon",
     "companyNameLabel": "Nazwa firmy",
@@ -1778,6 +1827,10 @@
     "unreadDecisionLabel": "Klient podjął decyzję"
   },
   "ProducerPanelBoardPage": {
+    "filtersAriaLabel": "Filtry tablicy ogłoszeń",
+    "filterAll": "Wszystkie",
+    "filterClear": "Wyczyść filtry",
+    "emptyFiltered": "Brak zapytań pasujących do wybranych filtrów.",
     "heading": "Tablica ogłoszeń",
     "intro": "Otwarte zapytania o duże zamówienia od wszystkich inwestorów — złóż wycenę na dowolne z nich.",
     "notApprovedHeading": "Tablica jest dostępna tylko dla zweryfikowanych wolumenowo producentów",
@@ -1801,6 +1854,8 @@
     "columnFloorArea": "Metraż (m²)"
   },
   "ProducerBoardDetailPage": {
+    "scopeHeading": "Zakres zamówienia",
+    "scheduleHeading": "Termin i lokalizacja",
     "heading": "Szczegóły zapytania",
     "backToBoard": "Wróć do tablicy",
     "countryLabel": "Kraj",
@@ -1823,12 +1878,13 @@
     "ownQuoteStatusSuperseded": "Zastąpiona nowszą"
   },
   "QuoteForm": {
+    "heading": "Twoja wycena",
     "intro": "Podaj wycenę na to zapytanie.",
     "revisionIntro": "Poprawiasz wcześniej złożoną wycenę — nowa wersja zastąpi poprzednią.",
     "totalPriceLabel": "Cena całkowita (€)",
-    "unitPriceLabel": "Cena za sztukę (€, opcjonalnie)",
-    "leadTimeLabel": "Proponowany czas realizacji (tygodnie, opcjonalnie)",
-    "notesLabel": "Notatka (opcjonalnie)",
+    "unitPriceLabel": "Cena za sztukę (€)",
+    "leadTimeLabel": "Proponowany czas realizacji (tygodnie)",
+    "notesLabel": "Notatka",
     "submitQuote": "Wyślij wycenę",
     "submitRevision": "Wyślij poprawioną wycenę",
     "submitting": "Wysyłanie…",
@@ -1836,7 +1892,7 @@
     "genericError": "Nie udało się zapisać wyceny. Spróbuj ponownie."
   },
   "ProjectQuotePdfUploadStep": {
-    "label": "PDF wyceny (opcjonalnie)",
+    "label": "PDF wyceny",
     "chooseFile": "Wybierz plik",
     "replaceFile": "Zastąp plik",
     "uploading": "Wgrywanie…",
@@ -1879,9 +1935,9 @@
   },
   "BulkOrdersShowcase": {
     "heading": "Projekty inwestycyjne i produkcja seryjna",
-    "subheading": "Duże zamówienia od 10 domów: jedno zapytanie trafia do zweryfikowanych, gotowych na wolumen producentów.",
+    "subheading": "Duże zamówienia od 3 domów: jedno zapytanie trafia do zweryfikowanych, gotowych na wolumen producentów.",
     "investorHeading": "Dla inwestorów",
-    "investorSubheading": "10+ domów",
+    "investorSubheading": "od 3 domów",
     "investorPoint1": "Indywidualne porównanie producentów",
     "investorPoint2": "Wsparcie przy dużych projektach",
     "investorPoint3": "Terminy, moce produkcyjne i standard",
@@ -1898,12 +1954,12 @@
     "producerSignatureLine2": "Budujemy więcej"
   },
   "ProjectRequestPage": {
-    "metaTitle": "Zgłoś duży projekt B2B (10+ domów) | ModularHub Europe",
-    "metaDescription": "Wyślij jedno zapytanie o duży projekt inwestycyjny (10 i więcej domów modułowych) do zweryfikowanych producentów w Europie, bez zakładania konta."
+    "metaTitle": "Zgłoś duży projekt B2B (od 3 domów) | ModularHub Europe",
+    "metaDescription": "Wyślij jedno zapytanie o duży projekt inwestycyjny (3 i więcej domów modułowych) do zweryfikowanych producentów w Europie, bez zakładania konta."
   },
   "ProjectRequestFlow": {
     "heading": "Zgłoś duży projekt",
-    "intro": "Wyślij jedno zapytanie o projekt obejmujący 10 i więcej domów modułowych — trafi ono do zweryfikowanych, gotowych na wolumen producentów w wybranym kraju.",
+    "intro": "Wyślij jedno zapytanie o projekt obejmujący 3 i więcej domów modułowych — trafi ono do zweryfikowanych, gotowych na wolumen producentów w wybranym kraju.",
     "sentHeading": "Zapytanie wysłane",
     "backToHome": "Wróć do strony głównej",
     "sectionAboutHeading": "O projekcie",
@@ -1912,8 +1968,10 @@
     "familiesLegend": "Rodzina produktu",
     "locationDetailLabel": "Lokalizacja (opcjonalnie)",
     "sectionDetailsHeading": "Szczegóły",
-    "unitCountMinLabel": "Minimalna liczba sztuk",
-    "unitCountMaxLabel": "Maksymalna liczba sztuk (opcjonalnie)",
+    "unitCountLabel": "Liczba domów",
+    "unitCountHint": "Podaj jedną dokładną liczbę, od 3 domów. Nie znasz jej jeszcze? Wpisz liczbę pierwszego etapu, a resztę opisz w uwagach.",
+    "unitCountSmallHint": "Przy 1 lub 2 domach użyj zwykłej ścieżki zapytania:",
+    "unitCountSmallHintLink": "wybierz projekt w katalogu i zapytaj producenta.",
     "floorAreaMinLabel": "Powierzchnia od (m², opcjonalnie)",
     "floorAreaMaxLabel": "Powierzchnia do (m², opcjonalnie)",
     "completionStandardLabel": "Standard wykończenia (opcjonalnie)",
@@ -1990,8 +2048,10 @@
     "heading": "Zapytaj o większą ilość",
     "nameLabel": "Imię i nazwisko",
     "phoneLabel": "Telefon (opcjonalnie)",
-    "unitCountMinLabel": "Minimalna liczba sztuk",
-    "unitCountMaxLabel": "Maksymalna liczba sztuk (opcjonalnie)",
+    "unitCountLabel": "Liczba domów",
+    "unitCountHint": "Podaj jedną dokładną liczbę, od 3 domów. Nie znasz jej jeszcze? Wpisz liczbę pierwszego etapu, a resztę opisz w uwagach.",
+    "unitCountSmallHint": "Przy 1 lub 2 domach użyj zwykłej ścieżki zapytania:",
+    "unitCountSmallHintLink": "wybierz projekt w katalogu i zapytaj producenta.",
     "deliveryCountryLabel": "Kraj dostawy",
     "noteLabel": "Dodatkowe uwagi (opcjonalnie)",
     "cancel": "Anuluj",
@@ -2016,7 +2076,8 @@
     "collapseSidebar": "Zwiń menu",
     "expandSidebar": "Rozwiń menu",
     "board": "Tablica ogłoszeń",
-    "boardQuotes": "Moje wyceny"
+    "boardQuotes": "Moje wyceny",
+    "capacity": "Profil zdolności"
   },
   "ClientPanelSidebar": {
     "navAriaLabel": "Panel klienta",
@@ -2031,7 +2092,8 @@
     "menu": "Menu",
     "collapseSidebar": "Zwiń menu",
     "expandSidebar": "Rozwiń menu",
-    "quotes": "Wyceny"
+    "quotes": "Wyceny",
+    "weryfikacja": "Zweryfikuj konto"
   },
   "CaseChat": {
     "heading": "Rozmowa z doradcą",
@@ -2270,24 +2332,106 @@
     }
   },
   "InquiryClaim": {
-    "heading": "Załóż konto i śledź swoje zapytanie",
-    "body": "Po kliknięciu wyślemy na Twój adres e mail link do logowania. Po zalogowaniu zobaczysz swoją sprawę i porozmawiasz z doradcą.",
-    "cta": "Załóż konto",
+    "heading": "Otrzymaj link do swojej sprawy",
+    "body": "Po kliknięciu wyślemy na Twój adres e mail link do Twojej sprawy. Jedno kliknięcie w mailu loguje Cię i otwiera sprawę, gdzie porozmawiasz z doradcą.",
+    "cta": "Wyślij mi link do mojej sprawy",
     "sending": "Wysyłanie…",
     "retry": "Ponów wysyłanie",
-    "sent": "Jeśli to możliwe, wysłaliśmy link do logowania na adres podany w zapytaniu. Sprawdź skrzynkę.",
+    "sent": "Jeśli to możliwe, wysłaliśmy link na adres podany w zapytaniu. Sprawdź skrzynkę.",
     "error": "Nie udało się wysłać linku. Spróbuj ponownie."
   },
-  "GuestInquiryConfirmationEmail": {
-    "subject": "Otrzymaliśmy Twoje zapytanie",
+  "GuestLinkNewEmail": {
+    "subject": "Twoje zapytanie w ModularHub Europe",
     "heading": "Dziękujemy za zapytanie",
-    "body": "Otrzymaliśmy Twoje zapytanie o domy modułowe. Doradca ModularHub skontaktuje się z Tobą mailem. Możesz założyć konto, żeby śledzić sprawę i rozmawiać z doradcą.",
-    "cta": "Załóż konto i śledź sprawę"
+    "body": "Dziękujemy za zapytanie. Kliknij, aby zobaczyć sprawę i założyć konto. Link jest ważny przez ograniczony czas i można go użyć tylko raz.",
+    "cta": "Zobacz sprawę"
   },
-  "GuestIdentityCheckEmail": {
-    "subject": "Czy to Ty wysłałeś zapytanie?",
+  "GuestLinkExistingEmail": {
+    "subject": "Zapytanie dopisane do Twojego konta",
     "heading": "Czy to Ty?",
-    "body": "Ktoś wysłał w ModularHub zapytanie o domy modułowe na ten adres e mail i dopisaliśmy je do Twojego konta. Jeśli to Ty, nic nie musisz robić. Jeśli nie, odpowiedz na tego maila.",
+    "body": "Ktoś wysłał zapytanie na ten adres i dopisaliśmy je do Twojego konta. Jeśli to Ty, kliknij, żeby je zobaczyć. Jeśli nie, zignoruj ten mail albo odpowiedz na niego.",
     "cta": "Zobacz zapytanie"
+  },
+  "Privacy": {
+    "heading": "Prywatność",
+    "testNotice": "To jest wersja testowa serwisu. Pełna polityka prywatności pojawi się przed publicznym startem.",
+    "purpose": "Dane z formularza zapytania (imię, e mail, telefon, adres działki, wiadomość) przetwarzamy wyłącznie po to, żeby obsłużyć Twoje zapytanie i skontaktować się z Tobą w tej sprawie.",
+    "noMarketing": "Nie używamy tych danych do marketingu i nie przekazujemy ich nikomu poza producentami, do których sam zdecydujesz się skierować zapytanie.",
+    "deletion": "Możesz poprosić o usunięcie swoich danych. Prośby obsługujemy ręcznie.",
+    "contact": "Kontakt w sprawie danych:"
+  },
+  "ProducerPanelCapacityPage": {
+    "heading": "Profil zdolności produkcyjnej",
+    "intro": "Uzupełnij profil, żeby administrator mógł Cię zweryfikować. Zweryfikowani producenci widzą zapytania o duże zamówienia, które pasują do ich krajów dostawy, rodzin produktów i mocy.",
+    "noProducer": "Nie znaleziono konta producenta.",
+    "status": {
+      "not_submitted": "Status: profil jeszcze nie wysłany do weryfikacji.",
+      "pending": "Status: profil czeka na weryfikację administratora.",
+      "approved": "Status: profil zatwierdzony. Zmiany zapisują się bez ponownej weryfikacji.",
+      "rejected": "Status: profil odrzucony. Popraw dane i wyślij ponownie."
+    },
+    "deliveryCountriesHeading": "Kraje dostawy",
+    "deliveryCountriesHelp": "Zapytania z krajów, których tu nie zaznaczysz, nie trafią do Ciebie.",
+    "unitsPerMonth": "Moc przerobowa: ile domów miesięcznie produkujesz",
+    "productionLines": "Linie produkcyjne",
+    "maxModuleSizeM2": "Maksymalny rozmiar modułu (m²)",
+    "leadTimeHeading": "Czasy realizacji",
+    "leadTimeHelp": "Ile tygodni zajmuje realizacja zamówienia o danej liczbie sztuk.",
+    "tierUnits": "Liczba sztuk",
+    "tierWeeks": "Tygodnie",
+    "addTier": "Dodaj przedział",
+    "removeTier": "Usuń",
+    "standardsHeading": "Obsługiwane standardy wykończenia",
+    "standards": {
+      "surowy-zamkniety": "Stan surowy zamknięty",
+      "deweloperski": "Stan deweloperski",
+      "pod-klucz": "Pod klucz"
+    },
+    "servicesHeading": "Usługi",
+    "canHandleTransport": "Organizuję transport",
+    "canHandleAssembly": "Wykonuję montaż",
+    "canCustomize": "Dostosowuję projekt do wymagań klienta",
+    "customizationNote": "Opis możliwości dostosowania",
+    "capabilityNote": "Opis zdolności produkcyjnej",
+    "references": "Referencje (zrealizowane projekty)",
+    "referencesHelp": "Jedna referencja w wierszu.",
+    "save": "Zapisz profil",
+    "submitForReview": "Wyślij do weryfikacji",
+    "saved": "Zapisano.",
+    "submitted": "Profil wysłany do weryfikacji.",
+    "saveError": "Nie udało się zapisać profilu.",
+    "submitError": "Nie udało się wysłać profilu do weryfikacji.",
+    "unitsPerMonthHelp": "Liczba domów lub modułów, które jesteś w stanie wyprodukować w ciągu miesiąca. Na tej podstawie dopasowujemy Cię do dużych zamówień.",
+    "unitsRequired": "Podaj moc przerobową (liczbę domów na miesiąc), zanim wyślesz profil do weryfikacji."
+  },
+  "ClientB2bDetailsForm": {
+    "heading": "Dane firmy",
+    "intro": "Duże zamówienia wymagają potwierdzenia firmy. Podaj nazwę i numer podatkowy, zespół ModularHub je zweryfikuje.",
+    "status": {
+      "not_submitted": "Status: dane firmy jeszcze nie wysłane.",
+      "pending": "Status: dane czekają na weryfikację.",
+      "approved": "Status: firma zweryfikowana.",
+      "rejected": "Status: dane odrzucone. Popraw je i wyślij ponownie."
+    },
+    "companyLabel": "Nazwa firmy",
+    "nipLabel": "NIP lub numer VAT UE",
+    "nipHelp": "10 cyfr dla polskiej firmy albo numer VAT UE z prefiksem kraju, np. DE123456789 lub NL123456789B01.",
+    "submit": "Wyślij do weryfikacji",
+    "saving": "Zapisywanie…",
+    "saved": "Dane firmy wysłane do weryfikacji.",
+    "genericError": "Nie udało się zapisać danych firmy. Spróbuj ponownie."
+  },
+  "LargeOrderTeamNewRequestEmail": {
+    "subject": "Nowe zapytanie o duże zamówienie ({units} domów, {country})",
+    "greeting": "Cześć,",
+    "intro": "Klient złożył nowe zapytanie o duże zamówienie. Szczegóły i dane kontaktowe są w panelu administratora.",
+    "countryLabel": "Kraj",
+    "unitsLabel": "Liczba domów",
+    "deadlineLabel": "Termin składania ofert",
+    "languageLabel": "Język klienta",
+    "cta": "Otwórz zapytanie w panelu"
+  },
+  "KlientPanelWeryfikacjaPage": {
+    "heading": "Weryfikacja konta"
   }
 }

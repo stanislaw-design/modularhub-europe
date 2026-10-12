@@ -3,9 +3,9 @@
 import { useLocale, useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui";
-import { requestAccountForGuestCase } from "@/lib/guest-case-actions";
+import { resendGuestCaseLink } from "@/lib/guest-case-actions";
 
-// Przycisk "załóż konto" ze strony claim (spec 0066 AC-7, AC-8). Akcja zawsze
+// Przycisk "wyślij mi link do mojej sprawy" ze strony claim (spec 0066 AC-7, AC-8). Akcja zawsze
 // odpowiada tak samo, więc komunikat nie zdradza, czy konto istnieje.
 export function GuestClaimButton({ inquiryId }: { inquiryId: string }) {
   const t = useTranslations("InquiryClaim");
@@ -36,7 +36,7 @@ export function GuestClaimButton({ inquiryId }: { inquiryId: string }) {
         disabled={isPending}
         onClick={() =>
           startTransition(async () => {
-            const result = await requestAccountForGuestCase({ inquiryId, locale });
+            const result = await resendGuestCaseLink({ inquiryId, locale });
             setState(result.ok ? "sent" : "error");
           })
         }

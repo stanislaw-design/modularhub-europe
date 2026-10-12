@@ -64,7 +64,7 @@ test.describe("spec 0063: PDF wyceny over 1 MB through a real browser request (A
       countryCode: "PL",
       projectType: "resort",
       families: ["dom"],
-      unitCountMin: 12,
+      unitCount: 12,
       status: "open",
     });
     // A direct database session row, the same shape the Drizzle adapter
@@ -175,7 +175,7 @@ test.describe("spec 0063 regression: a file between 10MB and 20MB must not crash
       countryCode: "PL",
       projectType: "resort",
       families: ["dom"],
-      unitCountMin: 12,
+      unitCount: 12,
       status: "open",
     });
     await db.insert(sessions).values({ sessionToken, userId: producerUserId, expires: new Date(Date.now() + 3600_000) });
@@ -251,7 +251,7 @@ test.describe("spec 0063: download button on client and producer quote screens",
       countryCode: "PL",
       projectType: "resort",
       families: ["dom"],
-      unitCountMin: 12,
+      unitCount: 12,
       status: "open",
     });
     await db.insert(sessions).values([

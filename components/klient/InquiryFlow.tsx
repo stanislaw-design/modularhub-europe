@@ -26,7 +26,7 @@ import {
   Textarea,
 } from "@/components/ui";
 import { submitAdvisoryInquiry } from "@/lib/case-actions";
-import { requestAccountForGuestCase } from "@/lib/guest-case-actions";
+import { resendGuestCaseLink } from "@/lib/guest-case-actions";
 import type { Country, CountryCode, Project } from "@/lib/data/types";
 
 interface InquiryFlowProps {
@@ -87,7 +87,8 @@ export function InquiryFlow({
   // Pole pułapka (spec 0066 AC-5): ukryte przed człowiekiem, boty je wypełniają.
   const [website, setWebsite] = useState("");
   const [guestInquiryId, setGuestInquiryId] = useState<string | null>(null);
-  const [accountState, setAccountState] = useState<"idle" | "sent" | "error">("idle");
+  // Stan wysyłki linku do sprawy: "sent" po udanym zapytaniu, "error" gdy mail nie wyszedł.
+  const [linkState, setLinkState] = useState<"sent" | "error">("sent");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   // Wygenerowany raz, przy otwarciu formularza: ponowienie po błędzie wysyła
@@ -138,6 +139,7 @@ export function InquiryFlow({
 
       if (result.guest) {
         setGuestInquiryId(result.inquiryId);
+        setLinkState(result.linkFailed ? "error" : "sent");
         return;
       }
 
@@ -145,12 +147,11 @@ export function InquiryFlow({
     });
   }
 
-  function handleCreateAccount() {
+  function handleResend() {
     if (!guestInquiryId) return;
-    setAccountState("idle");
     startTransition(async () => {
-      const result = await requestAccountForGuestCase({ inquiryId: guestInquiryId, locale });
-      setAccountState(result.ok ? "sent" : "error");
+      const result = await resendGuestCaseLink({ inquiryId: guestInquiryId, locale });
+      setLinkState(result.ok ? "sent" : "error");
     });
   }
 
@@ -171,28 +172,29 @@ export function InquiryFlow({
                 {t("confirmTitle")}
               </Heading>
             </div>
-            <Text surface="v5">{t("confirmBody")}</Text>
-            {accountState === "sent" ? (
-              <p className="font-sans text-body text-brand-v5-ink" role="status">
-                {t("accountSentMessage")}
-              </p>
+            {linkState === "error" ? (
+              <>
+                <p className="font-sans text-body text-status-blocked" role="alert">
+                  {t("linkSendError")}
+                </p>
+                <Button type="button" surface="v5" size="lg" className="w-fit" disabled={isPending} onClick={handleResend}>
+                  {isPending ? t("sendingLabel") : t("retrySendLabel")}
+                </Button>
+              </>
             ) : (
               <>
-                {accountState === "error" && (
-                  <p className="font-sans text-body text-status-blocked" role="alert">
-                    {t("accountSendError")}
-                  </p>
-                )}
-                <Button
-                  type="button"
-                  surface="v5"
-                  size="lg"
-                  className="w-fit"
-                  disabled={isPending}
-                  onClick={handleCreateAccount}
-                >
-                  {isPending ? t("sendingLabel") : accountState === "error" ? t("retrySendLabel") : t("createAccountCta")}
-                </Button>
+                <Text surface="v5">{t("confirmBody")}</Text>
+                <Text tone="muted" surface="v5" className="text-data">
+                  {t("resendPrompt")}{" "}
+                  <button
+                    type="button"
+                    className="focus-ring underline disabled:opacity-60"
+                    disabled={isPending}
+                    onClick={handleResend}
+                  >
+                    {isPending ? t("sendingLabel") : t("resendLabel")}
+                  </button>
+                </Text>
               </>
             )}
             <Button as="a" href={resultsHref} variant="secondary" surface="v5" size="lg" className="w-fit">

@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
-import { Activity, Bell, ChevronsLeft, ChevronsRight, Factory, FolderKanban, House, LayoutDashboard, LogOut, Menu, Package, X, type LucideIcon } from "lucide-react";
+import { Activity, BadgeCheck, Bell, BriefcaseBusiness, ChevronsLeft, ChevronsRight, ClipboardList, Factory, FolderKanban, House, LayoutDashboard, LogOut, Menu, Package, X, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -43,16 +43,28 @@ export function InternalSidebar({ locale }: InternalSidebarProps) {
     { key: "dashboard", path: "", label: "Dashboard", icon: LayoutDashboard },
     { key: "producers", path: "producers", label: "Producenci", icon: Factory },
     { key: "cases-and-inquiries", path: "cases-and-inquiries", label: "Projekty i zapytania", icon: FolderKanban },
+    { key: "large-orders", path: "large-orders", label: "Duże zamówienia", icon: ClipboardList },
+    { key: "volume-verification", path: "producers/volume-verification", label: "Weryfikacja wolumenowa", icon: BadgeCheck },
+    { key: "b2b-verification", path: "clients/b2b-verification", label: "Weryfikacja B2B", icon: BriefcaseBusiness },
     { key: "products", path: "products", label: "Produkty", icon: Package },
     { key: "notifications", path: "notifications", label: "Powiadomienia", icon: Bell },
     { key: "monitoring", path: "monitoring", label: "Monitoring", icon: Activity },
   ];
 
+  // Najdłuższa pasująca ścieżka wygrywa, żeby "Producenci" nie świecił razem z
+  // "Weryfikacją wolumenową" (jej ścieżka zaczyna się od producers/).
+  const currentKey = navItems
+    .filter((item) => {
+      const href = `/${locale}/internal${item.path ? `/${item.path}` : ""}`;
+      return pathname === href || (item.path !== "" && pathname.startsWith(`${href}/`));
+    })
+    .sort((a, b) => b.path.length - a.path.length)[0]?.key;
+
   const renderNav = (onNavigate?: () => void, collapsed = false) => (
-    <nav aria-label="Nawigacja panelu administracyjnego" className="flex flex-col gap-1">
+    <nav aria-label="Nawigacja panelu administracyjnego" className="flex flex-col">
       {navItems.map((item) => {
         const href = `/${locale}/internal${item.path ? `/${item.path}` : ""}`;
-        const isCurrent = pathname === href || (item.path !== "" && pathname.startsWith(`${href}/`));
+        const isCurrent = item.key === currentKey;
         const Icon = item.icon;
         return (
           <Link
@@ -61,7 +73,7 @@ export function InternalSidebar({ locale }: InternalSidebarProps) {
             onClick={onNavigate}
             aria-current={isCurrent ? "page" : undefined}
             title={collapsed ? item.label : undefined}
-            className={`focus-ring relative flex items-center gap-2 rounded-data px-brand-2 py-brand-2 text-body font-medium transition-colors ${
+            className={`focus-ring relative flex items-center gap-2 px-brand-3 py-brand-2 text-body font-medium transition-colors ${
               isCurrent
                 ? "bg-brand-passage-blue/10 text-brand-foundation-navy"
                 : "text-brand-technical-graphite hover:bg-brand-steel/30 hover:text-brand-foundation-navy"
@@ -78,7 +90,7 @@ export function InternalSidebar({ locale }: InternalSidebarProps) {
   );
 
   const renderFooter = (onNavigate?: () => void, collapsed = false) => (
-    <div className="flex flex-col gap-brand-3 border-t border-brand-steel pt-brand-3">
+    <div className="flex flex-col gap-brand-3 border-t border-brand-steel px-brand-3 pt-brand-3">
       <div className={`flex gap-brand-2 ${collapsed ? "flex-col items-center" : "items-center justify-between"}`}>
         <Link
           href={`/${locale}`}
@@ -111,12 +123,12 @@ export function InternalSidebar({ locale }: InternalSidebarProps) {
     <>
       <aside
         data-collapsed={isCollapsed}
-        className={`hidden shrink-0 flex-col justify-between gap-brand-4 overflow-x-hidden overflow-y-auto border-r border-brand-steel p-brand-3 transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none md:sticky md:top-0 md:flex md:h-screen md:self-start ${
-          isCollapsed ? "md:w-[calc(2*(var(--spacing-brand-3)+var(--spacing-brand-2)+0.5rem)+1px)]" : "md:w-64"
+        className={`hidden shrink-0 flex-col justify-between gap-brand-4 overflow-x-hidden overflow-y-auto border-r border-brand-steel py-brand-3 transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none md:sticky md:top-0 md:flex md:h-screen md:self-start ${
+          isCollapsed ? "md:w-[calc(2*var(--spacing-brand-3)+1rem+1px)]" : "md:w-[17rem]"
         }`}
       >
         <div className="flex flex-col gap-brand-4">
-          <div className="flex h-8 items-center justify-between">
+          <div className="flex h-8 items-center justify-between px-brand-3">
             <Link
               href={`/${locale}/internal`}
               aria-label="ModularHub Europe"
@@ -173,9 +185,9 @@ export function InternalSidebar({ locale }: InternalSidebarProps) {
         <div className="fixed inset-0 flex">
           <DialogPanel
             transition
-            className="flex h-full w-full max-w-xs flex-col gap-brand-4 overflow-y-auto bg-brand-warm-white p-brand-4 shadow-xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] data-[closed]:-translate-x-full"
+            className="flex h-full w-full max-w-xs flex-col gap-brand-4 overflow-y-auto bg-brand-warm-white py-brand-4 shadow-xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] data-[closed]:-translate-x-full"
           >
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between px-brand-3">
               <span className="text-body font-medium text-brand-foundation-navy">Menu</span>
               <button
                 type="button"

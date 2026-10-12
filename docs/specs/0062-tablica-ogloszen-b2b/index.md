@@ -1,7 +1,7 @@
 # 0062. Tablica ogłoszeń B2B i odpowiadanie na nią
 
 **Date**: 2026-10-02
-**Status**: In Progress
+**Status**: In Progress (częściowo zastąpiona przez [0070](../0070-przetarg-duze-zamowienia/index.md): AC-2 tablica widoczna dla wszystkich zatwierdzonych, AC-6 i AC-7 klient widzi oferty od razu i akceptuje je sam; reszta w mocy)
 
 ## Summary
 

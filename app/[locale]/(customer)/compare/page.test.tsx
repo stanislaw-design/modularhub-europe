@@ -105,3 +105,98 @@ describe("ComparePage", () => {
     expect(screen.queryByText("Spa B")).not.toBeInTheDocument();
   });
 });
+
+// Spec 0068 Etap 3: rodzaj porównania `kind` (AC-13, AC-14).
+describe("ComparePage kind=sauna (spec 0068)", () => {
+  function sauna(id: string, name: string, overrides: Parameters<typeof createMockProject>[0] = {}) {
+    return createMockProject({
+      id,
+      name,
+      slug: `slug-${id}`,
+      family: "spa-modulowe",
+      spaSubcategory: "sauna",
+      saunaTechnicalSpecs: {
+        claddingMaterial: "Świerk",
+        interiorWoodType: "Olcha",
+        benchMaterial: "Abachi",
+        insulationType: "Wełna mineralna",
+        glazingType: "Szkło hartowane",
+        seatingCapacity: 4,
+        hasChangingArea: true,
+        changingAreaDescription: "Przy wejściu",
+        electricalRequirement: "400 V",
+      },
+      ...overrides,
+    });
+  }
+
+  it("renders the sauna table with the eleven rows (AC-13)", async () => {
+    getProjectByIdMock.mockImplementation((id: string) =>
+      Promise.resolve(sauna(id, id === "a" ? "Sauna A" : "Sauna B")),
+    );
+
+    await renderPage({ kind: "sauna", products: "a,b" });
+
+    expect(screen.getByRole("heading", { level: 1, name: "Porównanie saun" })).toBeInTheDocument();
+    expect(screen.getAllByRole("row")).toHaveLength(1 + 11);
+    expect(screen.getByRole("link", { name: "Sauna A" })).toHaveAttribute("href", "/pl/sauna/slug-a");
+    expect(screen.getAllByText("Olcha")).toHaveLength(2);
+    expect(screen.getAllByText("Tak, Przy wejściu")).toHaveLength(2);
+  });
+
+  it("accepts spa-modulowe as an alias of sauna (AC-12 example URL)", async () => {
+    getProjectByIdMock.mockImplementation((id: string) => Promise.resolve(sauna(id, `Sauna ${id}`)));
+
+    await renderPage({ kind: "spa-modulowe", products: "a,b" });
+
+    expect(screen.getByRole("heading", { level: 1, name: "Porównanie saun" })).toBeInTheDocument();
+  });
+
+  it("falls back to the dom comparison for an unknown kind (AC-13)", async () => {
+    getProjectByIdMock.mockImplementation((id: string) =>
+      Promise.resolve(createMockProject({ id, name: id === "a" ? "Dom A" : "Dom B" })),
+    );
+
+    await renderPage({ kind: "nonsense", products: "a,b" });
+
+    expect(screen.getByRole("heading", { level: 1, name: "Porównanie domów" })).toBeInTheDocument();
+  });
+
+  it("treats a jacuzzi, a dom, a removed and an unpublished id as unavailable (AC-14)", async () => {
+    getPublishedProductIdsMock.mockResolvedValue(new Set(["a", "b", "c"]));
+    getProjectByIdMock.mockImplementation((id: string) => {
+      if (id === "a") return Promise.resolve(sauna("a", "Sauna A"));
+      if (id === "b") return Promise.resolve(sauna("b", "Jacuzzi B", { spaSubcategory: "jacuzzi" }));
+      if (id === "c") return Promise.resolve(createMockProject({ id: "c", name: "Dom C" }));
+      return Promise.resolve(null);
+    });
+
+    await renderPage({ kind: "sauna", products: "a,b,c" });
+
+    expect(screen.getByRole("link", { name: "Sauna A" })).toBeInTheDocument();
+    expect(screen.queryByText("Jacuzzi B")).not.toBeInTheDocument();
+    expect(screen.queryByText("Dom C")).not.toBeInTheDocument();
+    expect(screen.getAllByText("Ta sauna jest niedostępna")).toHaveLength(2);
+    expect(screen.getByRole("link", { name: "Wróć do listy saun" })).toHaveAttribute("href", "/pl/sauna");
+  });
+
+  it("redirects to /sauna when the products param is bad or no column is available (AC-14)", async () => {
+    await expect(renderPage({ kind: "sauna", products: "a" })).rejects.toThrow();
+    expect(redirectMock).toHaveBeenLastCalledWith("/pl/sauna");
+
+    getPublishedProductIdsMock.mockResolvedValue(new Set());
+    getProjectByIdMock.mockResolvedValue(null);
+    await expect(renderPage({ kind: "sauna", products: "a,b" })).rejects.toThrow();
+    expect(redirectMock).toHaveBeenLastCalledWith("/pl/sauna");
+  });
+
+  it("shows 'Brak danych' for a missing spec instead of an empty cell or an error", async () => {
+    getProjectByIdMock.mockImplementation((id: string) =>
+      Promise.resolve(sauna(id, `Sauna ${id}`, { saunaTechnicalSpecs: undefined })),
+    );
+
+    await renderPage({ kind: "sauna", products: "a,b" });
+
+    expect(screen.getAllByText("Brak danych").length).toBeGreaterThanOrEqual(2 * 7);
+  });
+});

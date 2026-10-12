@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Button, Text } from "@/components/ui";
+import type { CompareKind } from "@/lib/compare-rows";
 import type { CountryCode } from "@/lib/data/types";
 
 interface CompareSelectionBarProps {
@@ -10,6 +11,9 @@ interface CompareSelectionBarProps {
   selectedIds: string[];
   maxSelected: number;
   countryCode?: CountryCode;
+  /** Rodzaj porównania (spec 0068 AC-12): "sauna" dopisuje kind= do adresu i
+   * zmienia teksty. Bez niego (albo "dom") adres i teksty są dzisiejsze. */
+  kind?: CompareKind;
   onClear: () => void;
 }
 
@@ -23,13 +27,15 @@ const MIN_TO_COMPARE = 2;
 // miejsce i inny wygląd niż zaznaczenie "do zapytania", żeby dwa niezależne
 // zamiary były wyraźnie odróżnione (spec 0044 AC-4), a nie tylko innym
 // kolorem tego samego elementu.
-export function CompareSelectionBar({ locale, selectedIds, maxSelected, countryCode, onClear }: CompareSelectionBarProps) {
+export function CompareSelectionBar({ locale, selectedIds, maxSelected, countryCode, kind, onClear }: CompareSelectionBarProps) {
   const t = useTranslations("CompareSelectionBar");
   const router = useRouter();
   const canCompare = selectedIds.length >= MIN_TO_COMPARE;
+  const isSauna = kind === "sauna";
 
   function handleCompare() {
     const params = new URLSearchParams({ products: selectedIds.join(",") });
+    if (isSauna) params.set("kind", "sauna");
     if (countryCode) params.set("country", countryCode);
     router.push(`/${locale}/compare?${params.toString()}`);
   }
@@ -42,7 +48,7 @@ export function CompareSelectionBar({ locale, selectedIds, maxSelected, countryC
         </Text>
         {!canCompare && (
           <Text tone="muted" surface="v5" className="text-data">
-            {t("needTwoHint")}
+            {isSauna ? t("needTwoHintSauna") : t("needTwoHint")}
           </Text>
         )}
       </div>
@@ -55,7 +61,7 @@ export function CompareSelectionBar({ locale, selectedIds, maxSelected, countryC
           {t("clear")}
         </button>
         <Button onClick={handleCompare} disabled={!canCompare} surface="v5">
-          {t("compareCta")}
+          {isSauna ? t("compareCtaSauna") : t("compareCta")}
         </Button>
       </div>
     </div>

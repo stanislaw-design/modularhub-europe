@@ -6,6 +6,9 @@ import { buildResultsHref } from "@/lib/results-filters";
 interface EmptyResultsProps {
   locale: string;
   family: FamilyFilterValue;
+  /** Adres przycisku czyszczenia filtrów (spec 0068 AC-2): domyślnie /results
+   * z aktywną rodziną, strona kategorii (np. /sauna) podaje własny. */
+  clearHref?: string;
 }
 
 // Treść świadoma rodziny produktu (spec 0026 AC-11). Only ever rendered from
@@ -13,7 +16,7 @@ interface EmptyResultsProps {
 // never getTranslations. "Wyczyść filtry" zachowuje aktywną rodzinę (spa/kontenery
 // modułowe dziś i tak zwykle puste, patrz spec Follow-up) — czyszczenie nie powinno
 // po cichu przełączać z powrotem na dom.
-export function EmptyResults({ locale, family }: EmptyResultsProps) {
+export function EmptyResults({ locale, family, clearHref }: EmptyResultsProps) {
   const t = useTranslations("EmptyResults");
   const familyMany = useTranslations("ProductFamilyNoun")(`${family}.many`);
   return (
@@ -24,7 +27,7 @@ export function EmptyResults({ locale, family }: EmptyResultsProps) {
       <Text tone="muted" surface="v5" measure className="mx-auto">
         {t("description")}
       </Text>
-      <Button as="a" href={buildResultsHref(locale, { family })} variant="secondary" surface="v5">
+      <Button as="a" href={clearHref ?? buildResultsHref(locale, { family })} variant="secondary" surface="v5">
         {t("clearFilters")}
       </Button>
     </Card>

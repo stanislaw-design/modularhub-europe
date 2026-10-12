@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { submitAdvisoryInquiry } from "@/lib/case-actions";
-import { requestAccountForGuestCase } from "@/lib/guest-case-actions";
+import { resendGuestCaseLink } from "@/lib/guest-case-actions";
 import type { Country, Project } from "@/lib/data/types";
 import { createMockProject } from "@/test/fixtures/project";
 import { InquiryFlow } from "./InquiryFlow";
@@ -11,7 +11,7 @@ vi.mock("@/lib/case-actions", () => ({
   submitAdvisoryInquiry: vi.fn(),
 }));
 vi.mock("@/lib/guest-case-actions", () => ({
-  requestAccountForGuestCase: vi.fn(),
+  resendGuestCaseLink: vi.fn(),
 }));
 
 const push = vi.fn();
@@ -21,7 +21,7 @@ vi.mock("next/navigation", async (importOriginal) => ({
 }));
 
 const mockedSubmit = vi.mocked(submitAdvisoryInquiry);
-const mockedRequestAccount = vi.mocked(requestAccountForGuestCase);
+const mockedResend = vi.mocked(resendGuestCaseLink);
 
 function makeProject(id: string, name: string): Project {
   return createMockProject({ id, producerId: "prod-1", producerName: "Producent", name, floorAreaM2: 80, priceMin: 100000 });
@@ -53,7 +53,7 @@ async function fillAddress(user: ReturnType<typeof userEvent.setup>) {
 
 beforeEach(() => {
   mockedSubmit.mockReset();
-  mockedRequestAccount.mockReset();
+  mockedResend.mockReset();
   push.mockReset();
 });
 
@@ -191,22 +191,43 @@ describe("InquiryFlow as a guest (spec 0066 AC-2, AC-6, AC-17)", () => {
     const input = mockedSubmit.mock.calls[0][0];
     expect(input.contact).toEqual({ name: "Jan Gość", email: "jan@example.test", phone: "+48123456789" });
     expect(input.website).toBe("");
-    expect(screen.getByRole("button", { name: "Załóż konto i śledź sprawę" })).toBeInTheDocument();
+    expect(screen.getByText(/Sprawdź skrzynkę, wysłaliśmy link do Twojej sprawy/)).toBeInTheDocument();
+    // Bez przycisku zakładania konta: konto powstaje z jednego kliknięcia w mailu.
+    expect(screen.queryByRole("button", { name: /załóż konto/i })).not.toBeInTheDocument();
+    expect(mockedResend).not.toHaveBeenCalled();
   });
 
-  it("asks for the account on click and confirms (AC-6, AC-8)", async () => {
+  it("offers a resend link on the confirmation and calls the resend action (AC-6, AC-8)", async () => {
     mockedSubmit.mockResolvedValue({ ok: true, inquiryId: "inq-g", guest: true });
-    mockedRequestAccount.mockResolvedValue({ ok: true });
+    mockedResend.mockResolvedValue({ ok: true });
     const user = userEvent.setup();
     renderFlow("PL", true);
 
     await fillAddress(user);
     await fillContact(user);
     await user.click(screen.getByRole("button", { name: "Wyślij zapytanie do ModularHub" }));
-    await user.click(await screen.findByRole("button", { name: "Załóż konto i śledź sprawę" }));
+    await user.click(await screen.findByRole("button", { name: "Wyślij ponownie" }));
 
-    expect(await screen.findByRole("status")).toHaveTextContent("wysłaliśmy link");
-    expect(mockedRequestAccount).toHaveBeenCalledWith({ inquiryId: "inq-g", locale: "pl" });
+    expect(mockedResend).toHaveBeenCalledWith({ inquiryId: "inq-g", locale: "pl" });
+    expect(await screen.findByRole("button", { name: "Wyślij ponownie" })).toBeInTheDocument();
+  });
+
+  it("shows an error with a retry when the mail could not be sent, case stays saved (AC-6)", async () => {
+    mockedSubmit.mockResolvedValue({ ok: true, inquiryId: "inq-g", guest: true, linkFailed: true });
+    mockedResend.mockResolvedValue({ ok: true });
+    const user = userEvent.setup();
+    renderFlow("PL", true);
+
+    await fillAddress(user);
+    await fillContact(user);
+    await user.click(screen.getByRole("button", { name: "Wyślij zapytanie do ModularHub" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("nie udało się wysłać linku");
+    await user.click(screen.getByRole("button", { name: "Ponów wysyłanie" }));
+
+    expect(mockedResend).toHaveBeenCalledWith({ inquiryId: "inq-g", locale: "pl" });
+    await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
+    expect(screen.getByText(/Sprawdź skrzynkę/)).toBeInTheDocument();
   });
 
   it("shows a message and keeps the form on rate_limited (AC-5)", async () => {

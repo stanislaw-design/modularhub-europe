@@ -174,6 +174,7 @@
     "floorPlanAvailable": "Floor plan available",
     "floorPlanLinkLabel": "View the floor plan for {name}",
     "selectForCompare": "Compare {name} with other homes",
+    "selectForCompareSauna": "Compare {name} with other saunas",
     "compareLabel": "Compare"
   },
   "ProductFamilyNoun": {
@@ -832,7 +833,7 @@
     "ctaLogin": "Sign in"
   },
   "KlientPanelZapytaniaPage": {
-    "heading": "Inquiries",
+    "heading": "Requests to ModularHub",
     "emptyTitle": "You haven't sent any inquiries yet",
     "emptyDescription": "Pick a house on the results page and send an inquiry to see it here along with its status.",
     "columnProducts": "Products",
@@ -842,7 +843,6 @@
     "statusOffered": "Offer received",
     "statusClosed": "Closed",
     "unreadOfferLabel": "New offer",
-    "advisoryHeading": "Requests to ModularHub",
     "caseStage": {
       "nowe": "New request",
       "rozmowa": "Conversation with advisor",
@@ -854,7 +854,10 @@
       "wspolne_ustalenia": "Joint arrangements",
       "zamkniete_bez_wyboru": "Closed without a choice",
       "legacy_direct": "Direct request"
-    }
+    },
+    "addInquiry": "Add a large order inquiry",
+    "verifyHint": "Verify your company account to get the producer's contact after you choose an offer.",
+    "verifyLink": "Verify account"
   },
   "ClientPanelQuotesPage": {
     "heading": "Quotes",
@@ -1301,6 +1304,49 @@
       "dokumenty": "Documents and questions"
     }
   },
+  "SaunaCategoryPage": {
+    "metaTitle": "Saunas | ModularHub Europe",
+    "metaDescription": "Modular saunas from vetted producers. Compare seating, wood, insulation and price, filter by producer and send an inquiry.",
+    "heading": "Saunas",
+    "modelCount": "Models: {count}",
+    "intro": "Ready made modular saunas from producers on our platform. Narrow the list by seating, price or producer, then put up to three models side by side.",
+    "breadcrumbAriaLabel": "Breadcrumb",
+    "breadcrumbHome": "Home",
+    "breadcrumbCurrent": "Saunas",
+    "filtersAriaLabel": "Sauna filters",
+    "seatingLabel": "Seating",
+    "seatingOption": "{count}+ seats",
+    "priceLabel": "Price from",
+    "priceUpTo": "up to €{max}",
+    "priceRange": "€{min} to €{max}",
+    "priceFrom": "from €{min}",
+    "producerLabel": "Producer",
+    "sortLabel": "Sort",
+    "sortPriceAsc": "Price, low to high",
+    "sortPriceDesc": "Price, high to low",
+    "clearFilters": "Clear filters",
+    "compare": {
+      "heading": "Sauna comparison",
+      "back": "Back to saunas",
+      "model": "Model",
+      "producer": "Producer",
+      "price": "Price from",
+      "priceOnRequest": "Individual quote",
+      "seating": "Seating",
+      "interiorWood": "Interior wood",
+      "cladding": "Cladding",
+      "benchMaterial": "Bench material",
+      "insulation": "Insulation",
+      "glazing": "Glazing",
+      "changingArea": "Changing room",
+      "changingAreaYes": "Yes",
+      "changingAreaNo": "No",
+      "electrical": "Electrical requirements",
+      "unavailable": "This sauna is unavailable",
+      "unavailableNotice": "Some of the selected saunas are no longer available.",
+      "noData": "No data"
+    }
+  },
   "ResultsFilterBar": {
     "sortPriceAsc": "Price: ascending",
     "sortPriceDesc": "Price: descending",
@@ -1342,7 +1388,8 @@
     "categoryLinksAriaLabel": "Categories within More than a house",
     "categoryLinkSpa": "Modular spas",
     "categoryLinkContainers": "Modular containers",
-    "categoryLinkOutdoorTv": "Outdoor TV"
+    "categoryLinkOutdoorTv": "Outdoor TV",
+    "categoryLinkSauna": "Saunas"
   },
   "FloatingSearchButton": {
     "prompt": "What are you looking for today?",
@@ -1453,10 +1500,10 @@
     "privacyLinkLabel": "Privacy policy",
     "rateLimitedError": "Several requests were already sent from this email address. Try again tomorrow or wait for the advisor to contact you.",
     "confirmTitle": "Request sent",
-    "confirmBody": "A ModularHub advisor will contact you by email. You can also create an account to follow your case and chat with the advisor in the app.",
-    "createAccountCta": "Create an account and follow your case",
-    "accountSentMessage": "Check your inbox: we sent a link that finishes creating your account.",
-    "accountSendError": "We could not send the link. Please try again."
+    "confirmBody": "Check your inbox, we sent a link to your case. One click in the email opens it and creates your account. A ModularHub advisor will also contact you by email.",
+    "linkSendError": "We saved your request, but we could not send the link to your case. Please try again.",
+    "resendPrompt": "Did not get the email?",
+    "resendLabel": "Send again"
   },
   "ProfileForm": {
     "nameLabel": "Full name",
@@ -1615,7 +1662,9 @@
     "selectedCount": "Selected to compare: {count}/{max}",
     "needTwoHint": "Select at least one more home",
     "compareCta": "Compare homes",
-    "clear": "Clear"
+    "clear": "Clear",
+    "compareCtaSauna": "Compare saunas",
+    "needTwoHintSauna": "Select at least one more sauna"
   },
   "DeleteProductDialog": {
     "heading": "Delete this product?",
@@ -1645,7 +1694,7 @@
     "sectionContactHeading": "Your details",
     "sectionInvestorHeading": "Investor status",
     "investorLabel": "I'm an investor",
-    "investorDescription": "You're planning an order of 10 or more homes.",
+    "investorDescription": "You're planning an order of 3 or more homes.",
     "nameLabel": "Full name",
     "phoneLabel": "Phone",
     "companyNameLabel": "Company name",
@@ -1771,6 +1820,10 @@
     "unreadDecisionLabel": "Client made a decision"
   },
   "ProducerPanelBoardPage": {
+    "filtersAriaLabel": "Board filters",
+    "filterAll": "All",
+    "filterClear": "Clear filters",
+    "emptyFiltered": "No requests match the selected filters.",
     "heading": "Board",
     "intro": "Open large-order requests from every investor — submit a quote on any of them.",
     "notApprovedHeading": "The board is only available to volume-verified producers",
@@ -1794,6 +1847,8 @@
     "columnFloorArea": "Floor area (m²)"
   },
   "ProducerBoardDetailPage": {
+    "scopeHeading": "Order scope",
+    "scheduleHeading": "Timing and location",
     "heading": "Request details",
     "backToBoard": "Back to the board",
     "countryLabel": "Country",
@@ -1816,12 +1871,13 @@
     "ownQuoteStatusSuperseded": "Superseded"
   },
   "QuoteForm": {
+    "heading": "Your quote",
     "intro": "Submit your quote for this request.",
     "revisionIntro": "You're revising a quote you already submitted — the new version replaces the previous one.",
     "totalPriceLabel": "Total price (€)",
-    "unitPriceLabel": "Price per unit (€, optional)",
-    "leadTimeLabel": "Proposed lead time (weeks, optional)",
-    "notesLabel": "Note (optional)",
+    "unitPriceLabel": "Price per unit (€)",
+    "leadTimeLabel": "Proposed lead time (weeks)",
+    "notesLabel": "Note",
     "submitQuote": "Submit quote",
     "submitRevision": "Submit revised quote",
     "submitting": "Submitting…",
@@ -1829,7 +1885,7 @@
     "genericError": "Couldn't save the quote. Please try again."
   },
   "ProjectQuotePdfUploadStep": {
-    "label": "Quote PDF (optional)",
+    "label": "Quote PDF",
     "chooseFile": "Choose file",
     "replaceFile": "Replace file",
     "uploading": "Uploading…",
@@ -1879,9 +1935,9 @@
   },
   "BulkOrdersShowcase": {
     "heading": "Investment projects and series production",
-    "subheading": "Large orders from 10 homes: one request reaches verified producers ready for volume.",
+    "subheading": "Large orders from 3 homes: one request reaches verified producers ready for volume.",
     "investorHeading": "For investors",
-    "investorSubheading": "10+ homes",
+    "investorSubheading": "from 3 homes",
     "investorPoint1": "Individual producer comparison",
     "investorPoint2": "Support for large projects",
     "investorPoint3": "Timelines, capacity and standard",
@@ -1898,12 +1954,12 @@
     "producerSignatureLine2": "We build more"
   },
   "ProjectRequestPage": {
-    "metaTitle": "Submit a large B2B project (10+ homes) | ModularHub Europe",
-    "metaDescription": "Send one request for a large investment project (10 or more modular homes) to verified producers across Europe, no account needed."
+    "metaTitle": "Submit a large B2B project (from 3 homes) | ModularHub Europe",
+    "metaDescription": "Send one request for a large investment project (3 or more modular homes) to verified producers across Europe, no account needed."
   },
   "ProjectRequestFlow": {
     "heading": "Submit a large project",
-    "intro": "Send one request for a project of 10 or more modular homes — it will reach verified producers ready for volume in your chosen country.",
+    "intro": "Send one request for a project of 3 or more modular homes — it will reach verified producers ready for volume in your chosen country.",
     "sentHeading": "Request sent",
     "backToHome": "Back to homepage",
     "sectionAboutHeading": "About the project",
@@ -1912,8 +1968,10 @@
     "familiesLegend": "Product family",
     "locationDetailLabel": "Location (optional)",
     "sectionDetailsHeading": "Details",
-    "unitCountMinLabel": "Minimum number of units",
-    "unitCountMaxLabel": "Maximum number of units (optional)",
+    "unitCountLabel": "Number of homes",
+    "unitCountHint": "Enter one exact number, from 3 homes. Don't know it yet? Enter the number for the first stage and describe the rest in the notes.",
+    "unitCountSmallHint": "For 1 or 2 homes, use the regular inquiry path:",
+    "unitCountSmallHintLink": "pick a project in the catalog and ask the producer.",
     "floorAreaMinLabel": "Floor area from (m², optional)",
     "floorAreaMaxLabel": "Floor area to (m², optional)",
     "completionStandardLabel": "Completion standard (optional)",
@@ -1990,8 +2048,10 @@
     "heading": "Ask about a larger quantity",
     "nameLabel": "Full name",
     "phoneLabel": "Phone (optional)",
-    "unitCountMinLabel": "Minimum quantity",
-    "unitCountMaxLabel": "Maximum quantity (optional)",
+    "unitCountLabel": "Number of homes",
+    "unitCountHint": "Enter one exact number, from 3 homes. Don't know it yet? Enter the number for the first stage and describe the rest in the notes.",
+    "unitCountSmallHint": "For 1 or 2 homes, use the regular inquiry path:",
+    "unitCountSmallHintLink": "pick a project in the catalog and ask the producer.",
     "deliveryCountryLabel": "Delivery country",
     "noteLabel": "Additional notes (optional)",
     "cancel": "Cancel",
@@ -2016,7 +2076,8 @@
     "collapseSidebar": "Collapse sidebar",
     "expandSidebar": "Expand sidebar",
     "board": "Board",
-    "boardQuotes": "My quotes"
+    "boardQuotes": "My quotes",
+    "capacity": "Capacity profile"
   },
   "ClientPanelSidebar": {
     "navAriaLabel": "Client panel",
@@ -2031,7 +2092,8 @@
     "menu": "Menu",
     "collapseSidebar": "Collapse sidebar",
     "expandSidebar": "Expand sidebar",
-    "quotes": "Quotes"
+    "quotes": "Quotes",
+    "weryfikacja": "Verify account"
   },
   "CaseChat": {
     "heading": "Conversation with your advisor",
@@ -2270,24 +2332,106 @@
     }
   },
   "InquiryClaim": {
-    "heading": "Create an account and follow your request",
-    "body": "After you click, we will email a sign in link to your address. Once signed in you will see your case and can chat with the advisor.",
-    "cta": "Create account",
+    "heading": "Get the link to your case",
+    "body": "After you click, we will email a link to your case to your address. One click in the email signs you in and opens the case, where you can chat with the advisor.",
+    "cta": "Send me the link to my case",
     "sending": "Sending…",
     "retry": "Retry",
-    "sent": "If possible, we sent a sign in link to the address from your request. Check your inbox.",
+    "sent": "If possible, we sent a link to the address from your request. Check your inbox.",
     "error": "We could not send the link. Please try again."
   },
-  "GuestInquiryConfirmationEmail": {
-    "subject": "We received your request",
+  "GuestLinkNewEmail": {
+    "subject": "Your request at ModularHub Europe",
     "heading": "Thank you for your request",
-    "body": "We received your request about modular homes. A ModularHub advisor will contact you by email. You can create an account to follow your case and chat with the advisor.",
-    "cta": "Create an account and follow your case"
+    "body": "Thank you for your request. Click to see your case and create your account. The link is valid for a limited time and can only be used once.",
+    "cta": "View your case"
   },
-  "GuestIdentityCheckEmail": {
-    "subject": "Did you send a request?",
+  "GuestLinkExistingEmail": {
+    "subject": "A request was added to your account",
     "heading": "Was this you?",
-    "body": "Someone sent a ModularHub request about modular homes using this email address, and we added it to your account. If it was you, you do not need to do anything. If not, reply to this email.",
+    "body": "Someone sent a request to this address and we added it to your account. If it was you, click to see it. If not, ignore this email or reply to it.",
     "cta": "View the request"
+  },
+  "Privacy": {
+    "heading": "Privacy",
+    "testNotice": "This is a test version of the service. The full privacy policy will be published before the public launch.",
+    "purpose": "We process the details from the request form (name, email, phone, plot address, message) only to handle your request and to contact you about it.",
+    "noMarketing": "We do not use these details for marketing and do not share them with anyone except the producers you yourself decide to send the request to.",
+    "deletion": "You can ask us to delete your data. We handle such requests manually.",
+    "contact": "Contact about your data:"
+  },
+  "ProducerPanelCapacityPage": {
+    "heading": "Production capacity profile",
+    "intro": "Complete your profile so an administrator can verify you. Verified producers see large order requests that match their delivery countries, product families and capacity.",
+    "noProducer": "No producer account found.",
+    "status": {
+      "not_submitted": "Status: profile not yet submitted for verification.",
+      "pending": "Status: profile is waiting for administrator review.",
+      "approved": "Status: profile approved. Changes are saved without a new review.",
+      "rejected": "Status: profile rejected. Correct the details and submit again."
+    },
+    "deliveryCountriesHeading": "Delivery countries",
+    "deliveryCountriesHelp": "Requests from countries you do not select here will not reach you.",
+    "unitsPerMonth": "Production capacity: how many houses you produce per month",
+    "productionLines": "Production lines",
+    "maxModuleSizeM2": "Maximum module size (m²)",
+    "leadTimeHeading": "Lead times",
+    "leadTimeHelp": "How many weeks an order of a given number of units takes.",
+    "tierUnits": "Number of units",
+    "tierWeeks": "Weeks",
+    "addTier": "Add tier",
+    "removeTier": "Remove",
+    "standardsHeading": "Supported completion standards",
+    "standards": {
+      "surowy-zamkniety": "Shell, weathertight",
+      "deweloperski": "Developer standard",
+      "pod-klucz": "Turnkey"
+    },
+    "servicesHeading": "Services",
+    "canHandleTransport": "I arrange transport",
+    "canHandleAssembly": "I perform assembly",
+    "canCustomize": "I adapt the design to the client's requirements",
+    "customizationNote": "Description of customization options",
+    "capabilityNote": "Production capability description",
+    "references": "References (completed projects)",
+    "referencesHelp": "One reference per line.",
+    "save": "Save profile",
+    "submitForReview": "Submit for verification",
+    "saved": "Saved.",
+    "submitted": "Profile submitted for verification.",
+    "saveError": "Could not save the profile.",
+    "submitError": "Could not submit the profile for verification.",
+    "unitsPerMonthHelp": "The number of houses or modules you can produce in a month. We use it to match you with large orders.",
+    "unitsRequired": "Enter your production capacity (houses per month) before submitting the profile for verification."
+  },
+  "ClientB2bDetailsForm": {
+    "heading": "Company details",
+    "intro": "Large orders require a verified company. Enter the company name and tax number, the ModularHub team will verify them.",
+    "status": {
+      "not_submitted": "Status: company details not yet submitted.",
+      "pending": "Status: details are waiting for verification.",
+      "approved": "Status: company verified.",
+      "rejected": "Status: details rejected. Correct them and submit again."
+    },
+    "companyLabel": "Company name",
+    "nipLabel": "Tax number or EU VAT number",
+    "nipHelp": "10 digits for a Polish company, or an EU VAT number with the country prefix, for example DE123456789 or NL123456789B01.",
+    "submit": "Submit for verification",
+    "saving": "Saving…",
+    "saved": "Company details submitted for verification.",
+    "genericError": "Could not save the company details. Please try again."
+  },
+  "LargeOrderTeamNewRequestEmail": {
+    "subject": "New large order request ({units} houses, {country})",
+    "greeting": "Hello,",
+    "intro": "A client has submitted a new large order request. Details and contact data are in the admin panel.",
+    "countryLabel": "Country",
+    "unitsLabel": "Number of houses",
+    "deadlineLabel": "Offer deadline",
+    "languageLabel": "Client language",
+    "cta": "Open the request in the panel"
+  },
+  "KlientPanelWeryfikacjaPage": {
+    "heading": "Account verification"
   }
 }

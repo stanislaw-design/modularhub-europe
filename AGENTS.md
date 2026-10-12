@@ -45,6 +45,9 @@ npm run test:e2e     # playwright (E2E)
 npm run db:generate  # drizzle-kit generate
 npm run db:migrate   # drizzle-kit migrate (also run in CI deploy workflows)
 npm run db:studio    # drizzle-kit studio
+
+# Translation gaps (spec 0067, read only)
+npm run check:translations  # lists en/de/nl gaps for published products, exit 1 when any
 ```
 
 ## Specs
@@ -60,9 +63,11 @@ Stored in `docs/specs/`. Each is a directory `docs/specs/NNNN-title/` with `inde
 - UI state that must survive a route change (e.g. country and budget from the wizard, visible on the results screen) goes through URL search params, not shared component state.
 - No database, no login, no real payments in this stage; every "paid step" and file upload is a mock (see `docs/scope/prototyp.md`, Deferred section).
 - Lint/format/pre commit tooling is not otherwise finalized yet (tracked as scope feature 2), but `eslint.config.mjs` already carries one load bearing custom rule: `no-restricted-imports` blocks any file outside `lib/observability/` from importing `@sentry/nextjs`, `posthog-js`, or `posthog-node` directly (spec 0021).
+- Dev server gotcha: `next dev` keeps `messages/*.json` cached for the life of the process, so a newly added translation key shows up as its raw path (e.g. `ResultCard.selectForCompareSauna`) until the dev server is restarted; touching the files does not help.
 - `next.config.ts` allowlists `next/image` remote patterns explicitly (`images.remotePatterns`); mock project cover images come from `picsum.photos` today, add any other external image host there before using it.
 - `next.config.ts` raises `experimental.serverActions.bodySizeLimit` to `"24mb"` (spec 0063): Next.js 16 otherwise caps every server action's request body at 1 MB, rejecting an oversized upload at the transport layer before any in-action validation runs. Global for every server action, not just the one that first needed it.
 - `next.config.ts` also sets `experimental.proxyClientMaxBodySize` to the same `"24mb"` (spec 0063, found by `/check verify`): this is a second, independent request-body cap enforced by `proxy.ts` (Next.js 16's middleware), defaulting to 10 MB regardless of `serverActions.bodySizeLimit`. `proxy.ts`'s matcher covers nearly every route, so without this a file upload between 10 MB and the app-level limit crashes the page with an uncaught "Unexpected end of form" instead of reaching the server action's own validation.
+- Data text shown to customers (configurator groups and options, producer description, certificate names, product fields, compliance reasons) is translated into en/de/nl by per entity tables (matched by row `id`) plus the `reference_text_translation` dictionary (matched by exact Polish text), spec 0067. Read paths take a `locale` and fall back to the Polish source per field via `resolveTranslatedText` (`lib/i18n/resolve-translated-text.ts`); for `pl` they join no translation table. Logic (icon, "Nie" detection) must key off the Polish source (`sourceName`/`sourceLabel`), never the displayed text. Every import writes its translations with the data, then `npm run check:translations` must report zero gaps; prod translation writes go through a SQL file run by hand (`drizzle/_promote_*`, `scripts/backfill-translations-0067.ts --emit-sql`).
 
 ## Agent skills
 
@@ -101,7 +106,7 @@ MCP servers: playwright (connected), Neon (connected), Sentry (connected)
 - [lib/storage/AGENTS.md](lib/storage/AGENTS.md): the Cloudflare R2 file storage layer (client, upload validation), spec 0031
 - [lib/cases/AGENTS.md](lib/cases/AGENTS.md): the managed advisory case flow (access control, messaging, email throttling), spec 0048
 - [lib/notifications/AGENTS.md](lib/notifications/AGENTS.md): the shared transactional email sender plus one function per triggering event, spec 0051
-- [app/[locale]/internal/AGENTS.md](app/[locale]/internal/AGENTS.md): the admin panel (dashboard, cases, monitoring, notifications, producers, products), spec 0055
+- [app/[locale]/internal/AGENTS.md](app/[locale]/internal/AGENTS.md): the admin panel (dashboard, cases, monitoring, notifications, producers, products, large orders and volume/B2B approvals), spec 0055 and 0070
 - [app/[locale]/internal/products/AGENTS.md](app/[locale]/internal/products/AGENTS.md): admin screen for managing product photos, spec 0031
 
 _Drafted by /audit from the repo, worth a quick human pass. Edit freely: once a line stops matching this draft, later runs treat it as curated and will flag rather than overwrite it._

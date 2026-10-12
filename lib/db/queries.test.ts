@@ -860,7 +860,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: project request boar
         countryCode: "PL",
         projectType: "resort",
         families: ["dom"],
-        unitCountMin: 15,
+        unitCount: 15,
         status: "open",
       },
       {
@@ -870,8 +870,10 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: project request boar
         countryCode: "PL",
         projectType: "resort",
         families: ["dom"],
-        unitCountMin: 10,
+        unitCount: 10,
         status: "closed",
+        closedAt: new Date(),
+        closedReason: "staff_closed",
       },
     ]);
     await db.insert(bulkProductInquiry).values({
@@ -881,7 +883,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: project request boar
       contactName: "Bulk Board Investor",
       contactEmail: `qb-bulk-${bulkInquiryId}@example.test`,
       contactPhone: "+48000000098",
-      unitCountMin: 20,
+      unitCount: 20,
       deliveryCountryCode: "PL",
       status: "open",
     });
@@ -981,8 +983,10 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: project request boar
         countryCode: "PL",
         projectType: "resort",
         families: ["dom"],
-        unitCountMin: 10,
+        unitCount: 10,
         status: "closed",
+        closedAt: new Date(),
+        closedReason: "staff_closed",
       });
       const quoteId = crypto.randomUUID();
       await db.insert(projectQuote).values({ id: quoteId, projectRequestId: quotedClosedId, producerId, totalPriceCents: 500_000, status: "rejected" });

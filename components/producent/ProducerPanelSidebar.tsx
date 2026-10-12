@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
-import { ChevronsLeft, ChevronsRight, ClipboardList, FileText, House, Inbox, LogOut, Menu, Package, User, X, type LucideIcon } from "lucide-react";
+import { ChevronsLeft, ChevronsRight, ClipboardList, Factory, FileText, House, Inbox, LogOut, Menu, Package, User, X, type LucideIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -47,10 +47,11 @@ export function ProducerPanelSidebar({ locale, hasUnreadZapytania }: ProducerPan
     { key: "zapytania", path: "inquiries", label: t("zapytania"), icon: Inbox },
     { key: "board", path: "board", label: t("board"), icon: ClipboardList },
     { key: "boardQuotes", path: "board-quotes", label: t("boardQuotes"), icon: FileText },
+    { key: "capacity", path: "capacity", label: t("capacity"), icon: Factory },
   ];
 
   const renderNav = (onNavigate?: () => void, collapsed = false) => (
-    <nav aria-label={t("navAriaLabel")} className="flex flex-col gap-1">
+    <nav aria-label={t("navAriaLabel")} className="flex flex-col">
       {navItems.map((item) => {
         const href = `/${locale}/producer/panel${item.path ? `/${item.path}` : ""}`;
         // /inquiries/[id] jest zagnieżdżoną, dynamiczną podstroną "zapytania"
@@ -64,7 +65,7 @@ export function ProducerPanelSidebar({ locale, hasUnreadZapytania }: ProducerPan
             onClick={onNavigate}
             aria-current={isCurrent ? "page" : undefined}
             title={collapsed ? item.label : undefined}
-            className={`focus-ring relative flex items-center gap-2 rounded-data px-brand-2 py-brand-2 text-body font-medium transition-colors ${
+            className={`focus-ring relative flex items-center gap-2 px-brand-3 py-brand-2 text-body font-medium transition-colors ${
               isCurrent
                 ? "bg-brand-passage-blue/10 text-brand-foundation-navy"
                 : "text-brand-technical-graphite hover:bg-brand-steel/30 hover:text-brand-foundation-navy"
@@ -90,7 +91,7 @@ export function ProducerPanelSidebar({ locale, hasUnreadZapytania }: ProducerPan
   );
 
   const renderFooter = (onNavigate?: () => void, collapsed = false) => (
-    <div className="flex flex-col gap-brand-3 border-t border-brand-steel pt-brand-3">
+    <div className="flex flex-col gap-brand-3 border-t border-brand-steel px-brand-3 pt-brand-3">
       <div className={`flex gap-brand-2 ${collapsed ? "flex-col items-center" : "items-center justify-between"}`}>
         <Link
           href={`/${locale}`}
@@ -126,12 +127,12 @@ export function ProducerPanelSidebar({ locale, hasUnreadZapytania }: ProducerPan
     <>
       <aside
         data-collapsed={isCollapsed}
-        className={`hidden shrink-0 flex-col justify-between gap-brand-4 overflow-x-hidden overflow-y-auto border-r border-brand-steel p-brand-3 transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none md:sticky md:top-0 md:flex md:h-screen md:self-start ${
-          isCollapsed ? "md:w-[calc(2*(var(--spacing-brand-3)+var(--spacing-brand-2)+0.5rem)+1px)]" : "md:w-64"
+        className={`hidden shrink-0 flex-col justify-between gap-brand-4 overflow-x-hidden overflow-y-auto border-r border-brand-steel py-brand-3 transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none md:sticky md:top-0 md:flex md:h-screen md:self-start ${
+          isCollapsed ? "md:w-[calc(2*var(--spacing-brand-3)+1rem+1px)]" : "md:w-[17rem]"
         }`}
       >
         <div className="flex flex-col gap-brand-4">
-          <div className="flex h-8 items-center justify-between">
+          <div className="flex h-8 items-center justify-between px-brand-3">
             <Link
               href={`/${locale}/producer`}
               aria-label="ModularHub Europe"
@@ -188,9 +189,9 @@ export function ProducerPanelSidebar({ locale, hasUnreadZapytania }: ProducerPan
         <div className="fixed inset-0 flex">
           <DialogPanel
             transition
-            className="flex h-full w-full max-w-xs flex-col gap-brand-4 overflow-y-auto bg-brand-warm-white p-brand-4 shadow-xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] data-[closed]:-translate-x-full"
+            className="flex h-full w-full max-w-xs flex-col gap-brand-4 overflow-y-auto bg-brand-warm-white py-brand-4 shadow-xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] data-[closed]:-translate-x-full"
           >
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between px-brand-3">
               <span className="text-body font-medium text-brand-foundation-navy">{t("menu")}</span>
               <button
                 type="button"

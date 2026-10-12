@@ -24,10 +24,10 @@ import { getCaseActor } from "@/lib/cases/actor";
 import { answerCard as answerCardData, assessReadiness as assessReadinessData, upsertCaseField as upsertCaseFieldData } from "@/lib/cases/cards";
 import { systemClock } from "@/lib/cases/clock";
 import { createAdvisoryCase, findExistingAdvisoryCase, IdempotencyConflictError } from "@/lib/cases/create";
-import { isGuestRateLimited } from "@/lib/cases/guest";
+import { isGuestRateLimited, pinGuestCaseToExistingClient } from "@/lib/cases/guest";
+import { sendGuestCaseLink } from "@/lib/cases/guest-link";
 import { postMessage, touchChannel } from "@/lib/cases/messaging";
 import { notifyAdvisorOfNewCase, notifyMessageRecipient } from "@/lib/cases/notify";
-import { notifyGuestOfNewCase } from "@/lib/notifications/guest-inquiry";
 import { notifyClientOfNewCase } from "@/lib/notifications/new-inquiry";
 import { getCountries } from "@/lib/data/countries";
 import { getPublishedProductIds } from "@/lib/data/projects";
@@ -47,6 +47,8 @@ export interface SubmitAdvisoryInquiryResult {
   inquiryId?: string;
   // true: sprawa gościa (bez konta), UI pokazuje ekran potwierdzenia zamiast przekierowania.
   guest?: boolean;
+  // true tylko gdy sama wysyłka linku magicznego nie powiodła się (sprawa jest zapisana).
+  linkFailed?: boolean;
   error?: "auth" | "invalid" | "no_client" | "unsupported_country" | "rate_limited" | "generic";
 }
 
@@ -117,12 +119,29 @@ export async function submitAdvisoryInquiry(input: SubmitAdvisoryInquiryInput): 
       systemClock,
     );
 
+    let linkFailed = false;
     if (result.created) {
       trackEvent("case_created", { homeCount: projectIds.length, countryCode, guest: isGuest }, distinctId ?? result.inquiryId);
       after(() => notifyAdvisorOfNewCase(result.inquiryId));
-      after(() => (isGuest ? notifyGuestOfNewCase(result.inquiryId) : notifyClientOfNewCase(result.inquiryId)));
+      if (isGuest) {
+        // AC-10: e mail istniejącego klienta przypina sprawę od razu, przed wysyłką linku.
+        // AC-7, AC-8: jeden mail z linkiem magicznym, wstrzymany przez await (nie after),
+        // żeby ekran znał wynik. Odpowiedź jest taka sama niezależnie od tego, czy mail wyszedł.
+        const pinned = await pinGuestCaseToExistingClient(result.inquiryId, contact.email);
+        const sent = await sendGuestCaseLink({
+          inquiryId: result.inquiryId,
+          email: contact.email,
+          name: contact.name,
+          phone: contact.phone,
+          locale: data.locale,
+          variant: pinned ? "existing" : "new",
+        });
+        linkFailed = sent === "failed";
+      } else {
+        after(() => notifyClientOfNewCase(result.inquiryId));
+      }
     }
-    return { ok: true, inquiryId: result.inquiryId, guest: isGuest };
+    return { ok: true, inquiryId: result.inquiryId, guest: isGuest, ...(linkFailed ? { linkFailed } : {}) };
   } catch (error) {
     if (error instanceof IdempotencyConflictError) return { ok: false, error: "invalid" };
     captureError(error, { path: "submitAdvisoryInquiry", userId: distinctId });

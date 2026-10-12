@@ -110,7 +110,7 @@ describe("QuoteForm", () => {
     await waitFor(() => {
       expect(screen.getByText("Wycena wysłana.")).toBeInTheDocument();
     });
-    expect(screen.getByLabelText("PDF wyceny (opcjonalnie)")).toBeInTheDocument();
+    expect(screen.getByLabelText("PDF wyceny")).toBeInTheDocument();
   });
 
   // The engineer wants the PDF picked in the same step as the price, not a
@@ -124,7 +124,7 @@ describe("QuoteForm", () => {
     render(<QuoteForm projectRequestId="req-1" isRevision={false} />);
 
     await user.type(screen.getByLabelText(/Cena całkowita/), "500000");
-    await user.upload(screen.getByLabelText("PDF wyceny (opcjonalnie)"), file);
+    await user.upload(screen.getByLabelText("PDF wyceny"), file);
     await user.click(screen.getByRole("button", { name: "Wyślij wycenę" }));
 
     await waitFor(() => {
@@ -158,14 +158,14 @@ describe("QuoteForm", () => {
     render(<QuoteForm projectRequestId="req-1" isRevision={false} />);
 
     await user.type(screen.getByLabelText(/Cena całkowita/), "500000");
-    await user.upload(screen.getByLabelText("PDF wyceny (opcjonalnie)"), quotePdfFile());
+    await user.upload(screen.getByLabelText("PDF wyceny"), quotePdfFile());
     await user.click(screen.getByRole("button", { name: "Wyślij wycenę" }));
 
     await waitFor(() => {
       expect(screen.getByText("Wycena wysłana.")).toBeInTheDocument();
     });
     expect(screen.getByRole("alert")).toHaveTextContent(/większy niż 20 MB/);
-    expect(screen.getByLabelText("PDF wyceny (opcjonalnie)")).toBeInTheDocument();
+    expect(screen.getByLabelText("PDF wyceny")).toBeInTheDocument();
   });
 
   it("does not render the PDF upload step when submission succeeds without a quoteId", async () => {
@@ -179,7 +179,7 @@ describe("QuoteForm", () => {
     await waitFor(() => {
       expect(screen.getByText("Wycena wysłana.")).toBeInTheDocument();
     });
-    expect(screen.queryByLabelText("PDF wyceny (opcjonalnie)")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("PDF wyceny")).not.toBeInTheDocument();
   });
 
   it("shows the server error and keeps the form when submitProjectQuote resolves ok:false", async () => {

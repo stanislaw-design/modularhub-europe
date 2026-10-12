@@ -35,6 +35,7 @@ import {
   pendingRegistration,
   producer,
   producerCapacityProfile,
+  producerDeliveryCountry,
   producerMember,
   product,
   projectQuote,
@@ -46,7 +47,9 @@ import {
   getProjectQuotePdfUrl,
   linkRequestsToClientOnLogin,
   setClientB2bVerification,
+  setProducerDeliveryCountriesAsAdmin,
   setProducerVolumeVerification,
+  submitCapacityProfileForReview,
   submitClientB2bDetails,
   submitProjectQuote,
   updateProducerCapacityProfile,
@@ -129,7 +132,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       countryCode: "PL",
       projectType: "resort",
       families: ["dom"],
-      unitCountMin: 12,
+      unitCount: 12,
       status: "open",
     });
     await db.insert(bulkProductInquiry).values({
@@ -137,7 +140,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       productId: bulkProductId,
       contactName: "Bulk Investor",
       contactEmail: `pqa-bulk-${bulkInquiryId}@example.test`,
-      unitCountMin: 20,
+      unitCount: 20,
       deliveryCountryCode: "PL",
       status: "open",
     });
@@ -150,6 +153,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
     await db.delete(projectRequest).where(eq(projectRequest.id, projectRequestId));
     await db.delete(product).where(eq(product.id, bulkProductId));
     await db.delete(producerCapacityProfile).where(inArray(producerCapacityProfile.producerId, allProducerIds));
+    await db.delete(producerDeliveryCountry).where(inArray(producerDeliveryCountry.producerId, allProducerIds));
     await db.delete(producer).where(inArray(producer.id, allProducerIds));
     await db.delete(client).where(inArray(client.id, [clientId, otherClientId]));
     // Spec 0064: setClientB2bVerification/setProducerVolumeVerification now
@@ -177,7 +181,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
     // the quote first would violate the FK.
     await db.delete(document).where(inArray(document.ownerUserId, allUserIds));
     await db.delete(projectQuote).where(inArray(projectQuote.producerId, allProducerIds));
-    await db.update(projectRequest).set({ status: "open" }).where(eq(projectRequest.id, projectRequestId));
+    await db.update(projectRequest).set({ status: "open", closedAt: null, closedReason: null }).where(eq(projectRequest.id, projectRequestId));
     await db.update(bulkProductInquiry).set({ status: "open" }).where(eq(bulkProductInquiry.id, bulkInquiryId));
     await db.update(client).set({ nip: null, companyName: null, b2bVerificationStatus: "not_submitted" }).where(inArray(client.id, [clientId, otherClientId]));
     await db.update(producerCapacityProfile).set({ volumeVerificationStatus: "approved" }).where(inArray(producerCapacityProfile.producerId, [producer1Id, producer4Id]));
@@ -235,7 +239,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
 
     // AC-13: the request itself must still be open/quoted.
     it("rejects an approved producer once the request is no longer open or quoted", async () => {
-      await db.update(projectRequest).set({ status: "closed" }).where(eq(projectRequest.id, projectRequestId));
+      await db.update(projectRequest).set({ status: "closed", closedAt: new Date(), closedReason: "staff_closed" }).where(eq(projectRequest.id, projectRequestId));
       authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
 
       const result = await submitProjectQuote({ projectRequestId, totalPriceEur: 500000 });
@@ -333,7 +337,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
         countryCode: "PL",
         projectType: "resort",
         families: ["dom"],
-        unitCountMin: 12,
+        unitCount: 12,
         status: "open",
       });
       authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
@@ -825,7 +829,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       const email = `pqa-link-${crypto.randomUUID()}@example.test`;
       const [inserted] = await db
         .insert(projectRequest)
-        .values({ contactName: "Link Me", contactEmail: email, countryCode: "PL", projectType: "resort", families: ["dom"], unitCountMin: 10 })
+        .values({ contactName: "Link Me", contactEmail: email, countryCode: "PL", projectType: "resort", families: ["dom"], unitCount: 10 })
         .returning({ id: projectRequest.id });
 
       await linkRequestsToClientOnLogin(email, clientId);
@@ -840,7 +844,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       const email = `pqa-link-${crypto.randomUUID()}@example.test`;
       const [inserted] = await db
         .insert(bulkProductInquiry)
-        .values({ productId: bulkProductId, contactName: "Link Me Too", contactEmail: email, unitCountMin: 15, deliveryCountryCode: "PL" })
+        .values({ productId: bulkProductId, contactName: "Link Me Too", contactEmail: email, unitCount: 15, deliveryCountryCode: "PL" })
         .returning({ id: bulkProductInquiry.id });
 
       await linkRequestsToClientOnLogin(email, clientId);
@@ -855,7 +859,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       const email = `pqa-link-${crypto.randomUUID()}@example.test`;
       const [inserted] = await db
         .insert(projectRequest)
-        .values({ contactName: "Already Linked", contactEmail: email, countryCode: "PL", projectType: "resort", families: ["dom"], unitCountMin: 10, clientId: otherClientId })
+        .values({ contactName: "Already Linked", contactEmail: email, countryCode: "PL", projectType: "resort", families: ["dom"], unitCount: 10, clientId: otherClientId })
         .returning({ id: projectRequest.id });
 
       await linkRequestsToClientOnLogin(email, clientId);
@@ -922,6 +926,147 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
         .orderBy(desc(auditLog.createdAt))
         .limit(1);
       expect(row?.actorUserId).toBe(adminUserId);
+    });
+  });
+
+  // Spec 0070 część A (AC-5, AC-6, AC-22).
+  describe("spec 0070 week 1", () => {
+    afterEach(async () => {
+      await db.delete(producerDeliveryCountry).where(inArray(producerDeliveryCountry.producerId, [producer2Id]));
+      await db.delete(producerCapacityProfile).where(eq(producerCapacityProfile.producerId, producer2Id));
+    });
+
+    describe("delivery countries (AC-5)", () => {
+      it("saves the delivery countries with the profile and replaces them on the next save", async () => {
+        authMock.mockResolvedValue(sessionAs(producer2UserId, "producer"));
+
+        expect((await updateProducerCapacityProfile({ unitsPerMonth: 5, deliveryCountryCodes: ["DE", "NL"] })).ok).toBe(true);
+        const first = await db.select({ code: producerDeliveryCountry.countryCode }).from(producerDeliveryCountry).where(eq(producerDeliveryCountry.producerId, producer2Id));
+        expect(first.map((row) => row.code).sort()).toEqual(["DE", "NL"]);
+
+        expect((await updateProducerCapacityProfile({ unitsPerMonth: 5, deliveryCountryCodes: ["de"] })).ok).toBe(true);
+        const second = await db.select({ code: producerDeliveryCountry.countryCode }).from(producerDeliveryCountry).where(eq(producerDeliveryCountry.producerId, producer2Id));
+        expect(second.map((row) => row.code)).toEqual(["DE"]);
+      });
+
+      it("rejects an unknown country code and keeps the previous countries", async () => {
+        authMock.mockResolvedValue(sessionAs(producer2UserId, "producer"));
+        await updateProducerCapacityProfile({ unitsPerMonth: 5, deliveryCountryCodes: ["DE"] });
+
+        const result = await updateProducerCapacityProfile({ unitsPerMonth: 5, deliveryCountryCodes: ["ZZ"] });
+
+        expect(result.ok).toBe(false);
+        const rows = await db.select({ code: producerDeliveryCountry.countryCode }).from(producerDeliveryCountry).where(eq(producerDeliveryCountry.producerId, producer2Id));
+        expect(rows.map((row) => row.code)).toEqual(["DE"]);
+      });
+
+      it("lets an admin replace the delivery countries of a producer, and refuses other roles", async () => {
+        authMock.mockResolvedValue(sessionAs(producer2UserId, "producer"));
+        expect((await setProducerDeliveryCountriesAsAdmin(producer2Id, ["NL"])).ok).toBe(false);
+
+        authMock.mockResolvedValue(sessionAs(adminUserId, "admin"));
+        expect((await setProducerDeliveryCountriesAsAdmin(producer2Id, ["NL", "DE"])).ok).toBe(true);
+
+        const rows = await db.select({ code: producerDeliveryCountry.countryCode }).from(producerDeliveryCountry).where(eq(producerDeliveryCountry.producerId, producer2Id));
+        expect(rows.map((row) => row.code).sort()).toEqual(["DE", "NL"]);
+      });
+    });
+
+    describe("submitCapacityProfileForReview (AC-5)", () => {
+      it("refuses when no profile was saved yet", async () => {
+        authMock.mockResolvedValue(sessionAs(producer2UserId, "producer"));
+
+        const result = await submitCapacityProfileForReview();
+
+        expect(result.ok).toBe(false);
+      });
+
+      it("refuses to submit a profile without the monthly capacity declared", async () => {
+        authMock.mockResolvedValue(sessionAs(producer2UserId, "producer"));
+        await updateProducerCapacityProfile({ capabilityNote: "Brak mocy przerobowej" });
+
+        const result = await submitCapacityProfileForReview();
+
+        expect(result.ok).toBe(false);
+        const [row] = await db.select({ status: producerCapacityProfile.volumeVerificationStatus }).from(producerCapacityProfile).where(eq(producerCapacityProfile.producerId, producer2Id));
+        expect(row.status).toBe("not_submitted");
+      });
+
+      it("moves not_submitted to pending, and a second submit changes nothing", async () => {
+        authMock.mockResolvedValue(sessionAs(producer2UserId, "producer"));
+        await updateProducerCapacityProfile({ unitsPerMonth: 5 });
+
+        expect((await submitCapacityProfileForReview()).ok).toBe(true);
+        const [row] = await db.select({ status: producerCapacityProfile.volumeVerificationStatus }).from(producerCapacityProfile).where(eq(producerCapacityProfile.producerId, producer2Id));
+        expect(row.status).toBe("pending");
+
+        expect((await submitCapacityProfileForReview()).ok).toBe(false);
+      });
+
+      it("never downgrades an approved profile", async () => {
+        authMock.mockResolvedValue(sessionAs(producer2UserId, "producer"));
+        await updateProducerCapacityProfile({ unitsPerMonth: 5 });
+        await db.update(producerCapacityProfile).set({ volumeVerificationStatus: "approved" }).where(eq(producerCapacityProfile.producerId, producer2Id));
+
+        const result = await submitCapacityProfileForReview();
+
+        expect(result.ok).toBe(false);
+        const [row] = await db.select({ status: producerCapacityProfile.volumeVerificationStatus }).from(producerCapacityProfile).where(eq(producerCapacityProfile.producerId, producer2Id));
+        expect(row.status).toBe("approved");
+      });
+
+      it("moves a rejected profile back to pending", async () => {
+        authMock.mockResolvedValue(sessionAs(producer2UserId, "producer"));
+        await updateProducerCapacityProfile({ unitsPerMonth: 5 });
+        await db.update(producerCapacityProfile).set({ volumeVerificationStatus: "rejected" }).where(eq(producerCapacityProfile.producerId, producer2Id));
+
+        expect((await submitCapacityProfileForReview()).ok).toBe(true);
+        const [row] = await db.select({ status: producerCapacityProfile.volumeVerificationStatus }).from(producerCapacityProfile).where(eq(producerCapacityProfile.producerId, producer2Id));
+        expect(row.status).toBe("pending");
+      });
+    });
+
+    describe("submitClientB2bDetails tax id format (AC-6)", () => {
+      it("accepts an EU VAT number and stores it without spaces", async () => {
+        authMock.mockResolvedValue(sessionAs(clientUserId, "client"));
+
+        const result = await submitClientB2bDetails({ nip: "de 123 456 789", companyName: "Bau GmbH" });
+
+        expect(result.ok).toBe(true);
+        const [row] = await db.select({ nip: client.nip }).from(client).where(eq(client.id, clientId));
+        expect(row.nip).toBe("DE123456789");
+      });
+
+      it("rejects a value that is neither a 10 digit NIP nor an EU VAT number", async () => {
+        authMock.mockResolvedValue(sessionAs(clientUserId, "client"));
+
+        expect((await submitClientB2bDetails({ nip: "12345", companyName: "Acme" })).ok).toBe(false);
+        expect((await submitClientB2bDetails({ nip: "not a vat", companyName: "Acme" })).ok).toBe(false);
+      });
+    });
+
+    describe("getProjectQuotePdfUrl for an admin (AC-22)", () => {
+      it("returns a signed url for an unpublished quote of any producer", async () => {
+        const [quote] = await db
+          .insert(projectQuote)
+          .values({ projectRequestId, producerId: producer1Id, totalPriceCents: 1000000, status: "active", publishedToClientAt: null })
+          .returning({ id: projectQuote.id });
+        await db.insert(document).values({
+          r2Key: `pqa-admin-${crypto.randomUUID()}.pdf`,
+          filename: "wycena.pdf",
+          mimeType: "application/pdf",
+          sizeBytes: 123,
+          purpose: "project_quote_pdf",
+          ownerUserId: producer1UserId,
+          projectQuoteId: quote.id,
+        });
+        authMock.mockResolvedValue(sessionAs(adminUserId, "admin"));
+
+        const result = await getProjectQuotePdfUrl(quote.id);
+
+        expect(result.ok).toBe(true);
+        expect(result.url).toBe("https://private.example.test/signed-url");
+      });
     });
   });
 });

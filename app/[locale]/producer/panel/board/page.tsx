@@ -1,14 +1,22 @@
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
-import { Card, Heading, Stack, Text } from "@/components/ui";
+import { BoardFilters } from "@/components/producent/BoardFilters";
+import { Card, Heading, Stack, TAG_TONES, TagPill, Text } from "@/components/ui";
 import {
+  getAllCountries,
   getOpenProjectRequestsForBoard,
   getProducerIdForUser,
   getProducerVolumeVerificationStatus,
   PROJECT_REQUESTS_BOARD_PAGE_SIZE,
+  type ProjectRequestBoardFilters,
   type ProjectRequestBoardItem,
 } from "@/lib/db/queries";
+import { productFamilyEnum, projectTypeEnum } from "@/lib/db/schema";
 import { requirePanelProducerSession } from "@/lib/panel-session";
+
+const PROJECT_TYPES = projectTypeEnum.enumValues;
+const FAMILIES = productFamilyEnum.enumValues;
+const STATUSES = ["open", "quoted"] as const;
 
 const dateFormatter = new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium" });
 
@@ -22,10 +30,11 @@ export default async function ProducerPanelBoardPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; country?: string; type?: string; family?: string; status?: string }>;
 }) {
   const { locale } = await params;
-  const { page: pageParam } = await searchParams;
+  const { page: pageParam, country: countryParam, type: typeParam, family: familyParam, status: statusParam } =
+    await searchParams;
   const selfHref = `/${locale}/producer/panel/board`;
   const [session, t, tProjectRequest, tOptions] = await Promise.all([
     requirePanelProducerSession(locale, selfHref),
@@ -46,7 +55,7 @@ export default async function ProducerPanelBoardPage({
           <Text tone="muted" measure className="mx-auto">
             {t("notApprovedDescription")}
           </Text>
-          <Link href={`/${locale}/producer/panel`} className="focus-ring rounded-data font-medium text-brand-passage-blue hover:underline">
+          <Link href={`/${locale}/producer/panel/capacity`} className="focus-ring rounded-data font-medium text-brand-passage-blue hover:underline">
             {t("completeProfileLink")}
           </Link>
         </Card>
@@ -55,7 +64,15 @@ export default async function ProducerPanelBoardPage({
   }
 
   const page = Math.max(1, Number.parseInt(pageParam ?? "1", 10) || 1);
-  const { items, totalCount } = await getOpenProjectRequestsForBoard({ page });
+  const countries = await getAllCountries();
+  const filters: ProjectRequestBoardFilters = {
+    countryCode: countries.find((c) => c.code === countryParam)?.code,
+    projectType: PROJECT_TYPES.find((v) => v === typeParam),
+    family: FAMILIES.find((v) => v === familyParam),
+    status: STATUSES.find((v) => v === statusParam),
+  };
+  const hasFilters = Object.values(filters).some(Boolean);
+  const { items, totalCount } = await getOpenProjectRequestsForBoard({ page, filters });
   const totalPages = Math.max(1, Math.ceil(totalCount / PROJECT_REQUESTS_BOARD_PAGE_SIZE));
 
   const statusLabel: Record<ProjectRequestBoardItem["status"], string> = {
@@ -68,7 +85,13 @@ export default async function ProducerPanelBoardPage({
   };
 
   function pageHref(targetPage: number): string {
-    return `${selfHref}?page=${targetPage}`;
+    const params = new URLSearchParams();
+    if (filters.countryCode) params.set("country", filters.countryCode);
+    if (filters.projectType) params.set("type", filters.projectType);
+    if (filters.family) params.set("family", filters.family);
+    if (filters.status) params.set("status", filters.status);
+    params.set("page", String(targetPage));
+    return `${selfHref}?${params.toString()}`;
   }
 
   return (
@@ -77,9 +100,20 @@ export default async function ProducerPanelBoardPage({
         <Heading level="h1">{t("heading")}</Heading>
         <Text tone="muted">{t("intro")}</Text>
       </Stack>
+      <BoardFilters
+        countries={countries}
+        projectTypes={[...PROJECT_TYPES]}
+        families={[...FAMILIES]}
+        statuses={[...STATUSES]}
+        labels={{
+          projectType: Object.fromEntries(PROJECT_TYPES.map((v) => [v, tProjectRequest(`projectType.${v}`)])),
+          family: Object.fromEntries(FAMILIES.map((v) => [v, tOptions(`family.${v}`)])),
+          status: statusLabel,
+        }}
+      />
       {items.length === 0 ? (
         <Card as="div" padding="md">
-          <Text tone="muted">{t("emptyMessage")}</Text>
+          <Text tone="muted">{hasFilters ? t("emptyFiltered") : t("emptyMessage")}</Text>
         </Card>
       ) : (
         <div className="overflow-x-auto rounded-data border border-brand-steel">
@@ -111,11 +145,11 @@ export default async function ProducerPanelBoardPage({
             </thead>
             <tbody>
               {items.map((row) => (
-                <tr key={row.id} className="border-b border-brand-steel/50 align-top last:border-b-0">
+                <tr key={row.id} className="relative border-b border-brand-steel/50 align-top last:border-b-0 hover:bg-brand-steel/20">
                   <td className="p-brand-2">
                     <Link
                       href={`/${locale}/producer/panel/board/${row.id}`}
-                      className="focus-ring rounded-data font-medium text-brand-passage-blue hover:underline"
+                      className="focus-ring rounded-data font-medium text-brand-passage-blue hover:underline after:absolute after:inset-0 after:content-['']"
                     >
                       {row.countryName}
                     </Link>
@@ -123,15 +157,22 @@ export default async function ProducerPanelBoardPage({
                       {trustSignalLabel[row.trustSignal]}
                     </Text>
                   </td>
+                  <td className="p-brand-2">
+                    <TagPill tone={TAG_TONES[PROJECT_TYPES.indexOf(row.projectType) % TAG_TONES.length]}>
+                      {tProjectRequest(`projectType.${row.projectType}`)}
+                    </TagPill>
+                  </td>
+                  <td className="p-brand-2">
+                    <div className="flex flex-wrap gap-brand-1">
+                      {row.families.map((family) => (
+                        <TagPill key={family} tone={TAG_TONES[(TAG_TONES.length - 1 - FAMILIES.indexOf(family)) % TAG_TONES.length]}>
+                          {tOptions(`family.${family}`)}
+                        </TagPill>
+                      ))}
+                    </div>
+                  </td>
                   <Text as="td" className="p-brand-2">
-                    {tProjectRequest(`projectType.${row.projectType}`)}
-                  </Text>
-                  <Text as="td" className="p-brand-2">
-                    {row.families.map((family) => tOptions(`family.${family}`)).join(", ")}
-                  </Text>
-                  <Text as="td" className="p-brand-2">
-                    {row.unitCountMin}
-                    {row.unitCountMax ? `–${row.unitCountMax}` : "+"}
+                    {row.unitCount}
                   </Text>
                   <Text as="td" className="p-brand-2">
                     {row.floorAreaM2Min ? `${row.floorAreaM2Min}${row.floorAreaM2Max ? `–${row.floorAreaM2Max}` : "+"}` : "—"}

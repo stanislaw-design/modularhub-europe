@@ -165,4 +165,64 @@ describe("ResultsSelection", () => {
     );
     expect(screen.queryByRole("checkbox", { name: /Porównaj/ })).not.toBeInTheDocument();
   });
+
+  // spec 0068 AC-3, AC-2: strona kategorii renderuje własny <h1>, więc
+  // ResultsHeader (z własnym <h1>) jest pomijany, a pusty stan kieruje na emptyClearHref.
+  it("omits the ResultsHeader h1 when hideHeader is set, and keeps it otherwise (spec 0068)", () => {
+    const { unmount } = render(<ResultsSelection serverItems={items} locale="pl" family="dom" isClientSession={false} />);
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+    unmount();
+
+    render(<ResultsSelection serverItems={items} locale="pl" family="dom" isClientSession={false} hideHeader />);
+    expect(screen.queryByRole("heading", { level: 1 })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("checkbox").length).toBeGreaterThan(0);
+  });
+
+  it("points the empty state's clear-filters link at emptyClearHref (spec 0068 AC-2)", () => {
+    render(
+      <ResultsSelection
+        serverItems={[]}
+        locale="pl"
+        family="spa-modulowe"
+        isClientSession={false}
+        hideHeader
+        emptyClearHref="/pl/sauna"
+      />,
+    );
+    expect(screen.getByRole("link", { name: /wyczyść filtry/i })).toHaveAttribute("href", "/pl/sauna");
+  });
+
+  // spec 0068 AC-12: kategoria saun włącza porównanie mimo family != "dom",
+  // limit 3 jak dla domów, a przycisk niesie kind=sauna.
+  it("enables compare for saunas via compareKind, capped at 3, and links with kind=sauna (spec 0068 AC-12)", async () => {
+    const user = userEvent.setup();
+    const saunaItems: ResultItem[] = ["s1", "s2", "s3", "s4"].map((id) => ({
+      project: createMockProject({
+        id,
+        name: `Sauna ${id}`,
+        family: "spa-modulowe",
+        spaSubcategory: "sauna",
+        producerName: "Kora",
+      }),
+      countryName: "Polska",
+    }));
+    render(
+      <ResultsSelection
+        serverItems={saunaItems}
+        locale="pl"
+        family="spa-modulowe"
+        isClientSession={false}
+        compareKind="sauna"
+      />,
+    );
+
+    for (const id of ["s1", "s2", "s3"]) {
+      await user.click(screen.getByRole("checkbox", { name: `Porównaj Sauna ${id} z innymi saunami` }));
+    }
+    expect(screen.getByText("Do porównania: 3/3")).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "Porównaj Sauna s4 z innymi saunami" })).toBeDisabled();
+
+    await user.click(screen.getByRole("button", { name: "Porównaj sauny" }));
+    expect(push).toHaveBeenCalledWith("/pl/compare?products=s1%2Cs2%2Cs3&kind=sauna");
+  });
 });

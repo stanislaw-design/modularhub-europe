@@ -15,6 +15,8 @@ export { Radio } from "./Radio";
 export { ScrollProgressBar } from "./ScrollProgressBar";
 export { ScrollReveal } from "./ScrollReveal";
 export { Select } from "./Select";
+export { TagPill, TAG_TONES } from "./TagPill";
+export type { TagTone } from "./TagPill";
 export type { SelectOption } from "./Select";
 export { Stack } from "./Stack";
 export { StarRating } from "./StarRating";

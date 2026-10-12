@@ -20,17 +20,17 @@ async function openModal(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole("button", { name: "Zapytaj o większą ilość" }));
 }
 
-async function fillRequiredFields(user: ReturnType<typeof userEvent.setup>, unitCountMin = "20") {
+async function fillRequiredFields(user: ReturnType<typeof userEvent.setup>, unitCount = "20") {
   await user.type(screen.getByLabelText(/imię i nazwisko/i), "Jan Kowalski");
   await user.type(screen.getByLabelText(/e-mail/i), "jan@example.com");
-  await user.type(screen.getByLabelText(/minimalna liczba sztuk/i), unitCountMin);
+  await user.type(screen.getByLabelText(/liczba domów/i), unitCount);
   await user.click(screen.getByRole("button", { name: "Wybierz…" }));
   await user.click(screen.getByRole("option", { name: "Polska" }));
 }
 
-async function openAndFillForm(user: ReturnType<typeof userEvent.setup>, unitCountMin = "20") {
+async function openAndFillForm(user: ReturnType<typeof userEvent.setup>, unitCount = "20") {
   await openModal(user);
-  await fillRequiredFields(user, unitCountMin);
+  await fillRequiredFields(user, unitCount);
 }
 
 beforeEach(() => {
@@ -70,7 +70,7 @@ describe("BulkProductInquiryModal", () => {
         productId: "product-1",
         contactName: "Jan Kowalski",
         contactEmail: "jan@example.com",
-        unitCountMin: 25,
+        unitCount: 25,
         deliveryCountryCode: "PL",
       }),
     );

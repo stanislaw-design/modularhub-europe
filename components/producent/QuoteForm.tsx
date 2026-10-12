@@ -4,7 +4,7 @@ import { type ChangeEvent, useRef, useState, useTransition } from "react";
 import { Upload } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { ProjectQuotePdfUploadStep } from "@/components/producent/ProjectQuotePdfUploadStep";
-import { Button, Card, Input, Label, Stack, Text, Textarea } from "@/components/ui";
+import { Button, Card, Heading, Input, Label, Stack, Text, Textarea } from "@/components/ui";
 import { submitProjectQuote, uploadProjectQuotePdf } from "@/lib/project-quote-actions";
 
 interface QuoteFormProps {
@@ -29,7 +29,7 @@ export function QuoteForm({ projectRequestId, isRevision }: QuoteFormProps) {
   const t = useTranslations("QuoteForm");
   const tPdf = useTranslations("ProjectQuotePdfUploadStep");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [totalPriceEur, setTotalPriceEur] = useState(0);
+  const [totalPriceEur, setTotalPriceEur] = useState("");
   const [unitPriceEur, setUnitPriceEur] = useState("");
   const [proposedLeadTimeWeeks, setProposedLeadTimeWeeks] = useState("");
   const [notes, setNotes] = useState("");
@@ -40,6 +40,8 @@ export function QuoteForm({ projectRequestId, isRevision }: QuoteFormProps) {
   const [quoteId, setQuoteId] = useState<string | null>(null);
   const [uploadedFilename, setUploadedFilename] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  const totalPrice = Number(totalPriceEur) || 0;
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const files = event.target.files;
@@ -52,7 +54,7 @@ export function QuoteForm({ projectRequestId, isRevision }: QuoteFormProps) {
     startTransition(async () => {
       const result = await submitProjectQuote({
         projectRequestId,
-        totalPriceEur,
+        totalPriceEur: totalPrice,
         unitPriceEur: unitPriceEur.trim() ? Number(unitPriceEur) : undefined,
         proposedLeadTimeWeeks: proposedLeadTimeWeeks.trim() ? Number(proposedLeadTimeWeeks) : undefined,
         notes: notes.trim() ? notes.trim() : undefined,
@@ -94,11 +96,13 @@ export function QuoteForm({ projectRequestId, isRevision }: QuoteFormProps) {
 
   return (
     <Card as="div" padding="md">
-      <Stack gap={3} align="start">
-        <Text tone="muted" measure>
-          {isRevision ? t("revisionIntro") : t("intro")}
-        </Text>
-        <Stack gap={1} className="w-full max-w-xs">
+      <Stack gap={3}>
+        <Stack gap={1}>
+          <Heading level="h3">{t("heading")}</Heading>
+          <Text tone="muted">{isRevision ? t("revisionIntro") : t("intro")}</Text>
+        </Stack>
+        <div className="grid grid-cols-1 gap-brand-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+        <Stack gap={1}>
           <Label htmlFor="quote-total-price" required>
             {t("totalPriceLabel")}
           </Label>
@@ -108,22 +112,23 @@ export function QuoteForm({ projectRequestId, isRevision }: QuoteFormProps) {
             min={0}
             required
             value={totalPriceEur}
-            onChange={(event) => setTotalPriceEur(Math.max(0, Number(event.target.value) || 0))}
+            onChange={(event) => setTotalPriceEur(event.target.value)}
           />
         </Stack>
-        <Stack gap={1} className="w-full max-w-xs">
+        <Stack gap={1}>
           <Label htmlFor="quote-unit-price">{t("unitPriceLabel")}</Label>
           <Input id="quote-unit-price" type="number" min={0} value={unitPriceEur} onChange={(event) => setUnitPriceEur(event.target.value)} />
         </Stack>
-        <Stack gap={1} className="w-full max-w-xs">
+        </div>
+        <Stack gap={1}>
           <Label htmlFor="quote-lead-time">{t("leadTimeLabel")}</Label>
           <Input id="quote-lead-time" type="number" min={1} value={proposedLeadTimeWeeks} onChange={(event) => setProposedLeadTimeWeeks(event.target.value)} />
         </Stack>
-        <Stack gap={1} className="w-full max-w-sm">
+        <Stack gap={1} className="w-full">
           <Label htmlFor="quote-notes">{t("notesLabel")}</Label>
           <Textarea id="quote-notes" value={notes} onChange={(event) => setNotes(event.target.value)} />
         </Stack>
-        <Stack gap={1} className="w-full max-w-sm">
+        <Stack gap={1} className="w-full">
           <Label htmlFor="quote-pdf-file">{tPdf("label")}</Label>
           <div className="flex items-center gap-brand-2">
             <input
@@ -149,7 +154,7 @@ export function QuoteForm({ projectRequestId, isRevision }: QuoteFormProps) {
             {error}
           </p>
         )}
-        <Button type="button" onClick={handleSubmit} disabled={isPending || totalPriceEur <= 0} className="w-fit">
+        <Button type="button" onClick={handleSubmit} disabled={isPending || totalPrice <= 0} className="w-full">
           {isPending ? t("submitting") : isRevision ? t("submitRevision") : t("submitQuote")}
         </Button>
       </Stack>

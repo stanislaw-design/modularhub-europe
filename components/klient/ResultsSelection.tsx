@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { CountryCode, EligibilityStatus, Project } from "@/lib/data/types";
+import type { CompareKind } from "@/lib/compare-rows";
 import type { FamilyFilterValue } from "@/lib/product-family-groups";
 import type { SizeThreshold } from "@/lib/size-thresholds";
 import { ScrollReveal, Stack } from "@/components/ui";
@@ -32,6 +33,14 @@ interface ResultsSelectionProps {
   /** Sesja istnieje i ma rolę client (spec 0024 Key invariants): serce staje
    * się przyciskiem zamiast linku do logowania. */
   isClientSession: boolean;
+  /** Strona kategorii (spec 0068) renderuje własny <h1>, więc pomija ResultsHeader,
+   * którego <h1> by go dublował. */
+  hideHeader?: boolean;
+  /** Adres przycisku czyszczenia filtrów w pustym stanie (spec 0068 AC-2). */
+  emptyClearHref?: string;
+  /** Rodzaj porównania (spec 0068 AC-12). Bez niego porównanie jest dostępne
+   * tylko dla family "dom", jak dotąd (spec 0044). */
+  compareKind?: CompareKind;
 }
 
 // Nagłówek i pusty stan (dawniej po stronie serwera w page.tsx) żyją teraz tutaj
@@ -45,6 +54,9 @@ export function ResultsSelection({
   sizeMax,
   family,
   isClientSession,
+  hideHeader = false,
+  emptyClearHref,
+  compareKind,
 }: ResultsSelectionProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   // Zaznaczenie do porównania (spec 0044 AC-4) żyje w osobnym stanie od
@@ -52,7 +64,8 @@ export function ResultsSelection({
   // żadnego współdzielonego checkboxa ani etykiety.
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const items = serverItems;
-  const showCompare = family === "dom";
+  const effectiveCompareKind = compareKind ?? (family === "dom" ? "dom" : undefined);
+  const showCompare = effectiveCompareKind !== undefined;
 
   function toggle(id: string) {
     setSelectedIds((prev) => {
@@ -76,20 +89,21 @@ export function ResultsSelection({
   if (items.length === 0) {
     return (
       <div className="pb-24">
-        <EmptyResults locale={locale} family={family} />
+        <EmptyResults locale={locale} family={family} clearHref={emptyClearHref} />
       </div>
     );
   }
 
   return (
     <Stack gap={5}>
-      <ResultsHeader count={items.length} family={family} countryCode={countryCode} />
+      {!hideHeader && <ResultsHeader count={items.length} family={family} countryCode={countryCode} />}
       {showCompare && compareIds.length > 0 && (
         <CompareSelectionBar
           locale={locale}
           selectedIds={compareIds}
           maxSelected={MAX_COMPARE}
           countryCode={countryCode}
+          kind={effectiveCompareKind}
           onClear={() => setCompareIds([])}
         />
       )}

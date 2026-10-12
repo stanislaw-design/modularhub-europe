@@ -725,7 +725,15 @@ export default async function ProjektPage({
             <Text tone="muted" surface="v5">
               {t("bulkInquiryBody")}
             </Text>
-            <BulkProductInquiryModal productId={project.id} countries={countries} />
+            <BulkProductInquiryModal
+              productId={project.id}
+              countries={countries}
+              prefill={
+                isClientSession && session?.user.email
+                  ? { name: session.user.name ?? "", email: session.user.email, phone: session.user.phone ?? "" }
+                  : undefined
+              }
+            />
           </div>
         )}
 

@@ -442,13 +442,13 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: project_request / bul
         countryCode: "PL",
         projectType: "resort",
         families: [],
-        unitCountMin: 12,
+        unitCount: 12,
       }),
       /project_request_families_not_empty/,
     );
   });
 
-  it("rejects a project_request with unitCountMin below 10", async () => {
+  it("rejects a project_request with unitCount below 3", async () => {
     await expectRejectionToMatch(
       db.insert(projectRequest).values({
         contactName: "Schema Check",
@@ -456,25 +456,22 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: project_request / bul
         countryCode: "PL",
         projectType: "resort",
         families: ["dom"],
-        unitCountMin: 9,
+        unitCount: 2,
       }),
-      /project_request_unit_count_min/,
+      /project_request_unit_count/,
     );
   });
 
-  it("rejects a project_request where unitCountMax is below unitCountMin", async () => {
-    await expectRejectionToMatch(
-      db.insert(projectRequest).values({
-        contactName: "Schema Check",
-        contactEmail: "schema-check@example.test",
-        countryCode: "PL",
-        projectType: "resort",
-        families: ["dom"],
-        unitCountMin: 20,
-        unitCountMax: 10,
-      }),
-      /project_request_unit_count_max/,
-    );
+  it("fills unit_count from unit_count_min for an insert by old code (temporary compat trigger, spec 0070 migration 2)", async () => {
+    const result = await db.execute<{ id: string; unit_count: number }>(sql`
+      insert into project_request (contact_name, contact_email, country_code, project_type, families, unit_count_min)
+      values ('Compat Check', 'compat-check@example.test', 'PL', 'resort', '["dom"]'::jsonb, 14)
+      returning id, unit_count`);
+    try {
+      expect(result.rows[0]?.unit_count).toBe(14);
+    } finally {
+      await db.delete(projectRequest).where(eq(projectRequest.id, result.rows[0]!.id));
+    }
   });
 
   it("rejects a project_quote with neither projectRequestId nor bulkProductInquiryId set", async () => {
@@ -520,7 +517,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: project_quote_accepte
       countryCode: "PL",
       projectType: "resort",
       families: ["dom"],
-      unitCountMin: 12,
+      unitCount: 12,
     });
   });
 
@@ -551,7 +548,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: audit trail redacts p
     const contactEmail = `audit-pr-${crypto.randomUUID()}@example.test`;
     const [inserted] = await db
       .insert(projectRequest)
-      .values({ contactName: "Audit Investor", contactEmail, contactPhone: "+48111222333", countryCode: "PL", projectType: "resort", families: ["dom"], unitCountMin: 12 })
+      .values({ contactName: "Audit Investor", contactEmail, contactPhone: "+48111222333", countryCode: "PL", projectType: "resort", families: ["dom"], unitCount: 12 })
       .returning({ id: projectRequest.id });
 
     const [auditRow] = await db.select().from(auditLog).where(and(eq(auditLog.recordId, inserted.id), eq(auditLog.action, "create")));
@@ -575,7 +572,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: audit trail redacts p
     const contactEmail = `audit-bpi-${crypto.randomUUID()}@example.test`;
     const [inserted] = await db
       .insert(bulkProductInquiry)
-      .values({ productId, contactName: "Audit Bulk Buyer", contactEmail, unitCountMin: 20, deliveryCountryCode: "PL" })
+      .values({ productId, contactName: "Audit Bulk Buyer", contactEmail, unitCount: 20, deliveryCountryCode: "PL" })
       .returning({ id: bulkProductInquiry.id });
 
     const [auditRow] = await db.select().from(auditLog).where(and(eq(auditLog.recordId, inserted.id), eq(auditLog.action, "create")));
@@ -597,11 +594,11 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: enforce_bulk_request_
   it("rejects a 4th unresolved project_request for the same email, inserted directly", async () => {
     const email = `schema-limit-${crypto.randomUUID()}@example.test`;
     for (let index = 0; index < 3; index += 1) {
-      await db.insert(projectRequest).values({ contactName: `Direct ${index}`, contactEmail: email, countryCode: "PL", projectType: "resort", families: ["dom"], unitCountMin: 10 + index });
+      await db.insert(projectRequest).values({ contactName: `Direct ${index}`, contactEmail: email, countryCode: "PL", projectType: "resort", families: ["dom"], unitCount: 10 + index });
     }
 
     await expectRejectionToMatch(
-      db.insert(projectRequest).values({ contactName: "Direct 4", contactEmail: email, countryCode: "PL", projectType: "resort", families: ["dom"], unitCountMin: 20 }),
+      db.insert(projectRequest).values({ contactName: "Direct 4", contactEmail: email, countryCode: "PL", projectType: "resort", families: ["dom"], unitCount: 20 }),
       /bulk_request_email_limit_exceeded/,
     );
 

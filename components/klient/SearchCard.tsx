@@ -83,6 +83,20 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
     "outdoor-tv": t("categoryLinkOutdoorTv"),
   };
 
+  // Spec 0068 AC-6: "Sauny" prowadzi na własną stronę kategorii /sauna, nie na
+  // /results. To jawny wyjątek obok listy sterowanej przez FAMILY_GROUPS (spec
+  // 0060 AC-4): sauna to podkategoria rodziny spa-modulowe, a nie osobna
+  // rodzina, więc nie ma jej w FAMILY_GROUPS i nie da się jej wyprowadzić z
+  // tej listy.
+  const moreCategoryLinks = [
+    ...FAMILY_GROUPS["wiecej-niz-dom"].map((family) => ({
+      key: family,
+      href: `/${locale}/results?family=${family}`,
+      label: categoryLinkLabels[family] ?? family,
+    })),
+    { key: "sauna", href: `/${locale}/sauna`, label: t("categoryLinkSauna") },
+  ];
+
   function handleSearch() {
     if (!country) return;
     const params = new URLSearchParams({ country });
@@ -161,10 +175,10 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
                 aria-label={t("categoryLinksAriaLabel")}
                 className="flex items-center gap-brand-2 overflow-x-auto px-brand-1 py-brand-1 [scrollbar-width:none] sm:gap-brand-3 [&::-webkit-scrollbar]:hidden"
               >
-                {FAMILY_GROUPS["wiecej-niz-dom"].map((family) => (
+                {moreCategoryLinks.map(({ key, href, label }) => (
                   <Link
-                    key={family}
-                    href={`/${locale}/results?family=${family}`}
+                    key={key}
+                    href={href}
                     // Amber-tinted chip (same border/bg/text combo SubcategoryFilterBar
                     // already uses for an active chip), not a solid black fill: sitting
                     // right under the solid-black active category tab, an equally solid
@@ -174,7 +188,7 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
                     // signalling "this is the action for this tab."
                     className="group focus-ring flex shrink-0 items-center gap-1.5 rounded-v5-pill border border-brand-v5-amber-strong/30 bg-brand-v5-amber/10 px-brand-3 py-brand-2 text-body font-semibold whitespace-nowrap text-brand-v5-ink transition-colors hover:border-brand-v5-amber-strong hover:bg-brand-v5-amber/20"
                   >
-                    {categoryLinkLabels[family] ?? family}
+                    {label}
                     <ChevronRight
                       className="size-4 shrink-0 text-brand-v5-amber-strong transition-transform group-hover:translate-x-0.5"
                       aria-hidden="true"

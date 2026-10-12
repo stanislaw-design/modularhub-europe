@@ -1,4 +1,5 @@
 import { eq, inArray } from "drizzle-orm";
+import type { Session } from "next-auth";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 // @/lib/observability pulls in "server-only", which doesn't resolve under
@@ -6,9 +7,15 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest
 const trackEventMock = vi.hoisted(() => vi.fn());
 const captureErrorMock = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/observability", () => ({ trackEvent: trackEventMock, captureError: captureErrorMock }));
+// @/auth nie ładuje się pod Vitest/jsdom, więc jest mockowane na granicy; domyślnie
+// brak sesji (zapytanie anonimowe), testy zalogowanego klienta ustawiają sesję.
+const authMock = vi.hoisted(() => vi.fn<() => Promise<Session | null>>());
+vi.mock("@/auth", () => ({ auth: authMock }));
+const notifyTeamMock = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
+vi.mock("@/lib/notifications/large-order-team", () => ({ notifyTeamOfNewLargeOrder: notifyTeamMock }));
 
 import { db } from "@/lib/db/client";
-import { bulkProductInquiry, producer, product, projectRequest, users } from "@/lib/db/schema";
+import { bulkProductInquiry, client, producer, product, projectRequest, users } from "@/lib/db/schema";
 import { submitBulkProductInquiry, submitProjectRequest } from "./project-request-actions";
 
 // Hits the real dev database (spec 0037, mirrors lib/offer-actions.test.ts's
@@ -51,6 +58,8 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-request-actions: real DB
   afterEach(async () => {
     trackEventMock.mockClear();
     captureErrorMock.mockClear();
+    notifyTeamMock.mockClear();
+    authMock.mockReset().mockResolvedValue(null);
   });
 
   async function cleanupRequestsFor(email: string) {
@@ -66,40 +75,41 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-request-actions: real DB
         countryCode: "PL",
         projectType: "resort",
         families: ["dom"],
-        unitCountMin: 12,
+        unitCount: 12,
       });
 
       expect(result.ok).toBe(false);
     });
 
-    it("rejects unitCountMin below 10", async () => {
+    it("rejects unitCount below 3", async () => {
       const result = await submitProjectRequest({
         contactName: "Too Few",
         contactEmail: `pra-${crypto.randomUUID()}@example.test`,
         countryCode: "PL",
         projectType: "resort",
         families: ["dom"],
-        unitCountMin: 5,
+        unitCount: 2,
       });
 
       expect(result.ok).toBe(false);
     });
 
-    it("rejects unitCountMax below unitCountMin, writes nothing", async () => {
+    it("accepts exactly 3 homes and stores one exact number, a range field is ignored (AC-8)", async () => {
       const email = `pra-${crypto.randomUUID()}@example.test`;
       const result = await submitProjectRequest({
-        contactName: "Bad Range",
+        contactName: "Three Homes",
         contactEmail: email,
         countryCode: "PL",
         projectType: "resort",
         families: ["dom"],
-        unitCountMin: 20,
-        unitCountMax: 10,
+        unitCount: 3,
+        ...({ unitCountMax: 10 } as object),
       });
 
-      expect(result.ok).toBe(false);
-      const rows = await db.select().from(projectRequest).where(eq(projectRequest.contactEmail, email));
-      expect(rows).toHaveLength(0);
+      expect(result.ok).toBe(true);
+      const [row] = await db.select().from(projectRequest).where(eq(projectRequest.contactEmail, email));
+      expect(row.unitCount).toBe(3);
+      expect(row.unitCountMax).toBeNull();
     });
 
     it("creates an open project_request with the email normalized to lower case, no clientId (AC-1)", async () => {
@@ -110,7 +120,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-request-actions: real DB
         countryCode: "PL",
         projectType: "resort",
         families: ["dom"],
-        unitCountMin: 12,
+        unitCount: 12,
       });
 
       expect(result.ok).toBe(true);
@@ -134,7 +144,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-request-actions: real DB
         countryCode: "PL",
         projectType: "resort",
         families: ["dom"],
-        unitCountMin: 12,
+        unitCount: 12,
       });
 
       expect(result.ok).toBe(true);
@@ -154,7 +164,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-request-actions: real DB
         countryCode: "PL",
         projectType: "resort",
         families: ["dom"],
-        unitCountMin: 12,
+        unitCount: 12,
       });
 
       expect(result.ok).toBe(true);
@@ -173,7 +183,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-request-actions: real DB
         countryCode: "PL",
         projectType: "resort",
         families: ["dom"],
-        unitCountMin: 12,
+        unitCount: 12,
       });
 
       expect(result.ok).toBe(true);
@@ -194,7 +204,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-request-actions: real DB
           countryCode: "PL",
           projectType: "resort",
           families: ["dom"],
-          unitCountMin: 10 + index,
+          unitCount: 10 + index,
         });
         expect(result.ok).toBe(true);
       }
@@ -205,7 +215,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-request-actions: real DB
         countryCode: "PL",
         projectType: "resort",
         families: ["dom"],
-        unitCountMin: 15,
+        unitCount: 15,
       });
 
       expect(fourth.ok).toBe(false);
@@ -222,7 +232,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-request-actions: real DB
         productId: draftProductId,
         contactName: "Draft Buyer",
         contactEmail: email,
-        unitCountMin: 15,
+        unitCount: 15,
         deliveryCountryCode: "PL",
       });
 
@@ -237,7 +247,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-request-actions: real DB
         productId: crypto.randomUUID(),
         contactName: "Ghost Buyer",
         contactEmail: `pra-bulk-${crypto.randomUUID()}@example.test`,
-        unitCountMin: 15,
+        unitCount: 15,
         deliveryCountryCode: "PL",
       });
 
@@ -250,7 +260,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-request-actions: real DB
         productId: publishedProductId,
         contactName: "Bulk Buyer",
         contactEmail: email,
-        unitCountMin: 30,
+        unitCount: 30,
         deliveryCountryCode: "PL",
       });
 
@@ -271,17 +281,154 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-request-actions: real DB
     // bulk_product_inquiry together, by normalized email, not per table.
     it("counts project_request and bulk_product_inquiry together against the same email's limit", async () => {
       const email = `pra-shared-limit-${crypto.randomUUID()}@example.test`;
-      const r1 = await submitProjectRequest({ contactName: "S1", contactEmail: email, countryCode: "PL", projectType: "resort", families: ["dom"], unitCountMin: 10 });
-      const r2 = await submitBulkProductInquiry({ productId: publishedProductId, contactName: "S2", contactEmail: email, unitCountMin: 15, deliveryCountryCode: "PL" });
-      const r3 = await submitProjectRequest({ contactName: "S3", contactEmail: email, countryCode: "PL", projectType: "resort", families: ["dom"], unitCountMin: 11 });
+      const r1 = await submitProjectRequest({ contactName: "S1", contactEmail: email, countryCode: "PL", projectType: "resort", families: ["dom"], unitCount: 10 });
+      const r2 = await submitBulkProductInquiry({ productId: publishedProductId, contactName: "S2", contactEmail: email, unitCount: 15, deliveryCountryCode: "PL" });
+      const r3 = await submitProjectRequest({ contactName: "S3", contactEmail: email, countryCode: "PL", projectType: "resort", families: ["dom"], unitCount: 11 });
       expect([r1.ok, r2.ok, r3.ok]).toEqual([true, true, true]);
 
-      const r4 = await submitBulkProductInquiry({ productId: publishedProductId, contactName: "S4", contactEmail: email, unitCountMin: 16, deliveryCountryCode: "PL" });
+      const r4 = await submitBulkProductInquiry({ productId: publishedProductId, contactName: "S4", contactEmail: email, unitCount: 16, deliveryCountryCode: "PL" });
 
       expect(r4.ok).toBe(false);
       expect(r4.error).toMatch(/3 nierozstrzygnięte zgłoszenia/);
 
       await cleanupRequestsFor(email);
+    });
+  });
+
+  // Spec 0070 AC-9 (język i termin), AC-24 (mail do zespołu).
+  describe("spec 0070 week 1: contact locale, deadline, team alert", () => {
+    it("stores the page language as contactLocale and a deadline 14 days ahead, and alerts the team", async () => {
+      const email = `pra-${crypto.randomUUID()}@example.test`;
+      const result = await submitProjectRequest({
+        contactName: "Locale Investor",
+        contactEmail: email,
+        countryCode: "DE",
+        projectType: "resort",
+        families: ["dom"],
+        unitCount: 12,
+        locale: "de",
+      });
+
+      expect(result.ok).toBe(true);
+      const [row] = await db.select().from(projectRequest).where(eq(projectRequest.contactEmail, email));
+      expect(row.contactLocale).toBe("de");
+      const days = (row.deadlineAt.getTime() - row.createdAt.getTime()) / 86_400_000;
+      expect(days).toBeGreaterThan(13.9);
+      expect(days).toBeLessThan(14.1);
+      expect(notifyTeamMock).toHaveBeenCalledWith(
+        expect.objectContaining({ kind: "request", id: result.id, countryCode: "DE", unitCount: 12, contactLocale: "de" }),
+      );
+      await cleanupRequestsFor(email);
+    });
+
+    it("falls back to pl for a missing or unsupported language", async () => {
+      const email = `pra-${crypto.randomUUID()}@example.test`;
+      await submitProjectRequest({
+        contactName: "No Locale",
+        contactEmail: email,
+        countryCode: "PL",
+        projectType: "resort",
+        families: ["dom"],
+        unitCount: 12,
+        locale: "xx",
+      });
+
+      const [row] = await db.select().from(projectRequest).where(eq(projectRequest.contactEmail, email));
+      expect(row.contactLocale).toBe("pl");
+      await cleanupRequestsFor(email);
+    });
+
+    it("stores contactLocale and the team alert for a product inquiry too", async () => {
+      const email = `pra-${crypto.randomUUID()}@example.test`;
+      const result = await submitBulkProductInquiry({
+        productId: publishedProductId,
+        contactName: "Product Locale",
+        contactEmail: email,
+        unitCount: 15,
+        deliveryCountryCode: "NL",
+        locale: "nl",
+      });
+
+      expect(result.ok).toBe(true);
+      const [row] = await db.select().from(bulkProductInquiry).where(eq(bulkProductInquiry.contactEmail, email));
+      expect(row.contactLocale).toBe("nl");
+      expect(notifyTeamMock).toHaveBeenCalledWith(expect.objectContaining({ kind: "product", id: result.id, countryCode: "NL" }));
+      await cleanupRequestsFor(email);
+    });
+  });
+
+  // Spec 0070: zalogowany klient nie podaje danych drugi raz, zapytanie wiąże się z kontem.
+  describe("signed in client", () => {
+    const clientUserId = crypto.randomUUID();
+    const clientId = crypto.randomUUID();
+    const clientEmail = `pra-client-${clientUserId}@example.test`;
+
+    beforeAll(async () => {
+      await db.insert(users).values({ id: clientUserId, email: clientEmail, phone: "+48000000011", role: "client" });
+      await db.insert(client).values({ id: clientId, userId: clientUserId });
+    });
+
+    afterAll(async () => {
+      await db.delete(projectRequest).where(eq(projectRequest.clientId, clientId));
+      await db.delete(bulkProductInquiry).where(eq(bulkProductInquiry.clientId, clientId));
+      await db.delete(client).where(eq(client.id, clientId));
+      await db.delete(users).where(eq(users.id, clientUserId));
+    });
+
+    function clientSession(): Session {
+      return {
+        user: { id: clientUserId, role: "client", phone: "+48000000011", name: "Signed In", email: clientEmail, image: null },
+        expires: new Date(Date.now() + 3600_000).toISOString(),
+      } as Session;
+    }
+
+    const base = { contactName: "Signed In", countryCode: "PL", projectType: "resort" as const, families: ["dom" as const], unitCount: 12 };
+
+    it("links a project request to the client when the email matches the session", async () => {
+      authMock.mockResolvedValue(clientSession());
+
+      const result = await submitProjectRequest({ ...base, contactEmail: clientEmail });
+
+      expect(result.ok).toBe(true);
+      const [row] = await db.select().from(projectRequest).where(eq(projectRequest.id, result.id!));
+      expect(row.clientId).toBe(clientId);
+    });
+
+    it("keeps the request anonymous when the contact email differs from the session email", async () => {
+      authMock.mockResolvedValue(clientSession());
+      const otherEmail = `pra-other-${crypto.randomUUID()}@example.test`;
+
+      const result = await submitProjectRequest({ ...base, contactEmail: otherEmail });
+
+      expect(result.ok).toBe(true);
+      const [row] = await db.select().from(projectRequest).where(eq(projectRequest.id, result.id!));
+      expect(row.clientId).toBeNull();
+      await cleanupRequestsFor(otherEmail);
+    });
+
+    it("never links a request to a producer or admin session", async () => {
+      authMock.mockResolvedValue({ ...clientSession(), user: { ...clientSession().user, role: "producer" } } as Session);
+
+      const result = await submitProjectRequest({ ...base, contactEmail: clientEmail });
+
+      const [row] = await db.select().from(projectRequest).where(eq(projectRequest.id, result.id!));
+      expect(row.clientId).toBeNull();
+    });
+
+    it("links a product inquiry to the client when the email matches the session", async () => {
+      authMock.mockResolvedValue(clientSession());
+
+      const result = await submitBulkProductInquiry({
+        productId: publishedProductId,
+        contactName: "Signed In",
+        contactEmail: clientEmail,
+        unitCount: 15,
+        deliveryCountryCode: "PL",
+      });
+
+      expect(result.ok).toBe(true);
+      const [row] = await db.select().from(bulkProductInquiry).where(eq(bulkProductInquiry.id, result.id!));
+      expect(row.clientId).toBe(clientId);
     });
   });
 });

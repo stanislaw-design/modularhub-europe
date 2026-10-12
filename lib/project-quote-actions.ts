@@ -2,7 +2,7 @@
 
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 import { AuthError } from "next-auth";
 import { auth, signIn } from "@/auth";
 import { db } from "@/lib/db/client";
@@ -16,6 +16,7 @@ import {
   pendingRegistration,
   product,
   producerCapacityProfile,
+  producerDeliveryCountry,
   projectQuote,
   projectRequest,
   users,
@@ -413,7 +414,11 @@ export async function getProjectQuotePdfUrl(quoteId: string): Promise<GetProject
   if (!quoteRow) return { ok: false, error: QUOTE_NOT_FOUND_ERROR };
 
   let allowed = false;
-  if (session.user.role === "producer") {
+  if (session.user.role === "admin") {
+    // Spec 0070 AC-22: administrator ma własną ścieżkę do PDF każdej oferty,
+    // także nieopublikowanej (klient jej nie widzi do publikacji podsumowania).
+    allowed = true;
+  } else if (session.user.role === "producer") {
     const producerId = await getProducerIdForUser(session.user.id);
     allowed = producerId !== null && producerId === quoteRow.producerId;
   } else if (session.user.role === "client") {
@@ -456,6 +461,11 @@ const capacityProfileSchema = z.object({
   canHandleAssembly: z.boolean().default(false),
   capabilityNote: z.string().trim().min(1).optional(),
   pastProjectReferences: pastProjectReferencesSchema.default([]),
+  // Spec 0070 AC-5: kraje dostawy (kody ISO), zapis do producer_delivery_country.
+  deliveryCountryCodes: z
+    .array(z.string().trim().length(2, "Kod kraju ma 2 litery."))
+    .max(60)
+    .default([]),
 });
 
 export type CapacityProfileInput = z.input<typeof capacityProfileSchema>;
@@ -496,14 +506,90 @@ export async function updateProducerCapacityProfile(input: CapacityProfileInput)
     updatedAt: new Date(),
   };
 
+  const countryCodes = [...new Set(data.deliveryCountryCodes.map((code) => code.toUpperCase()))];
+
   try {
-    await db
-      .insert(producerCapacityProfile)
-      .values(values)
-      .onConflictDoUpdate({ target: producerCapacityProfile.producerId, set: values });
+    await db.batch([
+      db
+        .insert(producerCapacityProfile)
+        .values(values)
+        .onConflictDoUpdate({ target: producerCapacityProfile.producerId, set: values }),
+      ...deliveryCountryStatements(producerId, countryCodes),
+    ]);
   } catch (error) {
+    if (getPgErrorCode(error) === "23503") {
+      return { ok: false, error: "Wybrano nieznany kraj dostawy." };
+    }
     captureError(error, { path: "updateProducerCapacityProfile", userId: session.user.id });
     return { ok: false, error: "Nie udało się zapisać profilu zdolności produkcyjnej." };
+  }
+  return { ok: true };
+}
+
+// Zastępuje cały zestaw krajów dostawy producenta jedną atomową paczką: usunięcie
+// starych wierszy i wstawienie nowych (lib/db/AGENTS.md: db.batch, nie transakcja).
+function deliveryCountryStatements(producerId: string, countryCodes: string[]) {
+  const deleteStatement = db.delete(producerDeliveryCountry).where(eq(producerDeliveryCountry.producerId, producerId));
+  if (countryCodes.length === 0) return [deleteStatement] as const;
+  return [
+    deleteStatement,
+    db.insert(producerDeliveryCountry).values(countryCodes.map((countryCode) => ({ producerId, countryCode }))),
+  ] as const;
+}
+
+// Spec 0070 AC-5: "Wyślij do weryfikacji" zmienia not_submitted i rejected na
+// pending. Zatwierdzony i oczekujący zostają bez zmian (edycja po zatwierdzeniu
+// nie cofa statusu, spec 0037). Warunek w SQL, bez odczytu przed zapisem.
+export async function submitCapacityProfileForReview(): Promise<ActionResult> {
+  const session = await auth();
+  if (!session || session.user.role !== "producer") {
+    return { ok: false, error: "Musisz być zalogowany jako producent." };
+  }
+  const producerId = await getProducerIdForUser(session.user.id);
+  if (!producerId) {
+    return { ok: false, error: "Nie znaleziono konta producenta." };
+  }
+  try {
+    const result = await db
+      .update(producerCapacityProfile)
+      .set({ volumeVerificationStatus: "pending", updatedAt: new Date() })
+      .where(
+        and(
+          eq(producerCapacityProfile.producerId, producerId),
+          // Moc przerobowa (domów na miesiąc) jest warunkiem wysyłki do weryfikacji:
+          // na niej opiera się dopasowanie do dużych zamówień (spec 0070, Dopasowanie).
+          isNotNull(producerCapacityProfile.unitsPerMonth),
+          inArray(producerCapacityProfile.volumeVerificationStatus, ["not_submitted", "rejected"]),
+        ),
+      );
+    if ((result.rowCount ?? 0) === 0) {
+      return { ok: false, error: "Najpierw zapisz profil z mocą przerobową (liczba domów na miesiąc) albo został już wysłany do weryfikacji." };
+    }
+  } catch (error) {
+    captureError(error, { path: "submitCapacityProfileForReview", userId: session.user.id });
+    return { ok: false, error: "Nie udało się wysłać profilu do weryfikacji." };
+  }
+  return { ok: true };
+}
+
+// Spec 0070 AC-5: administrator poprawia kraje dostawy na ekranie producenta.
+export async function setProducerDeliveryCountriesAsAdmin(
+  producerId: string,
+  countryCodes: string[],
+): Promise<ActionResult> {
+  const session = await auth();
+  if (!session || session.user.role !== "admin") {
+    return { ok: false, error: "Musisz być zalogowany jako administrator." };
+  }
+  const parsed = z.array(z.string().trim().length(2)).max(60).safeParse(countryCodes);
+  if (!parsed.success) return { ok: false, error: "Sprawdź kody krajów." };
+  const codes = [...new Set(parsed.data.map((code) => code.toUpperCase()))];
+  try {
+    await withAdminActor(session.user.id, deliveryCountryStatements(producerId, codes));
+  } catch (error) {
+    if (getPgErrorCode(error) === "23503") return { ok: false, error: "Wybrano nieznany kraj dostawy." };
+    captureError(error, { path: "setProducerDeliveryCountriesAsAdmin", userId: session.user.id });
+    return { ok: false, error: "Nie udało się zapisać krajów dostawy." };
   }
   return { ok: true };
 }
@@ -531,8 +617,20 @@ export async function linkRequestsToClientOnLogin(email: string, clientId: strin
 // żadnej funkcji, którą klient mógłby faktycznie uzupełnić NIP/nazwę firmy.
 // ---------------------------------------------------------------------------
 
+// Spec 0070 AC-6: NIP (10 cyfr) albo numer VAT UE (dwuliterowy prefiks kraju i
+// 2 do 12 znaków alfanumerycznych), bo rynki DE i NL nie mają polskiego NIP.
+// Spacje i myślniki są usuwane przed sprawdzeniem i przed zapisem.
+const b2bTaxIdSchema = z
+  .string()
+  .trim()
+  .min(1, "Podaj NIP.")
+  .transform((value) => value.replace(/[\s-]/g, "").toUpperCase())
+  .refine((value) => /^\d{10}$/.test(value) || /^[A-Z]{2}(?=[A-Z0-9]*\d)[A-Z0-9]{2,12}$/.test(value), {
+    message: "Podaj NIP (10 cyfr) albo numer VAT UE z prefiksem kraju.",
+  });
+
 const submitClientB2bDetailsSchema = z.object({
-  nip: z.string().trim().min(1, "Podaj NIP."),
+  nip: b2bTaxIdSchema,
   companyName: z.string().trim().min(1, "Podaj nazwę firmy."),
 });
 
@@ -576,7 +674,14 @@ export async function submitClientB2bDetails(input: SubmitClientB2bDetailsInput)
 // Decyzje administratora (AC-6, AC-8).
 // ---------------------------------------------------------------------------
 
-export async function setProducerVolumeVerification(producerId: string, status: "approved" | "rejected"): Promise<ActionResult> {
+// reason: powód odrzucenia (spec 0070 AC-3). Dziennik audytu zapisuje zmianę
+// wiersza, nie dodatkowy tekst, więc powód trafia do zdarzenia analitycznego
+// obok. Opcjonalny w akcji (stare wywołania), formularz admina go wymaga.
+export async function setProducerVolumeVerification(
+  producerId: string,
+  status: "approved" | "rejected",
+  reason?: string,
+): Promise<ActionResult> {
   const session = await auth();
   if (!session || session.user.role !== "admin") {
     return { ok: false, error: "Musisz być zalogowany jako administrator." };
@@ -591,10 +696,15 @@ export async function setProducerVolumeVerification(producerId: string, status: 
   if (updated.length === 0) {
     return { ok: false, error: "Nie znaleziono profilu zdolności producenta." };
   }
+  trackEvent("producer_volume_verification_decided", { producerId, status, reason: reason?.trim() || null }, session.user.id);
   return { ok: true };
 }
 
-export async function setClientB2bVerification(clientId: string, status: "approved" | "rejected"): Promise<ActionResult> {
+export async function setClientB2bVerification(
+  clientId: string,
+  status: "approved" | "rejected",
+  reason?: string,
+): Promise<ActionResult> {
   const session = await auth();
   if (!session || session.user.role !== "admin") {
     return { ok: false, error: "Musisz być zalogowany jako administrator." };
@@ -605,5 +715,6 @@ export async function setClientB2bVerification(clientId: string, status: "approv
   if (updated.length === 0) {
     return { ok: false, error: "Nie znaleziono klienta." };
   }
+  trackEvent("client_b2b_verification_decided", { clientId, status, reason: reason?.trim() || null }, session.user.id);
   return { ok: true };
 }
