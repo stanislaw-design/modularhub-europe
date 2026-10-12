@@ -13,7 +13,7 @@ import { readMigrationFiles } from "drizzle-orm/migrator";
 // Format tabeli i wybór zaległych migracji (created_at większe niż ostatni wpis) jest
 // taki sam jak w drizzle-orm, więc db:generate, db:studio i drizzle-kit dalej działają.
 
-const ADD_VALUE = /^\s*ALTER\s+TYPE\s+.+\s+ADD\s+VALUE\s/is;
+const ADD_VALUE = /^\s*ALTER\s+TYPE\s[\s\S]+?\sADD\s+VALUE\s/i;
 
 function ifNotExists(statement: string): string {
   return /ADD\s+VALUE\s+IF\s+NOT\s+EXISTS/i.test(statement)
