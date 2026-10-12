@@ -13,7 +13,7 @@
     "check:azure-ai": "tsx --env-file=.env.local scripts/check-azure-ai.ts",
     "check:translations": "tsx --env-file=.env.local scripts/check-translations.ts",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
+    "db:migrate": "tsx scripts/migrate.ts",
     "db:studio": "drizzle-kit studio",
     "migrate:product-photos": "tsx --env-file=.env.local scripts/migrate-existing-product-photos.ts",
     "import:domihaus": "tsx --env-file=.env.local scripts/import-domihaus-catalog.ts",
