@@ -194,7 +194,7 @@ describe("SiteHeader (spec 0030)", () => {
     await user.click(within(account).getByRole("button", { name: "Zmień język" }));
     await user.click(screen.getByRole("menuitem", { name: "English" }));
 
-    expect(replace).toHaveBeenCalledWith("/wyniki", { locale: "en" });
+    expect(replace).toHaveBeenCalledWith("/wyniki", { locale: "en", scroll: false });
   });
 
   it("hides the whole Account group at `sm`, matching the header row's own theme/language/favorites equivalents so nothing is shown twice on desktop", async () => {

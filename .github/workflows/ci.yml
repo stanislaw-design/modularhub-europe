@@ -21,3 +21,13 @@ jobs:
       - run: npm run lint
 
       - run: npm run test
+        env:
+          # Testy lib/**/*.test.ts zapisują prawdziwe wiersze, więc potrzebują bazy. To projekt
+          # modularhub-dev; assertDevDatabase (vitest.setup.ts) odrzuci każdą inną bazę.
+          DATABASE_URL: ${{ secrets.DEV_DATABASE_URL }}
+          # Konfiguracja Azure AI jest tylko walidowana w testach (bez wywołań sieciowych),
+          # więc wystarczą wartości zastępcze.
+          AZURE_OPENAI_ENDPOINT: https://example.openai.azure.com
+          AZURE_OPENAI_DEPLOYMENT: test-deployment
+          AZURE_OPENAI_MODEL_SNAPSHOT: test-snapshot
+          R2_PUBLIC_DOMAIN: example.r2.dev
