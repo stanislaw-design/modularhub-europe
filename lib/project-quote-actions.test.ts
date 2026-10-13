@@ -40,6 +40,7 @@ import {
   product,
   projectQuote,
   projectRequest,
+  projectRequestProducerOverride,
   users,
 } from "@/lib/db/schema";
 import {
@@ -86,6 +87,10 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
   const producer4Id = crypto.randomUUID();
   const adminUserId = crypto.randomUUID();
   const bulkProductId = crypto.randomUUID();
+  // Spec 0070 AC-10: producenci 1 i 4 pasują do zapytania (kraj PL, dom), więc mają
+  // kraj dostawy i opublikowany dom.
+  const matchProduct1Id = crypto.randomUUID();
+  const matchProduct4Id = crypto.randomUUID();
   const projectRequestId = crypto.randomUUID();
   const bulkInquiryId = crypto.randomUUID();
 
@@ -124,7 +129,15 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       { producerId: producer1Id, volumeVerificationStatus: "approved" },
       { producerId: producer4Id, volumeVerificationStatus: "approved" },
     ]);
-    await db.insert(product).values({ id: bulkProductId, producerId: producer3Id, family: "dom", status: "published", name: "PQA Bulk Product" });
+    await db.insert(producerDeliveryCountry).values([
+      { producerId: producer1Id, countryCode: "PL" },
+      { producerId: producer4Id, countryCode: "PL" },
+    ]);
+    await db.insert(product).values([
+      { id: bulkProductId, producerId: producer3Id, family: "dom", status: "published", name: "PQA Bulk Product" },
+      { id: matchProduct1Id, producerId: producer1Id, family: "dom", status: "published", name: "PQA Match Product 1" },
+      { id: matchProduct4Id, producerId: producer4Id, family: "dom", status: "published", name: "PQA Match Product 4" },
+    ]);
     await db.insert(projectRequest).values({
       id: projectRequestId,
       contactName: "Project Quote Investor",
@@ -151,7 +164,8 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
     await db.delete(projectQuote).where(inArray(projectQuote.producerId, allProducerIds));
     await db.delete(bulkProductInquiry).where(eq(bulkProductInquiry.id, bulkInquiryId));
     await db.delete(projectRequest).where(eq(projectRequest.id, projectRequestId));
-    await db.delete(product).where(eq(product.id, bulkProductId));
+    await db.delete(projectRequestProducerOverride).where(eq(projectRequestProducerOverride.projectRequestId, projectRequestId));
+    await db.delete(product).where(inArray(product.id, [bulkProductId, matchProduct1Id, matchProduct4Id]));
     await db.delete(producerCapacityProfile).where(inArray(producerCapacityProfile.producerId, allProducerIds));
     await db.delete(producerDeliveryCountry).where(inArray(producerDeliveryCountry.producerId, allProducerIds));
     await db.delete(producer).where(inArray(producer.id, allProducerIds));
@@ -181,6 +195,15 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
     // the quote first would violate the FK.
     await db.delete(document).where(inArray(document.ownerUserId, allUserIds));
     await db.delete(projectQuote).where(inArray(projectQuote.producerId, allProducerIds));
+    await db.delete(projectRequestProducerOverride).where(eq(projectRequestProducerOverride.projectRequestId, projectRequestId));
+    await db.update(product).set({ status: "published" }).where(inArray(product.id, [matchProduct1Id, matchProduct4Id]));
+    await db
+      .insert(producerDeliveryCountry)
+      .values([
+        { producerId: producer1Id, countryCode: "PL" },
+        { producerId: producer4Id, countryCode: "PL" },
+      ])
+      .onConflictDoNothing();
     await db.update(projectRequest).set({ status: "open", closedAt: null, closedReason: null }).where(eq(projectRequest.id, projectRequestId));
     await db.update(bulkProductInquiry).set({ status: "open" }).where(eq(bulkProductInquiry.id, bulkInquiryId));
     await db.update(client).set({ nip: null, companyName: null, b2bVerificationStatus: "not_submitted" }).where(inArray(client.id, [clientId, otherClientId]));
@@ -246,6 +269,62 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
 
       expect(result.ok).toBe(false);
       expect(result.error).toMatch(/nie jest już otwarte/);
+    });
+
+    // Spec 0070 AC-10: zatwierdzony producent, który nie pasuje do zapytania
+    // (tu: brak kraju dostawy PL), nie może złożyć oferty bezpośrednim wywołaniem
+    // akcji, a komunikat nie zdradza, że zapytanie istnieje.
+    it("rejects an approved producer that does not match the request (no published product in the family)", async () => {
+      await db.update(product).set({ status: "draft" }).where(eq(product.id, matchProduct1Id));
+      authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
+
+      const result = await submitProjectQuote({ projectRequestId, totalPriceEur: 500000 });
+
+      expect(result.ok).toBe(false);
+      expect(result.error).toBe("Nie znaleziono zapytania.");
+      const rows = await db.select().from(projectQuote).where(eq(projectQuote.producerId, producer1Id));
+      expect(rows).toHaveLength(0);
+    });
+
+    // Kraj dostawy nie jest warunkiem: producent bez kraju PL też może złożyć ofertę.
+    it("accepts a producer that does not have the request country on its delivery list", async () => {
+      await db.delete(producerDeliveryCountry).where(eq(producerDeliveryCountry.producerId, producer1Id));
+      authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
+
+      const result = await submitProjectQuote({ projectRequestId, totalPriceEur: 500000 });
+
+      expect(result.ok).toBe(true);
+    });
+
+    it("accepts a producer that does not match by rules but was added with an include exception", async () => {
+      await db.update(product).set({ status: "draft" }).where(eq(product.id, matchProduct1Id));
+      await db.insert(projectRequestProducerOverride).values({ projectRequestId, producerId: producer1Id, mode: "include", createdByUserId: adminUserId });
+      authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
+
+      const result = await submitProjectQuote({ projectRequestId, totalPriceEur: 500000 });
+
+      expect(result.ok).toBe(true);
+    });
+
+    it("rejects a matching producer that was excluded by an exception", async () => {
+      await db.insert(projectRequestProducerOverride).values({ projectRequestId, producerId: producer1Id, mode: "exclude", createdByUserId: adminUserId });
+      authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
+
+      const result = await submitProjectQuote({ projectRequestId, totalPriceEur: 500000 });
+
+      expect(result.ok).toBe(false);
+      expect(result.error).toBe("Nie znaleziono zapytania.");
+    });
+
+    // Spec 0070: po publikacji podsumowania zapytanie zostaje otwarte na oferty
+    // (do terminu), inaczej przedłużenie terminu nic by nie dawało.
+    it("still accepts a quote while the request is in the published status", async () => {
+      await db.update(projectRequest).set({ status: "published" }).where(eq(projectRequest.id, projectRequestId));
+      authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
+
+      const result = await submitProjectQuote({ projectRequestId, totalPriceEur: 500000 });
+
+      expect(result.ok).toBe(true);
     });
 
     // AC-5: only the owner of the referenced product may quote a bulk inquiry.

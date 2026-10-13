@@ -1,8 +1,9 @@
 "use server";
 
 import { z } from "zod";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
+import { getMatchedProducersForRequest } from "@/lib/db/project-request-matching";
 import { bulkProductInquiry, product, projectRequest } from "@/lib/db/schema";
 import {
   BULK_REQUEST_EMAIL_LIMIT_ERROR,
@@ -13,7 +14,9 @@ import {
   PROJECT_TYPES,
 } from "@/lib/project-request-specs";
 import { COMPLETION_STANDARDS } from "@/lib/producer-capacity-profile-specs";
-import { notifyTeamOfNewLargeOrder } from "@/lib/notifications/large-order-team";
+import { notifyProducersOfClosedRequest } from "@/lib/notifications/large-order-producer";
+import { notifyTeamOfClientCancelledRequest, notifyTeamOfNewLargeOrder } from "@/lib/notifications/large-order-team";
+import { linkRequestsToClientOnLogin } from "@/lib/project-quote-actions";
 import { auth } from "@/auth";
 import { getClientIdForUser } from "@/lib/db/queries";
 import { captureError, trackEvent } from "@/lib/observability";
@@ -29,10 +32,25 @@ async function resolveSignedInClientId(contactEmail: string): Promise<string | n
   return getClientIdForUser(session.user.id);
 }
 
+// Liczba producentów, którzy widzą nowe zapytanie (spec 0070 AC-10), do alertu
+// "brak dopasowanych". Best effort: błąd liczenia nie może zepsuć już zapisanego
+// zapytania, więc zwraca undefined i trafia do Sentry.
+async function countMatchedProducers(projectRequestId: string): Promise<number | undefined> {
+  try {
+    return (await getMatchedProducersForRequest(projectRequestId)).length;
+  } catch (error) {
+    captureError(error, { path: "submitProjectRequest:countMatchedProducers" });
+    return undefined;
+  }
+}
+
 interface ActionResult {
   ok: boolean;
   id?: string;
   error?: string;
+  // Spec 0070 AC-39: kod błędu limitu, żeby formularz pokazał tłumaczony tekst z linkiem
+  // do panelu, a nie polski komunikat z akcji (zostaje w `error` jako zapas).
+  errorCode?: "email_limit";
 }
 
 const GENERIC_ERROR = "Nie udało się wysłać zapytania. Spróbuj ponownie.";
@@ -128,11 +146,12 @@ export async function submitProjectRequest(input: SubmitProjectRequestInput): Pr
       unitCount: data.unitCount,
       deadlineAt: inserted.deadlineAt,
       contactLocale: data.locale,
+      matchedProducerCount: await countMatchedProducers(inserted.id),
     });
     return { ok: true, id: inserted.id };
   } catch (error) {
     if (isBulkRequestEmailLimitError(error)) {
-      return { ok: false, error: BULK_REQUEST_EMAIL_LIMIT_ERROR };
+      return { ok: false, error: BULK_REQUEST_EMAIL_LIMIT_ERROR, errorCode: "email_limit" };
     }
     captureError(error, { path: "submitProjectRequest" });
     return { ok: false, error: GENERIC_ERROR };
@@ -225,9 +244,76 @@ export async function submitBulkProductInquiry(input: SubmitBulkProductInquiryIn
     return { ok: true, id: inserted.id };
   } catch (error) {
     if (isBulkRequestEmailLimitError(error)) {
-      return { ok: false, error: BULK_REQUEST_EMAIL_LIMIT_ERROR };
+      return { ok: false, error: BULK_REQUEST_EMAIL_LIMIT_ERROR, errorCode: "email_limit" };
     }
     captureError(error, { path: "submitBulkProductInquiry" });
     return { ok: false, error: GENERIC_ERROR };
+  }
+}
+
+export interface CancelRequestResult {
+  ok: boolean;
+  // not_found: brak zapytania lub nie jest własne (ten sam komunikat, bez ujawniania
+  // istnienia); not_cancellable: zapytanie jest już po połączeniu stron albo zamknięte
+  // z innego powodu.
+  errorCode?: "not_found" | "not_cancellable";
+}
+
+// Spec 0070 AC-37: klient zamyka własne zapytanie (open, quoted, published). Jeden UPDATE
+// z warunkiem statusu i właściciela w samym SQL, więc powtórne kliknięcie albo wyścig z
+// publikacją nie zrobi nic drugi raz. Wybór klienta (selected_quote_id) zostaje jako ślad.
+export async function cancelRequest(id: string, kind: "request" | "product"): Promise<CancelRequestResult> {
+  if ((kind !== "request" && kind !== "product") || !z.uuid().safeParse(id).success) {
+    return { ok: false, errorCode: "not_found" };
+  }
+  const session = await auth();
+  if (!session || session.user.role !== "client") return { ok: false, errorCode: "not_found" };
+  const clientId = await getClientIdForUser(session.user.id);
+  if (!clientId) return { ok: false, errorCode: "not_found" };
+
+  try {
+    // Zapytania złożone anonimowo tym samym adresem dowiązują się do konta teraz,
+    // jak przy logowaniu (spec 0037 AC-7), żeby klient mógł zamknąć także je.
+    if (session.user.email) await linkRequestsToClientOnLogin(normalizeContactEmail(session.user.email), clientId);
+
+    const table = kind === "request" ? projectRequest : bulkProductInquiry;
+    const [before] = await db
+      .select({
+        status: table.status,
+        selectedQuoteId: table.selectedQuoteId,
+        closedReason: table.closedReason,
+        unitCount: table.unitCount,
+        countryCode: kind === "request" ? projectRequest.countryCode : bulkProductInquiry.deliveryCountryCode,
+      })
+      .from(table)
+      .where(and(eq(table.id, id), eq(table.clientId, clientId)));
+    if (!before) return { ok: false, errorCode: "not_found" };
+
+    const [updated] = await db
+      .update(table)
+      .set({ status: "closed", closedAt: sql`now()`, closedReason: "client_cancelled" })
+      .where(and(eq(table.id, id), eq(table.clientId, clientId), inArray(table.status, ["open", "quoted", "published"])))
+      .returning({ id: table.id });
+
+    if (!updated) {
+      // Już zamknięte przez klienta: powtórne kliknięcie kończy się sukcesem bez zmiany.
+      if (before.status === "closed" && before.closedReason === "client_cancelled") return { ok: true };
+      return { ok: false, errorCode: "not_cancellable" };
+    }
+
+    trackEvent("request_cancelled_by_client", { kind }, id);
+    await notifyProducersOfClosedRequest({ kind, id });
+    await notifyTeamOfClientCancelledRequest({
+      kind,
+      id,
+      countryCode: before.countryCode,
+      unitCount: before.unitCount,
+      wasPublished: before.status === "published",
+      hadPendingSelection: before.selectedQuoteId !== null,
+    });
+    return { ok: true };
+  } catch (error) {
+    captureError(error, { path: "cancelRequest" });
+    return { ok: false, errorCode: "not_found" };
   }
 }

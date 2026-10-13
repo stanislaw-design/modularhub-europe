@@ -860,11 +860,9 @@
     "verifyLink": "Zweryfikuj konto"
   },
   "ClientPanelQuotesPage": {
-    "heading": "Wyceny",
-    "emptyTitle": "Nie masz jeszcze żadnych wycen",
-    "emptyDescription": "Wyceny producentów na Twoje zapytania pojawią się tutaj.",
-    "requestHeading": "Zapytanie o projekt",
-    "bulkInquiryHeadingPrefix": "Zapytanie o produkt: ",
+    "heading": "Duże zamówienia",
+    "emptyTitle": "Nie masz jeszcze żadnych zapytań o duże zamówienie",
+    "emptyDescription": "Opisz projekt raz, a producenci złożą oferty. Zapytanie pojawi się tutaj razem z terminem i ofertami.",
     "producerColumn": "Producent",
     "priceColumn": "Cena",
     "leadTimeColumn": "Czas realizacji",
@@ -874,7 +872,12 @@
     "statusRejected": "Odrzucona",
     "statusSuperseded": "Zastąpiona",
     "leadTimeWeeks": "{weeks} tyg.",
-    "notesColumn": "Notatka"
+    "notesColumn": "Notatka",
+    "addRequest": "Dodaj zapytanie o duże zamówienie",
+    "activeCounter": "Aktywne zapytania: {count} z {max}",
+    "limitHint": "Zamknij jedno zapytanie, żeby dodać kolejne.",
+    "noQuotesYet": "Czekamy na oferty producentów, termin do {date}.",
+    "closedGroupHeading": "Zamknięte zapytania"
   },
   "AcceptQuoteButton": {
     "accept": "Akceptuj",
@@ -1832,18 +1835,14 @@
     "filterClear": "Wyczyść filtry",
     "emptyFiltered": "Brak zapytań pasujących do wybranych filtrów.",
     "heading": "Tablica ogłoszeń",
-    "intro": "Otwarte zapytania o duże zamówienia od wszystkich inwestorów — złóż wycenę na dowolne z nich.",
+    "intro": "Zapytania o duże zamówienia dopasowane do Twojego profilu: kraju dostawy, rodzin produktów i mocy. Złóż wycenę na dowolne z nich.",
     "notApprovedHeading": "Tablica jest dostępna tylko dla zweryfikowanych wolumenowo producentów",
     "notApprovedDescription": "Uzupełnij swój profil zdolności produkcyjnej, żeby administrator mógł Cię zweryfikować.",
     "completeProfileLink": "Uzupełnij profil zdolności",
-    "emptyMessage": "Brak otwartych zapytań na tablicy.",
+    "emptyMessage": "Brak zapytań dopasowanych do Twojego profilu.",
     "columnCountry": "Kraj",
     "columnProjectType": "Typ przedsięwzięcia",
     "columnUnits": "Sztuki",
-    "columnStatus": "Status",
-    "columnDate": "Data",
-    "statusOpen": "Otwarte",
-    "statusQuoted": "Z wycenami",
     "trustSignalNew": "Nowe",
     "trustSignalComplete": "Dane kompletne",
     "previousPage": "Poprzednia",
@@ -1851,7 +1850,12 @@
     "pageLabel": "Strona {current} z {total}",
     "paginationAriaLabel": "Strony tablicy ogłoszeń",
     "columnFamilies": "Rodziny",
-    "columnFloorArea": "Metraż (m²)"
+    "columnFloorArea": "Metraż (m²)",
+    "columnDeadline": "Termin ofert",
+    "columnOwnQuote": "Twoja oferta",
+    "ownQuoteNone": "Nie złożono",
+    "notDeliveringNote": "Nie masz tego kraju na liście dostaw",
+    "notDeliveringLink": "Dodaj kraj w profilu zdolności"
   },
   "ProducerBoardDetailPage": {
     "scopeHeading": "Zakres zamówienia",
@@ -1875,7 +1879,9 @@
     "ownQuoteStatusActive": "Aktywna",
     "ownQuoteStatusAccepted": "Zaakceptowana",
     "ownQuoteStatusRejected": "Odrzucona",
-    "ownQuoteStatusSuperseded": "Zastąpiona nowszą"
+    "ownQuoteStatusSuperseded": "Zastąpiona nowszą",
+    "notDeliveringNote": "Nie masz tego kraju na liście dostaw",
+    "notDeliveringLink": "Dodaj kraj w profilu zdolności"
   },
   "QuoteForm": {
     "heading": "Twoja wycena",
@@ -2092,7 +2098,7 @@
     "menu": "Menu",
     "collapseSidebar": "Zwiń menu",
     "expandSidebar": "Rozwiń menu",
-    "quotes": "Wyceny",
+    "quotes": "Duże zamówienia",
     "weryfikacja": "Zweryfikuj konto"
   },
   "CaseChat": {
@@ -2429,9 +2435,61 @@
     "unitsLabel": "Liczba domów",
     "deadlineLabel": "Termin składania ofert",
     "languageLabel": "Język klienta",
-    "cta": "Otwórz zapytanie w panelu"
+    "cta": "Otwórz zapytanie w panelu",
+    "subjectNoMatch": "Brak dopasowanych producentów: zapytanie o duże zamówienie ({units} domów, {country})",
+    "matchedLabel": "Dopasowani producenci",
+    "noMatchWarning": "Żaden producent nie widzi tego zapytania. Dodaj producenta wyjątkiem albo sprawdź profile producentów (rodziny produktów, standardy wykończenia, moc), inaczej zapytanie zostanie bez ofert."
   },
   "KlientPanelWeryfikacjaPage": {
     "heading": "Weryfikacja konta"
+  },
+  "RequestHeader": {
+    "projectTitle": "Zapytanie o projekt",
+    "productTitle": "Zapytanie o produkt: {name}",
+    "units": "{count, plural, one {# dom} few {# domy} many {# domów} other {# domu}}",
+    "submittedLabel": "Złożone",
+    "deadlineLabel": "Termin ofert",
+    "closedLabel": "Zamknięte",
+    "statusCollecting": "Zbieramy oferty",
+    "statusPublished": "Podsumowanie gotowe",
+    "statusAccepted": "Wybrano producenta",
+    "statusClosed": "Zamknięte",
+    "closedReason": {
+      "client_cancelled": "rezygnacja klienta",
+      "no_offers": "brak ofert",
+      "expired": "upłynął termin",
+      "staff_closed": "zamknięte przez ModularHub"
+    }
+  },
+  "CancelRequestDialog": {
+    "trigger": "Zamknij zapytanie",
+    "title": "Zamknąć to zapytanie?",
+    "description": "Producenci, którzy złożyli oferty, dostaną informację, że zapytanie zostało zamknięte. Zamknięcie zwalnia miejsce na kolejne zapytanie. Możesz je wznowić przez 30 dni.",
+    "confirm": "Zamknij zapytanie",
+    "closing": "Zamykanie…",
+    "keep": "Nie zamykaj",
+    "notFound": "Nie znaleziono zapytania. Odśwież stronę.",
+    "notCancellable": "Tego zapytania nie można już zamknąć tutaj. Skontaktuj się z ModularHub.",
+    "genericError": "Nie udało się zamknąć zapytania. Spróbuj ponownie."
+  },
+  "BulkRequestLimitMessage": {
+    "text": "Masz już {count} z {max} aktywnych zapytań o duże zamówienie na ten adres e mail. Zamknij jedno na liście zapytań, żeby dodać kolejne.",
+    "listLink": "Przejdź do listy zapytań",
+    "guestHint": "Zapytania zamkniesz po zalogowaniu. Jeśli nie masz jeszcze konta, wyślemy link logujący na ten adres e mail.",
+    "sendLink": "Wyślij mi link logujący",
+    "sending": "Wysyłanie…",
+    "sent": "Jeśli ten adres ma aktywne zapytania, wysłaliśmy na niego link logujący."
+  },
+  "LargeOrderTeamClientCancelledEmail": {
+    "subject": "Klient zamknął zapytanie o duże zamówienie ({units} domów, {country})",
+    "intro": "Klient sam zamknął swoje zapytanie o duże zamówienie. Zapytanie ma teraz status zamkniętego z powodem rezygnacji klienta.",
+    "publishedNote": "Podsumowanie dla tego zapytania było już opublikowane.",
+    "pendingSelectionNote": "Klient wybrał ofertę, a wybór czekał na zatwierdzenie danych firmy. Połączenie nie dojdzie do skutku.",
+    "cta": "Otwórz zapytanie w panelu"
+  },
+  "LargeOrderProducerClosedEmail": {
+    "subject": "Zapytanie zostało zamknięte",
+    "body": "Zapytanie, na które złożyłeś ofertę, zostało zamknięte. Nie musisz nic robić. Nowe zapytania znajdziesz na tablicy.",
+    "cta": "Otwórz tablicę zapytań"
   }
 }

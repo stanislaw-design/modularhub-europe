@@ -10,17 +10,16 @@ interface BoardFiltersProps {
   countries: { code: string; name: string }[];
   projectTypes: string[];
   families: string[];
-  statuses: string[];
   labels: {
     projectType: Record<string, string>;
     family: Record<string, string>;
-    status: Record<string, string>;
   };
 }
 
 // Filtry tablicy ogłoszeń (URL search params, nie stan komponentu): zmiana
-// filtra zeruje stronę, a widok można wkleić jako link.
-export function BoardFilters({ countries, projectTypes, families, statuses, labels }: BoardFiltersProps) {
+// filtra zeruje stronę, a widok można wkleić jako link. Bez filtra statusu:
+// producent nie widzi statusu zapytania (spec 0070 AC-22).
+export function BoardFilters({ countries, projectTypes, families, labels }: BoardFiltersProps) {
   const t = useTranslations("ProducerPanelBoardPage");
   const router = useRouter();
   const pathname = usePathname();
@@ -51,14 +50,13 @@ export function BoardFilters({ countries, projectTypes, families, statuses, labe
     );
   }
 
-  const hasFilters = ["country", "type", "family", "status"].some((key) => searchParams.has(key));
+  const hasFilters = ["country", "type", "family"].some((key) => searchParams.has(key));
 
   return (
     <div role="group" aria-label={t("filtersAriaLabel")} className="flex flex-wrap items-end gap-brand-3">
       {build(t("columnCountry"), "country", countries.map((c) => ({ value: c.code, label: c.name })))}
       {build(t("columnProjectType"), "type", projectTypes.map((v) => ({ value: v, label: labels.projectType[v] ?? v })))}
       {build(t("columnFamilies"), "family", families.map((v) => ({ value: v, label: labels.family[v] ?? v })))}
-      {build(t("columnStatus"), "status", statuses.map((v) => ({ value: v, label: labels.status[v] ?? v })))}
       {hasFilters && (
         <Button type="button" surface="v5" size="sm" onClick={() => router.push(pathname)}>
           {t("filterClear")}

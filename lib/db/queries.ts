@@ -1,5 +1,6 @@
 import { and, asc, desc, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
 import { db } from "./client";
+import { producerDeliversToRequestCountrySql, producerMatchesProjectRequestSql } from "./project-request-matching";
 import { buildPublicUrl } from "@/lib/storage/r2-client";
 import type { Locale } from "@/lib/i18n/routing";
 import { resolveTranslatedText } from "@/lib/i18n/resolve-translated-text";
@@ -966,13 +967,10 @@ export interface ProjectRequestBoardItem {
   deliveryWindowTo: string | null;
   locationDetail: string | null;
   extrasNote: string | null;
-  status: "open" | "quoted";
+  // Spec 0070 AC-22: producent widzi termin i stan własnej oferty, nigdy status
+  // zapytania (open/quoted zdradzałoby, że ktoś inny już złożył ofertę).
+  deadlineAt: Date;
   createdAt: Date;
-}
-
-export interface ProjectRequestsForBoardPage {
-  items: ProjectRequestBoardItem[];
-  totalCount: number;
 }
 
 const BOARD_COLUMNS = {
@@ -992,31 +990,44 @@ const BOARD_COLUMNS = {
   deliveryWindowTo: projectRequest.deliveryWindowTo,
   locationDetail: projectRequest.locationDetail,
   extrasNote: projectRequest.extrasNote,
-  status: projectRequest.status,
+  deadlineAt: projectRequest.deadlineAt,
   createdAt: projectRequest.createdAt,
 } as const;
 
-// Zasila /producer/panel/board (AC-2): tablica widzialna dla każdego
-// zweryfikowanego wolumenowo producenta, nie tylko tych dopasowanych po
-// kraju dostawy (Option 3, rationale.md) — stąd brak jakiegokolwiek filtra
-// producentId tutaj. Status open/quoted (chowa accepted/closed, Feature
-// design "Reguła widoczności tablicy").
+// Statusy, w których zapytanie jest na tablicy i można składać oferty (spec 0070:
+// `published` dochodzi, inaczej zapytanie znikałoby po publikacji podsumowania).
+const BOARD_OPEN_STATUSES = ["open", "quoted", "published"] as const;
+
+// Zasila /producer/panel/board. Spec 0070 AC-10: tablica pokazuje producentowi
+// tylko zapytania, które pasują do niego regułą dopasowania
+// (producerMatchesProjectRequestSql), ta sama funkcja co w szczególe i w
+// submitProjectQuote. Spec 0062 AC-2 (tablica dla wszystkich zatwierdzonych) jest
+// tym zastąpiona.
 export interface ProjectRequestBoardFilters {
   countryCode?: string;
   projectType?: ProjectRequestBoardItem["projectType"];
   family?: ProjectRequestBoardItem["families"][number];
-  status?: ProjectRequestBoardItem["status"];
+}
+
+export interface ProjectRequestBoardListItem extends ProjectRequestBoardItem {
+  ownQuoteStatus: (typeof projectQuote.$inferSelect)["status"] | null;
+  // Czy kraj zapytania jest na liście krajów dostawy producenta. Brak kraju nie
+  // ukrywa zapytania, tylko włącza znacznik na tablicy i w szczególe.
+  deliversToCountry: boolean;
 }
 
 export async function getOpenProjectRequestsForBoard({
+  producerId,
   page,
   filters = {},
 }: {
+  producerId: string;
   page: number;
   filters?: ProjectRequestBoardFilters;
-}): Promise<ProjectRequestsForBoardPage> {
+}): Promise<{ items: ProjectRequestBoardListItem[]; totalCount: number }> {
   const whereClause = and(
-    inArray(projectRequest.status, filters.status ? [filters.status] : ["open", "quoted"]),
+    inArray(projectRequest.status, [...BOARD_OPEN_STATUSES]),
+    producerMatchesProjectRequestSql(producerId),
     filters.countryCode ? eq(projectRequest.countryCode, filters.countryCode) : undefined,
     filters.projectType ? eq(projectRequest.projectType, filters.projectType) : undefined,
     filters.family ? sql`${projectRequest.families} @> ${JSON.stringify([filters.family])}::jsonb` : undefined,
@@ -1025,7 +1036,16 @@ export async function getOpenProjectRequestsForBoard({
   const [countRow, rows] = await Promise.all([
     db.select({ count: sql<number>`count(*)::int` }).from(projectRequest).where(whereClause),
     db
-      .select(BOARD_COLUMNS)
+      .select({
+        ...BOARD_COLUMNS,
+        deliversToCountry: producerDeliversToRequestCountrySql(producerId),
+        // Najnowsza oferta tego producenta na to zapytanie (jego własna, nie cudza).
+        ownQuoteStatus: sql<ProjectRequestBoardListItem["ownQuoteStatus"]>`(
+          select q.status from project_quote q
+          where q.project_request_id = ${projectRequest.id} and q.producer_id = ${producerId}
+          order by q.submitted_at desc limit 1
+        )`,
+      })
       .from(projectRequest)
       .innerJoin(country, eq(country.code, projectRequest.countryCode))
       .where(whereClause)
@@ -1034,25 +1054,34 @@ export async function getOpenProjectRequestsForBoard({
       .offset((page - 1) * PROJECT_REQUESTS_BOARD_PAGE_SIZE),
   ]);
 
-  return { items: rows as ProjectRequestBoardItem[], totalCount: countRow[0]?.count ?? 0 };
+  return {
+    items: rows.map((row) => ({ ...row, deliversToCountry: row.deliversToCountry === true })),
+    totalCount: countRow[0]?.count ?? 0,
+  };
 }
 
 export interface ProjectRequestBoardDetail extends ProjectRequestBoardItem {
   ownQuoteStatus: (typeof projectQuote.$inferSelect)["status"] | null;
+  deliversToCountry: boolean;
 }
 
 // Zasila /producer/panel/board/[id] (AC-4): pełne dane do wyceny (bez
 // kontaktu) plus status własnej wyceny tego producenta, jeśli istnieje.
-// Zapytanie poza open/quoted zostaje widoczne wyłącznie temu producentowi,
-// który już na nie odpowiedział (żeby zobaczył wynik swojej wyceny), nigdy
-// nikomu innemu — ta sama zasada maskowania co lista, rozszerzona o
-// "własny udział" jako drugi powód widoczności.
+// Zapytanie widzi producent dopasowany (spec 0070 AC-10) w statusie
+// open/quoted/published. Producent, który już złożył ofertę, widzi je też poza
+// tym (wynik własnej oferty po zamknięciu, wyborze albo gdy zmieniło się
+// dopasowanie), nigdy nikt inny.
 export async function getProjectRequestForBoardDetail(
   id: string,
   producerId: string,
 ): Promise<ProjectRequestBoardDetail | null> {
   const [row] = await db
-    .select(BOARD_COLUMNS)
+    .select({
+      item: BOARD_COLUMNS,
+      status: projectRequest.status,
+      matches: producerMatchesProjectRequestSql(producerId),
+      deliversToCountry: producerDeliversToRequestCountrySql(producerId),
+    })
     .from(projectRequest)
     .innerJoin(country, eq(country.code, projectRequest.countryCode))
     .where(eq(projectRequest.id, id));
@@ -1065,10 +1094,11 @@ export async function getProjectRequestForBoardDetail(
     .orderBy(desc(projectQuote.submittedAt))
     .limit(1);
 
-  const isOpenOrQuoted = row.status === "open" || row.status === "quoted";
-  if (!isOpenOrQuoted && !ownQuote) return null;
+  const isOnBoard = (BOARD_OPEN_STATUSES as readonly string[]).includes(row.status);
+  const canSee = (row.matches === true && isOnBoard) || ownQuote !== undefined;
+  if (!canSee) return null;
 
-  return { ...(row as ProjectRequestBoardItem), ownQuoteStatus: ownQuote?.status ?? null };
+  return { ...row.item, ownQuoteStatus: ownQuote?.status ?? null, deliversToCountry: row.deliversToCountry === true };
 }
 
 export interface ProjectQuoteForProducer {
@@ -1149,7 +1179,16 @@ export interface ClientReceivedQuote {
   hasPdf: boolean;
 }
 
-export interface ClientProjectRequestWithQuotes {
+// Pola wspólne dla obu rodzajów zapytania w nagłówku listy klienta (spec 0070 AC-41):
+// termin ofert, zamknięcie (powód i chwila) i wybór oczekujący na połączenie.
+interface ClientRequestListFields {
+  deadlineAt: Date;
+  closedAt: Date | null;
+  closedReason: (typeof projectRequest.$inferSelect)["closedReason"];
+  selectedQuoteId: string | null;
+}
+
+export interface ClientProjectRequestWithQuotes extends ClientRequestListFields {
   source: "project_request";
   id: string;
   countryCode: string;
@@ -1161,11 +1200,12 @@ export interface ClientProjectRequestWithQuotes {
   quotes: ClientReceivedQuote[];
 }
 
-export interface ClientBulkInquiryWithQuotes {
+export interface ClientBulkInquiryWithQuotes extends ClientRequestListFields {
   source: "bulk_product_inquiry";
   id: string;
   productId: string;
   productName: string;
+  countryCode: string;
   unitCount: number;
   status: (typeof bulkProductInquiry.$inferSelect)["status"];
   createdAt: Date;
@@ -1190,6 +1230,10 @@ export async function getProjectRequestsWithQuotesForClient(clientId: string): P
         unitCount: projectRequest.unitCount,
         status: projectRequest.status,
         createdAt: projectRequest.createdAt,
+        deadlineAt: projectRequest.deadlineAt,
+        closedAt: projectRequest.closedAt,
+        closedReason: projectRequest.closedReason,
+        selectedQuoteId: projectRequest.selectedQuoteId,
       })
       .from(projectRequest)
       .where(eq(projectRequest.clientId, clientId))
@@ -1199,9 +1243,14 @@ export async function getProjectRequestsWithQuotesForClient(clientId: string): P
         id: bulkProductInquiry.id,
         productId: bulkProductInquiry.productId,
         productName: product.name,
+        countryCode: bulkProductInquiry.deliveryCountryCode,
         unitCount: bulkProductInquiry.unitCount,
         status: bulkProductInquiry.status,
         createdAt: bulkProductInquiry.createdAt,
+        deadlineAt: bulkProductInquiry.deadlineAt,
+        closedAt: bulkProductInquiry.closedAt,
+        closedReason: bulkProductInquiry.closedReason,
+        selectedQuoteId: bulkProductInquiry.selectedQuoteId,
       })
       .from(bulkProductInquiry)
       .innerJoin(product, eq(product.id, bulkProductInquiry.productId))
@@ -1274,6 +1323,10 @@ export async function getProjectRequestsWithQuotesForClient(clientId: string): P
     unitCount: row.unitCount,
     status: row.status,
     createdAt: row.createdAt,
+    deadlineAt: row.deadlineAt,
+    closedAt: row.closedAt,
+    closedReason: row.closedReason,
+    selectedQuoteId: row.selectedQuoteId,
     quotes: quotesByParentId.get(row.id) ?? [],
   }));
   const bulkInquiryItems: ClientRequestWithQuotes[] = bulkRows.map((row) => ({
@@ -1281,9 +1334,14 @@ export async function getProjectRequestsWithQuotesForClient(clientId: string): P
     id: row.id,
     productId: row.productId,
     productName: row.productName ?? "",
+    countryCode: row.countryCode,
     unitCount: row.unitCount,
     status: row.status,
     createdAt: row.createdAt,
+    deadlineAt: row.deadlineAt,
+    closedAt: row.closedAt,
+    closedReason: row.closedReason,
+    selectedQuoteId: row.selectedQuoteId,
     quotes: quotesByParentId.get(row.id) ?? [],
   }));
 

@@ -95,3 +95,18 @@ Połączenie stron przez ModularHub przy zatwierdzonym B2B klienta jest automaty
 **Token dla gościa.** Rozważone: zapytanie najpierw, potem pliki z krótkim tokenem (wybrane, brak sierot w magazynie, zapytanie istnieje nawet gdy plik zawiedzie), wgrywanie do poczekalni przed wysłaniem (porzucone obiekty bez właściciela i zadanie czyszczące), pliki tylko dla zalogowanych (cofa sens zmiany 0066). Token to HMAC z klucza `AUTH_SECRET`, więc nie dodaje tabeli ani zmiennej środowiskowej.
 
 **Usuwanie miękkie.** Producent mógł wycenić na podstawie planu, więc natychmiastowe twarde usunięcie zostawia go bez dowodu, a pomyłka inwestora byłaby nieodwracalna. Miękkie usunięcie plus kasowanie obiektu po 30 dniach godzinnym zadaniem pozwala odzyskać pomyłkę i sprawdzić spór. Producent z aktywną ofertą widzi znacznik zmiany plików zamiast maila przy każdej zmianie, żeby nie zasypywać go powiadomieniami.
+
+## Zmiana z 2026-10-13: klient zamyka własne zapytanie (AC-37 do AC-43)
+
+Problem: wyzwalacz limitu z `drizzle/0014` blokuje czwarte zapytanie na e mail, a klient nie ma jak zwolnić miejsca. Dodatkowo `/panel/quotes` ukrywa zapytania bez ofert, a `/panel/inquiries` listuje tylko dawne `inquiry` i sprawy doradcze, więc klient z trzema świeżymi zapytaniami nie widzi żadnego na koncie.
+
+Rozstrzygnięcia i dlaczego:
+- Limit zostaje na 3 (decyzja z 0037, nikt nie prosił o zmianę), ale liczy `published`, bo zapytanie po publikacji dalej czeka na wybór. `accepted` nie liczy się, bo to rozstrzygnięcie.
+- Wznowienie musi podlegać limitowi, inaczej klient zamknąłby zapytanie, złożył trzy nowe i wznowił stare. Wyzwalacz BEFORE INSERT tego nie widzi, więc dochodzi wyzwalacz BEFORE UPDATE OF status.
+- Klient nie podaje powodu zamknięcia: powód jest stały (`client_cancelled`), a tekst dowolny mógłby trafić do producentów z danymi kontaktowymi.
+- Zespół dostaje mail tylko przy `published` lub wyborze czekającym na B2B. Inaczej każda rezygnacja byłaby szumem, a zamknięcie i tak widać w adminie.
+- Komunikat o limicie nie liczy zapytań, bo błąd pada dopiero przy trzech, więc liczba jest zawsze "3 z 3". Gościowi nie pokazujemy listy (ujawniałaby dane osobie, która wpisała cudzy adres), dajemy link logujący z neutralną odpowiedzią.
+- Link logujący dla gościa jest potrzebny, bo po AC-13 `pending_registration` powstaje dopiero przy mailu o publikacji.
+- Nagłówek zapytania i lista to osobne zadania przed zadaniem 12, bo nie zależą od nowego modelu ofert i usuwają ślepy zaułek od razu. Zadanie 12 zachowuje komponent nagłówka.
+
+Odrzucone: wyłączanie przycisku dodania przy 3 z 3 (limit liczy po e mailu, licznik po koncie, więc przycisk mógłby blokować bez powodu; prawdą jest baza); pytanie o powód rezygnacji (patrz wyżej); podniesienie limitu (zmieniłoby decyzję 0037 bez potrzeby, zamknięcie rozwiązuje problem).

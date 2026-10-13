@@ -14,6 +14,10 @@ export interface NewLargeOrderForTeam {
   unitCount: number;
   deadlineAt: Date;
   contactLocale: string;
+  // Liczba producentów dopasowanych do zapytania wolnego (spec 0070 AC-10).
+  // Brak wartości: zapytanie o produkt (idzie do producenta produktu) albo nie
+  // udało się policzyć. Zero zmienia mail w alert.
+  matchedProducerCount?: number;
 }
 
 function baseUrl(): string {
@@ -36,18 +40,23 @@ export async function notifyTeamOfNewLargeOrder(order: NewLargeOrderForTeam): Pr
   if (!to) return;
   try {
     const t = await getTranslations({ locale: "pl", namespace: "LargeOrderTeamNewRequestEmail" });
-    const subject = t("subject", { units: order.unitCount, country: order.countryCode });
+    const noMatch = order.matchedProducerCount === 0;
+    const subject = t(noMatch ? "subjectNoMatch" : "subject", { units: order.unitCount, country: order.countryCode });
     const deadline = new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium" }).format(order.deadlineAt);
     const content: TransactionalEmailProps = {
       preview: subject,
       heading: subject,
       body: [
+        noMatch ? t("noMatchWarning") : undefined,
         t("intro"),
         `${t("countryLabel")}: ${order.countryCode}`,
         `${t("unitsLabel")}: ${order.unitCount}`,
         `${t("deadlineLabel")}: ${deadline}`,
         `${t("languageLabel")}: ${order.contactLocale}`,
-      ].join("\n"),
+        order.matchedProducerCount === undefined ? undefined : `${t("matchedLabel")}: ${order.matchedProducerCount}`,
+      ]
+        .filter((line) => line !== undefined)
+        .join("\n"),
       ctaLabel: t("cta"),
       ctaHref: `${baseUrl()}/pl/internal/large-orders/${order.id}?kind=${order.kind}`,
       reference: shortReference(order.id),
@@ -64,5 +73,54 @@ export async function notifyTeamOfNewLargeOrder(order: NewLargeOrderForTeam): Pr
     });
   } catch (error) {
     captureError(error, { path: "notifications:notifyTeamOfNewLargeOrder" });
+  }
+}
+
+export interface ClientCancelledRequestForTeam {
+  kind: "request" | "product";
+  id: string;
+  countryCode: string;
+  unitCount: number;
+  // Powód maila: podsumowanie było już opublikowane, albo wybór klienta czekał na B2B.
+  wasPublished: boolean;
+  hadPendingSelection: boolean;
+}
+
+// Spec 0070 AC-37: klient zamknął własne zapytanie. Zespół dostaje mail po polsku tylko
+// wtedy, gdy ktoś już włożył pracę (opublikowane podsumowanie) albo czekał na
+// zatwierdzenie B2B dla wyboru, który już nie ma sensu. Best effort, jak inne maile zespołu.
+export async function notifyTeamOfClientCancelledRequest(order: ClientCancelledRequestForTeam): Promise<void> {
+  if (!order.wasPublished && !order.hadPendingSelection) return;
+  const to = teamRecipient();
+  if (!to) return;
+  try {
+    const t = await getTranslations({ locale: "pl", namespace: "LargeOrderTeamClientCancelledEmail" });
+    const subject = t("subject", { units: order.unitCount, country: order.countryCode });
+    const content: TransactionalEmailProps = {
+      preview: subject,
+      heading: subject,
+      body: [
+        t("intro"),
+        order.wasPublished ? t("publishedNote") : undefined,
+        order.hadPendingSelection ? t("pendingSelectionNote") : undefined,
+      ]
+        .filter((line) => line !== undefined)
+        .join("\n"),
+      ctaLabel: t("cta"),
+      ctaHref: `${baseUrl()}/pl/internal/large-orders/${order.id}?kind=${order.kind}`,
+      reference: shortReference(order.id),
+    };
+
+    await sendNotificationEmail({
+      to,
+      subject,
+      html: await render(TransactionalEmail(content)),
+      text: renderTransactionalEmailText(content),
+      emailType: "large_order_team_client_cancelled",
+      entityId: order.id,
+      distinctId: order.id,
+    });
+  } catch (error) {
+    captureError(error, { path: "notifications:notifyTeamOfClientCancelledRequest" });
   }
 }

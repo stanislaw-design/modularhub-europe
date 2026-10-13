@@ -18,7 +18,9 @@ export type NotificationEmailType =
   | "payment_confirmed"
   | "case_new_case_alert"
   | "case_new_message"
-  | "large_order_team_new_request";
+  | "large_order_team_new_request"
+  | "large_order_team_client_cancelled"
+  | "large_order_producer_request_closed";
 
 export interface SendNotificationEmailInput {
   to: string;

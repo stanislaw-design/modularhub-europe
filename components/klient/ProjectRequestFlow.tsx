@@ -10,6 +10,7 @@ import { PRODUCT_FAMILIES } from "@/lib/product-technical-specs";
 import { COMPLETION_STANDARDS } from "@/lib/producer-capacity-profile-specs";
 import { PROJECT_TYPES } from "@/lib/project-request-specs";
 import { submitProjectRequest, type SubmitProjectRequestInput } from "@/lib/project-request-actions";
+import { BulkRequestLimitMessage } from "./BulkRequestLimitMessage";
 import { ProjectRequestConfirmationCard } from "./ProjectRequestConfirmationCard";
 
 type ProjectType = (typeof PROJECT_TYPES)[number];
@@ -91,6 +92,7 @@ export function ProjectRequestFlow({ locale, countries, prefill }: ProjectReques
   const [contactPhone, setContactPhone] = useState(prefill?.phone ?? "");
   const [emailTouched, setEmailTouched] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [limitReached, setLimitReached] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const stepHeadingRef = useRef<HTMLHeadingElement>(null);
@@ -154,6 +156,7 @@ export function ProjectRequestFlow({ locale, countries, prefill }: ProjectReques
     startTransition(async () => {
       const result = await submitProjectRequest(input);
       if (!result.ok) {
+        setLimitReached(result.errorCode === "email_limit");
         setError(result.error ?? t("genericSendError"));
         return;
       }
@@ -522,10 +525,14 @@ export function ProjectRequestFlow({ locale, countries, prefill }: ProjectReques
               <Text tone="muted" surface="v5" className="text-data">
                 {t("dataSharingNotice")}
               </Text>
-              {error && (
-                <p className="font-sans text-body text-status-blocked" role="alert">
-                  {error}
-                </p>
+              {error && limitReached ? (
+                <BulkRequestLimitMessage locale={locale} contactEmail={contactEmail} />
+              ) : (
+                error && (
+                  <p className="font-sans text-body text-status-blocked" role="alert">
+                    {error}
+                  </p>
+                )
               )}
             </Stack>
           )}

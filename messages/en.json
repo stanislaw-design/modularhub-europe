@@ -860,11 +860,9 @@
     "verifyLink": "Verify account"
   },
   "ClientPanelQuotesPage": {
-    "heading": "Quotes",
-    "emptyTitle": "You don't have any quotes yet",
-    "emptyDescription": "Producer quotes on your requests will show up here.",
-    "requestHeading": "Project request",
-    "bulkInquiryHeadingPrefix": "Product inquiry: ",
+    "heading": "Large orders",
+    "emptyTitle": "You have no large order requests yet",
+    "emptyDescription": "Describe your project once and manufacturers will submit offers. Your request will appear here with its deadline and offers.",
     "producerColumn": "Producer",
     "priceColumn": "Price",
     "leadTimeColumn": "Lead time",
@@ -874,7 +872,12 @@
     "statusRejected": "Rejected",
     "statusSuperseded": "Superseded",
     "leadTimeWeeks": "{weeks} wk",
-    "notesColumn": "Note"
+    "notesColumn": "Note",
+    "addRequest": "Add a large order request",
+    "activeCounter": "Active requests: {count} of {max}",
+    "limitHint": "Close one request to add another.",
+    "noQuotesYet": "Waiting for manufacturer offers, deadline {date}.",
+    "closedGroupHeading": "Closed requests"
   },
   "AcceptQuoteButton": {
     "accept": "Accept",
@@ -1825,18 +1828,14 @@
     "filterClear": "Clear filters",
     "emptyFiltered": "No requests match the selected filters.",
     "heading": "Board",
-    "intro": "Open large-order requests from every investor — submit a quote on any of them.",
+    "intro": "Large order requests that match your profile: delivery country, product families and capacity. Submit a quote on any of them.",
     "notApprovedHeading": "The board is only available to volume-verified producers",
     "notApprovedDescription": "Fill in your production capacity profile so an administrator can verify you.",
     "completeProfileLink": "Complete your capacity profile",
-    "emptyMessage": "No open requests on the board.",
+    "emptyMessage": "No requests match your profile.",
     "columnCountry": "Country",
     "columnProjectType": "Project type",
     "columnUnits": "Units",
-    "columnStatus": "Status",
-    "columnDate": "Date",
-    "statusOpen": "Open",
-    "statusQuoted": "Quoted",
     "trustSignalNew": "New",
     "trustSignalComplete": "Details complete",
     "previousPage": "Previous",
@@ -1844,7 +1843,12 @@
     "pageLabel": "Page {current} of {total}",
     "paginationAriaLabel": "Board pages",
     "columnFamilies": "Families",
-    "columnFloorArea": "Floor area (m²)"
+    "columnFloorArea": "Floor area (m²)",
+    "columnDeadline": "Offer deadline",
+    "columnOwnQuote": "Your offer",
+    "ownQuoteNone": "Not submitted",
+    "notDeliveringNote": "This country is not on your delivery list",
+    "notDeliveringLink": "Add a country in your capacity profile"
   },
   "ProducerBoardDetailPage": {
     "scopeHeading": "Order scope",
@@ -1868,7 +1872,9 @@
     "ownQuoteStatusActive": "Active",
     "ownQuoteStatusAccepted": "Accepted",
     "ownQuoteStatusRejected": "Rejected",
-    "ownQuoteStatusSuperseded": "Superseded"
+    "ownQuoteStatusSuperseded": "Superseded",
+    "notDeliveringNote": "This country is not on your delivery list",
+    "notDeliveringLink": "Add a country in your capacity profile"
   },
   "QuoteForm": {
     "heading": "Your quote",
@@ -2092,7 +2098,7 @@
     "menu": "Menu",
     "collapseSidebar": "Collapse sidebar",
     "expandSidebar": "Expand sidebar",
-    "quotes": "Quotes",
+    "quotes": "Large orders",
     "weryfikacja": "Verify account"
   },
   "CaseChat": {
@@ -2429,9 +2435,61 @@
     "unitsLabel": "Number of houses",
     "deadlineLabel": "Offer deadline",
     "languageLabel": "Client language",
-    "cta": "Open the request in the panel"
+    "cta": "Open the request in the panel",
+    "subjectNoMatch": "No matching producers: large order request ({units} houses, {country})",
+    "matchedLabel": "Matching producers",
+    "noMatchWarning": "No producer can see this request. Add a producer as an exception or check the producers' profiles (product families, completion standards, capacity), otherwise the request will get no offers."
   },
   "KlientPanelWeryfikacjaPage": {
     "heading": "Account verification"
+  },
+  "RequestHeader": {
+    "projectTitle": "Project request",
+    "productTitle": "Product request: {name}",
+    "units": "{count, plural, one {# house} other {# houses}}",
+    "submittedLabel": "Submitted",
+    "deadlineLabel": "Offer deadline",
+    "closedLabel": "Closed",
+    "statusCollecting": "Collecting offers",
+    "statusPublished": "Summary ready",
+    "statusAccepted": "Manufacturer chosen",
+    "statusClosed": "Closed",
+    "closedReason": {
+      "client_cancelled": "cancelled by you",
+      "no_offers": "no offers",
+      "expired": "deadline passed",
+      "staff_closed": "closed by ModularHub"
+    }
+  },
+  "CancelRequestDialog": {
+    "trigger": "Close request",
+    "title": "Close this request?",
+    "description": "Manufacturers who submitted offers will be told the request was closed. Closing frees a place for another request. You can reopen it within 30 days.",
+    "confirm": "Close request",
+    "closing": "Closing…",
+    "keep": "Keep it open",
+    "notFound": "Request not found. Please refresh the page.",
+    "notCancellable": "This request can no longer be closed here. Please contact ModularHub.",
+    "genericError": "The request could not be closed. Please try again."
+  },
+  "BulkRequestLimitMessage": {
+    "text": "You already have {count} of {max} active large order requests for this email address. Close one in your request list to add another.",
+    "listLink": "Go to my requests",
+    "guestHint": "You can close requests after signing in. If you do not have an account yet, we will send a sign in link to this email address.",
+    "sendLink": "Send me a sign in link",
+    "sending": "Sending…",
+    "sent": "If this address has active requests, we have sent a sign in link to it."
+  },
+  "LargeOrderTeamClientCancelledEmail": {
+    "subject": "Client closed a large order request ({units} houses, {country})",
+    "intro": "The client closed their own large order request. It is now closed with the reason cancelled by client.",
+    "publishedNote": "The summary for this request had already been published.",
+    "pendingSelectionNote": "The client had chosen an offer and the choice was waiting for company data approval. The connection will not happen.",
+    "cta": "Open the request in the panel"
+  },
+  "LargeOrderProducerClosedEmail": {
+    "subject": "The request has been closed",
+    "body": "The request you submitted an offer for has been closed. You do not need to do anything. You can find new requests on the board.",
+    "cta": "Open the request board"
   }
 }

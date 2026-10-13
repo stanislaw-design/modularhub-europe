@@ -604,6 +604,43 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: enforce_bulk_request_
 
     await db.delete(projectRequest).where(eq(projectRequest.contactEmail, email));
   });
+
+  // spec 0070 AC-38 (migracja 0056): 'published' liczy się do limitu, a wznowienie
+  // zamkniętego zapytania przechodzi przez ten sam wyzwalacz.
+  it("counts a published request toward the limit", async () => {
+    const email = `schema-limit-published-${crypto.randomUUID()}@example.test`;
+    const base = { contactName: "Published", contactEmail: email, countryCode: "PL", projectType: "resort" as const, families: ["dom" as const] };
+    await db.insert(projectRequest).values({ ...base, unitCount: 10, status: "published" });
+    await db.insert(projectRequest).values({ ...base, unitCount: 11 });
+    await db.insert(projectRequest).values({ ...base, unitCount: 12 });
+
+    await expectRejectionToMatch(db.insert(projectRequest).values({ ...base, unitCount: 13 }), /bulk_request_email_limit_exceeded/);
+
+    await db.delete(projectRequest).where(eq(projectRequest.contactEmail, email));
+  });
+
+  it("frees a slot when a request is closed and rejects reopening it over the limit", async () => {
+    const email = `schema-limit-reopen-${crypto.randomUUID()}@example.test`;
+    const base = { contactName: "Reopen", contactEmail: email, countryCode: "PL", projectType: "resort" as const, families: ["dom" as const] };
+    const [first] = await db.insert(projectRequest).values({ ...base, unitCount: 10 }).returning({ id: projectRequest.id });
+    await db.insert(projectRequest).values({ ...base, unitCount: 11 });
+    await db.insert(projectRequest).values({ ...base, unitCount: 12 });
+
+    await db
+      .update(projectRequest)
+      .set({ status: "closed", closedAt: new Date(), closedReason: "client_cancelled" })
+      .where(eq(projectRequest.id, first.id));
+    // Zamknięcie zwolniło miejsce: czwarte zapytanie przechodzi.
+    await db.insert(projectRequest).values({ ...base, unitCount: 13 });
+
+    // Teraz klient znów ma trzy aktywne, więc wznowienie pierwszego jest odrzucone.
+    await expectRejectionToMatch(
+      db.update(projectRequest).set({ status: "open", closedAt: null, closedReason: null }).where(eq(projectRequest.id, first.id)),
+      /bulk_request_email_limit_exceeded/,
+    );
+
+    await db.delete(projectRequest).where(eq(projectRequest.contactEmail, email));
+  });
 });
 
 // spec 0041 AC-5, rewritten spec 0051 AC-3: product.price_min_cents is no

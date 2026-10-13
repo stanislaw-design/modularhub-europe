@@ -860,11 +860,9 @@
     "verifyLink": "Account verifiëren"
   },
   "ClientPanelQuotesPage": {
-    "heading": "Offertes",
-    "emptyTitle": "Je hebt nog geen offertes",
-    "emptyDescription": "Offertes van producenten op jouw aanvragen verschijnen hier.",
-    "requestHeading": "Projectaanvraag",
-    "bulkInquiryHeadingPrefix": "Productaanvraag: ",
+    "heading": "Grote bestellingen",
+    "emptyTitle": "U heeft nog geen aanvragen voor grote bestellingen",
+    "emptyDescription": "Beschrijf uw project één keer en fabrikanten dienen offertes in. Uw aanvraag verschijnt hier met de deadline en de offertes.",
     "producerColumn": "Producent",
     "priceColumn": "Prijs",
     "leadTimeColumn": "Levertijd",
@@ -874,7 +872,12 @@
     "statusRejected": "Afgewezen",
     "statusSuperseded": "Vervangen",
     "leadTimeWeeks": "{weeks} wk",
-    "notesColumn": "Notitie"
+    "notesColumn": "Notitie",
+    "addRequest": "Aanvraag voor een grote bestelling toevoegen",
+    "activeCounter": "Actieve aanvragen: {count} van {max}",
+    "limitHint": "Sluit één aanvraag om een nieuwe toe te voegen.",
+    "noQuotesYet": "We wachten op offertes van fabrikanten, deadline {date}.",
+    "closedGroupHeading": "Gesloten aanvragen"
   },
   "AcceptQuoteButton": {
     "accept": "Accepteren",
@@ -1825,18 +1828,14 @@
     "filterClear": "Filters wissen",
     "emptyFiltered": "Geen aanvragen komen overeen met de gekozen filters.",
     "heading": "Prikbord",
-    "intro": "Openstaande grootschalige aanvragen van alle investeerders — dien op elke aanvraag een offerte in.",
+    "intro": "Grootschalige aanvragen die bij uw profiel passen: leverland, productfamilies en capaciteit. Dien op elke aanvraag een offerte in.",
     "notApprovedHeading": "Het prikbord is alleen beschikbaar voor volumegeverifieerde producenten",
     "notApprovedDescription": "Vul je productiecapaciteitsprofiel in zodat een beheerder je kan verifiëren.",
     "completeProfileLink": "Vul je capaciteitsprofiel aan",
-    "emptyMessage": "Geen openstaande aanvragen op het prikbord.",
+    "emptyMessage": "Geen aanvragen komen overeen met uw profiel.",
     "columnCountry": "Land",
     "columnProjectType": "Projecttype",
     "columnUnits": "Eenheden",
-    "columnStatus": "Status",
-    "columnDate": "Datum",
-    "statusOpen": "Open",
-    "statusQuoted": "Met offertes",
     "trustSignalNew": "Nieuw",
     "trustSignalComplete": "Gegevens compleet",
     "previousPage": "Vorige",
@@ -1844,7 +1843,12 @@
     "pageLabel": "Pagina {current} van {total}",
     "paginationAriaLabel": "Prikbordpagina's",
     "columnFamilies": "Families",
-    "columnFloorArea": "Vloeroppervlak (m²)"
+    "columnFloorArea": "Vloeroppervlak (m²)",
+    "columnDeadline": "Uiterste datum voor offertes",
+    "columnOwnQuote": "Uw offerte",
+    "ownQuoteNone": "Niet ingediend",
+    "notDeliveringNote": "Dit land staat niet op uw leverlijst",
+    "notDeliveringLink": "Voeg een land toe in uw capaciteitsprofiel"
   },
   "ProducerBoardDetailPage": {
     "scopeHeading": "Omvang van de opdracht",
@@ -1868,7 +1872,9 @@
     "ownQuoteStatusActive": "Actief",
     "ownQuoteStatusAccepted": "Geaccepteerd",
     "ownQuoteStatusRejected": "Afgewezen",
-    "ownQuoteStatusSuperseded": "Vervangen"
+    "ownQuoteStatusSuperseded": "Vervangen",
+    "notDeliveringNote": "Dit land staat niet op uw leverlijst",
+    "notDeliveringLink": "Voeg een land toe in uw capaciteitsprofiel"
   },
   "QuoteForm": {
     "heading": "Uw offerte",
@@ -2092,7 +2098,7 @@
     "menu": "Menu",
     "collapseSidebar": "Menu inklappen",
     "expandSidebar": "Menu uitklappen",
-    "quotes": "Offertes",
+    "quotes": "Grote bestellingen",
     "weryfikacja": "Account verifiëren"
   },
   "CaseChat": {
@@ -2429,9 +2435,61 @@
     "unitsLabel": "Aantal huizen",
     "deadlineLabel": "Uiterste datum voor offertes",
     "languageLabel": "Taal van de klant",
-    "cta": "Open de aanvraag in het paneel"
+    "cta": "Open de aanvraag in het paneel",
+    "subjectNoMatch": "Geen passende producenten: aanvraag grote bestelling ({units} huizen, {country})",
+    "matchedLabel": "Passende producenten",
+    "noMatchWarning": "Geen enkele producent ziet deze aanvraag. Voeg een producent toe als uitzondering of controleer de producentprofielen (productfamilies, afwerkingsniveaus, capaciteit), anders blijft de aanvraag zonder offertes."
   },
   "KlientPanelWeryfikacjaPage": {
     "heading": "Accountverificatie"
+  },
+  "RequestHeader": {
+    "projectTitle": "Projectaanvraag",
+    "productTitle": "Productaanvraag: {name}",
+    "units": "{count, plural, one {# huis} other {# huizen}}",
+    "submittedLabel": "Ingediend",
+    "deadlineLabel": "Deadline offertes",
+    "closedLabel": "Gesloten",
+    "statusCollecting": "Offertes worden verzameld",
+    "statusPublished": "Samenvatting klaar",
+    "statusAccepted": "Fabrikant gekozen",
+    "statusClosed": "Gesloten",
+    "closedReason": {
+      "client_cancelled": "door u geannuleerd",
+      "no_offers": "geen offertes",
+      "expired": "deadline verstreken",
+      "staff_closed": "gesloten door ModularHub"
+    }
+  },
+  "CancelRequestDialog": {
+    "trigger": "Aanvraag sluiten",
+    "title": "Deze aanvraag sluiten?",
+    "description": "Fabrikanten die een offerte hebben ingediend, horen dat de aanvraag is gesloten. Sluiten maakt een plek vrij voor een nieuwe aanvraag. U kunt de aanvraag binnen 30 dagen heropenen.",
+    "confirm": "Aanvraag sluiten",
+    "closing": "Bezig met sluiten…",
+    "keep": "Open laten",
+    "notFound": "Aanvraag niet gevonden. Vernieuw de pagina.",
+    "notCancellable": "Deze aanvraag kan hier niet meer worden gesloten. Neem contact op met ModularHub.",
+    "genericError": "De aanvraag kon niet worden gesloten. Probeer het opnieuw."
+  },
+  "BulkRequestLimitMessage": {
+    "text": "U heeft al {count} van {max} actieve aanvragen voor grote bestellingen met dit e-mailadres. Sluit er één in uw lijst met aanvragen om een nieuwe toe te voegen.",
+    "listLink": "Naar mijn aanvragen",
+    "guestHint": "U kunt aanvragen sluiten na het inloggen. Als u nog geen account heeft, sturen we een inloglink naar dit e-mailadres.",
+    "sendLink": "Stuur mij een inloglink",
+    "sending": "Bezig met verzenden…",
+    "sent": "Als dit adres actieve aanvragen heeft, hebben we er een inloglink naartoe gestuurd."
+  },
+  "LargeOrderTeamClientCancelledEmail": {
+    "subject": "Klant heeft een aanvraag voor een grote bestelling gesloten ({units} huizen, {country})",
+    "intro": "De klant heeft zijn eigen aanvraag voor een grote bestelling gesloten. De aanvraag is nu gesloten met de reden geannuleerd door de klant.",
+    "publishedNote": "De samenvatting voor deze aanvraag was al gepubliceerd.",
+    "pendingSelectionNote": "De klant had een offerte gekozen en de keuze wachtte op goedkeuring van de bedrijfsgegevens. De koppeling komt niet tot stand.",
+    "cta": "Open de aanvraag in het paneel"
+  },
+  "LargeOrderProducerClosedEmail": {
+    "subject": "De aanvraag is gesloten",
+    "body": "De aanvraag waarvoor u een offerte heeft ingediend, is gesloten. U hoeft niets te doen. Nieuwe aanvragen vindt u op het prikbord.",
+    "cta": "Open het prikbord met aanvragen"
   }
 }

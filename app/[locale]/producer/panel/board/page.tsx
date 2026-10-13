@@ -9,44 +9,42 @@ import {
   getProducerVolumeVerificationStatus,
   PROJECT_REQUESTS_BOARD_PAGE_SIZE,
   type ProjectRequestBoardFilters,
-  type ProjectRequestBoardItem,
 } from "@/lib/db/queries";
 import { productFamilyEnum, projectTypeEnum } from "@/lib/db/schema";
 import { requirePanelProducerSession } from "@/lib/panel-session";
 
 const PROJECT_TYPES = projectTypeEnum.enumValues;
 const FAMILIES = productFamilyEnum.enumValues;
-const STATUSES = ["open", "quoted"] as const;
 
 const dateFormatter = new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium" });
 
-// Tablica ogłoszeń B2B (spec 0062 AC-2, AC-3): otwarta pull, widoczna dla
-// każdego zweryfikowanego wolumenowo producenta, nie tylko dopasowanych po
-// kraju dostawy. getOpenProjectRequestsForBoard nigdy nie wybiera kolumn
-// kontaktowych (maskowanie na poziomie zapytania SQL), więc nic więcej do
-// ukrycia tu w renderowaniu.
+// Tablica ogłoszeń B2B (spec 0070 AC-10, AC-22): producent widzi tylko zapytania
+// dopasowane do niego regułą dopasowania, z terminem ofert i stanem własnej
+// oferty, nigdy ze statusem zapytania. getOpenProjectRequestsForBoard nigdy nie
+// wybiera kolumn kontaktowych (maskowanie na poziomie zapytania SQL), więc nic
+// więcej do ukrycia tu w renderowaniu.
 export default async function ProducerPanelBoardPage({
   params,
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ page?: string; country?: string; type?: string; family?: string; status?: string }>;
+  searchParams: Promise<{ page?: string; country?: string; type?: string; family?: string }>;
 }) {
   const { locale } = await params;
-  const { page: pageParam, country: countryParam, type: typeParam, family: familyParam, status: statusParam } =
-    await searchParams;
+  const { page: pageParam, country: countryParam, type: typeParam, family: familyParam } = await searchParams;
   const selfHref = `/${locale}/producer/panel/board`;
-  const [session, t, tProjectRequest, tOptions] = await Promise.all([
+  const [session, t, tProjectRequest, tOptions, tDetail] = await Promise.all([
     requirePanelProducerSession(locale, selfHref),
     getTranslations("ProducerPanelBoardPage"),
     getTranslations("ProjectRequestFlow"),
     getTranslations("ProjectOptions"),
+    getTranslations("ProducerBoardDetailPage"),
   ]);
 
   const producerId = await getProducerIdForUser(session.user.id);
   const volumeStatus = producerId ? await getProducerVolumeVerificationStatus(producerId) : null;
 
-  if (volumeStatus !== "approved") {
+  if (!producerId || volumeStatus !== "approved") {
     return (
       <Stack gap={4}>
         <Heading level="h1">{t("heading")}</Heading>
@@ -69,17 +67,18 @@ export default async function ProducerPanelBoardPage({
     countryCode: countries.find((c) => c.code === countryParam)?.code,
     projectType: PROJECT_TYPES.find((v) => v === typeParam),
     family: FAMILIES.find((v) => v === familyParam),
-    status: STATUSES.find((v) => v === statusParam),
   };
   const hasFilters = Object.values(filters).some(Boolean);
-  const { items, totalCount } = await getOpenProjectRequestsForBoard({ page, filters });
+  const { items, totalCount } = await getOpenProjectRequestsForBoard({ producerId, page, filters });
   const totalPages = Math.max(1, Math.ceil(totalCount / PROJECT_REQUESTS_BOARD_PAGE_SIZE));
 
-  const statusLabel: Record<ProjectRequestBoardItem["status"], string> = {
-    open: t("statusOpen"),
-    quoted: t("statusQuoted"),
+  const ownQuoteLabel: Record<string, string> = {
+    active: tDetail("ownQuoteStatusActive"),
+    accepted: tDetail("ownQuoteStatusAccepted"),
+    rejected: tDetail("ownQuoteStatusRejected"),
+    superseded: tDetail("ownQuoteStatusSuperseded"),
   };
-  const trustSignalLabel: Record<ProjectRequestBoardItem["trustSignal"], string> = {
+  const trustSignalLabel: Record<(typeof items)[number]["trustSignal"], string> = {
     new: t("trustSignalNew"),
     complete: t("trustSignalComplete"),
   };
@@ -89,7 +88,6 @@ export default async function ProducerPanelBoardPage({
     if (filters.countryCode) params.set("country", filters.countryCode);
     if (filters.projectType) params.set("type", filters.projectType);
     if (filters.family) params.set("family", filters.family);
-    if (filters.status) params.set("status", filters.status);
     params.set("page", String(targetPage));
     return `${selfHref}?${params.toString()}`;
   }
@@ -104,11 +102,9 @@ export default async function ProducerPanelBoardPage({
         countries={countries}
         projectTypes={[...PROJECT_TYPES]}
         families={[...FAMILIES]}
-        statuses={[...STATUSES]}
         labels={{
           projectType: Object.fromEntries(PROJECT_TYPES.map((v) => [v, tProjectRequest(`projectType.${v}`)])),
           family: Object.fromEntries(FAMILIES.map((v) => [v, tOptions(`family.${v}`)])),
-          status: statusLabel,
         }}
       />
       {items.length === 0 ? (
@@ -136,10 +132,10 @@ export default async function ProducerPanelBoardPage({
                   {t("columnFloorArea")}
                 </Text>
                 <Text as="th" className="p-brand-2 font-medium">
-                  {t("columnStatus")}
+                  {t("columnDeadline")}
                 </Text>
                 <Text as="th" className="p-brand-2 font-medium">
-                  {t("columnDate")}
+                  {t("columnOwnQuote")}
                 </Text>
               </tr>
             </thead>
@@ -156,6 +152,17 @@ export default async function ProducerPanelBoardPage({
                     <Text as="span" tone="muted" variant="label" className="ml-2">
                       {trustSignalLabel[row.trustSignal]}
                     </Text>
+                    {!row.deliversToCountry && (
+                      <Text as="span" variant="label" className="mt-1 block text-status-conditional">
+                        {t("notDeliveringNote")}{" "}
+                        <Link
+                          href={`/${locale}/producer/panel/capacity`}
+                          className="focus-ring relative z-10 rounded-data font-medium text-brand-passage-blue hover:underline"
+                        >
+                          {t("notDeliveringLink")}
+                        </Link>
+                      </Text>
+                    )}
                   </td>
                   <td className="p-brand-2">
                     <TagPill tone={TAG_TONES[PROJECT_TYPES.indexOf(row.projectType) % TAG_TONES.length]}>
@@ -178,10 +185,10 @@ export default async function ProducerPanelBoardPage({
                     {row.floorAreaM2Min ? `${row.floorAreaM2Min}${row.floorAreaM2Max ? `–${row.floorAreaM2Max}` : "+"}` : "—"}
                   </Text>
                   <Text as="td" className="p-brand-2">
-                    {statusLabel[row.status]}
+                    {dateFormatter.format(row.deadlineAt)}
                   </Text>
                   <Text as="td" className="p-brand-2">
-                    {dateFormatter.format(row.createdAt)}
+                    {row.ownQuoteStatus ? (ownQuoteLabel[row.ownQuoteStatus] ?? row.ownQuoteStatus) : t("ownQuoteNone")}
                   </Text>
                 </tr>
               ))}

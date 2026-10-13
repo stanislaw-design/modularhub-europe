@@ -8,6 +8,7 @@ import { auth, signIn } from "@/auth";
 import { db } from "@/lib/db/client";
 import { getPgErrorCode } from "@/lib/db/pg-error";
 import { withAdminActor } from "@/lib/db/with-admin-actor";
+import { doesProducerMatchProjectRequest } from "@/lib/db/project-request-matching";
 import { getClientIdForUser, getProducerIdForUser } from "@/lib/db/queries";
 import {
   bulkProductInquiry,
@@ -105,10 +106,9 @@ async function notifyContactOfNewQuote(contactEmail: string, contactName: string
 }
 
 // Producent odpowiada wyceną na project_request (musi mieć
-// volumeVerificationStatus = 'approved' i zapytanie musi być wciąż
-// open/quoted, AC-13 spec 0062 — zastępuje dawne sprawdzenie przez
-// project_request_target_producer, tablica ogłoszeń jest otwarta pull, nie
-// push) lub na bulk_product_inquiry dla własnego produktu (AC-3, AC-5 spec
+// volumeVerificationStatus = 'approved', pasować do zapytania regułą
+// dopasowania spec 0070 AC-10 i zapytanie musi być wciąż open/quoted/published,
+// AC-13 spec 0062) lub na bulk_product_inquiry dla własnego produktu (AC-3, AC-5 spec
 // 0037, niezmienione). Rewizja tego samego producenta na to samo zapytanie
 // zastępuje poprzednią aktywną wycenę atomowo (ten sam wzorzec co submitOffer,
 // spec 0033), nie sprawdzeniem przed zapisem.
@@ -151,7 +151,13 @@ export async function submitProjectQuote(input: SubmitProjectQuoteInput): Promis
       .from(projectRequest)
       .where(eq(projectRequest.id, data.projectRequestId));
     if (!requestRow) return { ok: false, error: "Nie znaleziono zapytania." };
-    if (requestRow.status !== "open" && requestRow.status !== "quoted") {
+    // Spec 0070 AC-10: ta sama reguła dopasowania co lista i szczegół tablicy.
+    // Ten sam komunikat co brak zapytania, żeby niedopasowany producent nie
+    // dowiadywał się, że zapytanie istnieje.
+    if (!(await doesProducerMatchProjectRequest(producerId, data.projectRequestId))) {
+      return { ok: false, error: "Nie znaleziono zapytania." };
+    }
+    if (requestRow.status !== "open" && requestRow.status !== "quoted" && requestRow.status !== "published") {
       return { ok: false, error: "To zapytanie nie jest już otwarte na wyceny." };
     }
     contact = { name: requestRow.name, email: requestRow.email, phone: requestRow.phone };

@@ -10,6 +10,7 @@ vi.mock("@/lib/favorite-actions", () => ({ toggleFavorite: vi.fn() }));
 // statically imported regardless) imports lib/project-request-actions, which
 // imports lib/observability -> @sentry/nextjs, unresolvable under Vitest.
 vi.mock("@/lib/project-request-actions", () => ({ submitBulkProductInquiry: vi.fn() }));
+vi.mock("@/lib/panel-login-link-actions", () => ({ requestPanelLoginLink: vi.fn() }));
 // ProjectGalleryTabs nests an async Server Component (ProjectGalleryThumbnails)
 // inside a "use client" gallery/lightbox wrapper several levels down —
 // resolve-async-tree.ts's documented limitation (it only resolves a not-yet-run

@@ -9,6 +9,10 @@ vi.mock("@/lib/project-request-actions", () => ({
   submitProjectRequest: vi.fn(),
 }));
 
+vi.mock("@/lib/panel-login-link-actions", () => ({
+  requestPanelLoginLink: vi.fn(),
+}));
+
 const mockedSubmitProjectRequest = vi.mocked(submitProjectRequest);
 
 const countries: Country[] = [

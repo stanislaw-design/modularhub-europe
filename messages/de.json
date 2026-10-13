@@ -860,11 +860,9 @@
     "verifyLink": "Konto verifizieren"
   },
   "ClientPanelQuotesPage": {
-    "heading": "Angebote",
-    "emptyTitle": "Du hast noch keine Angebote",
-    "emptyDescription": "Angebote von Herstellern zu deinen Anfragen erscheinen hier.",
-    "requestHeading": "Projektanfrage",
-    "bulkInquiryHeadingPrefix": "Produktanfrage: ",
+    "heading": "Großaufträge",
+    "emptyTitle": "Sie haben noch keine Anfragen für Großaufträge",
+    "emptyDescription": "Beschreiben Sie Ihr Projekt einmal, und die Hersteller reichen Angebote ein. Ihre Anfrage erscheint hier mit Frist und Angeboten.",
     "producerColumn": "Hersteller",
     "priceColumn": "Preis",
     "leadTimeColumn": "Lieferzeit",
@@ -874,7 +872,12 @@
     "statusRejected": "Abgelehnt",
     "statusSuperseded": "Ersetzt",
     "leadTimeWeeks": "{weeks} Wo.",
-    "notesColumn": "Notiz"
+    "notesColumn": "Notiz",
+    "addRequest": "Anfrage für einen Großauftrag hinzufügen",
+    "activeCounter": "Aktive Anfragen: {count} von {max}",
+    "limitHint": "Schließen Sie eine Anfrage, um eine weitere hinzuzufügen.",
+    "noQuotesYet": "Wir warten auf Angebote der Hersteller, Frist bis {date}.",
+    "closedGroupHeading": "Geschlossene Anfragen"
   },
   "AcceptQuoteButton": {
     "accept": "Annehmen",
@@ -1832,18 +1835,14 @@
     "filterClear": "Filter zurücksetzen",
     "emptyFiltered": "Keine Anfragen entsprechen den gewählten Filtern.",
     "heading": "Pinnwand",
-    "intro": "Offene Großbestellungsanfragen aller Investoren — gib für jede davon ein Angebot ab.",
+    "intro": "Großauftragsanfragen, die zu Ihrem Profil passen: Lieferland, Produktfamilien und Kapazität. Geben Sie auf jede ein Angebot ab.",
     "notApprovedHeading": "Die Pinnwand steht nur volumenverifizierten Herstellern zur Verfügung",
     "notApprovedDescription": "Fülle dein Produktionskapazitätsprofil aus, damit ein Administrator dich verifizieren kann.",
     "completeProfileLink": "Kapazitätsprofil vervollständigen",
-    "emptyMessage": "Keine offenen Anfragen auf der Pinnwand.",
+    "emptyMessage": "Keine Anfragen passen zu Ihrem Profil.",
     "columnCountry": "Land",
     "columnProjectType": "Projekttyp",
     "columnUnits": "Einheiten",
-    "columnStatus": "Status",
-    "columnDate": "Datum",
-    "statusOpen": "Offen",
-    "statusQuoted": "Mit Angeboten",
     "trustSignalNew": "Neu",
     "trustSignalComplete": "Angaben vollständig",
     "previousPage": "Zurück",
@@ -1851,7 +1850,12 @@
     "pageLabel": "Seite {current} von {total}",
     "paginationAriaLabel": "Pinnwandseiten",
     "columnFamilies": "Familien",
-    "columnFloorArea": "Wohnfläche (m²)"
+    "columnFloorArea": "Wohnfläche (m²)",
+    "columnDeadline": "Angebotsfrist",
+    "columnOwnQuote": "Ihr Angebot",
+    "ownQuoteNone": "Nicht abgegeben",
+    "notDeliveringNote": "Dieses Land steht nicht auf Ihrer Lieferliste",
+    "notDeliveringLink": "Land im Kapazitätsprofil hinzufügen"
   },
   "ProducerBoardDetailPage": {
     "scopeHeading": "Auftragsumfang",
@@ -1875,7 +1879,9 @@
     "ownQuoteStatusActive": "Aktiv",
     "ownQuoteStatusAccepted": "Angenommen",
     "ownQuoteStatusRejected": "Abgelehnt",
-    "ownQuoteStatusSuperseded": "Ersetzt"
+    "ownQuoteStatusSuperseded": "Ersetzt",
+    "notDeliveringNote": "Dieses Land steht nicht auf Ihrer Lieferliste",
+    "notDeliveringLink": "Land im Kapazitätsprofil hinzufügen"
   },
   "QuoteForm": {
     "heading": "Ihr Angebot",
@@ -2092,7 +2098,7 @@
     "menu": "Menü",
     "collapseSidebar": "Menü einklappen",
     "expandSidebar": "Menü ausklappen",
-    "quotes": "Angebote",
+    "quotes": "Großaufträge",
     "weryfikacja": "Konto verifizieren"
   },
   "CaseChat": {
@@ -2429,9 +2435,61 @@
     "unitsLabel": "Anzahl der Häuser",
     "deadlineLabel": "Angebotsfrist",
     "languageLabel": "Sprache des Kunden",
-    "cta": "Anfrage im Panel öffnen"
+    "cta": "Anfrage im Panel öffnen",
+    "subjectNoMatch": "Keine passenden Hersteller: Großauftragsanfrage ({units} Häuser, {country})",
+    "matchedLabel": "Passende Hersteller",
+    "noMatchWarning": "Kein Hersteller sieht diese Anfrage. Fügen Sie einen Hersteller als Ausnahme hinzu oder prüfen Sie die Herstellerprofile (Produktfamilien, Ausbaustandards, Kapazität), sonst bleibt die Anfrage ohne Angebote."
   },
   "KlientPanelWeryfikacjaPage": {
     "heading": "Kontoverifizierung"
+  },
+  "RequestHeader": {
+    "projectTitle": "Projektanfrage",
+    "productTitle": "Produktanfrage: {name}",
+    "units": "{count, plural, one {# Haus} other {# Häuser}}",
+    "submittedLabel": "Eingereicht",
+    "deadlineLabel": "Angebotsfrist",
+    "closedLabel": "Geschlossen",
+    "statusCollecting": "Angebote werden gesammelt",
+    "statusPublished": "Zusammenfassung bereit",
+    "statusAccepted": "Hersteller gewählt",
+    "statusClosed": "Geschlossen",
+    "closedReason": {
+      "client_cancelled": "von Ihnen abgebrochen",
+      "no_offers": "keine Angebote",
+      "expired": "Frist abgelaufen",
+      "staff_closed": "von ModularHub geschlossen"
+    }
+  },
+  "CancelRequestDialog": {
+    "trigger": "Anfrage schließen",
+    "title": "Diese Anfrage schließen?",
+    "description": "Hersteller, die ein Angebot abgegeben haben, erfahren, dass die Anfrage geschlossen wurde. Durch das Schließen wird ein Platz für eine weitere Anfrage frei. Sie können sie innerhalb von 30 Tagen wieder öffnen.",
+    "confirm": "Anfrage schließen",
+    "closing": "Wird geschlossen…",
+    "keep": "Offen lassen",
+    "notFound": "Anfrage nicht gefunden. Bitte laden Sie die Seite neu.",
+    "notCancellable": "Diese Anfrage kann hier nicht mehr geschlossen werden. Bitte wenden Sie sich an ModularHub.",
+    "genericError": "Die Anfrage konnte nicht geschlossen werden. Bitte versuchen Sie es erneut."
+  },
+  "BulkRequestLimitMessage": {
+    "text": "Sie haben bereits {count} von {max} aktiven Anfragen für Großaufträge mit dieser E-Mail-Adresse. Schließen Sie eine in Ihrer Anfrageliste, um eine weitere hinzuzufügen.",
+    "listLink": "Zu meinen Anfragen",
+    "guestHint": "Anfragen können Sie nach der Anmeldung schließen. Wenn Sie noch kein Konto haben, senden wir einen Anmeldelink an diese E-Mail-Adresse.",
+    "sendLink": "Anmeldelink senden",
+    "sending": "Wird gesendet…",
+    "sent": "Wenn diese Adresse aktive Anfragen hat, haben wir einen Anmeldelink dorthin gesendet."
+  },
+  "LargeOrderTeamClientCancelledEmail": {
+    "subject": "Kunde hat eine Großauftragsanfrage geschlossen ({units} Häuser, {country})",
+    "intro": "Der Kunde hat seine Großauftragsanfrage selbst geschlossen. Sie ist jetzt mit dem Grund Abbruch durch den Kunden geschlossen.",
+    "publishedNote": "Die Zusammenfassung für diese Anfrage war bereits veröffentlicht.",
+    "pendingSelectionNote": "Der Kunde hatte ein Angebot gewählt, und die Wahl wartete auf die Freigabe der Firmendaten. Die Verbindung kommt nicht zustande.",
+    "cta": "Anfrage im Panel öffnen"
+  },
+  "LargeOrderProducerClosedEmail": {
+    "subject": "Die Anfrage wurde geschlossen",
+    "body": "Die Anfrage, für die Sie ein Angebot abgegeben haben, wurde geschlossen. Sie müssen nichts tun. Neue Anfragen finden Sie auf der Übersicht.",
+    "cta": "Anfragen-Übersicht öffnen"
   }
 }

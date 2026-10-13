@@ -7,6 +7,7 @@ import { type FormEvent, useState, useTransition } from "react";
 import { Button, Input, Label, Select, Stack, Text, Textarea } from "@/components/ui";
 import type { Country, CountryCode } from "@/lib/data/types";
 import { submitBulkProductInquiry } from "@/lib/project-request-actions";
+import { BulkRequestLimitMessage } from "./BulkRequestLimitMessage";
 
 interface BulkProductInquiryModalProps {
   productId: string;
@@ -32,6 +33,7 @@ export function BulkProductInquiryModal({ productId, countries, prefill }: BulkP
   const [deliveryCountryCode, setDeliveryCountryCode] = useState<CountryCode | null>(null);
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [limitReached, setLimitReached] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const unitCountValue = Number(unitCount);
@@ -66,6 +68,7 @@ export function BulkProductInquiryModal({ productId, countries, prefill }: BulkP
         note: note.trim() ? note.trim() : undefined,
       });
       if (!result.ok) {
+        setLimitReached(result.errorCode === "email_limit");
         setError(result.error ?? t("genericSendError"));
         return;
       }
@@ -202,10 +205,14 @@ export function BulkProductInquiryModal({ productId, countries, prefill }: BulkP
                     onChange={(event) => setNote(event.target.value)}
                   />
                 </Stack>
-                {error && (
-                  <p className="font-sans text-body text-status-blocked" role="alert">
-                    {error}
-                  </p>
+                {error && limitReached ? (
+                  <BulkRequestLimitMessage locale={locale} contactEmail={contactEmail} />
+                ) : (
+                  error && (
+                    <p className="font-sans text-body text-status-blocked" role="alert">
+                      {error}
+                    </p>
+                  )
                 )}
                 <div className="flex justify-end gap-brand-2 border-t border-brand-v5-line pt-brand-3">
                   <Button

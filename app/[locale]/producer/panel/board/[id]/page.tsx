@@ -109,6 +109,17 @@ export default async function ProducerBoardDetailPage({
             <Heading level="h3">{t("scopeHeading")}</Heading>
             <dl className="grid grid-cols-1 gap-x-brand-4 gap-y-brand-3 sm:grid-cols-2">
               <Fact label={t("countryLabel")} value={detail.countryName} />
+              {!detail.deliversToCountry && (
+                <Text as="p" className="text-status-conditional sm:col-span-2">
+                  {t("notDeliveringNote")}{" "}
+                  <Link
+                    href={`/${locale}/producer/panel/capacity`}
+                    className="focus-ring rounded-data font-medium text-brand-passage-blue hover:underline"
+                  >
+                    {t("notDeliveringLink")}
+                  </Link>
+                </Text>
+              )}
               <Fact
                 label={t("projectTypeLabel")}
                 value={tProjectRequest(`projectType.${detail.projectType}`)}

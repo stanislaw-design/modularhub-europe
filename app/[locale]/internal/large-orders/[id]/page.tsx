@@ -11,7 +11,9 @@ import {
   LargeOrderTonePill,
 } from "@/components/internal/LargeOrderPills";
 import { describeDeadline } from "@/components/internal/largeOrderDeadline";
+import { ProducerOverridesAdminSection } from "@/components/internal/ProducerOverridesAdminSection";
 import { Heading, Stack, Text } from "@/components/ui";
+import { getProducerMatchesForAdmin } from "@/lib/db/project-request-matching";
 import { getLargeOrderForAdmin, type LargeOrderKind, type LargeOrderQuoteForAdmin } from "@/lib/db/queries";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -37,7 +39,8 @@ function formatMoney(cents: number, currency: string): string {
 // pełne dane kontaktowe klienta, wszystkie oferty (także nieopublikowane),
 // PDF przez krótko ważny link (getProjectQuotePdfUrl ma gałąź dla admina) i
 // znaczniki czasu. Rodzaj w parametrze ?kind=, bo identyfikatory są w dwóch
-// tabelach. Sekcja dopasowanych producentów dochodzi w części B.
+// tabelach. Dla zapytania wolnego jest też lista producentów z wyjątkami
+// dopasowania (spec 0070 AC-10).
 //
 // Układ: nagłówek z rodzajem i statusem, pasek faktów (termin, skala, kraj,
 // oferty), potem oferty jako główna praca w lewej kolumnie, a klient i oś czasu
@@ -65,6 +68,8 @@ export default async function InternalLargeOrderDetailPage({
   const kind: LargeOrderKind = kindParam === "product" ? "product" : "request";
   const order = await getLargeOrderForAdmin(kind, id);
   if (!order) notFound();
+  // Dopasowanie dotyczy tylko zapytania wolnego; zapytanie o produkt idzie do producenta produktu.
+  const producerMatches = kind === "request" ? await getProducerMatchesForAdmin(id) : null;
 
   const contactRevealedAt = order.quotes.find((quote) => quote.contactRevealedAt)?.contactRevealedAt ?? null;
   const deadline = describeDeadline(order.deadlineAt, order.status, getNow());
@@ -179,6 +184,8 @@ export default async function InternalLargeOrderDetailPage({
               order.quotes.map((quote) => <QuoteCard key={quote.id} quote={quote} isSelected={order.selectedQuoteId === quote.id} />)
             )}
           </section>
+
+          {producerMatches && <ProducerOverridesAdminSection projectRequestId={order.id} producers={producerMatches} />}
 
           <section aria-labelledby="order-scope-heading" className="flex flex-col gap-brand-2">
             <h2 id="order-scope-heading" className="text-h3 font-semibold">

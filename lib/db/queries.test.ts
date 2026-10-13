@@ -33,6 +33,7 @@ import {
   offerItem,
   producer,
   producerCapacityProfile,
+  producerDeliveryCountry,
   product,
   productOption,
   productOptionGroup,
@@ -849,6 +850,9 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: project request boar
       { id: unapprovedProducerId, userId: unapprovedProducerUserId, nip: `QB2${unapprovedProducerId.slice(0, 7)}`, name: "Board Query Producer (unapproved)", countryCode: "PL", technology: "szkielet-drewniany" },
     ]);
     await db.insert(producerCapacityProfile).values({ producerId, volumeVerificationStatus: "approved" });
+    // Spec 0070 AC-10: tablica pokazuje tylko dopasowane zapytania, więc producent
+    // fixture ma kraj dostawy PL i opublikowany dom (poniżej).
+    await db.insert(producerDeliveryCountry).values({ producerId, countryCode: "PL" });
     await db.insert(product).values({ id: bulkProductId, producerId, family: "dom", status: "published", name: "QB Bulk Product" });
     await db.insert(projectRequest).values([
       {
@@ -924,6 +928,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: project request boar
     await db.delete(projectRequest).where(inArray(projectRequest.id, [openRequestId, closedRequestId]));
     await db.delete(product).where(eq(product.id, bulkProductId));
     await db.delete(producerCapacityProfile).where(eq(producerCapacityProfile.producerId, producerId));
+    await db.delete(producerDeliveryCountry).where(eq(producerDeliveryCountry.producerId, producerId));
     await db.delete(producer).where(inArray(producer.id, [producerId, unapprovedProducerId]));
     await db.delete(client).where(eq(client.id, clientId));
     await db.delete(users).where(inArray(users.id, [clientUserId, producerUserId, unapprovedProducerUserId]));
@@ -941,7 +946,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: project request boar
 
   describe("getOpenProjectRequestsForBoard", () => {
     it("lists an open request without any contact column, hides a closed one", async () => {
-      const { items, totalCount } = await getOpenProjectRequestsForBoard({ page: 1 });
+      const { items, totalCount } = await getOpenProjectRequestsForBoard({ producerId, page: 1 });
 
       const row = items.find((item) => item.id === openRequestId);
       expect(row).toBeDefined();
@@ -950,6 +955,38 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: project request boar
       expect(row).not.toHaveProperty("contactPhone");
       expect(items.find((item) => item.id === closedRequestId)).toBeUndefined();
       expect(totalCount).toBeGreaterThanOrEqual(1);
+    });
+
+    // Spec 0070 AC-22: termin i stan własnej oferty, nigdy status zapytania.
+    it("exposes the deadline and the producer's own quote state, never the request status", async () => {
+      const { items } = await getOpenProjectRequestsForBoard({ producerId, page: 1 });
+
+      const row = items.find((item) => item.id === openRequestId);
+      expect(row).not.toHaveProperty("status");
+      expect(row?.deadlineAt).toBeInstanceOf(Date);
+      expect(row?.ownQuoteStatus).toBe("accepted");
+    });
+
+    it("flags whether the request country is on the producer's delivery list, without hiding the request", async () => {
+      await db.delete(producerDeliveryCountry).where(eq(producerDeliveryCountry.producerId, producerId));
+      try {
+        const { items } = await getOpenProjectRequestsForBoard({ producerId, page: 1 });
+        expect(items.find((item) => item.id === openRequestId)?.deliversToCountry).toBe(false);
+        const detail = await getProjectRequestForBoardDetail(openRequestId, producerId);
+        expect(detail?.deliversToCountry).toBe(false);
+      } finally {
+        await db.insert(producerDeliveryCountry).values({ producerId, countryCode: "PL" });
+      }
+      const { items } = await getOpenProjectRequestsForBoard({ producerId, page: 1 });
+      expect(items.find((item) => item.id === openRequestId)?.deliversToCountry).toBe(true);
+    });
+
+    // Spec 0070 AC-10: producent bez dopasowania nie dostaje niczego z tablicy.
+    it("lists nothing for a producer that does not match", async () => {
+      const { items, totalCount } = await getOpenProjectRequestsForBoard({ producerId: unapprovedProducerId, page: 1 });
+
+      expect(items).toHaveLength(0);
+      expect(totalCount).toBe(0);
     });
   });
 
@@ -962,11 +999,12 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: project request boar
       expect(detail?.ownQuoteStatus).toBe("accepted");
     });
 
-    it("returns null ownQuoteStatus for a producer who has not quoted this request yet", async () => {
+    // Spec 0070 AC-10: ta sama reguła co lista. Producent bez dopasowania i bez
+    // własnej oferty nie dostaje nawet istnienia zapytania.
+    it("returns null for a producer that does not match and never quoted, even while the request is open", async () => {
       const detail = await getProjectRequestForBoardDetail(openRequestId, unapprovedProducerId);
 
-      expect(detail).not.toBeNull();
-      expect(detail?.ownQuoteStatus).toBeNull();
+      expect(detail).toBeNull();
     });
 
     it("returns null for a producer with no quote once the request is closed", async () => {
@@ -1041,6 +1079,19 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: project request boar
       expect(requestItem?.quotes[0]).toMatchObject({ id: revealedQuoteId, producerName: "Board Query Producer", status: "accepted", hasPdf: true });
       expect(bulkItem?.quotes).toHaveLength(1);
       expect(bulkItem?.quotes[0]).toMatchObject({ id: activeQuoteId, producerName: "Board Query Producer", status: "active", hasPdf: false });
+    });
+
+    // Spec 0070 AC-41: nagłówek zapytania potrzebuje terminu, kraju i stanu zamknięcia.
+    it("returns the deadline, country and closing fields the request header needs", async () => {
+      const items = await getProjectRequestsWithQuotesForClient(clientId);
+
+      const requestItem = items.find((item) => item.source === "project_request" && item.id === openRequestId);
+      const bulkItem = items.find((item) => item.source === "bulk_product_inquiry" && item.id === bulkInquiryId);
+      expect(requestItem?.deadlineAt).toBeInstanceOf(Date);
+      expect(requestItem?.countryCode).toEqual(expect.any(String));
+      expect(requestItem).toMatchObject({ closedAt: null, closedReason: null, selectedQuoteId: null });
+      expect(bulkItem?.deadlineAt).toBeInstanceOf(Date);
+      expect(bulkItem?.countryCode).toEqual(expect.any(String));
     });
   });
 });

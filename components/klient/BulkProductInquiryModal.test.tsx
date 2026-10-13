@@ -9,6 +9,10 @@ vi.mock("@/lib/project-request-actions", () => ({
   submitBulkProductInquiry: vi.fn(),
 }));
 
+vi.mock("@/lib/panel-login-link-actions", () => ({
+  requestPanelLoginLink: vi.fn(),
+}));
+
 const mockedSubmitBulkProductInquiry = vi.mocked(submitBulkProductInquiry);
 
 const countries: Country[] = [
@@ -38,6 +42,21 @@ beforeEach(() => {
 });
 
 describe("BulkProductInquiryModal", () => {
+  // Spec 0070 AC-39: kod email_limit pokazuje tłumaczony komunikat z linkiem do panelu.
+  it("shows the translated limit message with a link to the panel when the email limit is hit", async () => {
+    mockedSubmitBulkProductInquiry.mockResolvedValue({ ok: false, error: "Masz już 3", errorCode: "email_limit" });
+    const user = userEvent.setup();
+    render(<BulkProductInquiryModal productId="product-1" countries={countries} />);
+
+    await openAndFillForm(user);
+    await user.click(screen.getByRole("button", { name: "Wyślij zapytanie" }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Masz już 3 z 3 aktywnych zapytań o duże zamówienie/)).toBeInTheDocument();
+    });
+    expect(screen.getByRole("link", { name: "Przejdź do listy zapytań" })).toBeInTheDocument();
+  });
+
   it("opens the dialog with a real heading when the trigger is clicked, gates submit behind required fields (AC-15)", async () => {
     const user = userEvent.setup();
     render(<BulkProductInquiryModal productId="product-1" countries={countries} />);

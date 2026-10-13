@@ -55,6 +55,11 @@ export function computeTrustSignal(contactEmail: string, contactPhone: string | 
   return !isDisposableDomain && hasPhone ? "complete" : "new";
 }
 
+// Limit nierozstrzygniętych dużych zamówień na e mail (spec 0037 AC-10, 0070 AC-38).
+// Prawdziwą granicą jest wyzwalacz w bazie (drizzle/0014, 0056), ta stała służy tylko
+// licznikowi i tekstom w interfejsie.
+export const BULK_REQUEST_EMAIL_LIMIT = 3;
+
 export const BULK_REQUEST_EMAIL_LIMIT_ERROR =
   "Masz już 3 nierozstrzygnięte zgłoszenia na ten adres e mail. Poczekaj na odpowiedź albo zamknij jedno z nich, zanim wyślesz kolejne.";
 

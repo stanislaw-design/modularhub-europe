@@ -7,7 +7,9 @@ import {
   document,
   producer,
   producerCapacityProfile,
+  producerDeliveryCountry,
   producerMember,
+  product,
   projectQuote,
   projectRequest,
   sessions,
@@ -57,6 +59,9 @@ test.describe("spec 0063: PDF wyceny over 1 MB through a real browser request (A
     // AC-13's guard requires volumeVerificationStatus = 'approved' before a
     // producer may quote a project_request at all (spec 0062 AC-13).
     await db.insert(producerCapacityProfile).values({ producerId, volumeVerificationStatus: "approved" });
+    // Spec 0070 AC-10: tablica pokazuje tylko dopasowane zapytania, więc producent ma kraj PL i opublikowany dom.
+    await db.insert(producerDeliveryCountry).values({ producerId, countryCode: "PL" });
+    await db.insert(product).values({ producerId, family: "dom", status: "published", name: "E2E match product" });
     await db.insert(projectRequest).values({
       id: projectRequestId,
       contactName: "E2E PDF Quote Investor",
@@ -79,6 +84,8 @@ test.describe("spec 0063: PDF wyceny over 1 MB through a real browser request (A
     await db.delete(projectQuote).where(and(eq(projectQuote.projectRequestId, projectRequestId), eq(projectQuote.producerId, producerId)));
     await db.delete(sessions).where(eq(sessions.sessionToken, sessionToken));
     await db.delete(projectRequest).where(eq(projectRequest.id, projectRequestId));
+    await db.delete(product).where(eq(product.producerId, producerId));
+    await db.delete(producerDeliveryCountry).where(eq(producerDeliveryCountry.producerId, producerId));
     await db.delete(producerCapacityProfile).where(eq(producerCapacityProfile.producerId, producerId));
     await db.delete(producerMember).where(eq(producerMember.producerId, producerId));
     await db.delete(producer).where(eq(producer.id, producerId));
@@ -168,6 +175,9 @@ test.describe("spec 0063 regression: a file between 10MB and 20MB must not crash
     });
     await db.insert(producerMember).values({ producerId, userId: producerUserId });
     await db.insert(producerCapacityProfile).values({ producerId, volumeVerificationStatus: "approved" });
+    // Spec 0070 AC-10: tablica pokazuje tylko dopasowane zapytania, więc producent ma kraj PL i opublikowany dom.
+    await db.insert(producerDeliveryCountry).values({ producerId, countryCode: "PL" });
+    await db.insert(product).values({ producerId, family: "dom", status: "published", name: "E2E match product" });
     await db.insert(projectRequest).values({
       id: projectRequestId,
       contactName: "E2E PDF Quote 15MB Investor",
@@ -186,6 +196,8 @@ test.describe("spec 0063 regression: a file between 10MB and 20MB must not crash
     await db.delete(projectQuote).where(and(eq(projectQuote.projectRequestId, projectRequestId), eq(projectQuote.producerId, producerId)));
     await db.delete(sessions).where(eq(sessions.sessionToken, sessionToken));
     await db.delete(projectRequest).where(eq(projectRequest.id, projectRequestId));
+    await db.delete(product).where(eq(product.producerId, producerId));
+    await db.delete(producerDeliveryCountry).where(eq(producerDeliveryCountry.producerId, producerId));
     await db.delete(producerCapacityProfile).where(eq(producerCapacityProfile.producerId, producerId));
     await db.delete(producerMember).where(eq(producerMember.producerId, producerId));
     await db.delete(producer).where(eq(producer.id, producerId));

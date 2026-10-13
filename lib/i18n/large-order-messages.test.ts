@@ -9,7 +9,20 @@ import pl from "@/messages/pl.json";
 // kluczy; ten dodaje, że wartość w en, de i nl nie jest pustym ani skopiowanym
 // polskim tekstem. `npm run check:translations` dotyczy tylko tłumaczeń danych
 // produktów w bazie i tego nie sprawdza.
-const LARGE_ORDER_NAMESPACES = ["ProducerPanelCapacityPage", "ClientB2bDetailsForm", "LargeOrderTeamNewRequestEmail"];
+const LARGE_ORDER_NAMESPACES = [
+  "ProducerPanelCapacityPage",
+  "ClientB2bDetailsForm",
+  "LargeOrderTeamNewRequestEmail",
+  // AC-37 do AC-43: klient zamyka zapytanie, komunikat o limicie, nagłówek zapytania.
+  "RequestHeader",
+  "CancelRequestDialog",
+  "BulkRequestLimitMessage",
+  "LargeOrderTeamClientCancelledEmail",
+  "LargeOrderProducerClosedEmail",
+];
+
+// Nowe klucze w istniejącej przestrzeni nazw (reszta przestrzeni ma wspólne słowa, np. "Status").
+const CLIENT_PANEL_QUOTES_NEW_KEYS = ["heading", "emptyTitle", "emptyDescription", "addRequest", "activeCounter", "limitHint", "noQuotesYet", "closedGroupHeading"];
 
 function leaves(value: unknown, prefix = ""): [string, string][] {
   if (typeof value === "string") return [[prefix, value]];
@@ -40,6 +53,35 @@ describe("spec 0070 message namespaces are translated, not copied", () => {
       });
     }
   }
+
+  // AC-35, AC-36: znacznik kraju dostawy na tablicy i w szczególe, tekst i link.
+  for (const ns of ["ProducerPanelBoardPage", "ProducerBoardDetailPage"]) {
+    for (const key of ["notDeliveringNote", "notDeliveringLink"]) {
+      it(`${ns}.${key} is translated in every language`, () => {
+        const get = (catalog: unknown) => (namespace(catalog, ns) as Record<string, string>)[key];
+        const polish = get(pl);
+        expect(polish?.trim()).toBeTruthy();
+        for (const catalog of [en, de, nl]) {
+          expect(get(catalog)?.trim()).toBeTruthy();
+          expect(get(catalog)).not.toBe(polish);
+        }
+      });
+    }
+  }
+
+  it("ClientPanelQuotesPage new keys and the sidebar label are translated in every language (AC-42, AC-43)", () => {
+    const quotesPage = (catalog: unknown) => namespace(catalog, "ClientPanelQuotesPage") as Record<string, string>;
+    const sidebar = (catalog: unknown) => namespace(catalog, "ClientPanelSidebar") as Record<string, string>;
+    for (const key of CLIENT_PANEL_QUOTES_NEW_KEYS) {
+      expect(quotesPage(pl)[key]?.trim(), `pl:${key}`).toBeTruthy();
+      for (const catalog of [en, de, nl]) {
+        expect(quotesPage(catalog)[key]?.trim(), key).toBeTruthy();
+        expect(quotesPage(catalog)[key], key).not.toBe(quotesPage(pl)[key]);
+      }
+    }
+    expect(sidebar(pl).quotes).toBe("Duże zamówienia");
+    for (const catalog of [en, de, nl]) expect(sidebar(catalog).quotes).not.toBe(sidebar(pl).quotes);
+  });
 
   it("ProducerPanelSidebar.capacity is translated in every language", () => {
     const get = (catalog: unknown) => (namespace(catalog, "ProducerPanelSidebar") as Record<string, string>).capacity;

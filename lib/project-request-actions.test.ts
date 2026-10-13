@@ -1,6 +1,6 @@
 import { eq, inArray } from "drizzle-orm";
 import type { Session } from "next-auth";
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 // @/lib/observability pulls in "server-only", which doesn't resolve under
 // plain Vitest/jsdom (same boundary problem offer-actions.test.ts works around).
@@ -12,11 +12,22 @@ vi.mock("@/lib/observability", () => ({ trackEvent: trackEventMock, captureError
 const authMock = vi.hoisted(() => vi.fn<() => Promise<Session | null>>());
 vi.mock("@/auth", () => ({ auth: authMock }));
 const notifyTeamMock = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
-vi.mock("@/lib/notifications/large-order-team", () => ({ notifyTeamOfNewLargeOrder: notifyTeamMock }));
+const notifyTeamCancelledMock = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
+const notifyProducersClosedMock = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
+vi.mock("@/lib/notifications/large-order-team", () => ({
+  notifyTeamOfNewLargeOrder: notifyTeamMock,
+  notifyTeamOfClientCancelledRequest: notifyTeamCancelledMock,
+}));
+vi.mock("@/lib/notifications/large-order-producer", () => ({ notifyProducersOfClosedRequest: notifyProducersClosedMock }));
+// project-quote-actions ciągnie next-auth, który nie ładuje się pod Vitest/jsdom; dowiązanie
+// po e mailu jest tu odtworzone tymi samymi dwoma UPDATE-ami co w prawdziwej funkcji.
+const linkRequestsMock = vi.hoisted(() => vi.fn<(email: string, clientId: string) => Promise<void>>());
+vi.mock("@/lib/project-quote-actions", () => ({ linkRequestsToClientOnLogin: linkRequestsMock }));
 
 import { db } from "@/lib/db/client";
 import { bulkProductInquiry, client, producer, product, projectRequest, users } from "@/lib/db/schema";
-import { submitBulkProductInquiry, submitProjectRequest } from "./project-request-actions";
+import { and, isNull } from "drizzle-orm";
+import { cancelRequest, submitBulkProductInquiry, submitProjectRequest } from "./project-request-actions";
 
 // Hits the real dev database (spec 0037, mirrors lib/offer-actions.test.ts's
 // convention): only observability I/O is mocked at its boundary. No auth
@@ -220,6 +231,8 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-request-actions: real DB
 
       expect(fourth.ok).toBe(false);
       expect(fourth.error).toMatch(/3 nierozstrzygnięte zgłoszenia/);
+      // AC-39: formularz pokazuje tłumaczony tekst po kodzie, a nie polski komunikat.
+      expect(fourth.errorCode).toBe("email_limit");
 
       await cleanupRequestsFor(email);
     });
@@ -316,7 +329,15 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-request-actions: real DB
       expect(days).toBeGreaterThan(13.9);
       expect(days).toBeLessThan(14.1);
       expect(notifyTeamMock).toHaveBeenCalledWith(
-        expect.objectContaining({ kind: "request", id: result.id, countryCode: "DE", unitCount: 12, contactLocale: "de" }),
+        expect.objectContaining({
+          kind: "request",
+          id: result.id,
+          countryCode: "DE",
+          unitCount: 12,
+          contactLocale: "de",
+          // Spec 0070 AC-10: liczba dopasowanych producentów do alertu "brak dopasowanych".
+          matchedProducerCount: expect.any(Number),
+        }),
       );
       await cleanupRequestsFor(email);
     });
@@ -429,6 +450,157 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-request-actions: real DB
       expect(result.ok).toBe(true);
       const [row] = await db.select().from(bulkProductInquiry).where(eq(bulkProductInquiry.id, result.id!));
       expect(row.clientId).toBe(clientId);
+    });
+  });
+
+  // Spec 0070 AC-37: klient zamyka własne zapytanie.
+  describe("cancelRequest", () => {
+    const ownerUserId = crypto.randomUUID();
+    const ownerClientId = crypto.randomUUID();
+    const ownerEmail = `pra-cancel-${ownerUserId}@example.test`;
+    const otherUserId = crypto.randomUUID();
+    const otherClientId = crypto.randomUUID();
+
+    beforeAll(async () => {
+      await db.insert(users).values([
+        { id: ownerUserId, email: ownerEmail, phone: "+48000000021", role: "client" },
+        { id: otherUserId, email: `pra-cancel-other-${otherUserId}@example.test`, phone: "+48000000022", role: "client" },
+      ]);
+      await db.insert(client).values([
+        { id: ownerClientId, userId: ownerUserId },
+        { id: otherClientId, userId: otherUserId },
+      ]);
+    });
+
+    afterAll(async () => {
+      await db.delete(projectRequest).where(inArray(projectRequest.clientId, [ownerClientId, otherClientId]));
+      await db.delete(projectRequest).where(eq(projectRequest.contactEmail, ownerEmail));
+      await db.delete(client).where(inArray(client.id, [ownerClientId, otherClientId]));
+      await db.delete(users).where(inArray(users.id, [ownerUserId, otherUserId]));
+    });
+
+    function ownerSession(): Session {
+      return {
+        user: { id: ownerUserId, role: "client", phone: "+48000000021", name: "Owner", email: ownerEmail, image: null },
+        expires: new Date(Date.now() + 3600_000).toISOString(),
+      } as Session;
+    }
+
+    async function insertRequest(values: Partial<typeof projectRequest.$inferInsert> = {}) {
+      const [row] = await db
+        .insert(projectRequest)
+        .values({
+          clientId: ownerClientId,
+          contactName: "Owner",
+          contactEmail: `pra-cancel-row-${crypto.randomUUID()}@example.test`,
+          countryCode: "PL",
+          projectType: "resort",
+          families: ["dom"],
+          unitCount: 12,
+          ...values,
+        })
+        .returning({ id: projectRequest.id });
+      return row.id;
+    }
+
+    async function readRequest(id: string) {
+      const [row] = await db.select().from(projectRequest).where(eq(projectRequest.id, id));
+      return row;
+    }
+
+    beforeEach(() => {
+      notifyTeamCancelledMock.mockClear();
+      notifyProducersClosedMock.mockClear();
+      linkRequestsMock.mockReset().mockImplementation(async (email, clientId) => {
+        await db.update(projectRequest).set({ clientId }).where(and(eq(projectRequest.contactEmail, email), isNull(projectRequest.clientId)));
+      });
+    });
+
+    it("closes an open request with reason client_cancelled and closedAt, tells producers", async () => {
+      authMock.mockResolvedValue(ownerSession());
+      const id = await insertRequest();
+
+      const result = await cancelRequest(id, "request");
+
+      expect(result).toEqual({ ok: true });
+      const row = await readRequest(id);
+      expect(row.status).toBe("closed");
+      expect(row.closedReason).toBe("client_cancelled");
+      expect(row.closedAt).toBeInstanceOf(Date);
+      expect(trackEventMock).toHaveBeenCalledWith("request_cancelled_by_client", { kind: "request" }, id);
+      expect(notifyProducersClosedMock).toHaveBeenCalledWith({ kind: "request", id });
+      expect(notifyTeamCancelledMock).toHaveBeenCalledWith(expect.objectContaining({ wasPublished: false, hadPendingSelection: false }));
+    });
+
+    it("closes a published request and flags it for the team", async () => {
+      authMock.mockResolvedValue(ownerSession());
+      const id = await insertRequest({ status: "published" });
+
+      expect(await cancelRequest(id, "request")).toEqual({ ok: true });
+      expect(notifyTeamCancelledMock).toHaveBeenCalledWith(expect.objectContaining({ wasPublished: true }));
+    });
+
+    it("refuses an accepted request and leaves it unchanged", async () => {
+      authMock.mockResolvedValue(ownerSession());
+      const id = await insertRequest({ status: "accepted" });
+
+      expect(await cancelRequest(id, "request")).toEqual({ ok: false, errorCode: "not_cancellable" });
+      expect((await readRequest(id)).status).toBe("accepted");
+      expect(notifyProducersClosedMock).not.toHaveBeenCalled();
+    });
+
+    it("answers not_found for a request of another client, same as a missing one", async () => {
+      authMock.mockResolvedValue(ownerSession());
+      const foreignId = await insertRequest({ clientId: otherClientId });
+
+      expect(await cancelRequest(foreignId, "request")).toEqual({ ok: false, errorCode: "not_found" });
+      expect((await readRequest(foreignId)).status).toBe("open");
+      expect(await cancelRequest(crypto.randomUUID(), "request")).toEqual({ ok: false, errorCode: "not_found" });
+    });
+
+    it("succeeds again without a second notification when clicked twice", async () => {
+      authMock.mockResolvedValue(ownerSession());
+      const id = await insertRequest();
+
+      expect(await cancelRequest(id, "request")).toEqual({ ok: true });
+      notifyProducersClosedMock.mockClear();
+      expect(await cancelRequest(id, "request")).toEqual({ ok: true });
+      expect(notifyProducersClosedMock).not.toHaveBeenCalled();
+    });
+
+    it("rejects an anonymous caller and a producer session", async () => {
+      const id = await insertRequest();
+      authMock.mockResolvedValue(null);
+      expect(await cancelRequest(id, "request")).toEqual({ ok: false, errorCode: "not_found" });
+      authMock.mockResolvedValue({ ...ownerSession(), user: { ...ownerSession().user, role: "producer" } } as Session);
+      expect(await cancelRequest(id, "request")).toEqual({ ok: false, errorCode: "not_found" });
+      expect((await readRequest(id)).status).toBe("open");
+    });
+
+    it("closes a request submitted anonymously with the session email by linking it first", async () => {
+      authMock.mockResolvedValue(ownerSession());
+      const id = await insertRequest({ clientId: null, contactEmail: ownerEmail });
+
+      expect(await cancelRequest(id, "request")).toEqual({ ok: true });
+      const row = await readRequest(id);
+      expect(row.clientId).toBe(ownerClientId);
+      expect(row.status).toBe("closed");
+    });
+
+    it("frees a place in the limit", async () => {
+      authMock.mockResolvedValue(ownerSession());
+      const email = `pra-cancel-limit-${crypto.randomUUID()}@example.test`;
+      const ids: string[] = [];
+      for (let index = 0; index < 3; index += 1) ids.push(await insertRequest({ contactEmail: email, unitCount: 10 + index }));
+      const input = { contactName: "X", contactEmail: email, countryCode: "PL", projectType: "resort" as const, families: ["dom" as const], unitCount: 14 };
+      const blocked = await submitProjectRequest(input);
+      expect(blocked.errorCode).toBe("email_limit");
+
+      await cancelRequest(ids[0], "request");
+
+      const allowed = await submitProjectRequest(input);
+      expect(allowed.ok).toBe(true);
+      await cleanupRequestsFor(email);
     });
   });
 });

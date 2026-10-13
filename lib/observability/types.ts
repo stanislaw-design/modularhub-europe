@@ -23,6 +23,7 @@ export type EventName =
   | "product_favorited"
   | "project_request_submitted"
   | "bulk_product_inquiry_submitted"
+  | "request_cancelled_by_client"
   | "project_quote_submitted"
   | "project_quote_accepted"
   | "project_quote_pdf_uploaded"
