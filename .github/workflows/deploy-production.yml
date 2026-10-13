@@ -1,10 +1,39 @@
 name: Deploy production
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      full_e2e:
+        description: Uruchom też pełne e2e na stagingu (opcjonalne, nie blokuje wdrożenia)
+        type: boolean
+        default: false
 
 jobs:
+  # Test dymny stagingu (zamiast pełnego e2e, patrz spec 0019 Follow-up): staging musi
+  # odpowiadać 200 na kluczowych adresach. Prod rusza dopiero po przejściu tego kroku.
+  smoke:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Sprawdź, że staging odpowiada
+        env:
+          STAGING_URL: ${{ vars.STAGING_URL }}
+          BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: |
+          set -u
+          fail=0
+          for path in /pl /pl/results /pl/project-request /pl/login /en; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 90 --retry 3 --retry-delay 10 --retry-all-errors               -H "x-vercel-protection-bypass: ${BYPASS}" "${STAGING_URL}${path}" || echo 000)
+            echo "${path} -> ${code}"
+            if [ "${code}" != "200" ]; then fail=1; fi
+          done
+          exit ${fail}
+
+  # Pełne e2e jest opcjonalne (ręczne uruchomienie z zaznaczonym full_e2e): część testów
+  # zakłada lokalne środowisko (ciasteczko sesji dla localhost, dane przykładowe), więc
+  # nie jest jeszcze bramką przed produkcją. Naprawa suity: spec 0019 Follow-up.
   e2e:
+    if: ${{ inputs.full_e2e }}
     runs-on: ubuntu-latest
     environment: staging
     steps:
@@ -23,10 +52,13 @@ jobs:
         env:
           PLAYWRIGHT_BASE_URL: ${{ vars.STAGING_URL }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          # Testy e2e zakładają dane w bazie stagingu (ta sama, której używa aplikacja
+          # stagingu); strażnik assertDevOrStagingDatabase odrzuci każdą inną bazę.
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL_UNPOOLED }}
         run: npm run test:e2e
 
   deploy:
-    needs: e2e
+    needs: smoke
     runs-on: ubuntu-latest
     environment: production
     env:

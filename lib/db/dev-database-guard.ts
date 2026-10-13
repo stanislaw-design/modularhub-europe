@@ -25,3 +25,27 @@ export async function assertDevDatabase(): Promise<void> {
     );
   }
 }
+
+// Gałąź `staging` w projekcie produkcyjnym "modularhub" (spec 0019): baza, na którą
+// wdrożona jest aplikacja stagingu. Testy e2e z deploy-production.yml uderzają w
+// żywą aplikację stagingu i zakładają dane testowe w TEJ SAMEJ bazie, więc potrzebują
+// własnego strażnika. Rozpoznawana po `neon.branch_id` (projekt prod ma też gałąź
+// `production`, której ten strażnik nigdy nie przepuści) i dodatkowo po projekcie.
+// Strażnik testów Vitest (assertDevDatabase wyżej) pozostaje bez zmian.
+const PROD_PROJECT_ID = "spring-rain-58383710";
+const STAGING_BRANCH_ID = "br-dawn-tree-b1n3f9lb";
+
+export async function assertDevOrStagingDatabase(): Promise<void> {
+  const result = await db.execute<{ project_id: string | null; branch_id: string | null }>(
+    sql`select current_setting('neon.project_id', true) as project_id, current_setting('neon.branch_id', true) as branch_id`,
+  );
+  const { project_id: projectId, branch_id: branchId } = result.rows[0] ?? { project_id: null, branch_id: null };
+  const isDev = projectId === DEV_PROJECT_ID;
+  const isStaging = projectId === PROD_PROJECT_ID && branchId === STAGING_BRANCH_ID;
+  if (!isDev && !isStaging) {
+    throw new Error(
+      `Refusing to run e2e fixtures: DATABASE_URL points at Neon project "${projectId ?? "unknown"}" branch "${branchId ?? "unknown"}", ` +
+        `not the dev project (${DEV_PROJECT_ID}) or the staging branch (${STAGING_BRANCH_ID}). Check DATABASE_URL.`,
+    );
+  }
+}

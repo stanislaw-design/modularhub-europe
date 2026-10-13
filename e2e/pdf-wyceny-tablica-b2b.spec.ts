@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { assertDevDatabase } from "@/lib/db/dev-database-guard";
+import { assertDevOrStagingDatabase } from "@/lib/db/dev-database-guard";
 import {
   client,
   document,
@@ -36,7 +36,7 @@ test.describe("spec 0063: PDF wyceny over 1 MB through a real browser request (A
   const projectRequestId = crypto.randomUUID();
 
   test.beforeAll(async () => {
-    await assertDevDatabase();
+    await assertDevOrStagingDatabase();
 
     await db.insert(users).values({
       id: producerUserId,
@@ -150,7 +150,7 @@ test.describe("spec 0063 regression: a file between 10MB and 20MB must not crash
   const projectRequestId = crypto.randomUUID();
 
   test.beforeAll(async () => {
-    await assertDevDatabase();
+    await assertDevOrStagingDatabase();
     await db.insert(users).values({
       id: producerUserId,
       email: `e2e-pdf-quote-15mb-${producerUserId}@example.test`,
@@ -227,7 +227,7 @@ test.describe("spec 0063: download button on client and producer quote screens",
   const projectRequestId = crypto.randomUUID();
 
   test.beforeAll(async () => {
-    await assertDevDatabase();
+    await assertDevOrStagingDatabase();
     await db.insert(users).values([
       { id: producerUserId, email: `e2e-pdf-download-${producerUserId}@example.test`, phone: "+48000000093", role: "producer", emailVerified: new Date() },
       { id: clientUserId, email: `e2e-pdf-download-${clientUserId}@example.test`, phone: "+48000000092", role: "client", emailVerified: new Date() },
