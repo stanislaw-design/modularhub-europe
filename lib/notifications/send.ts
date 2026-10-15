@@ -20,7 +20,11 @@ export type NotificationEmailType =
   | "case_new_message"
   | "large_order_team_new_request"
   | "large_order_team_client_cancelled"
-  | "large_order_producer_request_closed";
+  | "large_order_producer_request_closed"
+  | "large_order_client_connected"
+  | "large_order_producer_connected"
+  | "large_order_team_connected"
+  | "large_order_team_pending_selection";
 
 export interface SendNotificationEmailInput {
   to: string;

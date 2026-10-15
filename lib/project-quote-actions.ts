@@ -3,8 +3,7 @@
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { and, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
-import { AuthError } from "next-auth";
-import { auth, signIn } from "@/auth";
+import { auth } from "@/auth";
 import { db } from "@/lib/db/client";
 import { getPgErrorCode } from "@/lib/db/pg-error";
 import { withAdminActor } from "@/lib/db/with-admin-actor";
@@ -14,20 +13,26 @@ import {
   bulkProductInquiry,
   client,
   document,
-  pendingRegistration,
   product,
   producerCapacityProfile,
   producerDeliveryCountry,
   projectQuote,
   projectRequest,
-  users,
 } from "@/lib/db/schema";
 import {
   completionStandardsSupportedSchema,
   leadTimeTiersSchema,
   pastProjectReferencesSchema,
 } from "@/lib/producer-capacity-profile-specs";
+import { connectPendingSelectionsForClient, connectSelection } from "@/lib/large-order-connection";
+import { notifyTeamOfPendingSelection } from "@/lib/notifications/large-order-connection";
 import { captureError, trackEvent } from "@/lib/observability";
+import {
+  DELIVERY_WINDOW_ORDER_MESSAGE,
+  isDeliveryWindowOrdered,
+  projectQuoteFieldsShape,
+  toStoredLogistics,
+} from "@/lib/project-quote-specs";
 import { validateDocumentPdf } from "@/lib/storage/document-pdf-validation";
 import { buildSignedDownloadUrl, uploadPrivateObject } from "@/lib/storage/private-r2-client";
 import { buildR2Key } from "@/lib/storage/r2-client";
@@ -60,15 +65,13 @@ const submitProjectQuoteSchema = z
   .object({
     projectRequestId: z.uuid().optional(),
     bulkProductInquiryId: z.uuid().optional(),
-    totalPriceEur: z.number().positive(),
-    unitPriceEur: z.number().positive().optional(),
-    proposedLeadTimeWeeks: z.number().int().positive().optional(),
-    notes: z.string().trim().min(1).optional(),
+    ...projectQuoteFieldsShape,
   })
   .refine((data) => Boolean(data.projectRequestId) !== Boolean(data.bulkProductInquiryId), {
     message: "Podaj dokładnie jedno z projectRequestId/bulkProductInquiryId.",
     path: ["projectRequestId"],
-  });
+  })
+  .refine(isDeliveryWindowOrdered, { message: DELIVERY_WINDOW_ORDER_MESSAGE, path: ["deliveryWindowTo"] });
 
 export type SubmitProjectQuoteInput = z.input<typeof submitProjectQuoteSchema>;
 
@@ -76,33 +79,64 @@ function toPriceCents(value: number): number {
   return Math.round(value * 100);
 }
 
-// Login link na contactEmail zapisany na zapytaniu (AC-11): ten sam mechanizm
-// linku magicznego co dzisiejsze logowanie (spec 0023). Kontakt bez konta nie
-// ma jeszcze wiersza pending_registration (ten zawsze powstawał dotąd tylko
-// przez formularz rejestracji), więc adapter Auth.js (auth.ts createUser)
-// rzuciłby "brak oczekującej rejestracji" — insert tu, tylko gdy naprawdę nie
-// ma ani users, ani pending_registration, żeby nie nadpisać cudzej,
-// prawdziwej rejestracji w toku (onConflictDoNothing). Best-effort: błąd
-// wysyłki nie cofa zapisanej wyceny (spec 0037 API surface: "dostarczenie e
-// maila poza zakresem tego sprawdzenia").
-async function notifyContactOfNewQuote(contactEmail: string, contactName: string, contactPhone: string | null): Promise<void> {
-  try {
-    const [existingUser] = await db.select({ id: users.id }).from(users).where(eq(users.email, contactEmail));
-    if (!existingUser) {
-      await db
-        .insert(pendingRegistration)
-        .values({ email: contactEmail, role: "client", payload: { name: contactName, phone: contactPhone ?? "" } })
-        .onConflictDoNothing();
-    }
-    // "/pl": jedyny aktywny locale (AGENTS.md), ten sam fallback co
-    // app/[locale]/(customer)/login/page.tsx. Panel jeszcze nie pokazuje tych
-    // nowych zapytań (ekrany to przyszła decyzja, spec 0037 Follow-up) — to
-    // tylko bezpieczny, istniejący cel, nie docelowy widok tej funkcji.
-    await signIn("resend", { email: contactEmail, redirect: false, redirectTo: "/pl/panel" });
-  } catch (error) {
-    if (!(error instanceof AuthError)) throw error;
-    captureError(error, { path: "submitProjectQuote:notifyContact" });
-  }
+const DEADLINE_PASSED_ERROR = "Termin składania ofert na to zapytanie minął.";
+const SELECTION_MADE_ERROR = "Klient wybrał już ofertę na to zapytanie — nie można składać nowych.";
+const NOT_OPEN_ERROR = "To zapytanie nie jest już otwarte na wyceny.";
+const PUBLISHED_LOCK_ERROR =
+  "Ta oferta jest już opublikowana klientowi. Nową wersję złożysz, gdy ModularHub cofnie jej publikację.";
+const ALREADY_ACCEPTED_ERROR = "Klient już przyjął wcześniejszą wycenę na to zapytanie — nie można jej zastąpić.";
+
+// Stan zapytania, od którego zależy przyjęcie oferty (spec 0070 AC-12): termin,
+// wybór klienta i status. Czytany przed zapisem tylko po to, żeby producent
+// dostał czytelny komunikat; prawdziwą granicą jest ten sam warunek w SQL obu
+// kroków batcha (patrz openForQuotesSql).
+function quoteBlockReason(
+  state: { status: string; deadlineAt: Date; selectedQuoteId: string | null },
+  now: Date,
+): string | null {
+  if (state.status !== "open" && state.status !== "quoted" && state.status !== "published") return NOT_OPEN_ERROR;
+  if (state.selectedQuoteId) return SELECTION_MADE_ERROR;
+  if (state.deadlineAt.getTime() < now.getTime()) return DEADLINE_PASSED_ERROR;
+  return null;
+}
+
+// Warunek AC-12 w SQL: zapytanie przed terminem, bez wyboru klienta i w statusie
+// open, quoted albo published. Wstawiany do kroku zastąpienia poprzedniej oferty
+// i do kroku INSERT, bo samo sprawdzenie w odczycie przed batchem nie zatrzyma
+// wyścigu z wyborem klienta (wybrana oferta mogłaby zostać zastąpiona).
+type QuoteTarget = { projectRequestId: string } | { bulkProductInquiryId: string };
+
+function openForQuotesSql(target: QuoteTarget) {
+  const [table, id] =
+    "projectRequestId" in target
+      ? (["project_request", target.projectRequestId] as const)
+      : (["bulk_product_inquiry", target.bulkProductInquiryId] as const);
+  return sql`EXISTS (
+    SELECT 1 FROM ${sql.identifier(table)} r
+    WHERE r."id" = ${id} AND r."deadline_at" >= now() AND r."selected_quote_id" IS NULL
+      AND r."status" IN ('open', 'quoted', 'published')
+  )`;
+}
+
+// Oferta opublikowana klientowi (published_to_client_at ustawione) nie jest
+// zastępowana nową wersją, dopóki administrator nie cofnie jej publikacji
+// (unpublishQuote), żeby klient widział zawsze jedną wersję oferty producenta
+// (AC-14). Warunek dla kroku zastąpienia (UPDATE) i dla kroku INSERT.
+function ownPublishedQuoteSql(target: QuoteTarget, producerId: string) {
+  const [column, id] =
+    "projectRequestId" in target
+      ? (["project_request_id", target.projectRequestId] as const)
+      : (["bulk_product_inquiry_id", target.bulkProductInquiryId] as const);
+  return sql`EXISTS (
+    SELECT 1 FROM "project_quote" pq
+    WHERE pq.${sql.identifier(column)} = ${id} AND pq."producer_id" = ${producerId}
+      AND pq."status" = 'active' AND pq."published_to_client_at" IS NOT NULL
+  )`;
+}
+
+async function isOwnQuotePublished(ownPublishedQuote: ReturnType<typeof ownPublishedQuoteSql>): Promise<boolean> {
+  const result = await db.execute<{ locked: boolean }>(sql`SELECT ${ownPublishedQuote} AS locked`);
+  return result.rows[0]?.locked === true;
 }
 
 // Producent odpowiada wyceną na project_request (musi mieć
@@ -128,8 +162,6 @@ export async function submitProjectQuote(input: SubmitProjectQuoteInput): Promis
     return { ok: false, error: "Nie znaleziono konta producenta." };
   }
 
-  let contact: { name: string; email: string; phone: string | null } | null = null;
-
   if (data.projectRequestId) {
     // AC-13: realna granica bezpieczeństwa żyje tutaj, w samej akcji
     // serwerowej, nie tylko w bramce ekranu /producer/panel/board — ta
@@ -143,10 +175,9 @@ export async function submitProjectQuote(input: SubmitProjectQuoteInput): Promis
     }
     const [requestRow] = await db
       .select({
-        name: projectRequest.contactName,
-        email: projectRequest.contactEmail,
-        phone: projectRequest.contactPhone,
         status: projectRequest.status,
+        deadlineAt: projectRequest.deadlineAt,
+        selectedQuoteId: projectRequest.selectedQuoteId,
       })
       .from(projectRequest)
       .where(eq(projectRequest.id, data.projectRequestId));
@@ -157,16 +188,14 @@ export async function submitProjectQuote(input: SubmitProjectQuoteInput): Promis
     if (!(await doesProducerMatchProjectRequest(producerId, data.projectRequestId))) {
       return { ok: false, error: "Nie znaleziono zapytania." };
     }
-    if (requestRow.status !== "open" && requestRow.status !== "quoted" && requestRow.status !== "published") {
-      return { ok: false, error: "To zapytanie nie jest już otwarte na wyceny." };
-    }
-    contact = { name: requestRow.name, email: requestRow.email, phone: requestRow.phone };
+    const blockReason = quoteBlockReason(requestRow, new Date());
+    if (blockReason) return { ok: false, error: blockReason };
   } else if (data.bulkProductInquiryId) {
     const [inquiryRow] = await db
       .select({
-        name: bulkProductInquiry.contactName,
-        email: bulkProductInquiry.contactEmail,
-        phone: bulkProductInquiry.contactPhone,
+        status: bulkProductInquiry.status,
+        deadlineAt: bulkProductInquiry.deadlineAt,
+        selectedQuoteId: bulkProductInquiry.selectedQuoteId,
       })
       .from(bulkProductInquiry)
       .innerJoin(product, and(eq(product.id, bulkProductInquiry.productId), eq(product.producerId, producerId)))
@@ -174,41 +203,55 @@ export async function submitProjectQuote(input: SubmitProjectQuoteInput): Promis
     if (!inquiryRow) {
       return { ok: false, error: "Nie znaleziono zapytania dla Twojego produktu." };
     }
-    contact = { name: inquiryRow.name, email: inquiryRow.email, phone: inquiryRow.phone };
+    const blockReason = quoteBlockReason(inquiryRow, new Date());
+    if (blockReason) return { ok: false, error: blockReason };
   }
-  if (!contact) return { ok: false, error: GENERIC_ERROR };
 
   const newQuoteId = crypto.randomUUID();
   const totalPriceCents = toPriceCents(data.totalPriceEur);
   const unitPriceCents = data.unitPriceEur !== undefined ? toPriceCents(data.unitPriceEur) : null;
+  const logisticsJson = JSON.stringify(toStoredLogistics(data.logistics ?? {}));
+  const target: QuoteTarget = data.projectRequestId
+    ? { projectRequestId: data.projectRequestId }
+    : { bulkProductInquiryId: data.bulkProductInquiryId! };
+  const openForQuotes = openForQuotesSql(target);
+  const ownPublishedQuote = ownPublishedQuoteSql(target, producerId);
+  if (await isOwnQuotePublished(ownPublishedQuote)) return { ok: false, error: PUBLISHED_LOCK_ERROR };
 
   try {
-    const supersedeCondition = data.projectRequestId
-      ? and(eq(projectQuote.projectRequestId, data.projectRequestId), eq(projectQuote.producerId, producerId), eq(projectQuote.status, "active"))
-      : and(
-          eq(projectQuote.bulkProductInquiryId, data.bulkProductInquiryId!),
-          eq(projectQuote.producerId, producerId),
-          eq(projectQuote.status, "active"),
-        );
-
+    // Oba kroki niosą warunek openForQuotes: batch jest atomowy, ale jego kroki
+    // nie zależą od siebie, więc bez tego samego warunku w kroku zastąpienia
+    // przegrany wyścig z wyborem klienta zastąpiłby wybraną ofertę bez wstawienia nowej.
     const batchResults = await db.batch([
-      db.update(projectQuote).set({ status: "superseded" }).where(supersedeCondition),
       data.projectRequestId
         ? db.execute(sql`
-            INSERT INTO "project_quote" ("id", "project_request_id", "producer_id", "currency", "unit_price_cents", "total_price_cents", "proposed_lead_time_weeks", "notes", "status", "submitted_at", "created_at")
-            SELECT ${newQuoteId}, ${data.projectRequestId}, ${producerId}, 'EUR', ${unitPriceCents}, ${totalPriceCents}, ${data.proposedLeadTimeWeeks ?? null}, ${data.notes ?? null}, 'active', now(), now()
-            WHERE NOT EXISTS (SELECT 1 FROM "project_quote" WHERE "project_request_id" = ${data.projectRequestId} AND "status" = 'accepted')
+            UPDATE "project_quote" SET "status" = 'superseded'
+            WHERE "project_request_id" = ${data.projectRequestId} AND "producer_id" = ${producerId} AND "status" = 'active'
+              AND ${openForQuotes} AND NOT ${ownPublishedQuote}
           `)
         : db.execute(sql`
-            INSERT INTO "project_quote" ("id", "bulk_product_inquiry_id", "producer_id", "currency", "unit_price_cents", "total_price_cents", "proposed_lead_time_weeks", "notes", "status", "submitted_at", "created_at")
-            SELECT ${newQuoteId}, ${data.bulkProductInquiryId}, ${producerId}, 'EUR', ${unitPriceCents}, ${totalPriceCents}, ${data.proposedLeadTimeWeeks ?? null}, ${data.notes ?? null}, 'active', now(), now()
+            UPDATE "project_quote" SET "status" = 'superseded'
+            WHERE "bulk_product_inquiry_id" = ${data.bulkProductInquiryId} AND "producer_id" = ${producerId} AND "status" = 'active'
+              AND ${openForQuotes} AND NOT ${ownPublishedQuote}
+          `),
+      data.projectRequestId
+        ? db.execute(sql`
+            INSERT INTO "project_quote" ("id", "project_request_id", "producer_id", "currency", "unit_price_cents", "total_price_cents", "proposed_lead_time_weeks", "notes", "price_tax_mode", "vat_rate_percent", "scope_included", "scope_excluded", "logistics", "payment_plan", "valid_until", "warranty_note", "delivery_window_from", "delivery_window_to", "published_to_client_at", "status", "submitted_at", "created_at")
+            SELECT ${newQuoteId}, ${data.projectRequestId}, ${producerId}, 'EUR', ${unitPriceCents}, ${totalPriceCents}, ${data.proposedLeadTimeWeeks ?? null}, ${data.notes ?? null}, ${data.priceTaxMode}, ${data.vatRatePercent ?? null}, ${data.scopeIncluded}, ${data.scopeExcluded ?? null}, ${logisticsJson}::jsonb, ${data.paymentPlan ?? null}, ${data.validUntil}::date, ${data.warrantyNote ?? null}, ${data.deliveryWindowFrom ?? null}::date, ${data.deliveryWindowTo ?? null}::date, NULL, 'active', now(), now()
+            WHERE NOT EXISTS (SELECT 1 FROM "project_quote" WHERE "project_request_id" = ${data.projectRequestId} AND "status" = 'accepted')
+              AND ${openForQuotes} AND NOT ${ownPublishedQuote}
+          `)
+        : db.execute(sql`
+            INSERT INTO "project_quote" ("id", "bulk_product_inquiry_id", "producer_id", "currency", "unit_price_cents", "total_price_cents", "proposed_lead_time_weeks", "notes", "price_tax_mode", "vat_rate_percent", "scope_included", "scope_excluded", "logistics", "payment_plan", "valid_until", "warranty_note", "delivery_window_from", "delivery_window_to", "published_to_client_at", "status", "submitted_at", "created_at")
+            SELECT ${newQuoteId}, ${data.bulkProductInquiryId}, ${producerId}, 'EUR', ${unitPriceCents}, ${totalPriceCents}, ${data.proposedLeadTimeWeeks ?? null}, ${data.notes ?? null}, ${data.priceTaxMode}, ${data.vatRatePercent ?? null}, ${data.scopeIncluded}, ${data.scopeExcluded ?? null}, ${logisticsJson}::jsonb, ${data.paymentPlan ?? null}, ${data.validUntil}::date, ${data.warrantyNote ?? null}, ${data.deliveryWindowFrom ?? null}::date, ${data.deliveryWindowTo ?? null}::date, NULL, 'active', now(), now()
             WHERE NOT EXISTS (SELECT 1 FROM "project_quote" WHERE "bulk_product_inquiry_id" = ${data.bulkProductInquiryId} AND "producer_id" = ${producerId} AND "status" = 'accepted')
+              AND ${openForQuotes} AND NOT ${ownPublishedQuote}
           `),
     ]);
 
     const insertResult = batchResults[1] as { rowCount: number | null };
     if ((insertResult.rowCount ?? 0) === 0) {
-      return { ok: false, error: "Klient już przyjął wcześniejszą wycenę na to zapytanie — nie można jej zastąpić." };
+      return { ok: false, error: await explainRejectedQuote(target, producerId) };
     }
 
     if (data.projectRequestId) {
@@ -227,17 +270,58 @@ export async function submitProjectQuote(input: SubmitProjectQuoteInput): Promis
     return { ok: false, error: isUniqueViolation(error) ? "Ktoś właśnie zapisał wycenę na to zapytanie. Odśwież i spróbuj ponownie." : GENERIC_ERROR };
   }
 
-  await notifyContactOfNewQuote(contact.email, contact.name, contact.phone);
   trackEvent("project_quote_submitted", { quoteId: newQuoteId }, session.user.id);
   return { ok: true, quoteId: newQuoteId };
 }
 
-// AC-9: akceptacja wymaga b2bVerificationStatus = 'approved'; akceptuje
-// dokładnie jedną wycenę na całe zapytanie, pozostałe aktywne dostają
-// 'rejected' w tej samej operacji. Guard EXISTS na krokach 2/3 (ten sterownik
-// nie wspiera db.transaction, patrz lib/db/AGENTS.md) trzyma je no-opem, gdy
-// krok 1 przegrał wyścig z unikalnym indeksem project_quote_accepted_per_*.
-export async function acceptProjectQuote(quoteId: string): Promise<ActionResult> {
+// Gdy INSERT nie wstawił wiersza (wyścig z terminem, wyborem albo zamknięciem
+// między odczytem a zapisem), czytamy stan jeszcze raz i podajemy producentowi
+// konkretny powód zamiast ogólnego błędu.
+async function explainRejectedQuote(target: QuoteTarget, producerId: string): Promise<string> {
+  if (await isOwnQuotePublished(ownPublishedQuoteSql(target, producerId))) return PUBLISHED_LOCK_ERROR;
+  if ("projectRequestId" in target) {
+    const [accepted] = await db
+      .select({ id: projectQuote.id })
+      .from(projectQuote)
+      .where(and(eq(projectQuote.projectRequestId, target.projectRequestId), eq(projectQuote.status, "accepted")))
+      .limit(1);
+    if (accepted) return ALREADY_ACCEPTED_ERROR;
+  }
+
+  const [state] =
+    "projectRequestId" in target
+      ? await db
+          .select({ status: projectRequest.status, deadlineAt: projectRequest.deadlineAt, selectedQuoteId: projectRequest.selectedQuoteId })
+          .from(projectRequest)
+          .where(eq(projectRequest.id, target.projectRequestId))
+      : await db
+          .select({ status: bulkProductInquiry.status, deadlineAt: bulkProductInquiry.deadlineAt, selectedQuoteId: bulkProductInquiry.selectedQuoteId })
+          .from(bulkProductInquiry)
+          .where(eq(bulkProductInquiry.id, target.bulkProductInquiryId));
+  return (state && quoteBlockReason(state, new Date())) ?? NOT_OPEN_ERROR;
+}
+
+// Spec 0070 AC-16: klient wybiera jedną opublikowaną, aktywną ofertę na własne zapytanie i może
+// zmienić wybór aż do połączenia stron. Wybór to jeden zapis jednego wiersza zapytania (bez
+// indeksu unikalnego na ofertach), z warunkami w samym SQL: zapytanie jest własne, jeszcze
+// nie połączone (żadna jego oferta nie ma contact_revealed_at) i wciąż aktywne, a oferta
+// jest aktywna i opublikowana. Wybór nie ujawnia kontaktu: robi to dopiero connectSelection,
+// które wymaga zatwierdzonego B2B (AC-17), więc ta akcja nie sprawdza B2B.
+export type SelectProjectQuoteErrorCode = "not_found" | "already_connected" | "closed" | "stale" | "generic";
+
+export interface SelectProjectQuoteResult extends ActionResult {
+  // Kod dla interfejsu, który tłumaczy komunikat na język strony; error zostaje polskim zapasem.
+  errorCode?: SelectProjectQuoteErrorCode;
+  // connected: strony połączone od razu; pending_b2b: wybór zapisany, czeka na zatwierdzenie B2B.
+  outcome?: "connected" | "pending_b2b";
+}
+
+const ALREADY_CONNECTED_ERROR = "Strony są już połączone. Skontaktuj się z ModularHub, jeśli chcesz coś zmienić.";
+const REQUEST_CLOSED_ERROR = "To zapytanie jest już zamknięte.";
+
+export async function selectProjectQuote(quoteId: string): Promise<SelectProjectQuoteResult> {
+  if (!z.uuid().safeParse(quoteId).success) return { ok: false, error: QUOTE_NOT_FOUND_ERROR, errorCode: "not_found" };
+
   const session = await auth();
   if (!session || session.user.role !== "client") {
     return { ok: false, error: "Musisz być zalogowany jako klient." };
@@ -249,71 +333,89 @@ export async function acceptProjectQuote(quoteId: string): Promise<ActionResult>
 
   const [quoteRow] = await db
     .select({
-      id: projectQuote.id,
-      status: projectQuote.status,
       projectRequestId: projectQuote.projectRequestId,
       bulkProductInquiryId: projectQuote.bulkProductInquiryId,
+      publishedToClientAt: projectQuote.publishedToClientAt,
     })
     .from(projectQuote)
     .where(eq(projectQuote.id, quoteId));
-  if (!quoteRow) return { ok: false, error: "Nie znaleziono wyceny." };
+  // Spec 0070 AC-13: klient nie zna oferty, której administrator mu nie opublikował.
+  if (!quoteRow || !quoteRow.publishedToClientAt) return { ok: false, error: QUOTE_NOT_FOUND_ERROR, errorCode: "not_found" };
 
-  const parentClientId = quoteRow.projectRequestId
-    ? (await db.select({ clientId: projectRequest.clientId }).from(projectRequest).where(eq(projectRequest.id, quoteRow.projectRequestId)))[0]?.clientId
-    : (await db.select({ clientId: bulkProductInquiry.clientId }).from(bulkProductInquiry).where(eq(bulkProductInquiry.id, quoteRow.bulkProductInquiryId!)))[0]?.clientId;
-  if (parentClientId !== clientId) return { ok: false, error: "Nie znaleziono wyceny." };
+  const kind = quoteRow.projectRequestId ? "request" : "product";
+  const parentId = (quoteRow.projectRequestId ?? quoteRow.bulkProductInquiryId) as string;
+  const parent = kind === "request" ? projectRequest : bulkProductInquiry;
+  const [before] = await db
+    .select({ clientId: parent.clientId, selectedQuoteId: parent.selectedQuoteId })
+    .from(parent)
+    .where(eq(parent.id, parentId));
+  // Ten sam komunikat dla cudzego i nieistniejącego zapytania, bez ujawniania istnienia.
+  if (!before || before.clientId !== clientId) return { ok: false, error: QUOTE_NOT_FOUND_ERROR, errorCode: "not_found" };
 
-  const [clientRow] = await db.select({ b2bVerificationStatus: client.b2bVerificationStatus }).from(client).where(eq(client.id, clientId));
-  if (clientRow?.b2bVerificationStatus !== "approved") {
-    return { ok: false, error: "Twoja weryfikacja B2B nie jest jeszcze zatwierdzona przez administratora." };
-  }
-
-  if (quoteRow.status === "accepted") return { ok: true };
-  if (quoteRow.status !== "active") return { ok: false, error: RACE_ERROR };
-
+  const parentTable = sql.identifier(kind === "request" ? "project_request" : "bulk_product_inquiry");
+  const quoteLink = sql.identifier(kind === "request" ? "project_request_id" : "bulk_product_inquiry_id");
   try {
-    await db.batch([
-      // AC-7: contactRevealedAt ustawiane w tej samej operacji, w której
-      // status przechodzi na 'accepted' — nigdy osobnym krokiem.
-      db
-        .update(projectQuote)
-        .set({ status: "accepted", contactRevealedAt: new Date() })
-        .where(and(eq(projectQuote.id, quoteId), eq(projectQuote.status, "active"))),
-      quoteRow.projectRequestId
-        ? db.execute(sql`
-            UPDATE "project_quote" SET "status" = 'rejected'
-            WHERE "project_request_id" = ${quoteRow.projectRequestId} AND "id" != ${quoteId} AND "status" = 'active'
-              AND EXISTS (SELECT 1 FROM "project_quote" WHERE "id" = ${quoteId} AND "status" = 'accepted')
-          `)
-        : db.execute(sql`
-            UPDATE "project_quote" SET "status" = 'rejected'
-            WHERE "bulk_product_inquiry_id" = ${quoteRow.bulkProductInquiryId} AND "id" != ${quoteId} AND "status" = 'active'
-              AND EXISTS (SELECT 1 FROM "project_quote" WHERE "id" = ${quoteId} AND "status" = 'accepted')
-          `),
-      quoteRow.projectRequestId
-        ? db.execute(sql`
-            UPDATE "project_request" SET "status" = 'accepted'
-            WHERE "id" = ${quoteRow.projectRequestId}
-              AND EXISTS (SELECT 1 FROM "project_quote" WHERE "id" = ${quoteId} AND "status" = 'accepted')
-          `)
-        : db.execute(sql`
-            UPDATE "bulk_product_inquiry" SET "status" = 'accepted'
-            WHERE "id" = ${quoteRow.bulkProductInquiryId}
-              AND EXISTS (SELECT 1 FROM "project_quote" WHERE "id" = ${quoteId} AND "status" = 'accepted')
-          `),
-    ]);
+    const selected = await db.execute(sql`
+      UPDATE ${parentTable} r SET "selected_quote_id" = q."id", "selected_at" = now(), "updated_at" = now()
+      FROM "project_quote" q
+      WHERE q."id" = ${quoteId} AND q.${quoteLink} = r."id"
+        AND q."status" = 'active' AND q."published_to_client_at" IS NOT NULL
+        AND r."client_id" = ${clientId} AND r."status" IN ('open', 'quoted', 'published')
+        AND NOT EXISTS (
+          SELECT 1 FROM "project_quote" c WHERE c.${quoteLink} = r."id" AND c."contact_revealed_at" IS NOT NULL
+        )
+    `);
+    if ((selected.rowCount ?? 0) === 0) return { ok: false, ...(await explainRejectedSelection(kind, parentId, quoteId)) };
   } catch (error) {
-    captureError(error, { path: "acceptProjectQuote", userId: session.user.id });
-    return { ok: false, error: "Nie udało się zaakceptować wyceny. Odśwież i spróbuj ponownie." };
+    captureError(error, { path: "selectProjectQuote", userId: session.user.id });
+    return { ok: false, error: "Nie udało się zapisać wyboru. Odśwież i spróbuj ponownie.", errorCode: "generic" };
   }
 
-  const [after] = await db.select({ status: projectQuote.status }).from(projectQuote).where(eq(projectQuote.id, quoteId));
-  if (after?.status !== "accepted") {
-    return { ok: false, error: RACE_ERROR };
-  }
+  trackEvent("project_quote_selected", { quoteId, kind }, session.user.id);
 
-  trackEvent("project_quote_accepted", { quoteId }, session.user.id);
-  return { ok: true };
+  // Najpierw zapis faktu (wybór), potem połączenie: przy równoczesnym zatwierdzeniu B2B drugie
+  // zdarzenie zawsze widzi oba fakty, więc wybór nie zostanie oczekujący na zawsze (AC-17).
+  try {
+    const outcome = await connectSelection(kind, parentId);
+    if (outcome === "pending_b2b") {
+      // Zespół dostaje mail tylko przy pierwszym wyborze, nie przy każdej zmianie zdania klienta.
+      if (before.selectedQuoteId === null) await notifyTeamOfPendingSelection({ kind, id: parentId });
+      return { ok: true, outcome: "pending_b2b" };
+    }
+    // already_connected nie powinno wystąpić zaraz po zapisie, który wymaga braku połączenia.
+    return { ok: true, outcome: outcome === "connected" ? "connected" : undefined };
+  } catch (error) {
+    // Wybór jest zapisany. Połączenie dokończy godzinne zadanie czyszczące albo administrator.
+    captureError(error, { path: "selectProjectQuote:connectSelection", userId: session.user.id });
+    return { ok: true };
+  }
+}
+
+// Gdy UPDATE nie zmienił wiersza (wyścig albo oferta, która przestała być wybieralna),
+// czytamy stan jeszcze raz i podajemy klientowi konkretny powód.
+async function explainRejectedSelection(
+  kind: "request" | "product",
+  parentId: string,
+  quoteId: string,
+): Promise<{ error: string; errorCode: SelectProjectQuoteErrorCode }> {
+  const parent = kind === "request" ? projectRequest : bulkProductInquiry;
+  const link = kind === "request" ? projectQuote.projectRequestId : projectQuote.bulkProductInquiryId;
+  const [connected] = await db
+    .select({ id: projectQuote.id })
+    .from(projectQuote)
+    .where(and(eq(link, parentId), isNotNull(projectQuote.contactRevealedAt)))
+    .limit(1);
+  if (connected) return { error: ALREADY_CONNECTED_ERROR, errorCode: "already_connected" };
+  const [row] = await db.select({ status: parent.status }).from(parent).where(eq(parent.id, parentId));
+  if (!row || (row.status !== "open" && row.status !== "quoted" && row.status !== "published")) {
+    return { error: REQUEST_CLOSED_ERROR, errorCode: "closed" };
+  }
+  const [quote] = await db
+    .select({ status: projectQuote.status, publishedToClientAt: projectQuote.publishedToClientAt })
+    .from(projectQuote)
+    .where(eq(projectQuote.id, quoteId));
+  if (!quote || quote.status !== "active" || !quote.publishedToClientAt) return { error: RACE_ERROR, errorCode: "stale" };
+  return { error: "Nie udało się zapisać wyboru. Odśwież i spróbuj ponownie.", errorCode: "generic" };
 }
 
 // ---------------------------------------------------------------------------
@@ -329,7 +431,7 @@ export interface UploadProjectQuotePdfResult extends ActionResult {
 }
 
 // AC-13: sprawdzenie status = 'active' jest częścią tego samego db.batch co
-// zapis (WHERE EXISTS, ten sam wzorzec co EXISTS w acceptProjectQuote
+// zapis (WHERE EXISTS, ten sam wzorzec co EXISTS w connectSelection
 // wyżej), nie tylko wcześniejszym odczytem -- równoległa akceptacja tej samej
 // wyceny nie może zostawić okna na podmianę pliku na już zaakceptowanej
 // ofercie. Usunięcie starego wiersza jest warunkowane tym samym EXISTS, żeby
@@ -414,6 +516,7 @@ export async function getProjectQuotePdfUrl(quoteId: string): Promise<GetProject
       producerId: projectQuote.producerId,
       projectRequestId: projectQuote.projectRequestId,
       bulkProductInquiryId: projectQuote.bulkProductInquiryId,
+      publishedToClientAt: projectQuote.publishedToClientAt,
     })
     .from(projectQuote)
     .where(eq(projectQuote.id, quoteId));
@@ -432,7 +535,8 @@ export async function getProjectQuotePdfUrl(quoteId: string): Promise<GetProject
     const parentClientId = quoteRow.projectRequestId
       ? (await db.select({ clientId: projectRequest.clientId }).from(projectRequest).where(eq(projectRequest.id, quoteRow.projectRequestId)))[0]?.clientId
       : (await db.select({ clientId: bulkProductInquiry.clientId }).from(bulkProductInquiry).where(eq(bulkProductInquiry.id, quoteRow.bulkProductInquiryId!)))[0]?.clientId;
-    allowed = clientId !== null && parentClientId !== null && parentClientId === clientId;
+    // Spec 0070 AC-13: PDF nieopublikowanej oferty jest dla klienta niewidoczny.
+    allowed = clientId !== null && parentClientId !== null && parentClientId === clientId && quoteRow.publishedToClientAt !== null;
   }
   if (!allowed) return { ok: false, error: QUOTE_NOT_FOUND_ERROR };
 
@@ -722,5 +826,8 @@ export async function setClientB2bVerification(
     return { ok: false, error: "Nie znaleziono klienta." };
   }
   trackEvent("client_b2b_verification_decided", { clientId, status, reason: reason?.trim() || null }, session.user.id);
+  // Spec 0070 AC-17: po zapisaniu faktu (zatwierdzenie) łączymy zapytania tego klienta, których
+  // wybór czekał na B2B. Błąd połączenia nie cofa zatwierdzenia, zaległość zbierze zadanie czyszczące.
+  if (status === "approved") await connectPendingSelectionsForClient(clientId);
   return { ok: true };
 }

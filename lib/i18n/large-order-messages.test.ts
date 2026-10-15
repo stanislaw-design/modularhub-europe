@@ -19,6 +19,16 @@ const LARGE_ORDER_NAMESPACES = [
   "BulkRequestLimitMessage",
   "LargeOrderTeamClientCancelledEmail",
   "LargeOrderProducerClosedEmail",
+  // AC-11, AC-12: nowy format oferty i komunikat o zamkniętym przyjmowaniu ofert.
+  "QuoteForm",
+  // AC-15: tabela porównawcza ofert na liście zapytań klienta.
+  "QuoteComparisonTable",
+  // AC-16, AC-17: wybór oferty przez klienta i maile połączenia stron.
+  "SelectQuoteButton",
+  "LargeOrderClientConnectedEmail",
+  "LargeOrderProducerConnectedEmail",
+  "LargeOrderTeamConnectedEmail",
+  "LargeOrderTeamPendingSelectionEmail",
 ];
 
 // Nowe klucze w istniejącej przestrzeni nazw (reszta przestrzeni ma wspólne słowa, np. "Status").

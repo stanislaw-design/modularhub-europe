@@ -1,20 +1,17 @@
 import { getTranslations } from "next-intl/server";
-import { AcceptQuoteButton } from "@/components/klient/AcceptQuoteButton";
 import { CancelRequestButton } from "@/components/klient/CancelRequestButton";
-import { DownloadQuotePdfButton } from "@/components/klient/DownloadQuotePdfButton";
 import { PanelEmptyState } from "@/components/klient/PanelEmptyState";
+import { QuoteComparisonTable } from "@/components/klient/QuoteComparisonTable";
 import { RequestHeader } from "@/components/klient/RequestHeader";
-import { Button, DataText, Heading, Stack, Text } from "@/components/ui";
+import { Button, Heading, Stack, Text } from "@/components/ui";
 import {
   getClientIdForUser,
   getProjectRequestsWithQuotesForClient,
-  type ClientReceivedQuote,
   type ClientRequestWithQuotes,
 } from "@/lib/db/queries";
+import type { Locale } from "@/lib/i18n/routing";
 import { requirePanelClientSession } from "@/lib/panel-session";
 import { BULK_REQUEST_EMAIL_LIMIT } from "@/lib/project-request-specs";
-
-const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0 });
 
 // Zamknięte zapytanie można wznowić przez 30 dni (spec 0070 AC-19), starszych nie pokazujemy.
 const CLOSED_VISIBLE_DAYS = 30;
@@ -41,14 +38,7 @@ export default async function ClientPanelQuotesPage({
   ]);
 
   const clientId = await getClientIdForUser(session.user.id);
-  const items = clientId ? await getProjectRequestsWithQuotesForClient(clientId) : [];
-
-  const statusLabel: Record<ClientReceivedQuote["status"], string> = {
-    active: t("statusActive"),
-    accepted: t("statusAccepted"),
-    rejected: t("statusRejected"),
-    superseded: t("statusSuperseded"),
-  };
+  const items = clientId ? await getProjectRequestsWithQuotesForClient(clientId, locale as Locale) : [];
 
   const closedCutoff = closedVisibleCutoff();
   const shown = items.filter((item) => item.status !== "closed" || (item.closedAt !== null && item.closedAt.getTime() >= closedCutoff));
@@ -72,60 +62,12 @@ export default async function ClientPanelQuotesPage({
             </Text>
           )
         ) : (
-          <div className="overflow-x-auto rounded-v5-card border border-brand-v5-line">
-            <table className="w-full min-w-[42rem] border-collapse text-body">
-              <thead>
-                <tr className="border-b border-brand-v5-line bg-brand-v5-line/10 text-left">
-                  <Text as="th" surface="v5" className="p-brand-2 font-medium">
-                    {t("producerColumn")}
-                  </Text>
-                  <Text as="th" surface="v5" className="p-brand-2 font-medium">
-                    {t("priceColumn")}
-                  </Text>
-                  <Text as="th" surface="v5" className="p-brand-2 font-medium">
-                    {t("leadTimeColumn")}
-                  </Text>
-                  <Text as="th" surface="v5" className="p-brand-2 font-medium">
-                    {t("statusColumn")}
-                  </Text>
-                  <Text as="th" surface="v5" className="p-brand-2 font-medium">
-                    {t("notesColumn")}
-                  </Text>
-                  <th className="p-brand-2 font-medium" />
-                </tr>
-              </thead>
-              <tbody>
-                {item.quotes.map((quote) => (
-                  <tr key={quote.id} className="border-b border-brand-v5-line/50 align-top last:border-b-0">
-                    <td className="p-brand-2">
-                      <Text surface="v5">{quote.producerName}</Text>
-                      <Text tone="muted" surface="v5" variant="label">
-                        {dateFormatter.format(quote.submittedAt)}
-                      </Text>
-                    </td>
-                    <Text as="td" surface="v5" className="p-brand-2">
-                      <DataText>{priceFormatter.format(quote.totalPriceCents / 100)} €</DataText>
-                    </Text>
-                    <Text as="td" surface="v5" className="p-brand-2">
-                      {quote.proposedLeadTimeWeeks ? t("leadTimeWeeks", { weeks: quote.proposedLeadTimeWeeks }) : "—"}
-                    </Text>
-                    <Text as="td" surface="v5" className="p-brand-2">
-                      {statusLabel[quote.status]}
-                    </Text>
-                    <Text as="td" surface="v5" className="p-brand-2" measure>
-                      {quote.notes ?? "—"}
-                    </Text>
-                    <td className="p-brand-2 text-right">
-                      <div className="flex flex-col items-end gap-2">
-                        {quote.status === "active" && <AcceptQuoteButton quoteId={quote.id} />}
-                        {quote.hasPdf && <DownloadQuotePdfButton quoteId={quote.id} />}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <QuoteComparisonTable
+            quotes={item.quotes}
+            locale={locale}
+            selectedQuoteId={item.selectedQuoteId}
+            requestClosed={item.status === "closed"}
+          />
         )}
       </Stack>
     );

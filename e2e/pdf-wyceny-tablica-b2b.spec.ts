@@ -109,6 +109,8 @@ test.describe("spec 0063: PDF wyceny over 1 MB through a real browser request (A
     await expect(page.getByText("Podaj wycenę na to zapytanie.")).toBeVisible();
 
     await page.locator("#quote-total-price").fill("500000");
+    await page.locator("#quote-scope-included").fill("Dom w stanie deweloperskim");
+    await page.locator("#quote-valid-until").fill("2099-12-31");
     await page.locator("#quote-pdf-file").setInputFiles({
       name: "wycena-e2e.pdf",
       mimeType: "application/pdf",
@@ -211,6 +213,8 @@ test.describe("spec 0063 regression: a file between 10MB and 20MB must not crash
 
     await page.goto(`/pl/producer/panel/board/${projectRequestId}`);
     await page.locator("#quote-total-price").fill("333000");
+    await page.locator("#quote-scope-included").fill("Dom w stanie deweloperskim");
+    await page.locator("#quote-valid-until").fill("2099-12-31");
     await page.locator("#quote-pdf-file").setInputFiles({
       name: "pietnascie-mb.pdf",
       mimeType: "application/pdf",
@@ -254,6 +258,9 @@ test.describe("spec 0063: download button on client and producer quote screens",
     });
     await db.insert(producerMember).values({ producerId, userId: producerUserId });
     await db.insert(producerCapacityProfile).values({ producerId, volumeVerificationStatus: "approved" });
+    // Spec 0070 AC-10: producent widzi tylko dopasowane zapytania (kraj PL i opublikowany dom).
+    await db.insert(producerDeliveryCountry).values({ producerId, countryCode: "PL" });
+    await db.insert(product).values({ producerId, family: "dom", status: "published", name: "E2E download match product" });
     await db.insert(client).values({ id: clientId, userId: clientUserId, b2bVerificationStatus: "approved" });
     await db.insert(projectRequest).values({
       id: projectRequestId,
@@ -279,6 +286,8 @@ test.describe("spec 0063: download button on client and producer quote screens",
     await db.delete(sessions).where(eq(sessions.sessionToken, clientSessionToken));
     await db.delete(projectRequest).where(eq(projectRequest.id, projectRequestId));
     await db.delete(client).where(eq(client.id, clientId));
+    await db.delete(product).where(eq(product.producerId, producerId));
+    await db.delete(producerDeliveryCountry).where(eq(producerDeliveryCountry.producerId, producerId));
     await db.delete(producerCapacityProfile).where(eq(producerCapacityProfile.producerId, producerId));
     await db.delete(producerMember).where(eq(producerMember.producerId, producerId));
     await db.delete(producer).where(eq(producer.id, producerId));
@@ -287,10 +296,10 @@ test.describe("spec 0063: download button on client and producer quote screens",
   });
 
   // One self-contained test, not split across dependent tests: each step
-  // (producer submits, client downloads and accepts, producer downloads from
+  // (producer submits, client downloads and chooses, producer downloads from
   // their own screen) needs the previous step's real server state, so
   // splitting it would make the later tests depend on run order.
-  test("client downloads the PDF, accepts the quote, and both the client and producer screens keep working afterwards", async ({
+  test("client downloads the PDF, chooses the quote, and both the client and producer screens keep working afterwards", async ({
     page,
     context,
   }) => {
@@ -301,10 +310,15 @@ test.describe("spec 0063: download button on client and producer quote screens",
     ]);
     await page.goto(`/pl/producer/panel/board/${projectRequestId}`);
     await page.locator("#quote-total-price").fill("420000");
+    await page.locator("#quote-scope-included").fill("Dom w stanie deweloperskim");
+    await page.locator("#quote-valid-until").fill("2099-12-31");
     await page.locator("#quote-pdf-file").setInputFiles({ name: "oferta.pdf", mimeType: "application/pdf", buffer: fakePdfBuffer(2048) });
     await page.getByRole("button", { name: "Wyślij wycenę" }).click();
     await expect(page.getByText("Wycena wysłana.")).toBeVisible({ timeout: 15_000 });
     await expect(page.getByText("oferta.pdf")).toBeVisible({ timeout: 15_000 });
+
+    // Spec 0070 AC-13: klient widzi ofertę dopiero po publikacji przez administratora.
+    await db.update(projectQuote).set({ publishedToClientAt: new Date() }).where(eq(projectQuote.producerId, producerId));
 
     await context.clearCookies();
     await context.addCookies([
@@ -316,11 +330,10 @@ test.describe("spec 0063: download button on client and producer quote screens",
     const [clientDownload] = await Promise.all([page.waitForEvent("download"), clientDownloadButton.click()]);
     expect(clientDownload.suggestedFilename()).toBe("oferta.pdf");
 
-    // AcceptQuoteButton only flips its own local label; the status column is
-    // server rendered, so a reload is needed to see the persisted status --
-    // the point of this test is that the download button survives it either way.
-    await page.getByRole("button", { name: "Akceptuj" }).click();
-    await expect(page.getByText("Zaakceptowano")).toBeVisible({ timeout: 10_000 });
+    // Spec 0070 AC-16, AC-17: wybór oferty przy zatwierdzonym B2B od razu łączy strony, a po
+    // odświeżeniu strony przez router tabela pokazuje status z serwera.
+    await page.getByRole("button", { name: "Wybierz tę ofertę" }).click();
+    await expect(page.getByText("Strony zostały połączone")).toBeVisible({ timeout: 10_000 });
     await page.reload();
     await expect(page.getByText("Zaakceptowana")).toBeVisible({ timeout: 10_000 });
     await expect(page.getByRole("button", { name: "Pobierz PDF" })).toBeVisible();

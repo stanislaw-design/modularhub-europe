@@ -70,3 +70,41 @@ _Steps derived from spec 0070 acceptance criteria, tydzień 1 (zadania 1 do 6). 
 ## Acceptance-criteria coverage
 - AC-37 (zamknięcie, mail do zespołu, informacja dla producentów) · AC-38 (limit z `published`, wznowienie) · AC-39 (komunikat i link logujący) · AC-40 do AC-42 (lista, nagłówek, przycisk, licznik) · AC-43 (cztery języki)
 - Poza tym krokiem: przycisk "Wznów" na zamkniętych kartach (część AC-40) czeka na `reopenRequest` w zadaniu 16; wywołanie `notifyProducersOfClosedRequest` z `closeRequest` admina też w zadaniu 16.
+
+## Zadanie 12: tabela porównawcza ofert u klienta (dodane 2026-10-15)
+- [ ] Klient z zapytaniem, na którym admin opublikował podsumowanie dwóch ofert, wchodzi na `/pl/panel/quotes` → pod nagłówkiem zapytania jest tabela, kolumny to dwaj producenci, wiersze: cena łączna (z "cena netto" lub "cena brutto"), cena za sztukę, zakres w cenie i poza ceną, transport, montaż, dźwig, plan płatności, ważność, gwarancja, termin produkcji, okno dostawy, uwagi, komentarz ModularHub, certyfikaty, status → AC-15
+- [ ] Oferta bez cen za sztukę, gwarancji lub logistyki → w tych wierszach jest "brak danych" (albo "do wyceny" przy pozycji logistyki w trybie "do późniejszej wyceny"), nigdzie nie ma "0 €" → AC-15
+- [ ] Widełki w montażu (np. 5 000 do 8 000) pokazują się jako "od 5 000 € do 8 000 €" → AC-15
+- [ ] W tabeli i pod nią nie ma e maila, telefonu ani adresu strony producenta → AC-15
+- [ ] Oferta z dołączonym PDF → pod tabelą sekcja "Załączniki" z wierszem "Oferta producenta {nazwa} (PDF)" i przyciskiem "Pobierz PDF", który otwiera podpisany link; oferta bez PDF nie ma wiersza → AC-15
+- [ ] Zapytanie o konkretny produkt z jedną ofertą → tabela ma jedną kolumnę producenta → AC-15, AC-21
+- [ ] Producent z certyfikatem ma go w wierszu "Certyfikaty producenta" (potwierdzony przez administratora z dopiskiem), na `/en/panel/quotes` nazwa certyfikatu jest po angielsku, gdy istnieje tłumaczenie → AC-15
+- [ ] Wąski ekran: tabela przewija się poziomo, nagłówki wierszy i kolumn są czytelne; cztery języki (pl, en, de, nl) mają prawdziwe teksty → AC-15, AC-26
+- [ ] Zastąpiona wersja oferty (status `superseded`) nie pojawia się jako kolumna → AC-13
+
+## Commands
+- [ ] `npx vitest run components/klient/QuoteComparisonTable.test.tsx lib/db/queries.test.ts lib/i18n` → wszystkie przechodzą → AC-15, AC-26
+
+## Zadanie 13: wybór klienta i połączenie stron (2026-10-15)
+_Kroki z AC-16 i AC-17. Testy na prawdziwej bazie dev już pokrywają logikę, kroki ręczne sprawdzają ekran i maile._
+
+### UI / manual
+- [ ] Klient z niezatwierdzonym B2B na `/pl/panel/quotes` klika "Wybierz tę ofertę" przy jednej z dwóch opublikowanych ofert → oferta dostaje znacznik "Wybrana", pod tabelą pojawia się komunikat "Czekamy na potwierdzenie danych firmy", druga oferta ma przycisk "Zmień wybór na tę ofertę", producent nie widzi danych klienta → AC-16, AC-17
+- [ ] Ten sam klient klika "Zmień wybór" przy drugiej ofercie → znacznik przechodzi na drugą ofertę, zespół nie dostaje drugiego maila o oczekującym wyborze → AC-16
+- [ ] Administrator zatwierdza B2B tego klienta na `/pl/internal/clients/b2b-verification` → wybrana oferta ma status "Zaakceptowana", pozostałe "Odrzucona", zapytanie "Wybrano producenta", komunikat "Strony zostały połączone", przyciski wyboru znikają → AC-17
+- [ ] Klient z zatwierdzonym B2B wybiera ofertę → strony łączą się od razu, bez komunikatu o oczekiwaniu → AC-17
+- [ ] Na `/pl/internal/large-orders/[id]` zapytanie z wyborem bez połączenia pokazuje ramkę "Połącz strony"; po kliknięciu przy zatwierdzonym B2B strony się łączą, przy niezatwierdzonym przycisk pokazuje komunikat o B2B → AC-17
+- [ ] Po połączeniu próba zmiany wyboru (druga karta przeglądarki ze starą stroną) kończy się komunikatem "Strony są już połączone" → AC-16
+- [ ] Zapytanie o konkretny produkt: ten sam wybór i to samo połączenie, tabela ma jedną kolumnę → AC-16, AC-21
+
+### Maile (Resend, adres zespołu ustawiony)
+- [ ] Po połączeniu klient dostaje mail w języku zapytania z nazwą i adresem producenta, producent mail po polsku z danymi klienta, zespół kopię z danymi obu stron; każdy mail prosi o potwierdzanie ustaleń w systemie → AC-17
+- [ ] Powtórne kliknięcie "Połącz strony" nie wysyła maili drugi raz → AC-17
+- [ ] Wybór bez zatwierdzonego B2B wysyła zespołowi jeden mail "Wybór klienta czeka na zatwierdzenie danych firmy", bez danych kontaktowych klienta → AC-17
+
+### Commands
+- [ ] `npx vitest run lib/project-quote-actions.test.ts lib/large-order-connect-admin.test.ts lib/notifications/large-order-connection.test.ts components/klient lib/i18n` → wszystkie przechodzą (wybór, zmiana wyboru, odmowa po połączeniu, wyścig dwóch wywołań `connectSelection`, zatwierdzenie B2B po wyborze) → AC-16, AC-17
+- [ ] `npx playwright test e2e/pdf-wyceny-tablica-b2b.spec.ts` → przechodzi z nowym krokiem "Wybierz tę ofertę" (niesprawdzone w tej sesji, patrz uwaga w raporcie) → AC-16, AC-17
+
+### Acceptance-criteria coverage
+- AC-16: wybór i zmiana wyboru, odmowa po połączeniu, brak ujawnienia kontaktu przed połączeniem · AC-17: połączenie po wyborze, po zatwierdzeniu B2B, przez przycisk admina, idempotencja i wyścig; pozostałe maile i zadanie czyszczące w zadaniu 17

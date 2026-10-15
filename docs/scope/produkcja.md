@@ -74,6 +74,7 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 58 | Strona kategorii Sauny z filtrami i porównaniem | Slice 2 | done |
 | 59 | Wersje układu wnętrz: rzuty, pomieszczenia i metraż przypisane do opcji | Slice 2 | in progress |
 | 60 | Przetarg na duże zamówienia z podsumowaniem ModularHub | Slice 12 | in progress |
+| 61 | Pasek filtrów dla rodziny Outdoor TV | Slice 2 | in progress |
 
 ## Foundations
 
@@ -763,8 +764,22 @@ Wersja układu wnętrz (np. Bingo od Logbar: podstawowa i wersje 1, 2, 3) jest d
 - [ ] Verify it: `/check verify wersje układu wnętrz`
 - [ ] Test it: `/test wersje układu wnętrz`
 
+### 61. Pasek filtrów dla rodziny Outdoor TV · Slice 2 · in progress
+Wspólny pasek wyników (Kraj, Metraż, Sortuj) jest dla Outdoor TV bezużyteczny: metraż nic nie robi, kraj ukrywa 5 z 7 produktów, a nagłówek mówi "szafek". Ta funkcja zastępuje pasek dla `family=outdoor-tv` chipami wielokrotnego wyboru "sposób montażu" (na ścianę, w szafie z windą) i "przeznaczenie" (cień, częściowe słońce, pełne słońce) oraz słowem kluczowym. Wartości idą do dwóch nowych kolumn w `product` (tekst z CHECK), kolejność jest stała, a nagłówek mówi "produkty Outdoor TV". Bez kraju i bez ceny na razie. Powstało z `/architect`, from spec 0071.
+**Done when:** `/pl/results?family=outdoor-tv` pokazuje chipy zamiast pól Kraj, Metraż i Sortuj, wybór chipów zawęża listę (LUB w grupie, ORAZ między grupami), filtr "przeznaczenie" ukrywa szafy, parametry kraju, metrażu i ceny nie ukrywają produktów, nagłówek ma poprawną odmianę w pl, en, de, nl, a `npm run check:translations` pokazuje zero braków; pasek domów, spa i kontenerów działa jak dotąd.
+- [x] Zaprojektuj (spec): [0071](../specs/0071-pasek-filtrow-outdoor-tv/index.md)
+- [ ] Build it: `/develop pasek filtrów Outdoor TV`
+  - [x] Etap 1, baza: migracja dwóch kolumn z CHECK, uzupełnienie sześciu istniejących produktów na dev, satisfies AC-8, AC-9
+  - [x] Etap 2, tracer i filtry: `lib/outdoor-tv-filters.ts`, warunki w `getProjects`, `OutdoorTvFilterBar` z oboma grupami, ignorowanie kraju, metrażu i ceny, stała kolejność, słowo kluczowe, satisfies AC-1 do AC-6, AC-11
+  - [x] Etap 3, nagłówek, tłumaczenia i dostępność: rzeczownik "produkt Outdoor TV", podpowiedź, pl, en, de, nl, `aria-current`, widok mobilny, satisfies AC-7, AC-12, AC-13
+  - [ ] Etap 4, import i produkcja: skrypty importu ustawiają kolumny, testy i E2E, plik `_promote_` na prod (osobny, jawny krok), satisfies AC-10 oraz weryfikacja AC-1 do AC-7
+- [x] Verify it: `/check verify pasek filtrów Outdoor TV`
+- [x] Test it: `/test pasek filtrów Outdoor TV`
+
 ## Deferred
 Poza zakresem tej epiki, świadomie odłożone.
+- **Filtr i sortowanie po cenie dla Outdoor TV**: wrócą, gdy produkty dostaną ceny, razem z regułą dla "cena na zapytanie" (from spec 0071) · needs a decision
+- **Filtr kraju dla Outdoor TV w widoku grupowym "Wszystko"**: dziś ukrywa produkty bez wierszy `product_country_eligibility`, do rozstrzygnięcia przy dodawaniu dostawy (from spec 0071) · needs a decision
 - **Rozszerzenie poza Polskę**: pozostałe kraje z dzisiejszego mocka silnika zgodności (np. Niemcy, Holandia) · needs a decision · full weight
 - **Zawężenie mapy gotowości eksportowej do krajów rejestracji**: rozszerzenie kontraktu URL, który dziś przenosi tylko nazwę projektu, zostaje odłożone razem z rozszerzeniem poza Polskę · needs a decision
 - **Aplikacja mobilna lub natywna** · needs a decision

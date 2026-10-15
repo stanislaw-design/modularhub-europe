@@ -11,6 +11,10 @@ import {
   LargeOrderTonePill,
 } from "@/components/internal/LargeOrderPills";
 import { describeDeadline } from "@/components/internal/largeOrderDeadline";
+import { ConnectSelectionControl } from "@/components/internal/ConnectSelectionControl";
+import { ExtendDeadlineControl } from "@/components/internal/ExtendDeadlineControl";
+import { PublishSummaryControl } from "@/components/internal/PublishSummaryControl";
+import { QuotePublicationControls } from "@/components/internal/QuotePublicationControls";
 import { ProducerOverridesAdminSection } from "@/components/internal/ProducerOverridesAdminSection";
 import { Heading, Stack, Text } from "@/components/ui";
 import { getProducerMatchesForAdmin } from "@/lib/db/project-request-matching";
@@ -151,6 +155,7 @@ export default async function InternalLargeOrderDetailPage({
               {deadline.text}
             </span>
           )}
+          {order.status !== "accepted" && order.status !== "closed" && <ExtendDeadlineControl id={id} kind={kind} />}
         </Fact>
         <Fact label="Liczba domów">
           <span className="block font-semibold tabular-nums">{units}</span>
@@ -176,6 +181,17 @@ export default async function InternalLargeOrderDetailPage({
             <h2 id="order-quotes-heading" className="text-h3 font-semibold">
               Oferty producentów
             </h2>
+            {pendingPublication > 0 && order.status !== "accepted" && order.status !== "closed" && (
+              <PublishSummaryControl
+                id={id}
+                kind={kind}
+                pendingCount={pendingPublication}
+                alreadyPublished={order.summaryPublishedAt !== null}
+              />
+            )}
+            {order.selectedQuoteId && !contactRevealedAt && order.status !== "accepted" && order.status !== "closed" && (
+              <ConnectSelectionControl id={id} kind={kind} />
+            )}
             {order.quotes.length === 0 ? (
               <div className="rounded-card border border-dashed border-brand-steel p-brand-4">
                 <Text tone="muted">Nikt jeszcze nie złożył oferty. Pojawią się tutaj, gdy producenci odpowiedzą przed terminem.</Text>
@@ -343,7 +359,17 @@ function QuoteCard({ quote, isSelected }: { quote: LargeOrderQuoteForAdmin; isSe
 
       {hasLogistics && <Text tone="muted">Logistyka: {JSON.stringify(quote.logistics)}</Text>}
 
-      <footer>{quote.hasPdf ? <DownloadQuotePdfButton quoteId={quote.id} /> : <Text tone="muted">Brak pliku PDF.</Text>}</footer>
+      <footer className="flex flex-col gap-brand-3">
+        {quote.hasPdf ? <DownloadQuotePdfButton quoteId={quote.id} /> : <Text tone="muted">Brak pliku PDF.</Text>}
+        {quote.status === "active" && (
+          <QuotePublicationControls
+            quoteId={quote.id}
+            advisorNote={quote.advisorNote}
+            isPublished={isPublished}
+            isSelected={isSelected}
+          />
+        )}
+      </footer>
     </article>
   );
 }

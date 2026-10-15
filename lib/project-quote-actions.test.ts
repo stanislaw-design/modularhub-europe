@@ -13,10 +13,15 @@ const trackEventMock = vi.hoisted(() => vi.fn());
 const captureErrorMock = vi.hoisted(() => vi.fn());
 const uploadPrivateObjectMock = vi.hoisted(() => vi.fn<() => Promise<void>>());
 const buildSignedDownloadUrlMock = vi.hoisted(() => vi.fn<() => Promise<string>>());
-const FakeAuthError = vi.hoisted(() => class FakeAuthError extends Error {});
+const notifyOfConnectionMock = vi.hoisted(() => vi.fn<() => Promise<void>>());
+const notifyTeamOfPendingSelectionMock = vi.hoisted(() => vi.fn<() => Promise<void>>());
 vi.mock("@/auth", () => ({ auth: authMock, signIn: signInMock }));
-vi.mock("next-auth", () => ({ AuthError: FakeAuthError }));
 vi.mock("@/lib/observability", () => ({ trackEvent: trackEventMock, captureError: captureErrorMock }));
+// Maile połączenia (spec 0070 AC-17) to granica I/O jak Resend: testy sprawdzają, kiedy wychodzą, nie ich treść.
+vi.mock("@/lib/notifications/large-order-connection", () => ({
+  notifyOfConnection: notifyOfConnectionMock,
+  notifyTeamOfPendingSelection: notifyTeamOfPendingSelectionMock,
+}));
 // Prywatny R2 jest granicą I/O tak samo jak auth/observability wyżej (spec
 // 0063): testy uploadProjectQuotePdf/getProjectQuotePdfUrl sprawdzają realną
 // bazę (uprawnienia, status, atomowość), nie prawdziwe wgrywanie do R2.
@@ -43,10 +48,11 @@ import {
   projectRequestProducerOverride,
   users,
 } from "@/lib/db/schema";
+import { connectSelection } from "./large-order-connection";
 import {
-  acceptProjectQuote,
   getProjectQuotePdfUrl,
   linkRequestsToClientOnLogin,
+  selectProjectQuote,
   setClientB2bVerification,
   setProducerDeliveryCountriesAsAdmin,
   setProducerVolumeVerification,
@@ -56,6 +62,13 @@ import {
   updateProducerCapacityProfile,
   uploadProjectQuotePdf,
 } from "./project-quote-actions";
+
+// Pola obowiązkowe formatu oferty (spec 0070 AC-11) dla testów, które sprawdzają coś innego.
+const QUOTE_BASE = {
+  priceTaxMode: "net",
+  scopeIncluded: "Dom w stanie deweloperskim, transport w cenie.",
+  validUntil: new Date(Date.now() + 30 * 86_400_000).toISOString().slice(0, 10),
+} as const;
 
 function validPdfFile(filename = "wycena.pdf"): File {
   const bytes = Buffer.from("%PDF-1.7\n1 0 obj\nBT sample ET\nendobj\n%%EOF", "latin1");
@@ -160,6 +173,8 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
   });
 
   afterAll(async () => {
+    await db.update(projectRequest).set({ selectedQuoteId: null, selectedAt: null }).where(eq(projectRequest.id, projectRequestId));
+    await db.update(bulkProductInquiry).set({ selectedQuoteId: null, selectedAt: null }).where(eq(bulkProductInquiry.id, bulkInquiryId));
     await db.delete(document).where(inArray(document.ownerUserId, allUserIds));
     await db.delete(projectQuote).where(inArray(projectQuote.producerId, allProducerIds));
     await db.delete(bulkProductInquiry).where(eq(bulkProductInquiry.id, bulkInquiryId));
@@ -188,6 +203,9 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
     buildSignedDownloadUrlMock.mockReset();
     buildSignedDownloadUrlMock.mockResolvedValue("https://private.example.test/signed-url");
 
+    // Spec 0070: wybór klienta wskazuje ofertę kluczem obcym, więc czyścimy go przed usunięciem ofert.
+    await db.update(projectRequest).set({ selectedQuoteId: null, selectedAt: null }).where(eq(projectRequest.id, projectRequestId));
+    await db.update(bulkProductInquiry).set({ selectedQuoteId: null, selectedAt: null }).where(eq(bulkProductInquiry.id, bulkInquiryId));
     // Every test starts from the same clean baseline: producer1/producer4
     // approved (AC-13 happy path), producer2 stays without a capacity profile
     // row at all (never approved). document rows (PDF quote uploads) must go
@@ -204,8 +222,14 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
         { producerId: producer4Id, countryCode: "PL" },
       ])
       .onConflictDoNothing();
-    await db.update(projectRequest).set({ status: "open", closedAt: null, closedReason: null }).where(eq(projectRequest.id, projectRequestId));
-    await db.update(bulkProductInquiry).set({ status: "open" }).where(eq(bulkProductInquiry.id, bulkInquiryId));
+    await db
+      .update(projectRequest)
+      .set({ status: "open", closedAt: null, closedReason: null, deadlineAt: new Date(Date.now() + 14 * 86_400_000), selectedQuoteId: null, selectedAt: null, summaryPublishedAt: null })
+      .where(eq(projectRequest.id, projectRequestId));
+    await db
+      .update(bulkProductInquiry)
+      .set({ status: "open", deadlineAt: new Date(Date.now() + 14 * 86_400_000), selectedQuoteId: null, selectedAt: null })
+      .where(eq(bulkProductInquiry.id, bulkInquiryId));
     await db.update(client).set({ nip: null, companyName: null, b2bVerificationStatus: "not_submitted" }).where(inArray(client.id, [clientId, otherClientId]));
     await db.update(producerCapacityProfile).set({ volumeVerificationStatus: "approved" }).where(inArray(producerCapacityProfile.producerId, [producer1Id, producer4Id]));
     await db.delete(pendingRegistration).where(eq(pendingRegistration.email, "pqa-new-contact@example.test"));
@@ -216,7 +240,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
     it("rejects with no session, writes nothing", async () => {
       authMock.mockResolvedValue(null);
 
-      const result = await submitProjectQuote({ projectRequestId, totalPriceEur: 500000 });
+      const result = await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 500000 });
 
       expect(result.ok).toBe(false);
       const rows = await db.select().from(projectQuote).where(eq(projectQuote.projectRequestId, projectRequestId));
@@ -226,7 +250,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
     it("rejects a client session", async () => {
       authMock.mockResolvedValue(sessionAs(clientUserId, "client"));
 
-      const result = await submitProjectQuote({ projectRequestId, totalPriceEur: 500000 });
+      const result = await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 500000 });
 
       expect(result.ok).toBe(false);
     });
@@ -234,7 +258,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
     it("rejects input with both projectRequestId and bulkProductInquiryId set", async () => {
       authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
 
-      const result = await submitProjectQuote({ projectRequestId, bulkProductInquiryId: bulkInquiryId, totalPriceEur: 500000 });
+      const result = await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, bulkProductInquiryId: bulkInquiryId, totalPriceEur: 500000 });
 
       expect(result.ok).toBe(false);
     });
@@ -242,7 +266,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
     it("rejects input with neither projectRequestId nor bulkProductInquiryId set", async () => {
       authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
 
-      const result = await submitProjectQuote({ totalPriceEur: 500000 });
+      const result = await submitProjectQuote({ ...QUOTE_BASE, totalPriceEur: 500000 });
 
       expect(result.ok).toBe(false);
     });
@@ -252,7 +276,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
     it("rejects a producer without an approved capacity profile", async () => {
       authMock.mockResolvedValue(sessionAs(producer2UserId, "producer"));
 
-      const result = await submitProjectQuote({ projectRequestId, totalPriceEur: 500000 });
+      const result = await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 500000 });
 
       expect(result.ok).toBe(false);
       expect(result.error).toMatch(/zweryfikowany wolumenowo/);
@@ -265,7 +289,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       await db.update(projectRequest).set({ status: "closed", closedAt: new Date(), closedReason: "staff_closed" }).where(eq(projectRequest.id, projectRequestId));
       authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
 
-      const result = await submitProjectQuote({ projectRequestId, totalPriceEur: 500000 });
+      const result = await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 500000 });
 
       expect(result.ok).toBe(false);
       expect(result.error).toMatch(/nie jest już otwarte/);
@@ -278,7 +302,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       await db.update(product).set({ status: "draft" }).where(eq(product.id, matchProduct1Id));
       authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
 
-      const result = await submitProjectQuote({ projectRequestId, totalPriceEur: 500000 });
+      const result = await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 500000 });
 
       expect(result.ok).toBe(false);
       expect(result.error).toBe("Nie znaleziono zapytania.");
@@ -291,7 +315,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       await db.delete(producerDeliveryCountry).where(eq(producerDeliveryCountry.producerId, producer1Id));
       authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
 
-      const result = await submitProjectQuote({ projectRequestId, totalPriceEur: 500000 });
+      const result = await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 500000 });
 
       expect(result.ok).toBe(true);
     });
@@ -301,7 +325,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       await db.insert(projectRequestProducerOverride).values({ projectRequestId, producerId: producer1Id, mode: "include", createdByUserId: adminUserId });
       authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
 
-      const result = await submitProjectQuote({ projectRequestId, totalPriceEur: 500000 });
+      const result = await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 500000 });
 
       expect(result.ok).toBe(true);
     });
@@ -310,7 +334,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       await db.insert(projectRequestProducerOverride).values({ projectRequestId, producerId: producer1Id, mode: "exclude", createdByUserId: adminUserId });
       authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
 
-      const result = await submitProjectQuote({ projectRequestId, totalPriceEur: 500000 });
+      const result = await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 500000 });
 
       expect(result.ok).toBe(false);
       expect(result.error).toBe("Nie znaleziono zapytania.");
@@ -322,7 +346,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       await db.update(projectRequest).set({ status: "published" }).where(eq(projectRequest.id, projectRequestId));
       authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
 
-      const result = await submitProjectQuote({ projectRequestId, totalPriceEur: 500000 });
+      const result = await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 500000 });
 
       expect(result.ok).toBe(true);
     });
@@ -331,30 +355,31 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
     it("rejects a producer that does not own the bulk inquiry's product", async () => {
       authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
 
-      const result = await submitProjectQuote({ bulkProductInquiryId: bulkInquiryId, totalPriceEur: 500000 });
+      const result = await submitProjectQuote({ ...QUOTE_BASE, bulkProductInquiryId: bulkInquiryId, totalPriceEur: 500000 });
 
       expect(result.ok).toBe(false);
       expect(result.error).toMatch(/Nie znaleziono zapytania/);
     });
 
-    it("creates an active quote for a project_request, flips its status to quoted, sends a login-link email", async () => {
+    it("creates an active, unpublished quote for a project_request, flips its status to quoted, sends the client nothing", async () => {
       authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
 
-      const result = await submitProjectQuote({ projectRequestId, totalPriceEur: 1250000, unitPriceEur: 100000, proposedLeadTimeWeeks: 16 });
+      const result = await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 1250000, unitPriceEur: 100000, proposedLeadTimeWeeks: 16 });
 
       expect(result.ok).toBe(true);
       const [quote] = await db.select().from(projectQuote).where(and(eq(projectQuote.projectRequestId, projectRequestId), eq(projectQuote.producerId, producer1Id)));
-      expect(quote).toMatchObject({ status: "active", totalPriceCents: 125000000, unitPriceCents: 10000000 });
+      expect(quote).toMatchObject({ status: "active", totalPriceCents: 125000000, unitPriceCents: 10000000, publishedToClientAt: null });
       const [requestRow] = await db.select({ status: projectRequest.status }).from(projectRequest).where(eq(projectRequest.id, projectRequestId));
       expect(requestRow.status).toBe("quoted");
-      expect(signInMock).toHaveBeenCalledWith("resend", expect.objectContaining({ redirect: false, redirectTo: "/pl/panel" }));
+      // AC-13: złożenie oferty nie wysyła klientowi maila ani linku logującego.
+      expect(signInMock).not.toHaveBeenCalled();
       expect(trackEventMock).toHaveBeenCalledWith("project_quote_submitted", expect.any(Object), producer1UserId);
     });
 
     it("creates an active quote for a bulk_product_inquiry owned by the caller, flips its status to quoted", async () => {
       authMock.mockResolvedValue(sessionAs(producer3UserId, "producer"));
 
-      const result = await submitProjectQuote({ bulkProductInquiryId: bulkInquiryId, totalPriceEur: 800000 });
+      const result = await submitProjectQuote({ ...QUOTE_BASE, bulkProductInquiryId: bulkInquiryId, totalPriceEur: 800000 });
 
       expect(result.ok).toBe(true);
       const [quote] = await db.select().from(projectQuote).where(and(eq(projectQuote.bulkProductInquiryId, bulkInquiryId), eq(projectQuote.producerId, producer3Id)));
@@ -366,9 +391,9 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
     // AC-3: a revision from the same producer supersedes the prior active quote.
     it("a second quote from the same producer on the same request supersedes the first", async () => {
       authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
-      await submitProjectQuote({ projectRequestId, totalPriceEur: 1000000 });
+      await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 1000000 });
 
-      const result = await submitProjectQuote({ projectRequestId, totalPriceEur: 1100000 });
+      const result = await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 1100000 });
 
       expect(result.ok).toBe(true);
       const rows = await db.select({ status: projectQuote.status }).from(projectQuote).where(and(eq(projectQuote.projectRequestId, projectRequestId), eq(projectQuote.producerId, producer1Id)));
@@ -379,10 +404,10 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
 
     it("refuses a new quote once one has already been accepted for this request", async () => {
       authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
-      await submitProjectQuote({ projectRequestId, totalPriceEur: 1000000 });
+      await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 1000000 });
       await db.update(projectQuote).set({ status: "accepted" }).where(and(eq(projectQuote.projectRequestId, projectRequestId), eq(projectQuote.producerId, producer1Id)));
 
-      const result = await submitProjectQuote({ projectRequestId, totalPriceEur: 1200000 });
+      const result = await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 1200000 });
 
       expect(result.ok).toBe(false);
       expect(result.error).toMatch(/już przyjął/);
@@ -393,11 +418,11 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
     // producer must be blocked too, closing the post-acceptance race.
     it("refuses a new quote from a different producer once ANY producer's quote on this request is accepted", async () => {
       authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
-      await submitProjectQuote({ projectRequestId, totalPriceEur: 1000000 });
+      await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 1000000 });
       await db.update(projectQuote).set({ status: "accepted" }).where(and(eq(projectQuote.projectRequestId, projectRequestId), eq(projectQuote.producerId, producer1Id)));
 
       authMock.mockResolvedValue(sessionAs(producer4UserId, "producer"));
-      const result = await submitProjectQuote({ projectRequestId, totalPriceEur: 1100000 });
+      const result = await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 1100000 });
 
       expect(result.ok).toBe(false);
       expect(result.error).toMatch(/już przyjął/);
@@ -405,9 +430,9 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       expect(rows).toHaveLength(0);
     });
 
-    // AC-11: a contact with no existing account gets staged for the magic
-    // link's createUser branch (auth.ts) to succeed.
-    it("stages a pending_registration for a contact email with no existing account (AC-11)", async () => {
+    // AC-13: dawny mail z linkiem logującym zdradzałby istnienie ofert przed
+    // publikacją, więc złożenie oferty nie zakłada też oczekującej rejestracji.
+    it("neither emails a login link nor stages a pending_registration for a contact without an account", async () => {
       const newContactRequestId = crypto.randomUUID();
       await db.insert(projectRequest).values({
         id: newContactRequestId,
@@ -421,151 +446,491 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       });
       authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
 
-      const result = await submitProjectQuote({ projectRequestId: newContactRequestId, totalPriceEur: 900000 });
+      const result = await submitProjectQuote({ ...QUOTE_BASE, projectRequestId: newContactRequestId, totalPriceEur: 900000 });
 
       expect(result.ok).toBe(true);
-      const [pending] = await db.select().from(pendingRegistration).where(eq(pendingRegistration.email, "pqa-new-contact@example.test"));
-      expect(pending).toMatchObject({ role: "client", payload: { name: "Brand New Contact", phone: "" } });
+      expect(signInMock).not.toHaveBeenCalled();
+      const pending = await db.select().from(pendingRegistration).where(eq(pendingRegistration.email, "pqa-new-contact@example.test"));
+      expect(pending).toHaveLength(0);
 
       await db.delete(projectQuote).where(eq(projectQuote.projectRequestId, newContactRequestId));
       await db.delete(projectRequest).where(eq(projectRequest.id, newContactRequestId));
     });
 
-    it("does not create a pending_registration for a contact email that already has an account", async () => {
-      authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
+    // AC-14: oferta opublikowana klientowi nie jest zastępowana nową wersją,
+    // dopóki administrator nie cofnie publikacji.
+    describe("a quote already published to the client (AC-14)", () => {
+      async function submitAndPublish() {
+        authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
+        const first = await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 900000 });
+        await db.update(projectQuote).set({ publishedToClientAt: new Date() }).where(eq(projectQuote.id, first.quoteId!));
+        return first.quoteId!;
+      }
 
-      const result = await submitProjectQuote({ projectRequestId, totalPriceEur: 900000 });
+      it("rejects a new version with a readable message and leaves the published quote active", async () => {
+        const publishedQuoteId = await submitAndPublish();
 
-      expect(result.ok).toBe(true);
-      const [requestRow] = await db.select({ email: projectRequest.contactEmail }).from(projectRequest).where(eq(projectRequest.id, projectRequestId));
-      // The fixture's contactEmail was never registered either, so assert
-      // against the client fixture's own (already-registered) email instead.
-      const [pending] = await db.select().from(pendingRegistration).where(eq(pendingRegistration.email, `pqa-client-${clientUserId}@example.test`));
-      expect(pending).toBeUndefined();
-      expect(requestRow.email).not.toBe(`pqa-client-${clientUserId}@example.test`);
+        const result = await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 800000 });
+
+        expect(result.ok).toBe(false);
+        expect(result.error).toMatch(/opublikowana klientowi/);
+        const rows = await db.select({ id: projectQuote.id, status: projectQuote.status }).from(projectQuote).where(eq(projectQuote.projectRequestId, projectRequestId));
+        expect(rows).toEqual([{ id: publishedQuoteId, status: "active" }]);
+      });
+
+      it("accepts a new version once the publication is withdrawn, and the new one starts unpublished", async () => {
+        const publishedQuoteId = await submitAndPublish();
+        await db.update(projectQuote).set({ publishedToClientAt: null }).where(eq(projectQuote.id, publishedQuoteId));
+
+        const result = await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 800000 });
+
+        expect(result.ok).toBe(true);
+        const [old] = await db.select({ status: projectQuote.status }).from(projectQuote).where(eq(projectQuote.id, publishedQuoteId));
+        expect(old.status).toBe("superseded");
+        const [next] = await db.select({ publishedToClientAt: projectQuote.publishedToClientAt }).from(projectQuote).where(eq(projectQuote.id, result.quoteId!));
+        expect(next.publishedToClientAt).toBeNull();
+      });
     });
 
-    // The email step is best-effort (spec 0037 API surface): a failure there
-    // must not undo the already-saved quote.
-    it("still returns ok:true when the login-link email step fails with an AuthError", async () => {
-      signInMock.mockRejectedValue(new FakeAuthError("send failed"));
+    // Spec 0070 AC-11: wspólny format oferty zapisuje się w kolumnach project_quote.
+    it("stores the full quote format: price mode, scope, logistics in cents, terms and delivery window", async () => {
       authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
 
-      const result = await submitProjectQuote({ projectRequestId, totalPriceEur: 900000 });
+      const result = await submitProjectQuote({
+        ...QUOTE_BASE,
+        projectRequestId,
+        priceTaxMode: "gross",
+        vatRatePercent: 23,
+        totalPriceEur: 1250000,
+        scopeExcluded: "Fundament",
+        logistics: {
+          transport: { mode: "amount", amountEur: 15000.5 },
+          assembly: { mode: "range", amountEur: 20000, maxAmountEur: 30000, note: "zależy od terminu" },
+          crane: { mode: "tbd" },
+        },
+        paymentPlan: "30/60/10",
+        warrantyNote: "10 lat",
+        deliveryWindowFrom: "2030-03-01",
+        deliveryWindowTo: "2030-04-01",
+      });
 
       expect(result.ok).toBe(true);
-      expect(captureErrorMock).toHaveBeenCalledWith(expect.any(FakeAuthError), expect.objectContaining({ path: "submitProjectQuote:notifyContact" }));
+      const [quote] = await db.select().from(projectQuote).where(eq(projectQuote.id, result.quoteId!));
+      expect(quote).toMatchObject({
+        priceTaxMode: "gross",
+        vatRatePercent: "23.0",
+        scopeIncluded: QUOTE_BASE.scopeIncluded,
+        scopeExcluded: "Fundament",
+        paymentPlan: "30/60/10",
+        warrantyNote: "10 lat",
+        validUntil: QUOTE_BASE.validUntil,
+        deliveryWindowFrom: "2030-03-01",
+        deliveryWindowTo: "2030-04-01",
+      });
+      expect(quote.logistics).toEqual({
+        transport: { mode: "amount", amountCents: 1500050 },
+        assembly: { mode: "range", amountCents: 2000000, maxAmountCents: 3000000, note: "zależy od terminu" },
+        crane: { mode: "tbd" },
+      });
+    });
+
+    it("rejects a quote without scope, without validity date, with a past validity date or with an invalid logistics range", async () => {
+      authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
+      const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
+
+      const noScope = await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 500000, scopeIncluded: "   " });
+      const noValidity = await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 500000, validUntil: undefined as unknown as string });
+      const pastValidity = await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 500000, validUntil: yesterday });
+      const badRange = await submitProjectQuote({
+        ...QUOTE_BASE,
+        projectRequestId,
+        totalPriceEur: 500000,
+        logistics: { transport: { mode: "range", amountEur: 30000, maxAmountEur: 20000 } },
+      });
+      const noMode = await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 500000, priceTaxMode: undefined as unknown as "net" });
+
+      for (const result of [noScope, noValidity, pastValidity, badRange, noMode]) expect(result.ok).toBe(false);
+      expect(pastValidity.error).toMatch(/w przyszłości/);
+      expect(badRange.error).toMatch(/Górna granica/);
+      const rows = await db.select().from(projectQuote).where(eq(projectQuote.producerId, producer1Id));
+      expect(rows).toHaveLength(0);
+    });
+
+    // Spec 0070 AC-12: termin, wybór klienta i zamknięcie blokują nową ofertę.
+    it("rejects a new quote after the deadline, with a readable message", async () => {
+      await db.update(projectRequest).set({ deadlineAt: new Date(Date.now() - 60_000) }).where(eq(projectRequest.id, projectRequestId));
+      authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
+
+      const result = await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 500000 });
+
+      expect(result.ok).toBe(false);
+      expect(result.error).toMatch(/Termin składania ofert/);
+      expect(await db.select().from(projectQuote).where(eq(projectQuote.producerId, producer1Id))).toHaveLength(0);
+    });
+
+    it("accepts a quote again once the deadline is moved into the future", async () => {
+      await db.update(projectRequest).set({ deadlineAt: new Date(Date.now() - 60_000) }).where(eq(projectRequest.id, projectRequestId));
+      authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
+      expect((await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 500000 })).ok).toBe(false);
+
+      await db.update(projectRequest).set({ deadlineAt: new Date(Date.now() + 7 * 86_400_000) }).where(eq(projectRequest.id, projectRequestId));
+      const result = await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 500000 });
+
+      expect(result.ok).toBe(true);
+    });
+
+    it("rejects a new quote once the client has chosen a quote", async () => {
+      authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
+      const first = await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 1000000 });
+      await db.update(projectRequest).set({ selectedQuoteId: first.quoteId!, selectedAt: new Date() }).where(eq(projectRequest.id, projectRequestId));
+
+      authMock.mockResolvedValue(sessionAs(producer4UserId, "producer"));
+      const result = await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 900000 });
+
+      expect(result.ok).toBe(false);
+      expect(result.error).toMatch(/wybrał już ofertę/);
+    });
+
+    it("applies the deadline to a bulk product inquiry as well", async () => {
+      await db.update(bulkProductInquiry).set({ deadlineAt: new Date(Date.now() - 60_000) }).where(eq(bulkProductInquiry.id, bulkInquiryId));
+      authMock.mockResolvedValue(sessionAs(producer3UserId, "producer"));
+
+      const result = await submitProjectQuote({ ...QUOTE_BASE, bulkProductInquiryId: bulkInquiryId, totalPriceEur: 800000 });
+
+      expect(result.ok).toBe(false);
+      expect(result.error).toMatch(/Termin składania ofert/);
+    });
+
+    // AC-12: warunek stoi w SQL obu kroków zapisu, nie tylko w odczycie przed nim.
+    // Zegar aplikacji jest cofnięty o godzinę, więc odczyt w JS jeszcze widzi
+    // otwarty termin, a baza (now()) już go nie: ani zastąpienie poprzedniej
+    // oferty, ani wstawienie nowej nie mogą się wykonać.
+    it("enforces the deadline in the SQL of both write steps (previous quote stays active, nothing inserted)", async () => {
+      authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
+      const first = await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 1000000 });
+      expect(first.ok).toBe(true);
+      await db.update(projectRequest).set({ deadlineAt: new Date(Date.now() - 600_000) }).where(eq(projectRequest.id, projectRequestId));
+
+      vi.useFakeTimers({ toFake: ["Date"] });
+      vi.setSystemTime(Date.now() - 3_600_000);
+      let result: Awaited<ReturnType<typeof submitProjectQuote>>;
+      try {
+        result = await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 1100000 });
+      } finally {
+        vi.useRealTimers();
+      }
+
+      expect(result.ok).toBe(false);
+      const rows = await db.select({ id: projectQuote.id, status: projectQuote.status }).from(projectQuote).where(eq(projectQuote.producerId, producer1Id));
+      expect(rows).toEqual([{ id: first.quoteId, status: "active" }]);
+    });
+
+    // AC-12: oferta złożona po opublikowaniu podsumowania czeka na ponowną publikację.
+    it("leaves a quote submitted after the summary was published unpublished (hidden from the client)", async () => {
+      await db.update(projectRequest).set({ status: "published", summaryPublishedAt: new Date() }).where(eq(projectRequest.id, projectRequestId));
+      authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
+
+      const result = await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 500000 });
+
+      expect(result.ok).toBe(true);
+      const [quote] = await db.select({ publishedToClientAt: projectQuote.publishedToClientAt }).from(projectQuote).where(eq(projectQuote.id, result.quoteId!));
+      expect(quote.publishedToClientAt).toBeNull();
     });
   });
 
-  describe("acceptProjectQuote", () => {
-    async function insertActiveQuote(producerId: string, totalPriceCents = 1000000) {
+  // Spec 0070 AC-16, AC-17: wybór klienta (jeden zapis na zapytaniu) i idempotentne połączenie stron.
+  describe("selectProjectQuote", () => {
+    async function insertActiveQuote(producerId: string, totalPriceCents = 1000000, target: "request" | "bulk" = "request") {
       const [inserted] = await db
         .insert(projectQuote)
-        .values({ projectRequestId, producerId, totalPriceCents, status: "active" })
+        .values({
+          ...(target === "request" ? { projectRequestId } : { bulkProductInquiryId: bulkInquiryId }),
+          producerId,
+          totalPriceCents,
+          status: "active",
+          publishedToClientAt: new Date(),
+        })
         .returning({ id: projectQuote.id });
       return inserted.id;
     }
+
+    async function ownRequestAsClient(b2b: "approved" | "not_submitted" = "not_submitted") {
+      await db.update(projectRequest).set({ clientId }).where(eq(projectRequest.id, projectRequestId));
+      await db.update(client).set({ b2bVerificationStatus: b2b }).where(eq(client.id, clientId));
+      authMock.mockResolvedValue(sessionAs(clientUserId, "client"));
+    }
+
+    async function readQuote(id: string) {
+      const [row] = await db
+        .select({ status: projectQuote.status, contactRevealedAt: projectQuote.contactRevealedAt })
+        .from(projectQuote)
+        .where(eq(projectQuote.id, id));
+      return row;
+    }
+
+    async function readRequest() {
+      const [row] = await db
+        .select({ status: projectRequest.status, selectedQuoteId: projectRequest.selectedQuoteId, selectedAt: projectRequest.selectedAt })
+        .from(projectRequest)
+        .where(eq(projectRequest.id, projectRequestId));
+      return row;
+    }
+
+    afterEach(async () => {
+      await db.update(projectRequest).set({ clientId: null }).where(eq(projectRequest.id, projectRequestId));
+      await db.update(bulkProductInquiry).set({ clientId: null }).where(eq(bulkProductInquiry.id, bulkInquiryId));
+      notifyOfConnectionMock.mockClear();
+      notifyTeamOfPendingSelectionMock.mockClear();
+    });
 
     it("rejects with no session", async () => {
       const quoteId = await insertActiveQuote(producer1Id);
       authMock.mockResolvedValue(null);
 
-      const result = await acceptProjectQuote(quoteId);
+      const result = await selectProjectQuote(quoteId);
 
       expect(result.ok).toBe(false);
-      const [row] = await db.select({ status: projectQuote.status }).from(projectQuote).where(eq(projectQuote.id, quoteId));
-      expect(row.status).toBe("active");
+      expect((await readRequest()).selectedQuoteId).toBeNull();
     });
 
     it("rejects a producer session", async () => {
       const quoteId = await insertActiveQuote(producer1Id);
       authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
 
-      const result = await acceptProjectQuote(quoteId);
+      const result = await selectProjectQuote(quoteId);
 
       expect(result.ok).toBe(false);
     });
 
-    it("rejects a client that does not own the parent project_request", async () => {
+    // Spec 0070 AC-13: klient nie zna oferty, której administrator mu nie opublikował.
+    it("treats an unpublished quote as not found, even for the owning client", async () => {
+      const quoteId = await insertActiveQuote(producer1Id);
+      await db.update(projectQuote).set({ publishedToClientAt: null }).where(eq(projectQuote.id, quoteId));
+      await ownRequestAsClient("approved");
+
+      const result = await selectProjectQuote(quoteId);
+
+      expect(result).toMatchObject({ ok: false, errorCode: "not_found" });
+      expect((await readRequest()).selectedQuoteId).toBeNull();
+      expect((await readQuote(quoteId)).status).toBe("active");
+    });
+
+    it("rejects a client that does not own the parent request, with the same not found answer", async () => {
       const quoteId = await insertActiveQuote(producer1Id);
       authMock.mockResolvedValue(sessionAs(otherClientUserId, "client"));
 
-      const result = await acceptProjectQuote(quoteId);
+      const result = await selectProjectQuote(quoteId);
 
-      expect(result.ok).toBe(false);
-      expect(result.error).toMatch(/Nie znaleziono wyceny/);
+      expect(result).toMatchObject({ ok: false, errorCode: "not_found" });
+      expect((await readRequest()).selectedQuoteId).toBeNull();
     });
 
-    // AC-9: acceptance is gated on b2bVerificationStatus = 'approved'.
-    it("rejects acceptance when the client's B2B verification is not approved", async () => {
+    // AC-16 i AC-17: wybór bez zatwierdzonego B2B jest zapisany, ale kontakt nie jest ujawniony.
+    it("saves the choice without revealing contact when B2B is not approved, and tells the team once", async () => {
       const quoteId = await insertActiveQuote(producer1Id);
-      await db.update(projectRequest).set({ clientId }).where(eq(projectRequest.id, projectRequestId));
-      authMock.mockResolvedValue(sessionAs(clientUserId, "client"));
+      await ownRequestAsClient("not_submitted");
 
-      const result = await acceptProjectQuote(quoteId);
+      const result = await selectProjectQuote(quoteId);
 
-      expect(result.ok).toBe(false);
-      expect(result.error).toMatch(/weryfikacja B2B/);
-
-      await db.update(projectRequest).set({ clientId: null }).where(eq(projectRequest.id, projectRequestId));
+      expect(result).toEqual({ ok: true, outcome: "pending_b2b" });
+      const request = await readRequest();
+      expect(request.selectedQuoteId).toBe(quoteId);
+      expect(request.selectedAt).not.toBeNull();
+      expect(request.status).toBe("open");
+      expect(await readQuote(quoteId)).toEqual({ status: "active", contactRevealedAt: null });
+      expect(notifyOfConnectionMock).not.toHaveBeenCalled();
+      expect(notifyTeamOfPendingSelectionMock).toHaveBeenCalledTimes(1);
+      expect(trackEventMock).toHaveBeenCalledWith("project_quote_selected", { quoteId, kind: "request" }, clientUserId);
     });
 
-    // AC-9: accepting one quote rejects every other active quote on the same request.
-    // AC-7: contactRevealedAt is stamped on the accepted quote, in the same
-    // operation, never on the rejected one.
-    it("accepts one active quote and rejects the other active quote on the same request", async () => {
-      const acceptedQuoteId = await insertActiveQuote(producer1Id);
-      const rejectedQuoteId = await insertActiveQuote(producer2Id);
-      await db.update(projectRequest).set({ clientId }).where(eq(projectRequest.id, projectRequestId));
-      await db.update(client).set({ b2bVerificationStatus: "approved" }).where(eq(client.id, clientId));
-      authMock.mockResolvedValue(sessionAs(clientUserId, "client"));
+    it("lets the client change the choice before the parties are connected, without mailing the team again", async () => {
+      const first = await insertActiveQuote(producer1Id);
+      const second = await insertActiveQuote(producer2Id);
+      await ownRequestAsClient("not_submitted");
+      await selectProjectQuote(first);
+      notifyTeamOfPendingSelectionMock.mockClear();
 
-      const result = await acceptProjectQuote(acceptedQuoteId);
+      const result = await selectProjectQuote(second);
 
-      expect(result.ok).toBe(true);
-      const [accepted] = await db.select({ status: projectQuote.status, contactRevealedAt: projectQuote.contactRevealedAt }).from(projectQuote).where(eq(projectQuote.id, acceptedQuoteId));
-      const [rejected] = await db.select({ status: projectQuote.status, contactRevealedAt: projectQuote.contactRevealedAt }).from(projectQuote).where(eq(projectQuote.id, rejectedQuoteId));
+      expect(result).toEqual({ ok: true, outcome: "pending_b2b" });
+      expect((await readRequest()).selectedQuoteId).toBe(second);
+      expect((await readQuote(first)).status).toBe("active");
+      expect(notifyTeamOfPendingSelectionMock).not.toHaveBeenCalled();
+    });
+
+    // AC-17: zatwierdzone B2B łączy od razu: accepted z ujawnieniem kontaktu, reszta rejected, zapytanie accepted.
+    it("connects at once when B2B is approved: accepts the chosen quote, rejects the rest, closes the request", async () => {
+      const chosen = await insertActiveQuote(producer1Id);
+      const other = await insertActiveQuote(producer2Id);
+      await ownRequestAsClient("approved");
+
+      const result = await selectProjectQuote(chosen);
+
+      expect(result).toEqual({ ok: true, outcome: "connected" });
+      const accepted = await readQuote(chosen);
       expect(accepted.status).toBe("accepted");
       expect(accepted.contactRevealedAt).not.toBeNull();
-      expect(rejected.status).toBe("rejected");
-      expect(rejected.contactRevealedAt).toBeNull();
-      const [requestRow] = await db.select({ status: projectRequest.status }).from(projectRequest).where(eq(projectRequest.id, projectRequestId));
-      expect(requestRow.status).toBe("accepted");
-      expect(trackEventMock).toHaveBeenCalledWith("project_quote_accepted", { quoteId: acceptedQuoteId }, clientUserId);
-
-      await db.update(projectRequest).set({ clientId: null }).where(eq(projectRequest.id, projectRequestId));
+      expect(await readQuote(other)).toEqual({ status: "rejected", contactRevealedAt: null });
+      expect((await readRequest()).status).toBe("accepted");
+      expect(notifyOfConnectionMock).toHaveBeenCalledTimes(1);
+      expect(notifyOfConnectionMock).toHaveBeenCalledWith({ kind: "request", id: projectRequestId });
+      expect(notifyTeamOfPendingSelectionMock).not.toHaveBeenCalled();
     });
 
-    it("a repeated accept on an already-accepted quote is idempotent", async () => {
-      const quoteId = await insertActiveQuote(producer1Id);
-      await db.update(projectRequest).set({ clientId }).where(eq(projectRequest.id, projectRequestId));
-      await db.update(client).set({ b2bVerificationStatus: "approved" }).where(eq(client.id, clientId));
-      authMock.mockResolvedValue(sessionAs(clientUserId, "client"));
-      await acceptProjectQuote(quoteId);
-      trackEventMock.mockClear();
+    it("refuses to change the choice after the parties are connected", async () => {
+      const chosen = await insertActiveQuote(producer1Id);
+      const other = await insertActiveQuote(producer2Id);
+      await ownRequestAsClient("approved");
+      await selectProjectQuote(chosen);
 
-      const result = await acceptProjectQuote(quoteId);
+      const result = await selectProjectQuote(other);
 
-      expect(result.ok).toBe(true);
-      expect(trackEventMock).not.toHaveBeenCalled();
-
-      await db.update(projectRequest).set({ clientId: null }).where(eq(projectRequest.id, projectRequestId));
+      expect(result).toMatchObject({ ok: false, errorCode: "already_connected" });
+      expect((await readRequest()).selectedQuoteId).toBe(chosen);
+      expect((await readQuote(chosen)).status).toBe("accepted");
     });
 
-    it("returns a readable race error for a quote that is no longer active (e.g. superseded)", async () => {
+    it("answers with the stale code for a quote that is no longer active", async () => {
       const quoteId = await insertActiveQuote(producer1Id);
       await db.update(projectQuote).set({ status: "superseded" }).where(eq(projectQuote.id, quoteId));
-      await db.update(projectRequest).set({ clientId }).where(eq(projectRequest.id, projectRequestId));
+      await ownRequestAsClient("approved");
+
+      const result = await selectProjectQuote(quoteId);
+
+      expect(result).toMatchObject({ ok: false, errorCode: "stale" });
+      expect((await readRequest()).selectedQuoteId).toBeNull();
+    });
+
+    it("answers with the closed code on a closed request", async () => {
+      const quoteId = await insertActiveQuote(producer1Id);
+      await ownRequestAsClient("approved");
+      await db
+        .update(projectRequest)
+        .set({ status: "closed", closedAt: new Date(), closedReason: "client_cancelled" })
+        .where(eq(projectRequest.id, projectRequestId));
+
+      const result = await selectProjectQuote(quoteId);
+
+      expect(result).toMatchObject({ ok: false, errorCode: "closed" });
+      expect((await readRequest()).selectedQuoteId).toBeNull();
+    });
+
+    // AC-21: zapytanie o produkt używa tej samej bramki i tego samego wyboru, jedna kolumna w tabeli.
+    it("selects and connects on a bulk product inquiry", async () => {
+      const quoteId = await insertActiveQuote(producer3Id, 2000000, "bulk");
+      await db.update(bulkProductInquiry).set({ clientId }).where(eq(bulkProductInquiry.id, bulkInquiryId));
       await db.update(client).set({ b2bVerificationStatus: "approved" }).where(eq(client.id, clientId));
       authMock.mockResolvedValue(sessionAs(clientUserId, "client"));
 
-      const result = await acceptProjectQuote(quoteId);
+      const result = await selectProjectQuote(quoteId);
 
-      expect(result.ok).toBe(false);
-      expect(result.error).toMatch(/nie jest już aktywna/);
+      expect(result).toEqual({ ok: true, outcome: "connected" });
+      const [inquiry] = await db
+        .select({ status: bulkProductInquiry.status, selectedQuoteId: bulkProductInquiry.selectedQuoteId })
+        .from(bulkProductInquiry)
+        .where(eq(bulkProductInquiry.id, bulkInquiryId));
+      expect(inquiry).toEqual({ status: "accepted", selectedQuoteId: quoteId });
+      expect((await readQuote(quoteId)).status).toBe("accepted");
+      expect(notifyOfConnectionMock).toHaveBeenCalledWith({ kind: "product", id: bulkInquiryId });
+    });
 
+    // AC-17: zatwierdzenie B2B po wyborze łączy strony (druga połowa kolejności "fakt, potem połączenie").
+    it("connects a waiting choice when the admin approves B2B afterwards", async () => {
+      const quoteId = await insertActiveQuote(producer1Id);
+      await ownRequestAsClient("not_submitted");
+      await selectProjectQuote(quoteId);
+      authMock.mockResolvedValue(sessionAs(adminUserId, "admin"));
+
+      const result = await setClientB2bVerification(clientId, "approved");
+
+      expect(result.ok).toBe(true);
+      expect((await readQuote(quoteId)).status).toBe("accepted");
+      expect((await readRequest()).status).toBe("accepted");
+      expect(notifyOfConnectionMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("does not connect anything when the admin rejects B2B", async () => {
+      const quoteId = await insertActiveQuote(producer1Id);
+      await ownRequestAsClient("not_submitted");
+      await selectProjectQuote(quoteId);
+      authMock.mockResolvedValue(sessionAs(adminUserId, "admin"));
+
+      await setClientB2bVerification(clientId, "rejected");
+
+      expect((await readQuote(quoteId)).status).toBe("active");
+      expect(notifyOfConnectionMock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("connectSelection", () => {
+    async function insertSelectedQuote(b2b: "approved" | "not_submitted") {
+      const [quote] = await db
+        .insert(projectQuote)
+        .values({ projectRequestId, producerId: producer1Id, totalPriceCents: 1000000, status: "active", publishedToClientAt: new Date() })
+        .returning({ id: projectQuote.id });
+      await db
+        .update(projectRequest)
+        .set({ clientId, selectedQuoteId: quote.id, selectedAt: new Date() })
+        .where(eq(projectRequest.id, projectRequestId));
+      await db.update(client).set({ b2bVerificationStatus: b2b }).where(eq(client.id, clientId));
+      return quote.id;
+    }
+
+    afterEach(async () => {
       await db.update(projectRequest).set({ clientId: null }).where(eq(projectRequest.id, projectRequestId));
+      notifyOfConnectionMock.mockClear();
+    });
+
+    it("is idempotent: a repeated call changes nothing and sends the connection mails only once", async () => {
+      const quoteId = await insertSelectedQuote("approved");
+
+      const first = await connectSelection("request", projectRequestId);
+      const second = await connectSelection("request", projectRequestId);
+
+      expect(first).toBe("connected");
+      expect(second).toBe("already_connected");
+      expect((await db.select({ status: projectQuote.status }).from(projectQuote).where(eq(projectQuote.id, quoteId)))[0].status).toBe("accepted");
+      expect(notifyOfConnectionMock).toHaveBeenCalledTimes(1);
+    });
+
+    // Wyścig dwóch wywołań (wybór klienta i zatwierdzenie B2B w tej samej chwili): jedno łączy, drugie nic nie zmienia.
+    it("connects exactly once when called concurrently", async () => {
+      await insertSelectedQuote("approved");
+
+      const outcomes = await Promise.all([connectSelection("request", projectRequestId), connectSelection("request", projectRequestId)]);
+
+      expect(outcomes.filter((outcome) => outcome === "connected")).toHaveLength(1);
+      expect(notifyOfConnectionMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("waits (pending_b2b) while the company data is not approved and changes nothing", async () => {
+      const quoteId = await insertSelectedQuote("not_submitted");
+
+      const outcome = await connectSelection("request", projectRequestId);
+
+      expect(outcome).toBe("pending_b2b");
+      expect((await db.select({ status: projectQuote.status }).from(projectQuote).where(eq(projectQuote.id, quoteId)))[0].status).toBe("active");
+      expect(notifyOfConnectionMock).not.toHaveBeenCalled();
+    });
+
+    it("skips a closed request even when the client has a choice and approved B2B", async () => {
+      const quoteId = await insertSelectedQuote("approved");
+      await db
+        .update(projectRequest)
+        .set({ status: "closed", closedAt: new Date(), closedReason: "client_cancelled" })
+        .where(eq(projectRequest.id, projectRequestId));
+
+      const outcome = await connectSelection("request", projectRequestId);
+
+      expect(outcome).toBe("skipped");
+      expect((await db.select({ status: projectQuote.status }).from(projectQuote).where(eq(projectQuote.id, quoteId)))[0].status).toBe("active");
+      expect(notifyOfConnectionMock).not.toHaveBeenCalled();
+    });
+
+    it("skips a request without any choice", async () => {
+      const outcome = await connectSelection("request", projectRequestId);
+
+      expect(outcome).toBe("skipped");
     });
   });
 
@@ -691,7 +1056,10 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
 
   describe("getProjectQuotePdfUrl", () => {
     async function insertQuoteWithPdf(producerId: string) {
-      const [quote] = await db.insert(projectQuote).values({ projectRequestId, producerId, totalPriceCents: 1000000, status: "active" }).returning({ id: projectQuote.id });
+      const [quote] = await db
+        .insert(projectQuote)
+        .values({ projectRequestId, producerId, totalPriceCents: 1000000, status: "active", publishedToClientAt: new Date() })
+        .returning({ id: projectQuote.id });
       await db.insert(document).values({
         r2Key: `pqa-test-${crypto.randomUUID()}.pdf`,
         filename: "wycena.pdf",
@@ -733,6 +1101,20 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       expect(result.url).toBe("https://private.example.test/signed-url");
       expect(buildSignedDownloadUrlMock).toHaveBeenCalledWith(expect.any(String), 600, "wycena.pdf");
 
+      await db.update(projectRequest).set({ clientId: null }).where(eq(projectRequest.id, projectRequestId));
+    });
+
+    // Spec 0070 AC-13: PDF nieopublikowanej oferty nie wychodzi do klienta, nawet po identyfikatorze.
+    it("denies the owning client the pdf of an unpublished quote, same not-found error", async () => {
+      const quoteId = await insertQuoteWithPdf(producer1Id);
+      await db.update(projectQuote).set({ publishedToClientAt: null }).where(eq(projectQuote.id, quoteId));
+      await db.update(projectRequest).set({ clientId }).where(eq(projectRequest.id, projectRequestId));
+      authMock.mockResolvedValue(sessionAs(clientUserId, "client"));
+
+      const result = await getProjectQuotePdfUrl(quoteId);
+
+      expect(result).toEqual({ ok: false, error: "Nie znaleziono wyceny." });
+      expect(buildSignedDownloadUrlMock).not.toHaveBeenCalled();
       await db.update(projectRequest).set({ clientId: null }).where(eq(projectRequest.id, projectRequestId));
     });
 

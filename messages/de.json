@@ -194,9 +194,9 @@
       "many": "Modularcontainer"
     },
     "outdoor-tv": {
-      "one": "Outdoor-TV-Schrank",
-      "few": "Outdoor-TV-Schränke",
-      "many": "Outdoor-TV-Schränke"
+      "one": "Outdoor-TV-Produkt",
+      "few": "Outdoor-TV-Produkte",
+      "many": "Outdoor-TV-Produkte"
     },
     "wiecej-niz-dom": {
       "one": "Produkt",
@@ -211,7 +211,8 @@
   },
   "ResultsHeader": {
     "eligibleSuffix": " zugelassen {country}",
-    "hint": "Wählen Sie oben in der Leiste ein Land aus, um zu sehen, welche {familyFew} dort rechtlich zugelassen sind."
+    "hint": "Wählen Sie oben in der Leiste ein Land aus, um zu sehen, welche {familyFew} dort rechtlich zugelassen sind.",
+    "hintOutdoorTv": "Grenzen Sie die Liste nach Montageart und Verwendung ein."
   },
   "EmptyResults": {
     "heading": "Keine {familyMany} entsprechen den gewählten Kriterien",
@@ -863,27 +864,52 @@
     "heading": "Großaufträge",
     "emptyTitle": "Sie haben noch keine Anfragen für Großaufträge",
     "emptyDescription": "Beschreiben Sie Ihr Projekt einmal, und die Hersteller reichen Angebote ein. Ihre Anfrage erscheint hier mit Frist und Angeboten.",
-    "producerColumn": "Hersteller",
-    "priceColumn": "Preis",
-    "leadTimeColumn": "Lieferzeit",
-    "statusColumn": "Status",
-    "statusActive": "Aktiv",
-    "statusAccepted": "Angenommen",
-    "statusRejected": "Abgelehnt",
-    "statusSuperseded": "Ersetzt",
-    "leadTimeWeeks": "{weeks} Wo.",
-    "notesColumn": "Notiz",
     "addRequest": "Anfrage für einen Großauftrag hinzufügen",
     "activeCounter": "Aktive Anfragen: {count} von {max}",
     "limitHint": "Schließen Sie eine Anfrage, um eine weitere hinzuzufügen.",
     "noQuotesYet": "Wir warten auf Angebote der Hersteller, Frist bis {date}.",
     "closedGroupHeading": "Geschlossene Anfragen"
   },
-  "AcceptQuoteButton": {
-    "accept": "Annehmen",
-    "accepting": "Wird angenommen…",
-    "accepted": "Angenommen",
-    "genericError": "Das Angebot konnte nicht angenommen werden. Bitte versuche es erneut."
+  "QuoteComparisonTable": {
+    "caption": "Vergleich der Herstellerangebote",
+    "rowHeader": "Angebotsfeld",
+    "noData": "keine Angabe",
+    "toBeQuoted": "wird noch kalkuliert",
+    "range": "{from} bis {to}",
+    "rowPrice": "Gesamtpreis",
+    "priceNet": "Nettopreis",
+    "priceNetVat": "Nettopreis, MwSt. {rate} %",
+    "priceGross": "Bruttopreis",
+    "priceGrossVat": "Bruttopreis, inkl. {rate} % MwSt.",
+    "rowUnitPrice": "Preis pro Stück",
+    "rowScopeIncluded": "Im Preis enthalten",
+    "rowScopeExcluded": "Nicht im Preis enthalten",
+    "rowTransport": "Transport zur Baustelle",
+    "rowAssembly": "Montage",
+    "rowCrane": "Kran",
+    "rowPaymentPlan": "Zahlungsplan",
+    "rowValidUntil": "Angebot gültig bis",
+    "rowWarranty": "Garantie",
+    "rowLeadTime": "Produktionszeit",
+    "leadTimeWeeks": "{weeks} Wo.",
+    "rowDeliveryWindow": "Lieferzeitraum",
+    "deliveryWindowRange": "{from} bis {to}",
+    "deliveryWindowFrom": "ab {from}",
+    "deliveryWindowTo": "bis {to}",
+    "rowNotes": "Hinweise des Herstellers",
+    "rowAdvisorNote": "Kommentar von ModularHub",
+    "rowCertifications": "Zertifikate des Herstellers",
+    "certificationConfirmed": "von ModularHub bestätigt",
+    "rowStatus": "Angebotsstatus",
+    "statusActive": "Aktiv",
+    "statusAccepted": "Angenommen",
+    "statusRejected": "Abgelehnt",
+    "statusSuperseded": "Ersetzt",
+    "rowAction": "Auswahl",
+    "attachmentsHeading": "Anhänge",
+    "attachmentLabel": "Angebot von {producer} (PDF)",
+    "pendingNote": "Wir warten auf die Bestätigung Ihrer Firmendaten. Der Hersteller erhält Ihren Kontakt direkt danach. Bis dahin können Sie Ihre Auswahl ändern.",
+    "connectedNote": "Die Parteien sind jetzt verbunden. Der Hersteller und ModularHub melden sich bei Ihnen. Bitte bestätigen Sie Preis, Umfang und Termin im System."
   },
   "DownloadQuotePdfButton": {
     "download": "PDF herunterladen",
@@ -1378,6 +1404,26 @@
     "closeFilters": "Filter schließen",
     "applyFilters": "Ergebnisse anzeigen"
   },
+  "OutdoorTvFilterBar": {
+    "navAriaLabel": "Outdoor-TV-Filter",
+    "mountingLabel": "Montage",
+    "mountingAriaLabel": "Montageart",
+    "purposeLabel": "Verwendung",
+    "purposeAriaLabel": "Verwendung (Sonneneinstrahlung)",
+    "mounting": {
+      "na-sciane": "An der Wand",
+      "w-szafie-z-winda": "Im Liftschrank"
+    },
+    "purpose": {
+      "cien": "Schatten",
+      "czesciowe-slonce": "Teilweise Sonne",
+      "pelne-slonce": "Volle Sonne"
+    },
+    "keywordLabel": "Stichwort",
+    "keywordPlaceholder": "Name oder Beschreibung",
+    "searchAriaLabel": "Suchen",
+    "clearFilters": "Filter zurücksetzen"
+  },
   "SearchCard": {
     "budgetAny": "Beliebiges Budget",
     "budgetUpTo50k": "bis 50.000 €",
@@ -1858,6 +1904,8 @@
     "notDeliveringLink": "Land im Kapazitätsprofil hinzufügen"
   },
   "ProducerBoardDetailPage": {
+    "quotesClosedNote": "Die Angebotsfrist ist abgelaufen oder der Kunde hat bereits ein Angebot gewählt. Ein neues Angebot kann nicht mehr abgegeben werden.",
+    "ownQuotePublishedNote": "Ihr Angebot wurde dem Kunden bereits veröffentlicht. Eine neue Version können Sie abgeben, sobald ModularHub die Veröffentlichung zurückgezogen hat.",
     "scopeHeading": "Auftragsumfang",
     "scheduleHeading": "Termin und Standort",
     "heading": "Anfragedetails",
@@ -1887,6 +1935,34 @@
     "heading": "Ihr Angebot",
     "intro": "Gib dein Angebot für diese Anfrage ab.",
     "revisionIntro": "Du überarbeitest ein bereits eingereichtes Angebot — die neue Version ersetzt die vorherige.",
+    "priceSection": "Preis",
+    "priceTaxModeLabel": "Preis angegeben als",
+    "priceTaxModeNet": "Nettopreis",
+    "priceTaxModeGross": "Bruttopreis",
+    "vatRateLabel": "MwSt.-Satz (%)",
+    "scopeSection": "Leistungsumfang",
+    "scopeIncludedLabel": "Im Preis enthalten",
+    "scopeExcludedLabel": "Nicht im Preis enthalten",
+    "logisticsSection": "Logistik",
+    "logisticsHint": "Geben Sie für jede Position einen Betrag oder eine Spanne an oder wählen Sie „später zu kalkulieren“. Unbekannte Kosten zählen nie als null.",
+    "logisticsItem": {
+      "transport": "Transport zur Baustelle",
+      "assembly": "Montage",
+      "crane": "Kran"
+    },
+    "logisticsModeAmount": "Betrag",
+    "logisticsModeRange": "Spanne",
+    "logisticsModeTbd": "Später zu kalkulieren",
+    "logisticsAmount": "Betrag (€)",
+    "logisticsAmountFrom": "Von (€)",
+    "logisticsAmountTo": "Bis (€)",
+    "logisticsNote": "Hinweise zur Position",
+    "termsSection": "Bedingungen",
+    "validUntilLabel": "Angebot gültig bis",
+    "deliveryWindowFromLabel": "Lieferfenster ab",
+    "deliveryWindowToLabel": "Lieferfenster bis",
+    "paymentPlanLabel": "Zahlungsplan",
+    "warrantyLabel": "Gewährleistung",
     "totalPriceLabel": "Gesamtpreis (€)",
     "unitPriceLabel": "Preis pro Einheit (€)",
     "leadTimeLabel": "Vorgeschlagene Lieferzeit (Wochen)",
@@ -2491,5 +2567,47 @@
     "subject": "Die Anfrage wurde geschlossen",
     "body": "Die Anfrage, für die Sie ein Angebot abgegeben haben, wurde geschlossen. Sie müssen nichts tun. Neue Anfragen finden Sie auf der Übersicht.",
     "cta": "Anfragen-Übersicht öffnen"
+  },
+  "SelectQuoteButton": {
+    "select": "Dieses Angebot wählen",
+    "change": "Auswahl auf dieses Angebot ändern",
+    "selecting": "Wird gespeichert…",
+    "selected": "Gewählt",
+    "notFound": "Angebot nicht gefunden. Bitte laden Sie die Seite neu.",
+    "alreadyConnected": "Die Parteien sind bereits verbunden. Wenden Sie sich an ModularHub, wenn Sie etwas ändern möchten.",
+    "closed": "Diese Anfrage ist bereits geschlossen.",
+    "stale": "Dieses Angebot kann nicht mehr gewählt werden. Bitte laden Sie die Seite neu.",
+    "genericError": "Ihre Auswahl konnte nicht gespeichert werden. Bitte versuchen Sie es erneut."
+  },
+  "LargeOrderClientConnectedEmail": {
+    "subject": "Wir haben Sie mit {producer} verbunden",
+    "intro": "Das von Ihnen gewählte Angebot von {producer} ist bestätigt. Wir haben Ihre Kontaktdaten an den Hersteller weitergegeben, seine Daten finden Sie unten.",
+    "producerLabel": "Hersteller",
+    "emailLabel": "E-Mail-Adresse",
+    "confirmInSystem": "Bitte bestätigen Sie Preis, Umfang und Termin im ModularHub-System, damit alles an einem Ort bleibt.",
+    "cta": "Ihre Anfragen öffnen"
+  },
+  "LargeOrderProducerConnectedEmail": {
+    "subject": "Ein Kunde hat Ihr Angebot gewählt",
+    "intro": "Ein Kunde hat Ihr Angebot für einen Großauftrag gewählt. Die Kundendaten finden Sie unten.",
+    "nameLabel": "Ansprechperson",
+    "emailLabel": "E-Mail-Adresse",
+    "phoneLabel": "Telefonnummer",
+    "countryLabel": "Lieferland",
+    "unitsLabel": "Anzahl der Häuser",
+    "confirmInSystem": "Bitte bestätigen Sie Preis, Umfang und Termin im ModularHub-System, damit alles an einem Ort bleibt.",
+    "cta": "Angebotsbereich öffnen"
+  },
+  "LargeOrderTeamConnectedEmail": {
+    "subject": "Parteien bei einem Großauftrag verbunden ({units} Häuser, {country})",
+    "intro": "Der Kunde hat ein Angebot gewählt und die Parteien wurden verbunden. Kunde und Hersteller haben jeweils die Kontaktdaten der anderen Seite erhalten.",
+    "producerLabel": "Hersteller",
+    "clientLabel": "Kunde",
+    "cta": "Anfrage im Panel öffnen"
+  },
+  "LargeOrderTeamPendingSelectionEmail": {
+    "subject": "Auswahl des Kunden wartet auf die Freigabe der Firmendaten ({units} Häuser, {country})",
+    "intro": "Der Kunde hat ein Angebot gewählt, aber seine Firmendaten (B2B) sind noch nicht freigegeben. Geben Sie sie frei, dann werden die Parteien automatisch verbunden.",
+    "cta": "Anfrage im Panel öffnen"
   }
 }

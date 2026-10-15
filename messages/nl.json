@@ -194,9 +194,9 @@
       "many": "modulaire containers"
     },
     "outdoor-tv": {
-      "one": "buiten tv-kast",
-      "few": "buiten tv-kasten",
-      "many": "buiten tv-kasten"
+      "one": "buitentelevisie-product",
+      "few": "buitentelevisie-producten",
+      "many": "buitentelevisie-producten"
     },
     "wiecej-niz-dom": {
       "one": "product",
@@ -211,7 +211,8 @@
   },
   "ResultsHeader": {
     "eligibleSuffix": " toegestaan {country}",
-    "hint": "Kies een land in de balk hierboven om te zien welke {familyFew} daar wettelijk zijn toegestaan."
+    "hint": "Kies een land in de balk hierboven om te zien welke {familyFew} daar wettelijk zijn toegestaan.",
+    "hintOutdoorTv": "Beperk de lijst op montagewijze en gebruik."
   },
   "EmptyResults": {
     "heading": "Geen {familyMany} voldoen aan de gekozen criteria",
@@ -863,27 +864,52 @@
     "heading": "Grote bestellingen",
     "emptyTitle": "U heeft nog geen aanvragen voor grote bestellingen",
     "emptyDescription": "Beschrijf uw project één keer en fabrikanten dienen offertes in. Uw aanvraag verschijnt hier met de deadline en de offertes.",
-    "producerColumn": "Producent",
-    "priceColumn": "Prijs",
-    "leadTimeColumn": "Levertijd",
-    "statusColumn": "Status",
-    "statusActive": "Actief",
-    "statusAccepted": "Geaccepteerd",
-    "statusRejected": "Afgewezen",
-    "statusSuperseded": "Vervangen",
-    "leadTimeWeeks": "{weeks} wk",
-    "notesColumn": "Notitie",
     "addRequest": "Aanvraag voor een grote bestelling toevoegen",
     "activeCounter": "Actieve aanvragen: {count} van {max}",
     "limitHint": "Sluit één aanvraag om een nieuwe toe te voegen.",
     "noQuotesYet": "We wachten op offertes van fabrikanten, deadline {date}.",
     "closedGroupHeading": "Gesloten aanvragen"
   },
-  "AcceptQuoteButton": {
-    "accept": "Accepteren",
-    "accepting": "Accepteren…",
-    "accepted": "Geaccepteerd",
-    "genericError": "De offerte kon niet worden geaccepteerd. Probeer het opnieuw."
+  "QuoteComparisonTable": {
+    "caption": "Vergelijking van de offertes van fabrikanten",
+    "rowHeader": "Offerteveld",
+    "noData": "geen gegevens",
+    "toBeQuoted": "nog te calculeren",
+    "range": "{from} tot {to}",
+    "rowPrice": "Totaalprijs",
+    "priceNet": "prijs excl. btw",
+    "priceNetVat": "prijs excl. btw, btw {rate}%",
+    "priceGross": "prijs incl. btw",
+    "priceGrossVat": "prijs incl. {rate}% btw",
+    "rowUnitPrice": "Prijs per stuk",
+    "rowScopeIncluded": "Inbegrepen in de prijs",
+    "rowScopeExcluded": "Niet inbegrepen in de prijs",
+    "rowTransport": "Transport naar de bouwplaats",
+    "rowAssembly": "Montage",
+    "rowCrane": "Kraan",
+    "rowPaymentPlan": "Betalingsplan",
+    "rowValidUntil": "Offerte geldig tot",
+    "rowWarranty": "Garantie",
+    "rowLeadTime": "Productietijd",
+    "leadTimeWeeks": "{weeks} wk",
+    "rowDeliveryWindow": "Leveringsperiode",
+    "deliveryWindowRange": "{from} tot {to}",
+    "deliveryWindowFrom": "vanaf {from}",
+    "deliveryWindowTo": "uiterlijk {to}",
+    "rowNotes": "Opmerkingen van de fabrikant",
+    "rowAdvisorNote": "Opmerking van ModularHub",
+    "rowCertifications": "Certificaten van de fabrikant",
+    "certificationConfirmed": "bevestigd door ModularHub",
+    "rowStatus": "Status van de offerte",
+    "statusActive": "Actief",
+    "statusAccepted": "Geaccepteerd",
+    "statusRejected": "Afgewezen",
+    "statusSuperseded": "Vervangen",
+    "rowAction": "Keuze",
+    "attachmentsHeading": "Bijlagen",
+    "attachmentLabel": "Offerte van {producer} (PDF)",
+    "pendingNote": "We wachten op de bevestiging van uw bedrijfsgegevens. De fabrikant ontvangt uw contactgegevens direct daarna. Tot die tijd kunt u uw keuze wijzigen.",
+    "connectedNote": "De partijen zijn nu verbonden. De fabrikant en ModularHub nemen contact met u op. Bevestig prijs, omvang en planning in het systeem."
   },
   "DownloadQuotePdfButton": {
     "download": "PDF downloaden",
@@ -1371,6 +1397,26 @@
     "closeFilters": "Filters sluiten",
     "applyFilters": "Resultaten tonen"
   },
+  "OutdoorTvFilterBar": {
+    "navAriaLabel": "Buitentelevisie-filters",
+    "mountingLabel": "Montage",
+    "mountingAriaLabel": "Montagewijze",
+    "purposeLabel": "Gebruik",
+    "purposeAriaLabel": "Gebruik (zonblootstelling)",
+    "mounting": {
+      "na-sciane": "Aan de muur",
+      "w-szafie-z-winda": "In een liftkast"
+    },
+    "purpose": {
+      "cien": "Schaduw",
+      "czesciowe-slonce": "Gedeeltelijke zon",
+      "pelne-slonce": "Volle zon"
+    },
+    "keywordLabel": "Trefwoord",
+    "keywordPlaceholder": "Naam of beschrijving",
+    "searchAriaLabel": "Zoeken",
+    "clearFilters": "Filters wissen"
+  },
   "SearchCard": {
     "budgetAny": "Elk budget",
     "budgetUpTo50k": "tot €50K",
@@ -1851,6 +1897,8 @@
     "notDeliveringLink": "Voeg een land toe in uw capaciteitsprofiel"
   },
   "ProducerBoardDetailPage": {
+    "quotesClosedNote": "De deadline voor offertes is verstreken of de klant heeft al een offerte gekozen. Er kan geen nieuwe offerte meer worden ingediend.",
+    "ownQuotePublishedNote": "Uw offerte is al aan de klant gepubliceerd. U kunt een nieuwe versie indienen zodra ModularHub de publicatie heeft ingetrokken.",
     "scopeHeading": "Omvang van de opdracht",
     "scheduleHeading": "Planning en locatie",
     "heading": "Aanvraagdetails",
@@ -1880,6 +1928,34 @@
     "heading": "Uw offerte",
     "intro": "Dien je offerte in voor deze aanvraag.",
     "revisionIntro": "Je past een eerder ingediende offerte aan — de nieuwe versie vervangt de vorige.",
+    "priceSection": "Prijs",
+    "priceTaxModeLabel": "Prijs opgegeven als",
+    "priceTaxModeNet": "Nettoprijs",
+    "priceTaxModeGross": "Brutoprijs",
+    "vatRateLabel": "btw-tarief (%)",
+    "scopeSection": "Omvang",
+    "scopeIncludedLabel": "Inbegrepen in de prijs",
+    "scopeExcludedLabel": "Niet inbegrepen",
+    "logisticsSection": "Logistiek",
+    "logisticsHint": "Geef per onderdeel een bedrag of bandbreedte op, of kies „later te offreren”. Onbekende kosten tellen nooit als nul.",
+    "logisticsItem": {
+      "transport": "Transport naar locatie",
+      "assembly": "Montage",
+      "crane": "Kraan"
+    },
+    "logisticsModeAmount": "Bedrag",
+    "logisticsModeRange": "Bandbreedte",
+    "logisticsModeTbd": "Later te offreren",
+    "logisticsAmount": "Bedrag (€)",
+    "logisticsAmountFrom": "Van (€)",
+    "logisticsAmountTo": "Tot (€)",
+    "logisticsNote": "Opmerkingen bij dit onderdeel",
+    "termsSection": "Voorwaarden",
+    "validUntilLabel": "Offerte geldig tot",
+    "deliveryWindowFromLabel": "Leverperiode vanaf",
+    "deliveryWindowToLabel": "Leverperiode tot",
+    "paymentPlanLabel": "Betalingsplan",
+    "warrantyLabel": "Garantie",
     "totalPriceLabel": "Totaalprijs (€)",
     "unitPriceLabel": "Prijs per eenheid (€)",
     "leadTimeLabel": "Voorgestelde levertijd (weken)",
@@ -2491,5 +2567,47 @@
     "subject": "De aanvraag is gesloten",
     "body": "De aanvraag waarvoor u een offerte heeft ingediend, is gesloten. U hoeft niets te doen. Nieuwe aanvragen vindt u op het prikbord.",
     "cta": "Open het prikbord met aanvragen"
+  },
+  "SelectQuoteButton": {
+    "select": "Kies deze offerte",
+    "change": "Wijzig mijn keuze naar deze offerte",
+    "selecting": "Opslaan…",
+    "selected": "Gekozen",
+    "notFound": "Offerte niet gevonden. Vernieuw de pagina.",
+    "alreadyConnected": "De partijen zijn al verbonden. Neem contact op met ModularHub als u iets wilt wijzigen.",
+    "closed": "Deze aanvraag is al gesloten.",
+    "stale": "Deze offerte kan niet meer worden gekozen. Vernieuw de pagina.",
+    "genericError": "Uw keuze kon niet worden opgeslagen. Probeer het opnieuw."
+  },
+  "LargeOrderClientConnectedEmail": {
+    "subject": "We hebben u verbonden met {producer}",
+    "intro": "Uw gekozen offerte van {producer} is bevestigd. We hebben uw contactgegevens aan de fabrikant doorgegeven, de zijne vindt u hieronder.",
+    "producerLabel": "Fabrikant",
+    "emailLabel": "E-mailadres",
+    "confirmInSystem": "Bevestig prijs, omvang en planning in het ModularHub-systeem, zodat alles op één plek blijft.",
+    "cta": "Uw aanvragen openen"
+  },
+  "LargeOrderProducerConnectedEmail": {
+    "subject": "Een klant heeft uw offerte gekozen",
+    "intro": "Een klant heeft uw offerte voor een grote bestelling gekozen. Hieronder staan de gegevens van de klant.",
+    "nameLabel": "Contactpersoon",
+    "emailLabel": "E-mailadres",
+    "phoneLabel": "Telefoon",
+    "countryLabel": "Land van levering",
+    "unitsLabel": "Aantal huizen",
+    "confirmInSystem": "Bevestig prijs, omvang en planning in het ModularHub-systeem, zodat alles op één plek blijft.",
+    "cta": "Offertepaneel openen"
+  },
+  "LargeOrderTeamConnectedEmail": {
+    "subject": "Partijen verbonden bij een grote bestelling ({units} huizen, {country})",
+    "intro": "De klant heeft een offerte gekozen en de partijen zijn verbonden. Klant en fabrikant hebben elkaars contactgegevens ontvangen.",
+    "producerLabel": "Fabrikant",
+    "clientLabel": "Klant",
+    "cta": "Aanvraag openen in het paneel"
+  },
+  "LargeOrderTeamPendingSelectionEmail": {
+    "subject": "Keuze van de klant wacht op goedkeuring van bedrijfsgegevens ({units} huizen, {country})",
+    "intro": "De klant heeft een offerte gekozen, maar de bedrijfsgegevens (B2B) zijn nog niet goedgekeurd. Keur ze goed en de partijen worden automatisch verbonden.",
+    "cta": "Aanvraag openen in het paneel"
   }
 }

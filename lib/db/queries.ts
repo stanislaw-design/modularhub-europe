@@ -1,9 +1,10 @@
-import { and, asc, desc, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, isNotNull, isNull, or, sql } from "drizzle-orm";
 import { db } from "./client";
 import { producerDeliversToRequestCountrySql, producerMatchesProjectRequestSql } from "./project-request-matching";
 import { buildPublicUrl } from "@/lib/storage/r2-client";
 import type { Locale } from "@/lib/i18n/routing";
 import { resolveTranslatedText } from "@/lib/i18n/resolve-translated-text";
+import { storedLogisticsSchema, type StoredLogistics } from "@/lib/project-quote-specs";
 import {
   bulkProductInquiry,
   client,
@@ -18,6 +19,7 @@ import {
   producer,
   producerCapacityProfile,
   producerCertification,
+  producerCertificationTranslation,
   producerDeliveryCountry,
   producerMember,
   product,
@@ -1061,7 +1063,13 @@ export async function getOpenProjectRequestsForBoard({
 }
 
 export interface ProjectRequestBoardDetail extends ProjectRequestBoardItem {
+  // Czy można jeszcze złożyć ofertę (spec 0070 AC-12): przed terminem, bez wyboru klienta
+  // i w statusie open, quoted lub published. Producent nie widzi samego statusu (AC-22).
+  acceptingQuotes: boolean;
   ownQuoteStatus: (typeof projectQuote.$inferSelect)["status"] | null;
+  // Własna aktywna oferta jest już u klienta: nowa wersja czeka na cofnięcie
+  // publikacji przez administratora (AC-14). Dotyczy tylko oferty tego producenta.
+  ownQuotePublished: boolean;
   deliversToCountry: boolean;
 }
 
@@ -1079,6 +1087,7 @@ export async function getProjectRequestForBoardDetail(
     .select({
       item: BOARD_COLUMNS,
       status: projectRequest.status,
+      selectedQuoteId: projectRequest.selectedQuoteId,
       matches: producerMatchesProjectRequestSql(producerId),
       deliversToCountry: producerDeliversToRequestCountrySql(producerId),
     })
@@ -1088,7 +1097,7 @@ export async function getProjectRequestForBoardDetail(
   if (!row) return null;
 
   const [ownQuote] = await db
-    .select({ status: projectQuote.status })
+    .select({ status: projectQuote.status, publishedToClientAt: projectQuote.publishedToClientAt })
     .from(projectQuote)
     .where(and(eq(projectQuote.projectRequestId, id), eq(projectQuote.producerId, producerId)))
     .orderBy(desc(projectQuote.submittedAt))
@@ -1098,7 +1107,15 @@ export async function getProjectRequestForBoardDetail(
   const canSee = (row.matches === true && isOnBoard) || ownQuote !== undefined;
   if (!canSee) return null;
 
-  return { ...row.item, ownQuoteStatus: ownQuote?.status ?? null, deliversToCountry: row.deliversToCountry === true };
+  const acceptingQuotes = row.matches === true && isOnBoard && row.selectedQuoteId === null && row.item.deadlineAt.getTime() >= Date.now();
+
+  return {
+    ...row.item,
+    ownQuoteStatus: ownQuote?.status ?? null,
+    ownQuotePublished: ownQuote?.status === "active" && ownQuote.publishedToClientAt !== null,
+    deliversToCountry: row.deliversToCountry === true,
+    acceptingQuotes,
+  };
 }
 
 export interface ProjectQuoteForProducer {
@@ -1165,6 +1182,13 @@ export async function getProjectQuotesForProducer(producerId: string): Promise<P
   }));
 }
 
+// Kolumna logistics jest jsonb, kształt pilnuje Zod. Uszkodzony wpis nie wywraca ekranu klienta:
+// pozycja bez poprawnego kształtu wypada, a ekran pokaże ją jako "brak danych".
+function parseStoredLogistics(raw: unknown): StoredLogistics {
+  const parsed = storedLogisticsSchema.safeParse(raw);
+  return parsed.success ? parsed.data : {};
+}
+
 export interface ClientReceivedQuote {
   id: string;
   producerId: string;
@@ -1177,6 +1201,25 @@ export interface ClientReceivedQuote {
   submittedAt: Date;
   contactRevealedAt: Date | null;
   hasPdf: boolean;
+  // Wspólny format oferty (spec 0070 AC-11), czytany przez tabelę porównawczą (AC-15).
+  // Brak wartości zostaje null/pusty, ekran pokazuje wtedy "brak danych", nigdy zero.
+  priceTaxMode: (typeof projectQuote.$inferSelect)["priceTaxMode"];
+  vatRatePercent: number | null;
+  scopeIncluded: string | null;
+  scopeExcluded: string | null;
+  logistics: StoredLogistics;
+  paymentPlan: string | null;
+  validUntil: string | null;
+  warrantyNote: string | null;
+  deliveryWindowFrom: string | null;
+  deliveryWindowTo: string | null;
+  advisorNote: string | null;
+  certifications: ClientQuoteCertification[];
+}
+
+export interface ClientQuoteCertification {
+  name: string;
+  confirmed: boolean;
 }
 
 // Pola wspólne dla obu rodzajów zapytania w nagłówku listy klienta (spec 0070 AC-41):
@@ -1219,7 +1262,10 @@ export type ClientRequestWithQuotes = ClientProjectRequestWithQuotes | ClientBul
 // Tożsamość producenta jest już publiczna (spec 0062 Context) — producerName
 // zawsze widoczny, niezależnie od contactRevealedAt (to pole chroni tylko
 // dane kontaktowe INWESTORA, nigdy nazwę producenta).
-export async function getProjectRequestsWithQuotesForClient(clientId: string): Promise<ClientRequestWithQuotes[]> {
+export async function getProjectRequestsWithQuotesForClient(
+  clientId: string,
+  locale: Locale = "pl",
+): Promise<ClientRequestWithQuotes[]> {
   const [requestRows, bulkRows] = await Promise.all([
     db
       .select({
@@ -1278,6 +1324,17 @@ export async function getProjectRequestsWithQuotesForClient(clientId: string): P
             notes: projectQuote.notes,
             submittedAt: projectQuote.submittedAt,
             contactRevealedAt: projectQuote.contactRevealedAt,
+            priceTaxMode: projectQuote.priceTaxMode,
+            vatRatePercent: projectQuote.vatRatePercent,
+            scopeIncluded: projectQuote.scopeIncluded,
+            scopeExcluded: projectQuote.scopeExcluded,
+            logistics: projectQuote.logistics,
+            paymentPlan: projectQuote.paymentPlan,
+            validUntil: projectQuote.validUntil,
+            warrantyNote: projectQuote.warrantyNote,
+            deliveryWindowFrom: projectQuote.deliveryWindowFrom,
+            deliveryWindowTo: projectQuote.deliveryWindowTo,
+            advisorNote: projectQuote.advisorNote,
             hasPdf: sql<boolean>`${document.id} IS NOT NULL`,
           })
           .from(projectQuote)
@@ -1287,11 +1344,50 @@ export async function getProjectRequestsWithQuotesForClient(clientId: string): P
             and(eq(document.projectQuoteId, projectQuote.id), eq(document.purpose, "project_quote_pdf"), isNull(document.deletedAt)),
           )
           .where(
-            or(
-              requestIds.length > 0 ? inArray(projectQuote.projectRequestId, requestIds) : undefined,
-              bulkIds.length > 0 ? inArray(projectQuote.bulkProductInquiryId, bulkIds) : undefined,
+            and(
+              // Spec 0070 AC-13: klient dostaje tylko oferty opublikowane przez administratora.
+              isNotNull(projectQuote.publishedToClientAt),
+              // Klient widzi jedną wersję oferty producenta, nigdy zastąpioną (spec 0070 część B, bramka publikacji).
+              inArray(projectQuote.status, ["active", "accepted", "rejected"]),
+              or(
+                requestIds.length > 0 ? inArray(projectQuote.projectRequestId, requestIds) : undefined,
+                bulkIds.length > 0 ? inArray(projectQuote.bulkProductInquiryId, bulkIds) : undefined,
+              ),
             ),
           );
+
+  // Certyfikaty firmy producenta (spec 0065), z tłumaczeniem nazwy na język strony (spec 0067).
+  const producerIds = [...new Set(quoteRows.map((row) => row.producerId))];
+  const certificationsByProducerId = new Map<string, ClientQuoteCertification[]>();
+  if (producerIds.length > 0) {
+    const certificationRows = await db
+      .select({
+        producerId: producerCertification.producerId,
+        name: producerCertification.name,
+        translatedName: producerCertificationTranslation.name,
+        confirmationStatus: producerCertification.confirmationStatus,
+      })
+      .from(producerCertification)
+      .leftJoin(
+        producerCertificationTranslation,
+        and(
+          eq(producerCertificationTranslation.certificationId, producerCertification.id),
+          // Dla pl nie ma tabeli tłumaczeń (spec 0067): warunek zawsze fałszywy, zostaje tekst źródłowy.
+          locale === "pl" ? sql`false` : eq(producerCertificationTranslation.locale, locale),
+        ),
+      )
+      .where(inArray(producerCertification.producerId, producerIds))
+      .orderBy(asc(producerCertification.name));
+    for (const row of certificationRows) {
+      const entry = {
+        name: resolveTranslatedText(row.name, row.translatedName),
+        confirmed: row.confirmationStatus === "platform_confirmed",
+      };
+      const existing = certificationsByProducerId.get(row.producerId);
+      if (existing) existing.push(entry);
+      else certificationsByProducerId.set(row.producerId, [entry]);
+    }
+  }
 
   const quotesByParentId = new Map<string, ClientReceivedQuote[]>();
   for (const row of quoteRows) {
@@ -1308,6 +1404,18 @@ export async function getProjectRequestsWithQuotesForClient(clientId: string): P
       submittedAt: row.submittedAt,
       contactRevealedAt: row.contactRevealedAt,
       hasPdf: row.hasPdf,
+      priceTaxMode: row.priceTaxMode,
+      vatRatePercent: row.vatRatePercent === null ? null : Number(row.vatRatePercent),
+      scopeIncluded: row.scopeIncluded,
+      scopeExcluded: row.scopeExcluded,
+      logistics: parseStoredLogistics(row.logistics),
+      paymentPlan: row.paymentPlan,
+      validUntil: row.validUntil,
+      warrantyNote: row.warrantyNote,
+      deliveryWindowFrom: row.deliveryWindowFrom,
+      deliveryWindowTo: row.deliveryWindowTo,
+      advisorNote: row.advisorNote,
+      certifications: certificationsByProducerId.get(row.producerId) ?? [],
     };
     const existing = quotesByParentId.get(key);
     if (existing) existing.push(quote);

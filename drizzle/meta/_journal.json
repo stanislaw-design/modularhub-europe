@@ -400,6 +400,20 @@
       "when": 1791888561121,
       "tag": "0056_bulk_request_limit_published",
       "breakpoints": true
+    },
+    {
+      "idx": 57,
+      "version": "7",
+      "when": 1791917295004,
+      "tag": "0057_melodic_salo",
+      "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "7",
+      "when": 1792047467940,
+      "tag": "0058_publication_gate",
+      "breakpoints": true
     }
   ]
 }

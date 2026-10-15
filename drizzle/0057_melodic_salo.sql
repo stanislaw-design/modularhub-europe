@@ -1,0 +1,5 @@
+ALTER TABLE "product" ADD COLUMN "outdoor_tv_mounting" text;--> statement-breakpoint
+ALTER TABLE "product" ADD COLUMN "outdoor_tv_sun_exposure" text;--> statement-breakpoint
+ALTER TABLE "product" ADD CONSTRAINT "product_outdoor_tv_mounting_values" CHECK ("product"."outdoor_tv_mounting" IS NULL OR "product"."outdoor_tv_mounting" IN ('na-sciane', 'w-szafie-z-winda'));--> statement-breakpoint
+ALTER TABLE "product" ADD CONSTRAINT "product_outdoor_tv_sun_exposure_values" CHECK ("product"."outdoor_tv_sun_exposure" IS NULL OR "product"."outdoor_tv_sun_exposure" IN ('cien', 'czesciowe-slonce', 'pelne-slonce'));--> statement-breakpoint
+ALTER TABLE "product" ADD CONSTRAINT "product_outdoor_tv_family_match" CHECK (("product"."outdoor_tv_mounting" IS NULL AND "product"."outdoor_tv_sun_exposure" IS NULL) OR "product"."family" = 'outdoor-tv');

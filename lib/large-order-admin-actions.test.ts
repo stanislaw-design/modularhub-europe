@@ -1,5 +1,5 @@
 import type { Session } from "next-auth";
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const authMock = vi.hoisted(() => vi.fn<() => Promise<Session | null>>());
 const captureErrorMock = vi.hoisted(() => vi.fn());
@@ -8,8 +8,8 @@ vi.mock("@/lib/observability", () => ({ captureError: captureErrorMock }));
 
 import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { auditLog, producer, projectRequest, projectRequestProducerOverride, users } from "@/lib/db/schema";
-import { setProducerOverride } from "./large-order-admin-actions";
+import { auditLog, bulkProductInquiry, producer, product, projectQuote, projectRequest, projectRequestProducerOverride, users } from "@/lib/db/schema";
+import { extendDeadline, publishSummary, setAdvisorNote, setProducerOverride, unpublishQuote } from "./large-order-admin-actions";
 
 function sessionAs(userId: string, role: "admin" | "producer" | "client"): Session {
   return {
@@ -128,5 +128,267 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/large-order-admin-actions: real 
     const result = await setProducerOverride(crypto.randomUUID(), producerId, "include");
 
     expect(result).toEqual({ ok: false, error: "Nie znaleziono zapytania albo producenta." });
+  });
+
+  // Spec 0070 AC-9: administrator zmienia termin ofert, a zmiana trafia do audytu.
+  describe("extendDeadline", () => {
+    const inDays = (days: number) => new Date(Date.now() + days * 86_400_000);
+
+    async function deadlineOf(id: string) {
+      const [row] = await db.select({ deadlineAt: projectRequest.deadlineAt }).from(projectRequest).where(eq(projectRequest.id, id));
+      return row.deadlineAt;
+    }
+
+    afterEach(async () => {
+      await db.update(projectRequest).set({ status: "open", closedAt: null, closedReason: null, deadlineAt: inDays(14) }).where(eq(projectRequest.id, requestId));
+    });
+
+    it("rejects a call without a session and an admin-only role check", async () => {
+      authMock.mockResolvedValue(null);
+      expect((await extendDeadline(requestId, "request", inDays(30))).ok).toBe(false);
+
+      authMock.mockResolvedValue(sessionAs(producerUserId, "producer"));
+      const result = await extendDeadline(requestId, "request", inDays(30));
+
+      expect(result.ok).toBe(false);
+      expect(Math.abs((await deadlineOf(requestId)).getTime() - inDays(14).getTime())).toBeLessThan(60_000);
+    });
+
+    it("sets the new deadline and writes the change to the audit log under the admin", async () => {
+      authMock.mockResolvedValue(sessionAs(adminUserId, "admin"));
+      const next = inDays(30);
+
+      const result = await extendDeadline(requestId, "request", next.toISOString());
+
+      expect(result.ok).toBe(true);
+      expect((await deadlineOf(requestId)).getTime()).toBe(next.getTime());
+      const rows = await db
+        .select({ action: auditLog.action, oldValues: auditLog.oldValues, newValues: auditLog.newValues })
+        .from(auditLog)
+        .where(and(eq(auditLog.actorUserId, adminUserId), eq(auditLog.tableName, "project_request"), eq(auditLog.recordId, requestId)));
+      expect(rows.length).toBeGreaterThan(0);
+      expect(rows.some((row) => row.action === "update" && row.newValues?.deadline_at !== row.oldValues?.deadline_at)).toBe(true);
+    });
+
+    it("allows shortening to a moment that is still in the future", async () => {
+      authMock.mockResolvedValue(sessionAs(adminUserId, "admin"));
+      const next = inDays(2);
+
+      expect((await extendDeadline(requestId, "request", next)).ok).toBe(true);
+      expect((await deadlineOf(requestId)).getTime()).toBe(next.getTime());
+    });
+
+    it("rejects a deadline in the past or an invalid date, leaving the deadline unchanged", async () => {
+      authMock.mockResolvedValue(sessionAs(adminUserId, "admin"));
+      const before = await deadlineOf(requestId);
+
+      const past = await extendDeadline(requestId, "request", new Date(Date.now() - 60_000));
+      const invalid = await extendDeadline(requestId, "request", "not a date");
+
+      expect(past.ok).toBe(false);
+      expect(past.error).toMatch(/w przyszłości/);
+      expect(invalid.ok).toBe(false);
+      expect((await deadlineOf(requestId)).getTime()).toBe(before.getTime());
+    });
+
+    it("refuses a closed request and an unknown one", async () => {
+      authMock.mockResolvedValue(sessionAs(adminUserId, "admin"));
+      await db.update(projectRequest).set({ status: "closed", closedAt: new Date(), closedReason: "staff_closed" }).where(eq(projectRequest.id, requestId));
+
+      const closed = await extendDeadline(requestId, "request", inDays(30));
+      const unknown = await extendDeadline(crypto.randomUUID(), "request", inDays(30));
+
+      expect(closed.ok).toBe(false);
+      expect(unknown.ok).toBe(false);
+      expect((await deadlineOf(requestId)).getTime()).toBeLessThan(inDays(15).getTime());
+    });
+  });
+
+  // Spec 0070 AC-14: publikacja podsumowania, cofnięcie publikacji i komentarz doradcy.
+  describe("publishSummary, unpublishQuote, setAdvisorNote", () => {
+    let quoteId: string;
+
+    beforeEach(async () => {
+      quoteId = crypto.randomUUID();
+      await db.insert(projectQuote).values({ id: quoteId, projectRequestId: requestId, producerId, totalPriceCents: 100_000_000, status: "active" });
+      await db.update(projectRequest).set({ status: "quoted", summaryPublishedAt: null, selectedQuoteId: null }).where(eq(projectRequest.id, requestId));
+    });
+
+    afterEach(async () => {
+      await db.update(projectRequest).set({ status: "open", closedAt: null, closedReason: null, summaryPublishedAt: null, selectedQuoteId: null }).where(eq(projectRequest.id, requestId));
+      await db.delete(projectQuote).where(eq(projectQuote.projectRequestId, requestId));
+    });
+
+    async function quoteRow() {
+      const [row] = await db.select().from(projectQuote).where(eq(projectQuote.id, quoteId));
+      return row;
+    }
+    async function requestRow() {
+      const [row] = await db.select().from(projectRequest).where(eq(projectRequest.id, requestId));
+      return row;
+    }
+
+    it("accepts only an admin", async () => {
+      authMock.mockResolvedValue(sessionAs(producerUserId, "producer"));
+
+      expect((await publishSummary(requestId, "request", true)).ok).toBe(false);
+      expect((await unpublishQuote(quoteId)).ok).toBe(false);
+      expect((await setAdvisorNote(quoteId, "x")).ok).toBe(false);
+      expect((await quoteRow()).publishedToClientAt).toBeNull();
+    });
+
+    it("refuses to publish without the review confirmation", async () => {
+      authMock.mockResolvedValue(sessionAs(adminUserId, "admin"));
+
+      const result = await publishSummary(requestId, "request", false);
+
+      expect(result.ok).toBe(false);
+      expect(result.error).toMatch(/przejrzałeś/);
+      expect((await quoteRow()).publishedToClientAt).toBeNull();
+      expect((await requestRow()).status).toBe("quoted");
+    });
+
+    it("publishes the active quotes, sets the request status and the first publication time", async () => {
+      authMock.mockResolvedValue(sessionAs(adminUserId, "admin"));
+
+      const result = await publishSummary(requestId, "request", true);
+
+      expect(result.ok).toBe(true);
+      expect((await quoteRow()).publishedToClientAt).toBeInstanceOf(Date);
+      const request = await requestRow();
+      expect(request.status).toBe("published");
+      expect(request.summaryPublishedAt).toBeInstanceOf(Date);
+    });
+
+    it("keeps the first publication time when published again after a new quote arrives", async () => {
+      authMock.mockResolvedValue(sessionAs(adminUserId, "admin"));
+      await publishSummary(requestId, "request", true);
+      const first = (await requestRow()).summaryPublishedAt;
+      const lateQuoteId = crypto.randomUUID();
+      await db.update(projectQuote).set({ status: "superseded" }).where(eq(projectQuote.id, quoteId));
+      await db.insert(projectQuote).values({ id: lateQuoteId, projectRequestId: requestId, producerId, totalPriceCents: 90_000_000, status: "active" });
+
+      const result = await publishSummary(requestId, "request", true);
+
+      expect(result.ok).toBe(true);
+      const [late] = await db.select().from(projectQuote).where(eq(projectQuote.id, lateQuoteId));
+      expect(late.publishedToClientAt).toBeInstanceOf(Date);
+      expect((await requestRow()).summaryPublishedAt?.getTime()).toBe(first?.getTime());
+    });
+
+    it("refuses when the request has no active quote, and leaves the status alone", async () => {
+      authMock.mockResolvedValue(sessionAs(adminUserId, "admin"));
+      await db.update(projectQuote).set({ status: "superseded" }).where(eq(projectQuote.id, quoteId));
+
+      const result = await publishSummary(requestId, "request", true);
+
+      expect(result.ok).toBe(false);
+      expect((await requestRow()).status).toBe("quoted");
+    });
+
+    it("refuses a closed request and publishes nothing", async () => {
+      authMock.mockResolvedValue(sessionAs(adminUserId, "admin"));
+      await db.update(projectRequest).set({ status: "closed", closedAt: new Date(), closedReason: "staff_closed" }).where(eq(projectRequest.id, requestId));
+
+      const result = await publishSummary(requestId, "request", true);
+
+      expect(result.ok).toBe(false);
+      expect((await quoteRow()).publishedToClientAt).toBeNull();
+    });
+
+    it("withdraws a publication and returns the request to quoted when nothing published remains", async () => {
+      authMock.mockResolvedValue(sessionAs(adminUserId, "admin"));
+      await publishSummary(requestId, "request", true);
+
+      const result = await unpublishQuote(quoteId);
+
+      expect(result.ok).toBe(true);
+      expect((await quoteRow()).publishedToClientAt).toBeNull();
+      const request = await requestRow();
+      expect(request.status).toBe("quoted");
+      expect(request.summaryPublishedAt).toBeInstanceOf(Date);
+    });
+
+    it("refuses to withdraw the quote the client has chosen, and a quote that is not published", async () => {
+      authMock.mockResolvedValue(sessionAs(adminUserId, "admin"));
+
+      expect((await unpublishQuote(quoteId)).ok).toBe(false);
+
+      await publishSummary(requestId, "request", true);
+      await db.update(projectRequest).set({ selectedQuoteId: quoteId, selectedAt: new Date() }).where(eq(projectRequest.id, requestId));
+      const chosen = await unpublishQuote(quoteId);
+
+      expect(chosen.ok).toBe(false);
+      expect((await quoteRow()).publishedToClientAt).toBeInstanceOf(Date);
+    });
+
+    it("stores, trims and clears the advisor note, only before publication", async () => {
+      authMock.mockResolvedValue(sessionAs(adminUserId, "admin"));
+
+      expect((await setAdvisorNote(quoteId, "  Dobra cena  ")).ok).toBe(true);
+      expect((await quoteRow()).advisorNote).toBe("Dobra cena");
+      expect((await setAdvisorNote(quoteId, "   ")).ok).toBe(true);
+      expect((await quoteRow()).advisorNote).toBeNull();
+      expect((await setAdvisorNote(quoteId, "x".repeat(2001))).ok).toBe(false);
+
+      await publishSummary(requestId, "request", true);
+      const afterPublish = await setAdvisorNote(quoteId, "Za późno");
+
+      expect(afterPublish.ok).toBe(false);
+      expect((await quoteRow()).advisorNote).toBeNull();
+    });
+
+    it("writes the publication to the audit log under the admin", async () => {
+      authMock.mockResolvedValue(sessionAs(adminUserId, "admin"));
+
+      await publishSummary(requestId, "request", true);
+
+      const rows = await db.select().from(auditLog).where(and(eq(auditLog.actorUserId, adminUserId), eq(auditLog.tableName, "project_request"), eq(auditLog.recordId, requestId)));
+      expect(rows.length).toBeGreaterThan(0);
+    });
+  });
+
+  // Spec 0070 AC-14: to samo na zapytaniu o konkretny produkt (rodzaj product).
+  describe("publication for a bulk product inquiry", () => {
+    const productId = crypto.randomUUID();
+    const inquiryId = crypto.randomUUID();
+    const bulkQuoteId = crypto.randomUUID();
+
+    beforeAll(async () => {
+      await db.insert(product).values({ id: productId, producerId, family: "dom", status: "published", name: "LOA bulk product" });
+      await db.insert(bulkProductInquiry).values({
+        id: inquiryId,
+        productId,
+        contactName: "LOA Bulk",
+        contactEmail: `loa-bulk-${inquiryId}@example.test`,
+        unitCount: 5,
+        deliveryCountryCode: "PL",
+        status: "quoted",
+      });
+      await db.insert(projectQuote).values({ id: bulkQuoteId, bulkProductInquiryId: inquiryId, producerId, totalPriceCents: 50_000_000, status: "active" });
+    });
+
+    afterAll(async () => {
+      await db.delete(projectQuote).where(eq(projectQuote.id, bulkQuoteId));
+      await db.delete(bulkProductInquiry).where(eq(bulkProductInquiry.id, inquiryId));
+      await db.delete(product).where(eq(product.id, productId));
+    });
+
+    it("publishes, then withdraws, returning the inquiry to quoted", async () => {
+      authMock.mockResolvedValue(sessionAs(adminUserId, "admin"));
+
+      expect((await publishSummary(inquiryId, "product", true)).ok).toBe(true);
+      const [published] = await db.select().from(projectQuote).where(eq(projectQuote.id, bulkQuoteId));
+      expect(published.publishedToClientAt).toBeInstanceOf(Date);
+      const [inquiry] = await db.select().from(bulkProductInquiry).where(eq(bulkProductInquiry.id, inquiryId));
+      expect(inquiry.status).toBe("published");
+      expect(inquiry.summaryPublishedAt).toBeInstanceOf(Date);
+
+      expect((await unpublishQuote(bulkQuoteId)).ok).toBe(true);
+      const [withdrawn] = await db.select().from(projectQuote).where(eq(projectQuote.id, bulkQuoteId));
+      expect(withdrawn.publishedToClientAt).toBeNull();
+      const [after] = await db.select().from(bulkProductInquiry).where(eq(bulkProductInquiry.id, inquiryId));
+      expect(after.status).toBe("quoted");
+    });
   });
 });

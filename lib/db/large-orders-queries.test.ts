@@ -37,7 +37,7 @@ describe.skipIf(!process.env.DATABASE_URL)("large orders admin queries", () => {
       status: "quoted",
     });
     await db.insert(projectQuote).values([
-      { id: publishedQuoteId, projectRequestId: requestId, producerId, totalPriceCents: 100000000, status: "active" },
+      { id: publishedQuoteId, projectRequestId: requestId, producerId, totalPriceCents: 100000000, status: "active", publishedToClientAt: new Date() },
       { id: pendingQuoteId, projectRequestId: requestId, producerId: secondProducerId, totalPriceCents: 120000000, status: "active", publishedToClientAt: null },
     ]);
   });

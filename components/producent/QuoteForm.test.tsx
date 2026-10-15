@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { submitProjectQuote, uploadProjectQuotePdf } from "@/lib/project-quote-actions";
@@ -16,13 +16,20 @@ function quotePdfFile(name = "oferta.pdf") {
   return new File(["%PDF-1.7\n%%EOF"], name, { type: "application/pdf" });
 }
 
+// Pola obowiązkowe formatu oferty (spec 0070 AC-11): cena łączna, zakres w cenie, ważność.
+async function fillRequired(user: ReturnType<typeof userEvent.setup>, totalPrice: string) {
+  await user.type(screen.getByLabelText(/Cena całkowita/), totalPrice);
+  await user.type(screen.getByLabelText(/Co jest w cenie/), "Dom w stanie deweloperskim");
+  fireEvent.change(screen.getByLabelText(/Oferta ważna do/), { target: { value: "2030-01-31" } });
+}
+
 beforeEach(() => {
   mockedSubmitProjectQuote.mockReset();
   mockedUploadProjectQuotePdf.mockReset();
 });
 
 describe("QuoteForm", () => {
-  it("disables submit until a total price is entered", async () => {
+  it("disables submit until total price, scope and validity date are filled in", async () => {
     const user = userEvent.setup();
     render(<QuoteForm projectRequestId="req-1" isRevision={false} />);
 
@@ -30,49 +37,93 @@ describe("QuoteForm", () => {
     expect(submit).toBeDisabled();
 
     await user.type(screen.getByLabelText(/Cena całkowita/), "500000");
+    expect(submit).toBeDisabled();
+    await user.type(screen.getByLabelText(/Co jest w cenie/), "Dom w stanie deweloperskim");
+    expect(submit).toBeDisabled();
+    fireEvent.change(screen.getByLabelText(/Oferta ważna do/), { target: { value: "2030-01-31" } });
     expect(submit).toBeEnabled();
   });
 
-  it("submits only the fields the producer filled in, omitting optional ones", async () => {
+  it("submits the required fields with net as the default price mode and logistics left to be quoted later", async () => {
     const user = userEvent.setup();
     mockedSubmitProjectQuote.mockResolvedValue({ ok: true });
     render(<QuoteForm projectRequestId="req-1" isRevision={false} />);
 
-    await user.type(screen.getByLabelText(/Cena całkowita/), "1250000");
+    await fillRequired(user, "1250000");
     await user.click(screen.getByRole("button", { name: "Wyślij wycenę" }));
 
     await waitFor(() => {
       expect(mockedSubmitProjectQuote).toHaveBeenCalledWith({
         projectRequestId: "req-1",
+        priceTaxMode: "net",
+        vatRatePercent: undefined,
         totalPriceEur: 1250000,
         unitPriceEur: undefined,
+        scopeIncluded: "Dom w stanie deweloperskim",
+        scopeExcluded: undefined,
+        logistics: {
+          transport: { mode: "tbd", amountEur: undefined, maxAmountEur: undefined, note: undefined },
+          assembly: { mode: "tbd", amountEur: undefined, maxAmountEur: undefined, note: undefined },
+          crane: { mode: "tbd", amountEur: undefined, maxAmountEur: undefined, note: undefined },
+        },
+        paymentPlan: undefined,
+        validUntil: "2030-01-31",
+        warrantyNote: undefined,
         proposedLeadTimeWeeks: undefined,
+        deliveryWindowFrom: undefined,
+        deliveryWindowTo: undefined,
         notes: undefined,
       });
     });
   });
 
-  it("includes the optional fields once filled in", async () => {
+  it("includes the optional fields, gross price mode and logistics modes once filled in", async () => {
     const user = userEvent.setup();
     mockedSubmitProjectQuote.mockResolvedValue({ ok: true });
     render(<QuoteForm projectRequestId="req-1" isRevision={false} />);
 
-    await user.type(screen.getByLabelText(/Cena całkowita/), "1250000");
+    await fillRequired(user, "1250000");
+    await user.click(screen.getByLabelText("Brutto"));
+    await user.type(screen.getByLabelText(/Stawka VAT/), "23");
     await user.type(screen.getByLabelText(/Cena za sztukę/), "100000");
+    await user.type(screen.getByLabelText(/Co jest poza ceną/), "Fundament");
+    await user.click(screen.getByLabelText("Transport: Kwota"));
+    await user.type(screen.getByLabelText("Kwota (€)"), "15000");
+    await user.click(screen.getByLabelText("Montaż: Widełki"));
+    await user.type(screen.getByLabelText("Od (€)"), "20000");
+    await user.type(screen.getByLabelText("Do (€)"), "30000");
     await user.type(screen.getByLabelText(/czas realizacji/), "16");
+    await user.type(screen.getByLabelText(/Plan płatności/), "30/60/10");
+    await user.type(screen.getByLabelText(/Gwarancja/), "10 lat");
+    fireEvent.change(screen.getByLabelText(/Okno dostawy od/), { target: { value: "2030-03-01" } });
+    fireEvent.change(screen.getByLabelText(/Okno dostawy do/), { target: { value: "2030-04-01" } });
     await user.type(screen.getByLabelText(/Notatka/), "Możemy zacząć od marca.");
     await user.click(screen.getByRole("button", { name: "Wyślij wycenę" }));
 
     await waitFor(() => {
-      expect(mockedSubmitProjectQuote).toHaveBeenCalledWith({
-        projectRequestId: "req-1",
-        totalPriceEur: 1250000,
-        unitPriceEur: 100000,
-        proposedLeadTimeWeeks: 16,
-        notes: "Możemy zacząć od marca.",
-      });
+      expect(mockedSubmitProjectQuote).toHaveBeenCalledWith(
+        expect.objectContaining({
+          projectRequestId: "req-1",
+          priceTaxMode: "gross",
+          vatRatePercent: 23,
+          totalPriceEur: 1250000,
+          unitPriceEur: 100000,
+          scopeExcluded: "Fundament",
+          logistics: {
+            transport: { mode: "amount", amountEur: 15000, maxAmountEur: undefined, note: undefined },
+            assembly: { mode: "range", amountEur: 20000, maxAmountEur: 30000, note: undefined },
+            crane: { mode: "tbd", amountEur: undefined, maxAmountEur: undefined, note: undefined },
+          },
+          paymentPlan: "30/60/10",
+          warrantyNote: "10 lat",
+          proposedLeadTimeWeeks: 16,
+          deliveryWindowFrom: "2030-03-01",
+          deliveryWindowTo: "2030-04-01",
+          notes: "Możemy zacząć od marca.",
+        }),
+      );
     });
-  });
+  }, 30_000);
 
   it("shows the revision intro and label when isRevision is true", () => {
     render(<QuoteForm projectRequestId="req-1" isRevision />);
@@ -86,7 +137,7 @@ describe("QuoteForm", () => {
     mockedSubmitProjectQuote.mockResolvedValue({ ok: true });
     render(<QuoteForm projectRequestId="req-1" isRevision={false} />);
 
-    await user.type(screen.getByLabelText(/Cena całkowita/), "500000");
+    await fillRequired(user, "500000");
     await user.click(screen.getByRole("button", { name: "Wyślij wycenę" }));
 
     await waitFor(() => {
@@ -104,7 +155,7 @@ describe("QuoteForm", () => {
     mockedSubmitProjectQuote.mockResolvedValue({ ok: true, quoteId: "quote-1" });
     render(<QuoteForm projectRequestId="req-1" isRevision={false} />);
 
-    await user.type(screen.getByLabelText(/Cena całkowita/), "500000");
+    await fillRequired(user, "500000");
     await user.click(screen.getByRole("button", { name: "Wyślij wycenę" }));
 
     await waitFor(() => {
@@ -123,7 +174,7 @@ describe("QuoteForm", () => {
     const file = quotePdfFile();
     render(<QuoteForm projectRequestId="req-1" isRevision={false} />);
 
-    await user.type(screen.getByLabelText(/Cena całkowita/), "500000");
+    await fillRequired(user, "500000");
     await user.upload(screen.getByLabelText("PDF wyceny"), file);
     await user.click(screen.getByRole("button", { name: "Wyślij wycenę" }));
 
@@ -139,7 +190,7 @@ describe("QuoteForm", () => {
     mockedSubmitProjectQuote.mockResolvedValue({ ok: true, quoteId: "quote-1" });
     render(<QuoteForm projectRequestId="req-1" isRevision={false} />);
 
-    await user.type(screen.getByLabelText(/Cena całkowita/), "500000");
+    await fillRequired(user, "500000");
     await user.click(screen.getByRole("button", { name: "Wyślij wycenę" }));
 
     await waitFor(() => {
@@ -157,7 +208,7 @@ describe("QuoteForm", () => {
     mockedUploadProjectQuotePdf.mockResolvedValue({ ok: false, error: "Plik PDF jest pusty albo większy niż 20 MB." });
     render(<QuoteForm projectRequestId="req-1" isRevision={false} />);
 
-    await user.type(screen.getByLabelText(/Cena całkowita/), "500000");
+    await fillRequired(user, "500000");
     await user.upload(screen.getByLabelText("PDF wyceny"), quotePdfFile());
     await user.click(screen.getByRole("button", { name: "Wyślij wycenę" }));
 
@@ -173,7 +224,7 @@ describe("QuoteForm", () => {
     mockedSubmitProjectQuote.mockResolvedValue({ ok: true });
     render(<QuoteForm projectRequestId="req-1" isRevision={false} />);
 
-    await user.type(screen.getByLabelText(/Cena całkowita/), "500000");
+    await fillRequired(user, "500000");
     await user.click(screen.getByRole("button", { name: "Wyślij wycenę" }));
 
     await waitFor(() => {
@@ -187,12 +238,12 @@ describe("QuoteForm", () => {
     mockedSubmitProjectQuote.mockResolvedValue({ ok: false, error: "To zapytanie nie jest już otwarte na wyceny." });
     render(<QuoteForm projectRequestId="req-1" isRevision={false} />);
 
-    await user.type(screen.getByLabelText(/Cena całkowita/), "500000");
+    await fillRequired(user, "500000");
     await user.click(screen.getByRole("button", { name: "Wyślij wycenę" }));
 
     await waitFor(() => {
       expect(screen.getByRole("alert")).toHaveTextContent(/nie jest już otwarte/);
     });
-    expect(screen.getByRole("button", { name: "Wyślij wycenę" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Wyślij wycenę" })).toBeInTheDocument();
   });
 });

@@ -613,6 +613,11 @@ export const product = pgTable(
     category: productCategoryEnum("category"),
     spaSubcategory: spaSubcategoryEnum("spa_subcategory"),
     containerSubcategory: containerSubcategoryEnum("container_subcategory"),
+    // Wartości filtrów paska Outdoor TV (spec 0071 AC-8): tekst z CHECK, nie enum
+    // Postgresa (enum jest nieodwracalny, ta sama zasada co document.floor_level).
+    // Znaczące tylko dla family = 'outdoor-tv' (product_outdoor_tv_family_match).
+    outdoorTvMounting: text("outdoor_tv_mounting"),
+    outdoorTvSunExposure: text("outdoor_tv_sun_exposure"),
     // Dane techniczne, kształt zależny od family, walidowane schematem Zod
     // po stronie formularza kreatora i zapisu (spec 0022 AC-4). Zastępuje
     // dawnych 8 płaskich kolumn technicznych domu (spec 0022 AC-5).
@@ -694,6 +699,18 @@ export const product = pgTable(
     // B-drzewa, bo filtr ceny/metrażu przenosi się do WHERE (task 4); indeksy
     // wyrażeniowe na trzech kluczach jsonb faktycznie filtrowanych, bez nich
     // nowe filtry atrybutów skanowałyby całą tabelę mimo enumów.
+    check(
+      "product_outdoor_tv_mounting_values",
+      sql`${table.outdoorTvMounting} IS NULL OR ${table.outdoorTvMounting} IN ('na-sciane', 'w-szafie-z-winda')`,
+    ),
+    check(
+      "product_outdoor_tv_sun_exposure_values",
+      sql`${table.outdoorTvSunExposure} IS NULL OR ${table.outdoorTvSunExposure} IN ('cien', 'czesciowe-slonce', 'pelne-slonce')`,
+    ),
+    check(
+      "product_outdoor_tv_family_match",
+      sql`(${table.outdoorTvMounting} IS NULL AND ${table.outdoorTvSunExposure} IS NULL) OR ${table.family} = 'outdoor-tv'`,
+    ),
     index("product_status_family_idx").on(table.status, table.family),
     index("product_floor_area_m2_idx").on(table.floorAreaM2),
     index("product_price_min_cents_idx").on(table.priceMinCents),
@@ -1726,9 +1743,10 @@ export const projectQuote = pgTable(
     deliveryWindowTo: date("delivery_window_to"),
     // Komentarz ModularHub, widoczny klientowi po publikacji.
     advisorNote: text("advisor_note"),
-    // Bramka widoczności dla klienta. Default now() jest TYMCZASOWY (migracja 1):
-    // oferty z tygodnia 1 mają zostać widoczne. Migracja 3 usuwa default.
-    publishedToClientAt: timestamp("published_to_client_at", { withTimezone: true }).defaultNow(),
+    // Bramka widoczności dla klienta (spec 0070 AC-13). NULL = klient oferty nie
+    // widzi; ustawia ją publishSummary, zdejmuje unpublishQuote. Migracja 3
+    // usunęła tymczasowy default now() z migracji 1.
+    publishedToClientAt: timestamp("published_to_client_at", { withTimezone: true }),
     producerOutcome: quoteProducerOutcomeEnum("producer_outcome"),
     producerOutcomeAt: timestamp("producer_outcome_at", { withTimezone: true }),
     submittedAt: timestamp("submitted_at", { withTimezone: true }).defaultNow().notNull(),

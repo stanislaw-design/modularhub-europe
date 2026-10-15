@@ -56,6 +56,8 @@ export default async function ProducerBoardDetailPage({
   };
 
   const isLocked = detail.ownQuoteStatus === "accepted";
+  const showQuoteForm =
+    !isLocked && detail.acceptingQuotes && !detail.ownQuotePublished;
   const ownQuoteStatusTone: Record<
     string,
     "approved" | "conditional" | "blocked"
@@ -195,7 +197,15 @@ export default async function ProducerBoardDetailPage({
               </StatusPill>
             </div>
           )}
-          {!isLocked && (
+          {detail.ownQuotePublished && detail.acceptingQuotes && !isLocked && (
+            <Text tone="muted">{t("ownQuotePublishedNote")}</Text>
+          )}
+          {!showQuoteForm && !isLocked && !detail.ownQuotePublished && (
+            <Text tone="muted">
+              {t("quotesClosedNote")}
+            </Text>
+          )}
+          {showQuoteForm && (
             <QuoteForm
               projectRequestId={detail.id}
               isRevision={detail.ownQuoteStatus !== null}

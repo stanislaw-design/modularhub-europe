@@ -33,6 +33,8 @@ import {
   offerItem,
   producer,
   producerCapacityProfile,
+  producerCertification,
+  producerCertificationTranslation,
   producerDeliveryCountry,
   product,
   productOption,
@@ -899,6 +901,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: project request boar
         totalPriceCents: 1_000_000,
         status: "accepted",
         contactRevealedAt: new Date(),
+        publishedToClientAt: new Date(),
       },
       {
         id: activeQuoteId,
@@ -906,6 +909,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: project request boar
         producerId,
         totalPriceCents: 2_000_000,
         status: "active",
+        publishedToClientAt: new Date(),
       },
     ]);
     // spec 0063 AC-8: revealedQuoteId has an attached PDF, activeQuoteId does
@@ -1079,6 +1083,76 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: project request boar
       expect(requestItem?.quotes[0]).toMatchObject({ id: revealedQuoteId, producerName: "Board Query Producer", status: "accepted", hasPdf: true });
       expect(bulkItem?.quotes).toHaveLength(1);
       expect(bulkItem?.quotes[0]).toMatchObject({ id: activeQuoteId, producerName: "Board Query Producer", status: "active", hasPdf: false });
+    });
+
+    // Spec 0070 AC-13: oferta bez published_to_client_at nie trafia do klienta.
+    it("leaves out a quote that was not published to the client", async () => {
+      const hiddenQuoteId = crypto.randomUUID();
+      await db.insert(projectQuote).values({ id: hiddenQuoteId, projectRequestId: openRequestId, producerId, totalPriceCents: 900_000, status: "active", publishedToClientAt: null });
+      try {
+        const items = await getProjectRequestsWithQuotesForClient(clientId);
+
+        const requestItem = items.find((item) => item.source === "project_request" && item.id === openRequestId);
+        expect(requestItem?.quotes.map((quote) => quote.id)).toEqual([revealedQuoteId]);
+      } finally {
+        await db.delete(projectQuote).where(eq(projectQuote.id, hiddenQuoteId));
+      }
+    });
+
+    // Spec 0070 AC-15: tabela porównawcza czyta pola wspólnego formatu oferty i certyfikaty producenta,
+    // a zastąpiona wersja oferty nie trafia do klienta.
+    it("returns the offer format fields and the producer's certificates, and leaves out superseded offers", async () => {
+      const formatQuoteId = crypto.randomUUID();
+      const supersededQuoteId = crypto.randomUUID();
+      const certificationId = crypto.randomUUID();
+      await db.insert(projectQuote).values([
+        {
+          id: formatQuoteId,
+          projectRequestId: openRequestId,
+          producerId,
+          totalPriceCents: 700_000,
+          status: "rejected",
+          publishedToClientAt: new Date(),
+          priceTaxMode: "gross",
+          vatRatePercent: "23.0",
+          scopeIncluded: "Konstrukcja i dach",
+          paymentPlan: "30/60/10",
+          validUntil: "2099-12-31",
+          advisorNote: "Komentarz doradcy",
+          logistics: { transport: { mode: "range", amountCents: 100_000, maxAmountCents: 200_000 }, crane: { mode: "tbd" }, assembly: { mode: "nonsense" } },
+        },
+        { id: supersededQuoteId, projectRequestId: openRequestId, producerId, totalPriceCents: 650_000, status: "superseded", publishedToClientAt: new Date() },
+      ]);
+      await db.insert(producerCertification).values({ id: certificationId, producerId, name: "Certyfikat testowy 0070" });
+      await db.insert(producerCertificationTranslation).values({ certificationId, locale: "en", name: "Test certificate 0070" });
+      try {
+        const [pl, en] = await Promise.all([
+          getProjectRequestsWithQuotesForClient(clientId),
+          getProjectRequestsWithQuotesForClient(clientId, "en"),
+        ]);
+
+        const plQuotes = pl.find((item) => item.source === "project_request" && item.id === openRequestId)?.quotes ?? [];
+        expect(plQuotes.map((quote) => quote.id)).not.toContain(supersededQuoteId);
+        const formatQuote = plQuotes.find((quote) => quote.id === formatQuoteId);
+        expect(formatQuote).toMatchObject({
+          priceTaxMode: "gross",
+          vatRatePercent: 23,
+          scopeIncluded: "Konstrukcja i dach",
+          paymentPlan: "30/60/10",
+          validUntil: "2099-12-31",
+          advisorNote: "Komentarz doradcy",
+          certifications: [{ name: "Certyfikat testowy 0070", confirmed: false }],
+        });
+        // Zepsuta pozycja jsonb nie wywraca ekranu: cały obiekt logistyki spada do pustego.
+        expect(formatQuote?.logistics).toEqual({});
+
+        const enQuotes = en.find((item) => item.source === "project_request" && item.id === openRequestId)?.quotes ?? [];
+        expect(enQuotes.find((quote) => quote.id === formatQuoteId)?.certifications).toEqual([{ name: "Test certificate 0070", confirmed: false }]);
+      } finally {
+        await db.delete(producerCertificationTranslation).where(eq(producerCertificationTranslation.certificationId, certificationId));
+        await db.delete(producerCertification).where(eq(producerCertification.id, certificationId));
+        await db.delete(projectQuote).where(inArray(projectQuote.id, [formatQuoteId, supersededQuoteId]));
+      }
     });
 
     // Spec 0070 AC-41: nagłówek zapytania potrzebuje terminu, kraju i stanu zamknięcia.
