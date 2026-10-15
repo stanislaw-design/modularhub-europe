@@ -228,6 +228,9 @@ export interface Project {
    * ją odczytuje, żeby produkt podkategorii "sauna" wylądował pod /sauna/[slug], nie
    * /project/[slug]. null/undefined dla każdej innej rodziny. */
   spaSubcategory?: SpaSubcategory | null;
+  /** Wartości filtrów paska Outdoor TV (spec 0071), tylko family = "outdoor-tv". */
+  outdoorTvMounting?: string | null;
+  outdoorTvSunExposure?: string | null;
   constructionSystem: string;
   foundationOptions: string;
   customizationScope: string;

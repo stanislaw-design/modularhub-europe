@@ -30,6 +30,7 @@ import type { ProductOptionLayout } from "./project-layout";
 import { FLOOR_LEVELS, roomLayoutSchema, type FloorLevel } from "@/lib/product-room-layout";
 import type { EnergyClass, VentilationType } from "@/lib/product-technical-specs";
 import { captureError } from "@/lib/observability/errors";
+import type { OutdoorTvMounting, OutdoorTvPurpose } from "@/lib/outdoor-tv-filters";
 import { resolveFamilies, type FamilyFilterValue } from "@/lib/product-family-groups";
 import { clientRequirementsSchema, type ClientRequirementRow } from "@/lib/product-client-requirements";
 import { resolveHeatSourceValues, type HeatSourceFilterValue, type StoreysFilter } from "@/lib/results-filters";
@@ -433,6 +434,9 @@ interface GetProjectsFilters {
   // Znaczące tylko dla family dopasowanej do ich nazwy (ta sama granica co category, spec 0022).
   spaSubcategory?: SpaSubcategory;
   containerSubcategory?: ContainerSubcategory;
+  // Tylko family === "outdoor-tv" (spec 0071): wewnątrz grupy LUB, między grupami ORAZ.
+  mounting?: OutdoorTvMounting[];
+  purpose?: OutdoorTvPurpose[];
   q?: string;
 }
 
@@ -917,6 +921,8 @@ function mapRowToProject(
     family: row.family,
     category: row.category ?? "caloroczny",
     spaSubcategory: row.spaSubcategory,
+    outdoorTvMounting: row.outdoorTvMounting,
+    outdoorTvSunExposure: row.outdoorTvSunExposure,
     constructionSystem: resolveTranslatedText(row.constructionSystem, translation?.constructionSystem),
     foundationOptions: resolveTranslatedText(row.foundationOptions, translation?.foundationOptions),
     customizationScope: resolveTranslatedText(row.customizationScope, translation?.customizationScope),
@@ -993,6 +999,8 @@ export async function getProjects(filters?: GetProjectsFilters): Promise<Project
     producerId,
     spaSubcategory,
     containerSubcategory,
+    mounting,
+    purpose,
     q,
   } = filters ?? {};
 
@@ -1004,8 +1012,17 @@ export async function getProjects(filters?: GetProjectsFilters): Promise<Project
     filterFamilies.length > 1 ? inArray(product.family, filterFamilies) : eq(product.family, filterFamilies[0]),
   ];
 
-  if (sizeMin !== undefined) conditions.push(gte(product.floorAreaM2, sizeMin));
-  if (sizeMax !== undefined) conditions.push(lte(product.floorAreaM2, sizeMax));
+  // Outdoor TV (spec 0071 AC-5): kraj, metraż i cena nie ukrywają produktów tej
+  // rodziny, pasek ich nie ma, a martwy parametr z adresu nie może zwęzić listy.
+  const isOutdoorTv = family === "outdoor-tv";
+  if (!isOutdoorTv && sizeMin !== undefined) conditions.push(gte(product.floorAreaM2, sizeMin));
+  if (!isOutdoorTv && sizeMax !== undefined) conditions.push(lte(product.floorAreaM2, sizeMax));
+
+  if (isOutdoorTv) {
+    // Produkt bez przeznaczenia (szafa) nie przejdzie inArray na NULL (AC-4).
+    if (mounting && mounting.length > 0) conditions.push(inArray(product.outdoorTvMounting, mounting));
+    if (purpose && purpose.length > 0) conditions.push(inArray(product.outdoorTvSunExposure, purpose));
+  }
 
   // heatSource/ventilation/energyClass/storeys are dom-only (spec 0026 Key invariants).
   if (family === "dom") {
@@ -1037,7 +1054,7 @@ export async function getProjects(filters?: GetProjectsFilters): Promise<Project
 
   // Compares against the product's priceMin ("od"), never a range (spec 0026 AC-4);
   // priceOnRequest never matches once a price bound is present.
-  if (priceMin !== undefined || priceMax !== undefined) {
+  if (!isOutdoorTv && (priceMin !== undefined || priceMax !== undefined)) {
     conditions.push(sql`(${product.technicalSpecs}->>'_priceOnRequest') IS DISTINCT FROM 'true'`);
     if (priceMin !== undefined) conditions.push(gte(product.priceMinCents, priceMin * 100));
     if (priceMax !== undefined) conditions.push(lte(product.priceMinCents, priceMax * 100));
@@ -1101,7 +1118,7 @@ export async function getProjects(filters?: GetProjectsFilters): Promise<Project
     projects = rows.map((row) => mapRowToProject(row.product, row.producerName));
   }
 
-  if (countryCode) {
+  if (countryCode && !isOutdoorTv) {
     const eligibleRows = await db
       .select({ productId: productCountryEligibility.productId })
       .from(productCountryEligibility)

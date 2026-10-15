@@ -60,3 +60,6 @@ __pycache__/
 
 # Ciasteczko obejscia ochrony Vercel dla e2e na stagingu
 /e2e/.auth/
+
+# Materialy MirageVision (89 MB, poufne cenniki resellerskie), nie do repozytorium
+/_docs/mirageVision/

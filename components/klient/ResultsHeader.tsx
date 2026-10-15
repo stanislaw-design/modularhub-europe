@@ -36,7 +36,7 @@ export function ResultsHeader({ count, family, countryCode }: ResultsHeaderProps
       </Heading>
       {!countryCode && (
         <Text tone="muted" surface="v5">
-          {t("hint", { familyFew })}
+          {family === "outdoor-tv" ? t("hintOutdoorTv") : t("hint", { familyFew })}
         </Text>
       )}
     </div>

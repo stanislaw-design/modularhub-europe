@@ -6,6 +6,7 @@ import type {
   Project,
   SpaSubcategory,
 } from "./data/types";
+import { parseOutdoorTvSearchParams, type OutdoorTvMounting, type OutdoorTvPurpose } from "./outdoor-tv-filters";
 import { resolveFamilies, type FamilyFilterValue } from "./product-family-groups";
 import { ENERGY_CLASSES, HEAT_SOURCES, VENTILATION_TYPES, type EnergyClass, type HeatSource, type VentilationType } from "./product-technical-specs";
 import { SIZE_THRESHOLDS, type SizeThreshold } from "./size-thresholds";
@@ -63,6 +64,10 @@ export interface ResultsFilter {
   // ta sama granica co pole category z spec 0022).
   spaSubcategory?: SpaSubcategory;
   containerSubcategory?: ContainerSubcategory;
+  // Znaczące tylko dla family "outdoor-tv" (spec 0071 Key invariants): parsowane
+  // zawsze, stosowane przez getProjects() tylko dla tej rodziny. Puste = brak filtra.
+  mounting?: OutdoorTvMounting[];
+  purpose?: OutdoorTvPurpose[];
   sort?: SortOption;
   q?: string;
 }
@@ -122,6 +127,7 @@ export function parseResultsSearchParams(
   const spaSubcategory = parseEnumValue(searchParams.spaSubcategory, VALID_SPA_SUBCATEGORIES);
   const containerSubcategory = parseEnumValue(searchParams.containerSubcategory, VALID_CONTAINER_SUBCATEGORIES);
   const sort = parseEnumValue(searchParams.sort, SORT_OPTIONS);
+  const outdoorTv = parseOutdoorTvSearchParams(searchParams);
 
   const rawQ = searchParams.q;
   const trimmedQ = typeof rawQ === "string" ? rawQ.trim() : "";
@@ -140,6 +146,8 @@ export function parseResultsSearchParams(
     priceMax,
     spaSubcategory,
     containerSubcategory,
+    mounting: outdoorTv.mounting.length > 0 ? outdoorTv.mounting : undefined,
+    purpose: outdoorTv.purpose.length > 0 ? outdoorTv.purpose : undefined,
     sort,
     q,
   };
@@ -163,6 +171,8 @@ function resultsFilterToSearchParams(filter: ResultsFilter): URLSearchParams {
   if (filter.priceMax !== undefined) params.set("priceMax", String(filter.priceMax));
   if (filter.spaSubcategory !== undefined) params.set("spaSubcategory", filter.spaSubcategory);
   if (filter.containerSubcategory !== undefined) params.set("containerSubcategory", filter.containerSubcategory);
+  for (const value of filter.mounting ?? []) params.append("mounting", value);
+  for (const value of filter.purpose ?? []) params.append("purpose", value);
   if (filter.sort !== undefined) params.set("sort", filter.sort);
   if (filter.q !== undefined) params.set("q", filter.q);
   return params;

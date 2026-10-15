@@ -76,6 +76,10 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: reads from the da
   const saunaFourSeatsId = crypto.randomUUID();
   const saunaTextSeatsId = crypto.randomUUID();
   const searchableDomId = crypto.randomUUID();
+  // spec 0071: dwa telewizory (cien, pelne slonce) i szafa bez przeznaczenia, rodzina outdoor-tv.
+  const tvShadeId = crypto.randomUUID();
+  const tvFullSunId = crypto.randomUUID();
+  const tvCabinetId = crypto.randomUUID();
   // spec 0058: a product with a slug already set, and a second one without
   // (AC-3, AC-5).
   const slugDomId = crypto.randomUUID();
@@ -208,6 +212,35 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: reads from the da
         spaSubcategory: "sauna",
         priceMinCents: 800000,
         technicalSpecs: { seatingCapacity: "cztery" },
+      },
+      {
+        id: tvShadeId,
+        producerId,
+        family: "outdoor-tv",
+        status: "published",
+        name: "Zzfiltr Cienia TV",
+        countryOfProduction: "PL",
+        outdoorTvMounting: "na-sciane",
+        outdoorTvSunExposure: "cien",
+      },
+      {
+        id: tvFullSunId,
+        producerId,
+        family: "outdoor-tv",
+        status: "published",
+        name: "Zzfiltr Slonca TV",
+        countryOfProduction: "PL",
+        outdoorTvMounting: "na-sciane",
+        outdoorTvSunExposure: "pelne-slonce",
+      },
+      {
+        id: tvCabinetId,
+        producerId,
+        family: "outdoor-tv",
+        status: "published",
+        name: "Zzfiltr Szafa TV",
+        countryOfProduction: "PL",
+        outdoorTvMounting: "w-szafie-z-winda",
       },
       {
         id: searchableDomId,
@@ -393,6 +426,51 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: reads from the da
 
     expect(sauna.map((p) => p.id)).toContain(saunaSpaId);
     expect(jacuzzi.map((p) => p.id)).not.toContain(saunaSpaId);
+  });
+
+  // spec 0071 AC-2, AC-4, AC-5, AC-8: filtry paska Outdoor TV czytaja dwie kolumny produktu.
+  describe("outdoor-tv filters (spec 0071)", () => {
+    const mine = [tvShadeId, tvFullSunId, tvCabinetId];
+    const idsOf = async (filters: Parameters<typeof getProjects>[0]) =>
+      (await getProjects({ family: "outdoor-tv", ...filters })).map((p) => p.id).filter((id) => mine.includes(id));
+
+    it("returns every published outdoor-tv product without filters and exposes both columns", async () => {
+      const projects = await getProjects({ family: "outdoor-tv" });
+      expect(await idsOf({})).toHaveLength(3);
+      const shade = projects.find((p) => p.id === tvShadeId);
+      expect(shade?.outdoorTvMounting).toBe("na-sciane");
+      expect(shade?.outdoorTvSunExposure).toBe("cien");
+    });
+
+    it("ORs values inside the purpose group and keeps cabinets out once purpose is active (AC-2, AC-4)", async () => {
+      expect(await idsOf({ purpose: ["cien", "pelne-slonce"] })).toEqual(expect.arrayContaining([tvShadeId, tvFullSunId]));
+      expect(await idsOf({ purpose: ["cien"] })).toEqual([tvShadeId]);
+      expect(await idsOf({ purpose: ["czesciowe-slonce"] })).toEqual([]);
+    });
+
+    it("ANDs mounting with purpose (AC-2)", async () => {
+      expect(await idsOf({ mounting: ["w-szafie-z-winda"] })).toEqual([tvCabinetId]);
+      expect(await idsOf({ mounting: ["na-sciane"], purpose: ["pelne-slonce"] })).toEqual([tvFullSunId]);
+      expect(await idsOf({ mounting: ["w-szafie-z-winda"], purpose: ["cien"] })).toEqual([]);
+    });
+
+    it("ignores country, size and price for outdoor-tv so dead URL params never hide products (AC-5)", async () => {
+      const ids = await idsOf({ countryCode: "DE", sizeMin: 200, sizeMax: 300, priceMin: 100000, priceMax: 150000 });
+      expect(ids).toHaveLength(3);
+    });
+
+    it("does not apply mounting and purpose to other families", async () => {
+      const doms = await getProjects({ family: "dom", mounting: ["w-szafie-z-winda"], purpose: ["cien"] });
+      expect(doms.map((p) => p.id)).toContain(publishedDomId);
+    });
+
+    it("rejects invalid column values and non outdoor-tv rows at the database (AC-8)", async () => {
+      await expect(db.update(product).set({ outdoorTvSunExposure: "pelne" }).where(eq(product.id, tvShadeId))).rejects.toThrow();
+      await expect(db.update(product).set({ outdoorTvMounting: "xyz" }).where(eq(product.id, tvShadeId))).rejects.toThrow();
+      await expect(
+        db.update(product).set({ outdoorTvSunExposure: "cien" }).where(eq(product.id, publishedDomId)),
+      ).rejects.toThrow();
+    });
   });
 
   // spec 0068 AC-7: liczba miejsc z jsonb, zly rekord nie wywraca zapytania.

@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { CategoryFilterBar } from "@/components/klient/CategoryFilterBar";
 import { FamilyTabs } from "@/components/klient/FamilyTabs";
+import { OutdoorTvFilterBar } from "@/components/klient/OutdoorTvFilterBar";
 import { ResultsFilterBar } from "@/components/klient/ResultsFilterBar";
 import { ResultsSelection } from "@/components/klient/ResultsSelection";
 import { SubcategoryFilterBar } from "@/components/klient/SubcategoryFilterBar";
@@ -10,6 +11,7 @@ import { getEligibilityByCountry, getProjects } from "@/lib/data/projects";
 import type { EligibilityByCountry } from "@/lib/data/types";
 import { getClientIdForUser, getFavoritedProductIds } from "@/lib/db/queries";
 import type { Locale } from "@/lib/i18n/routing";
+import { sortOutdoorTvResults } from "@/lib/outdoor-tv-filters";
 import { parseResultsSearchParams, sortResults } from "@/lib/results-filters";
 
 export default async function WynikiPage({
@@ -19,8 +21,25 @@ export default async function WynikiPage({
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const [{ locale }, rawSearchParams] = await Promise.all([params, searchParams]);
-  const filter = parseResultsSearchParams(rawSearchParams);
+  const [{ locale }, rawSearchParams] = await Promise.all([
+    params,
+    searchParams,
+  ]);
+  const parsedFilter = parseResultsSearchParams(rawSearchParams);
+  // Outdoor TV (spec 0071 AC-5): kraj, metraż, cena i sortowanie z adresu są martwe,
+  // więc nie docierają ani do zapytania, ani do nagłówka, linków rodzin i zaznaczenia.
+  const isOutdoorTv = parsedFilter.family === "outdoor-tv";
+  const filter = isOutdoorTv
+    ? {
+        ...parsedFilter,
+        countryCode: undefined,
+        sizeMin: undefined,
+        sizeMax: undefined,
+        priceMin: undefined,
+        priceMax: undefined,
+        sort: undefined,
+      }
+    : parsedFilter;
 
   const [countries, projects, eligibilityRows, session] = await Promise.all([
     getCountries(),
@@ -38,9 +57,15 @@ export default async function WynikiPage({
     if (clientId) favoritedIds = await getFavoritedProductIds(clientId);
   }
 
-  const sortedProjects = sortResults(projects, filter.sort);
-  const countryNameByCode = new Map(countries.map((country) => [country.code, country.name]));
-  const eligibilityByProjectId = new Map(eligibilityRows.map((row) => [row.projectId, row.status]));
+  const sortedProjects = isOutdoorTv
+    ? sortOutdoorTvResults(projects, locale)
+    : sortResults(projects, filter.sort);
+  const countryNameByCode = new Map(
+    countries.map((country) => [country.code, country.name]),
+  );
+  const eligibilityByProjectId = new Map(
+    eligibilityRows.map((row) => [row.projectId, row.status]),
+  );
 
   // Rodzina/kategoria/podkategoria (spec 0023, 0026) renderowane dwa razy:
   // raz w normalnym przepływie strony (widoczne tylko od `sm`, patrz
@@ -63,36 +88,52 @@ export default async function WynikiPage({
   );
   const categoryFilters = (
     <>
-      {filter.family === "dom" && <CategoryFilterBar locale={locale} filter={filter} />}
+      {filter.family === "dom" && (
+        <CategoryFilterBar locale={locale} filter={filter} />
+      )}
       <SubcategoryFilterBar locale={locale} filter={filter} />
     </>
   );
 
   return (
     <Stack gap={5} className="results-shell">
-      <div className="hidden sm:contents">{familyFilter}</div>
-      <ResultsFilterBar
-        locale={locale}
-        countries={countries}
-        filter={filter}
-        mobileFilters={
-          <>
-            {familyFilter}
-            {categoryFilters}
-          </>
-        }
-      />
-      <div className="hidden sm:contents">{categoryFilters}</div>
+      {isOutdoorTv ? (
+        <>
+          {familyFilter}
+          <OutdoorTvFilterBar locale={locale} filter={filter} />
+        </>
+      ) : (
+        <>
+          <div className="hidden sm:contents">{familyFilter}</div>
+          <ResultsFilterBar
+            locale={locale}
+            countries={countries}
+            filter={filter}
+            mobileFilters={
+              <>
+                {familyFilter}
+                {categoryFilters}
+              </>
+            }
+          />
+          <div className="hidden sm:contents">{categoryFilters}</div>
+        </>
+      )}
       <ResultsSelection
         locale={locale}
         countryCode={filter.countryCode}
         sizeMin={filter.sizeMin}
         sizeMax={filter.sizeMax}
         family={filter.family}
+        emptyClearHref={
+          isOutdoorTv ? `/${locale}/results?family=outdoor-tv` : undefined
+        }
         isClientSession={isClientSession}
         serverItems={sortedProjects.map((project) => ({
           project,
-          countryName: countryNameByCode.get(project.countryOfProduction) ?? project.countryOfProduction,
+          countryName:
+            countryNameByCode.get(project.countryOfProduction) ??
+            project.countryOfProduction,
           eligibilityStatus: eligibilityByProjectId.get(project.id),
           favorited: favoritedIds.has(project.id),
         }))}

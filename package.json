@@ -18,7 +18,10 @@
     "migrate:product-photos": "tsx --env-file=.env.local scripts/migrate-existing-product-photos.ts",
     "import:domihaus": "tsx --env-file=.env.local scripts/import-domihaus-catalog.ts",
     "import:logbar": "tsx --env-file=.env.local scripts/import-logbar-catalog.ts",
-    "import:mkb": "tsx --env-file=.env.local scripts/import-mkb-catalog.ts"
+    "import:mkb": "tsx --env-file=.env.local scripts/import-mkb-catalog.ts",
+    "import:miragevision-tv": "tsx --env-file=.env.local scripts/import-miragevision-tv.ts",
+    "import:miragevision-lift": "tsx --env-file=.env.local scripts/import-miragevision-lift.ts",
+    "upload:miragevision-lift-photos": "tsx --env-file=.env.local scripts/upload-miragevision-lift-photos.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.3",
