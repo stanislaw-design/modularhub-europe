@@ -16,7 +16,7 @@ import {
 } from "@/lib/project-quote-specs";
 
 // Dokładnie jedno z dwojga: zapytanie wolne z tablicy albo zapytanie o produkt producenta (AC-21).
-type QuoteFormProps = { isRevision: boolean } & (
+export type QuoteFormProps = { isRevision: boolean; onSubmitted?: () => void } & (
   | { projectRequestId: string; bulkProductInquiryId?: undefined }
   | { bulkProductInquiryId: string; projectRequestId?: undefined }
 );
@@ -58,7 +58,7 @@ function toLogisticsInput(draft: LogisticsDraft): QuoteLogisticsItemInput {
 // document.projectQuoteId wymaga, żeby wiersz project_quote już istniał (FK).
 // Gdy samo wgranie PDF się nie powiedzie, oferta i tak zostaje zapisana --
 // ProjectQuotePdfUploadStep zostaje pokazany jako krok do ponowienia.
-export function QuoteForm({ projectRequestId, bulkProductInquiryId, isRevision }: QuoteFormProps) {
+export function QuoteForm({ projectRequestId, bulkProductInquiryId, isRevision, onSubmitted }: QuoteFormProps) {
   const t = useTranslations("QuoteForm");
   const tPdf = useTranslations("ProjectQuotePdfUploadStep");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -141,6 +141,7 @@ export function QuoteForm({ projectRequestId, bulkProductInquiryId, isRevision }
       }
 
       setSubmitted(true);
+      onSubmitted?.();
     });
   }
 

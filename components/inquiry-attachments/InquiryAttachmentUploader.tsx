@@ -2,7 +2,7 @@
 
 import { FileText, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Button, Checkbox, Label, Stack, Text } from "@/components/ui";
 import { uploadInquiryAttachment } from "@/lib/inquiry-attachment-actions";
 import {
@@ -29,6 +29,9 @@ interface InquiryAttachmentUploaderProps {
   compact?: boolean;
   // Wołane po każdym udanym wgraniu (panel używa tego przy "Zamień": usuwa stary plik).
   onUploaded?: () => void;
+  // Pliki wybrane jeszcze w formularzu zapytania: wgrywane zaraz po zamontowaniu,
+  // a zgoda została już potwierdzona w formularzu.
+  initialFiles?: File[];
 }
 
 type ItemStatus = "uploading" | "done" | "error";
@@ -53,13 +56,16 @@ export function InquiryAttachmentUploader({
   refreshOnUploaded = false,
   compact = false,
   onUploaded,
+  initialFiles,
 }: InquiryAttachmentUploaderProps) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const consentId = useId();
-  const [consent, setConsent] = useState(false);
-  const [items, setItems] = useState<UploadItem[]>([]);
-  const nextKey = useRef(0);
+  const [consent, setConsent] = useState(Boolean(initialFiles?.length));
+  const nextKey = useRef(initialFiles?.length ?? 0);
+  const [items, setItems] = useState<UploadItem[]>(() =>
+    (initialFiles ?? []).map((file, index) => ({ key: `file-${index}`, file, status: "uploading" as const }))
+  );
   const queue = useRef<Promise<void>>(Promise.resolve());
 
   const canPick = staff || consent;
@@ -97,6 +103,15 @@ export function InquiryAttachmentUploader({
       for (const item of batch) await uploadOne(item);
     });
   }
+
+  const startedInitial = useRef(false);
+  useEffect(() => {
+    if (startedInitial.current || items.length === 0) return;
+    startedInitial.current = true;
+    enqueue(items);
+    // Tylko przy montowaniu: kolejne pliki idą przez handleSelect.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function handleSelect(files: FileList | null) {
     if (!files || files.length === 0 || !canPick) return;

@@ -1971,7 +1971,10 @@
     "submitRevision": "Überarbeitetes Angebot senden",
     "submitting": "Wird gesendet…",
     "submittedMessage": "Angebot gesendet.",
-    "genericError": "Das Angebot konnte nicht gespeichert werden. Bitte versuche es erneut."
+    "genericError": "Das Angebot konnte nicht gespeichert werden. Bitte versuche es erneut.",
+    "open": "Angebot abgeben",
+    "openRevision": "Angebot überarbeiten",
+    "close": "Schließen"
   },
   "ProjectQuotePdfUploadStep": {
     "label": "Angebots-PDF",
@@ -2015,25 +2018,35 @@
     "lockedMessage": "Der Kunde hat dieses Angebot angenommen — es kann nicht mehr geändert werden.",
     "backToInquiries": "Zurück zu den Anfragen"
   },
-  "BulkOrdersShowcase": {
-    "heading": "Investitionsprojekte und Serienproduktion",
-    "subheading": "Große Bestellungen ab 3 Häusern: eine Anfrage erreicht verifizierte, volumenbereite Hersteller.",
-    "investorHeading": "Für Investoren",
-    "investorSubheading": "ab 3 Häusern",
-    "investorPoint1": "Individueller Herstellervergleich",
-    "investorPoint2": "Unterstützung bei Großprojekten",
-    "investorPoint3": "Termine, Produktionskapazität und Standard",
-    "investorCta": "Durchsuchen",
-    "investorSignatureLine1": "Größere Ideen",
-    "investorSignatureLine2": "Reale Möglichkeiten",
-    "producerHeading": "Für Hersteller",
-    "producerSubheading": "Große Produktionskapazität",
-    "producerPoint1": "Zeigen Sie Ihre Produktionskapazität",
-    "producerPoint2": "Gewinnen Sie Großaufträge",
-    "producerPoint3": "Status Verified Volume Manufacturer",
-    "producerCta": "Als B2B-Hersteller beitreten",
-    "producerSignatureLine1": "Gemeinsam",
-    "producerSignatureLine2": "Bauen wir mehr"
+  "FeaturedProjectShowcase": {
+    "eyebrow": "Projekt in Arbeit",
+    "heading": "Succes Resorts – 49 moderne Ferienhäuser",
+    "status": "In Produktion",
+    "intro": "ModularHub Europe präsentiert eine Investition von 49 modernen Ferienhäusern, die für Succes Resorts realisiert werden. Für die Produktion wurde BUDMAN HOUSE ausgewählt, ein Spezialist für Fertigbau.",
+    "factsHeading": "Projektinformationen",
+    "investor": "Investor",
+    "producer": "Hersteller",
+    "count": "Anzahl der Häuser",
+    "model": "Modell",
+    "area": "Fläche eines Hauses",
+    "terrace": "Terrassenfläche",
+    "total": "Gesamtfläche der Häuser",
+    "statusLabel": "Status",
+    "statusValue": "Produktion läuft",
+    "gallery": {
+      "top": "Ansicht von oben",
+      "side": "Seitenansicht",
+      "right": "Ansicht von rechts",
+      "front": "Vorderansicht",
+      "left": "Ansicht von links",
+      "bedroom": "Schlafzimmer",
+      "living": "Wohnzimmer",
+      "deep": "Innenraum, Tiefe des Wohnzimmers",
+      "galleryLabel": "Projektgalerie",
+      "showImage": "Bild anzeigen"
+    },
+    "investorCta": "Ähnliches Projekt beauftragen",
+    "producerCta": "Solche Projekte realisieren"
   },
   "ProjectRequestPage": {
     "metaTitle": "Großes B2B-Projekt einreichen (ab 3 Häusern) | ModularHub Europe",

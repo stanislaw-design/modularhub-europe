@@ -1971,7 +1971,10 @@
     "submitRevision": "Wyślij poprawioną wycenę",
     "submitting": "Wysyłanie…",
     "submittedMessage": "Wycena wysłana.",
-    "genericError": "Nie udało się zapisać wyceny. Spróbuj ponownie."
+    "genericError": "Nie udało się zapisać wyceny. Spróbuj ponownie.",
+    "open": "Złóż ofertę",
+    "openRevision": "Popraw ofertę",
+    "close": "Zamknij"
   },
   "ProjectQuotePdfUploadStep": {
     "label": "PDF wyceny",
@@ -2015,25 +2018,35 @@
     "lockedMessage": "Klient przyjął tę ofertę — nie można jej już zmienić.",
     "backToInquiries": "Wróć do zapytań"
   },
-  "BulkOrdersShowcase": {
-    "heading": "Projekty inwestycyjne i produkcja seryjna",
-    "subheading": "Duże zamówienia od 3 domów: jedno zapytanie trafia do zweryfikowanych, gotowych na wolumen producentów.",
-    "investorHeading": "Dla inwestorów",
-    "investorSubheading": "od 3 domów",
-    "investorPoint1": "Indywidualne porównanie producentów",
-    "investorPoint2": "Wsparcie przy dużych projektach",
-    "investorPoint3": "Terminy, moce produkcyjne i standard",
-    "investorCta": "Przeglądaj",
-    "investorSignatureLine1": "Większe pomysły",
-    "investorSignatureLine2": "Realne możliwości",
-    "producerHeading": "Dla producentów",
-    "producerSubheading": "Duże moce produkcyjne",
-    "producerPoint1": "Pokaż zdolność produkcyjną",
-    "producerPoint2": "Pozyskuj duże zlecenia",
-    "producerPoint3": "Status Verified Volume Manufacturer",
-    "producerCta": "Dołącz jako producent B2B",
-    "producerSignatureLine1": "Razem",
-    "producerSignatureLine2": "Budujemy więcej"
+  "FeaturedProjectShowcase": {
+    "eyebrow": "Realizacja w toku",
+    "heading": "Succes Resorts – 49 nowoczesnych domków rekreacyjnych",
+    "status": "W produkcji",
+    "intro": "ModularHub Europe prezentuje inwestycję obejmującą 49 nowoczesnych domków rekreacyjnych realizowanych dla Succes Resorts. Do produkcji wybrano firmę BUDMAN HOUSE, specjalizującą się w budownictwie prefabrykowanym.",
+    "factsHeading": "Informacje o projekcie",
+    "investor": "Inwestor",
+    "producer": "Producent",
+    "count": "Liczba domków",
+    "model": "Model",
+    "area": "Powierzchnia jednego domku",
+    "terrace": "Powierzchnia tarasu",
+    "total": "Łączna powierzchnia domków",
+    "statusLabel": "Status",
+    "statusValue": "Produkcja w toku",
+    "gallery": {
+      "top": "Widok z góry",
+      "side": "Widok z boku",
+      "right": "Widok z prawej",
+      "front": "Widok z przodu",
+      "left": "Widok z lewej",
+      "bedroom": "Sypialnia",
+      "living": "Salon",
+      "deep": "Wnętrze, głębia salonu",
+      "galleryLabel": "Galeria projektu",
+      "showImage": "Pokaż zdjęcie"
+    },
+    "investorCta": "Zleć podobny projekt",
+    "producerCta": "Realizuj takie projekty"
   },
   "ProjectRequestPage": {
     "metaTitle": "Zgłoś duży projekt B2B (od 3 domów) | ModularHub Europe",

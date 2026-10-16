@@ -14,6 +14,7 @@ interface InquiryAttachmentsAfterSubmitProps {
   surface?: "v5" | "v3";
   // Admin składający zapytanie w imieniu klienta: bez tokenu i bez pola zgody (AC-34).
   staff?: boolean;
+  initialFiles?: File[];
 }
 
 // Krok "Dodaj pliki" po zapisie zapytania (zadanie 22). Zapytanie już istnieje, więc
@@ -24,6 +25,7 @@ export function InquiryAttachmentsAfterSubmit({
   uploadToken,
   surface = "v5",
   staff = false,
+  initialFiles,
 }: InquiryAttachmentsAfterSubmitProps) {
   const labels = useInquiryAttachmentLabels();
   if (!staff && !uploadToken) return null;
@@ -42,6 +44,7 @@ export function InquiryAttachmentsAfterSubmit({
         labels={labels}
         uploadToken={uploadToken}
         staff={staff}
+        initialFiles={initialFiles}
         surface={surface}
       />
     </Card>

@@ -11,6 +11,8 @@ import { COMPLETION_STANDARDS } from "@/lib/producer-capacity-profile-specs";
 import { PROJECT_TYPES } from "@/lib/project-request-specs";
 import { submitProjectRequest, type SubmitProjectRequestInput } from "@/lib/project-request-actions";
 import { InquiryAttachmentsAfterSubmit } from "@/components/inquiry-attachments/InquiryAttachmentsAfterSubmit";
+import { StagedAttachmentPicker } from "@/components/inquiry-attachments/StagedAttachmentPicker";
+import { useInquiryAttachmentLabels } from "@/components/inquiry-attachments/useInquiryAttachmentLabels";
 import { BulkRequestLimitMessage } from "./BulkRequestLimitMessage";
 import { ProjectRequestConfirmationCard } from "./ProjectRequestConfirmationCard";
 
@@ -94,6 +96,9 @@ export function ProjectRequestFlow({ locale, countries, prefill }: ProjectReques
   const [emailTouched, setEmailTouched] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [limitReached, setLimitReached] = useState(false);
+  const attachmentLabels = useInquiryAttachmentLabels();
+  const [stagedFiles, setStagedFiles] = useState<File[]>([]);
+  const [attachmentConsent, setAttachmentConsent] = useState(false);
   // Spec 0070 AC-29: po zapisie zapytania pokazujemy krok plików; token żyje tylko tu.
   const [created, setCreated] = useState<{ id: string; uploadToken?: string } | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -173,7 +178,7 @@ export function ProjectRequestFlow({ locale, countries, prefill }: ProjectReques
       <Stack gap={4} className="mx-auto max-w-2xl">
         <h1 className="font-display text-h1 font-semibold text-brand-v5-ink">{t("sentHeading")}</h1>
         <ProjectRequestConfirmationCard contactEmail={contactEmail} />
-        {created && <InquiryAttachmentsAfterSubmit kind="request" inquiryId={created.id} uploadToken={created.uploadToken} />}
+        {created && <InquiryAttachmentsAfterSubmit kind="request" inquiryId={created.id} uploadToken={created.uploadToken} initialFiles={stagedFiles} />}
         <Button as="a" href={`/${locale}`} surface="v5" className="w-fit">
           {t("backToHome")}
         </Button>
@@ -526,6 +531,19 @@ export function ProjectRequestFlow({ locale, countries, prefill }: ProjectReques
                 <Text tone="muted" surface="v5" className="text-data">
                   {t("extrasNoteVisibilityHint")}
                 </Text>
+              </Stack>
+              <Stack gap={2}>
+                <Label surface="v5">{attachmentLabels.heading}</Label>
+                <Text tone="muted" surface="v5" className="text-data">
+                  {attachmentLabels.intro}
+                </Text>
+                <StagedAttachmentPicker
+                  files={stagedFiles}
+                  onFilesChange={setStagedFiles}
+                  consent={attachmentConsent}
+                  onConsentChange={setAttachmentConsent}
+                  labels={attachmentLabels}
+                />
               </Stack>
               <Text tone="muted" surface="v5" className="text-data">
                 {t("dataSharingNotice")}

@@ -1964,7 +1964,10 @@
     "submitRevision": "Aangepaste offerte verzenden",
     "submitting": "Verzenden…",
     "submittedMessage": "Offerte verzonden.",
-    "genericError": "De offerte kon niet worden opgeslagen. Probeer het opnieuw."
+    "genericError": "De offerte kon niet worden opgeslagen. Probeer het opnieuw.",
+    "open": "Offerte indienen",
+    "openRevision": "Offerte aanpassen",
+    "close": "Sluiten"
   },
   "ProjectQuotePdfUploadStep": {
     "label": "PDF van offerte",
@@ -2015,25 +2018,35 @@
     "statusClosed": "Gesloten",
     "emptyMessage": "Nog geen producent heeft op deze aanvraag gereageerd."
   },
-  "BulkOrdersShowcase": {
-    "heading": "Investeringsprojecten en serieproductie",
-    "subheading": "Grote bestellingen vanaf 3 woningen: één aanvraag bereikt geverifieerde producenten die klaar zijn voor volume.",
-    "investorHeading": "Voor investeerders",
-    "investorSubheading": "vanaf 3 woningen",
-    "investorPoint1": "Individuele producentvergelijking",
-    "investorPoint2": "Ondersteuning bij grote projecten",
-    "investorPoint3": "Termijnen, capaciteit en standaard",
-    "investorCta": "Bekijken",
-    "investorSignatureLine1": "Grotere ideeën",
-    "investorSignatureLine2": "Echte mogelijkheden",
-    "producerHeading": "Voor producenten",
-    "producerSubheading": "Grote productiecapaciteit",
-    "producerPoint1": "Toon uw productiecapaciteit",
-    "producerPoint2": "Verwerf grote orders",
-    "producerPoint3": "Status Verified Volume Manufacturer",
-    "producerCta": "Word B2B producent",
-    "producerSignatureLine1": "Samen",
-    "producerSignatureLine2": "Bouwen we meer"
+  "FeaturedProjectShowcase": {
+    "eyebrow": "Project in uitvoering",
+    "heading": "Succes Resorts – 49 moderne vakantiehuisjes",
+    "status": "In productie",
+    "intro": "ModularHub Europe presenteert een investering van 49 moderne vakantiehuisjes die worden gerealiseerd voor Succes Resorts. Voor de productie is gekozen voor BUDMAN HOUSE, specialist in prefabbouw.",
+    "factsHeading": "Projectinformatie",
+    "investor": "Investeerder",
+    "producer": "Producent",
+    "count": "Aantal huisjes",
+    "model": "Model",
+    "area": "Oppervlakte per huisje",
+    "terrace": "Oppervlakte terras",
+    "total": "Totale oppervlakte van de huisjes",
+    "statusLabel": "Status",
+    "statusValue": "Productie loopt",
+    "gallery": {
+      "top": "Bovenaanzicht",
+      "side": "Zijaanzicht",
+      "right": "Rechteraanzicht",
+      "front": "Vooraanzicht",
+      "left": "Linkeraanzicht",
+      "bedroom": "Slaapkamer",
+      "living": "Woonkamer",
+      "deep": "Interieur, diepte van de woonkamer",
+      "galleryLabel": "Projectgalerij",
+      "showImage": "Afbeelding tonen"
+    },
+    "investorCta": "Laat een vergelijkbaar project bouwen",
+    "producerCta": "Bouw projecten zoals dit"
   },
   "ProjectRequestPage": {
     "metaTitle": "Dien een groot B2B project in (vanaf 3 woningen) | ModularHub Europe",

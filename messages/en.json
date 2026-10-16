@@ -1964,7 +1964,10 @@
     "submitRevision": "Submit revised quote",
     "submitting": "Submitting…",
     "submittedMessage": "Quote submitted.",
-    "genericError": "Couldn't save the quote. Please try again."
+    "genericError": "Couldn't save the quote. Please try again.",
+    "open": "Submit an offer",
+    "openRevision": "Revise your offer",
+    "close": "Close"
   },
   "ProjectQuotePdfUploadStep": {
     "label": "Quote PDF",
@@ -2015,25 +2018,35 @@
     "statusClosed": "Closed",
     "emptyMessage": "No producer has responded to this inquiry yet."
   },
-  "BulkOrdersShowcase": {
-    "heading": "Investment projects and series production",
-    "subheading": "Large orders from 3 homes: one request reaches verified producers ready for volume.",
-    "investorHeading": "For investors",
-    "investorSubheading": "from 3 homes",
-    "investorPoint1": "Individual producer comparison",
-    "investorPoint2": "Support for large projects",
-    "investorPoint3": "Timelines, capacity and standard",
-    "investorCta": "Browse",
-    "investorSignatureLine1": "Bigger ideas",
-    "investorSignatureLine2": "Real possibilities",
-    "producerHeading": "For producers",
-    "producerSubheading": "High production capacity",
-    "producerPoint1": "Show your production capacity",
-    "producerPoint2": "Win large orders",
-    "producerPoint3": "Verified Volume Manufacturer status",
-    "producerCta": "Join as a B2B producer",
-    "producerSignatureLine1": "Together",
-    "producerSignatureLine2": "We build more"
+  "FeaturedProjectShowcase": {
+    "eyebrow": "Project in progress",
+    "heading": "Succes Resorts – 49 modern holiday cabins",
+    "status": "In production",
+    "intro": "ModularHub Europe presents an investment of 49 modern holiday cabins being built for Succes Resorts. BUDMAN HOUSE, a specialist in prefabricated construction, was chosen for production.",
+    "factsHeading": "Project details",
+    "investor": "Investor",
+    "producer": "Producer",
+    "count": "Number of cabins",
+    "model": "Model",
+    "area": "Area of a single cabin",
+    "terrace": "Terrace area",
+    "total": "Total area of the cabins",
+    "statusLabel": "Status",
+    "statusValue": "Production in progress",
+    "gallery": {
+      "top": "Top view",
+      "side": "Side view",
+      "right": "Right view",
+      "front": "Front view",
+      "left": "Left view",
+      "bedroom": "Bedroom",
+      "living": "Living room",
+      "deep": "Interior, depth of the living room",
+      "galleryLabel": "Project gallery",
+      "showImage": "Show image"
+    },
+    "investorCta": "Commission a similar project",
+    "producerCta": "Build projects like this"
   },
   "ProjectRequestPage": {
     "metaTitle": "Submit a large B2B project (from 3 homes) | ModularHub Europe",

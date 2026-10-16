@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
 import { InquiryAttachmentsPanel } from "@/components/inquiry-attachments/InquiryAttachmentsPanel";
 import { getInquiryAttachmentLabels } from "@/components/inquiry-attachments/getInquiryAttachmentLabels";
-import { QuoteForm } from "@/components/producent/QuoteForm";
+import { QuoteFormModal } from "@/components/producent/QuoteFormModal";
 import { Heading, Stack, StatusPill, Text } from "@/components/ui";
 import { getProducerIdForUser, getProductInquiryForProducerDetail } from "@/lib/db/queries";
 import { listInquiryAttachments } from "@/lib/inquiry-attachment-actions";
@@ -66,18 +66,41 @@ export default async function ProducerProductInquiryDetailPage({
         {t("backToList")}
       </Link>
 
-      <div className="grid grid-cols-1 items-start gap-brand-5 lg:grid-cols-[minmax(0,1fr)_26rem]">
+      <div className="flex flex-col gap-brand-5">
         <Stack gap={5}>
-          <Stack gap={2}>
-            <Heading level="h1">{detail.productName}</Heading>
-            <Text as="span" tone="muted">
-              {dateFormatter.format(detail.createdAt)}
-            </Text>
-          </Stack>
+          <div className="flex flex-col gap-brand-3 sm:flex-row sm:items-start sm:justify-between">
+            <Stack gap={2}>
+              <Heading level="h1">{detail.productName}</Heading>
+              <Text as="span" tone="muted">
+                {dateFormatter.format(detail.createdAt)}
+              </Text>
+            </Stack>
+            <div className="flex flex-col gap-brand-2 sm:max-w-xs sm:items-end sm:text-right">
+            {detail.ownQuoteStatus && (
+              <div className="flex flex-wrap items-center gap-brand-2">
+                <Text as="span" tone="muted">
+                  {tBoard("ownQuoteStatusLabel")}
+                </Text>
+                <StatusPill status={ownQuoteStatusTone[detail.ownQuoteStatus] ?? "conditional"}>
+                  {ownQuoteStatusLabel[detail.ownQuoteStatus] ?? detail.ownQuoteStatus}
+                </StatusPill>
+              </div>
+            )}
+            {detail.ownQuotePublished && detail.acceptingQuotes && !isLocked && (
+              <Text tone="muted">{tBoard("ownQuotePublishedNote")}</Text>
+            )}
+            {!showQuoteForm && !isLocked && !detail.ownQuotePublished && (
+              <Text tone="muted">{tBoard("quotesClosedNote")}</Text>
+            )}
+            {showQuoteForm && (
+              <QuoteFormModal bulkProductInquiryId={detail.id} isRevision={detail.ownQuoteStatus !== null} />
+            )}
+            </div>
+          </div>
 
           <section className="flex flex-col gap-brand-3">
             <Heading level="h3">{t("scopeHeading")}</Heading>
-            <dl className="grid grid-cols-1 gap-x-brand-4 gap-y-brand-3 sm:grid-cols-2">
+            <dl className="grid grid-cols-1 gap-x-brand-4 gap-y-brand-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               <Fact label={t("countryLabel")} value={detail.countryName} />
               <Fact label={t("unitCountLabel")} value={String(detail.unitCount)} emphasis />
               <Fact label={t("deadlineLabel")} value={dateFormatter.format(detail.deadlineAt)} />
@@ -87,7 +110,7 @@ export default async function ProducerProductInquiryDetailPage({
           {(hasStart || hasDelivery) && (
             <section className="flex flex-col gap-brand-3 border-t border-brand-steel pt-brand-4">
               <Heading level="h3">{t("scheduleHeading")}</Heading>
-              <dl className="grid grid-cols-1 gap-x-brand-4 gap-y-brand-3 sm:grid-cols-2">
+              <dl className="grid grid-cols-1 gap-x-brand-4 gap-y-brand-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {hasStart && (
                   <Fact
                     label={t("startWindowLabel")}
@@ -126,28 +149,6 @@ export default async function ProducerProductInquiryDetailPage({
             </div>
           )}
         </Stack>
-
-        <aside className="flex flex-col gap-brand-3 lg:sticky lg:top-brand-3">
-          {detail.ownQuoteStatus && (
-            <div className="flex flex-wrap items-center gap-brand-2">
-              <Text as="span" tone="muted">
-                {tBoard("ownQuoteStatusLabel")}
-              </Text>
-              <StatusPill status={ownQuoteStatusTone[detail.ownQuoteStatus] ?? "conditional"}>
-                {ownQuoteStatusLabel[detail.ownQuoteStatus] ?? detail.ownQuoteStatus}
-              </StatusPill>
-            </div>
-          )}
-          {detail.ownQuotePublished && detail.acceptingQuotes && !isLocked && (
-            <Text tone="muted">{tBoard("ownQuotePublishedNote")}</Text>
-          )}
-          {!showQuoteForm && !isLocked && !detail.ownQuotePublished && (
-            <Text tone="muted">{tBoard("quotesClosedNote")}</Text>
-          )}
-          {showQuoteForm && (
-            <QuoteForm bulkProductInquiryId={detail.id} isRevision={detail.ownQuoteStatus !== null} />
-          )}
-        </aside>
       </div>
     </Stack>
   );

@@ -24,8 +24,8 @@ vi.mock("@/components/inquiry-attachments/InquiryAttachmentsPanel", () => ({
   ),
 }));
 
-vi.mock("@/components/producent/QuoteForm", () => ({
-  QuoteForm: (props: { bulkProductInquiryId?: string; projectRequestId?: string; isRevision: boolean }) => (
+vi.mock("@/components/producent/QuoteFormModal", () => ({
+  QuoteFormModal: (props: { bulkProductInquiryId?: string; projectRequestId?: string; isRevision: boolean }) => (
     <div data-testid="quote-form" data-inquiry={props.bulkProductInquiryId} data-request={props.projectRequestId ?? ""} data-revision={String(props.isRevision)} />
   ),
 }));
