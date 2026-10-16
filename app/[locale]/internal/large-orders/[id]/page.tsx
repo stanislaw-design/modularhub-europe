@@ -3,6 +3,8 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { InquiryAttachmentsPanel } from "@/components/inquiry-attachments/InquiryAttachmentsPanel";
+import { getInquiryAttachmentLabels } from "@/components/inquiry-attachments/getInquiryAttachmentLabels";
 import { DownloadQuotePdfButton } from "@/components/klient/DownloadQuotePdfButton";
 import {
   LargeOrderKindPill,
@@ -11,6 +13,7 @@ import {
   LargeOrderTonePill,
 } from "@/components/internal/LargeOrderPills";
 import { describeDeadline } from "@/components/internal/largeOrderDeadline";
+import { CloseRequestControl } from "@/components/internal/CloseRequestControl";
 import { ConnectSelectionControl } from "@/components/internal/ConnectSelectionControl";
 import { ExtendDeadlineControl } from "@/components/internal/ExtendDeadlineControl";
 import { PublishSummaryControl } from "@/components/internal/PublishSummaryControl";
@@ -19,6 +22,7 @@ import { ProducerOverridesAdminSection } from "@/components/internal/ProducerOve
 import { Heading, Stack, Text } from "@/components/ui";
 import { getProducerMatchesForAdmin } from "@/lib/db/project-request-matching";
 import { getLargeOrderForAdmin, type LargeOrderKind, type LargeOrderQuoteForAdmin } from "@/lib/db/queries";
+import { listInquiryAttachments } from "@/lib/inquiry-attachment-actions";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -74,6 +78,12 @@ export default async function InternalLargeOrderDetailPage({
   if (!order) notFound();
   // Dopasowanie dotyczy tylko zapytania wolnego; zapytanie o produkt idzie do producenta produktu.
   const producerMatches = kind === "request" ? await getProducerMatchesForAdmin(id) : null;
+  // Pliki inwestora (spec 0070 AC-31, AC-32): admin widzi wszystkie, także ukryte i usunięte.
+  // Panel admina jest po polsku niezależnie od języka adresu.
+  const [attachments, attachmentLabels] = await Promise.all([
+    listInquiryAttachments(kind, id),
+    getInquiryAttachmentLabels("pl"),
+  ]);
 
   const contactRevealedAt = order.quotes.find((quote) => quote.contactRevealedAt)?.contactRevealedAt ?? null;
   const deadline = describeDeadline(order.deadlineAt, order.status, getNow());
@@ -181,6 +191,7 @@ export default async function InternalLargeOrderDetailPage({
             <h2 id="order-quotes-heading" className="text-h3 font-semibold">
               Oferty producentów
             </h2>
+            {order.status !== "closed" && <CloseRequestControl id={id} kind={kind} />}
             {pendingPublication > 0 && order.status !== "accepted" && order.status !== "closed" && (
               <PublishSummaryControl
                 id={id}
@@ -202,6 +213,17 @@ export default async function InternalLargeOrderDetailPage({
           </section>
 
           {producerMatches && <ProducerOverridesAdminSection projectRequestId={order.id} producers={producerMatches} />}
+
+          <InquiryAttachmentsPanel
+            kind={kind}
+            inquiryId={order.id}
+            items={attachments}
+            viewer="admin"
+            labels={attachmentLabels}
+            locale="pl"
+            surface="v3"
+            canChange
+          />
 
           <section aria-labelledby="order-scope-heading" className="flex flex-col gap-brand-2">
             <h2 id="order-scope-heading" className="text-h3 font-semibold">

@@ -1992,7 +1992,7 @@
     "sourceBulkProductInquiry": "Zapytanie o produkt",
     "statusActive": "Aktywna",
     "statusAccepted": "Zaakceptowana",
-    "statusRejected": "Odrzucona",
+    "statusRejected": "Wybrano innego producenta",
     "statusSuperseded": "Zastąpiona",
     "contactRevealedLabel": "Kontakt inwestora"
   },
@@ -2159,7 +2159,8 @@
     "expandSidebar": "Rozwiń menu",
     "board": "Tablica ogłoszeń",
     "boardQuotes": "Moje wyceny",
-    "capacity": "Profil zdolności"
+    "capacity": "Profil zdolności",
+    "productInquiries": "Zapytania o produkt"
   },
   "ClientPanelSidebar": {
     "navAriaLabel": "Panel klienta",
@@ -2563,10 +2564,44 @@
     "pendingSelectionNote": "Klient wybrał ofertę, a wybór czekał na zatwierdzenie danych firmy. Połączenie nie dojdzie do skutku.",
     "cta": "Otwórz zapytanie w panelu"
   },
+  "LargeOrderClientOnBehalfEmail": {
+    "subject": "ModularHub złożył zapytanie w Twoim imieniu",
+    "greeting": "Dzień dobry {name},",
+    "intro": "Zgodnie z naszą rozmową doradca ModularHub złożył w Twoim imieniu zapytanie o duże zamówienie. Producenci dopasowani do projektu złożą oferty w jednym formacie, a my przygotujemy dla Ciebie porównanie.",
+    "countryLabel": "Kraj",
+    "unitsLabel": "Liczba domów",
+    "deadlineLabel": "Termin składania ofert",
+    "loginHint": "Aby zobaczyć zapytanie i śledzić oferty, zaloguj się adresem {email}. Wyślemy Ci jednorazowy link, hasło nie jest potrzebne.",
+    "cta": "Zaloguj się i zobacz zapytanie"
+  },
   "LargeOrderProducerClosedEmail": {
     "subject": "Zapytanie zostało zamknięte",
     "body": "Zapytanie, na które złożyłeś ofertę, zostało zamknięte. Nie musisz nic robić. Nowe zapytania znajdziesz na tablicy.",
     "cta": "Otwórz tablicę zapytań"
+  },
+  "LargeOrderProducerNotSelectedEmail": {
+    "subject": "Klient wybrał innego producenta",
+    "body": "Klient wybrał w tym zapytaniu ofertę innego producenta. Dziękujemy za Twoją ofertę, nie musisz nic robić. Nowe zapytania znajdziesz na tablicy.",
+    "cta": "Otwórz tablicę zapytań"
+  },
+  "ReopenRequestButton": {
+    "trigger": "Wznów zapytanie",
+    "reopening": "Wznawianie…",
+    "emailLimit": "Masz już 3 z 3 aktywnych zapytań o duże zamówienie na ten adres e mail. Zamknij jedno na liście zapytań, żeby wznowić to.",
+    "notReopenable": "Tego zapytania nie można już wznowić. Złóż nowe zapytanie albo skontaktuj się z ModularHub.",
+    "notFound": "Nie znaleziono zapytania. Odśwież stronę.",
+    "genericError": "Nie udało się wznowić zapytania. Spróbuj ponownie."
+  },
+  "QuoteOutcomeControl": {
+    "prompt": "Jaki jest wynik rozmów z klientem?",
+    "reported": "Wynik",
+    "outcome": {
+      "signed": "Podpisano umowę",
+      "no_agreement": "Brak porozumienia",
+      "withdrew": "Wycofano się"
+    },
+    "alreadyReported": "Wynik został już zapisany. Aby go zmienić, skontaktuj się z ModularHub.",
+    "genericError": "Nie udało się zapisać wyniku. Spróbuj ponownie."
   },
   "SelectQuoteButton": {
     "select": "Wybierz tę ofertę",
@@ -2608,6 +2643,127 @@
   "LargeOrderTeamPendingSelectionEmail": {
     "subject": "Wybór klienta czeka na zatwierdzenie danych firmy ({units} domów, {country})",
     "intro": "Klient wybrał ofertę, ale jego dane firmy (B2B) nie są jeszcze zatwierdzone. Zatwierdź je, a strony połączą się automatycznie.",
+    "cta": "Otwórz zapytanie w panelu"
+  },
+  "ProducerProductInquiriesPage": {
+    "heading": "Zapytania o Twoje produkty",
+    "intro": "Zapytania o duże zamówienia konkretnych produktów z Twojej oferty. Złóż wycenę przed terminem. Dane kontaktowe inwestora poznasz dopiero po wyborze Twojej oferty.",
+    "emptyMessage": "Brak zapytań o Twoje produkty.",
+    "columnProduct": "Produkt",
+    "columnCountry": "Kraj dostawy",
+    "columnUnits": "Sztuki",
+    "columnDeadline": "Termin ofert",
+    "columnOwnQuote": "Twoja oferta",
+    "ownQuoteNone": "Nie złożono"
+  },
+  "ProducerProductInquiryDetailPage": {
+    "backToList": "Wróć do zapytań o produkty",
+    "scopeHeading": "Zakres zamówienia",
+    "countryLabel": "Kraj dostawy",
+    "unitCountLabel": "Liczba sztuk",
+    "deadlineLabel": "Termin ofert",
+    "scheduleHeading": "Terminy",
+    "startWindowLabel": "Okno startu",
+    "deliveryWindowLabel": "Okno dostawy",
+    "noteLabel": "Uwagi inwestora"
+  },
+  "InquiryAttachments": {
+    "heading": "Pliki do zapytania",
+    "investorFilesHeading": "Pliki inwestora",
+    "intro": "Dołącz projekt, rzuty, plan zagospodarowania lub specyfikację. Producenci dopasowani do zapytania zobaczą te pliki od razu i użyją ich do przygotowania oferty.",
+    "producerIntro": "Pliki od inwestora do przygotowania oferty. Każdy plik pobierasz na swoje urządzenie.",
+    "adminIntro": "Pliki dołączone do zapytania. Producenci dopasowani do zapytania widzą je od razu. Ukryj plik, jeśli zawiera dane kontaktowe inwestora.",
+    "limitsHint": "Do 10 plików (PDF, JPEG, PNG lub WebP), każdy do 20 MB, razem do 60 MB.",
+    "warning": "Nie dołączaj plików z Twoimi danymi kontaktowymi (telefon, e-mail, adres strony), na przykład w stopce rysunku. Producenci widzą pliki przed wyborem oferty, a dane kontaktowe przekazujemy dopiero po wyborze.",
+    "staffWarning": "Sprawdź, czy w plikach nie ma danych kontaktowych klienta (na przykład w stopce rysunku). Producenci widzą pliki od razu.",
+    "consentLabel": "W plikach nie ma moich danych kontaktowych",
+    "chooseFiles": "Wybierz pliki",
+    "addFiles": "Dodaj pliki",
+    "replace": "Zamień",
+    "statusUploading": "Wgrywanie",
+    "statusDone": "Wgrano",
+    "statusError": "Nie wgrano",
+    "retry": "Spróbuj ponownie",
+    "dismiss": "Zamknij",
+    "download": "Pobierz",
+    "remove": "Usuń",
+    "removing": "Usuwanie",
+    "hide": "Ukryj",
+    "unhide": "Przywróć",
+    "hideReasonLabel": "Powód ukrycia (zapisujemy go w dzienniku audytu)",
+    "hideConfirm": "Ukryj plik",
+    "cancel": "Anuluj",
+    "hiddenBadge": "Ukryty przez ModularHub",
+    "hiddenReason": "Powód: {reason}",
+    "deletedBadge": "Usunięty",
+    "empty": "Brak plików.",
+    "tokenExpired": "Nie możemy już dodać plików z tej strony. Dodaj je po zalogowaniu albo napisz do nas.",
+    "lockedNote": "Pliki można zmieniać do terminu składania ofert i do publikacji podsumowania. Później zmienia je ModularHub.",
+    "afterSubmitHint": "Zapytanie zostało złożone. Pliki możesz dodać teraz albo później z panelu klienta.",
+    "changedAfterQuote": "Pliki zmieniono po złożeniu Twojej oferty",
+    "downloadError": "Nie udało się otworzyć pliku. Spróbuj ponownie.",
+    "uploadedBy": {
+      "client": "Klient",
+      "guest": "Gość",
+      "staff": "Doradca ModularHub"
+    },
+    "errors": {
+      "no_access": "Nie masz dostępu do tego zapytania.",
+      "consent_required": "Potwierdź, że w plikach nie ma Twoich danych kontaktowych.",
+      "invalid_type": "Dozwolone są tylko pliki PDF, JPEG, PNG lub WebP.",
+      "too_large": "Plik jest większy niż 20 MB.",
+      "file_rejected": "Ten plik nie został przyjęty (zaszyfrowany, uszkodzony lub z aktywną zawartością).",
+      "limit_count": "Zapytanie ma już 10 plików. Usuń jeden, żeby dodać kolejny.",
+      "limit_size": "Łączny rozmiar plików przekroczyłby 60 MB.",
+      "limit_stored": "Zapytanie osiągnęło twardy limit plików. Napisz do nas, a pomożemy.",
+      "closed": "Pliki tego zapytania nie mogą być już zmieniane.",
+      "guest_daily_limit": "Wgrywanie plików jest chwilowo niedostępne. Spróbuj później albo napisz do nas.",
+      "storage_failed": "Nie udało się wgrać pliku do magazynu. Spróbuj ponownie.",
+      "not_found": "Nie znaleziono pliku.",
+      "reason_required": "Podaj powód ukrycia pliku.",
+      "generic": "Nie udało się zapisać pliku. Spróbuj ponownie."
+    }
+  },
+  "LargeOrderProducerNewRequestEmail": {
+    "subject": "Nowe zapytanie o duże zamówienie ({units} domów, {country})",
+    "intro": "Na tablicy pojawiło się zapytanie o duże zamówienie dopasowane do Twojego profilu. Dane kontaktowe klienta poznasz dopiero po wyborze Twojej oferty.",
+    "countryLabel": "Kraj dostawy",
+    "unitsLabel": "Liczba domów",
+    "familiesLabel": "Rodziny produktów",
+    "productLabel": "Produkt",
+    "deadlineLabel": "Termin składania ofert",
+    "cta": "Otwórz zapytanie"
+  },
+  "LargeOrderTeamNewQuoteEmail": {
+    "subject": "Nowa oferta na zapytanie ({units} domów, {country})",
+    "intro": "Producent złożył ofertę. Klient jej nie widzi, dopóki nie opublikujesz podsumowania.",
+    "producerLabel": "Producent",
+    "totalLabel": "Cena łączna (EUR)",
+    "cta": "Przejrzyj ofertę w panelu"
+  },
+  "LargeOrderClientSummaryPublishedEmail": {
+    "subject": "Porównanie ofert na Twoje zapytanie jest gotowe",
+    "greeting": "Dzień dobry {name},",
+    "intro": "ModularHub przygotował porównanie ofert producentów na Twoje zapytanie o duże zamówienie. Zobaczysz je w panelu, wybierzesz producenta, a my połączymy Was ze sobą.",
+    "countryLabel": "Kraj",
+    "unitsLabel": "Liczba domów",
+    "loginHint": "Zaloguj się adresem {email}. Wyślemy Ci jednorazowy link, hasło nie jest potrzebne.",
+    "cta": "Zobacz porównanie ofert"
+  },
+  "LargeOrderProducerReminderEmail": {
+    "subject3d": "Przypomnienie: do końca składania ofert zostały 3 dni",
+    "subject1d": "Przypomnienie: oferty można składać jeszcze tylko jeden dzień",
+    "intro": "Nie złożyłeś jeszcze oferty na zapytanie o duże zamówienie dopasowane do Twojego profilu.",
+    "countryLabel": "Kraj dostawy",
+    "unitsLabel": "Liczba domów",
+    "deadlineLabel": "Termin składania ofert",
+    "cta": "Złóż ofertę"
+  },
+  "LargeOrderTeamDeadlineEmail": {
+    "subject": "Minął termin ofert ({units} domów, {country})",
+    "intro": "Termin składania ofert na to zapytanie minął, a zapytanie nadal jest otwarte.",
+    "offersLabel": "Liczba aktywnych ofert",
+    "noOffersNote": "Nie ma żadnej oferty. Zamknij zapytanie z powodem „brak ofert” albo przedłuż termin.",
     "cta": "Otwórz zapytanie w panelu"
   }
 }

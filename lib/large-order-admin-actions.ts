@@ -7,8 +7,11 @@ import { db } from "@/lib/db/client";
 import { getPgErrorCode } from "@/lib/db/pg-error";
 import { bulkProductInquiry, projectQuote, projectRequest, projectRequestProducerOverride } from "@/lib/db/schema";
 import { withAdminActor } from "@/lib/db/with-admin-actor";
+import { closeLargeOrder } from "@/lib/large-order-close";
 import { connectSelection } from "@/lib/large-order-connection";
-import { captureError } from "@/lib/observability";
+import { notifyClientOfPublishedSummary } from "@/lib/notifications/large-order-client";
+import { captureError, trackEvent } from "@/lib/observability";
+import { stageClientRegistration } from "@/lib/stage-client-registration";
 
 interface ActionResult {
   ok: boolean;
@@ -151,7 +154,7 @@ const publishSummarySchema = z.object({
 // jeszcze go nie mają, status zapytania na `published` i summary_published_at
 // (pierwsza publikacja, kolejne jej nie przesuwają). Oba kroki idą w jednym
 // withAdminActor (db.batch) i niosą ten sam warunek statusu, więc zapytanie
-// połączone lub zamknięte nie zmienia się. Mail do klienta wysyła zadanie 17.
+// połączone lub zamknięte nie zmienia się.
 export async function publishSummary(
   id: string,
   kind: "request" | "product",
@@ -199,7 +202,55 @@ export async function publishSummary(
     captureError(error, { path: "publishSummary", userId: adminId });
     return { ok: false, error: "Nie udało się opublikować podsumowania. Spróbuj ponownie." };
   }
+  await mailPublishedSummary(parsed.data.kind, parsed.data.id);
   return { ok: true };
+}
+
+// Spec 0070 AC-14, AC-23, AC-24: mail do klienta po publikacji, w języku zapytania, z linkiem
+// do logowania prowadzącym na /{contact_locale}/panel/quotes. Klient bez konta dostaje
+// oczekującą rejestrację, więc pierwsze logowanie zakłada konto. Best effort: publikacja
+// jest już zapisana, błąd idzie do Sentry. Powtórna publikacja (kolejne oferty) wysyła
+// kolejny mail, bo zespół świadomie ją wykonuje.
+async function mailPublishedSummary(kind: "request" | "product", id: string): Promise<void> {
+  try {
+    const [row] =
+      kind === "request"
+        ? await db
+            .select({
+              name: projectRequest.contactName,
+              email: projectRequest.contactEmail,
+              phone: projectRequest.contactPhone,
+              locale: projectRequest.contactLocale,
+              countryCode: projectRequest.countryCode,
+              unitCount: projectRequest.unitCount,
+            })
+            .from(projectRequest)
+            .where(eq(projectRequest.id, id))
+        : await db
+            .select({
+              name: bulkProductInquiry.contactName,
+              email: bulkProductInquiry.contactEmail,
+              phone: bulkProductInquiry.contactPhone,
+              locale: bulkProductInquiry.contactLocale,
+              countryCode: bulkProductInquiry.deliveryCountryCode,
+              unitCount: bulkProductInquiry.unitCount,
+            })
+            .from(bulkProductInquiry)
+            .where(eq(bulkProductInquiry.id, id));
+    if (!row) return;
+    await stageClientRegistration(row.email, row.name, row.phone ?? undefined);
+    await notifyClientOfPublishedSummary({
+      kind,
+      id,
+      email: row.email,
+      name: row.name,
+      locale: row.locale,
+      countryCode: row.countryCode,
+      unitCount: row.unitCount,
+    });
+  } catch (error) {
+    captureError(error, { path: "publishSummary:mailPublishedSummary" });
+  }
 }
 
 const quoteIdSchema = z.uuid();
@@ -321,5 +372,47 @@ export async function connectSelectionAsAdmin(kind: "request" | "product", id: s
   } catch (error) {
     captureError(error, { path: "connectSelectionAsAdmin", userId: session.user.id });
     return { ok: false, error: "Nie udało się połączyć stron. Spróbuj ponownie." };
+  }
+}
+
+const closeRequestSchema = z.object({
+  id: z.uuid(),
+  kind: z.enum(["request", "product"]),
+  reason: z.enum(["client_cancelled", "no_offers", "expired", "staff_closed"]),
+});
+
+// Spec 0070 AC-19: administrator zamyka zapytanie z powodem (client_cancelled, no_offers,
+// expired, staff_closed), także już połączone (po połączeniu stron zamyka tylko administrator).
+// Jeden UPDATE z warunkiem statusu w SQL przez withAdminActor (audyt, AC-22). Producenci z
+// aktywną ofertą dostają neutralną informację z tej samej funkcji co przy zamknięciu przez
+// klienta; błąd wysyłki nie cofa zamknięcia.
+export async function closeRequest(
+  id: string,
+  kind: "request" | "product",
+  reason: "client_cancelled" | "no_offers" | "expired" | "staff_closed",
+): Promise<ActionResult> {
+  const parsed = closeRequestSchema.safeParse({ id, kind, reason });
+  if (!parsed.success) return { ok: false, error: "Sprawdź dane zamknięcia." };
+
+  const session = await auth();
+  if (!session || session.user.role !== "admin") {
+    return { ok: false, error: "Musisz być zalogowany jako administrator." };
+  }
+  const adminId = session.user.id;
+
+  try {
+    const closed = await closeLargeOrder({
+      kind: parsed.data.kind,
+      id: parsed.data.id,
+      reason: parsed.data.reason,
+      fromStatuses: ["open", "quoted", "published", "accepted"],
+      adminId,
+    });
+    if (!closed) return { ok: false, error: "Zapytanie jest już zamknięte albo go nie ma." };
+    trackEvent("request_closed_by_staff", { kind: parsed.data.kind, reason: parsed.data.reason }, parsed.data.id);
+    return { ok: true };
+  } catch (error) {
+    captureError(error, { path: "closeRequest", userId: adminId });
+    return { ok: false, error: "Nie udało się zamknąć zapytania. Spróbuj ponownie." };
   }
 }

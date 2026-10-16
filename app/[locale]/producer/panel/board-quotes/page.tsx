@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { DownloadQuotePdfButton } from "@/components/producent/DownloadQuotePdfButton";
+import { QuoteOutcomeControl } from "@/components/producent/QuoteOutcomeControl";
 import { Card, DataText, Heading, Stack, Text } from "@/components/ui";
 import { getProducerIdForUser, getProjectQuotesForProducer, type ProjectQuoteForProducer } from "@/lib/db/queries";
 import { requirePanelProducerSession } from "@/lib/panel-session";
@@ -87,7 +88,14 @@ export default async function ProducerPanelBoardQuotesPage({
                   <Text as="td" className="p-brand-2">
                     {dateFormatter.format(quote.submittedAt)}
                   </Text>
-                  <td className="p-brand-2 text-right">{quote.hasPdf && <DownloadQuotePdfButton quoteId={quote.id} />}</td>
+                  <td className="p-brand-2 text-right">
+                    <div className="flex flex-col items-end gap-brand-2">
+                      {quote.hasPdf && <DownloadQuotePdfButton quoteId={quote.id} />}
+                      {quote.status === "accepted" && quote.contactEmail && (
+                        <QuoteOutcomeControl quoteId={quote.id} outcome={quote.producerOutcome} />
+                      )}
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>

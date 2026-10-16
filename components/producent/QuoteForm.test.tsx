@@ -28,6 +28,22 @@ beforeEach(() => {
   mockedUploadProjectQuotePdf.mockReset();
 });
 
+describe("QuoteForm for a product inquiry (spec 0070 AC-21)", () => {
+  it("submits bulkProductInquiryId and no projectRequestId", async () => {
+    const user = userEvent.setup();
+    mockedSubmitProjectQuote.mockResolvedValue({ ok: true });
+    render(<QuoteForm bulkProductInquiryId="inq-1" isRevision={false} />);
+
+    await fillRequired(user, "900000");
+    await user.click(screen.getByRole("button", { name: "Wyślij wycenę" }));
+
+    await waitFor(() => expect(mockedSubmitProjectQuote).toHaveBeenCalledTimes(1));
+    const payload = mockedSubmitProjectQuote.mock.calls[0]![0];
+    expect(payload.bulkProductInquiryId).toBe("inq-1");
+    expect(payload.projectRequestId).toBeUndefined();
+  });
+});
+
 describe("QuoteForm", () => {
   it("disables submit until total price, scope and validity date are filled in", async () => {
     const user = userEvent.setup();

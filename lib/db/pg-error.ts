@@ -21,3 +21,16 @@ export function getPgErrorCode(error: unknown): string | undefined {
 
   return undefined;
 }
+
+// Komunikat błędu Postgresa (np. 'inquiry_attachment_limit_count' zgłoszony przez
+// RAISE EXCEPTION w wyzwalaczu). Ta sama zasada co wyżej: leży pod `.cause`.
+export function getPgErrorMessage(error: unknown): string | undefined {
+  if (typeof error !== "object" || error === null) return undefined;
+
+  const cause = "cause" in error ? (error as { cause: unknown }).cause : undefined;
+  if (typeof cause === "object" && cause !== null && "message" in cause && typeof (cause as { message: unknown }).message === "string") {
+    return (cause as { message: string }).message;
+  }
+  if (error instanceof Error) return error.message;
+  return undefined;
+}

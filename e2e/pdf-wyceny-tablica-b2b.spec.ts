@@ -281,6 +281,8 @@ test.describe("spec 0063: download button on client and producer quote screens",
 
   test.afterAll(async () => {
     await db.delete(document).where(eq(document.ownerUserId, producerUserId));
+    // Spec 0070 AC-16: wybór klienta zapisuje selected_quote_id na zapytaniu (klucz obcy do oferty).
+    await db.update(projectRequest).set({ selectedQuoteId: null }).where(eq(projectRequest.id, projectRequestId));
     await db.delete(projectQuote).where(and(eq(projectQuote.projectRequestId, projectRequestId), eq(projectQuote.producerId, producerId)));
     await db.delete(sessions).where(eq(sessions.sessionToken, producerSessionToken));
     await db.delete(sessions).where(eq(sessions.sessionToken, clientSessionToken));

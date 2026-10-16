@@ -14,6 +14,7 @@ import {
   client,
   document,
   product,
+  producer,
   producerCapacityProfile,
   producerDeliveryCountry,
   projectQuote,
@@ -26,6 +27,7 @@ import {
 } from "@/lib/producer-capacity-profile-specs";
 import { connectPendingSelectionsForClient, connectSelection } from "@/lib/large-order-connection";
 import { notifyTeamOfPendingSelection } from "@/lib/notifications/large-order-connection";
+import { notifyTeamOfNewQuote } from "@/lib/notifications/large-order-team";
 import { captureError, trackEvent } from "@/lib/observability";
 import {
   DELIVERY_WINDOW_ORDER_MESSAGE,
@@ -271,7 +273,47 @@ export async function submitProjectQuote(input: SubmitProjectQuoteInput): Promis
   }
 
   trackEvent("project_quote_submitted", { quoteId: newQuoteId }, session.user.id);
+  await alertTeamOfNewQuote(target, producerId, totalPriceCents);
   return { ok: true, quoteId: newQuoteId };
+}
+
+// Spec 0070 AC-24: zespół dostaje mail o nowej ofercie (klient jej jeszcze nie widzi).
+// Best effort: błąd odczytu albo wysyłki trafia do Sentry i nie cofa zapisanej oferty.
+async function alertTeamOfNewQuote(target: QuoteTarget, producerId: string, totalPriceCents: number): Promise<void> {
+  try {
+    const [producerRow] = await db.select({ name: producer.name }).from(producer).where(eq(producer.id, producerId));
+    if ("projectRequestId" in target) {
+      const [row] = await db
+        .select({ countryCode: projectRequest.countryCode, unitCount: projectRequest.unitCount })
+        .from(projectRequest)
+        .where(eq(projectRequest.id, target.projectRequestId));
+      if (!row) return;
+      await notifyTeamOfNewQuote({
+        kind: "request",
+        id: target.projectRequestId,
+        countryCode: row.countryCode,
+        unitCount: row.unitCount,
+        producerName: producerRow?.name ?? "",
+        totalPriceCents,
+      });
+      return;
+    }
+    const [row] = await db
+      .select({ countryCode: bulkProductInquiry.deliveryCountryCode, unitCount: bulkProductInquiry.unitCount })
+      .from(bulkProductInquiry)
+      .where(eq(bulkProductInquiry.id, target.bulkProductInquiryId));
+    if (!row) return;
+    await notifyTeamOfNewQuote({
+      kind: "product",
+      id: target.bulkProductInquiryId,
+      countryCode: row.countryCode,
+      unitCount: row.unitCount,
+      producerName: producerRow?.name ?? "",
+      totalPriceCents,
+    });
+  } catch (error) {
+    captureError(error, { path: "submitProjectQuote:alertTeamOfNewQuote" });
+  }
 }
 
 // Gdy INSERT nie wstawił wiersza (wyścig z terminem, wyborem albo zamknięciem
@@ -416,6 +458,67 @@ async function explainRejectedSelection(
     .where(eq(projectQuote.id, quoteId));
   if (!quote || quote.status !== "active" || !quote.publishedToClientAt) return { error: RACE_ERROR, errorCode: "stale" };
   return { error: "Nie udało się zapisać wyboru. Odśwież i spróbuj ponownie.", errorCode: "generic" };
+}
+
+export type QuoteProducerOutcome = "signed" | "no_agreement" | "withdrew";
+export type ReportQuoteOutcomeErrorCode = "not_found" | "not_winner" | "already_reported";
+
+export interface ReportQuoteOutcomeResult extends ActionResult {
+  errorCode?: ReportQuoteOutcomeErrorCode;
+}
+
+const quoteOutcomeSchema = z.object({
+  quoteId: z.uuid(),
+  outcome: z.enum(["signed", "no_agreement", "withdrew"]),
+});
+
+// Spec 0070 AC-18: zwycięski producent (oferta accepted, kontakt ujawniony) potwierdza wynik:
+// podpisano umowę, brak porozumienia albo wycofanie. Zapis tylko raz, warunek (własna oferta,
+// status accepted, brak wcześniejszego wyniku) jest w samym SQL, więc dwa kliknięcia nie
+// nadpiszą wyniku. Zmiana zapisanego wyniku wymaga administratora (poza tą akcją).
+export async function reportQuoteOutcome(quoteId: string, outcome: QuoteProducerOutcome): Promise<ReportQuoteOutcomeResult> {
+  const parsed = quoteOutcomeSchema.safeParse({ quoteId, outcome });
+  if (!parsed.success) return { ok: false, error: QUOTE_NOT_FOUND_ERROR, errorCode: "not_found" };
+
+  const session = await auth();
+  if (!session || session.user.role !== "producer") {
+    return { ok: false, error: "Musisz być zalogowany jako producent.", errorCode: "not_found" };
+  }
+  const producerId = await getProducerIdForUser(session.user.id);
+  if (!producerId) return { ok: false, error: QUOTE_NOT_FOUND_ERROR, errorCode: "not_found" };
+
+  try {
+    const [updated] = await db
+      .update(projectQuote)
+      .set({ producerOutcome: parsed.data.outcome, producerOutcomeAt: sql`now()` })
+      .where(
+        and(
+          eq(projectQuote.id, parsed.data.quoteId),
+          eq(projectQuote.producerId, producerId),
+          eq(projectQuote.status, "accepted"),
+          isNotNull(projectQuote.contactRevealedAt),
+          isNull(projectQuote.producerOutcome),
+        ),
+      )
+      .returning({ id: projectQuote.id });
+    if (updated) {
+      trackEvent("project_quote_outcome_reported", { outcome: parsed.data.outcome }, parsed.data.quoteId);
+      return { ok: true };
+    }
+
+    const [existing] = await db
+      .select({ status: projectQuote.status, producerOutcome: projectQuote.producerOutcome })
+      .from(projectQuote)
+      .where(and(eq(projectQuote.id, parsed.data.quoteId), eq(projectQuote.producerId, producerId)));
+    if (!existing) return { ok: false, error: QUOTE_NOT_FOUND_ERROR, errorCode: "not_found" };
+    if (existing.producerOutcome) {
+      return { ok: false, error: "Wynik został już zapisany. Aby go zmienić, skontaktuj się z ModularHub.", errorCode: "already_reported" };
+    }
+    return { ok: false, error: "Wynik można potwierdzić tylko dla wybranej oferty.", errorCode: "not_winner" };
+  } catch (error) {
+    captureError(error, { path: "reportQuoteOutcome", userId: session.user.id });
+    return { ok: false, error: "Nie udało się zapisać wyniku. Spróbuj ponownie." };
+  }
 }
 
 // ---------------------------------------------------------------------------

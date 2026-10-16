@@ -13,6 +13,15 @@ vi.mock("@/lib/panel-login-link-actions", () => ({
   requestPanelLoginLink: vi.fn(),
 }));
 
+vi.mock("next/navigation", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/navigation")>()),
+  useRouter: () => ({ refresh: vi.fn() }),
+}));
+
+vi.mock("@/lib/inquiry-attachment-actions", () => ({
+  uploadInquiryAttachment: vi.fn(),
+}));
+
 const mockedSubmitProjectRequest = vi.mocked(submitProjectRequest);
 
 const countries: Country[] = [
@@ -196,6 +205,31 @@ describe("ProjectRequestFlow", () => {
         unitCount: 12,
       })
     );
+  });
+
+  // Spec 0070 AC-29: po zapisie zapytania gość dostaje krok "Dodaj pliki" z tokenem.
+  it("shows the files step after submitting when the action returns an upload token", async () => {
+    mockedSubmitProjectRequest.mockResolvedValue({ ok: true, id: "req-1", uploadToken: "tok" });
+    const user = userEvent.setup();
+    render(<ProjectRequestFlow locale="pl" countries={countries} />);
+
+    await completeWizard(user);
+    await user.click(screen.getByRole("button", { name: "Wyślij zapytanie" }));
+
+    expect(await screen.findByRole("heading", { level: 2, name: "Pliki do zapytania" })).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "W plikach nie ma moich danych kontaktowych" })).toBeInTheDocument();
+  });
+
+  it("skips the files step when the action returns no upload token", async () => {
+    mockedSubmitProjectRequest.mockResolvedValue({ ok: true, id: "req-1" });
+    const user = userEvent.setup();
+    render(<ProjectRequestFlow locale="pl" countries={countries} />);
+
+    await completeWizard(user);
+    await user.click(screen.getByRole("button", { name: "Wyślij zapytanie" }));
+
+    expect(await screen.findByRole("heading", { level: 1, name: "Zapytanie wysłane" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Pliki do zapytania" })).not.toBeInTheDocument();
   });
 
   it("shows the data-sharing notice on the final step, right above the submit button (AC-7)", async () => {

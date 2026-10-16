@@ -16,6 +16,8 @@ import {
   getProductPhotosForAdmin,
   getProductsForProducer,
   getProjectQuotesForProducer,
+  getProductInquiriesForProducer,
+  getProductInquiryForProducerDetail,
   getProjectRequestForBoardDetail,
   getProjectRequestsWithQuotesForClient,
   getUnreadDecisionInquiryIds,
@@ -1040,6 +1042,34 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: project request boar
 
       await db.delete(projectQuote).where(eq(projectQuote.id, quoteId));
       await db.delete(projectRequest).where(eq(projectRequest.id, quotedClosedId));
+    });
+  });
+
+  // Spec 0070 AC-21, AC-22: zapytanie o produkt widzi tylko producent tego produktu,
+  // z terminem i stanem własnej oferty, bez danych kontaktowych inwestora.
+  describe("getProductInquiriesForProducer / getProductInquiryForProducerDetail", () => {
+    it("lists the inquiry for the product owner with deadline, own quote state and no contact fields", async () => {
+      const items = await getProductInquiriesForProducer(producerId);
+      const item = items.find((row) => row.id === bulkInquiryId);
+      expect(item).toBeDefined();
+      expect(item?.productName).toBe("QB Bulk Product");
+      expect(item?.unitCount).toBe(20);
+      expect(item?.ownQuoteStatus).toBe("active");
+      expect(item?.ownQuotePublished).toBe(true);
+      expect(item?.acceptingQuotes).toBe(true);
+      expect(item?.deadlineAt).toBeInstanceOf(Date);
+      expect(JSON.stringify(item)).not.toContain("qb-bulk-");
+      expect(JSON.stringify(item)).not.toContain("+48000000098");
+    });
+
+    it("never returns another producer's product inquiry, in the list or in the detail", async () => {
+      expect((await getProductInquiriesForProducer(unapprovedProducerId)).map((row) => row.id)).not.toContain(bulkInquiryId);
+      expect(await getProductInquiryForProducerDetail(bulkInquiryId, unapprovedProducerId)).toBeNull();
+    });
+
+    it("returns the detail for the owner and null for an unknown id", async () => {
+      expect((await getProductInquiryForProducerDetail(bulkInquiryId, producerId))?.id).toBe(bulkInquiryId);
+      expect(await getProductInquiryForProducerDetail(crypto.randomUUID(), producerId)).toBeNull();
     });
   });
 

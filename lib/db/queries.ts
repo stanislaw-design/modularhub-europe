@@ -1071,6 +1071,8 @@ export interface ProjectRequestBoardDetail extends ProjectRequestBoardItem {
   // publikacji przez administratora (AC-14). Dotyczy tylko oferty tego producenta.
   ownQuotePublished: boolean;
   deliversToCountry: boolean;
+  // Pliki inwestora zmieniły się po złożeniu własnej aktywnej oferty (spec 0070 AC-33).
+  filesChangedAfterOwnQuote: boolean;
 }
 
 // Zasila /producer/panel/board/[id] (AC-4): pełne dane do wyceny (bez
@@ -1090,6 +1092,11 @@ export async function getProjectRequestForBoardDetail(
       selectedQuoteId: projectRequest.selectedQuoteId,
       matches: producerMatchesProjectRequestSql(producerId),
       deliversToCountry: producerDeliversToRequestCountrySql(producerId),
+      filesChangedAfterOwnQuote: sql<boolean>`exists (
+        select 1 from project_quote fq
+        where fq.project_request_id = ${projectRequest.id} and fq.producer_id = ${producerId} and fq.status = 'active'
+          and ${projectRequest.attachmentsChangedAt} is not null and ${projectRequest.attachmentsChangedAt} > fq.submitted_at
+      )`,
     })
     .from(projectRequest)
     .innerJoin(country, eq(country.code, projectRequest.countryCode))
@@ -1114,8 +1121,150 @@ export async function getProjectRequestForBoardDetail(
     ownQuoteStatus: ownQuote?.status ?? null,
     ownQuotePublished: ownQuote?.status === "active" && ownQuote.publishedToClientAt !== null,
     deliversToCountry: row.deliversToCountry === true,
+    filesChangedAfterOwnQuote: row.filesChangedAfterOwnQuote === true,
     acceptingQuotes,
   };
+}
+
+// Zapytanie o konkretny produkt producenta (spec 0070 AC-21): odbiorcą jest producent
+// produktu, bez reguły dopasowania. Te same pola terminu i ta sama blokada co przy
+// zapytaniu wolnym; kolumn kontaktowych nigdy nie wybieramy (AC-22).
+export interface ProductInquiryForProducer {
+  id: string;
+  productId: string;
+  productName: string;
+  countryCode: string;
+  countryName: string;
+  unitCount: number;
+  startWindowFrom: string | null;
+  startWindowTo: string | null;
+  deliveryWindowFrom: string | null;
+  deliveryWindowTo: string | null;
+  note: string | null;
+  deadlineAt: Date;
+  createdAt: Date;
+  ownQuoteStatus: (typeof projectQuote.$inferSelect)["status"] | null;
+  // Czy można jeszcze złożyć ofertę (AC-12): przed terminem, bez wyboru klienta, status open/quoted/published.
+  acceptingQuotes: boolean;
+  // Własna aktywna oferta jest już u klienta: nowa wersja czeka na cofnięcie publikacji (AC-14).
+  ownQuotePublished: boolean;
+  // Pliki inwestora zmieniły się po złożeniu własnej aktywnej oferty (spec 0070 AC-33).
+  filesChangedAfterOwnQuote: boolean;
+}
+
+const PRODUCT_INQUIRY_PRODUCER_COLUMNS = {
+  id: bulkProductInquiry.id,
+  productId: bulkProductInquiry.productId,
+  productName: product.name,
+  countryCode: bulkProductInquiry.deliveryCountryCode,
+  countryName: country.name,
+  unitCount: bulkProductInquiry.unitCount,
+  startWindowFrom: bulkProductInquiry.startWindowFrom,
+  startWindowTo: bulkProductInquiry.startWindowTo,
+  deliveryWindowFrom: bulkProductInquiry.deliveryWindowFrom,
+  deliveryWindowTo: bulkProductInquiry.deliveryWindowTo,
+  note: bulkProductInquiry.note,
+  deadlineAt: bulkProductInquiry.deadlineAt,
+  createdAt: bulkProductInquiry.createdAt,
+  status: bulkProductInquiry.status,
+  selectedQuoteId: bulkProductInquiry.selectedQuoteId,
+  ownQuoteStatus: sql<ProductInquiryForProducer["ownQuoteStatus"]>`(
+    select q.status from project_quote q
+    where q.bulk_product_inquiry_id = ${bulkProductInquiry.id} and q.producer_id = ${product.producerId}
+    order by q.submitted_at desc limit 1
+  )`,
+  ownQuotePublished: sql<boolean>`exists (
+    select 1 from project_quote q
+    where q.bulk_product_inquiry_id = ${bulkProductInquiry.id} and q.producer_id = ${product.producerId}
+      and q.status = 'active' and q.published_to_client_at is not null
+  )`,
+  filesChangedAfterOwnQuote: sql<boolean>`exists (
+    select 1 from project_quote fq
+    where fq.bulk_product_inquiry_id = ${bulkProductInquiry.id} and fq.producer_id = ${product.producerId} and fq.status = 'active'
+      and ${bulkProductInquiry.attachmentsChangedAt} is not null and ${bulkProductInquiry.attachmentsChangedAt} > fq.submitted_at
+  )`,
+} as const;
+
+function toProductInquiryForProducer(row: {
+  id: string;
+  productId: string;
+  productName: string | null;
+  countryCode: string;
+  countryName: string;
+  unitCount: number;
+  startWindowFrom: string | null;
+  startWindowTo: string | null;
+  deliveryWindowFrom: string | null;
+  deliveryWindowTo: string | null;
+  note: string | null;
+  deadlineAt: Date;
+  createdAt: Date;
+  status: string;
+  selectedQuoteId: string | null;
+  ownQuoteStatus: ProductInquiryForProducer["ownQuoteStatus"];
+  ownQuotePublished: boolean;
+  filesChangedAfterOwnQuote: boolean;
+}): ProductInquiryForProducer {
+  return {
+    id: row.id,
+    productId: row.productId,
+    productName: row.productName ?? "",
+    countryCode: row.countryCode,
+    countryName: row.countryName,
+    unitCount: row.unitCount,
+    startWindowFrom: row.startWindowFrom,
+    startWindowTo: row.startWindowTo,
+    deliveryWindowFrom: row.deliveryWindowFrom,
+    deliveryWindowTo: row.deliveryWindowTo,
+    note: row.note,
+    deadlineAt: row.deadlineAt,
+    createdAt: row.createdAt,
+    ownQuoteStatus: row.ownQuoteStatus,
+    ownQuotePublished: row.ownQuotePublished === true,
+    filesChangedAfterOwnQuote: row.filesChangedAfterOwnQuote === true,
+    acceptingQuotes:
+      (BOARD_OPEN_STATUSES as readonly string[]).includes(row.status) &&
+      row.selectedQuoteId === null &&
+      row.deadlineAt.getTime() >= Date.now(),
+  };
+}
+
+// Zasila /producer/panel/product-inquiries: zapytania o produkty tego producenta, które
+// są jeszcze otwarte, oraz te, na które producent złożył ofertę (wynik własnej oferty
+// widać też po zamknięciu albo wyborze). Zapytań o cudze produkty nie zwraca nigdy.
+export async function getProductInquiriesForProducer(producerId: string): Promise<ProductInquiryForProducer[]> {
+  const rows = await db
+    .select(PRODUCT_INQUIRY_PRODUCER_COLUMNS)
+    .from(bulkProductInquiry)
+    .innerJoin(product, and(eq(product.id, bulkProductInquiry.productId), eq(product.producerId, producerId)))
+    .innerJoin(country, eq(country.code, bulkProductInquiry.deliveryCountryCode))
+    .where(
+      or(
+        inArray(bulkProductInquiry.status, [...BOARD_OPEN_STATUSES]),
+        sql`exists (
+          select 1 from project_quote q
+          where q.bulk_product_inquiry_id = ${bulkProductInquiry.id} and q.producer_id = ${producerId}
+        )`,
+      ),
+    )
+    .orderBy(desc(bulkProductInquiry.createdAt))
+    .limit(100);
+  return rows.map(toProductInquiryForProducer);
+}
+
+// Szczegół jednego zapytania o produkt dla producenta tego produktu. Cudze zapytanie
+// i nieistniejące dają to samo: null.
+export async function getProductInquiryForProducerDetail(
+  id: string,
+  producerId: string,
+): Promise<ProductInquiryForProducer | null> {
+  const [row] = await db
+    .select(PRODUCT_INQUIRY_PRODUCER_COLUMNS)
+    .from(bulkProductInquiry)
+    .innerJoin(product, and(eq(product.id, bulkProductInquiry.productId), eq(product.producerId, producerId)))
+    .innerJoin(country, eq(country.code, bulkProductInquiry.deliveryCountryCode))
+    .where(eq(bulkProductInquiry.id, id));
+  return row ? toProductInquiryForProducer(row) : null;
 }
 
 export interface ProjectQuoteForProducer {
@@ -1127,6 +1276,7 @@ export interface ProjectQuoteForProducer {
   unitPriceCents: number | null;
   proposedLeadTimeWeeks: number | null;
   submittedAt: Date;
+  producerOutcome: (typeof projectQuote.$inferSelect)["producerOutcome"];
   contactName: string | null;
   contactEmail: string | null;
   contactPhone: string | null;
@@ -1149,6 +1299,7 @@ export async function getProjectQuotesForProducer(producerId: string): Promise<P
       unitPriceCents: projectQuote.unitPriceCents,
       proposedLeadTimeWeeks: projectQuote.proposedLeadTimeWeeks,
       submittedAt: projectQuote.submittedAt,
+      producerOutcome: projectQuote.producerOutcome,
       contactName: sql<string | null>`CASE WHEN ${projectQuote.contactRevealedAt} IS NOT NULL THEN COALESCE(${projectRequest.contactName}, ${bulkProductInquiry.contactName}) ELSE NULL END`,
       contactEmail: sql<string | null>`CASE WHEN ${projectQuote.contactRevealedAt} IS NOT NULL THEN COALESCE(${projectRequest.contactEmail}, ${bulkProductInquiry.contactEmail}) ELSE NULL END`,
       contactPhone: sql<string | null>`CASE WHEN ${projectQuote.contactRevealedAt} IS NOT NULL THEN COALESCE(${projectRequest.contactPhone}, ${bulkProductInquiry.contactPhone}) ELSE NULL END`,
@@ -1175,6 +1326,7 @@ export async function getProjectQuotesForProducer(producerId: string): Promise<P
     unitPriceCents: row.unitPriceCents,
     proposedLeadTimeWeeks: row.proposedLeadTimeWeeks,
     submittedAt: row.submittedAt,
+    producerOutcome: row.producerOutcome,
     contactName: row.contactName,
     contactEmail: row.contactEmail,
     contactPhone: row.contactPhone,
@@ -1229,6 +1381,8 @@ interface ClientRequestListFields {
   closedAt: Date | null;
   closedReason: (typeof projectRequest.$inferSelect)["closedReason"];
   selectedQuoteId: string | null;
+  // Od publikacji podsumowania klient nie zmienia już plików zapytania (spec 0070 AC-28).
+  summaryPublishedAt: Date | null;
 }
 
 export interface ClientProjectRequestWithQuotes extends ClientRequestListFields {
@@ -1280,6 +1434,7 @@ export async function getProjectRequestsWithQuotesForClient(
         closedAt: projectRequest.closedAt,
         closedReason: projectRequest.closedReason,
         selectedQuoteId: projectRequest.selectedQuoteId,
+        summaryPublishedAt: projectRequest.summaryPublishedAt,
       })
       .from(projectRequest)
       .where(eq(projectRequest.clientId, clientId))
@@ -1297,6 +1452,7 @@ export async function getProjectRequestsWithQuotesForClient(
         closedAt: bulkProductInquiry.closedAt,
         closedReason: bulkProductInquiry.closedReason,
         selectedQuoteId: bulkProductInquiry.selectedQuoteId,
+        summaryPublishedAt: bulkProductInquiry.summaryPublishedAt,
       })
       .from(bulkProductInquiry)
       .innerJoin(product, eq(product.id, bulkProductInquiry.productId))
@@ -1435,6 +1591,7 @@ export async function getProjectRequestsWithQuotesForClient(
     closedAt: row.closedAt,
     closedReason: row.closedReason,
     selectedQuoteId: row.selectedQuoteId,
+    summaryPublishedAt: row.summaryPublishedAt,
     quotes: quotesByParentId.get(row.id) ?? [],
   }));
   const bulkInquiryItems: ClientRequestWithQuotes[] = bulkRows.map((row) => ({
@@ -1450,6 +1607,7 @@ export async function getProjectRequestsWithQuotesForClient(
     closedAt: row.closedAt,
     closedReason: row.closedReason,
     selectedQuoteId: row.selectedQuoteId,
+    summaryPublishedAt: row.summaryPublishedAt,
     quotes: quotesByParentId.get(row.id) ?? [],
   }));
 
@@ -2356,4 +2514,23 @@ export async function getClientB2bDetails(userId: string): Promise<ClientB2bDeta
     .from(client)
     .where(eq(client.userId, userId));
   return row ?? null;
+}
+
+export interface PublishedProductOption {
+  id: string;
+  name: string;
+  producerName: string;
+}
+
+// Spec 0070 AC-20: lista opublikowanych produktów do wyboru w formularzu "Złóż zapytanie
+// w imieniu klienta" (zapytanie o konkretny produkt). Tylko `published` i nieusunięte,
+// tak jak sprawdza to submitBulkProductInquiry.
+export async function getPublishedProductOptionsForAdmin(): Promise<PublishedProductOption[]> {
+  const rows = await db
+    .select({ id: product.id, name: product.name, producerName: producer.name })
+    .from(product)
+    .innerJoin(producer, eq(product.producerId, producer.id))
+    .where(and(eq(product.status, "published"), isNull(product.deletedAt)))
+    .orderBy(producer.name, product.name);
+  return rows.map((row) => ({ id: row.id, name: row.name ?? "", producerName: row.producerName }));
 }

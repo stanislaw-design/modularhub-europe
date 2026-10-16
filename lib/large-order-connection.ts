@@ -3,6 +3,7 @@ import { db } from "@/lib/db/client";
 import { bulkProductInquiry, client, projectQuote, projectRequest } from "@/lib/db/schema";
 import { captureError, trackEvent } from "@/lib/observability";
 import { notifyOfConnection } from "@/lib/notifications/large-order-connection";
+import { notifyProducersOfOtherSelected } from "@/lib/notifications/large-order-producer";
 
 // Bez "use server": to funkcja serwerowa wołana tylko z innych akcji i z zadania
 // czyszczącego, nigdy bezpośrednio z przeglądarki. Gdyby była akcją, każdy mógłby
@@ -78,6 +79,7 @@ export async function connectSelection(kind: LargeOrderKind, id: string): Promis
   if (((results[0] as { rowCount: number | null }).rowCount ?? 0) > 0) {
     trackEvent("large_order_connected", { kind, id }, id);
     await notifyOfConnection({ kind, id });
+    await notifyProducersOfOtherSelected({ kind, id });
     return "connected";
   }
 

@@ -19,6 +19,11 @@ const LARGE_ORDER_NAMESPACES = [
   "BulkRequestLimitMessage",
   "LargeOrderTeamClientCancelledEmail",
   "LargeOrderProducerClosedEmail",
+  "LargeOrderProducerNotSelectedEmail",
+  "ReopenRequestButton",
+  "QuoteOutcomeControl",
+  // AC-20: mail do klienta o zapytaniu złożonym przez doradcę.
+  "LargeOrderClientOnBehalfEmail",
   // AC-11, AC-12: nowy format oferty i komunikat o zamkniętym przyjmowaniu ofert.
   "QuoteForm",
   // AC-15: tabela porównawcza ofert na liście zapytań klienta.
@@ -29,6 +34,15 @@ const LARGE_ORDER_NAMESPACES = [
   "LargeOrderProducerConnectedEmail",
   "LargeOrderTeamConnectedEmail",
   "LargeOrderTeamPendingSelectionEmail",
+  // AC-28 do AC-34: pliki inwestora (kreator, lista, ukrywanie, błędy).
+  "InquiryAttachments",
+  // AC-24, AC-25: pozostałe maile (zapytanie do producentów, oferta do zespołu, publikacja
+  // do klienta, przypomnienie o terminie, alert o minionym terminie).
+  "LargeOrderProducerNewRequestEmail",
+  "LargeOrderTeamNewQuoteEmail",
+  "LargeOrderClientSummaryPublishedEmail",
+  "LargeOrderProducerReminderEmail",
+  "LargeOrderTeamDeadlineEmail",
 ];
 
 // Nowe klucze w istniejącej przestrzeni nazw (reszta przestrzeni ma wspólne słowa, np. "Status").

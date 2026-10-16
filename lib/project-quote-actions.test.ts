@@ -22,6 +22,11 @@ vi.mock("@/lib/notifications/large-order-connection", () => ({
   notifyOfConnection: notifyOfConnectionMock,
   notifyTeamOfPendingSelection: notifyTeamOfPendingSelectionMock,
 }));
+const notifyOtherSelectedMock = vi.hoisted(() => vi.fn<() => Promise<void>>());
+// Spec 0070 AC-24: mail do zespołu o nowej ofercie to granica I/O, test sprawdza kiedy i z czym wychodzi.
+const notifyTeamNewQuoteMock = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
+vi.mock("@/lib/notifications/large-order-team", () => ({ notifyTeamOfNewQuote: notifyTeamNewQuoteMock }));
+vi.mock("@/lib/notifications/large-order-producer", () => ({ notifyProducersOfOtherSelected: notifyOtherSelectedMock }));
 // Prywatny R2 jest granicą I/O tak samo jak auth/observability wyżej (spec
 // 0063): testy uploadProjectQuotePdf/getProjectQuotePdfUrl sprawdzają realną
 // bazę (uprawnienia, status, atomowość), nie prawdziwe wgrywanie do R2.
@@ -52,6 +57,7 @@ import { connectSelection } from "./large-order-connection";
 import {
   getProjectQuotePdfUrl,
   linkRequestsToClientOnLogin,
+  reportQuoteOutcome,
   selectProjectQuote,
   setClientB2bVerification,
   setProducerDeliveryCountriesAsAdmin,
@@ -198,6 +204,8 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
     signInMock.mockResolvedValue(undefined);
     trackEventMock.mockClear();
     captureErrorMock.mockClear();
+    notifyOtherSelectedMock.mockClear();
+    notifyTeamNewQuoteMock.mockClear();
     uploadPrivateObjectMock.mockReset();
     uploadPrivateObjectMock.mockResolvedValue(undefined);
     buildSignedDownloadUrlMock.mockReset();
@@ -374,6 +382,33 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       // AC-13: złożenie oferty nie wysyła klientowi maila ani linku logującego.
       expect(signInMock).not.toHaveBeenCalled();
       expect(trackEventMock).toHaveBeenCalledWith("project_quote_submitted", expect.any(Object), producer1UserId);
+      // AC-24: zespół dostaje mail o nowej ofercie, z nazwą producenta i ceną w groszach.
+      expect(notifyTeamNewQuoteMock).toHaveBeenCalledTimes(1);
+      expect(notifyTeamNewQuoteMock).toHaveBeenCalledWith(
+        expect.objectContaining({ kind: "request", id: projectRequestId, totalPriceCents: 125000000, producerName: expect.any(String) }),
+      );
+    });
+
+    it("alerts the team about a new quote on a product inquiry and never when the quote is rejected (AC-24)", async () => {
+      authMock.mockResolvedValue(sessionAs(producer2UserId, "producer"));
+      expect((await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 500000 })).ok).toBe(false);
+      expect(notifyTeamNewQuoteMock).not.toHaveBeenCalled();
+
+      authMock.mockResolvedValue(sessionAs(producer3UserId, "producer"));
+      expect((await submitProjectQuote({ ...QUOTE_BASE, bulkProductInquiryId: bulkInquiryId, totalPriceEur: 800000 })).ok).toBe(true);
+      expect(notifyTeamNewQuoteMock).toHaveBeenCalledWith(expect.objectContaining({ kind: "product", id: bulkInquiryId, totalPriceCents: 80000000 }));
+    });
+
+    it("a failing team alert does not undo the saved quote (AC-24)", async () => {
+      notifyTeamNewQuoteMock.mockRejectedValueOnce(new Error("provider down"));
+      authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
+
+      const result = await submitProjectQuote({ ...QUOTE_BASE, projectRequestId, totalPriceEur: 700000 });
+
+      expect(result.ok).toBe(true);
+      const rows = await db.select().from(projectQuote).where(and(eq(projectQuote.projectRequestId, projectRequestId), eq(projectQuote.producerId, producer1Id)));
+      expect(rows.some((row) => row.status === "active")).toBe(true);
+      expect(captureErrorMock).toHaveBeenCalled();
     });
 
     it("creates an active quote for a bulk_product_inquiry owned by the caller, flips its status to quoted", async () => {
@@ -879,6 +914,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
     afterEach(async () => {
       await db.update(projectRequest).set({ clientId: null }).where(eq(projectRequest.id, projectRequestId));
       notifyOfConnectionMock.mockClear();
+      notifyOtherSelectedMock.mockClear();
     });
 
     it("is idempotent: a repeated call changes nothing and sends the connection mails only once", async () => {
@@ -891,6 +927,9 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       expect(second).toBe("already_connected");
       expect((await db.select({ status: projectQuote.status }).from(projectQuote).where(eq(projectQuote.id, quoteId)))[0].status).toBe("accepted");
       expect(notifyOfConnectionMock).toHaveBeenCalledTimes(1);
+      // AC-18: przegrani producenci dostają neutralną informację, też najwyżej raz.
+      expect(notifyOtherSelectedMock).toHaveBeenCalledTimes(1);
+      expect(notifyOtherSelectedMock).toHaveBeenCalledWith({ kind: "request", id: projectRequestId });
     });
 
     // Wyścig dwóch wywołań (wybór klienta i zatwierdzenie B2B w tej samej chwili): jedno łączy, drugie nic nie zmienia.
@@ -911,6 +950,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       expect(outcome).toBe("pending_b2b");
       expect((await db.select({ status: projectQuote.status }).from(projectQuote).where(eq(projectQuote.id, quoteId)))[0].status).toBe("active");
       expect(notifyOfConnectionMock).not.toHaveBeenCalled();
+      expect(notifyOtherSelectedMock).not.toHaveBeenCalled();
     });
 
     it("skips a closed request even when the client has a choice and approved B2B", async () => {
@@ -931,6 +971,69 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       const outcome = await connectSelection("request", projectRequestId);
 
       expect(outcome).toBe("skipped");
+    });
+  });
+
+  // Spec 0070 AC-18: zwycięski producent potwierdza wynik, tylko raz.
+  describe("reportQuoteOutcome", () => {
+    async function insertQuote(producerId: string, values: Partial<typeof projectQuote.$inferInsert> = {}) {
+      const [inserted] = await db
+        .insert(projectQuote)
+        .values({ projectRequestId, producerId, totalPriceCents: 1000000, status: "accepted", contactRevealedAt: new Date(), publishedToClientAt: new Date(), ...values })
+        .returning({ id: projectQuote.id });
+      return inserted.id;
+    }
+
+    async function readOutcome(id: string) {
+      const [row] = await db.select({ outcome: projectQuote.producerOutcome, at: projectQuote.producerOutcomeAt }).from(projectQuote).where(eq(projectQuote.id, id));
+      return row;
+    }
+
+    it("saves the outcome of the winning quote with a timestamp", async () => {
+      const quoteId = await insertQuote(producer1Id);
+      authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
+
+      expect(await reportQuoteOutcome(quoteId, "signed")).toEqual({ ok: true });
+
+      const row = await readOutcome(quoteId);
+      expect(row.outcome).toBe("signed");
+      expect(row.at).toBeInstanceOf(Date);
+    });
+
+    it("saves only once: a second report is refused and keeps the first value", async () => {
+      const quoteId = await insertQuote(producer1Id);
+      authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
+      await reportQuoteOutcome(quoteId, "no_agreement");
+
+      const second = await reportQuoteOutcome(quoteId, "signed");
+
+      expect(second.ok).toBe(false);
+      expect(second.errorCode).toBe("already_reported");
+      expect((await readOutcome(quoteId)).outcome).toBe("no_agreement");
+    });
+
+    it("refuses a quote that did not win, a foreign quote, a non producer and an anonymous caller", async () => {
+      const activeQuote = await insertQuote(producer1Id, { status: "active", contactRevealedAt: null });
+      const rejectedQuote = await insertQuote(producer4Id, { status: "rejected", contactRevealedAt: null });
+      authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
+      expect((await reportQuoteOutcome(activeQuote, "signed")).errorCode).toBe("not_winner");
+      expect((await reportQuoteOutcome(rejectedQuote, "signed")).errorCode).toBe("not_found");
+
+      authMock.mockResolvedValue(sessionAs(clientUserId, "client"));
+      expect((await reportQuoteOutcome(activeQuote, "signed")).ok).toBe(false);
+      authMock.mockResolvedValue(null);
+      expect((await reportQuoteOutcome(activeQuote, "signed")).ok).toBe(false);
+
+      expect((await readOutcome(activeQuote)).outcome).toBeNull();
+      expect((await readOutcome(rejectedQuote)).outcome).toBeNull();
+    });
+
+    it("rejects an invalid outcome value", async () => {
+      const quoteId = await insertQuote(producer1Id);
+      authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
+
+      expect((await reportQuoteOutcome(quoteId, "won" as "signed")).ok).toBe(false);
+      expect((await readOutcome(quoteId)).outcome).toBeNull();
     });
   });
 

@@ -27,6 +27,15 @@ function renderSidebar() {
   );
 }
 
+// spec 0070 AC-21: producers reach their product inquiries from the sidebar.
+describe("ProducerPanelSidebar product inquiries link (spec 0070)", () => {
+  it("links to the product inquiries screen", () => {
+    renderSidebar();
+    const links = screen.getAllByRole("link", { name: "Zapytania o produkt" });
+    expect(links[0]?.getAttribute("href")).toBe("/pl/producer/panel/product-inquiries");
+  });
+});
+
 // spec 0046 AC-1: the theme switcher sits in the sidebar footer next to the
 // existing LanguageSwitcher, reused unchanged from spec 0043's ThemeToggle.
 describe("ProducerPanelSidebar theme toggle (spec 0046)", () => {

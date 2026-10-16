@@ -15,10 +15,11 @@ import {
   type QuotePriceTaxMode,
 } from "@/lib/project-quote-specs";
 
-interface QuoteFormProps {
-  projectRequestId: string;
-  isRevision: boolean;
-}
+// Dokładnie jedno z dwojga: zapytanie wolne z tablicy albo zapytanie o produkt producenta (AC-21).
+type QuoteFormProps = { isRevision: boolean } & (
+  | { projectRequestId: string; bulkProductInquiryId?: undefined }
+  | { bulkProductInquiryId: string; projectRequestId?: undefined }
+);
 
 interface LogisticsDraft {
   mode: QuoteLogisticsMode;
@@ -57,7 +58,7 @@ function toLogisticsInput(draft: LogisticsDraft): QuoteLogisticsItemInput {
 // document.projectQuoteId wymaga, żeby wiersz project_quote już istniał (FK).
 // Gdy samo wgranie PDF się nie powiedzie, oferta i tak zostaje zapisana --
 // ProjectQuotePdfUploadStep zostaje pokazany jako krok do ponowienia.
-export function QuoteForm({ projectRequestId, isRevision }: QuoteFormProps) {
+export function QuoteForm({ projectRequestId, bulkProductInquiryId, isRevision }: QuoteFormProps) {
   const t = useTranslations("QuoteForm");
   const tPdf = useTranslations("ProjectQuotePdfUploadStep");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -104,7 +105,7 @@ export function QuoteForm({ projectRequestId, isRevision }: QuoteFormProps) {
     setPdfError(null);
     startTransition(async () => {
       const result = await submitProjectQuote({
-        projectRequestId,
+        ...(projectRequestId ? { projectRequestId } : { bulkProductInquiryId }),
         priceTaxMode,
         vatRatePercent: optionalNumber(vatRatePercent),
         totalPriceEur: totalPrice,

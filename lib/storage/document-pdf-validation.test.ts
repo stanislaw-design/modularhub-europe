@@ -5,6 +5,24 @@ function pdf(body = "/Type /Page\nBT sample ET"): Uint8Array {
   return Buffer.from(`%PDF-1.7\n1 0 obj\n${body}\nendobj\n%%EOF`, "latin1");
 }
 
+describe("document PDF validation: rejectActiveContent (spec 0070 AC-28)", () => {
+  const withScript = pdf("/Type /Page\n/S /JavaScript");
+
+  it("ignores scripts by default, so existing callers keep their behavior", () => {
+    expect(validateDocumentPdf(withScript)).toEqual({ ok: true });
+  });
+
+  it("rejects /JavaScript, /JS and /Launch when asked to", () => {
+    expect(validateDocumentPdf(withScript, undefined, { rejectActiveContent: true })).toMatchObject({ ok: false });
+    expect(validateDocumentPdf(pdf("/JS (x)"), undefined, { rejectActiveContent: true })).toMatchObject({ ok: false });
+    expect(validateDocumentPdf(pdf("/S /Launch"), undefined, { rejectActiveContent: true })).toMatchObject({ ok: false });
+  });
+
+  it("keeps /OpenAction and /JSON", () => {
+    expect(validateDocumentPdf(pdf("/OpenAction [3 0 R /Fit] /JSON"), undefined, { rejectActiveContent: true })).toEqual({ ok: true });
+  });
+});
+
 describe("document PDF validation", () => {
   it("accepts a well formed PDF", () => {
     expect(validateDocumentPdf(pdf())).toEqual({ ok: true });

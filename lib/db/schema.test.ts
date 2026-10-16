@@ -462,16 +462,25 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: project_request / bul
     );
   });
 
-  it("fills unit_count from unit_count_min for an insert by old code (temporary compat trigger, spec 0070 migration 2)", async () => {
-    const result = await db.execute<{ id: string; unit_count: number }>(sql`
-      insert into project_request (contact_name, contact_email, country_code, project_type, families, unit_count_min)
-      values ('Compat Check', 'compat-check@example.test', 'PL', 'resort', '["dom"]'::jsonb, 14)
-      returning id, unit_count`);
-    try {
-      expect(result.rows[0]?.unit_count).toBe(14);
-    } finally {
-      await db.delete(projectRequest).where(eq(projectRequest.id, result.rows[0]!.id));
-    }
+  // Spec 0070 AC-27, zadanie 24 (migracja 0060): dawne kolumny zakresu, ich ograniczenia i
+  // tymczasowy wyzwalacz zgodności zniknęły; liczba domów żyje tylko w unit_count.
+  it("has dropped the old unit_count_min and unit_count_max columns, their checks and the compat triggers", async () => {
+    const columns = await db.execute<{ column_name: string }>(sql`
+      select column_name from information_schema.columns
+      where table_schema = 'public' and table_name in ('project_request', 'bulk_product_inquiry')
+        and column_name in ('unit_count_min', 'unit_count_max')`);
+    expect(columns.rows).toEqual([]);
+
+    const leftovers = await db.execute<{ name: string }>(sql`
+      select conname as name from pg_constraint where conname in (
+        'project_request_unit_count_min', 'project_request_unit_count_max',
+        'bulk_product_inquiry_unit_count_min', 'bulk_product_inquiry_unit_count_max')
+      union all
+      select tgname as name from pg_trigger where tgname in (
+        'project_request_unit_count_compat', 'bulk_product_inquiry_unit_count_compat')
+      union all
+      select proname as name from pg_proc where proname = 'unit_count_compat'`);
+    expect(leftovers.rows).toEqual([]);
   });
 
   it("rejects a project_quote with neither projectRequestId nor bulkProductInquiryId set", async () => {

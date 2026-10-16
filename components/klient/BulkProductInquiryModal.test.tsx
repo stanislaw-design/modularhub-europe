@@ -13,6 +13,15 @@ vi.mock("@/lib/panel-login-link-actions", () => ({
   requestPanelLoginLink: vi.fn(),
 }));
 
+vi.mock("next/navigation", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/navigation")>()),
+  useRouter: () => ({ refresh: vi.fn() }),
+}));
+
+vi.mock("@/lib/inquiry-attachment-actions", () => ({
+  uploadInquiryAttachment: vi.fn(),
+}));
+
 const mockedSubmitBulkProductInquiry = vi.mocked(submitBulkProductInquiry);
 
 const countries: Country[] = [
@@ -70,6 +79,18 @@ describe("BulkProductInquiryModal", () => {
 
     await fillRequiredFields(user);
     expect(submit).toBeEnabled();
+  });
+
+  // Spec 0070 AC-29: po zapisie zapytania o produkt gość dostaje krok "Dodaj pliki" z tokenem.
+  it("shows the files step after sending when the action returns an upload token", async () => {
+    mockedSubmitBulkProductInquiry.mockResolvedValue({ ok: true, id: "inq-1", uploadToken: "tok" });
+    const user = userEvent.setup();
+    render(<BulkProductInquiryModal productId="product-1" countries={countries} />);
+
+    await openAndFillForm(user, "25");
+    await user.click(screen.getByRole("button", { name: "Wyślij zapytanie" }));
+
+    expect(await screen.findByRole("heading", { level: 2, name: "Pliki do zapytania" })).toBeInTheDocument();
   });
 
   it("calls submitBulkProductInquiry with the product id and filled fields, shows confirmation without leaving the page (AC-15, AC-16)", async () => {

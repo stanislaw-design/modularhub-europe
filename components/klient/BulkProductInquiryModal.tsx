@@ -7,6 +7,7 @@ import { type FormEvent, useState, useTransition } from "react";
 import { Button, Input, Label, Select, Stack, Text, Textarea } from "@/components/ui";
 import type { Country, CountryCode } from "@/lib/data/types";
 import { submitBulkProductInquiry } from "@/lib/project-request-actions";
+import { InquiryAttachmentsAfterSubmit } from "@/components/inquiry-attachments/InquiryAttachmentsAfterSubmit";
 import { BulkRequestLimitMessage } from "./BulkRequestLimitMessage";
 
 interface BulkProductInquiryModalProps {
@@ -34,6 +35,8 @@ export function BulkProductInquiryModal({ productId, countries, prefill }: BulkP
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [limitReached, setLimitReached] = useState(false);
+  // Spec 0070 AC-29: po zapisie zapytania pokazujemy krok plików; token żyje tylko tu.
+  const [created, setCreated] = useState<{ id: string; uploadToken?: string } | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const unitCountValue = Number(unitCount);
@@ -72,6 +75,7 @@ export function BulkProductInquiryModal({ productId, countries, prefill }: BulkP
         setError(result.error ?? t("genericSendError"));
         return;
       }
+      setCreated(result.id ? { id: result.id, uploadToken: result.uploadToken } : null);
       setPhase("sent");
     });
   }
@@ -104,6 +108,7 @@ export function BulkProductInquiryModal({ productId, countries, prefill }: BulkP
                 <Text tone="muted" surface="v5">
                   {t("sentBody")}
                 </Text>
+                {created && <InquiryAttachmentsAfterSubmit kind="product" inquiryId={created.id} uploadToken={created.uploadToken} />}
                 <Button type="button" surface="v5" onClick={() => setOpen(false)} className="w-fit">
                   {t("close")}
                 </Button>

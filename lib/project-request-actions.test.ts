@@ -14,11 +14,15 @@ vi.mock("@/auth", () => ({ auth: authMock }));
 const notifyTeamMock = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
 const notifyTeamCancelledMock = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
 const notifyProducersClosedMock = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
+const notifyProducersNewMock = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
 vi.mock("@/lib/notifications/large-order-team", () => ({
   notifyTeamOfNewLargeOrder: notifyTeamMock,
   notifyTeamOfClientCancelledRequest: notifyTeamCancelledMock,
 }));
-vi.mock("@/lib/notifications/large-order-producer", () => ({ notifyProducersOfClosedRequest: notifyProducersClosedMock }));
+vi.mock("@/lib/notifications/large-order-producer", () => ({
+  notifyProducersOfClosedRequest: notifyProducersClosedMock,
+  notifyProducersOfNewLargeOrder: notifyProducersNewMock,
+}));
 // project-quote-actions ciągnie next-auth, który nie ładuje się pod Vitest/jsdom; dowiązanie
 // po e mailu jest tu odtworzone tymi samymi dwoma UPDATE-ami co w prawdziwej funkcji.
 const linkRequestsMock = vi.hoisted(() => vi.fn<(email: string, clientId: string) => Promise<void>>());
@@ -27,7 +31,7 @@ vi.mock("@/lib/project-quote-actions", () => ({ linkRequestsToClientOnLogin: lin
 import { db } from "@/lib/db/client";
 import { bulkProductInquiry, client, producer, product, projectRequest, users } from "@/lib/db/schema";
 import { and, isNull } from "drizzle-orm";
-import { cancelRequest, submitBulkProductInquiry, submitProjectRequest } from "./project-request-actions";
+import { cancelRequest, reopenRequest, submitBulkProductInquiry, submitProjectRequest } from "./project-request-actions";
 
 // Hits the real dev database (spec 0037, mirrors lib/offer-actions.test.ts's
 // convention): only observability I/O is mocked at its boundary. No auth
@@ -70,6 +74,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-request-actions: real DB
     trackEventMock.mockClear();
     captureErrorMock.mockClear();
     notifyTeamMock.mockClear();
+    notifyProducersNewMock.mockClear();
     authMock.mockReset().mockResolvedValue(null);
   });
 
@@ -120,7 +125,8 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-request-actions: real DB
       expect(result.ok).toBe(true);
       const [row] = await db.select().from(projectRequest).where(eq(projectRequest.contactEmail, email));
       expect(row.unitCount).toBe(3);
-      expect(row.unitCountMax).toBeNull();
+      // Pole zakresu z wejścia jest ignorowane, a kolumny zakresu już nie istnieją (migracja 0060).
+      expect("unitCountMax" in row).toBe(false);
     });
 
     it("creates an open project_request with the email normalized to lower case, no clientId (AC-1)", async () => {
@@ -339,6 +345,8 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-request-actions: real DB
           matchedProducerCount: expect.any(Number),
         }),
       );
+      // Spec 0070 AC-24: dopasowani producenci dostają maila od razu po złożeniu.
+      expect(notifyProducersNewMock).toHaveBeenCalledWith({ kind: "request", id: result.id });
       await cleanupRequestsFor(email);
     });
 
@@ -374,6 +382,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-request-actions: real DB
       const [row] = await db.select().from(bulkProductInquiry).where(eq(bulkProductInquiry.contactEmail, email));
       expect(row.contactLocale).toBe("nl");
       expect(notifyTeamMock).toHaveBeenCalledWith(expect.objectContaining({ kind: "product", id: result.id, countryCode: "NL" }));
+      expect(notifyProducersNewMock).toHaveBeenCalledWith({ kind: "product", id: result.id });
       await cleanupRequestsFor(email);
     });
   });
@@ -601,6 +610,70 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-request-actions: real DB
       const allowed = await submitProjectRequest(input);
       expect(allowed.ok).toBe(true);
       await cleanupRequestsFor(email);
+    });
+
+    // Spec 0070 AC-19, AC-38: wznowienie zamkniętego zapytania.
+    describe("reopenRequest", () => {
+      const daysAgo = (days: number) => new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+      it("reopens a client cancelled request: new deadline, cleared closing and selection", async () => {
+        authMock.mockResolvedValue(ownerSession());
+        const id = await insertRequest({ status: "closed", closedAt: daysAgo(2), closedReason: "client_cancelled" });
+
+        expect(await reopenRequest(id, "request")).toEqual({ ok: true });
+
+        const row = await readRequest(id);
+        expect(row.status).toBe("open");
+        expect(row.closedAt).toBeNull();
+        expect(row.closedReason).toBeNull();
+        expect(row.selectedQuoteId).toBeNull();
+        expect(row.selectedAt).toBeNull();
+        const days = (row.deadlineAt.getTime() - Date.now()) / (24 * 60 * 60 * 1000);
+        expect(days).toBeGreaterThan(13.9);
+        expect(days).toBeLessThan(14.1);
+        expect(trackEventMock).toHaveBeenCalledWith("request_reopened", { kind: "request" }, id);
+      });
+
+      it("refuses after 31 days, for staff_closed, and for another client's request", async () => {
+        authMock.mockResolvedValue(ownerSession());
+        const old = await insertRequest({ status: "closed", closedAt: daysAgo(31), closedReason: "expired" });
+        const staff = await insertRequest({ status: "closed", closedAt: daysAgo(1), closedReason: "staff_closed" });
+        const foreign = await insertRequest({ clientId: otherClientId, status: "closed", closedAt: daysAgo(1), closedReason: "no_offers" });
+
+        expect(await reopenRequest(old, "request")).toEqual({ ok: false, errorCode: "not_reopenable" });
+        expect(await reopenRequest(staff, "request")).toEqual({ ok: false, errorCode: "not_reopenable" });
+        expect(await reopenRequest(foreign, "request")).toEqual({ ok: false, errorCode: "not_found" });
+        expect((await readRequest(old)).status).toBe("closed");
+        expect((await readRequest(staff)).status).toBe("closed");
+        expect((await readRequest(foreign)).status).toBe("closed");
+      });
+
+      it("succeeds without a change when the request is already open (double click)", async () => {
+        authMock.mockResolvedValue(ownerSession());
+        const id = await insertRequest({ status: "closed", closedAt: daysAgo(1), closedReason: "no_offers" });
+
+        expect(await reopenRequest(id, "request")).toEqual({ ok: true });
+        expect(await reopenRequest(id, "request")).toEqual({ ok: true });
+        expect((await readRequest(id)).status).toBe("open");
+      });
+
+      it("is rejected with email_limit when the client already has three active requests, and stays closed", async () => {
+        authMock.mockResolvedValue(ownerSession());
+        const email = `pra-reopen-limit-${crypto.randomUUID()}@example.test`;
+        // Zamknięte najpierw: wyzwalacz przy INSERT liczy tylko aktywne, ale po trzech aktywnych odrzuciłby każdy wiersz.
+        const closedId = await insertRequest({ contactEmail: email, status: "closed", closedAt: daysAgo(1), closedReason: "client_cancelled" });
+        for (let index = 0; index < 3; index += 1) await insertRequest({ contactEmail: email, unitCount: 10 + index });
+
+        expect(await reopenRequest(closedId, "request")).toEqual({ ok: false, errorCode: "email_limit" });
+        expect((await readRequest(closedId)).status).toBe("closed");
+        await cleanupRequestsFor(email);
+      });
+
+      it("rejects an anonymous caller", async () => {
+        const id = await insertRequest({ status: "closed", closedAt: daysAgo(1), closedReason: "client_cancelled" });
+        authMock.mockResolvedValue(null);
+        expect(await reopenRequest(id, "request")).toEqual({ ok: false, errorCode: "not_found" });
+      });
     });
   });
 });

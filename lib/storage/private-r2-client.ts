@@ -1,4 +1,4 @@
-import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 // Prywatny kubełek Cloudflare R2, spec 0063 Build plan #4: drugi, osobny
@@ -45,6 +45,14 @@ export async function uploadPrivateObject(key: string, body: Buffer, contentType
       ContentType: contentType,
     }),
   );
+}
+
+// Usunięcie obiektu z prywatnego kubełka (spec 0070 zadanie 20): potrzebne do sprzątania
+// po nieudanym zapisie wiersza pliku inwestora i do godzinnego zadania czyszczącego.
+// DeleteObject w R2 jest idempotentne (brak obiektu to też sukces).
+export async function deletePrivateObject(key: string): Promise<void> {
+  const client = getPrivateR2Client();
+  await client.send(new DeleteObjectCommand({ Bucket: getPrivateBucketName(), Key: key }));
 }
 
 // Nagłówek Content-Disposition nie dopuszcza znaków sterujących ani cudzysłowu

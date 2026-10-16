@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
-import { ChevronsLeft, ChevronsRight, ClipboardList, Factory, FileText, House, Inbox, LogOut, Menu, Package, User, X, type LucideIcon } from "lucide-react";
+import { ChevronsLeft, ChevronsRight, ClipboardList, Factory, FileText, House, Inbox, LogOut, Menu, Package, PackageOpen, User, X, type LucideIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -46,6 +46,7 @@ export function ProducerPanelSidebar({ locale, hasUnreadZapytania }: ProducerPan
     { key: "produkty", path: "products", label: t("produkty"), icon: Package },
     { key: "zapytania", path: "inquiries", label: t("zapytania"), icon: Inbox },
     { key: "board", path: "board", label: t("board"), icon: ClipboardList },
+    { key: "productInquiries", path: "product-inquiries", label: t("productInquiries"), icon: PackageOpen },
     { key: "boardQuotes", path: "board-quotes", label: t("boardQuotes"), icon: FileText },
     { key: "capacity", path: "capacity", label: t("capacity"), icon: Factory },
   ];

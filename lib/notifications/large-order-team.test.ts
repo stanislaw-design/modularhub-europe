@@ -5,7 +5,13 @@ const captureErrorMock = vi.hoisted(() => vi.fn());
 vi.mock("./send", () => ({ sendNotificationEmail: sendNotificationEmailMock }));
 vi.mock("@/lib/observability", () => ({ captureError: captureErrorMock }));
 
-import { notifyTeamOfClientCancelledRequest, notifyTeamOfNewLargeOrder } from "./large-order-team";
+import {
+  hasTeamRecipient,
+  notifyTeamOfClientCancelledRequest,
+  notifyTeamOfDeadlinePassed,
+  notifyTeamOfNewLargeOrder,
+  notifyTeamOfNewQuote,
+} from "./large-order-team";
 
 const order = {
   kind: "request" as const,
@@ -142,5 +148,93 @@ describe("notifyTeamOfClientCancelledRequest", () => {
     await notifyTeamOfClientCancelledRequest({ ...cancelled, hadPendingSelection: true });
 
     expect(sendNotificationEmailMock.mock.calls[0][0].text).toContain("wybór czekał na zatwierdzenie danych firmy");
+  });
+});
+
+// Spec 0070 AC-24: nowa oferta, mail do zespołu po polsku.
+describe("notifyTeamOfNewQuote", () => {
+  const originalEnv = { ...process.env };
+
+  beforeEach(() => {
+    sendNotificationEmailMock.mockClear();
+    delete process.env.OPERATIONS_NOTIFY_EMAIL;
+    delete process.env.ADVISOR_NOTIFY_EMAIL;
+  });
+
+  afterEach(() => {
+    process.env = { ...originalEnv };
+    sendNotificationEmailMock.mockClear();
+    captureErrorMock.mockClear();
+  });
+
+  const quote = { kind: "request" as const, id: order.id, countryCode: "DE", unitCount: 12, producerName: "Dom Test", totalPriceCents: 123450 };
+
+  it("sends nothing without a team address", async () => {
+    await notifyTeamOfNewQuote(quote);
+    expect(sendNotificationEmailMock).not.toHaveBeenCalled();
+  });
+
+  it("names the producer and the total price and links to the admin screen", async () => {
+    process.env.OPERATIONS_NOTIFY_EMAIL = "ops@example.test";
+    process.env.AUTH_URL = "https://hub.example.test/";
+
+    await notifyTeamOfNewQuote(quote);
+
+    const call = sendNotificationEmailMock.mock.calls[0][0];
+    expect(call).toMatchObject({ to: "ops@example.test", emailType: "large_order_team_new_quote", entityId: order.id });
+    expect(call.subject).toBe("Nowa oferta na zapytanie (12 domów, DE)");
+    expect(call.text).toContain("Dom Test");
+    expect(call.text).toContain(`https://hub.example.test/pl/internal/large-orders/${order.id}?kind=request`);
+  });
+
+  it("never throws when sending fails", async () => {
+    process.env.OPERATIONS_NOTIFY_EMAIL = "ops@example.test";
+    sendNotificationEmailMock.mockRejectedValueOnce(new Error("provider down"));
+
+    await expect(notifyTeamOfNewQuote(quote)).resolves.toBeUndefined();
+    expect(captureErrorMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+// Spec 0070 AC-25: alert w dniu terminu, z liczbą ofert, także gdy ofert nie ma.
+describe("notifyTeamOfDeadlinePassed", () => {
+  const originalEnv = { ...process.env };
+
+  beforeEach(() => {
+    sendNotificationEmailMock.mockClear();
+    delete process.env.OPERATIONS_NOTIFY_EMAIL;
+    delete process.env.ADVISOR_NOTIFY_EMAIL;
+  });
+
+  afterEach(() => {
+    process.env = { ...originalEnv };
+    sendNotificationEmailMock.mockClear();
+  });
+
+  const passed = { kind: "product" as const, id: order.id, countryCode: "NL", unitCount: 4 };
+
+  it("reports whether a team address exists", () => {
+    expect(hasTeamRecipient()).toBe(false);
+    process.env.ADVISOR_NOTIFY_EMAIL = "advisor@example.test";
+    expect(hasTeamRecipient()).toBe(true);
+  });
+
+  it("returns false and sends nothing without a team address", async () => {
+    expect(await notifyTeamOfDeadlinePassed({ ...passed, activeQuoteCount: 2 })).toBe(false);
+    expect(sendNotificationEmailMock).not.toHaveBeenCalled();
+  });
+
+  it("adds the close or extend hint only when there are no offers", async () => {
+    process.env.OPERATIONS_NOTIFY_EMAIL = "ops@example.test";
+
+    expect(await notifyTeamOfDeadlinePassed({ ...passed, activeQuoteCount: 0 })).toBe(true);
+    const empty = sendNotificationEmailMock.mock.calls[0][0];
+    expect(empty).toMatchObject({ emailType: "large_order_team_deadline" });
+    expect(empty.text).toContain("Nie ma żadnej oferty");
+
+    await notifyTeamOfDeadlinePassed({ ...passed, activeQuoteCount: 3 });
+    const withOffers = sendNotificationEmailMock.mock.calls[1][0];
+    expect(withOffers.text).toContain("3");
+    expect(withOffers.text).not.toContain("Nie ma żadnej oferty");
   });
 });

@@ -2,6 +2,8 @@ import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
+import { InquiryAttachmentsPanel } from "@/components/inquiry-attachments/InquiryAttachmentsPanel";
+import { getInquiryAttachmentLabels } from "@/components/inquiry-attachments/getInquiryAttachmentLabels";
 import { QuoteForm } from "@/components/producent/QuoteForm";
 import { Heading, Stack, StatusPill, Text } from "@/components/ui";
 import {
@@ -9,6 +11,7 @@ import {
   getProducerVolumeVerificationStatus,
   getProjectRequestForBoardDetail,
 } from "@/lib/db/queries";
+import { listInquiryAttachments } from "@/lib/inquiry-attachment-actions";
 import { requirePanelProducerSession } from "@/lib/panel-session";
 
 const dateFormatter = new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium" });
@@ -43,6 +46,11 @@ export default async function ProducerBoardDetailPage({
   if (!detail) {
     notFound();
   }
+  // Pliki inwestora (spec 0070 AC-31): lista liczona tą samą regułą dopasowania co zapytanie.
+  const [attachments, attachmentLabels] = await Promise.all([
+    listInquiryAttachments("request", id),
+    getInquiryAttachmentLabels(locale),
+  ]);
 
   const ownQuoteStatusLabel: Record<string, string> = {
     active: t("ownQuoteStatusActive"),
@@ -178,6 +186,21 @@ export default async function ProducerBoardDetailPage({
               <Heading level="h3">{t("extrasNoteLabel")}</Heading>
               <Text measure>{detail.extrasNote}</Text>
             </section>
+          )}
+
+          {(attachments.length > 0 || detail.filesChangedAfterOwnQuote) && (
+            <div className="border-t border-brand-steel pt-brand-4">
+              <InquiryAttachmentsPanel
+                kind="request"
+                inquiryId={detail.id}
+                items={attachments}
+                viewer="producer"
+                labels={attachmentLabels}
+                locale={locale}
+                surface="v3"
+                changedAfterQuote={detail.filesChangedAfterOwnQuote}
+              />
+            </div>
           )}
         </Stack>
 

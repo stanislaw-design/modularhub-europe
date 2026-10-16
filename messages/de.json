@@ -1992,7 +1992,7 @@
     "sourceBulkProductInquiry": "Produktanfrage",
     "statusActive": "Aktiv",
     "statusAccepted": "Angenommen",
-    "statusRejected": "Abgelehnt",
+    "statusRejected": "Anderer Hersteller gewählt",
     "statusSuperseded": "Ersetzt",
     "contactRevealedLabel": "Investorenkontakt"
   },
@@ -2159,7 +2159,8 @@
     "expandSidebar": "Menü ausklappen",
     "board": "Pinnwand",
     "boardQuotes": "Meine Angebote",
-    "capacity": "Kapazitätsprofil"
+    "capacity": "Kapazitätsprofil",
+    "productInquiries": "Produktanfragen"
   },
   "ClientPanelSidebar": {
     "navAriaLabel": "Kundenbereich",
@@ -2563,10 +2564,44 @@
     "pendingSelectionNote": "Der Kunde hatte ein Angebot gewählt, und die Wahl wartete auf die Freigabe der Firmendaten. Die Verbindung kommt nicht zustande.",
     "cta": "Anfrage im Panel öffnen"
   },
+  "LargeOrderClientOnBehalfEmail": {
+    "subject": "ModularHub hat in Ihrem Namen eine Anfrage gestellt",
+    "greeting": "Guten Tag {name},",
+    "intro": "Wie in unserem Gespräch besprochen, hat ein ModularHub Berater in Ihrem Namen eine Anfrage für einen Großauftrag gestellt. Passende Hersteller reichen ihre Angebote in einem einheitlichen Format ein, und wir bereiten für Sie einen Vergleich vor.",
+    "countryLabel": "Land",
+    "unitsLabel": "Anzahl der Häuser",
+    "deadlineLabel": "Frist für Angebote",
+    "loginHint": "Um die Anfrage zu sehen und die Angebote zu verfolgen, melden Sie sich mit {email} an. Wir senden Ihnen einen einmaligen Link, ein Passwort ist nicht nötig.",
+    "cta": "Anmelden und Anfrage ansehen"
+  },
   "LargeOrderProducerClosedEmail": {
     "subject": "Die Anfrage wurde geschlossen",
     "body": "Die Anfrage, für die Sie ein Angebot abgegeben haben, wurde geschlossen. Sie müssen nichts tun. Neue Anfragen finden Sie auf der Übersicht.",
     "cta": "Anfragen-Übersicht öffnen"
+  },
+  "LargeOrderProducerNotSelectedEmail": {
+    "subject": "Der Kunde hat einen anderen Hersteller gewählt",
+    "body": "Für diese Anfrage hat der Kunde das Angebot eines anderen Herstellers gewählt. Vielen Dank für Ihr Angebot, Sie müssen nichts weiter tun. Neue Anfragen finden Sie auf der Anfragetafel.",
+    "cta": "Anfragetafel öffnen"
+  },
+  "ReopenRequestButton": {
+    "trigger": "Anfrage wieder öffnen",
+    "reopening": "Wird wieder geöffnet…",
+    "emailLimit": "Sie haben bereits 3 von 3 aktiven Großauftragsanfragen für diese E-Mail-Adresse. Schließen Sie eine in Ihrer Anfrageliste, um diese wieder zu öffnen.",
+    "notReopenable": "Diese Anfrage kann nicht mehr wieder geöffnet werden. Stellen Sie eine neue Anfrage oder kontaktieren Sie ModularHub.",
+    "notFound": "Anfrage nicht gefunden. Laden Sie die Seite neu.",
+    "genericError": "Die Anfrage konnte nicht wieder geöffnet werden. Bitte versuchen Sie es erneut."
+  },
+  "QuoteOutcomeControl": {
+    "prompt": "Wie ist das Gespräch mit dem Kunden ausgegangen?",
+    "reported": "Ergebnis",
+    "outcome": {
+      "signed": "Vertrag unterzeichnet",
+      "no_agreement": "Keine Einigung",
+      "withdrew": "Zurückgezogen"
+    },
+    "alreadyReported": "Das Ergebnis ist bereits gespeichert. Um es zu ändern, kontaktieren Sie ModularHub.",
+    "genericError": "Das Ergebnis konnte nicht gespeichert werden. Bitte versuchen Sie es erneut."
   },
   "SelectQuoteButton": {
     "select": "Dieses Angebot wählen",
@@ -2608,6 +2643,127 @@
   "LargeOrderTeamPendingSelectionEmail": {
     "subject": "Auswahl des Kunden wartet auf die Freigabe der Firmendaten ({units} Häuser, {country})",
     "intro": "Der Kunde hat ein Angebot gewählt, aber seine Firmendaten (B2B) sind noch nicht freigegeben. Geben Sie sie frei, dann werden die Parteien automatisch verbunden.",
+    "cta": "Anfrage im Panel öffnen"
+  },
+  "ProducerProductInquiriesPage": {
+    "heading": "Anfragen zu Ihren Produkten",
+    "intro": "Großauftragsanfragen zu bestimmten Produkten aus Ihrem Sortiment. Reichen Sie Ihr Angebot vor Fristende ein. Die Kontaktdaten des Investors erhalten Sie erst, wenn Ihr Angebot ausgewählt wurde.",
+    "emptyMessage": "Keine Anfragen zu Ihren Produkten.",
+    "columnProduct": "Produkt",
+    "columnCountry": "Lieferland",
+    "columnUnits": "Stückzahl",
+    "columnDeadline": "Angebotsfrist",
+    "columnOwnQuote": "Ihr Angebot",
+    "ownQuoteNone": "Nicht abgegeben"
+  },
+  "ProducerProductInquiryDetailPage": {
+    "backToList": "Zurück zu den Produktanfragen",
+    "scopeHeading": "Umfang des Auftrags",
+    "countryLabel": "Lieferland",
+    "unitCountLabel": "Stückzahl",
+    "deadlineLabel": "Angebotsfrist",
+    "scheduleHeading": "Termine",
+    "startWindowLabel": "Startfenster",
+    "deliveryWindowLabel": "Lieferfenster",
+    "noteLabel": "Hinweise des Investors"
+  },
+  "InquiryAttachments": {
+    "heading": "Dateien zur Anfrage",
+    "investorFilesHeading": "Dateien des Investors",
+    "intro": "Fügen Sie den Entwurf, Grundrisse, den Lageplan oder eine Spezifikation bei. Zur Anfrage passende Hersteller sehen diese Dateien sofort und nutzen sie für ihr Angebot.",
+    "producerIntro": "Dateien des Investors zur Vorbereitung Ihres Angebots. Jede Datei wird auf Ihr eigenes Gerät heruntergeladen.",
+    "adminIntro": "Dateien, die der Anfrage beigefügt wurden. Passende Hersteller sehen sie sofort. Blenden Sie eine Datei aus, wenn sie Kontaktdaten des Investors enthält.",
+    "limitsHint": "Bis zu 10 Dateien (PDF, JPEG, PNG oder WebP), jede bis 20 MB, insgesamt bis 60 MB.",
+    "warning": "Fügen Sie keine Dateien mit Ihren Kontaktdaten (Telefon, E-Mail, Website) bei, zum Beispiel im Schriftfeld einer Zeichnung. Hersteller sehen die Dateien vor der Auswahl eines Angebots, und Ihre Kontaktdaten geben wir erst nach Ihrer Auswahl weiter.",
+    "staffWarning": "Prüfen Sie, dass die Dateien keine Kontaktdaten des Kunden enthalten (zum Beispiel im Schriftfeld einer Zeichnung). Hersteller sehen die Dateien sofort.",
+    "consentLabel": "Meine Dateien enthalten keine Kontaktdaten von mir",
+    "chooseFiles": "Dateien auswählen",
+    "addFiles": "Dateien hinzufügen",
+    "replace": "Ersetzen",
+    "statusUploading": "Wird hochgeladen",
+    "statusDone": "Hochgeladen",
+    "statusError": "Nicht hochgeladen",
+    "retry": "Erneut versuchen",
+    "dismiss": "Schließen",
+    "download": "Herunterladen",
+    "remove": "Entfernen",
+    "removing": "Wird entfernt",
+    "hide": "Ausblenden",
+    "unhide": "Wiederherstellen",
+    "hideReasonLabel": "Grund für das Ausblenden (wird im Audit-Protokoll gespeichert)",
+    "hideConfirm": "Datei ausblenden",
+    "cancel": "Abbrechen",
+    "hiddenBadge": "Von ModularHub ausgeblendet",
+    "hiddenReason": "Grund: {reason}",
+    "deletedBadge": "Entfernt",
+    "empty": "Keine Dateien.",
+    "tokenExpired": "Von dieser Seite aus können wir keine Dateien mehr hinzufügen. Fügen Sie sie nach der Anmeldung hinzu oder schreiben Sie uns.",
+    "lockedNote": "Dateien können bis zur Angebotsfrist und bis zur Veröffentlichung der Zusammenfassung geändert werden. Danach ändert ModularHub sie.",
+    "afterSubmitHint": "Ihre Anfrage wurde gesendet. Sie können jetzt oder später im Kundenbereich Dateien hinzufügen.",
+    "changedAfterQuote": "Die Dateien wurden nach Abgabe Ihres Angebots geändert",
+    "downloadError": "Die Datei konnte nicht geöffnet werden. Bitte versuchen Sie es erneut.",
+    "uploadedBy": {
+      "client": "Kunde",
+      "guest": "Gast",
+      "staff": "ModularHub-Berater"
+    },
+    "errors": {
+      "no_access": "Sie haben keinen Zugriff auf diese Anfrage.",
+      "consent_required": "Bestätigen Sie, dass Ihre Dateien keine Kontaktdaten von Ihnen enthalten.",
+      "invalid_type": "Nur PDF-, JPEG-, PNG- oder WebP-Dateien sind erlaubt.",
+      "too_large": "Die Datei ist größer als 20 MB.",
+      "file_rejected": "Diese Datei wurde nicht angenommen (verschlüsselt, beschädigt oder mit aktiven Inhalten).",
+      "limit_count": "Diese Anfrage hat bereits 10 Dateien. Entfernen Sie eine, um eine weitere hinzuzufügen.",
+      "limit_size": "Die Gesamtgröße der Dateien würde 60 MB überschreiten.",
+      "limit_stored": "Diese Anfrage hat die feste Dateigrenze erreicht. Schreiben Sie uns, wir helfen Ihnen.",
+      "closed": "Die Dateien dieser Anfrage können nicht mehr geändert werden.",
+      "guest_daily_limit": "Das Hochladen von Dateien ist vorübergehend nicht verfügbar. Versuchen Sie es später erneut oder schreiben Sie uns.",
+      "storage_failed": "Die Datei konnte nicht in den Speicher hochgeladen werden. Bitte versuchen Sie es erneut.",
+      "not_found": "Datei nicht gefunden.",
+      "reason_required": "Geben Sie einen Grund für das Ausblenden der Datei an.",
+      "generic": "Die Datei konnte nicht gespeichert werden. Bitte versuchen Sie es erneut."
+    }
+  },
+  "LargeOrderProducerNewRequestEmail": {
+    "subject": "Neue Großauftragsanfrage ({units} Häuser, {country})",
+    "intro": "Auf der Tafel ist eine Großauftragsanfrage erschienen, die zu Ihrem Profil passt. Die Kontaktdaten des Kunden sehen Sie erst, nachdem Ihr Angebot gewählt wurde.",
+    "countryLabel": "Lieferland",
+    "unitsLabel": "Anzahl der Häuser",
+    "familiesLabel": "Produktfamilien",
+    "productLabel": "Produktname",
+    "deadlineLabel": "Frist für Angebote",
+    "cta": "Anfrage öffnen"
+  },
+  "LargeOrderTeamNewQuoteEmail": {
+    "subject": "Neues Angebot zu einer Anfrage ({units} Häuser, {country})",
+    "intro": "Ein Hersteller hat ein Angebot abgegeben. Der Kunde sieht es erst, wenn Sie die Zusammenfassung veröffentlichen.",
+    "producerLabel": "Hersteller",
+    "totalLabel": "Gesamtpreis (EUR)",
+    "cta": "Angebot im Panel prüfen"
+  },
+  "LargeOrderClientSummaryPublishedEmail": {
+    "subject": "Der Angebotsvergleich zu Ihrer Anfrage ist fertig",
+    "greeting": "Guten Tag {name},",
+    "intro": "ModularHub hat einen Vergleich der Herstellerangebote zu Ihrer Großauftragsanfrage erstellt. Sie sehen ihn in Ihrem Panel, wählen einen Hersteller aus, und wir bringen Sie mit ihm zusammen.",
+    "countryLabel": "Land",
+    "unitsLabel": "Anzahl der Häuser",
+    "loginHint": "Melden Sie sich mit {email} an. Wir senden Ihnen einen einmaligen Link, ein Passwort ist nicht nötig.",
+    "cta": "Angebotsvergleich ansehen"
+  },
+  "LargeOrderProducerReminderEmail": {
+    "subject3d": "Erinnerung: noch 3 Tage für Angebote",
+    "subject1d": "Erinnerung: nur noch ein Tag für Angebote",
+    "intro": "Sie haben noch kein Angebot zu einer Großauftragsanfrage abgegeben, die zu Ihrem Profil passt.",
+    "countryLabel": "Lieferland",
+    "unitsLabel": "Anzahl der Häuser",
+    "deadlineLabel": "Frist für Angebote",
+    "cta": "Angebot abgeben"
+  },
+  "LargeOrderTeamDeadlineEmail": {
+    "subject": "Angebotsfrist abgelaufen ({units} Häuser, {country})",
+    "intro": "Die Angebotsfrist für diese Anfrage ist abgelaufen, die Anfrage ist aber noch offen.",
+    "offersLabel": "Anzahl der aktiven Angebote",
+    "noOffersNote": "Es gibt kein Angebot. Schließen Sie die Anfrage mit dem Grund „keine Angebote“ oder verlängern Sie die Frist.",
     "cta": "Anfrage im Panel öffnen"
   }
 }

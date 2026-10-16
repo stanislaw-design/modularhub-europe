@@ -65,7 +65,15 @@ export default async function InternalLargeOrdersPage({
 
   return (
     <Stack gap={5}>
-      <Heading level="h1">Duże zamówienia</Heading>
+      <div className="flex flex-wrap items-center justify-between gap-brand-3">
+        <Heading level="h1">Duże zamówienia</Heading>
+        <Link
+          href={`${selfHref}/new`}
+          className="focus-ring inline-flex h-10 items-center rounded-data border border-brand-steel px-brand-3 text-body font-medium hover:bg-brand-steel/30"
+        >
+          Złóż zapytanie w imieniu klienta
+        </Link>
+      </div>
       <div className="flex flex-wrap gap-x-brand-5 gap-y-brand-3">
         <FilterGroup label="Status">
           <FilterLink href={hrefWith({ status: null })} active={!status} label="Wszystkie" />

@@ -10,6 +10,7 @@ import { PRODUCT_FAMILIES } from "@/lib/product-technical-specs";
 import { COMPLETION_STANDARDS } from "@/lib/producer-capacity-profile-specs";
 import { PROJECT_TYPES } from "@/lib/project-request-specs";
 import { submitProjectRequest, type SubmitProjectRequestInput } from "@/lib/project-request-actions";
+import { InquiryAttachmentsAfterSubmit } from "@/components/inquiry-attachments/InquiryAttachmentsAfterSubmit";
 import { BulkRequestLimitMessage } from "./BulkRequestLimitMessage";
 import { ProjectRequestConfirmationCard } from "./ProjectRequestConfirmationCard";
 
@@ -93,6 +94,8 @@ export function ProjectRequestFlow({ locale, countries, prefill }: ProjectReques
   const [emailTouched, setEmailTouched] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [limitReached, setLimitReached] = useState(false);
+  // Spec 0070 AC-29: po zapisie zapytania pokazujemy krok plików; token żyje tylko tu.
+  const [created, setCreated] = useState<{ id: string; uploadToken?: string } | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const stepHeadingRef = useRef<HTMLHeadingElement>(null);
@@ -160,6 +163,7 @@ export function ProjectRequestFlow({ locale, countries, prefill }: ProjectReques
         setError(result.error ?? t("genericSendError"));
         return;
       }
+      if (result.id) setCreated({ id: result.id, uploadToken: result.uploadToken });
       setPhase("sent");
     });
   }
@@ -169,6 +173,7 @@ export function ProjectRequestFlow({ locale, countries, prefill }: ProjectReques
       <Stack gap={4} className="mx-auto max-w-2xl">
         <h1 className="font-display text-h1 font-semibold text-brand-v5-ink">{t("sentHeading")}</h1>
         <ProjectRequestConfirmationCard contactEmail={contactEmail} />
+        {created && <InquiryAttachmentsAfterSubmit kind="request" inquiryId={created.id} uploadToken={created.uploadToken} />}
         <Button as="a" href={`/${locale}`} surface="v5" className="w-fit">
           {t("backToHome")}
         </Button>

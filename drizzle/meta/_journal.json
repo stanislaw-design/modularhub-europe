@@ -414,6 +414,13 @@
       "when": 1792047467940,
       "tag": "0058_publication_gate",
       "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1792093889883,
+      "tag": "0059_inquiry_attachment",
+      "breakpoints": true
     }
   ]
 }

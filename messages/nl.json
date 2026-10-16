@@ -1985,7 +1985,7 @@
     "sourceBulkProductInquiry": "Productaanvraag",
     "statusActive": "Actief",
     "statusAccepted": "Geaccepteerd",
-    "statusRejected": "Afgewezen",
+    "statusRejected": "Andere producent gekozen",
     "statusSuperseded": "Vervangen",
     "contactRevealedLabel": "Contact investeerder"
   },
@@ -2159,7 +2159,8 @@
     "expandSidebar": "Menu uitklappen",
     "board": "Prikbord",
     "boardQuotes": "Mijn offertes",
-    "capacity": "Capaciteitsprofiel"
+    "capacity": "Capaciteitsprofiel",
+    "productInquiries": "Productaanvragen"
   },
   "ClientPanelSidebar": {
     "navAriaLabel": "Klantenpaneel",
@@ -2563,10 +2564,44 @@
     "pendingSelectionNote": "De klant had een offerte gekozen en de keuze wachtte op goedkeuring van de bedrijfsgegevens. De koppeling komt niet tot stand.",
     "cta": "Open de aanvraag in het paneel"
   },
+  "LargeOrderClientOnBehalfEmail": {
+    "subject": "ModularHub heeft namens u een aanvraag ingediend",
+    "greeting": "Goedendag {name},",
+    "intro": "Zoals afgesproken in ons gesprek heeft een ModularHub adviseur namens u een aanvraag voor een grote bestelling ingediend. Fabrikanten die bij uw project passen, dienen hun offertes in één gemeenschappelijk formaat in, en wij stellen een vergelijking voor u op.",
+    "countryLabel": "Land",
+    "unitsLabel": "Aantal huizen",
+    "deadlineLabel": "Uiterste datum voor offertes",
+    "loginHint": "Om de aanvraag te bekijken en de offertes te volgen, logt u in met {email}. U ontvangt een eenmalige link, een wachtwoord is niet nodig.",
+    "cta": "Inloggen en aanvraag bekijken"
+  },
   "LargeOrderProducerClosedEmail": {
     "subject": "De aanvraag is gesloten",
     "body": "De aanvraag waarvoor u een offerte heeft ingediend, is gesloten. U hoeft niets te doen. Nieuwe aanvragen vindt u op het prikbord.",
     "cta": "Open het prikbord met aanvragen"
+  },
+  "LargeOrderProducerNotSelectedEmail": {
+    "subject": "De klant heeft een andere producent gekozen",
+    "body": "Voor deze aanvraag heeft de klant de offerte van een andere producent gekozen. Bedankt voor uw offerte, u hoeft niets te doen. Nieuwe aanvragen vindt u op het aanvraagbord.",
+    "cta": "Aanvraagbord openen"
+  },
+  "ReopenRequestButton": {
+    "trigger": "Aanvraag heropenen",
+    "reopening": "Bezig met heropenen…",
+    "emailLimit": "U heeft al 3 van 3 actieve grote bestellingsaanvragen voor dit e-mailadres. Sluit er een in uw aanvraaglijst om deze te heropenen.",
+    "notReopenable": "Deze aanvraag kan niet meer worden heropend. Dien een nieuwe aanvraag in of neem contact op met ModularHub.",
+    "notFound": "Aanvraag niet gevonden. Ververs de pagina.",
+    "genericError": "De aanvraag kon niet worden heropend. Probeer het opnieuw."
+  },
+  "QuoteOutcomeControl": {
+    "prompt": "Wat was de uitkomst van het gesprek met de klant?",
+    "reported": "Uitkomst",
+    "outcome": {
+      "signed": "Contract getekend",
+      "no_agreement": "Geen overeenstemming",
+      "withdrew": "Teruggetrokken"
+    },
+    "alreadyReported": "De uitkomst is al opgeslagen. Neem contact op met ModularHub om deze te wijzigen.",
+    "genericError": "De uitkomst kon niet worden opgeslagen. Probeer het opnieuw."
   },
   "SelectQuoteButton": {
     "select": "Kies deze offerte",
@@ -2608,6 +2643,127 @@
   "LargeOrderTeamPendingSelectionEmail": {
     "subject": "Keuze van de klant wacht op goedkeuring van bedrijfsgegevens ({units} huizen, {country})",
     "intro": "De klant heeft een offerte gekozen, maar de bedrijfsgegevens (B2B) zijn nog niet goedgekeurd. Keur ze goed en de partijen worden automatisch verbonden.",
+    "cta": "Aanvraag openen in het paneel"
+  },
+  "ProducerProductInquiriesPage": {
+    "heading": "Aanvragen over uw producten",
+    "intro": "Grote bestelaanvragen over specifieke producten uit uw assortiment. Dien uw offerte in vóór de deadline. De contactgegevens van de investeerder ontvangt u pas nadat uw offerte is gekozen.",
+    "emptyMessage": "Geen aanvragen over uw producten.",
+    "columnProduct": "Product",
+    "columnCountry": "Leverland",
+    "columnUnits": "Aantal",
+    "columnDeadline": "Deadline offertes",
+    "columnOwnQuote": "Uw offerte",
+    "ownQuoteNone": "Niet ingediend"
+  },
+  "ProducerProductInquiryDetailPage": {
+    "backToList": "Terug naar productaanvragen",
+    "scopeHeading": "Omvang van de bestelling",
+    "countryLabel": "Leverland",
+    "unitCountLabel": "Aantal",
+    "deadlineLabel": "Deadline offertes",
+    "scheduleHeading": "Termijnen",
+    "startWindowLabel": "Startperiode",
+    "deliveryWindowLabel": "Leverperiode",
+    "noteLabel": "Opmerkingen van de investeerder"
+  },
+  "InquiryAttachments": {
+    "heading": "Bestanden bij de aanvraag",
+    "investorFilesHeading": "Bestanden van de investeerder",
+    "intro": "Voeg het ontwerp, de plattegronden, de situatietekening of een specificatie toe. Fabrikanten die bij de aanvraag passen zien deze bestanden direct en gebruiken ze voor hun offerte.",
+    "producerIntro": "Bestanden van de investeerder om uw offerte voor te bereiden. Elk bestand wordt naar uw eigen apparaat gedownload.",
+    "adminIntro": "Bestanden die bij de aanvraag zijn gevoegd. Passende fabrikanten zien ze direct. Verberg een bestand als het contactgegevens van de investeerder bevat.",
+    "limitsHint": "Maximaal 10 bestanden (PDF, JPEG, PNG of WebP), elk maximaal 20 MB, samen maximaal 60 MB.",
+    "warning": "Voeg geen bestanden toe met uw contactgegevens (telefoon, e-mail, website), bijvoorbeeld in het titelblok van een tekening. Fabrikanten zien de bestanden voordat een offerte wordt gekozen, en uw contactgegevens delen we pas na uw keuze.",
+    "staffWarning": "Controleer dat de bestanden geen contactgegevens van de klant bevatten (bijvoorbeeld in het titelblok van een tekening). Fabrikanten zien de bestanden direct.",
+    "consentLabel": "Mijn bestanden bevatten geen contactgegevens van mij",
+    "chooseFiles": "Bestanden kiezen",
+    "addFiles": "Bestanden toevoegen",
+    "replace": "Vervangen",
+    "statusUploading": "Uploaden",
+    "statusDone": "Geüpload",
+    "statusError": "Niet geüpload",
+    "retry": "Opnieuw proberen",
+    "dismiss": "Sluiten",
+    "download": "Downloaden",
+    "remove": "Verwijderen",
+    "removing": "Bezig met verwijderen",
+    "hide": "Verbergen",
+    "unhide": "Herstellen",
+    "hideReasonLabel": "Reden voor verbergen (wordt vastgelegd in het auditlogboek)",
+    "hideConfirm": "Bestand verbergen",
+    "cancel": "Annuleren",
+    "hiddenBadge": "Verborgen door ModularHub",
+    "hiddenReason": "Reden: {reason}",
+    "deletedBadge": "Verwijderd",
+    "empty": "Geen bestanden.",
+    "tokenExpired": "Vanaf deze pagina kunnen we geen bestanden meer toevoegen. Voeg ze toe nadat u bent ingelogd, of schrijf ons.",
+    "lockedNote": "Bestanden kunnen worden gewijzigd tot de deadline voor offertes en tot de samenvatting is gepubliceerd. Daarna wijzigt ModularHub ze.",
+    "afterSubmitHint": "Uw aanvraag is verzonden. U kunt nu of later via het klantenpaneel bestanden toevoegen.",
+    "changedAfterQuote": "De bestanden zijn gewijzigd nadat u uw offerte indiende",
+    "downloadError": "Het bestand kon niet worden geopend. Probeer het opnieuw.",
+    "uploadedBy": {
+      "client": "Klant",
+      "guest": "Gast",
+      "staff": "ModularHub-adviseur"
+    },
+    "errors": {
+      "no_access": "U hebt geen toegang tot deze aanvraag.",
+      "consent_required": "Bevestig dat uw bestanden geen contactgegevens van u bevatten.",
+      "invalid_type": "Alleen PDF-, JPEG-, PNG- of WebP-bestanden zijn toegestaan.",
+      "too_large": "Het bestand is groter dan 20 MB.",
+      "file_rejected": "Dit bestand is niet geaccepteerd (versleuteld, beschadigd of met actieve inhoud).",
+      "limit_count": "Deze aanvraag heeft al 10 bestanden. Verwijder er een om er nog een toe te voegen.",
+      "limit_size": "De totale grootte van de bestanden zou 60 MB overschrijden.",
+      "limit_stored": "Deze aanvraag heeft de harde bestandslimiet bereikt. Schrijf ons, dan helpen we u.",
+      "closed": "De bestanden van deze aanvraag kunnen niet meer worden gewijzigd.",
+      "guest_daily_limit": "Bestanden uploaden is tijdelijk niet beschikbaar. Probeer het later opnieuw of schrijf ons.",
+      "storage_failed": "Het bestand kon niet naar de opslag worden geüpload. Probeer het opnieuw.",
+      "not_found": "Bestand niet gevonden.",
+      "reason_required": "Geef een reden op voor het verbergen van het bestand.",
+      "generic": "Het bestand kon niet worden opgeslagen. Probeer het opnieuw."
+    }
+  },
+  "LargeOrderProducerNewRequestEmail": {
+    "subject": "Nieuwe grootorderaanvraag ({units} woningen, {country})",
+    "intro": "Op het bord staat een grootorderaanvraag die bij uw profiel past. De contactgegevens van de klant ziet u pas nadat uw offerte is gekozen.",
+    "countryLabel": "Leveringsland",
+    "unitsLabel": "Aantal woningen",
+    "familiesLabel": "Productfamilies",
+    "productLabel": "Product",
+    "deadlineLabel": "Uiterste datum voor offertes",
+    "cta": "Aanvraag openen"
+  },
+  "LargeOrderTeamNewQuoteEmail": {
+    "subject": "Nieuwe offerte op een aanvraag ({units} woningen, {country})",
+    "intro": "Een producent heeft een offerte ingediend. De klant ziet die pas nadat u de samenvatting publiceert.",
+    "producerLabel": "Fabrikant",
+    "totalLabel": "Totaalprijs (EUR)",
+    "cta": "Offerte bekijken in het paneel"
+  },
+  "LargeOrderClientSummaryPublishedEmail": {
+    "subject": "De offertevergelijking voor uw aanvraag is klaar",
+    "greeting": "Goedendag {name},",
+    "intro": "ModularHub heeft een vergelijking van de offertes van producenten voor uw grootorderaanvraag opgesteld. U ziet die in uw paneel, kiest een producent en wij brengen u met hem in contact.",
+    "countryLabel": "Land",
+    "unitsLabel": "Aantal woningen",
+    "loginHint": "Log in met {email}. Wij sturen u een eenmalige link, een wachtwoord is niet nodig.",
+    "cta": "Offertevergelijking bekijken"
+  },
+  "LargeOrderProducerReminderEmail": {
+    "subject3d": "Herinnering: nog 3 dagen om offertes in te dienen",
+    "subject1d": "Herinnering: nog maar één dag om offertes in te dienen",
+    "intro": "U hebt nog geen offerte ingediend voor een grootorderaanvraag die bij uw profiel past.",
+    "countryLabel": "Leveringsland",
+    "unitsLabel": "Aantal woningen",
+    "deadlineLabel": "Uiterste datum voor offertes",
+    "cta": "Offerte indienen"
+  },
+  "LargeOrderTeamDeadlineEmail": {
+    "subject": "Offertetermijn verstreken ({units} woningen, {country})",
+    "intro": "De termijn voor offertes op deze aanvraag is verstreken, maar de aanvraag staat nog open.",
+    "offersLabel": "Aantal actieve offertes",
+    "noOffersNote": "Er is geen offerte. Sluit de aanvraag met de reden „geen offertes” of verleng de termijn.",
     "cta": "Aanvraag openen in het paneel"
   }
 }

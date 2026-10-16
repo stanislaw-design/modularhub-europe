@@ -1985,7 +1985,7 @@
     "sourceBulkProductInquiry": "Product inquiry",
     "statusActive": "Active",
     "statusAccepted": "Accepted",
-    "statusRejected": "Rejected",
+    "statusRejected": "Another producer chosen",
     "statusSuperseded": "Superseded",
     "contactRevealedLabel": "Investor contact"
   },
@@ -2159,7 +2159,8 @@
     "expandSidebar": "Expand sidebar",
     "board": "Board",
     "boardQuotes": "My quotes",
-    "capacity": "Capacity profile"
+    "capacity": "Capacity profile",
+    "productInquiries": "Product inquiries"
   },
   "ClientPanelSidebar": {
     "navAriaLabel": "Client panel",
@@ -2563,10 +2564,44 @@
     "pendingSelectionNote": "The client had chosen an offer and the choice was waiting for company data approval. The connection will not happen.",
     "cta": "Open the request in the panel"
   },
+  "LargeOrderClientOnBehalfEmail": {
+    "subject": "ModularHub submitted a request on your behalf",
+    "greeting": "Hello {name},",
+    "intro": "As agreed in our conversation, a ModularHub advisor has submitted a large order request on your behalf. Manufacturers that match your project will submit offers in one common format, and we will prepare a comparison for you.",
+    "countryLabel": "Country",
+    "unitsLabel": "Number of houses",
+    "deadlineLabel": "Offer deadline",
+    "loginHint": "To see the request and follow the offers, log in with {email}. We will send you a one time link, no password is needed.",
+    "cta": "Log in and view the request"
+  },
   "LargeOrderProducerClosedEmail": {
     "subject": "The request has been closed",
     "body": "The request you submitted an offer for has been closed. You do not need to do anything. You can find new requests on the board.",
     "cta": "Open the request board"
+  },
+  "LargeOrderProducerNotSelectedEmail": {
+    "subject": "The client chose another producer",
+    "body": "For this request the client chose the offer of another producer. Thank you for your offer, you do not need to do anything. You can find new requests on the board.",
+    "cta": "Open the request board"
+  },
+  "ReopenRequestButton": {
+    "trigger": "Reopen request",
+    "reopening": "Reopening…",
+    "emailLimit": "You already have 3 of 3 active large order requests for this email address. Close one in your request list to reopen this one.",
+    "notReopenable": "This request can no longer be reopened. Submit a new request or contact ModularHub.",
+    "notFound": "Request not found. Refresh the page.",
+    "genericError": "Could not reopen the request. Please try again."
+  },
+  "QuoteOutcomeControl": {
+    "prompt": "What was the outcome of the talks with the client?",
+    "reported": "Outcome",
+    "outcome": {
+      "signed": "Contract signed",
+      "no_agreement": "No agreement",
+      "withdrew": "Withdrew"
+    },
+    "alreadyReported": "The outcome is already saved. To change it, contact ModularHub.",
+    "genericError": "Could not save the outcome. Please try again."
   },
   "SelectQuoteButton": {
     "select": "Choose this offer",
@@ -2608,6 +2643,127 @@
   "LargeOrderTeamPendingSelectionEmail": {
     "subject": "Client's choice is waiting for company approval ({units} houses, {country})",
     "intro": "The client chose an offer, but their company details (B2B) are not approved yet. Approve them and the parties will be connected automatically.",
+    "cta": "Open the request in the panel"
+  },
+  "ProducerProductInquiriesPage": {
+    "heading": "Inquiries about your products",
+    "intro": "Large order inquiries about specific products from your range. Submit a quote before the deadline. You get the investor's contact details only after your quote is chosen.",
+    "emptyMessage": "No inquiries about your products.",
+    "columnProduct": "Product",
+    "columnCountry": "Delivery country",
+    "columnUnits": "Units",
+    "columnDeadline": "Offer deadline",
+    "columnOwnQuote": "Your offer",
+    "ownQuoteNone": "Not submitted"
+  },
+  "ProducerProductInquiryDetailPage": {
+    "backToList": "Back to product inquiries",
+    "scopeHeading": "Order scope",
+    "countryLabel": "Delivery country",
+    "unitCountLabel": "Unit count",
+    "deadlineLabel": "Offer deadline",
+    "scheduleHeading": "Timing",
+    "startWindowLabel": "Start window",
+    "deliveryWindowLabel": "Delivery window",
+    "noteLabel": "Investor notes"
+  },
+  "InquiryAttachments": {
+    "heading": "Files for this request",
+    "investorFilesHeading": "Investor files",
+    "intro": "Attach the design, floor plans, site plan or a specification. Manufacturers matched to your request see these files right away and use them to prepare their offer.",
+    "producerIntro": "Files from the investor to prepare your offer. Each file downloads to your own device.",
+    "adminIntro": "Files attached to this request. Matched manufacturers see them right away. Hide a file if it contains the investor's contact details.",
+    "limitsHint": "Up to 10 files (PDF, JPEG, PNG or WebP), each up to 20 MB, 60 MB in total.",
+    "warning": "Do not attach files that contain your contact details (phone, email, website), for example in a drawing's title block. Manufacturers see the files before an offer is chosen, and we only share your contact details after you choose.",
+    "staffWarning": "Check that the files contain no contact details of the client (for example in a drawing's title block). Manufacturers see the files right away.",
+    "consentLabel": "My files contain no contact details of mine",
+    "chooseFiles": "Choose files",
+    "addFiles": "Add files",
+    "replace": "Replace",
+    "statusUploading": "Uploading",
+    "statusDone": "Uploaded",
+    "statusError": "Not uploaded",
+    "retry": "Try again",
+    "dismiss": "Dismiss",
+    "download": "Download",
+    "remove": "Remove",
+    "removing": "Removing",
+    "hide": "Hide",
+    "unhide": "Restore",
+    "hideReasonLabel": "Reason for hiding (recorded in the audit log)",
+    "hideConfirm": "Hide file",
+    "cancel": "Cancel",
+    "hiddenBadge": "Hidden by ModularHub",
+    "hiddenReason": "Reason: {reason}",
+    "deletedBadge": "Removed",
+    "empty": "No files.",
+    "tokenExpired": "We can no longer add files from this page. Add them after you sign in, or write to us.",
+    "lockedNote": "Files can be changed until the offer deadline and until the summary is published. After that, ModularHub changes them.",
+    "afterSubmitHint": "Your request has been submitted. You can add files now or later from your client panel.",
+    "changedAfterQuote": "Files were changed after you submitted your offer",
+    "downloadError": "Could not open the file. Please try again.",
+    "uploadedBy": {
+      "client": "Client",
+      "guest": "Guest",
+      "staff": "ModularHub advisor"
+    },
+    "errors": {
+      "no_access": "You do not have access to this request.",
+      "consent_required": "Confirm that your files contain no contact details of yours.",
+      "invalid_type": "Only PDF, JPEG, PNG or WebP files are allowed.",
+      "too_large": "The file is larger than 20 MB.",
+      "file_rejected": "This file was not accepted (encrypted, damaged or with active content).",
+      "limit_count": "This request already has 10 files. Remove one to add another.",
+      "limit_size": "The total size of files would exceed 60 MB.",
+      "limit_stored": "This request reached the hard file limit. Write to us and we will help.",
+      "closed": "The files of this request can no longer be changed.",
+      "guest_daily_limit": "Uploading files is temporarily unavailable. Try again later or write to us.",
+      "storage_failed": "The file could not be uploaded to storage. Please try again.",
+      "not_found": "File not found.",
+      "reason_required": "Give a reason for hiding the file.",
+      "generic": "The file could not be saved. Please try again."
+    }
+  },
+  "LargeOrderProducerNewRequestEmail": {
+    "subject": "New large order request ({units} houses, {country})",
+    "intro": "A large order request matching your profile has appeared on the board. You will see the client's contact details only after your offer is chosen.",
+    "countryLabel": "Delivery country",
+    "unitsLabel": "Number of houses",
+    "familiesLabel": "Product families",
+    "productLabel": "Product",
+    "deadlineLabel": "Offer deadline",
+    "cta": "Open the request"
+  },
+  "LargeOrderTeamNewQuoteEmail": {
+    "subject": "New offer on a request ({units} houses, {country})",
+    "intro": "A producer has submitted an offer. The client cannot see it until you publish the summary.",
+    "producerLabel": "Producer",
+    "totalLabel": "Total price (EUR)",
+    "cta": "Review the offer in the panel"
+  },
+  "LargeOrderClientSummaryPublishedEmail": {
+    "subject": "The comparison of offers for your request is ready",
+    "greeting": "Hello {name},",
+    "intro": "ModularHub has prepared a comparison of producers' offers for your large order request. You will see it in your panel, choose a producer, and we will connect you with them.",
+    "countryLabel": "Country",
+    "unitsLabel": "Number of houses",
+    "loginHint": "Log in with {email}. We will send you a one time link, no password is needed.",
+    "cta": "View the comparison of offers"
+  },
+  "LargeOrderProducerReminderEmail": {
+    "subject3d": "Reminder: 3 days left to submit offers",
+    "subject1d": "Reminder: only one day left to submit offers",
+    "intro": "You have not yet submitted an offer on a large order request matching your profile.",
+    "countryLabel": "Delivery country",
+    "unitsLabel": "Number of houses",
+    "deadlineLabel": "Offer deadline",
+    "cta": "Submit an offer"
+  },
+  "LargeOrderTeamDeadlineEmail": {
+    "subject": "Offer deadline has passed ({units} houses, {country})",
+    "intro": "The offer deadline for this request has passed and the request is still open.",
+    "offersLabel": "Number of active offers",
+    "noOffersNote": "There are no offers. Close the request with the reason \"no offers\" or extend the deadline.",
     "cta": "Open the request in the panel"
   }
 }

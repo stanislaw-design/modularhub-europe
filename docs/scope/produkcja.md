@@ -679,7 +679,7 @@ Zmienia model dużych zamówień (od 3 domów) z otwartej tablicy (funkcja 49) n
 - [x] Zaprojektuj (spec): [0070](../specs/0070-przetarg-duze-zamowienia/index.md)
 - [ ] Zbuduj: `/develop przetarg na duże zamówienia z podsumowaniem ModularHub`
   - [x] Tydzień 1, odblokowanie obecnej ścieżki (część A i część C w zarysie): migracja 1, ekran admina "Duże zamówienia", zatwierdzenia producentów i klientów B2B, formularz profilu zdolności z krajami dostawy, formularz NIP klienta, maile w języku odbiorcy i mail do zespołu, test zgodności kluczy tłumaczeń, satisfies AC-1 do AC-7, AC-9 (język), AC-23, AC-26
-  - [ ] Tydzień 2, nowy model (część B): próg 3 domów, dopasowanie z wyjątkami admina, format oferty, termin, bramka publikacji (migracja 3), podsumowanie klienta, wybór i połączenie stron, zapytanie o produkt na tej samej ścieżce, zapytanie doradcy, wynik producenta, zamknięcie i wznowienie, satisfies AC-8 do AC-22
+  - [x] Tydzień 2, nowy model (część B): próg 3 domów, dopasowanie z wyjątkami admina, format oferty, termin, bramka publikacji (migracja 3), podsumowanie klienta, wybór i połączenie stron, zapytanie o produkt na tej samej ścieżce, zapytanie doradcy, wynik producenta, zamknięcie i wznowienie, satisfies AC-8 do AC-22
   - [ ] Tydzień 3, domknięcie (część C i pilotaż): pozostałe maile, przypomnienia i zadanie cykliczne, testy end to end całej ścieżki, pilotaż z jednym dużym inwestorem, satisfies AC-17, AC-24, AC-25, AC-26
 - [ ] Zweryfikuj: `/check verify przetarg na duże zamówienia z podsumowaniem ModularHub`
 - [ ] Testuj: `/test przetarg na duże zamówienia z podsumowaniem ModularHub`

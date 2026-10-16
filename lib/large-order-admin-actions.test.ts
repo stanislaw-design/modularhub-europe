@@ -4,12 +4,20 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 const authMock = vi.hoisted(() => vi.fn<() => Promise<Session | null>>());
 const captureErrorMock = vi.hoisted(() => vi.fn());
 vi.mock("@/auth", () => ({ auth: authMock }));
-vi.mock("@/lib/observability", () => ({ captureError: captureErrorMock }));
+const trackEventMock = vi.hoisted(() => vi.fn());
+const notifyProducersClosedMock = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
+vi.mock("@/lib/observability", () => ({ captureError: captureErrorMock, trackEvent: trackEventMock }));
+vi.mock("@/lib/notifications/large-order-producer", () => ({ notifyProducersOfClosedRequest: notifyProducersClosedMock }));
+// Spec 0070 AC-14, AC-23: mail o publikacji i zapis oczekującej rejestracji to granice I/O.
+const notifyPublishedMock = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
+const stageRegistrationMock = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
+vi.mock("@/lib/notifications/large-order-client", () => ({ notifyClientOfPublishedSummary: notifyPublishedMock }));
+vi.mock("@/lib/stage-client-registration", () => ({ stageClientRegistration: stageRegistrationMock }));
 
 import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { auditLog, bulkProductInquiry, producer, product, projectQuote, projectRequest, projectRequestProducerOverride, users } from "@/lib/db/schema";
-import { extendDeadline, publishSummary, setAdvisorNote, setProducerOverride, unpublishQuote } from "./large-order-admin-actions";
+import { closeRequest, extendDeadline, publishSummary, setAdvisorNote, setProducerOverride, unpublishQuote } from "./large-order-admin-actions";
 
 function sessionAs(userId: string, role: "admin" | "producer" | "client"): Session {
   return {
@@ -204,11 +212,70 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/large-order-admin-actions: real 
     });
   });
 
+  // Spec 0070 AC-19: administrator zamyka zapytanie z powodem, producenci dostają informację.
+  describe("closeRequest", () => {
+    async function readRequest() {
+      const [row] = await db.select().from(projectRequest).where(eq(projectRequest.id, requestId));
+      return row;
+    }
+
+    beforeEach(() => notifyProducersClosedMock.mockClear());
+
+    afterEach(async () => {
+      await db.update(projectRequest).set({ status: "open", closedAt: null, closedReason: null }).where(eq(projectRequest.id, requestId));
+    });
+
+    it("rejects a missing session, a producer, an unknown reason, and writes nothing", async () => {
+      authMock.mockResolvedValue(null);
+      expect((await closeRequest(requestId, "request", "staff_closed")).ok).toBe(false);
+      authMock.mockResolvedValue(sessionAs(producerUserId, "producer"));
+      expect((await closeRequest(requestId, "request", "staff_closed")).ok).toBe(false);
+      authMock.mockResolvedValue(sessionAs(adminUserId, "admin"));
+      expect((await closeRequest(requestId, "request", "because" as "expired")).ok).toBe(false);
+
+      expect((await readRequest()).status).toBe("open");
+      expect(notifyProducersClosedMock).not.toHaveBeenCalled();
+    });
+
+    it("closes with the reason and closedAt, tells producers once, and audits under the admin", async () => {
+      authMock.mockResolvedValue(sessionAs(adminUserId, "admin"));
+
+      expect(await closeRequest(requestId, "request", "no_offers")).toEqual({ ok: true });
+
+      const row = await readRequest();
+      expect(row.status).toBe("closed");
+      expect(row.closedReason).toBe("no_offers");
+      expect(row.closedAt).toBeInstanceOf(Date);
+      expect(notifyProducersClosedMock).toHaveBeenCalledWith({ kind: "request", id: requestId });
+      const audit = await db
+        .select({ action: auditLog.action })
+        .from(auditLog)
+        .where(and(eq(auditLog.actorUserId, adminUserId), eq(auditLog.tableName, "project_request"), eq(auditLog.recordId, requestId)));
+      expect(audit.length).toBeGreaterThan(0);
+
+      notifyProducersClosedMock.mockClear();
+      const again = await closeRequest(requestId, "request", "staff_closed");
+      expect(again.ok).toBe(false);
+      expect(notifyProducersClosedMock).not.toHaveBeenCalled();
+      expect((await readRequest()).closedReason).toBe("no_offers");
+    });
+
+    it("also closes an accepted request (only the admin can after the connection)", async () => {
+      authMock.mockResolvedValue(sessionAs(adminUserId, "admin"));
+      await db.update(projectRequest).set({ status: "accepted" }).where(eq(projectRequest.id, requestId));
+
+      expect(await closeRequest(requestId, "request", "staff_closed")).toEqual({ ok: true });
+      expect((await readRequest()).status).toBe("closed");
+    });
+  });
+
   // Spec 0070 AC-14: publikacja podsumowania, cofnięcie publikacji i komentarz doradcy.
   describe("publishSummary, unpublishQuote, setAdvisorNote", () => {
     let quoteId: string;
 
     beforeEach(async () => {
+      notifyPublishedMock.mockClear();
+      stageRegistrationMock.mockClear();
       quoteId = crypto.randomUUID();
       await db.insert(projectQuote).values({ id: quoteId, projectRequestId: requestId, producerId, totalPriceCents: 100_000_000, status: "active" });
       await db.update(projectRequest).set({ status: "quoted", summaryPublishedAt: null, selectedQuoteId: null }).where(eq(projectRequest.id, requestId));
@@ -258,6 +325,36 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/large-order-admin-actions: real 
       const request = await requestRow();
       expect(request.status).toBe("published");
       expect(request.summaryPublishedAt).toBeInstanceOf(Date);
+    });
+
+    it("mails the client in the request language after publishing, and stages the registration first (AC-14, AC-23, AC-24)", async () => {
+      authMock.mockResolvedValue(sessionAs(adminUserId, "admin"));
+      await db.update(projectRequest).set({ contactLocale: "de" }).where(eq(projectRequest.id, requestId));
+      try {
+        expect((await publishSummary(requestId, "request", true)).ok).toBe(true);
+      } finally {
+        await db.update(projectRequest).set({ contactLocale: "pl" }).where(eq(projectRequest.id, requestId));
+      }
+
+      expect(stageRegistrationMock).toHaveBeenCalledTimes(1);
+      expect(notifyPublishedMock).toHaveBeenCalledTimes(1);
+      expect(notifyPublishedMock).toHaveBeenCalledWith(
+        expect.objectContaining({ kind: "request", id: requestId, locale: "de", countryCode: "PL", unitCount: expect.any(Number) }),
+      );
+      expect(stageRegistrationMock.mock.invocationCallOrder[0]).toBeLessThan(notifyPublishedMock.mock.invocationCallOrder[0]);
+    });
+
+    it("sends no mail when publishing is refused, and a failing mail does not undo the publication", async () => {
+      authMock.mockResolvedValue(sessionAs(adminUserId, "admin"));
+      expect((await publishSummary(requestId, "request", false)).ok).toBe(false);
+      expect(notifyPublishedMock).not.toHaveBeenCalled();
+
+      notifyPublishedMock.mockRejectedValueOnce(new Error("provider down"));
+      const result = await publishSummary(requestId, "request", true);
+
+      expect(result.ok).toBe(true);
+      expect((await requestRow()).status).toBe("published");
+      expect(captureErrorMock).toHaveBeenCalled();
     });
 
     it("keeps the first publication time when published again after a new quote arrives", async () => {

@@ -1569,11 +1569,9 @@ export const projectRequest = pgTable(
     locationDetail: text("location_detail"),
     projectType: projectTypeEnum("project_type").notNull(),
     families: jsonb("families").$type<(typeof productFamilyEnum.enumValues)[number][]>().notNull(),
-    // Spec 0070 AC-8: jedna dokładna liczba domów. Stare kolumny zakresu zostają
-    // do migracji 5 (zwężenie), nowy kod ich nie czyta, ale zapisuje min = liczba.
+    // Spec 0070 AC-8: jedna dokładna liczba domów (od 3). Dawne kolumny zakresu
+    // zniknęły w migracji 0060 (zwężenie, zadanie 24).
     unitCount: integer("unit_count").notNull(),
-    unitCountMin: integer("unit_count_min"),
-    unitCountMax: integer("unit_count_max"),
     floorAreaM2Min: real("floor_area_m2_min"),
     floorAreaM2Max: real("floor_area_m2_max"),
     completionStandard: completionStandardEnum("completion_standard"),
@@ -1597,6 +1595,9 @@ export const projectRequest = pgTable(
     createdByStaffUserId: text("created_by_staff_user_id").references(() => users.id),
     staffConsentNote: text("staff_consent_note"),
     summaryPublishedAt: timestamp("summary_published_at", { withTimezone: true }),
+    // Spec 0070 AC-33: chwila ostatniej zmiany plików zapytania (wgranie, usunięcie,
+    // ukrycie, przywrócenie), ustawiana w tym samym zapisie co zmiana.
+    attachmentsChangedAt: timestamp("attachments_changed_at", { withTimezone: true }),
     closedAt: timestamp("closed_at", { withTimezone: true }),
     closedReason: bulkCloseReasonEnum("closed_reason"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -1613,10 +1614,6 @@ export const projectRequest = pgTable(
     check(
       "project_request_closed_consistent",
       sql`(${table.status} = 'closed') = (${table.closedAt} IS NOT NULL AND ${table.closedReason} IS NOT NULL)`,
-    ),
-    check(
-      "project_request_unit_count_max",
-      sql`${table.unitCountMax} IS NULL OR ${table.unitCountMax} >= ${table.unitCountMin}`,
     ),
     check(
       "project_request_start_window_order",
@@ -1644,11 +1641,9 @@ export const bulkProductInquiry = pgTable(
     contactName: text("contact_name").notNull(),
     contactEmail: text("contact_email").notNull(),
     contactPhone: text("contact_phone"),
-    // Spec 0070 AC-8: jedna dokładna liczba domów. Stare kolumny zakresu zostają
-    // do migracji 5 (zwężenie), nowy kod ich nie czyta, ale zapisuje min = liczba.
+    // Spec 0070 AC-8: jedna dokładna liczba domów (od 3). Dawne kolumny zakresu
+    // zniknęły w migracji 0060 (zwężenie, zadanie 24).
     unitCount: integer("unit_count").notNull(),
-    unitCountMin: integer("unit_count_min"),
-    unitCountMax: integer("unit_count_max"),
     deliveryCountryCode: text("delivery_country_code")
       .notNull()
       .references(() => country.code),
@@ -1670,6 +1665,9 @@ export const bulkProductInquiry = pgTable(
     createdByStaffUserId: text("created_by_staff_user_id").references(() => users.id),
     staffConsentNote: text("staff_consent_note"),
     summaryPublishedAt: timestamp("summary_published_at", { withTimezone: true }),
+    // Spec 0070 AC-33: chwila ostatniej zmiany plików zapytania (wgranie, usunięcie,
+    // ukrycie, przywrócenie), ustawiana w tym samym zapisie co zmiana.
+    attachmentsChangedAt: timestamp("attachments_changed_at", { withTimezone: true }),
     closedAt: timestamp("closed_at", { withTimezone: true }),
     closedReason: bulkCloseReasonEnum("closed_reason"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -1685,10 +1683,6 @@ export const bulkProductInquiry = pgTable(
     check(
       "bulk_product_inquiry_closed_consistent",
       sql`(${table.status} = 'closed') = (${table.closedAt} IS NOT NULL AND ${table.closedReason} IS NOT NULL)`,
-    ),
-    check(
-      "bulk_product_inquiry_unit_count_max",
-      sql`${table.unitCountMax} IS NULL OR ${table.unitCountMax} >= ${table.unitCountMin}`,
     ),
     check(
       "bulk_product_inquiry_start_window_order",
@@ -1782,6 +1776,63 @@ export const projectQuote = pgTable(
     uniqueIndex("project_quote_accepted_per_bulk_inquiry")
       .on(table.bulkProductInquiryId)
       .where(sql`${table.status} = 'accepted'`),
+  ],
+);
+
+// Spec 0070 część D (AC-28 do AC-34): pliki inwestora dołączone do zapytania.
+// Osobna tabela zamiast document, bo document.owner_user_id jest NOT NULL, a gość
+// nie ma użytkownika. Typ i rodzaj autora w kolumnach tekstowych z CHECK (enum
+// Postgresa jest nieodwracalny). Limity i stan zapytania egzekwuje wyzwalacz
+// BEFORE INSERT (drizzle/0059), nie sam kod aplikacji.
+export const inquiryAttachment = pgTable(
+  "inquiry_attachment",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    projectRequestId: uuid("project_request_id").references(() => projectRequest.id),
+    bulkProductInquiryId: uuid("bulk_product_inquiry_id").references(() => bulkProductInquiry.id),
+    r2Key: text("r2_key").notNull(),
+    filename: text("filename").notNull(),
+    mimeType: text("mime_type").notNull(),
+    sizeBytes: integer("size_bytes").notNull(),
+    uploadedByKind: text("uploaded_by_kind").notNull(),
+    uploadedByUserId: text("uploaded_by_user_id").references(() => users.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    hiddenAt: timestamp("hidden_at", { withTimezone: true }),
+    hiddenReason: text("hidden_reason"),
+    hiddenByUserId: text("hidden_by_user_id").references(() => users.id),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    deletedByKind: text("deleted_by_kind"),
+    purgedAt: timestamp("purged_at", { withTimezone: true }),
+  },
+  (table) => [
+    check(
+      "inquiry_attachment_exactly_one_link",
+      sql`((${table.projectRequestId} IS NOT NULL)::int + (${table.bulkProductInquiryId} IS NOT NULL)::int) = 1`,
+    ),
+    check("inquiry_attachment_size_positive", sql`${table.sizeBytes} > 0`),
+    check("inquiry_attachment_uploaded_by_kind", sql`${table.uploadedByKind} IN ('client', 'guest', 'staff')`),
+    check(
+      "inquiry_attachment_guest_has_no_user",
+      sql`(${table.uploadedByKind} = 'guest') = (${table.uploadedByUserId} IS NULL)`,
+    ),
+    check(
+      "inquiry_attachment_hidden_consistent",
+      sql`(${table.hiddenAt} IS NOT NULL) = (${table.hiddenReason} IS NOT NULL AND ${table.hiddenByUserId} IS NOT NULL)`,
+    ),
+    check(
+      "inquiry_attachment_deleted_consistent",
+      sql`(${table.deletedAt} IS NOT NULL) = (${table.deletedByKind} IS NOT NULL)`,
+    ),
+    check(
+      "inquiry_attachment_deleted_by_kind",
+      sql`${table.deletedByKind} IS NULL OR ${table.deletedByKind} IN ('client', 'staff')`,
+    ),
+    index("inquiry_attachment_project_request_idx")
+      .on(table.projectRequestId)
+      .where(sql`${table.deletedAt} IS NULL`),
+    index("inquiry_attachment_bulk_product_inquiry_idx")
+      .on(table.bulkProductInquiryId)
+      .where(sql`${table.deletedAt} IS NULL`),
   ],
 );
 

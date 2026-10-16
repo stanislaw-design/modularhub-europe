@@ -108,3 +108,29 @@ _Kroki z AC-16 i AC-17. Testy na prawdziwej bazie dev już pokrywają logikę, k
 
 ### Acceptance-criteria coverage
 - AC-16: wybór i zmiana wyboru, odmowa po połączeniu, brak ujawnienia kontaktu przed połączeniem · AC-17: połączenie po wyborze, po zatwierdzeniu B2B, przez przycisk admina, idempotencja i wyścig; pozostałe maile i zadanie czyszczące w zadaniu 17
+
+## Zadania 20 do 23: pliki inwestora (2026-10-16)
+_Kroki z AC-28 do AC-34. Testy na prawdziwej bazie dev (`lib/db/inquiry-attachment-schema.test.ts`, `lib/inquiry-attachment-actions.test.ts`) pokrywają limity, uprawnienia i audyt, kroki ręczne sprawdzają ekrany, prawdziwy magazyn R2 i limit ciała żądania na Vercel._
+
+### UI / manual
+- [ ] Gość składa zapytanie w kreatorze `/pl/project-request` → po wysłaniu jest karta "Pliki do zapytania" z ostrzeżeniem o danych kontaktowych, pole wyboru plików jest wyłączone, dopóki nie zaznaczy "W plikach nie ma moich danych kontaktowych" → AC-29, AC-32
+- [ ] Gość wybiera trzy pliki (PDF, JPEG, PNG) → każdy ma własny pasek i status "Wgrano"; plik .exe lub plik tekstowy nazwany .pdf pokazuje błąd przy tym pliku, pozostałe się wgrywają, przycisk "Spróbuj ponownie" ponawia tylko ten plik → AC-28, AC-29
+- [ ] Plik 21 MB, 11. plik i przekroczenie 60 MB są odrzucone z czytelnym komunikatem; PDF z `/JavaScript` jest odrzucony → AC-28
+- [ ] Ten sam przepływ w oknie "Zapytaj o model" na stronie produktu (`/pl/project/[slug]`) → AC-28, AC-29
+- [ ] Zalogowany klient otwiera `/pl/panel/quotes` → pod zapytaniem jest sekcja "Pliki do zapytania" z plikami, przyciskami Pobierz, Zamień, Usuń i polem dodawania; "Pobierz" zapisuje plik na dysk (nie otwiera go na naszej domenie), link przestaje działać po około 10 minutach → AC-30, AC-33
+- [ ] "Zamień" przy pliku: po wybraniu nowego pliku stary znika z listy → AC-33
+- [ ] Zapytanie z opublikowanym podsumowaniem, z wyborem oferty albo po terminie → klient widzi pliki, ale nie ma przycisków dodawania i usuwania, jest tekst o zmianie plików przez ModularHub → AC-28, AC-33
+- [ ] Dopasowany producent otwiera `/pl/producer/panel/board/[id]` → widzi sekcję "Pliki inwestora" i pobiera plik; producent niedopasowany nie widzi zapytania, a bezpośrednie wywołanie pobrania pliku daje "Nie znaleziono pliku" → AC-30, AC-31
+- [ ] Producent z aktywną ofertą: klient usuwa plik po złożeniu oferty → przy ponownym wejściu producent widzi "Pliki zmieniono po złożeniu Twojej oferty", żaden mail nie wychodzi; po złożeniu nowej wersji oferty znacznik znika → AC-33
+- [ ] Admin otwiera `/pl/internal/large-orders/[id]` → sekcja "Pliki inwestora" pokazuje autora pliku (klient, gość, doradca), przyciski Pobierz, Ukryj, Usuń i dodawanie → AC-32, AC-34
+- [ ] Admin klika "Ukryj", próbuje bez powodu (jest błąd), potem z powodem → producent traci plik przy następnym odczycie, klient widzi plik z oznaczeniem "Ukryty przez ModularHub" i powodem, "Przywróć" cofa ukrycie; w `audit_log` jest wpis z aktorem i bez nazwy pliku → AC-31, AC-32
+- [ ] Admin składa zapytanie na `/pl/internal/large-orders/new` → po zapisie jest krok "Pliki" bez pola zgody, dodany plik trafia do zapytania, "Przejdź do szczegółów zapytania" otwiera szczegóły → AC-34
+- [ ] Wszystko powyżej na `/en`, `/de` i `/nl` → teksty w języku strony, bez surowych kluczy (po restarcie serwera deweloperskiego) → AC-26
+
+### Commands
+- [ ] `npx vitest run lib/db/inquiry-attachment-schema.test.ts lib/inquiry-attachment-actions.test.ts lib/inquiry-attachment-token.test.ts lib/inquiry-attachment-specs.test.ts lib/storage components/inquiry-attachments lib/i18n` → wszystkie przechodzą → AC-28 do AC-33
+- [ ] Wdrożenie podglądowe na Vercel: wgranie pliku 10 MB w kreatorze zapytania → przechodzi; jeśli kończy się błędem 413, wdrożyć plan awaryjny z sekcji Configuration required (wgrywanie przez podpisany link PUT albo tymczasowy limit 4 MB) → AC-28
+- [ ] `node --env-file=.env.local node_modules/@playwright/test/cli.js test e2e/zapytanie-doradcy-0070.spec.ts` → przechodzi z krokiem "Pliki" (niesprawdzone w tej sesji) → AC-34
+
+### Acceptance-criteria coverage
+- AC-28: typy po sygnaturze, limity 10 plików, 20 MB, 60 MB i twarde 30 wierszy, 150 MB, stan zapytania w wyzwalaczu · AC-29: token gościa (ważny, wygasły, cudzy), błąd jednego pliku nie cofa zapytania · AC-30: prywatny magazyn, link 10 minut jako załącznik, oczyszczona nazwa, jedna odpowiedź "nie znaleziono" · AC-31: widoczność admin, klient, producent (dopasowany, z ofertą, zablokowany, zamknięte zapytanie) · AC-32: zgoda, ukrywanie i przywracanie z powodem, audyt · AC-33: usuwanie miękkie, blokada po wyborze, znacznik zmiany po ofercie (czyszczenie obiektów po 30 dniach jest w zadaniu 17) · AC-34: pliki doradcy i admina w każdym stanie zapytania

@@ -32,6 +32,12 @@ function teamRecipient(): string | undefined {
   return process.env.OPERATIONS_NOTIFY_EMAIL ?? process.env.ADVISOR_NOTIFY_EMAIL;
 }
 
+// Czy alerty do zespołu mają adresata. Zadanie cykliczne pyta o to przed zapisem do
+// dziennika, żeby bez adresu nie "zużyć" jednorazowego alertu o terminie.
+export function hasTeamRecipient(): boolean {
+  return teamRecipient() !== undefined;
+}
+
 // Spec 0070 AC-24 (część): nowe zapytanie, mail do zespołu po polsku, od razu po
 // złożeniu. Bez danych kontaktowych klienta w treści (link do panelu admina).
 // Best effort: błąd wysyłki trafia do Sentry i nigdy nie cofa zapisu zapytania.
@@ -122,5 +128,96 @@ export async function notifyTeamOfClientCancelledRequest(order: ClientCancelledR
     });
   } catch (error) {
     captureError(error, { path: "notifications:notifyTeamOfClientCancelledRequest" });
+  }
+}
+
+export interface NewQuoteForTeam {
+  kind: "request" | "product";
+  id: string;
+  countryCode: string;
+  unitCount: number;
+  producerName: string;
+  totalPriceCents: number;
+}
+
+// Spec 0070 AC-24: nowa oferta, mail do zespołu po polsku. Klient jej jeszcze nie widzi
+// (bramka publikacji, AC-13), więc to jedyny sygnał, że jest co przejrzeć i opublikować.
+// Best effort, jak inne maile zespołu.
+export async function notifyTeamOfNewQuote(order: NewQuoteForTeam): Promise<void> {
+  const to = teamRecipient();
+  if (!to) return;
+  try {
+    const t = await getTranslations({ locale: "pl", namespace: "LargeOrderTeamNewQuoteEmail" });
+    const subject = t("subject", { units: order.unitCount, country: order.countryCode });
+    const total = new Intl.NumberFormat("pl-PL", { style: "currency", currency: "EUR" }).format(
+      order.totalPriceCents / 100,
+    );
+    const content: TransactionalEmailProps = {
+      preview: subject,
+      heading: subject,
+      body: [t("intro"), `${t("producerLabel")}: ${order.producerName}`, `${t("totalLabel")}: ${total}`].join("\n"),
+      ctaLabel: t("cta"),
+      ctaHref: `${baseUrl()}/pl/internal/large-orders/${order.id}?kind=${order.kind}`,
+      reference: shortReference(order.id),
+    };
+
+    await sendNotificationEmail({
+      to,
+      subject,
+      html: await render(TransactionalEmail(content)),
+      text: renderTransactionalEmailText(content),
+      emailType: "large_order_team_new_quote",
+      entityId: order.id,
+      distinctId: order.id,
+    });
+  } catch (error) {
+    captureError(error, { path: "notifications:notifyTeamOfNewQuote" });
+  }
+}
+
+export interface DeadlinePassedForTeam {
+  kind: "request" | "product";
+  id: string;
+  countryCode: string;
+  unitCount: number;
+  activeQuoteCount: number;
+}
+
+// Spec 0070 AC-25: w dniu terminu zespół dostaje alert z liczbą ofert, także gdy ofert nie
+// ma (wtedy zamyka zapytanie z powodem `expired` albo przedłuża termin). Zwraca, czy mail
+// wyszedł; brak adresu zespołu to cichy brak wysyłki (false).
+export async function notifyTeamOfDeadlinePassed(order: DeadlinePassedForTeam): Promise<boolean> {
+  const to = teamRecipient();
+  if (!to) return false;
+  try {
+    const t = await getTranslations({ locale: "pl", namespace: "LargeOrderTeamDeadlineEmail" });
+    const subject = t("subject", { units: order.unitCount, country: order.countryCode });
+    const content: TransactionalEmailProps = {
+      preview: subject,
+      heading: subject,
+      body: [
+        t("intro"),
+        `${t("offersLabel")}: ${order.activeQuoteCount}`,
+        order.activeQuoteCount === 0 ? t("noOffersNote") : undefined,
+      ]
+        .filter((line) => line !== undefined)
+        .join("\n"),
+      ctaLabel: t("cta"),
+      ctaHref: `${baseUrl()}/pl/internal/large-orders/${order.id}?kind=${order.kind}`,
+      reference: shortReference(order.id),
+    };
+
+    return await sendNotificationEmail({
+      to,
+      subject,
+      html: await render(TransactionalEmail(content)),
+      text: renderTransactionalEmailText(content),
+      emailType: "large_order_team_deadline",
+      entityId: order.id,
+      distinctId: order.id,
+    });
+  } catch (error) {
+    captureError(error, { path: "notifications:notifyTeamOfDeadlinePassed" });
+    return false;
   }
 }
