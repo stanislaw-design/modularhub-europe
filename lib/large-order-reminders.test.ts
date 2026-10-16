@@ -35,6 +35,8 @@ import { claimNotification, runLargeOrderReminders } from "./large-order-reminde
 // wysyłek i wybór adresatów działają naprawdę. Zadanie przegląda wszystkie zapytania bazy,
 // więc asercje filtrują wywołania do producentów i zapytań z fixture, a dziennik sprząta
 // wszystko, co powstało w trakcie testu.
+vi.setConfig({ testTimeout: 30_000, hookTimeout: 30_000 });
+
 describe.skipIf(!process.env.DATABASE_URL)("lib/large-order-reminders: real DB (spec 0070 AC-17, AC-25)", () => {
   const startedAt = new Date();
   const hours = (count: number) => new Date(Date.now() + count * 3_600_000);
@@ -53,6 +55,8 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/large-order-reminders: real DB (
   const allRequestIds = Object.values(requestIds);
   let selectedQuoteId = "";
 
+  // Zadanie obejmuje tylko zapytania z fixture, więc nie dotyka cudzych wierszy wspólnej bazy dev.
+  const scope = () => [...allRequestIds, inquiryId];
   const ours = (call: unknown[]) => producerIds.includes((call[0] as { producerId: string }).producerId);
 
   beforeAll(async () => {
@@ -162,8 +166,8 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/large-order-reminders: real DB (
   });
 
   it("sends one reminder per producer without an offer, even when the job runs twice (AC-25)", async () => {
-    const first = await runLargeOrderReminders();
-    const second = await runLargeOrderReminders();
+    const first = await runLargeOrderReminders(new Date(), { onlyIds: scope(), onlyProducerIds: producerIds });
+    const second = await runLargeOrderReminders(new Date(), { onlyIds: scope(), onlyProducerIds: producerIds });
 
     const forThreeDays = reminderMock.mock.calls.filter((call) => ours(call) && call[0].id === requestIds.threeDays);
     expect(forThreeDays).toHaveLength(1);
@@ -176,7 +180,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/large-order-reminders: real DB (
   });
 
   it("uses the 1 day threshold within the last day and skips requests with a client choice", async () => {
-    await runLargeOrderReminders();
+    await runLargeOrderReminders(new Date(), { onlyIds: scope(), onlyProducerIds: producerIds });
 
     const oneDay = reminderMock.mock.calls.filter((call) => ours(call) && call[0].id === requestIds.oneDay);
     expect(oneDay.map((call) => call[0].threshold)).toEqual(expect.arrayContaining(["1d"]));
@@ -186,15 +190,15 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/large-order-reminders: real DB (
   });
 
   it("reminds the owner of the product for a product inquiry", async () => {
-    await runLargeOrderReminders();
+    await runLargeOrderReminders(new Date(), { onlyIds: scope(), onlyProducerIds: producerIds });
     const forInquiry = reminderMock.mock.calls.filter((call) => call[0].id === inquiryId);
     expect(forInquiry).toHaveLength(1);
     expect(forInquiry[0][0]).toMatchObject({ kind: "product", producerId: plain.producerId });
   });
 
   it("alerts the team once after the deadline, also with no offers (AC-25)", async () => {
-    await runLargeOrderReminders();
-    await runLargeOrderReminders();
+    await runLargeOrderReminders(new Date(), { onlyIds: scope(), onlyProducerIds: producerIds });
+    await runLargeOrderReminders(new Date(), { onlyIds: scope(), onlyProducerIds: producerIds });
 
     const alerts = teamDeadlineMock.mock.calls.filter((call) => call[0].id === requestIds.expired);
     expect(alerts).toHaveLength(1);
@@ -210,7 +214,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/large-order-reminders: real DB (
     ]);
     connectMock.mockResolvedValueOnce("connected").mockResolvedValueOnce("pending_b2b");
 
-    const run = await runLargeOrderReminders();
+    const run = await runLargeOrderReminders(new Date(), { onlyIds: scope(), onlyProducerIds: producerIds });
 
     expect(connectMock).toHaveBeenCalledTimes(2);
     expect(connectMock).toHaveBeenCalledWith("request", requestIds.selected);
@@ -225,7 +229,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/large-order-reminders: real DB (
     ]);
     connectMock.mockRejectedValueOnce(new Error("boom")).mockResolvedValueOnce("connected");
 
-    const run = await runLargeOrderReminders();
+    const run = await runLargeOrderReminders(new Date(), { onlyIds: scope(), onlyProducerIds: producerIds });
 
     expect(connectMock).toHaveBeenCalledTimes(2);
     expect(run.errors).toBe(1);
@@ -234,7 +238,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/large-order-reminders: real DB (
   });
 
   it("logged rows exist for both parents after a run", async () => {
-    await runLargeOrderReminders();
+    await runLargeOrderReminders(new Date(), { onlyIds: scope(), onlyProducerIds: producerIds });
     const rows = await db
       .select({ kind: projectNotificationLog.kind })
       .from(projectNotificationLog)

@@ -50,6 +50,9 @@ function makeFile(bytes: Buffer, name: string): File {
   return new File([new Uint8Array(bytes)], name);
 }
 
+// Zestaw rusza równolegle na wspólnej bazie Neon, a w CI hooki sprzątające bywają wolniejsze niż 10 s.
+vi.setConfig({ hookTimeout: 30_000, testTimeout: 30_000 });
+
 describe.skipIf(!process.env.DATABASE_URL)("lib/inquiry-attachment-actions: real DB, mocked R2 and auth", () => {
   const adminId = crypto.randomUUID();
   const clientUserId = crypto.randomUUID();

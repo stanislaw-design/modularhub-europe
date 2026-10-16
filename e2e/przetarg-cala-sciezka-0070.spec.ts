@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { eq, inArray, or } from "drizzle-orm";
+import { eq, gte, inArray, or } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { assertDevOrStagingDatabase } from "@/lib/db/dev-database-guard";
 import {
@@ -221,6 +221,7 @@ test.describe("spec 0070: cała ścieżka przetargu", () => {
   // CRON_SECRET po stronie serwera i testu (np. `CRON_SECRET=e2e npm run test:e2e`), bo
   // lokalny serwer dziedziczy środowisko procesu Playwright.
   test("scheduled job sends one reminder per producer even when it runs twice", async ({ request }) => {
+    const startedAt = new Date();
     test.skip(!process.env.CRON_SECRET, "Ustaw CRON_SECRET dla serwera i testu, żeby wywołać zadanie cykliczne.");
     test.setTimeout(120_000);
     await assertDevOrStagingDatabase();
@@ -250,7 +251,9 @@ test.describe("spec 0070: cała ścieżka przetargu", () => {
       const again = await db.select().from(projectNotificationLog).where(eq(projectNotificationLog.projectRequestId, reminded.id));
       expect(again).toHaveLength(logged.length);
     } finally {
-      await db.delete(projectNotificationLog).where(eq(projectNotificationLog.projectRequestId, reminded.id));
+      // Zadanie obejmuje całą bazę, więc mogło zapisać wpisy także dla cudzych zapytań i producentów;
+      // zostawione blokowałyby sprzątanie fixture'ów innych testów kluczem obcym.
+      await db.delete(projectNotificationLog).where(gte(projectNotificationLog.sentAt, startedAt));
       await db.delete(projectRequest).where(eq(projectRequest.id, reminded.id));
     }
   });

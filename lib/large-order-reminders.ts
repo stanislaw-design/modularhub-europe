@@ -42,16 +42,24 @@ interface DueRow extends Record<string, unknown> {
 
 // Zapytania w statusie open, quoted lub published, bez wyboru klienta (po wyborze
 // przypomnienia i alert o terminie nie mają sensu), z terminem w podanym przedziale.
-async function findRequests(from: Date, to: Date): Promise<DueRequest[]> {
+// `onlyIds` zawęża zadanie do podanych zapytań (testy na wspólnej bazie dev, żeby nie ruszać
+// cudzych wierszy i nie blokować ich sprzątania kluczem obcym). Bez niego zadanie obejmuje wszystko.
+function idFilter(column: string, onlyIds?: string[]) {
+  if (!onlyIds) return sql`TRUE`;
+  if (onlyIds.length === 0) return sql`FALSE`;
+  return sql`${sql.raw(column)} IN (${sql.join(onlyIds.map((id) => sql`${id}::uuid`), sql`, `)})`;
+}
+
+async function findRequests(from: Date, to: Date, onlyIds?: string[]): Promise<DueRequest[]> {
   const result = await db.execute<DueRow>(sql`
     SELECT 'request' AS kind, r."id", r."deadline_at", r."country_code", r."unit_count"
       FROM "project_request" r
-      WHERE r."status" IN ('open', 'quoted', 'published') AND r."selected_quote_id" IS NULL
+      WHERE r."status" IN ('open', 'quoted', 'published') AND r."selected_quote_id" IS NULL AND ${idFilter('r."id"', onlyIds)}
         AND r."deadline_at" > ${from.toISOString()}::timestamptz AND r."deadline_at" <= ${to.toISOString()}::timestamptz
     UNION ALL
     SELECT 'product' AS kind, b."id", b."deadline_at", b."delivery_country_code", b."unit_count"
       FROM "bulk_product_inquiry" b
-      WHERE b."status" IN ('open', 'quoted', 'published') AND b."selected_quote_id" IS NULL
+      WHERE b."status" IN ('open', 'quoted', 'published') AND b."selected_quote_id" IS NULL AND ${idFilter('b."id"', onlyIds)}
         AND b."deadline_at" > ${from.toISOString()}::timestamptz AND b."deadline_at" <= ${to.toISOString()}::timestamptz
   `);
   return result.rows.map((row) => ({
@@ -91,7 +99,11 @@ function thresholdFor(deadlineAt: Date, now: Date): DeadlineReminderThreshold {
   return deadlineAt.getTime() - now.getTime() > DAY_MS ? "3d" : "1d";
 }
 
-export async function runLargeOrderReminders(now: Date = new Date()): Promise<LargeOrderReminderRun> {
+export async function runLargeOrderReminders(
+  now: Date = new Date(),
+  options: { onlyIds?: string[]; onlyProducerIds?: string[] } = {},
+): Promise<LargeOrderReminderRun> {
+  const { onlyIds, onlyProducerIds } = options;
   const run: LargeOrderReminderRun = {
     remindersClaimed: 0,
     remindersSent: 0,
@@ -104,11 +116,13 @@ export async function runLargeOrderReminders(now: Date = new Date()): Promise<La
 
   // 1. Przypomnienia dla producentów bez aktywnej oferty: 3 dni i 1 dzień przed terminem.
   try {
-    for (const due of await findRequests(now, new Date(now.getTime() + 3 * DAY_MS))) {
+    for (const due of await findRequests(now, new Date(now.getTime() + 3 * DAY_MS), onlyIds)) {
       try {
         const threshold = thresholdFor(due.deadlineAt, now);
         const notificationKind = `reminder_${threshold}:${deadlineDay(due.deadlineAt)}`;
-        const recipients = await getProducerRecipientsForLargeOrder(due.kind, due.id, { withoutQuote: true });
+        const recipients = (await getProducerRecipientsForLargeOrder(due.kind, due.id, { withoutQuote: true })).filter(
+          (recipient) => !onlyProducerIds || onlyProducerIds.includes(recipient.producerId),
+        );
         for (const recipient of recipients) {
           if (!(await claimNotification(due.kind, due.id, recipient.producerId, notificationKind))) continue;
           run.remindersClaimed += 1;
@@ -134,7 +148,7 @@ export async function runLargeOrderReminders(now: Date = new Date()): Promise<La
   // 2. Alert zespołu po terminie, raz na zapytanie i termin, także gdy nie ma ofert.
   try {
     if (hasTeamRecipient()) {
-      for (const due of await findRequests(new Date(now.getTime() - DEADLINE_ALERT_WINDOW_MS), now)) {
+      for (const due of await findRequests(new Date(now.getTime() - DEADLINE_ALERT_WINDOW_MS), now, onlyIds)) {
         try {
           const notificationKind = `deadline_team:${deadlineDay(due.deadlineAt)}`;
           if (!(await claimNotification(due.kind, due.id, null, notificationKind))) continue;
@@ -161,7 +175,7 @@ export async function runLargeOrderReminders(now: Date = new Date()): Promise<La
   // 3. Sprzątanie: wybór klienta bez połączenia, którego klient ma już zatwierdzone B2B
   // (ślad po wyścigu albo błędzie). connectSelection jest idempotentna i sama sprawdza B2B w SQL.
   try {
-    for (const pending of await getPendingSelections()) {
+    for (const pending of (await getPendingSelections()).filter((item) => !onlyIds || onlyIds.includes(item.id))) {
       run.selectionsChecked += 1;
       try {
         if ((await connectSelection(pending.kind, pending.id)) === "connected") run.selectionsConnected += 1;
