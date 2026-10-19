@@ -2,6 +2,7 @@ import { render } from "@react-email/render";
 import { and, eq } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
 import { db } from "@/lib/db/client";
+import { getProducerUserEmails } from "@/lib/db/large-order-recipients";
 import { bulkProductInquiry, producer, projectQuote, projectRequest, users } from "@/lib/db/schema";
 import { captureError } from "@/lib/observability";
 import { sendNotificationEmail, type NotificationEmailType } from "./send";
@@ -126,28 +127,33 @@ export async function notifyOfConnection(input: { kind: Kind; id: string }): Pro
 
     const producerT = await getTranslations({ locale: "pl", namespace: "LargeOrderProducerConnectedEmail" });
     const producerSubject = producerT("subject");
-    if (winner.producerEmail) await sendContent({
-      to: winner.producerEmail,
-      content: {
-        preview: producerSubject,
-        heading: producerSubject,
-        body: [
-          producerT("intro"),
-          `${producerT("nameLabel")}: ${request.contactName}`,
-          `${producerT("emailLabel")}: ${request.contactEmail}`,
-          `${producerT("phoneLabel")}: ${phone}`,
-          `${producerT("countryLabel")}: ${request.countryCode}`,
-          `${producerT("unitsLabel")}: ${request.unitCount}`,
-          producerT("confirmInSystem"),
-        ].join("\n"),
-        ctaLabel: producerT("cta"),
-        ctaHref: `${baseUrl()}/pl/producer/panel/board-quotes`,
-        reference,
-      },
-      emailType: "large_order_producer_connected",
-      entityId: input.id,
-      distinctId: winner.producerId,
-    });
+    // Mail do producenta idzie do wszystkich użytkowników firmy (spec 0057), nie tylko do
+    // właściciela; klient i zespół dostają jako kontakt adres właściciela.
+    const producerContent: TransactionalEmailProps = {
+      preview: producerSubject,
+      heading: producerSubject,
+      body: [
+        producerT("intro"),
+        `${producerT("nameLabel")}: ${request.contactName}`,
+        `${producerT("emailLabel")}: ${request.contactEmail}`,
+        `${producerT("phoneLabel")}: ${phone}`,
+        `${producerT("countryLabel")}: ${request.countryCode}`,
+        `${producerT("unitsLabel")}: ${request.unitCount}`,
+        producerT("confirmInSystem"),
+      ].join("\n"),
+      ctaLabel: producerT("cta"),
+      ctaHref: `${baseUrl()}/pl/producer/panel/board-quotes`,
+      reference,
+    };
+    for (const recipient of await getProducerUserEmails([winner.producerId])) {
+      await sendContent({
+        to: recipient.email,
+        content: producerContent,
+        emailType: "large_order_producer_connected",
+        entityId: input.id,
+        distinctId: winner.producerId,
+      });
+    }
 
     const team = teamRecipient();
     if (team) {

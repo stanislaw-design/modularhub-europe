@@ -1,6 +1,6 @@
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "./client";
-import { bulkProductInquiry, producer, product, projectRequest, users } from "./schema";
+import { bulkProductInquiry, producer, producerMember, product, projectRequest, users } from "./schema";
 import { producerMatchesProjectRequestSql } from "./project-request-matching";
 
 export type LargeOrderKind = "request" | "product";
@@ -8,6 +8,35 @@ export type LargeOrderKind = "request" | "product";
 export interface LargeOrderProducerRecipient {
   producerId: string;
   email: string;
+}
+
+// Każdy użytkownik producenta (spec 0057: właściciel `producer.userId` i wszyscy z
+// `producer_member`) dostaje maile o dużych zamówieniach, nie tylko właściciel. Adresy są
+// deduplikowane w obrębie producenta; użytkownik bez adresu jest pomijany.
+export async function getProducerUserEmails(producerIds: string[]): Promise<LargeOrderProducerRecipient[]> {
+  if (producerIds.length === 0) return [];
+  const [owners, members] = await Promise.all([
+    db
+      .select({ producerId: producer.id, email: users.email })
+      .from(producer)
+      .innerJoin(users, eq(users.id, producer.userId))
+      .where(inArray(producer.id, producerIds)),
+    db
+      .select({ producerId: producerMember.producerId, email: users.email })
+      .from(producerMember)
+      .innerJoin(users, eq(users.id, producerMember.userId))
+      .where(inArray(producerMember.producerId, producerIds)),
+  ]);
+  const seen = new Set<string>();
+  const result: LargeOrderProducerRecipient[] = [];
+  for (const row of [...owners, ...members]) {
+    if (!row.email) continue;
+    const key = `${row.producerId}:${row.email.toLowerCase()}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push({ producerId: row.producerId, email: row.email });
+  }
+  return result;
 }
 
 // Spec 0070 część C: producenci, którzy dostają maile o dużym zamówieniu. Dla zapytania
@@ -31,18 +60,16 @@ export async function getProducerRecipientsForLargeOrder(
   const rows =
     kind === "request"
       ? await db
-          .select({ producerId: producer.id, email: users.email })
+          .select({ producerId: producer.id })
           .from(producer)
           .innerJoin(projectRequest, eq(projectRequest.id, id))
-          .innerJoin(users, eq(users.id, producer.userId))
           .where(and(producerMatchesProjectRequestSql(sql`${producer.id}`), noQuote))
       : await db
-          .select({ producerId: producer.id, email: users.email })
+          .select({ producerId: producer.id })
           .from(bulkProductInquiry)
           .innerJoin(product, eq(product.id, bulkProductInquiry.productId))
           .innerJoin(producer, eq(producer.id, product.producerId))
-          .innerJoin(users, eq(users.id, producer.userId))
           .where(and(eq(bulkProductInquiry.id, id), isNull(producer.deletedAt), noQuote));
 
-  return rows.flatMap((row) => (row.email ? [{ producerId: row.producerId, email: row.email }] : []));
+  return getProducerUserEmails(rows.map((row) => row.producerId));
 }

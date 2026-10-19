@@ -6,7 +6,7 @@ vi.mock("@/lib/observability", () => ({ captureError: vi.fn(), trackEvent: vi.fn
 
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { client, producer, projectQuote, projectRequest, users } from "@/lib/db/schema";
+import { client, producer, producerMember, projectQuote, projectRequest, users } from "@/lib/db/schema";
 import { notifyOfConnection, notifyTeamOfPendingSelection } from "./large-order-connection";
 
 // Spec 0070 AC-17, część C: maile połączenia. Klient w języku zapytania dostaje dane producenta,
@@ -17,15 +17,18 @@ describe.skipIf(!process.env.DATABASE_URL)("large-order connection emails: real 
   const clientId = crypto.randomUUID();
   const producerUserId = crypto.randomUUID();
   const producerId = crypto.randomUUID();
+  const memberUserId = crypto.randomUUID();
   const requestId = crypto.randomUUID();
   const originalEnv = { ...process.env };
   const investorEmail = `lcn-investor-${requestId}@example.test`;
   const producerEmail = `lcn-producer-${producerUserId}@example.test`;
+  const memberEmail = `lcn-member-${memberUserId}@example.test`;
 
   beforeAll(async () => {
     await db.insert(users).values([
       { id: clientUserId, email: `lcn-client-${clientUserId}@example.test`, phone: "+48000000500", role: "client" },
       { id: producerUserId, email: producerEmail, phone: "+48000000501", role: "producer" },
+      { id: memberUserId, email: memberEmail, phone: "+48000000502", role: "producer" },
     ]);
     await db.insert(client).values({ id: clientId, userId: clientUserId, b2bVerificationStatus: "approved" });
     await db.insert(producer).values({
@@ -36,6 +39,10 @@ describe.skipIf(!process.env.DATABASE_URL)("large-order connection emails: real 
       countryCode: "PL",
       technology: "szkielet-drewniany",
     });
+    await db.insert(producerMember).values([
+      { producerId, userId: producerUserId },
+      { producerId, userId: memberUserId },
+    ]);
     await db.insert(projectRequest).values({
       id: requestId,
       clientId,
@@ -72,10 +79,12 @@ describe.skipIf(!process.env.DATABASE_URL)("large-order connection emails: real 
     await db.update(projectRequest).set({ selectedQuoteId: null }).where(eq(projectRequest.id, requestId));
     await db.delete(projectQuote).where(eq(projectQuote.producerId, producerId));
     await db.delete(projectRequest).where(eq(projectRequest.id, requestId));
+    await db.delete(producerMember).where(eq(producerMember.producerId, producerId));
     await db.delete(producer).where(eq(producer.id, producerId));
     await db.delete(client).where(eq(client.id, clientId));
     await db.delete(users).where(eq(users.id, clientUserId));
     await db.delete(users).where(eq(users.id, producerUserId));
+    await db.delete(users).where(eq(users.id, memberUserId));
   });
 
   it("sends the client the producer's data, the producer the client's data, and the team a copy", async () => {
@@ -83,10 +92,11 @@ describe.skipIf(!process.env.DATABASE_URL)("large-order connection emails: real 
 
     await notifyOfConnection({ kind: "request", id: requestId });
 
-    expect(sendNotificationEmailMock).toHaveBeenCalledTimes(3);
+    expect(sendNotificationEmailMock).toHaveBeenCalledTimes(4);
     const calls = sendNotificationEmailMock.mock.calls.map(([input]) => input);
     const toClient = calls.find((call) => call.emailType === "large_order_client_connected");
-    const toProducer = calls.find((call) => call.emailType === "large_order_producer_connected");
+    const producerCalls = calls.filter((call) => call.emailType === "large_order_producer_connected");
+    const toProducer = producerCalls.find((call) => call.to === producerEmail);
     const toTeam = calls.find((call) => call.emailType === "large_order_team_connected");
 
     expect(toClient.to).toBe(investorEmail);
@@ -96,7 +106,8 @@ describe.skipIf(!process.env.DATABASE_URL)("large-order connection emails: real 
     expect(toClient.text).toContain(producerEmail);
     expect(toClient.text).not.toContain("+49123456789");
 
-    expect(toProducer.to).toBe(producerEmail);
+    // Każdy użytkownik firmy producenta dostaje mail, nie tylko właściciel (spec 0057).
+    expect(producerCalls.map((call) => call.to).sort()).toEqual([memberEmail, producerEmail].sort());
     expect(toProducer.subject).toBe("Klient wybrał Twoją ofertę");
     expect(toProducer.text).toContain("Anna Investor");
     expect(toProducer.text).toContain(investorEmail);
@@ -115,6 +126,7 @@ describe.skipIf(!process.env.DATABASE_URL)("large-order connection emails: real 
 
     expect(sendNotificationEmailMock.mock.calls.map(([input]) => input.emailType).sort()).toEqual([
       "large_order_client_connected",
+      "large_order_producer_connected",
       "large_order_producer_connected",
     ]);
   });

@@ -2,8 +2,8 @@ import { render } from "@react-email/render";
 import { and, eq } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
 import { db } from "@/lib/db/client";
-import { getProducerRecipientsForLargeOrder } from "@/lib/db/large-order-recipients";
-import { bulkProductInquiry, producer, product, projectQuote, projectRequest, users } from "@/lib/db/schema";
+import { getProducerRecipientsForLargeOrder, getProducerUserEmails } from "@/lib/db/large-order-recipients";
+import { bulkProductInquiry, product, projectQuote, projectRequest } from "@/lib/db/schema";
 import { captureError } from "@/lib/observability";
 import { sendNotificationEmail } from "./send";
 import { shortReference } from "./templates/reference";
@@ -22,12 +22,11 @@ function baseUrl(): string {
 export async function notifyProducersOfClosedRequest(input: { kind: "request" | "product"; id: string }): Promise<void> {
   try {
     const parentColumn = input.kind === "request" ? projectQuote.projectRequestId : projectQuote.bulkProductInquiryId;
-    const recipients = await db
-      .selectDistinct({ producerId: producer.id, email: users.email })
+    const quoted = await db
+      .selectDistinct({ producerId: projectQuote.producerId })
       .from(projectQuote)
-      .innerJoin(producer, eq(producer.id, projectQuote.producerId))
-      .innerJoin(users, eq(users.id, producer.userId))
       .where(and(eq(parentColumn, input.id), eq(projectQuote.status, "active")));
+    const recipients = await getProducerUserEmails(quoted.map((row) => row.producerId));
     if (recipients.length === 0) return;
 
     const t = await getTranslations({ locale: "pl", namespace: "LargeOrderProducerClosedEmail" });
@@ -68,12 +67,11 @@ export async function notifyProducersOfClosedRequest(input: { kind: "request" | 
 export async function notifyProducersOfOtherSelected(input: { kind: "request" | "product"; id: string }): Promise<void> {
   try {
     const parentColumn = input.kind === "request" ? projectQuote.projectRequestId : projectQuote.bulkProductInquiryId;
-    const recipients = await db
-      .selectDistinct({ producerId: producer.id, email: users.email })
+    const quoted = await db
+      .selectDistinct({ producerId: projectQuote.producerId })
       .from(projectQuote)
-      .innerJoin(producer, eq(producer.id, projectQuote.producerId))
-      .innerJoin(users, eq(users.id, producer.userId))
       .where(and(eq(parentColumn, input.id), eq(projectQuote.status, "rejected")));
+    const recipients = await getProducerUserEmails(quoted.map((row) => row.producerId));
     if (recipients.length === 0) return;
 
     const t = await getTranslations({ locale: "pl", namespace: "LargeOrderProducerNotSelectedEmail" });
