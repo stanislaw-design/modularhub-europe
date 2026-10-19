@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ComponentProps } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ThemeProvider } from "@/components/ui";
 import { SiteHeader } from "./SiteHeader";
 
@@ -16,11 +16,12 @@ function renderHeader(props: ComponentProps<typeof SiteHeader>) {
 }
 
 const replace = vi.fn();
+const nav = { pathname: "/pl/results", search: "" };
 
 vi.mock("next/navigation", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/navigation")>()),
-  usePathname: () => "/pl/results",
-  useSearchParams: () => new URLSearchParams(),
+  usePathname: () => nav.pathname,
+  useSearchParams: () => new URLSearchParams(nav.search),
 }));
 
 vi.mock("@/lib/i18n/navigation", () => ({
@@ -35,6 +36,11 @@ async function openMenu() {
 }
 
 describe("SiteHeader (spec 0030)", () => {
+  beforeEach(() => {
+    nav.pathname = "/pl/results";
+    nav.search = "";
+  });
+
   it("gives the hamburger a fixed 44x44 touch target that never shrinks (AC-1)", () => {
     renderHeader({ locale: "pl", session: null });
 
@@ -51,28 +57,113 @@ describe("SiteHeader (spec 0030)", () => {
     expect(screen.getByRole("group", { name: "Konto" })).toBeInTheDocument();
   });
 
-  it("keeps only the live navigation links, dropping Producenci/Inspiracje/O nas (AC-3)", async () => {
+  it("groups the menu into Katalog, Zamówienia, Platforma and a muted Dla producentów for an anonymous visitor (spec 0072 AC-2 to AC-5)", async () => {
     renderHeader({ locale: "pl", session: null });
     await openMenu();
 
-    const nav = screen.getByRole("navigation", { name: "Nawigacja" });
-    expect(within(nav).queryByRole("link", { name: "Domy" })).not.toBeInTheDocument();
-    expect(within(nav).getByRole("link", { name: "Projekty" })).toHaveAttribute("href", "/pl/results");
-    expect(within(nav).getByRole("link", { name: "Jak to działa" })).toHaveAttribute(
-      "href",
-      "/pl#jak-to-dziala"
-    );
-    expect(within(nav).getByRole("link", { name: "Zweryfikowani producenci" })).toHaveAttribute(
-      "href",
-      "/pl/verified-manufacturers"
-    );
-    expect(within(nav).getByRole("link", { name: "Dołącz jako producent B2B" })).toHaveAttribute(
-      "href",
-      "/pl/producer/registration"
+    const menu = screen.getByRole("navigation", { name: "Nawigacja" });
+    const headings = within(menu).getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
+    expect(headings).toEqual(["Katalog", "Zamówienia", "Platforma", "Dla producentów"]);
+
+    const href = (name: string) => within(menu).getByRole("link", { name }).getAttribute("href");
+    expect(href("Domy modułowe")).toBe("/pl/results?family=dom");
+    expect(href("Sauny")).toBe("/pl/sauna");
+    expect(href("Outdoor TV")).toBe("/pl/results?family=outdoor-tv");
+    expect(href("Kontenery modułowe")).toBe("/pl/results?family=kontenery-modulowe");
+    expect(href("Zapytanie o duże zamówienie")).toBe("/pl/project-request");
+    expect(href("Zweryfikowani producenci")).toBe("/pl/verified-manufacturers");
+    expect(href("Jak to działa")).toBe("/pl#jak-to-dziala");
+    expect(href("Najczęstsze pytania")).toBe("/pl#faq");
+    expect(href("Kontakt")).toBe("/pl/contact");
+    expect(href("Dołącz jako producent")).toBe("/pl/producer/registration");
+    expect(within(menu).getByRole("link", { name: "Dołącz jako producent" }).className).toContain(
+      "text-brand-v5-muted"
     );
     expect(screen.queryByText("Producenci")).not.toBeInTheDocument();
-    expect(screen.queryByText("Inspiracje")).not.toBeInTheDocument();
-    expect(screen.queryByText("O nas")).not.toBeInTheDocument();
+  });
+
+  it("gives every menu link a 44px touch target (spec 0072 AC-12)", async () => {
+    renderHeader({ locale: "pl", session: null });
+    await openMenu();
+
+    const menu = screen.getByRole("navigation", { name: "Nawigacja" });
+    for (const link of within(menu).getAllByRole("link")) {
+      expect(link.className).toContain("min-h-11");
+    }
+  });
+
+  it("swaps the producer group for three panel shortcuts for a producer session (AC-6)", async () => {
+    renderHeader({ locale: "pl", session: { user: { role: "producer" } } });
+    await openMenu();
+
+    const menu = screen.getByRole("navigation", { name: "Nawigacja" });
+    expect(within(menu).queryByRole("link", { name: "Dołącz jako producent" })).not.toBeInTheDocument();
+    expect(within(menu).getByRole("heading", { name: "Panel producenta" })).toBeInTheDocument();
+    expect(within(menu).getByRole("link", { name: "Panel producenta" })).toHaveAttribute("href", "/pl/producer/panel");
+    expect(within(menu).getByRole("link", { name: "Moje produkty" })).toHaveAttribute(
+      "href",
+      "/pl/producer/panel/products"
+    );
+    expect(within(menu).getByRole("link", { name: "Zapytania" })).toHaveAttribute(
+      "href",
+      "/pl/producer/panel/inquiries"
+    );
+    expect(within(menu).queryByRole("heading", { name: "Panel klienta" })).not.toBeInTheDocument();
+  });
+
+  it("shows the client panel group for a client and lists Favorites only once (AC-7)", async () => {
+    renderHeader({ locale: "pl", session: { user: { role: "client" } } });
+    await openMenu();
+
+    const menu = screen.getByRole("navigation", { name: "Nawigacja" });
+    expect(within(menu).getByRole("heading", { name: "Panel klienta" })).toBeInTheDocument();
+    expect(within(menu).getByRole("link", { name: "Moje zapytania" })).toHaveAttribute("href", "/pl/panel/inquiries");
+    expect(within(menu).getByRole("link", { name: "Weryfikacja firmy" })).toHaveAttribute(
+      "href",
+      "/pl/panel/verification"
+    );
+    expect(screen.getAllByRole("link", { name: /Ulubione/ })).toHaveLength(1);
+    expect(within(menu).getByRole("heading", { name: "Dla producentów" })).toBeInTheDocument();
+  });
+
+  it("gives an admin neither producer nor client groups, and keeps Favorites in the Account group (AC-6, AC-7)", async () => {
+    renderHeader({ locale: "pl", session: { user: { role: "admin" } } });
+    await openMenu();
+
+    const menu = screen.getByRole("navigation", { name: "Nawigacja" });
+    const headings = within(menu).getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
+    expect(headings).toEqual(["Katalog", "Zamówienia", "Platforma"]);
+  });
+
+  it("marks the item matching the current route with aria-current, never an anchor link (AC-8)", async () => {
+    nav.pathname = "/pl/sauna";
+    nav.search = "";
+    const { unmount } = renderHeader({ locale: "pl", session: null });
+    let user = await openMenu();
+    let menu = screen.getByRole("navigation", { name: "Nawigacja" });
+    expect(within(menu).getByRole("link", { name: "Sauny" })).toHaveAttribute("aria-current", "page");
+    expect(within(menu).getByRole("link", { name: "Domy modułowe" })).not.toHaveAttribute("aria-current");
+    expect(within(menu).getByRole("link", { name: "Najczęstsze pytania" })).not.toHaveAttribute("aria-current");
+    unmount();
+
+    nav.pathname = "/pl/results";
+    nav.search = "family=outdoor-tv";
+    renderHeader({ locale: "pl", session: null });
+    user = await openMenu();
+    menu = screen.getByRole("navigation", { name: "Nawigacja" });
+    expect(within(menu).getByRole("link", { name: "Outdoor TV" })).toHaveAttribute("aria-current", "page");
+    expect(within(menu).getByRole("link", { name: "Domy modułowe" })).not.toHaveAttribute("aria-current");
+    void user;
+  });
+
+  it("treats /results without a family parameter as the houses family (AC-8)", async () => {
+    nav.pathname = "/pl/results";
+    nav.search = "";
+    renderHeader({ locale: "pl", session: null });
+    await openMenu();
+
+    const menu = screen.getByRole("navigation", { name: "Nawigacja" });
+    expect(within(menu).getByRole("link", { name: "Domy modułowe" })).toHaveAttribute("aria-current", "page");
   });
 
   it("puts the sign-in link next to the CTA pill instead of the Account group, and drops Favorites entirely, when there is no session", async () => {
@@ -141,6 +232,7 @@ describe("SiteHeader (spec 0030)", () => {
     const account = screen.getByRole("group", { name: "Konto" });
     expect(within(account).queryByText("Mój profil")).not.toBeInTheDocument();
     expect(within(account).queryByText("Zaloguj się")).not.toBeInTheDocument();
+    expect(within(account).queryByRole("link", { name: /Ulubione/ })).not.toBeInTheDocument();
   });
 
   it("replaces the 'Załóż konto' CTA with 'Panel administratora' for an admin session, and drops it from the menu's Account group", async () => {

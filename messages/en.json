@@ -4,10 +4,42 @@
   },
   "SiteHeader": {
     "nav": {
-      "projects": "Projects",
-      "howItWorks": "How it works",
-      "verifiedManufacturers": "Verified manufacturers",
-      "producerB2b": "Join as a B2B producer"
+      "groups": {
+        "catalog": "Catalogue",
+        "orders": "Orders",
+        "platform": "Platform",
+        "clientPanel": "Client panel",
+        "producers": "For producers",
+        "producerPanel": "Producer panel"
+      },
+      "catalog": {
+        "houses": "Modular houses",
+        "saunas": "Saunas",
+        "outdoorTv": "Outdoor TV",
+        "containers": "Modular containers"
+      },
+      "orders": {
+        "largeOrder": "Large order enquiry",
+        "verifiedManufacturers": "Verified manufacturers"
+      },
+      "platform": {
+        "howItWorks": "How it works",
+        "faq": "Frequently asked questions",
+        "contact": "Contact"
+      },
+      "clientPanel": {
+        "inquiries": "My enquiries",
+        "favorites": "Favourites",
+        "verification": "Company verification"
+      },
+      "producers": {
+        "join": "Join as a producer"
+      },
+      "producerPanel": {
+        "home": "Producer panel",
+        "products": "My products",
+        "inquiries": "Enquiries"
+      }
     },
     "favorites": "Favorites",
     "adminPanel": "Admin panel",
@@ -2455,6 +2487,22 @@
     "noMarketing": "We do not use these details for marketing and do not share them with anyone except the producers you yourself decide to send the request to.",
     "deletion": "You can ask us to delete your data. We handle such requests manually.",
     "contact": "Contact about your data:"
+  },
+  "ContactPage": {
+    "metaTitle": "Contact | ModularHub Europe",
+    "metaDescription": "Write to the ModularHub Europe team: questions about the offer, producer registration and large orders.",
+    "heading": "Contact",
+    "intro": "Have a question about the platform, the offer or your enquiry? Write to us and we will reply as soon as we can.",
+    "emailLabel": "Team email address",
+    "whoHeading": "Who to contact for what",
+    "clientHeading": "I am a client",
+    "clientText": "Questions about the offer, a specific project or an enquiry you sent. Write to the address above and include your enquiry number if you have one.",
+    "producerHeading": "I am a producer",
+    "producerText": "Want to add your products to the catalogue? Start with registration, and send any questions to the address above.",
+    "producerLink": "Join as a producer",
+    "largeOrderHeading": "I have a large order",
+    "largeOrderText": "Planning to order many units at once? Describe the project in a large order enquiry.",
+    "largeOrderLink": "Large order enquiry"
   },
   "ProducerPanelCapacityPage": {
     "heading": "Production capacity profile",

@@ -75,6 +75,7 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 59 | Wersje układu wnętrz: rzuty, pomieszczenia i metraż przypisane do opcji | Slice 2 | in progress |
 | 60 | Przetarg na duże zamówienia z podsumowaniem ModularHub | Slice 12 | in progress |
 | 61 | Pasek filtrów dla rodziny Outdoor TV | Slice 2 | in progress |
+| 62 | Przebudowa menu nawigacji i strona Kontakt (klient) | Slice 2 | done |
 
 ## Foundations
 
@@ -775,6 +776,18 @@ Wspólny pasek wyników (Kraj, Metraż, Sortuj) jest dla Outdoor TV bezużyteczn
   - [ ] Etap 4, import i produkcja: skrypty importu ustawiają kolumny, testy i E2E, plik `_promote_` na prod (osobny, jawny krok), satisfies AC-10 oraz weryfikacja AC-1 do AC-7
 - [x] Verify it: `/check verify pasek filtrów Outdoor TV`
 - [x] Test it: `/test pasek filtrów Outdoor TV`
+
+### 62. Przebudowa menu nawigacji i strona Kontakt (klient) · Slice 2 · done
+Wysuwane menu `SiteHeader` ma cztery płaskie linki, z czego dwa dla producentów, a oferta (sauny, outdoor TV, kontenery, zamówienia hurtowe) nie jest w nim widoczna. Ta funkcja dzieli menu na grupy (Katalog, Zamówienia, Platforma, Dla producentów), pokazuje skróty paneli zalogowanemu klientowi i producentowi, wyróżnia aktywną pozycję i dodaje prostą stronę Kontakt z e mailem zespołu, bez formularza. Układ paska nagłówka na komputerze zostaje bez zmian. Zmienia AC-3 specu 0030. Powstało z `/architect`, from spec 0072.
+**Done when:** panel menu pokazuje grupy z linkami zależnymi od roli (anonimowy, klient, producent, admin), aktywna pozycja ma `aria-current`, `/pl/contact` działa w pl, en, de, nl z adresem z `SUPPORT_REPLY_TO_EMAIL`, sekcja FAQ ma kotwicę `#faq`, panel mieści się przy 320px bez przewijania poziomego, a `npm run build` przechodzi.
+- [x] Zaprojektuj (spec): [0072](../specs/0072-menu-nawigacji-i-strona-kontakt/index.md)
+- [x] Build it: `/develop przebudowa menu nawigacji i strona Kontakt` (code in `components/klient/SiteHeaderMenuNav.tsx`, `app/[locale]/(customer)/contact/`)
+  - [x] Etap 1, strona Kontakt i kotwica FAQ: trasa `contact`, metadane, tłumaczenia, `id="faq"`, satisfies AC-4, AC-9, AC-10, AC-11
+  - [x] Etap 2, dane i render menu: grupy zależne od roli, nowe klucze, ikony Katalogu, obszar dotyku, satisfies AC-2, AC-3, AC-4, AC-5, AC-6, AC-7, AC-11, AC-12
+  - [x] Etap 3, aktywna pozycja i odizolowany odczyt adresu, satisfies AC-8, AC-13
+  - [x] Etap 4, testy i weryfikacja: `SiteHeader.test.tsx`, test Kontaktu, build, 320px w czterech językach, pasek na komputerze bez zmian, satisfies AC-1, AC-12, AC-13
+- [x] Verify it: `/check verify przebudowa menu nawigacji i strona Kontakt`
+- [x] Test it: `/test przebudowa menu nawigacji i strona Kontakt`
 
 ## Deferred
 Poza zakresem tej epiki, świadomie odłożone.

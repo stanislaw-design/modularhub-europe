@@ -15,13 +15,15 @@ export async function Faq() {
   ];
 
   return (
-    <section className="py-brand-5">
-      <div className="flex flex-col gap-brand-4">
-        <div className="flex flex-col gap-1">
+    <section id="faq" className="scroll-mt-brand-6 py-brand-6">
+      <div className="grid grid-cols-1 gap-brand-4 lg:grid-cols-12 lg:gap-brand-5">
+        <div className="flex flex-col gap-2 lg:sticky lg:top-brand-6 lg:col-span-4 lg:self-start">
           <Heading level="h2">{t("heading")}</Heading>
-          <Text tone="muted">{t("subheading")}</Text>
+          <Text tone="muted" className="max-w-[36ch]">
+            {t("subheading")}
+          </Text>
         </div>
-        <Accordion items={faqItems} className="max-w-[75ch]" />
+        <Accordion items={faqItems} variant="ruled" className="lg:col-span-8" />
       </div>
     </section>
   );

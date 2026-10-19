@@ -4,10 +4,42 @@
   },
   "SiteHeader": {
     "nav": {
-      "projects": "Projekty",
-      "howItWorks": "Jak to działa",
-      "verifiedManufacturers": "Zweryfikowani producenci",
-      "producerB2b": "Dołącz jako producent B2B"
+      "groups": {
+        "catalog": "Katalog",
+        "orders": "Zamówienia",
+        "platform": "Platforma",
+        "clientPanel": "Panel klienta",
+        "producers": "Dla producentów",
+        "producerPanel": "Panel producenta"
+      },
+      "catalog": {
+        "houses": "Domy modułowe",
+        "saunas": "Sauny",
+        "outdoorTv": "Outdoor TV",
+        "containers": "Kontenery modułowe"
+      },
+      "orders": {
+        "largeOrder": "Zapytanie o duże zamówienie",
+        "verifiedManufacturers": "Zweryfikowani producenci"
+      },
+      "platform": {
+        "howItWorks": "Jak to działa",
+        "faq": "Najczęstsze pytania",
+        "contact": "Kontakt"
+      },
+      "clientPanel": {
+        "inquiries": "Moje zapytania",
+        "favorites": "Ulubione",
+        "verification": "Weryfikacja firmy"
+      },
+      "producers": {
+        "join": "Dołącz jako producent"
+      },
+      "producerPanel": {
+        "home": "Panel producenta",
+        "products": "Moje produkty",
+        "inquiries": "Zapytania"
+      }
     },
     "favorites": "Ulubione",
     "adminPanel": "Panel administratora",
@@ -2455,6 +2487,22 @@
     "noMarketing": "Nie używamy tych danych do marketingu i nie przekazujemy ich nikomu poza producentami, do których sam zdecydujesz się skierować zapytanie.",
     "deletion": "Możesz poprosić o usunięcie swoich danych. Prośby obsługujemy ręcznie.",
     "contact": "Kontakt w sprawie danych:"
+  },
+  "ContactPage": {
+    "metaTitle": "Kontakt | ModularHub Europe",
+    "metaDescription": "Napisz do zespołu ModularHub Europe: pytania o ofertę, rejestracja producenta i duże zamówienia.",
+    "heading": "Kontakt",
+    "intro": "Masz pytanie o platformę, ofertę albo zapytanie? Napisz do nas, odpowiemy najszybciej, jak to możliwe.",
+    "emailLabel": "Adres e mail zespołu",
+    "whoHeading": "Kiedy do kogo",
+    "clientHeading": "Jestem klientem",
+    "clientText": "Pytania o ofertę, o konkretny projekt albo o wysłane zapytanie. Napisz na adres powyżej i podaj numer zapytania, jeśli go masz.",
+    "producerHeading": "Jestem producentem",
+    "producerText": "Chcesz dodać swoje produkty do katalogu? Zacznij od rejestracji, a pytania wyślij na adres powyżej.",
+    "producerLink": "Dołącz jako producent",
+    "largeOrderHeading": "Mam duże zamówienie",
+    "largeOrderText": "Planujesz zamówić wiele jednostek naraz? Opisz projekt w zapytaniu o duże zamówienie.",
+    "largeOrderLink": "Zapytanie o duże zamówienie"
   },
   "ProducerPanelCapacityPage": {
     "heading": "Profil zdolności produkcyjnej",

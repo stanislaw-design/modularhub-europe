@@ -36,7 +36,7 @@ export async function FeaturedProjectShowcase({ locale }: { locale: string }) {
   return (
     <section className="py-brand-7">
       <ScrollReveal>
-        <div className="flex flex-col overflow-hidden rounded-v5-card bg-brand-v5-night text-brand-v5-paper">
+        <div className="flex flex-col overflow-hidden rounded-v5-panel bg-brand-v5-night text-brand-v5-paper">
           <div className="grid grid-cols-1 lg:grid-cols-2">
             <FeaturedProjectGallery
               images={GALLERY.map(({ file, key }) => ({ src: `/images/success/${file}`, alt: t(`gallery.${key}`) }))}

@@ -4,10 +4,42 @@
   },
   "SiteHeader": {
     "nav": {
-      "projects": "Projekte",
-      "howItWorks": "So funktioniert es",
-      "verifiedManufacturers": "Verifizierte Hersteller",
-      "producerB2b": "Als B2B-Hersteller beitreten"
+      "groups": {
+        "catalog": "Katalog",
+        "orders": "Bestellungen",
+        "platform": "Plattform",
+        "clientPanel": "Kundenbereich",
+        "producers": "Für Hersteller",
+        "producerPanel": "Herstellerbereich"
+      },
+      "catalog": {
+        "houses": "Modulhäuser",
+        "saunas": "Saunen",
+        "outdoorTv": "Outdoor TV",
+        "containers": "Modulare Container"
+      },
+      "orders": {
+        "largeOrder": "Anfrage für Großbestellung",
+        "verifiedManufacturers": "Geprüfte Hersteller"
+      },
+      "platform": {
+        "howItWorks": "So funktioniert es",
+        "faq": "Häufige Fragen",
+        "contact": "Kontakt"
+      },
+      "clientPanel": {
+        "inquiries": "Meine Anfragen",
+        "favorites": "Favoriten",
+        "verification": "Firmenprüfung"
+      },
+      "producers": {
+        "join": "Als Hersteller beitreten"
+      },
+      "producerPanel": {
+        "home": "Herstellerbereich",
+        "products": "Meine Produkte",
+        "inquiries": "Anfragen"
+      }
     },
     "favorites": "Favoriten",
     "adminPanel": "Administratorbereich",
@@ -2455,6 +2487,22 @@
     "noMarketing": "Wir nutzen diese Daten nicht für Werbung und geben sie an niemanden weiter, außer an die Hersteller, an die Sie Ihre Anfrage selbst weiterleiten lassen.",
     "deletion": "Sie können die Löschung Ihrer Daten verlangen. Solche Anfragen bearbeiten wir manuell.",
     "contact": "Kontakt zu Ihren Daten:"
+  },
+  "ContactPage": {
+    "metaTitle": "Kontakt | ModularHub Europe",
+    "metaDescription": "Schreiben Sie dem Team von ModularHub Europe: Fragen zum Angebot, Herstellerregistrierung und Großbestellungen.",
+    "heading": "Kontakt",
+    "intro": "Haben Sie eine Frage zur Plattform, zum Angebot oder zu Ihrer Anfrage? Schreiben Sie uns, wir antworten so schnell wie möglich.",
+    "emailLabel": "E Mail Adresse des Teams",
+    "whoHeading": "Wer ist wofür zuständig",
+    "clientHeading": "Ich bin Kunde",
+    "clientText": "Fragen zum Angebot, zu einem bestimmten Projekt oder zu einer gesendeten Anfrage. Schreiben Sie an die Adresse oben und nennen Sie Ihre Anfragenummer, falls vorhanden.",
+    "producerHeading": "Ich bin Hersteller",
+    "producerText": "Möchten Sie Ihre Produkte in den Katalog aufnehmen? Beginnen Sie mit der Registrierung und senden Sie Fragen an die Adresse oben.",
+    "producerLink": "Als Hersteller beitreten",
+    "largeOrderHeading": "Ich habe eine Großbestellung",
+    "largeOrderText": "Möchten Sie viele Einheiten auf einmal bestellen? Beschreiben Sie das Projekt in einer Anfrage für Großbestellung.",
+    "largeOrderLink": "Anfrage für Großbestellung"
   },
   "ProducerPanelCapacityPage": {
     "heading": "Produktionskapazitätsprofil",

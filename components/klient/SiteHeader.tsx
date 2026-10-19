@@ -6,8 +6,9 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { SiteHeaderMenuNav } from "@/components/klient/SiteHeaderMenuNav";
 import { BrandLogo } from "@/components/brand/BrandLogo";
-import { Button, Container, LanguageSwitcher, ThemeToggle } from "@/components/ui";
+import { Button, LanguageSwitcher, ThemeToggle } from "@/components/ui";
 
 interface SiteHeaderSession {
   user: {
@@ -22,11 +23,6 @@ interface SiteHeaderProps {
   session: SiteHeaderSession | null;
 }
 
-interface NavItem {
-  label: string;
-  href: string;
-}
-
 // How far (px) the visitor scrolls past the top of the home hero before its
 // transparent overlay header (see isHomeRoute below) switches to the same
 // solid header every other customer route always uses.
@@ -35,22 +31,6 @@ const HOME_HERO_SCROLL_THRESHOLD = 96;
 export function SiteHeader({ locale, session }: SiteHeaderProps) {
   const t = useTranslations("SiteHeader");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  // "Domy" was dropped: it only mirrored the logo (both pointed at the home
-  // page), so it added a redundant entry rather than a real destination.
-  // "Projekty" and "Jak to działa" (an anchor into the closing CTA's
-  // explainer, spec 0014 AC-1, AC-9) are the other two real destinations,
-  // each using an absolute path rather than a bare "#…" fragment, because
-  // SiteHeader renders on every customer route, not just the home page it's
-  // targeting. "Producenci"/"Inspiracje"/"O nas" were dropped (spec 0030
-  // AC-3): no page exists behind them yet. The last two mirror
-  // BulkOrdersShowcase's two B2B tiles (spec 0038) so the same destinations
-  // are reachable from every route, not just the home page section.
-  const navItems: NavItem[] = [
-    { label: t("nav.projects"), href: `/${locale}/results` },
-    { label: t("nav.howItWorks"), href: `/${locale}#jak-to-dziala` },
-    { label: t("nav.verifiedManufacturers"), href: `/${locale}/verified-manufacturers` },
-    { label: t("nav.producerB2b"), href: `/${locale}/producer/registration` },
-  ];
   const pathname = usePathname();
   // Only the home route renders Hero's full-bleed photo directly under the
   // header (see Hero.tsx) — every other customer route keeps the always-solid
@@ -92,7 +72,7 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
           : "border-brand-v5-line bg-brand-v5-surface"
       }`}
     >
-      <Container className="flex items-center justify-between gap-brand-1 py-brand-2 sm:gap-brand-4">
+      <div className="flex w-full items-center justify-between gap-brand-1 px-4 py-brand-2 sm:gap-brand-4 sm:px-6 lg:px-10">
         <Link
           href={`/${locale}`}
           aria-label="ModularHub Europe"
@@ -160,7 +140,7 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
             <Menu className="size-6" aria-hidden="true" />
           </button>
         </div>
-      </Container>
+      </div>
 
       <Dialog open={isMenuOpen} onClose={setIsMenuOpen} className="relative z-50">
         <DialogBackdrop
@@ -221,22 +201,14 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
               )}
             </div>
 
-            <nav aria-label={t("mainNav")}>
-              <h2 className="mb-brand-2 text-body font-semibold text-brand-v5-muted">{t("mainNav")}</h2>
-              <ul className="flex flex-col gap-brand-3">
-                {navItems.map((item) => (
-                  <li key={item.label}>
-                    <Link
-                      href={item.href}
-                      onClick={() => setIsMenuOpen(false)}
-                      className="focus-ring block rounded-data text-body font-medium text-brand-v5-ink hover:text-brand-v5-amber-strong"
-                    >
-                      {item.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
+            {/* Grouped navigation (spec 0072). A separate client component so
+                `useSearchParams` (active item for /results?family=…) only runs
+                once the panel is open and never touches prerendering. */}
+            <SiteHeaderMenuNav
+              locale={locale}
+              role={session?.user.role ?? null}
+              onNavigate={() => setIsMenuOpen(false)}
+            />
 
             {/* Account actions, dropped into the slide out menu (spec 0030
                 AC-4/AC-5) so they're reachable below `sm`, where the header
@@ -269,12 +241,14 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
                     twin above), so it's dropped here too for a signed-out
                     visitor rather than linking to a page that just bounces
                     them to login, and for a producer session, which has no
-                    favorites of its own either. No client/admin link here
+                    favorites of its own either. A client gets it in the
+                    "Panel klienta" group of the navigation instead (spec 0072
+                    AC-7), so it only stays here for an admin. No client/admin link here
                     either: the CTA button above already becomes "Mój
                     profil"/"Panel administratora" for those sessions, so
                     repeating it here would always be a duplicate, not just on
                     desktop. */}
-                {session && session.user.role !== "producer" && (
+                {session?.user.role === "admin" && (
                   <li>
                     <Link
                       href={`/${locale}/panel/favorites`}

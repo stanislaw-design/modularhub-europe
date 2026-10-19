@@ -4,10 +4,42 @@
   },
   "SiteHeader": {
     "nav": {
-      "projects": "Projecten",
-      "howItWorks": "Hoe het werkt",
-      "verifiedManufacturers": "Geverifieerde producenten",
-      "producerB2b": "Word B2B producent"
+      "groups": {
+        "catalog": "Catalogus",
+        "orders": "Bestellingen",
+        "platform": "Platform",
+        "clientPanel": "Klantpaneel",
+        "producers": "Voor producenten",
+        "producerPanel": "Producentenpaneel"
+      },
+      "catalog": {
+        "houses": "Modulaire huizen",
+        "saunas": "Sauna's",
+        "outdoorTv": "Outdoor TV",
+        "containers": "Modulaire containers"
+      },
+      "orders": {
+        "largeOrder": "Aanvraag grote bestelling",
+        "verifiedManufacturers": "Geverifieerde fabrikanten"
+      },
+      "platform": {
+        "howItWorks": "Hoe het werkt",
+        "faq": "Veelgestelde vragen",
+        "contact": "Contact"
+      },
+      "clientPanel": {
+        "inquiries": "Mijn aanvragen",
+        "favorites": "Favorieten",
+        "verification": "Bedrijfsverificatie"
+      },
+      "producers": {
+        "join": "Word producent"
+      },
+      "producerPanel": {
+        "home": "Producentenpaneel",
+        "products": "Mijn producten",
+        "inquiries": "Aanvragen"
+      }
     },
     "favorites": "Favorieten",
     "adminPanel": "Beheerderspaneel",
@@ -2455,6 +2487,22 @@
     "noMarketing": "Wij gebruiken deze gegevens niet voor marketing en delen ze met niemand, behalve met de producenten naar wie u de aanvraag zelf laat doorsturen.",
     "deletion": "U kunt vragen om uw gegevens te verwijderen. Dergelijke verzoeken behandelen we handmatig.",
     "contact": "Contact over uw gegevens:"
+  },
+  "ContactPage": {
+    "metaTitle": "Contact | ModularHub Europe",
+    "metaDescription": "Schrijf naar het team van ModularHub Europe: vragen over het aanbod, producentenregistratie en grote bestellingen.",
+    "heading": "Contact",
+    "intro": "Heeft u een vraag over het platform, het aanbod of uw aanvraag? Schrijf ons, we antwoorden zo snel mogelijk.",
+    "emailLabel": "E mailadres van het team",
+    "whoHeading": "Wie voor wat",
+    "clientHeading": "Ik ben klant",
+    "clientText": "Vragen over het aanbod, een specifiek project of een verzonden aanvraag. Schrijf naar het adres hierboven en vermeld uw aanvraagnummer als u dat heeft.",
+    "producerHeading": "Ik ben producent",
+    "producerText": "Wilt u uw producten aan de catalogus toevoegen? Begin met de registratie en stuur vragen naar het adres hierboven.",
+    "producerLink": "Word producent",
+    "largeOrderHeading": "Ik heb een grote bestelling",
+    "largeOrderText": "Wilt u veel eenheden tegelijk bestellen? Beschrijf het project in een aanvraag voor een grote bestelling.",
+    "largeOrderLink": "Aanvraag grote bestelling"
   },
   "ProducerPanelCapacityPage": {
     "heading": "Productiecapaciteitsprofiel",
