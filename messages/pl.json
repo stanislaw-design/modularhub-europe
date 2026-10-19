@@ -2587,6 +2587,16 @@
     "loginHint": "Aby zobaczyć zapytanie i śledzić oferty, zaloguj się adresem {email}. Wyślemy Ci jednorazowy link, hasło nie jest potrzebne.",
     "cta": "Zaloguj się i zobacz zapytanie"
   },
+  "LargeOrderClientReceivedEmail": {
+    "subject": "Dostaliśmy Twoje zapytanie",
+    "greeting": "Dzień dobry {name},",
+    "intro": "Dziękujemy, Twoje zapytanie o duże zamówienie dotarło do ModularHub. Producenci dopasowani do projektu złożą oferty w jednym formacie, a my przygotujemy dla Ciebie porównanie.",
+    "countryLabel": "Kraj",
+    "unitsLabel": "Liczba domów",
+    "deadlineLabel": "Termin składania ofert",
+    "loginHint": "Aby śledzić zapytanie i oferty, zaloguj się adresem {email}. Wyślemy Ci jednorazowy link, hasło nie jest potrzebne.",
+    "cta": "Zaloguj się i zobacz zapytanie"
+  },
   "LargeOrderProducerClosedEmail": {
     "subject": "Zapytanie zostało zamknięte",
     "body": "Zapytanie, na które złożyłeś ofertę, zostało zamknięte. Nie musisz nic robić. Nowe zapytania znajdziesz na tablicy.",

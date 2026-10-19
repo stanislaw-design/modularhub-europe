@@ -2587,6 +2587,16 @@
     "loginHint": "Om de aanvraag te bekijken en de offertes te volgen, logt u in met {email}. U ontvangt een eenmalige link, een wachtwoord is niet nodig.",
     "cta": "Inloggen en aanvraag bekijken"
   },
+  "LargeOrderClientReceivedEmail": {
+    "subject": "We hebben uw aanvraag ontvangen",
+    "greeting": "Goedendag {name},",
+    "intro": "Hartelijk dank, uw aanvraag voor een grote bestelling is bij ModularHub binnengekomen. Fabrikanten die bij uw project passen, dienen hun offertes in één gemeenschappelijk formaat in, en wij stellen een vergelijking voor u op.",
+    "countryLabel": "Land",
+    "unitsLabel": "Aantal huizen",
+    "deadlineLabel": "Uiterste datum voor offertes",
+    "loginHint": "Om de aanvraag en de offertes te volgen, logt u in met {email}. U ontvangt een eenmalige link, een wachtwoord is niet nodig.",
+    "cta": "Inloggen en aanvraag bekijken"
+  },
   "LargeOrderProducerClosedEmail": {
     "subject": "De aanvraag is gesloten",
     "body": "De aanvraag waarvoor u een offerte heeft ingediend, is gesloten. U hoeft niets te doen. Nieuwe aanvragen vindt u op het prikbord.",

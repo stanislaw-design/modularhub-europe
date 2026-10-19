@@ -15,7 +15,7 @@ import {
   PROJECT_TYPES,
 } from "@/lib/project-request-specs";
 import { COMPLETION_STANDARDS } from "@/lib/producer-capacity-profile-specs";
-import { notifyClientOfRequestOnBehalf } from "@/lib/notifications/large-order-client";
+import { notifyClientOfRequestOnBehalf, notifyClientOfRequestReceived } from "@/lib/notifications/large-order-client";
 import { closeLargeOrder } from "@/lib/large-order-close";
 import { notifyProducersOfNewLargeOrder } from "@/lib/notifications/large-order-producer";
 import { notifyTeamOfClientCancelledRequest, notifyTeamOfNewLargeOrder } from "@/lib/notifications/large-order-team";
@@ -185,6 +185,16 @@ export async function submitProjectRequest(input: SubmitProjectRequestInput): Pr
       matchedProducerCount: await countMatchedProducers(inserted.id),
     });
     await notifyProducersOfNewLargeOrder({ kind: "request", id: inserted.id });
+    await notifyClientOfRequestReceived({
+      kind: "request",
+      id: inserted.id,
+      email: contactEmail,
+      name: data.contactName,
+      locale: data.locale,
+      countryCode: data.countryCode,
+      unitCount: data.unitCount,
+      deadlineAt: inserted.deadlineAt,
+    });
     return { ok: true, id: inserted.id, uploadToken: issueUploadToken("request", inserted.id) };
   } catch (error) {
     if (isBulkRequestEmailLimitError(error)) {
@@ -288,6 +298,16 @@ export async function submitBulkProductInquiry(input: SubmitBulkProductInquiryIn
       contactLocale: data.locale,
     });
     await notifyProducersOfNewLargeOrder({ kind: "product", id: inserted.id });
+    await notifyClientOfRequestReceived({
+      kind: "product",
+      id: inserted.id,
+      email: contactEmail,
+      name: data.contactName,
+      locale: data.locale,
+      countryCode: data.deliveryCountryCode,
+      unitCount: data.unitCount,
+      deadlineAt: inserted.deadlineAt,
+    });
     return { ok: true, id: inserted.id, uploadToken: issueUploadToken("product", inserted.id) };
   } catch (error) {
     if (isBulkRequestEmailLimitError(error)) {

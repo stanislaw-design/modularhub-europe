@@ -67,6 +67,47 @@ export async function notifyClientOfRequestOnBehalf(input: RequestOnBehalfForCli
   }
 }
 
+// Potwierdzenie dla klienta, który sam złożył zapytanie (formularz publiczny albo modal
+// produktu). Wcześniej mail dostawał tylko klient, za którego zapytanie złożył doradca.
+// Ta sama treść co przy zapytaniu w imieniu klienta, bez zdania o doradcy. Best effort.
+export async function notifyClientOfRequestReceived(input: RequestOnBehalfForClient): Promise<void> {
+  try {
+    const t = await getTranslations({ locale: input.locale, namespace: "LargeOrderClientReceivedEmail" });
+    const deadline = new Intl.DateTimeFormat(DATE_LOCALES[input.locale] ?? "pl-PL", { dateStyle: "long" }).format(
+      input.deadlineAt,
+    );
+    const callbackUrl = `/${input.locale}/panel/quotes`;
+    const subject = t("subject");
+    const content: TransactionalEmailProps = {
+      preview: subject,
+      heading: subject,
+      body: [
+        t("greeting", { name: input.name }),
+        t("intro"),
+        `${t("countryLabel")}: ${input.countryCode}`,
+        `${t("unitsLabel")}: ${input.unitCount}`,
+        `${t("deadlineLabel")}: ${deadline}`,
+        t("loginHint", { email: input.email }),
+      ].join("\n"),
+      ctaLabel: t("cta"),
+      ctaHref: `${baseUrl()}/${input.locale}/login?callbackUrl=${encodeURIComponent(callbackUrl)}`,
+      reference: shortReference(input.id),
+    };
+
+    await sendNotificationEmail({
+      to: input.email,
+      subject,
+      html: await render(TransactionalEmail(content)),
+      text: renderTransactionalEmailText(content),
+      emailType: "large_order_client_request_received",
+      entityId: input.id,
+      distinctId: input.id,
+    });
+  } catch (error) {
+    captureError(error, { path: "notifications:notifyClientOfRequestReceived" });
+  }
+}
+
 export interface PublishedSummaryForClient {
   kind: "request" | "product";
   id: string;

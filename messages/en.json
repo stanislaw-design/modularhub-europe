@@ -2587,6 +2587,16 @@
     "loginHint": "To see the request and follow the offers, log in with {email}. We will send you a one time link, no password is needed.",
     "cta": "Log in and view the request"
   },
+  "LargeOrderClientReceivedEmail": {
+    "subject": "We have received your request",
+    "greeting": "Hello {name},",
+    "intro": "Thank you, your large order request has reached ModularHub. Manufacturers that match your project will submit offers in one common format, and we will prepare a comparison for you.",
+    "countryLabel": "Country",
+    "unitsLabel": "Number of houses",
+    "deadlineLabel": "Offer deadline",
+    "loginHint": "To follow the request and the offers, log in with {email}. We will send you a one time link, no password is needed.",
+    "cta": "Log in and view the request"
+  },
   "LargeOrderProducerClosedEmail": {
     "subject": "The request has been closed",
     "body": "The request you submitted an offer for has been closed. You do not need to do anything. You can find new requests on the board.",

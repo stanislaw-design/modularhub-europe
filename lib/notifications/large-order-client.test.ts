@@ -15,7 +15,7 @@ vi.mock("next-intl/server", () => ({
   },
 }));
 
-import { notifyClientOfPublishedSummary, notifyClientOfRequestOnBehalf } from "./large-order-client";
+import { notifyClientOfPublishedSummary, notifyClientOfRequestOnBehalf, notifyClientOfRequestReceived } from "./large-order-client";
 
 const input = {
   kind: "request" as const,
@@ -96,6 +96,38 @@ describe("notifyClientOfPublishedSummary", () => {
     sendNotificationEmailMock.mockRejectedValueOnce(new Error("provider down"));
 
     await expect(notifyClientOfPublishedSummary(summary)).resolves.toBeUndefined();
+    expect(captureErrorMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+// Klient, który sam złożył zapytanie, dostaje potwierdzenie w języku zapytania.
+describe("notifyClientOfRequestReceived", () => {
+  afterEach(() => {
+    sendNotificationEmailMock.mockClear();
+    captureErrorMock.mockClear();
+    delete process.env.AUTH_URL;
+  });
+
+  it("confirms the request in the client language with a login link back to the quotes panel", async () => {
+    process.env.AUTH_URL = "https://hub.example.test/";
+
+    await notifyClientOfRequestReceived(input);
+
+    expect(sendNotificationEmailMock).toHaveBeenCalledTimes(1);
+    const call = sendNotificationEmailMock.mock.calls[0][0];
+    expect(call).toMatchObject({ to: "klient@example.test", emailType: "large_order_client_request_received" });
+    expect(call.subject).toBe("Wir haben Ihre Anfrage erhalten");
+    expect(call.text).toContain("Hans Muster");
+    expect(call.text).toContain("12");
+    expect(call.text).toContain(
+      `https://hub.example.test/de/login?callbackUrl=${encodeURIComponent("/de/panel/quotes")}`,
+    );
+  });
+
+  it("never throws when sending fails, the error goes to Sentry", async () => {
+    sendNotificationEmailMock.mockRejectedValueOnce(new Error("provider down"));
+
+    await expect(notifyClientOfRequestReceived(input)).resolves.toBeUndefined();
     expect(captureErrorMock).toHaveBeenCalledTimes(1);
   });
 });

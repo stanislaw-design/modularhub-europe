@@ -24,6 +24,7 @@ const LARGE_ORDER_NAMESPACES = [
   "QuoteOutcomeControl",
   // AC-20: mail do klienta o zapytaniu złożonym przez doradcę.
   "LargeOrderClientOnBehalfEmail",
+  "LargeOrderClientReceivedEmail",
   // AC-11, AC-12: nowy format oferty i komunikat o zamkniętym przyjmowaniu ofert.
   "QuoteForm",
   // AC-15: tabela porównawcza ofert na liście zapytań klienta.
