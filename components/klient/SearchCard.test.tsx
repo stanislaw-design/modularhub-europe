@@ -60,6 +60,35 @@ describe("SearchCard", () => {
     expect(push).toHaveBeenCalledWith("/pl/results?country=PL");
   });
 
+  // spec 0073 AC-2: Budżet naprawdę filtruje, zakresy zgodne z PRICE_THRESHOLDS.
+  it("adds priceMin and priceMax to /results for a chosen budget range (spec 0073 AC-2)", async () => {
+    const user = userEvent.setup();
+    push.mockClear();
+    render(<SearchCard locale="pl" countries={countries} />);
+
+    await user.click(screen.getByRole("button", { name: "Budżet" }));
+    await user.click(screen.getByRole("option", { name: "50K–100K €" }));
+    await user.click(screen.getByRole("button", { name: /szukaj/i }));
+
+    expect(push).toHaveBeenCalledWith("/pl/results?country=PL&priceMin=50000&priceMax=100000");
+  });
+
+  it("adds only priceMin for the open ended range and nothing for 'any' (spec 0073 AC-2)", async () => {
+    const user = userEvent.setup();
+    push.mockClear();
+    render(<SearchCard locale="pl" countries={countries} />);
+
+    await user.click(screen.getByRole("button", { name: "Budżet" }));
+    await user.click(screen.getByRole("option", { name: "powyżej 250K €" }));
+    await user.click(screen.getByRole("button", { name: /szukaj/i }));
+    expect(push).toHaveBeenLastCalledWith("/pl/results?country=PL&priceMin=250000");
+
+    await user.click(screen.getByRole("button", { name: "Budżet" }));
+    await user.click(screen.getByRole("option", { name: "Dowolny budżet" }));
+    await user.click(screen.getByRole("button", { name: /szukaj/i }));
+    expect(push).toHaveBeenLastCalledWith("/pl/results?country=PL");
+  });
+
   it("renders exactly two family tabs, Domy and Więcej niż dom, not the old three (spec 0035 AC-1)", () => {
     render(<SearchCard locale="pl" countries={countries} />);
 

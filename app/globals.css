@@ -528,3 +528,29 @@ body {
   --chip-lime: oklch(0.74 0.14 125);
   --chip-sand: oklch(0.74 0.07 80);
 }
+
+/* Poziomy pas kart (ProducerShowcase): cienki, zaokrąglony suwak w kolorach
+   marki zamiast systemowego, który na Windowsie jest szary i gruby. Dotyczy
+   tylko tego elementu; globalnie ukryty jest wyłącznie pasek okna (html). */
+.scrollbar-brand {
+  scrollbar-width: thin;
+  scrollbar-color: var(--brand-v5-ink) var(--brand-v5-line);
+}
+
+.scrollbar-brand::-webkit-scrollbar {
+  height: 6px;
+}
+
+.scrollbar-brand::-webkit-scrollbar-track {
+  background: var(--brand-v5-line);
+  border-radius: 9999px;
+}
+
+.scrollbar-brand::-webkit-scrollbar-thumb {
+  background: var(--brand-v5-ink);
+  border-radius: 9999px;
+}
+
+.scrollbar-brand::-webkit-scrollbar-thumb:hover {
+  background: var(--brand-v5-muted);
+}

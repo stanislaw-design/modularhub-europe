@@ -149,11 +149,32 @@
     }
   },
   "PopularHomeCard": {
-    "summary": "{area} · {rooms} kamers",
-    "summaryNoRooms": "{area}",
     "areaUnknown": "oppervlakte nog te bepalen",
     "priceOnRequest": "Prijs op aanvraag",
-    "priceFrom": "vanaf €{price}"
+    "priceFrom": "vanaf {price}",
+    "bedrooms": {
+      "one": "{count} slaapkamer",
+      "other": "{count} slaapkamers"
+    },
+    "bathrooms": {
+      "one": "{count} badkamer",
+      "other": "{count} badkamers"
+    },
+    "storeys": {
+      "one": "{count} bouwlaag",
+      "other": "{count} bouwlagen"
+    },
+    "rooms": {
+      "one": "{count} kamer",
+      "other": "{count} kamers"
+    },
+    "pricePerM2": "ca. {price} / m²",
+    "viewProject": "Bekijk project",
+    "completionStandard": {
+      "surowy-zamkniety": "Casco",
+      "deweloperski": "Ontwikkelaarsstandaard",
+      "pod-klucz": "Sleutelklaar"
+    }
   },
   "ProducerCard": {
     "photoAlt": "Een project van {name}",
@@ -1453,8 +1474,9 @@
     "budgetAny": "Elk budget",
     "budgetUpTo50k": "tot €50K",
     "budget50to100k": "€50K–100K",
-    "budget100to200k": "€100K–200K",
-    "budgetOver200k": "boven €200K",
+    "budget100to150k": "€100K–150K",
+    "budget150to250k": "€150K–250K",
+    "budgetOver250k": "boven €250K",
     "categoryHome": "Woningen",
     "categoryMore": "Meer dan een woning",
     "categoryAriaLabel": "Productcategorie",
@@ -1512,7 +1534,11 @@
     "stage4Title": "Aanbiedingen aanvragen",
     "stage4Description": "Stuur in één keer een aanvraag naar de gekozen producenten.",
     "stage5Title": "Woning ontvangen",
-    "stage5Description": "Volg productie, transport en montage tot aan de sleuteloverdracht."
+    "stage5Description": "Volg productie, transport en montage tot aan de sleuteloverdracht.",
+    "actorYou": "U doet",
+    "actorUs": "Wij doen",
+    "actorProducer": "Producent doet",
+    "cta": "Begin met zoeken"
   },
   "CategoryShowcase": {
     "headingUnderline": "Meer",
@@ -1695,7 +1721,21 @@
     "checklistPermit": "Lokale vergunning",
     "statusOk": "Voldaan",
     "statusWarning": "Vereist aandacht",
-    "checkHouse": "Woning controleren"
+    "checkHouse": "Woning controleren",
+    "exampleBadge": "Illustratief voorbeeld",
+    "coverageLabel": "Dekking",
+    "coverage": "Polen · Duitsland · Nederland",
+    "detailConstruction": "Draagkracht en constructieklasse",
+    "detailInsulation": "Thermische prestaties van de schil",
+    "detailVentilation": "Luchtdichtheid en luchtverversing",
+    "detailDocumentation": "Volledige documenten voor de overheid",
+    "detailPermit": "Te bevestigen door de lokale overheid",
+    "step1Title": "U kiest het bouwland",
+    "step1Text": "De regels hangen af van de locatie, niet van de producent.",
+    "step2Title": "Wij toetsen het huis aan de regels",
+    "step2Text": "Constructie, isolatie, ventilatie en documenten.",
+    "step3Title": "U krijgt een resultaat met lijst van tekorten",
+    "step3Text": "U ziet wat in orde is en wat aandacht vraagt."
   },
   "CompareHomesTeaser": {
     "heading": "Vergelijk woningen naast elkaar",
@@ -1705,16 +1745,49 @@
     "featureColumnSr": "Kenmerk",
     "priceFromRow": "Prijs vanaf",
     "floorAreaRow": "Oppervlakte",
-    "roomsRow": "Kamers"
+    "roomsRow": "Kamers",
+    "pricePerM2Row": "Prijs per m²",
+    "bedroomsRow": "Slaapkamers",
+    "warrantyRow": "Garantie op de constructie",
+    "perSquareMeter": "{price} / m²",
+    "warrantyYears": "{count, plural, one {# jaar} other {# jaar}}",
+    "bestLowest": "Laagste",
+    "bestLargest": "Grootste",
+    "bestMost": "Meeste",
+    "bestLongest": "Langste"
   },
   "ProducerShowcase": {
     "heading": "Geverifieerde producenten",
     "subheading": "Elke producent op het platform doorloopt onze verificatie.",
-    "viewAllButton": "Bekijk alle producenten"
+    "verified": "Geverifieerd",
+    "completedProjects": "{count, plural, one {# opgeleverde woning} other {# opgeleverde woningen}}",
+    "models": "{count, plural, one {# model} other {# modellen}}",
+    "deliveryTo": "Levering: {countries}",
+    "viewModels": "Modellen bekijken",
+    "viewAll": "Alle producenten bekijken"
+  },
+  "ProducersPage": {
+    "metaTitle": "Geverifieerde producenten van modulaire woningen",
+    "metaDescription": "De volledige lijst van producenten die op ModularHub Europe zijn geverifieerd.",
+    "heading": "Geverifieerde producenten",
+    "subheading": "{count, plural, one {# producent heeft onze verificatie doorstaan.} other {# producenten hebben onze verificatie doorstaan.}}",
+    "empty": "Er zijn nog geen geverifieerde producenten."
+  },
+  "ProducerDetailPage": {
+    "metaTitle": "{name}, geverifieerde producent",
+    "metaDescription": "Modellen en gegevens van {name} op ModularHub Europe.",
+    "back": "Alle producenten",
+    "verified": "Geverifieerd",
+    "completedProjects": "{count, plural, one {# opgeleverde woning} other {# opgeleverde woningen}}",
+    "models": "{count, plural, one {# model} other {# modellen}}",
+    "deliveryTo": "Levering: {countries}",
+    "modelsHeading": "Modellen van deze producent",
+    "noModels": "Deze producent heeft momenteel geen gepubliceerde modellen."
   },
   "PopularHomes": {
     "heading": "Populaire woningen",
-    "subheading": "Een illustratieve selectie — zo zien enkele van de meest bekeken projecten er vandaag uit."
+    "subheading": "Geselecteerde projecten van geverifieerde producenten, met prijs en afwerkingsniveau.",
+    "viewAll": "Alle woningen bekijken"
   },
   "PanelTabs": {
     "navAriaLabel": "Klantenpaneel",
@@ -2840,5 +2913,27 @@
   "HomePage": {
     "metaTitle": "ModularHub Europe | Modulaire woningen van geverifieerde fabrikanten",
     "metaDescription": "Vergelijk beproefde modulaire woningen uit heel Europa: geverifieerde fabrikanten, transparante prijzen en een controle op naleving van de regelgeving in het gekozen land."
+  },
+  "ErrorPage": {
+    "heading": "Er is iets misgegaan",
+    "body": "Deze pagina kon niet worden geladen. Probeer het opnieuw of ga terug naar de startpagina.",
+    "retry": "Opnieuw proberen",
+    "home": "Startpagina"
+  },
+  "SiteFooter": {
+    "ctaHeading": "Wilt u meerdere huizen tegelijk bestellen?",
+    "ctaText": "Beschrijf uw project één keer en geverifieerde fabrikanten reageren met offertes die u op één plek vergelijkt.",
+    "ctaButton": "Grote bestelling aanvragen",
+    "about": "Koop modulaire huizen van geverifieerde fabrikanten, getoetst aan de bouwregels van uw land.",
+    "markets": "Fabrikanten uit Polen, bouwlocaties in Polen, Duitsland en Nederland",
+    "navLabel": "Navigatie in de voettekst",
+    "rights": "© {year} ModularHub Europe. Alle rechten voorbehouden.",
+    "privacy": "Privacy",
+    "joinHeading": "Word lid van het platform",
+    "join": {
+      "producer": "Aanmelden als fabrikant",
+      "investor": "Aanmelden als investeerder",
+      "client": "Aanmelden als particuliere klant"
+    }
   }
 }

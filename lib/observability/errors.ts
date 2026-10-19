@@ -21,6 +21,8 @@ export function captureError(error: unknown, context: ErrorContext = {}): void {
     Sentry.withScope((scope) => {
       if (context.path) scope.setTag("path", context.path);
       if (context.role) scope.setTag("role", context.role);
+      if (context.area) scope.setTag("area", context.area);
+      if (context.section) scope.setTag("section", context.section);
       const userId = context.userId ?? context.distinctId;
       if (userId) scope.setUser({ id: userId });
       Sentry.captureException(normalized);

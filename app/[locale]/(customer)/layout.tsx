@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { auth } from "@/auth";
 import { RouteShell } from "@/components/RouteShell";
 import { SkipLink } from "@/components/SkipLink";
+import { SiteFooter } from "@/components/klient/SiteFooter";
 import { SiteHeader } from "@/components/klient/SiteHeader";
 import { ThemeProvider } from "@/components/ui";
 import { isTheme, THEME_COOKIE_NAME } from "@/lib/theme";
@@ -25,6 +26,7 @@ export default async function KlientLayout({
       <SkipLink />
       <SiteHeader locale={locale} session={session} />
       <RouteShell>{children}</RouteShell>
+      <SiteFooter locale={locale} contactEmail={process.env.SUPPORT_REPLY_TO_EMAIL || undefined} />
     </ThemeProvider>
   );
 }

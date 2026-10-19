@@ -149,11 +149,40 @@
     }
   },
   "PopularHomeCard": {
-    "summary": "{area} · {rooms} pokoi",
-    "summaryNoRooms": "{area}",
     "areaUnknown": "metraż do ustalenia",
     "priceOnRequest": "Wycena indywidualna",
-    "priceFrom": "od {price} €"
+    "priceFrom": "od {price}",
+    "bedrooms": {
+      "one": "{count} sypialnia",
+      "few": "{count} sypialnie",
+      "many": "{count} sypialni",
+      "other": "{count} sypialni"
+    },
+    "bathrooms": {
+      "one": "{count} łazienka",
+      "few": "{count} łazienki",
+      "many": "{count} łazienek",
+      "other": "{count} łazienek"
+    },
+    "storeys": {
+      "one": "{count} kondygnacja",
+      "few": "{count} kondygnacje",
+      "many": "{count} kondygnacji",
+      "other": "{count} kondygnacji"
+    },
+    "rooms": {
+      "one": "{count} pokój",
+      "few": "{count} pokoje",
+      "many": "{count} pokoi",
+      "other": "{count} pokoi"
+    },
+    "pricePerM2": "ok. {price} / m²",
+    "viewProject": "Zobacz projekt",
+    "completionStandard": {
+      "surowy-zamkniety": "Stan surowy zamknięty",
+      "deweloperski": "Standard deweloperski",
+      "pod-klucz": "Pod klucz"
+    }
   },
   "ProducerCard": {
     "photoAlt": "Realizacja producenta {name}",
@@ -1460,8 +1489,9 @@
     "budgetAny": "Dowolny budżet",
     "budgetUpTo50k": "do 50K €",
     "budget50to100k": "50K–100K €",
-    "budget100to200k": "100K–200K €",
-    "budgetOver200k": "powyżej 200K €",
+    "budget100to150k": "100K–150K €",
+    "budget150to250k": "150K–250K €",
+    "budgetOver250k": "powyżej 250K €",
     "categoryHome": "Domy",
     "categoryMore": "Więcej niż dom",
     "categoryAriaLabel": "Kategoria produktu",
@@ -1519,7 +1549,11 @@
     "stage4Title": "Zapytaj o oferty",
     "stage4Description": "Wyślij jedno zapytanie do wybranych producentów naraz.",
     "stage5Title": "Odbierz dom",
-    "stage5Description": "Śledź produkcję, transport i montaż aż po odbiór kluczy."
+    "stage5Description": "Śledź produkcję, transport i montaż aż po odbiór kluczy.",
+    "actorYou": "Robisz Ty",
+    "actorUs": "Robimy my",
+    "actorProducer": "Robi producent",
+    "cta": "Zacznij od wyszukiwania"
   },
   "CategoryShowcase": {
     "headingUnderline": "Więcej",
@@ -1702,7 +1736,21 @@
     "checklistPermit": "Lokalne pozwolenie",
     "statusOk": "Spełnione",
     "statusWarning": "Wymaga uwagi",
-    "checkHouse": "Sprawdź dom"
+    "checkHouse": "Sprawdź dom",
+    "exampleBadge": "Przykład ilustracyjny",
+    "coverageLabel": "Zakres",
+    "coverage": "Polska · Niemcy · Holandia",
+    "detailConstruction": "Nośność i klasa konstrukcji",
+    "detailInsulation": "Izolacyjność cieplna przegród",
+    "detailVentilation": "Szczelność i wymiana powietrza",
+    "detailDocumentation": "Komplet dokumentów dla urzędu",
+    "detailPermit": "Do potwierdzenia przez lokalny urząd",
+    "step1Title": "Wybierasz kraj budowy",
+    "step1Text": "Przepisy zależą od miejsca, nie od producenta.",
+    "step2Title": "Porównujemy dom z przepisami",
+    "step2Text": "Konstrukcja, izolacja, wentylacja i dokumenty.",
+    "step3Title": "Dostajesz wynik z listą braków",
+    "step3Text": "Wiesz, co jest w porządku, a co wymaga uwagi."
   },
   "CompareHomesTeaser": {
     "heading": "Porównaj domy obok siebie",
@@ -1712,16 +1760,49 @@
     "featureColumnSr": "Cecha",
     "priceFromRow": "Cena od",
     "floorAreaRow": "Metraż",
-    "roomsRow": "Pokoje"
+    "roomsRow": "Pokoje",
+    "pricePerM2Row": "Cena za m²",
+    "bedroomsRow": "Sypialnie",
+    "warrantyRow": "Gwarancja konstrukcji",
+    "perSquareMeter": "{price} / m²",
+    "warrantyYears": "{count, plural, one {# rok} few {# lata} many {# lat} other {# lat}}",
+    "bestLowest": "Najniższa",
+    "bestLargest": "Największy",
+    "bestMost": "Najwięcej",
+    "bestLongest": "Najdłuższa"
   },
   "ProducerShowcase": {
     "heading": "Zweryfikowani producenci",
     "subheading": "Każdy producent na platformie przechodzi naszą weryfikację.",
-    "viewAllButton": "Zobacz wszystkich producentów"
+    "verified": "Zweryfikowany",
+    "completedProjects": "{count, plural, one {# oddany dom} few {# oddane domy} many {# oddanych domów} other {# oddanego domu}}",
+    "models": "{count, plural, one {# model} few {# modele} many {# modeli} other {# modelu}}",
+    "deliveryTo": "Dostawa: {countries}",
+    "viewModels": "Zobacz modele",
+    "viewAll": "Zobacz wszystkich producentów"
+  },
+  "ProducersPage": {
+    "metaTitle": "Zweryfikowani producenci domów modułowych",
+    "metaDescription": "Pełna lista producentów, którzy przeszli weryfikację na platformie ModularHub Europe.",
+    "heading": "Zweryfikowani producenci",
+    "subheading": "{count, plural, one {# producent przeszedł naszą weryfikację.} few {# producentów przeszło naszą weryfikację.} many {# producentów przeszło naszą weryfikację.} other {# producenta przeszło naszą weryfikację.}}",
+    "empty": "Nie ma jeszcze zweryfikowanych producentów."
+  },
+  "ProducerDetailPage": {
+    "metaTitle": "{name}, zweryfikowany producent",
+    "metaDescription": "Modele i informacje o producencie {name} na platformie ModularHub Europe.",
+    "back": "Wszyscy producenci",
+    "verified": "Zweryfikowany",
+    "completedProjects": "{count, plural, one {# oddany dom} few {# oddane domy} many {# oddanych domów} other {# oddanego domu}}",
+    "models": "{count, plural, one {# model} few {# modele} many {# modeli} other {# modelu}}",
+    "deliveryTo": "Dostawa: {countries}",
+    "modelsHeading": "Modele producenta",
+    "noModels": "Ten producent nie ma teraz opublikowanych modeli."
   },
   "PopularHomes": {
     "heading": "Popularne domy",
-    "subheading": "Wybór ilustracyjny — tak dziś wygląda kilka najczęściej oglądanych projektów."
+    "subheading": "Wybrane projekty od zweryfikowanych producentów, z ceną i standardem wykończenia.",
+    "viewAll": "Zobacz wszystkie domy"
   },
   "PanelTabs": {
     "navAriaLabel": "Panel klienta",
@@ -2840,5 +2921,27 @@
   "HomePage": {
     "metaTitle": "ModularHub Europe | Domy modułowe od zweryfikowanych producentów",
     "metaDescription": "Porównaj sprawdzone domy modułowe z całej Europy: zweryfikowani producenci, przejrzyste ceny i sprawdzenie zgodności z przepisami w wybranym kraju."
+  },
+  "ErrorPage": {
+    "heading": "Coś poszło nie tak",
+    "body": "Nie udało się wczytać tej strony. Spróbuj ponownie albo wróć na stronę główną.",
+    "retry": "Spróbuj ponownie",
+    "home": "Strona główna"
+  },
+  "SiteFooter": {
+    "ctaHeading": "Planujesz zamówić kilka domów naraz?",
+    "ctaText": "Opisz projekt raz, a zweryfikowani producenci odpowiedzą ofertami, które porównasz w jednym miejscu.",
+    "ctaButton": "Zapytaj o duże zamówienie",
+    "about": "Kupuj domy modułowe od zweryfikowanych producentów, z weryfikacją wymogów kraju budowy.",
+    "markets": "Producenci z Polski, budowy w Polsce, Niemczech i Holandii",
+    "navLabel": "Nawigacja w stopce",
+    "rights": "© {year} ModularHub Europe. Wszelkie prawa zastrzeżone.",
+    "privacy": "Prywatność",
+    "joinHeading": "Dołącz do platformy",
+    "join": {
+      "producer": "Dołącz jako producent",
+      "investor": "Dołącz jako inwestor",
+      "client": "Dołącz jako klient prywatny"
+    }
   }
 }

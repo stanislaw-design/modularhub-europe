@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { FEATURED_SHOWCASE } from "@/lib/data/featured-showcase";
 import { FeaturedProjectShowcase } from "./FeaturedProjectShowcase";
 
 describe("FeaturedProjectShowcase", () => {
@@ -19,6 +20,19 @@ describe("FeaturedProjectShowcase", () => {
     expect(screen.getByText("Voorgewel Chalet")).toBeInTheDocument();
     expect(screen.getByText("2 459,8 m²")).toBeInTheDocument();
     expect(screen.getByText("Produkcja w toku")).toBeInTheDocument();
+  });
+
+  // spec 0073 AC-3: the component only renders FEATURED_SHOWCASE, so changing the data changes the output.
+  it("renders whatever the data file holds (spec 0073 AC-3)", async () => {
+    const original = FEATURED_SHOWCASE.facts.investor;
+    FEATURED_SHOWCASE.facts.investor = "Inny Inwestor";
+    try {
+      render(await FeaturedProjectShowcase({ locale: "pl" }));
+      expect(screen.getByText("Inny Inwestor")).toBeInTheDocument();
+      expect(screen.queryByText("Succes Resorts")).not.toBeInTheDocument();
+    } finally {
+      FEATURED_SHOWCASE.facts.investor = original;
+    }
   });
 
   it("links the investor CTA to the project request form and the producer CTA to registration", async () => {

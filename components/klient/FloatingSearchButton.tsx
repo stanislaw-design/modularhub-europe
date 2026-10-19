@@ -19,12 +19,17 @@ export function FloatingSearchButton({ locale }: FloatingSearchButtonProps) {
   const router = useRouter();
   const [visible, setVisible] = useState(false);
   const [bubbleHidden, setBubbleHidden] = useState(false);
+  const [footerInView, setFooterInView] = useState(false);
 
   useEffect(() => {
     const sentinel = document.getElementById("hero-end");
     if (!sentinel) return;
 
-    const observer = new IntersectionObserver(([entry]) => setVisible(!entry.isIntersecting));
+    // Only once the sentinel is above the viewport: on a tall mobile hero it
+    // starts below the fold, which must not count as "scrolled past".
+    const observer = new IntersectionObserver(([entry]) =>
+      setVisible(!entry.isIntersecting && entry.boundingClientRect.top < 0),
+    );
     observer.observe(sentinel);
     return () => observer.disconnect();
   }, []);
@@ -43,11 +48,25 @@ export function FloatingSearchButton({ locale }: FloatingSearchButtonProps) {
     return () => observer.disconnect();
   }, []);
 
+  // The footer (SiteFooter) is a fixed dark band the amber button would
+  // overlap the legal/links row of, so the whole widget steps aside while any
+  // part of it is in view.
+  useEffect(() => {
+    const footer = document.getElementById("site-footer");
+    if (!footer) return;
+
+    const observer = new IntersectionObserver(([entry]) => setFooterInView(entry.isIntersecting));
+    observer.observe(footer);
+    return () => observer.disconnect();
+  }, []);
+
+  const shown = visible && !footerInView;
+
   return (
     <div
-      inert={!visible}
+      inert={!shown}
       className={`fixed right-brand-3 bottom-brand-3 z-40 flex flex-col items-end gap-brand-2 transition-[opacity,transform] duration-300 ease-out ${
-        visible ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"
+        shown ?"translate-y-0 opacity-100" : "translate-y-2 opacity-0"
       }`}
     >
       <div

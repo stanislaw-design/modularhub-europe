@@ -7,6 +7,10 @@ export type ErrorContext = {
   role?: Role;
   userId?: string;
   distinctId?: string;
+  // Gdzie błąd został złapany i połknięty (np. strona główna ukrywa sekcję), żeby dało się
+  // ustawić alert w Sentry (spec 0073 AC-8).
+  area?: string;
+  section?: string;
 };
 
 export type EventName =

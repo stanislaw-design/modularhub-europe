@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { Country, CountryCode, ProductFamily } from "@/lib/data/types";
 import { FAMILY_GROUPS, resolveFamilyGroup, type FamilyFilterValue } from "@/lib/product-family-groups";
+import { PRICE_THRESHOLDS } from "@/lib/results-filters";
 import { SIZE_RANGE_OPTIONS } from "@/lib/size-thresholds";
 import { SearchSegment, type SegmentOption } from "./SearchSegment";
 
@@ -21,6 +22,31 @@ const sizeRangeOptions: SegmentOption[] = SIZE_RANGE_OPTIONS.map((option) => ({
   label: option.label,
 }));
 
+// Zakresy Budżetu opierają się na PRICE_THRESHOLDS, bo /results przyjmuje tylko te progi
+// (parsePriceValue odrzuca inne wartości), więc zakres nie może być dowolny.
+const [T1, T2, T3, T4] = PRICE_THRESHOLDS;
+interface BudgetRange {
+  value: string;
+  labelKey:
+    | "budgetAny"
+    | "budgetUpTo50k"
+    | "budget50to100k"
+    | "budget100to150k"
+    | "budget150to250k"
+    | "budgetOver250k";
+  priceMin?: number;
+  priceMax?: number;
+}
+
+const BUDGET_RANGES: readonly BudgetRange[] = [
+  { value: "any", labelKey: "budgetAny" },
+  { value: "upTo50k", labelKey: "budgetUpTo50k", priceMax: T1 },
+  { value: "50to100k", labelKey: "budget50to100k", priceMin: T1, priceMax: T2 },
+  { value: "100to150k", labelKey: "budget100to150k", priceMin: T2, priceMax: T3 },
+  { value: "150to250k", labelKey: "budget150to250k", priceMin: T3, priceMax: T4 },
+  { value: "over250k", labelKey: "budgetOver250k", priceMin: T4 },
+];
+
 // The white toolbar-like card sitting inside Hero (spec 0015 AC-3 dropped the
 // old "Znajdź idealny dom dla siebie" heading + subcopy so it reads as one
 // tool, not a second section with its own intro). Renders as the final,
@@ -28,10 +54,10 @@ const sizeRangeOptions: SegmentOption[] = SIZE_RANGE_OPTIONS.map((option) => ({
 // a single Google-style teaser field that expanded on click/focus, but that
 // step turned out unintuitive (users didn't realize it was a real form) and
 // was dropped. Gdzie, Budżet and Powierzchnia are all real SearchSegment
-// instances; Budżet's selection is visual only (see budgetRangeOptions
-// below). Navigation contract to /wyniki (country, sizeMin, sizeMax) is
+// instances. Navigation contract to /wyniki (country, sizeMin, sizeMax) is
 // unchanged from spec 0003/0004, plus family once the active category tab
-// differs from the "dom" default.
+// differs from the "dom" default, plus priceMin/priceMax from Budżet
+// (spec 0073 AC-2).
 export function SearchCard({ locale, countries }: SearchCardProps) {
   const t = useTranslations("SearchCard");
   const router = useRouter();
@@ -50,17 +76,10 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
 
   const countryOptions: SegmentOption[] = countries.map((c) => ({ value: c.code, label: c.name }));
 
-  // Mock ranges only — no budget field on Project yet, so unlike country/size
-  // this selection never reaches handleSearch's params (spec 0014/0015 AC-3
-  // deferred the underlying data model). Interactive so the toolbar reads as
-  // one consistent control, same visual/keyboard behavior as Gdzie/Powierzchnia.
-  const budgetRangeOptions: SegmentOption[] = [
-    { value: "any", label: t("budgetAny") },
-    { value: "upTo50k", label: t("budgetUpTo50k") },
-    { value: "50to100k", label: t("budget50to100k") },
-    { value: "100to200k", label: t("budget100to200k") },
-    { value: "over200k", label: t("budgetOver200k") },
-  ];
+  const budgetRangeOptions: SegmentOption[] = BUDGET_RANGES.map((range) => ({
+    value: range.value,
+    label: t(range.labelKey),
+  }));
 
   // Two groups instead of three flat family tabs (spec 0035 AC-1): "Więcej
   // niż dom" is the same grouping CategoryShowcase already shows lower on
@@ -104,6 +123,9 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
     const range = SIZE_RANGE_OPTIONS.find((option) => option.value === sizeRangeValue);
     if (range?.sizeMin !== undefined) params.set("sizeMin", String(range.sizeMin));
     if (range?.sizeMax !== undefined) params.set("sizeMax", String(range.sizeMax));
+    const budget = BUDGET_RANGES.find((option) => option.value === budgetRangeValue);
+    if (budget?.priceMin !== undefined) params.set("priceMin", String(budget.priceMin));
+    if (budget?.priceMax !== undefined) params.set("priceMax", String(budget.priceMax));
     router.push(`/${locale}/results?${params.toString()}`);
   }
 

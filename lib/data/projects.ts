@@ -1183,6 +1183,29 @@ export async function getPublishedProductIds(): Promise<Set<string>> {
   return new Set(rows.map((row) => row.id));
 }
 
+export interface SitemapProduct {
+  id: string;
+  slug: string | null;
+  family: ProductFamily;
+  spaSubcategory: SpaSubcategory | null;
+  updatedAt: Date;
+}
+
+// Tylko pola potrzebne do adresu i daty w sitemap.xml (spec 0073 AC-13), bez tłumaczeń
+// i wariantów: sitemapa ma być tania, bo roboty wołają ją często.
+export async function getSitemapProducts(): Promise<SitemapProduct[]> {
+  return db
+    .select({
+      id: product.id,
+      slug: product.slug,
+      family: product.family,
+      spaSubcategory: product.spaSubcategory,
+      updatedAt: product.updatedAt,
+    })
+    .from(product)
+    .where(eq(product.status, "published"));
+}
+
 // product.id jest kolumną uuid w Postgresie: porównanie z niepoprawnym uuid
 // (np. starym mockowym slugiem "prj-xxx" albo dowolnym literałem z adresu)
 // rzuca błędem bazy zamiast zwrócić brak wiersza, więc strona kończyła się

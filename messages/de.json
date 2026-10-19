@@ -149,11 +149,32 @@
     }
   },
   "PopularHomeCard": {
-    "summary": "{area} · {rooms} Zimmer",
-    "summaryNoRooms": "{area}",
     "areaUnknown": "Wohnfläche wird noch festgelegt",
     "priceOnRequest": "Preis auf Anfrage",
-    "priceFrom": "ab {price} €"
+    "priceFrom": "ab {price}",
+    "bedrooms": {
+      "one": "{count} Schlafzimmer",
+      "other": "{count} Schlafzimmer"
+    },
+    "bathrooms": {
+      "one": "{count} Bad",
+      "other": "{count} Bäder"
+    },
+    "storeys": {
+      "one": "{count} Geschoss",
+      "other": "{count} Geschosse"
+    },
+    "rooms": {
+      "one": "{count} Zimmer",
+      "other": "{count} Zimmer"
+    },
+    "pricePerM2": "ca. {price} / m²",
+    "viewProject": "Projekt ansehen",
+    "completionStandard": {
+      "surowy-zamkniety": "Rohbau geschlossen",
+      "deweloperski": "Bauträgerstandard",
+      "pod-klucz": "Schlüsselfertig"
+    }
   },
   "ProducerCard": {
     "photoAlt": "Referenzprojekt von {name}",
@@ -1460,8 +1481,9 @@
     "budgetAny": "Beliebiges Budget",
     "budgetUpTo50k": "bis 50.000 €",
     "budget50to100k": "50.000–100.000 €",
-    "budget100to200k": "100.000–200.000 €",
-    "budgetOver200k": "über 200.000 €",
+    "budget100to150k": "100.000–150.000 €",
+    "budget150to250k": "150.000–250.000 €",
+    "budgetOver250k": "über 250.000 €",
     "categoryHome": "Häuser",
     "categoryMore": "Mehr als ein Haus",
     "categoryAriaLabel": "Produktkategorie",
@@ -1519,7 +1541,11 @@
     "stage4Title": "Angebote anfragen",
     "stage4Description": "Senden Sie eine Anfrage gleichzeitig an die gewählten Hersteller.",
     "stage5Title": "Haus übernehmen",
-    "stage5Description": "Verfolgen Sie Produktion, Transport und Montage bis zur Schlüsselübergabe."
+    "stage5Description": "Verfolgen Sie Produktion, Transport und Montage bis zur Schlüsselübergabe.",
+    "actorYou": "Sie",
+    "actorUs": "Wir",
+    "actorProducer": "Hersteller",
+    "cta": "Mit der Suche beginnen"
   },
   "CategoryShowcase": {
     "headingUnderline": "Mehr",
@@ -1702,7 +1728,21 @@
     "checklistPermit": "Örtliche Genehmigung",
     "statusOk": "Erfüllt",
     "statusWarning": "Erfordert Aufmerksamkeit",
-    "checkHouse": "Haus prüfen"
+    "checkHouse": "Haus prüfen",
+    "exampleBadge": "Beispiel zur Veranschaulichung",
+    "coverageLabel": "Abdeckung",
+    "coverage": "Polen · Deutschland · Niederlande",
+    "detailConstruction": "Tragfähigkeit und Konstruktionsklasse",
+    "detailInsulation": "Wärmedämmung der Bauteile",
+    "detailVentilation": "Luftdichtheit und Luftwechsel",
+    "detailDocumentation": "Vollständige Unterlagen für die Behörde",
+    "detailPermit": "Von der örtlichen Behörde zu bestätigen",
+    "step1Title": "Sie wählen das Baugebiet",
+    "step1Text": "Die Vorschriften hängen vom Standort ab, nicht vom Hersteller.",
+    "step2Title": "Wir prüfen das Haus gegen die Vorschriften",
+    "step2Text": "Konstruktion, Dämmung, Lüftung und Unterlagen.",
+    "step3Title": "Sie erhalten ein Ergebnis mit Lückenliste",
+    "step3Text": "Sie sehen, was passt und was Aufmerksamkeit braucht."
   },
   "CompareHomesTeaser": {
     "heading": "Vergleichen Sie Häuser nebeneinander",
@@ -1712,16 +1752,49 @@
     "featureColumnSr": "Merkmal",
     "priceFromRow": "Preis ab",
     "floorAreaRow": "Fläche",
-    "roomsRow": "Zimmer"
+    "roomsRow": "Zimmer",
+    "pricePerM2Row": "Preis pro m²",
+    "bedroomsRow": "Schlafzimmer",
+    "warrantyRow": "Garantie auf die Konstruktion",
+    "perSquareMeter": "{price} / m²",
+    "warrantyYears": "{count, plural, one {# Jahr} other {# Jahre}}",
+    "bestLowest": "Niedrigster",
+    "bestLargest": "Größte",
+    "bestMost": "Meiste",
+    "bestLongest": "Längste"
   },
   "ProducerShowcase": {
     "heading": "Verifizierte Hersteller",
     "subheading": "Jeder Hersteller auf der Plattform durchläuft unsere Verifizierung.",
-    "viewAllButton": "Alle Hersteller ansehen"
+    "verified": "Verifiziert",
+    "completedProjects": "{count, plural, one {# übergebenes Haus} other {# übergebene Häuser}}",
+    "models": "{count, plural, one {# Modell} other {# Modelle}}",
+    "deliveryTo": "Lieferung: {countries}",
+    "viewModels": "Modelle ansehen",
+    "viewAll": "Alle Hersteller ansehen"
+  },
+  "ProducersPage": {
+    "metaTitle": "Verifizierte Hersteller von Modulhäusern",
+    "metaDescription": "Die vollständige Liste der Hersteller, die auf ModularHub Europe verifiziert wurden.",
+    "heading": "Verifizierte Hersteller",
+    "subheading": "{count, plural, one {# Hersteller hat unsere Verifizierung bestanden.} other {# Hersteller haben unsere Verifizierung bestanden.}}",
+    "empty": "Es gibt noch keine verifizierten Hersteller."
+  },
+  "ProducerDetailPage": {
+    "metaTitle": "{name}, verifizierter Hersteller",
+    "metaDescription": "Modelle und Informationen zu {name} auf ModularHub Europe.",
+    "back": "Alle Hersteller",
+    "verified": "Verifiziert",
+    "completedProjects": "{count, plural, one {# übergebenes Haus} other {# übergebene Häuser}}",
+    "models": "{count, plural, one {# Modell} other {# Modelle}}",
+    "deliveryTo": "Lieferung: {countries}",
+    "modelsHeading": "Modelle dieses Herstellers",
+    "noModels": "Dieser Hersteller hat derzeit keine veröffentlichten Modelle."
   },
   "PopularHomes": {
     "heading": "Beliebte Häuser",
-    "subheading": "Eine illustrative Auswahl — so sehen heute einige der meistgesehenen Projekte aus."
+    "subheading": "Ausgewählte Projekte verifizierter Hersteller, mit Preis und Ausbaustufe.",
+    "viewAll": "Alle Häuser ansehen"
   },
   "PanelTabs": {
     "navAriaLabel": "Kundenbereich",
@@ -2840,5 +2913,27 @@
   "HomePage": {
     "metaTitle": "ModularHub Europe | Modulhäuser von geprüften Herstellern",
     "metaDescription": "Vergleichen Sie bewährte Modulhäuser aus ganz Europa: geprüfte Hersteller, transparente Preise und eine Prüfung der Konformität mit den Vorschriften im gewählten Land."
+  },
+  "ErrorPage": {
+    "heading": "Etwas ist schiefgelaufen",
+    "body": "Diese Seite konnte nicht geladen werden. Versuchen Sie es erneut oder kehren Sie zur Startseite zurück.",
+    "retry": "Erneut versuchen",
+    "home": "Startseite"
+  },
+  "SiteFooter": {
+    "ctaHeading": "Sie planen mehrere Häuser auf einmal?",
+    "ctaText": "Beschreiben Sie Ihr Projekt einmal, und geprüfte Hersteller antworten mit Angeboten, die Sie an einem Ort vergleichen.",
+    "ctaButton": "Großauftrag anfragen",
+    "about": "Kaufen Sie Modulhäuser von geprüften Herstellern, abgeglichen mit den Bauvorschriften Ihres Landes.",
+    "markets": "Hersteller aus Polen, Bauorte in Polen, Deutschland und den Niederlanden",
+    "navLabel": "Navigation im Fußbereich",
+    "rights": "© {year} ModularHub Europe. Alle Rechte vorbehalten.",
+    "privacy": "Datenschutz",
+    "joinHeading": "Der Plattform beitreten",
+    "join": {
+      "producer": "Als Hersteller beitreten",
+      "investor": "Als Investor beitreten",
+      "client": "Als Privatkunde beitreten"
+    }
   }
 }

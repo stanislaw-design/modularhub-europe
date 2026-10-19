@@ -3,33 +3,10 @@ import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { FeaturedProjectGallery } from "./FeaturedProjectGallery";
 import { Heading, ScrollReveal, Text } from "@/components/ui";
+import { FEATURED_SHOWCASE, FEATURED_SHOWCASE_FACT_KEYS } from "@/lib/data/featured-showcase";
 
 // Realizacja pokazowa na stronie głównej (zastąpiła kafle B2B z BulkOrdersShowcase).
-// Dane projektu i lista zdjęć są na razie wpisane na stałe, bez źródła w bazie.
-const GALLERY = [
-  { file: "01-zgory.webp", key: "top" },
-  { file: "02-bok.webp", key: "side" },
-  { file: "03-prawo.webp", key: "right" },
-  { file: "04-przod.webp", key: "front" },
-  { file: "05-lewo.webp", key: "left" },
-  { file: "06-sypialnia.webp", key: "bedroom" },
-  { file: "07-salon.webp", key: "living" },
-  { file: "08-glab.webp", key: "deep" },
-] as const;
-
-const FACT_KEYS = ["investor", "producer", "count", "model", "area", "terrace", "total", "statusLabel"] as const;
-
-const FACT_VALUES: Record<(typeof FACT_KEYS)[number], string | null> = {
-  investor: "Succes Resorts",
-  producer: "BUDMAN HOUSE",
-  count: "49",
-  model: "Voorgewel Chalet",
-  area: "50,2 m²",
-  terrace: "42,3 m²",
-  total: "2 459,8 m²",
-  statusLabel: null,
-};
-
+// Dane projektu i lista zdjęć są w lib/data/featured-showcase.ts (spec 0073 AC-3).
 export async function FeaturedProjectShowcase({ locale }: { locale: string }) {
   const t = await getTranslations("FeaturedProjectShowcase");
 
@@ -39,7 +16,10 @@ export async function FeaturedProjectShowcase({ locale }: { locale: string }) {
         <div className="flex flex-col overflow-hidden rounded-v5-panel bg-brand-v5-night text-brand-v5-paper">
           <div className="grid grid-cols-1 lg:grid-cols-2">
             <FeaturedProjectGallery
-              images={GALLERY.map(({ file, key }) => ({ src: `/images/success/${file}`, alt: t(`gallery.${key}`) }))}
+              images={FEATURED_SHOWCASE.gallery.map(({ file, key }) => ({
+                src: `${FEATURED_SHOWCASE.imageDir}/${file}`,
+                alt: t(`gallery.${key}`),
+              }))}
               label={t("gallery.galleryLabel")}
               showImageLabel={t("gallery.showImage")}
               statusLabel={t("status")}
@@ -73,10 +53,10 @@ export async function FeaturedProjectShowcase({ locale }: { locale: string }) {
           <div className="flex flex-col gap-brand-2 px-brand-4 pb-brand-4 pt-brand-3 sm:px-brand-5 sm:pb-brand-5">
             <h3 className="text-label uppercase tracking-[0.08em] text-brand-v5-paper/60">{t("factsHeading")}</h3>
             <dl className="grid grid-cols-1 gap-x-brand-4 sm:grid-cols-2 lg:grid-cols-4">
-              {FACT_KEYS.map((key) => (
+              {FEATURED_SHOWCASE_FACT_KEYS.map((key) => (
                 <div key={key} className="flex flex-col gap-0.5 border-t border-brand-v5-paper/15 py-2">
                   <dt className="text-data text-brand-v5-paper/60">{t(key)}</dt>
-                  <dd className="text-body font-semibold">{FACT_VALUES[key] ?? t("statusValue")}</dd>
+                  <dd className="text-body font-semibold">{FEATURED_SHOWCASE.facts[key] ?? t("statusValue")}</dd>
                 </div>
               ))}
             </dl>

@@ -76,6 +76,7 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 60 | Przetarg na duże zamówienia z podsumowaniem ModularHub | Slice 12 | in progress |
 | 61 | Pasek filtrów dla rodziny Outdoor TV | Slice 2 | in progress |
 | 62 | Przebudowa menu nawigacji i strona Kontakt (klient) | Slice 2 | done |
+| 63 | Strona główna: gotowość produkcyjna (treść, niezawodność, SEO) | Utwardzenie | done |
 
 ## Foundations
 
@@ -789,8 +790,22 @@ Wysuwane menu `SiteHeader` ma cztery płaskie linki, z czego dwa dla producentó
 - [x] Verify it: `/check verify przebudowa menu nawigacji i strona Kontakt`
 - [x] Test it: `/test przebudowa menu nawigacji i strona Kontakt`
 
+### 63. Strona główna: gotowość produkcyjna (treść, niezawodność, SEO) · medium · done
+Strona główna ma kompletne tłumaczenia, ale przed publicznym startem wprowadza w błąd (kraje zawsze po polsku, pole Budżet bez działania, wymyślony przykład zgodności, martwy przycisk, stały polski format cen), pada w całości przy awarii bazy i nie ma bezpiecznego adresu serwisu, sitemapy z produktami, danych strukturalnych ani obrazka do udostępniania. Funkcja domyka te luki w trzech niezależnych częściach. Baner cookies, polityka prywatności, regulamin i stopka zostają w funkcji 5 i funkcji wiarygodności strony klienta.
+**Done when:** `/de` pokazuje nazwy krajów po niemiecku, a budżet zawęża wyniki; awaria zapytania chowa tylko dotkniętą sekcję, a nie całą stronę; build produkcyjny bez `NEXT_PUBLIC_SITE_URL` się przerywa; sitemapa zawiera opublikowane produkty; strona główna ma JSON-LD i obrazek OG; test e2e strony głównej przechodzi dla `/pl` i `/de`.
+- [x] Zaprojektuj (spec): [0073](../specs/0073-strona-glowna-gotowosc-produkcyjna/index.md)
+- [x] Zbuduj: `/develop strona główna gotowość produkcyjna` (kod w `lib/site-url.ts`, `app/sitemap.ts`, `app/[locale]/(customer)/`, `components/klient/`, `e2e/strona-glowna.spec.ts`)
+  - [x] Adres serwisu: `lib/site-url.ts` i podpięcie w layoucie, sitemapie i robots, satisfies AC-12
+  - [x] Niezawodność: `allSettled`, puste sekcje, `error.tsx`, satisfies AC-8, AC-9, AC-10
+  - [x] SEO: sitemapa z produktami, JSON-LD, obrazek OG, satisfies AC-13, AC-14, AC-15
+  - [x] Treść i dane: kraje, budżet, dane realizacji, plakietka przykładu, przycisk, ceny, flagi sekcji, satisfies AC-1 do AC-7
+  - [x] Test e2e strony głównej, satisfies AC-11
+- [x] Zweryfikuj: `/check verify strona główna gotowość produkcyjna`
+- [x] Testuj: `/test strona główna gotowość produkcyjna`
+
 ## Deferred
 Poza zakresem tej epiki, świadomie odłożone.
+- **Dane strukturalne `Product` na stronach produktów**: ceny "od" i "na zapytanie" wymagają decyzji o schemacie `Offer` (from spec 0073) · needs a decision
 - **Filtr i sortowanie po cenie dla Outdoor TV**: wrócą, gdy produkty dostaną ceny, razem z regułą dla "cena na zapytanie" (from spec 0071) · needs a decision
 - **Filtr kraju dla Outdoor TV w widoku grupowym "Wszystko"**: dziś ukrywa produkty bez wierszy `product_country_eligibility`, do rozstrzygnięcia przy dodawaniu dostawy (from spec 0071) · needs a decision
 - **Rozszerzenie poza Polskę**: pozostałe kraje z dzisiejszego mocka silnika zgodności (np. Niemcy, Holandia) · needs a decision · full weight

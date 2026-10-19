@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import "../globals.css";
 import { ScrollProgressBar } from "@/components/ui";
 import { routing } from "@/lib/i18n/routing";
+import { getSiteUrl } from "@/lib/site-url";
 import { manrope } from "../fonts";
 
 export function generateStaticParams() {
@@ -12,7 +13,7 @@ export function generateStaticParams() {
 }
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(getSiteUrl()),
   title: "ModularHub Europe",
   description: "One project. Different rules. One clear path.",
   icons: {

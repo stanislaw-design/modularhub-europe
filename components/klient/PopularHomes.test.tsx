@@ -31,7 +31,7 @@ describe("PopularHomes", () => {
     const projects = [createMockProject({ id: "prj-modulor-family-90", featured: true })];
     render(await resolveAsyncTree(<PopularHomes locale="pl" projects={projects} countries={countries} />));
 
-    expect(screen.getByRole("link")).toHaveAttribute("href", "/pl/project/prj-modulor-family-90");
+    expect(screen.getByRole("link", { name: /Modulor Family 90/ })).toHaveAttribute("href", "/pl/project/prj-modulor-family-90");
   });
 
   // spec 0058 AC-6: resolveProductHref is called with project.slug, so a
@@ -40,7 +40,17 @@ describe("PopularHomes", () => {
     const projects = [createMockProject({ id: "prj-modulor-family-90", featured: true, slug: "modulor-family-90" })];
     render(await resolveAsyncTree(<PopularHomes locale="pl" projects={projects} countries={countries} />));
 
-    expect(screen.getByRole("link")).toHaveAttribute("href", "/pl/project/modulor-family-90");
+    expect(screen.getByRole("link", { name: /Modulor Family 90/ })).toHaveAttribute("href", "/pl/project/modulor-family-90");
+  });
+
+  it("shows at most four projects and links to the full results page", async () => {
+    const projects = Array.from({ length: 6 }, (_, index) =>
+      createMockProject({ id: `prj-${index}`, name: `Home ${index}`, featured: true }),
+    );
+    render(await resolveAsyncTree(<PopularHomes locale="pl" projects={projects} countries={countries} />));
+
+    expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(4);
+    expect(screen.getByRole("link", { name: /Zobacz wszystkie domy/ })).toHaveAttribute("href", "/pl/results");
   });
 
   it("renders nothing in the grid when no project is featured", async () => {

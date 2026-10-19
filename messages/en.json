@@ -149,11 +149,32 @@
     }
   },
   "PopularHomeCard": {
-    "summary": "{area} · {rooms} rooms",
-    "summaryNoRooms": "{area}",
     "areaUnknown": "floor area to be determined",
     "priceOnRequest": "Price on request",
-    "priceFrom": "from €{price}"
+    "priceFrom": "from {price}",
+    "bedrooms": {
+      "one": "{count} bedroom",
+      "other": "{count} bedrooms"
+    },
+    "bathrooms": {
+      "one": "{count} bathroom",
+      "other": "{count} bathrooms"
+    },
+    "storeys": {
+      "one": "{count} storey",
+      "other": "{count} storeys"
+    },
+    "rooms": {
+      "one": "{count} room",
+      "other": "{count} rooms"
+    },
+    "pricePerM2": "approx. {price} / m²",
+    "viewProject": "View project",
+    "completionStandard": {
+      "surowy-zamkniety": "Shell and core",
+      "deweloperski": "Developer standard",
+      "pod-klucz": "Turnkey"
+    }
   },
   "ProducerCard": {
     "photoAlt": "A project by {name}",
@@ -1453,8 +1474,9 @@
     "budgetAny": "Any budget",
     "budgetUpTo50k": "up to €50K",
     "budget50to100k": "€50K–100K",
-    "budget100to200k": "€100K–200K",
-    "budgetOver200k": "over €200K",
+    "budget100to150k": "€100K–150K",
+    "budget150to250k": "€150K–250K",
+    "budgetOver250k": "over €250K",
     "categoryHome": "Houses",
     "categoryMore": "More than a house",
     "categoryAriaLabel": "Product category",
@@ -1512,7 +1534,11 @@
     "stage4Title": "Ask for offers",
     "stage4Description": "Send one inquiry to your chosen producers at once.",
     "stage5Title": "Receive the house",
-    "stage5Description": "Track production, transport, and assembly all the way to the handover."
+    "stage5Description": "Track production, transport, and assembly all the way to the handover.",
+    "actorYou": "You do",
+    "actorUs": "We do",
+    "actorProducer": "Producer does",
+    "cta": "Start searching"
   },
   "CategoryShowcase": {
     "headingUnderline": "More",
@@ -1695,7 +1721,21 @@
     "checklistPermit": "Local permit",
     "statusOk": "Met",
     "statusWarning": "Needs attention",
-    "checkHouse": "Check a house"
+    "checkHouse": "Check a house",
+    "exampleBadge": "Illustrative example",
+    "coverageLabel": "Coverage",
+    "coverage": "Poland · Germany · Netherlands",
+    "detailConstruction": "Structural capacity and class",
+    "detailInsulation": "Thermal performance of the envelope",
+    "detailVentilation": "Airtightness and air exchange",
+    "detailDocumentation": "Full document set for the authority",
+    "detailPermit": "To be confirmed by the local authority",
+    "step1Title": "You choose the build country",
+    "step1Text": "Rules depend on the location, not the producer.",
+    "step2Title": "We check the house against the rules",
+    "step2Text": "Structure, insulation, ventilation and documents.",
+    "step3Title": "You get a result with a gap list",
+    "step3Text": "You see what is fine and what needs attention."
   },
   "CompareHomesTeaser": {
     "heading": "Compare houses side by side",
@@ -1705,16 +1745,49 @@
     "featureColumnSr": "Feature",
     "priceFromRow": "Price from",
     "floorAreaRow": "Floor area",
-    "roomsRow": "Rooms"
+    "roomsRow": "Rooms",
+    "pricePerM2Row": "Price per m²",
+    "bedroomsRow": "Bedrooms",
+    "warrantyRow": "Structural warranty",
+    "perSquareMeter": "{price} / m²",
+    "warrantyYears": "{count, plural, one {# year} other {# years}}",
+    "bestLowest": "Lowest",
+    "bestLargest": "Largest",
+    "bestMost": "Most",
+    "bestLongest": "Longest"
   },
   "ProducerShowcase": {
     "heading": "Verified producers",
     "subheading": "Every producer on the platform goes through our verification.",
-    "viewAllButton": "See all producers"
+    "verified": "Verified",
+    "completedProjects": "{count, plural, one {# home delivered} other {# homes delivered}}",
+    "models": "{count, plural, one {# model} other {# models}}",
+    "deliveryTo": "Delivery: {countries}",
+    "viewModels": "View models",
+    "viewAll": "See all producers"
+  },
+  "ProducersPage": {
+    "metaTitle": "Verified modular home producers",
+    "metaDescription": "The full list of producers that passed verification on ModularHub Europe.",
+    "heading": "Verified producers",
+    "subheading": "{count, plural, one {# producer has passed our verification.} other {# producers have passed our verification.}}",
+    "empty": "There are no verified producers yet."
+  },
+  "ProducerDetailPage": {
+    "metaTitle": "{name}, verified producer",
+    "metaDescription": "Models and details of {name} on ModularHub Europe.",
+    "back": "All producers",
+    "verified": "Verified",
+    "completedProjects": "{count, plural, one {# home delivered} other {# homes delivered}}",
+    "models": "{count, plural, one {# model} other {# models}}",
+    "deliveryTo": "Delivery: {countries}",
+    "modelsHeading": "Models by this producer",
+    "noModels": "This producer has no published models right now."
   },
   "PopularHomes": {
     "heading": "Popular houses",
-    "subheading": "An illustrative selection — this is what a few of the most viewed projects look like today."
+    "subheading": "Selected projects from verified producers, with price and finishing standard.",
+    "viewAll": "See all houses"
   },
   "PanelTabs": {
     "navAriaLabel": "Client panel",
@@ -2840,5 +2913,27 @@
   "HomePage": {
     "metaTitle": "ModularHub Europe | Modular homes from verified manufacturers",
     "metaDescription": "Compare proven modular homes from across Europe: verified manufacturers, transparent pricing and a regulatory compliance check for your chosen country."
+  },
+  "ErrorPage": {
+    "heading": "Something went wrong",
+    "body": "We could not load this page. Try again or go back to the home page.",
+    "retry": "Try again",
+    "home": "Home page"
+  },
+  "SiteFooter": {
+    "ctaHeading": "Planning to order several homes at once?",
+    "ctaText": "Describe your project once and verified manufacturers reply with offers you can compare in one place.",
+    "ctaButton": "Request a large order",
+    "about": "Buy modular homes from verified manufacturers, checked against the building rules of your country.",
+    "markets": "Manufacturers from Poland, builds in Poland, Germany and the Netherlands",
+    "navLabel": "Footer navigation",
+    "rights": "© {year} ModularHub Europe. All rights reserved.",
+    "privacy": "Privacy",
+    "joinHeading": "Join the platform",
+    "join": {
+      "producer": "Join as a manufacturer",
+      "investor": "Join as an investor",
+      "client": "Join as a private client"
+    }
   }
 }
