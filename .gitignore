@@ -63,3 +63,13 @@ __pycache__/
 
 # Materialy MirageVision (89 MB, poufne cenniki resellerskie), nie do repozytorium
 /_docs/mirageVision/
+
+# Materialy zrodlowe do importow i wygenerowane widoki, nie do repozytorium
+/_docs/logbar/
+/_docs/comox/
+/_docs/CocoLeisure_*.pdf
+/output/architectural-views/
+
+# Jednorazowe skrypty czyszczace prod
+/drizzle/_wipe_project_requests.sql
+/scripts/wipe-project-requests.mjs
