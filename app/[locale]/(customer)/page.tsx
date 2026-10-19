@@ -4,6 +4,8 @@ import { FeaturedProjectShowcase } from "@/components/klient/FeaturedProjectShow
 import { ClosingCta } from "@/components/klient/ClosingCta";
 import { CompareHomesTeaser } from "@/components/klient/CompareHomesTeaser";
 import { ComplianceEngineShowcase } from "@/components/klient/ComplianceEngineShowcase";
+import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { Faq } from "@/components/klient/Faq";
 import { FloatingSearchButton } from "@/components/klient/FloatingSearchButton";
 import { Hero } from "@/components/klient/Hero";
@@ -16,7 +18,33 @@ import { SearchCard } from "@/components/klient/SearchCard";
 import { getCountries } from "@/lib/data/countries";
 import { getProducers } from "@/lib/data/producers";
 import { getProjects } from "@/lib/data/projects";
-import type { Locale } from "@/lib/i18n/routing";
+import { routing, type Locale } from "@/lib/i18n/routing";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "HomePage" });
+  const languageAlternates = Object.fromEntries(routing.locales.map((code) => [code, `/${code}`]));
+
+  return {
+    title: { absolute: t("metaTitle") },
+    description: t("metaDescription"),
+    alternates: {
+      canonical: `/${locale}`,
+      languages: { ...languageAlternates, "x-default": `/${routing.defaultLocale}` },
+    },
+    openGraph: {
+      title: t("metaTitle"),
+      description: t("metaDescription"),
+      url: `/${locale}`,
+      locale,
+      type: "website",
+    },
+  };
+}
 
 export default async function KlientHomePage({
   params,

@@ -28,7 +28,7 @@ export async function Hero({ children }: HeroProps) {
   return (
     <section className="full-bleed -mt-brand-5 relative isolate flex min-h-[640px] flex-col justify-end overflow-hidden pt-24 pb-brand-6 text-brand-v4-surface lg:min-h-[760px] lg:pb-brand-8">
       <Image
-        src="/images/hero/klient-hero-bg.png"
+        src="/images/hero/klient-hero-bg.webp"
         alt=""
         fill
         priority

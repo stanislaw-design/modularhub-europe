@@ -2788,5 +2788,9 @@
     "offersLabel": "Aantal actieve offertes",
     "noOffersNote": "Er is geen offerte. Sluit de aanvraag met de reden „geen offertes” of verleng de termijn.",
     "cta": "Aanvraag openen in het paneel"
+  },
+  "HomePage": {
+    "metaTitle": "ModularHub Europe | Modulaire woningen van geverifieerde fabrikanten",
+    "metaDescription": "Vergelijk beproefde modulaire woningen uit heel Europa: geverifieerde fabrikanten, transparante prijzen en een controle op naleving van de regelgeving in het gekozen land."
   }
 }

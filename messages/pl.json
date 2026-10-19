@@ -2788,5 +2788,9 @@
     "offersLabel": "Liczba aktywnych ofert",
     "noOffersNote": "Nie ma żadnej oferty. Zamknij zapytanie z powodem „brak ofert” albo przedłuż termin.",
     "cta": "Otwórz zapytanie w panelu"
+  },
+  "HomePage": {
+    "metaTitle": "ModularHub Europe | Domy modułowe od zweryfikowanych producentów",
+    "metaDescription": "Porównaj sprawdzone domy modułowe z całej Europy: zweryfikowani producenci, przejrzyste ceny i sprawdzenie zgodności z przepisami w wybranym kraju."
   }
 }

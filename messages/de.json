@@ -2788,5 +2788,9 @@
     "offersLabel": "Anzahl der aktiven Angebote",
     "noOffersNote": "Es gibt kein Angebot. Schließen Sie die Anfrage mit dem Grund „keine Angebote“ oder verlängern Sie die Frist.",
     "cta": "Anfrage im Panel öffnen"
+  },
+  "HomePage": {
+    "metaTitle": "ModularHub Europe | Modulhäuser von geprüften Herstellern",
+    "metaDescription": "Vergleichen Sie bewährte Modulhäuser aus ganz Europa: geprüfte Hersteller, transparente Preise und eine Prüfung der Konformität mit den Vorschriften im gewählten Land."
   }
 }

@@ -9,7 +9,7 @@ describe("Hero", () => {
 
     const images = screen.getAllByAltText("");
     expect(images).toHaveLength(1);
-    expect(images[0]).toHaveAttribute("src", expect.stringContaining("klient-hero-bg.png"));
+    expect(images[0]).toHaveAttribute("src", expect.stringContaining("klient-hero-bg.webp"));
 
     const section = container.querySelector("section");
     expect(section).not.toBeNull();

@@ -2788,5 +2788,9 @@
     "offersLabel": "Number of active offers",
     "noOffersNote": "There are no offers. Close the request with the reason \"no offers\" or extend the deadline.",
     "cta": "Open the request in the panel"
+  },
+  "HomePage": {
+    "metaTitle": "ModularHub Europe | Modular homes from verified manufacturers",
+    "metaDescription": "Compare proven modular homes from across Europe: verified manufacturers, transparent pricing and a regulatory compliance check for your chosen country."
   }
 }
