@@ -3,9 +3,11 @@
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Button, Card, DataText, Heading, Stack, Text } from "@/components/ui";
+import { Button, Card, Heading, Stack, Text } from "@/components/ui";
 import { deleteProducerProduct } from "@/lib/producer-product-actions";
 import { DeleteProductDialog } from "./DeleteProductDialog";
+
+export type ProducerProductMissing = "draft" | "photo" | "price" | "translation";
 
 export interface ProducerProductListItem {
   id: string;
@@ -13,6 +15,8 @@ export interface ProducerProductListItem {
   family: "dom" | "spa-modulowe" | "kontenery-modulowe" | "outdoor-tv";
   status: "draft" | "published";
   createdAt: Date;
+  // Braki według AC-10 (spec 0074), w kolejności: szkic, zdjęcie, cena, tłumaczenie. Pusta lista = kompletny.
+  missing: ProducerProductMissing[];
 }
 
 interface ProducerProductListProps {
@@ -22,9 +26,17 @@ interface ProducerProductListProps {
 
 const dateFormatter = new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium" });
 
-// Lista własnego katalogu producenta (spec 0032 AC-3, AC-6): produkty
-// dostarczone już przefiltrowane po producerId z sesji (strona serwerowa),
-// usuwanie tym samym modalem co dawny mock (DeleteProductDialog, spec 0016 AC-10).
+const MISSING_KEY: Record<ProducerProductMissing, string> = {
+  draft: "missingDraft",
+  photo: "missingPhoto",
+  price: "missingPrice",
+  translation: "missingTranslation",
+};
+
+// Lista własnego katalogu producenta (spec 0032 AC-3, AC-6; spec 0074 AC-10): produkty
+// dostarczone już przefiltrowane po producerId z sesji i posortowane (braki na górze),
+// z kolumną "Kompletność" i podsumowaniem. Usuwanie tym samym modalem co dawny mock
+// (DeleteProductDialog, spec 0016 AC-10).
 export function ProducerProductList({ locale, products }: ProducerProductListProps) {
   const t = useTranslations("ProducerProductList");
   const tOptions = useTranslations("ProjectOptions");
@@ -36,6 +48,8 @@ export function ProducerProductList({ locale, products }: ProducerProductListPro
   const familyLabel = (family: ProducerProductListItem["family"]) => tOptions(`family.${family}`);
   const statusLabel = (status: ProducerProductListItem["status"]) =>
     status === "published" ? t("statusPublished") : t("statusDraft");
+  const publishedCount = products.filter((item) => item.status === "published").length;
+  const incompleteCount = products.filter((item) => item.status === "published" && item.missing.length > 0).length;
 
   function handleDeleteConfirm() {
     if (deleteTarget === null) return;
@@ -63,6 +77,10 @@ export function ProducerProductList({ locale, products }: ProducerProductListPro
         </div>
       </div>
 
+      {products.length > 0 && (
+        <Text tone="muted">{t("summary", { published: publishedCount, incomplete: incompleteCount })}</Text>
+      )}
+
       {error && (
         <p role="alert" className="rounded-data bg-status-blocked/10 px-brand-2 py-1 text-body text-status-blocked">
           {error}
@@ -81,42 +99,78 @@ export function ProducerProductList({ locale, products }: ProducerProductListPro
           </Stack>
         </Card>
       ) : (
-        <Stack gap={3}>
-          {products.map((productItem) => (
-            <Card key={productItem.id} as="div" padding="md">
-              <Stack gap={2} align="start">
-                <div className="flex w-full flex-wrap items-baseline justify-between gap-brand-2">
-                  <Heading level="h2">{productItem.name || t("unnamedProduct")}</Heading>
-                  <DataText tone="muted">
-                    {t("addedOn", { date: dateFormatter.format(productItem.createdAt) })}
-                  </DataText>
-                </div>
-                <Text tone="muted">
-                  {familyLabel(productItem.family)} · {statusLabel(productItem.status)}
-                </Text>
-                <Stack direction="row" gap={2}>
-                  <Button
-                    as="a"
-                    href={`/${locale}/producer/panel/products/${productItem.id}/edit`}
-                    variant="secondary"
-                    size="sm"
-                  >
-                    {t("editButton")}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    disabled={isPending}
-                    onClick={() => setDeleteTarget(productItem)}
-                  >
-                    {t("deleteButton")}
-                  </Button>
-                </Stack>
-              </Stack>
-            </Card>
-          ))}
-        </Stack>
+        <div className="overflow-x-auto rounded-data border border-brand-steel">
+          <table className="w-full min-w-[44rem] border-collapse text-body">
+            <thead>
+              <tr className="border-b border-brand-steel bg-brand-steel/20 text-left">
+                {(["columnProduct", "columnStatus", "columnCompleteness", "columnAdded", "columnActions"] as const).map(
+                  (column) => (
+                    <Text key={column} as="th" className="p-brand-2 font-medium">
+                      {t(column)}
+                    </Text>
+                  ),
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {products.map((productItem) => {
+                const firstMissing = productItem.missing[0];
+                const editHref = `/${locale}/producer/panel/products/${productItem.id}/edit`;
+                return (
+                  <tr key={productItem.id} className="border-b border-brand-steel/50 align-middle last:border-b-0">
+                    <td className="p-brand-2">
+                      <Text className="font-medium">{productItem.name || t("unnamedProduct")}</Text>
+                      <Text tone="muted" className="text-label">
+                        {familyLabel(productItem.family)}
+                      </Text>
+                    </td>
+                    <Text as="td" className="p-brand-2">
+                      {statusLabel(productItem.status)}
+                    </Text>
+                    <td className="p-brand-2">
+                      {firstMissing ? (
+                        <>
+                          <Text className="font-medium text-status-conditional">{t(MISSING_KEY[firstMissing])}</Text>
+                          {productItem.missing.length > 1 && (
+                            <Text tone="muted" className="text-label">
+                              {t("missingMore", { count: productItem.missing.length - 1 })}
+                            </Text>
+                          )}
+                        </>
+                      ) : (
+                        <Text className="text-status-approved">{t("complete")}</Text>
+                      )}
+                    </td>
+                    <Text as="td" className="p-brand-2">
+                      {dateFormatter.format(productItem.createdAt)}
+                    </Text>
+                    <td className="p-brand-2">
+                      <div className="flex flex-wrap gap-brand-2">
+                        <Button
+                          as="a"
+                          href={editHref}
+                          variant={firstMissing ? "primary" : "secondary"}
+                          size="md"
+                        >
+                          {firstMissing ? t("completeButton") : t("editButton")}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="md"
+                          disabled={isPending}
+                          onClick={() => setDeleteTarget(productItem)}
+                        >
+                          {t("deleteButton")}
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
 
       <DeleteProductDialog

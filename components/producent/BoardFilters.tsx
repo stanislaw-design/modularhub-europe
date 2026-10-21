@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Button, Select, type SelectOption } from "@/components/ui";
+import { Button, Checkbox, Select, type SelectOption } from "@/components/ui";
 
 const ALL = "all";
 
@@ -50,15 +50,22 @@ export function BoardFilters({ countries, projectTypes, families, labels }: Boar
     );
   }
 
-  const hasFilters = ["country", "type", "family"].some((key) => searchParams.has(key));
+  const hasFilters = ["country", "type", "family", "mine"].some((key) => searchParams.has(key));
 
   return (
     <div role="group" aria-label={t("filtersAriaLabel")} className="flex flex-wrap items-end gap-brand-3">
       {build(t("columnCountry"), "country", countries.map((c) => ({ value: c.code, label: c.name })))}
       {build(t("columnProjectType"), "type", projectTypes.map((v) => ({ value: v, label: labels.projectType[v] ?? v })))}
       {build(t("columnFamilies"), "family", families.map((v) => ({ value: v, label: labels.family[v] ?? v })))}
+      <label className="flex min-h-11 items-center gap-brand-2 text-body text-brand-foundation-navy">
+        <Checkbox
+          checked={searchParams.get("mine") === "1"}
+          onChange={(event) => setParam("mine", event.target.checked ? "1" : ALL)}
+        />
+        {t("onlyMyCountries")}
+      </label>
       {hasFilters && (
-        <Button type="button" surface="v5" size="sm" onClick={() => router.push(pathname)}>
+        <Button type="button" surface="v5" size="md" onClick={() => router.push(pathname)}>
           {t("filterClear")}
         </Button>
       )}

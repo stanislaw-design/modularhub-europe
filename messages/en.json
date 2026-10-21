@@ -95,22 +95,6 @@
     "completionBanner": "Order complete — every stage has been finished.",
     "backToOffer": "Back to inquiries"
   },
-  "ProducentRealizacjaPage": {
-    "heading": "Fulfillment — {name}",
-    "areaUnknown": "floor area to be determined",
-    "deliveredBanner": "Order handed over — you can now proceed to company verification before the first payout.",
-    "backToList": "Back to fulfillment",
-    "verification": "Company verification and payout"
-  },
-  "ProducerFulfillmentList": {
-    "heading": "Fulfillment",
-    "intro": "The production, transport, assembly, and handover status axis — the same one the client sees for this order. Company verification unlocks after handover, before the first payout.",
-    "empty": "No fulfillments yet — orders with an accepted offer will appear here.",
-    "areaUnknown": "floor area to be determined",
-    "readyForVerification": "Ready for company verification",
-    "currentStage": "Current stage: {stage}",
-    "viewTimeline": "View status axis"
-  },
   "ProducerCertificationsSection": {
     "heading": "Company certifications",
     "intro": "Certifications are shown publicly. Until the platform confirms them, we mark them as a producer declaration.",
@@ -220,6 +204,7 @@
     "price": "Price",
     "priceOnRequest": "Price on request",
     "priceOnRequestHint": "Agreed directly with the producer",
+    "priceEstimateHint": "Estimated price, to be confirmed with the producer",
     "priceFrom": "from €{price}",
     "leadTime": "{productionMin}–{productionMax} weeks production · {assemblyMin}–{assemblyMax} days assembly",
     "costIncludedFallback": "Scope to be confirmed",
@@ -264,7 +249,7 @@
   },
   "ResultsHeader": {
     "eligibleSuffix": " allowed {country}",
-    "hint": "Choose a country in the bar above to see which {familyFew} are legally allowed there.",
+    "hint": "Choose a country in the filters to see which {familyFew} are legally allowed there.",
     "hintOutdoorTv": "Narrow the list by mounting type and intended use."
   },
   "EmptyResults": {
@@ -1564,6 +1549,7 @@
     "home": "Houses",
     "more": "More than a house",
     "subNavAriaLabel": "Refine within More than a house",
+    "refineLabel": "Type",
     "all": "All",
     "spa": "Modular spas",
     "containers": "Modular containers",
@@ -1621,49 +1607,6 @@
     "saveLabel": "Save changes",
     "genericError": "Couldn't save the changes. Please try again."
   },
-  "CompanyVerificationView": {
-    "heading": "Company verification — {name}",
-    "disclaimer": "This is a mockup — no verification is actually performed here, and no payout is real.",
-    "disclaimerSuffix": "Before the first payout, we check the company based on the documents below.",
-    "requiredDocsHeading": "Required documents",
-    "doc1": "Business register extract (KRS or CEIDG)",
-    "doc2": "Certificate of no outstanding dues (ZUS and tax office)",
-    "doc3": "Confirmation of the company's bank account (statement or verification transfer)",
-    "doc4": "Business liability insurance policy",
-    "submittedMessage": "Documents submitted for verification. The first payout will be unlocked once it's complete (mockup, no real verification).",
-    "backToFulfillment": "Back to fulfillment",
-    "uploadLabel": "Documents for verification",
-    "submitButton": "Submit for verification"
-  },
-  "ExportReadinessCountryRow": {
-    "statusApproved": "Eligible",
-    "statusConditional": "Conditionally eligible",
-    "statusBlocked": "Not eligible",
-    "resolvedReason": "Gaps closed by purchasing the gap-closure package (saved in this browser).",
-    "whatsMissing": "What's missing",
-    "closeGaps": "Close gaps"
-  },
-  "GapClosureView": {
-    "heading": "Close gaps: {country}",
-    "headingWithProject": "Close gaps: {country} — \"{project}\"",
-    "disclaimer": "This is not legal advice. The result is an estimated assessment based on sample data, not a real legal or construction expert opinion.",
-    "alreadyResolved": "This country is already closed — the gaps were resolved by purchasing the package.",
-    "backToMap": "Back to the export readiness map"
-  },
-  "ExportReadinessMap": {
-    "headingWithProject": "Export readiness: \"{project}\"",
-    "heading": "Export readiness",
-    "disclaimer": "This is not legal advice. The result is an estimated assessment based on sample data, not a real legal or construction expert opinion.",
-    "viewProducts": "See your products"
-  },
-  "GapClosureUploadSection": {
-    "heading": "Upload documents yourself",
-    "submittedMessage": "Documents submitted for verification.",
-    "backToMap": "Back to the export readiness map",
-    "intro": "Self-declare that you're uploading the missing documents. This path doesn't verify anything and doesn't change the country's status on the map.",
-    "uploadLabel": "Missing documents",
-    "submitButton": "Submit"
-  },
   "OfferForm": {
     "intro": "Price each of your products in this inquiry separately, then add transport and assembly.",
     "revisionIntro": "You're revising an offer you already submitted — the new version replaces the previous one, the client only sees this one.",
@@ -1687,15 +1630,6 @@
     "accepted": "Accepted",
     "rejected": "Rejected",
     "genericError": "Couldn't save your decision. Please try again."
-  },
-  "RegistrationForm": {
-    "nipLabel": "Tax ID (NIP)",
-    "nipPlaceholder": "000-000-00-00",
-    "nipError": "Enter a valid tax ID (10 digits).",
-    "deliveryCountriesLegend": "Delivery countries",
-    "technologyLabel": "Technology",
-    "technologyPlaceholder": "Choose a technology",
-    "submitButton": "Register"
   },
   "Hero": {
     "trustVerified": "Verified producers",
@@ -1826,20 +1760,6 @@
     "cancel": "Cancel",
     "confirm": "Delete"
   },
-  "GapClosurePackageSection": {
-    "heading": "Buy the gap-closure package",
-    "intro": "We purchase the complete set of missing documents on your behalf and declare the country eligible.",
-    "priceLabel": "Package price",
-    "payButton": "Pay",
-    "processingPayment": "Processing payment…",
-    "approvedStatus": "Eligible",
-    "paidMessage": "Package paid — the country is now eligible.",
-    "backToMap": "Back to the export readiness map"
-  },
-  "ProducerRegistrationBar": {
-    "registeredBadge": "Registered",
-    "nipLabel": "Tax ID"
-  },
   "ClientRegistrationForm": {
     "checkInboxHeading": "Check your inbox",
     "checkInboxBody": "We've sent a login link to the given e-mail address. Click it to finish creating your account — the link is valid for 24 hours.",
@@ -1895,43 +1815,36 @@
     "alreadyHaveAccount": "Already have an account?",
     "loginLink": "Log in"
   },
-  "ProductCatalogList": {
-    "heading": "Your products",
-    "loading": "Loading…",
-    "subtitle": "All products added under tax ID {nip}.",
-    "addProduct": "Add product",
-    "emptyMessage": "You don't have any products in your catalog yet.",
-    "addFirstProduct": "Add your first product",
-    "addedOn": "Added {date}",
-    "bedroomsOne": "bedroom",
-    "bedroomsOther": "bedrooms",
-    "editButton": "Edit",
-    "deleteButton": "Delete"
-  },
-  "ProducerCatalogLookupForm": {
-    "label": "Already have an account? Enter your NIP to see your product catalog",
-    "placeholder": "000-000-00-00",
-    "error": "Enter a valid NIP (10 digits).",
-    "submitButton": "View products"
-  },
   "ProducerPanelPage": {
-    "heading": "Account",
+    "heading": "Dashboard",
+    "greeting": "Welcome, {company}",
     "noProfile": "No company data found for this account.",
-    "companyNameLabel": "Company name",
-    "deliveryCountriesLabel": "Delivery countries",
-    "technologyLabel": "Technology",
-    "technologyNotSet": "No technology set yet.",
-    "verificationStatusLabel": "Verification status",
-    "verificationNotSubmitted": "Not submitted",
-    "verificationPending": "Under review",
-    "verificationApproved": "Verified",
-    "verificationRejected": "Rejected",
-    "inquiriesOffers": "Inquiries and offers",
-    "demoScreensHeading": "Demo materials",
-    "demoScreensDescription": "These screens show what the rest of the producer journey looks like — still on sample data today, not your own account.",
-    "demoExportReadiness": "Export readiness",
-    "demoCompanyVerification": "Company verification",
-    "demoFulfillment": "Fulfillment"
+    "addProduct": "Add product",
+    "reactionHeading": "Needs your attention",
+    "reactionEmpty": "Nothing is waiting for you",
+    "reactionCta": "Open",
+    "needsOfferTitle": "{count, plural, one {# inquiry is waiting for an offer} other {# inquiries are waiting for an offer}}",
+    "oldestToday": "The oldest arrived today",
+    "oldestDays": "The oldest has waited {days} d.",
+    "decisionTitle": "A client decided on your offer",
+    "decisionDetail": "Check the decision and next steps",
+    "boardTitle": "{count, plural, one {# listing is waiting for your quote} other {# listings are waiting for your quote}}",
+    "boardDetail": "Submit a quote before the deadline",
+    "capacityNotSubmitted": "Complete your capacity profile to see the job board",
+    "capacityPending": "Your capacity profile is awaiting verification",
+    "capacityRejected": "Your capacity profile was rejected, please fix it",
+    "tileInquiries": "Open inquiries",
+    "tileInquiriesDetail": "Offers sent: {count}",
+    "tileQuotes": "My quotes",
+    "tileQuotesDetail": "Waiting for the client",
+    "tileProducts": "Active products",
+    "tileProductsDetail": "To complete: {count}",
+    "checklistHeading": "Finish your profile",
+    "checklistProgress": "{done} of {total}",
+    "taskCompany": "Complete company details",
+    "taskCapacity": "Get your capacity profile approved",
+    "taskCertificate": "Add a certificate",
+    "taskProducts": "Complete your products"
   },
   "ProducerProductPhotosStep": {
     "label": "Photos",
@@ -1952,25 +1865,51 @@
     "addFirstProduct": "Add your first product",
     "emptyMessage": "You don't have any products in your catalog yet.",
     "unnamedProduct": "Unnamed product",
-    "addedOn": "Added {date}",
     "statusPublished": "Published",
     "statusDraft": "Draft",
     "editButton": "Edit",
     "deleteButton": "Delete",
-    "deleteError": "Failed to delete the product."
-  },
-  "DemoScreenNotice": {
-    "message": "Demo version: this screen shows sample data, not your account's real data."
+    "deleteError": "Failed to delete the product.",
+    "summary": "{published} published, {incomplete} need completing",
+    "columnProduct": "Product",
+    "columnStatus": "Status",
+    "columnCompleteness": "Completeness",
+    "columnAdded": "Added",
+    "columnActions": "Actions",
+    "complete": "Complete",
+    "missingDraft": "Finish and publish",
+    "missingPhoto": "No photos",
+    "missingPrice": "No price",
+    "missingTranslation": "Missing translations",
+    "missingMore": "+{count} more",
+    "completeButton": "Complete"
   },
   "ProducerPanelZapytaniaPage": {
     "heading": "Inquiries",
+    "intro": "All client inquiries in one place: from the comparison list and about your products.",
     "emptyMessage": "You don't have any client inquiries yet.",
-    "columnProducts": "Products",
+    "emptyFiltered": "No inquiries with this status.",
+    "filtersAriaLabel": "Inquiry status filter",
+    "filterNeedsOffer": "Needs offer",
+    "filterDecision": "Client decision",
+    "filterOffered": "Offer sent",
+    "filterClosed": "Closed",
+    "filterAll": "All",
+    "columnProduct": "Product or project",
+    "columnSource": "Source",
+    "columnCountry": "Country",
     "columnStatus": "Status",
-    "columnDate": "Date",
-    "statusOpen": "Awaiting response",
-    "statusOffered": "Offer received",
+    "columnAge": "Age",
+    "columnAction": "Action",
+    "sourceShortlist": "From shortlist",
+    "sourceProduct": "About a product",
+    "statusNeedsOffer": "Needs offer",
+    "statusDecision": "Client decision",
+    "statusOffered": "Offer sent",
     "statusClosed": "Closed",
+    "ageToday": "Today",
+    "ageDays": "{days} d.",
+    "open": "Open",
     "unreadDecisionLabel": "Client made a decision"
   },
   "ProducerPanelBoardPage": {
@@ -1999,7 +1938,9 @@
     "columnOwnQuote": "Your offer",
     "ownQuoteNone": "Not submitted",
     "notDeliveringNote": "This country is not on your delivery list",
-    "notDeliveringLink": "Add a country in your capacity profile"
+    "notDeliveringLink": "Add a country in your capacity profile",
+    "onlyMyCountries": "Only my delivery countries",
+    "hiddenByDelivery": "{count, plural, one {# listing} other {# listings}} outside your delivery countries hidden."
   },
   "ProducerBoardDetailPage": {
     "quotesClosedNote": "The deadline for quotes has passed or the client has already chosen a quote. A new quote can no longer be submitted.",
@@ -2264,10 +2205,6 @@
   },
   "ProducerPanelSidebar": {
     "navAriaLabel": "Producer panel",
-    "konto": "Account",
-    "produkty": "Products",
-    "zapytania": "Inquiries",
-    "unreadBadgeLabel": "Client made a decision",
     "home": "Home",
     "signOut": "Sign out",
     "openMenu": "Open menu",
@@ -2275,10 +2212,17 @@
     "menu": "Menu",
     "collapseSidebar": "Collapse sidebar",
     "expandSidebar": "Expand sidebar",
-    "board": "Board",
-    "boardQuotes": "My quotes",
+    "dashboard": "Dashboard",
+    "groupOrders": "Orders",
+    "groupOffer": "Offer",
+    "groupCompany": "Company",
+    "inquiries": "Inquiries",
+    "board": "Job board",
+    "products": "Products",
     "capacity": "Capacity profile",
-    "productInquiries": "Product inquiries"
+    "settings": "Company settings",
+    "inquiriesBadgeLabel": "Inquiries that need your reply: {count}",
+    "boardBadgeLabel": "Listings waiting for your quote: {count}"
   },
   "ClientPanelSidebar": {
     "navAriaLabel": "Client panel",
@@ -2789,19 +2733,8 @@
     "intro": "The client chose an offer, but their company details (B2B) are not approved yet. Approve them and the parties will be connected automatically.",
     "cta": "Open the request in the panel"
   },
-  "ProducerProductInquiriesPage": {
-    "heading": "Inquiries about your products",
-    "intro": "Large order inquiries about specific products from your range. Submit a quote before the deadline. You get the investor's contact details only after your quote is chosen.",
-    "emptyMessage": "No inquiries about your products.",
-    "columnProduct": "Product",
-    "columnCountry": "Delivery country",
-    "columnUnits": "Units",
-    "columnDeadline": "Offer deadline",
-    "columnOwnQuote": "Your offer",
-    "ownQuoteNone": "Not submitted"
-  },
   "ProducerProductInquiryDetailPage": {
-    "backToList": "Back to product inquiries",
+    "backToList": "Back to inquiries",
     "scopeHeading": "Order scope",
     "countryLabel": "Delivery country",
     "unitCountLabel": "Unit count",
@@ -2935,5 +2868,23 @@
       "investor": "Join as an investor",
       "client": "Join as a private client"
     }
+  },
+  "ProducerSettingsPage": {
+    "heading": "Company settings",
+    "noProfile": "No company data found for this account.",
+    "editHeading": "Company details",
+    "companyNameLabel": "Company name",
+    "technologyLabel": "Technology",
+    "technologyPlaceholder": "Choose a technology",
+    "deliveryCountriesLabel": "Delivery countries",
+    "changeCountries": "Change",
+    "save": "Save changes",
+    "saved": "Saved.",
+    "saveError": "Could not save the company details."
+  },
+  "ProducerBoardTabs": {
+    "ariaLabel": "Listings board",
+    "available": "Available listings",
+    "myQuotes": "My quotes"
   }
 }

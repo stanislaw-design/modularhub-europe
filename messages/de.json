@@ -95,22 +95,6 @@
     "completionBanner": "Bestellung abgeschlossen — alle Phasen wurden abgeschlossen.",
     "backToOffer": "Zurück zu den Anfragen"
   },
-  "ProducentRealizacjaPage": {
-    "heading": "Ausführung — {name}",
-    "areaUnknown": "Wohnfläche wird noch festgelegt",
-    "deliveredBanner": "Bestellung abgenommen — Sie können jetzt mit der Unternehmensverifizierung vor der ersten Auszahlung fortfahren.",
-    "backToList": "Zurück zur Ausführung",
-    "verification": "Unternehmensverifizierung und Auszahlung"
-  },
-  "ProducerFulfillmentList": {
-    "heading": "Ausführungen",
-    "intro": "Die Statusleiste für Produktion, Transport, Montage und Abnahme — dieselbe, die der Kunde für diese Bestellung sieht. Nach der Abnahme wird die Unternehmensverifizierung vor der ersten Auszahlung freigeschaltet.",
-    "empty": "Noch keine Ausführungen — Bestellungen mit angenommenem Angebot erscheinen hier.",
-    "areaUnknown": "Wohnfläche wird noch festgelegt",
-    "readyForVerification": "Bereit zur Unternehmensverifizierung",
-    "currentStage": "Aktuelle Phase: {stage}",
-    "viewTimeline": "Statusleiste ansehen"
-  },
   "ProducerCertificationsSection": {
     "heading": "Zertifikate des Unternehmens",
     "intro": "Zertifikate sind öffentlich sichtbar. Bis die Plattform sie bestätigt, kennzeichnen wir sie als Erklärung des Herstellers.",
@@ -220,6 +204,7 @@
     "price": "Preis",
     "priceOnRequest": "Preis auf Anfrage",
     "priceOnRequestHint": "Wird direkt mit dem Hersteller vereinbart",
+    "priceEstimateHint": "Geschätzter Preis, mit dem Hersteller zu bestätigen",
     "priceFrom": "ab {price} €",
     "leadTime": "{productionMin}–{productionMax} Wochen Produktion · {assemblyMin}–{assemblyMax} Tage Montage",
     "costIncludedFallback": "Umfang noch zu bestätigen",
@@ -264,7 +249,7 @@
   },
   "ResultsHeader": {
     "eligibleSuffix": " zugelassen {country}",
-    "hint": "Wählen Sie oben in der Leiste ein Land aus, um zu sehen, welche {familyFew} dort rechtlich zugelassen sind.",
+    "hint": "Wählen Sie in den Filtern ein Land aus, um zu sehen, welche {familyFew} dort rechtlich zugelassen sind.",
     "hintOutdoorTv": "Grenzen Sie die Liste nach Montageart und Verwendung ein."
   },
   "EmptyResults": {
@@ -1571,6 +1556,7 @@
     "home": "Häuser",
     "more": "Mehr als ein Haus",
     "subNavAriaLabel": "Verfeinern innerhalb von Mehr als ein Haus",
+    "refineLabel": "Art",
     "all": "Alle",
     "spa": "Modulare Spas",
     "containers": "Container",
@@ -1628,49 +1614,6 @@
     "saveLabel": "Änderungen speichern",
     "genericError": "Die Änderungen konnten nicht gespeichert werden. Bitte versuchen Sie es erneut."
   },
-  "CompanyVerificationView": {
-    "heading": "Unternehmensverifizierung — {name}",
-    "disclaimer": "Dies ist eine Demo — hier wird keine echte Verifizierung durchgeführt und keine Auszahlung ist real.",
-    "disclaimerSuffix": "Vor der ersten Auszahlung prüfen wir das Unternehmen anhand der folgenden Unterlagen.",
-    "requiredDocsHeading": "Erforderliche Unterlagen",
-    "doc1": "Handelsregisterauszug (KRS oder CEIDG)",
-    "doc2": "Unbedenklichkeitsbescheinigung von Sozialversicherung und Finanzamt (ZUS und US)",
-    "doc3": "Bestätigung des Firmenbankkontos (Kontoauszug oder Verifizierungsüberweisung)",
-    "doc4": "Betriebshaftpflichtversicherungspolice",
-    "submittedMessage": "Unterlagen zur Verifizierung eingereicht. Die erste Auszahlung wird nach deren Abschluss freigeschaltet (Demo, ohne echte Verifizierung).",
-    "backToFulfillment": "Zurück zur Ausführung",
-    "uploadLabel": "Unterlagen zur Verifizierung",
-    "submitButton": "Zur Verifizierung einreichen"
-  },
-  "ExportReadinessCountryRow": {
-    "statusApproved": "Zugelassen",
-    "statusConditional": "Bedingt zugelassen",
-    "statusBlocked": "Nicht zugelassen",
-    "resolvedReason": "Lücken geschlossen durch den Kauf des Lückenschließungspakets (in diesem Browser gespeichert).",
-    "whatsMissing": "Was fehlt",
-    "closeGaps": "Lücken schließen"
-  },
-  "GapClosureView": {
-    "heading": "Lücken schließen: {country}",
-    "headingWithProject": "Lücken schließen: {country} — „{project}“",
-    "disclaimer": "Dies ist keine Rechtsberatung. Das Ergebnis ist eine geschätzte Einschätzung auf Grundlage von Beispieldaten, kein echtes rechtliches oder bautechnisches Gutachten.",
-    "alreadyResolved": "Dieses Land ist bereits abgeschlossen — die Lücken wurden durch den Kauf des Pakets geschlossen.",
-    "backToMap": "Zurück zur Exportbereitschaftskarte"
-  },
-  "ExportReadinessMap": {
-    "headingWithProject": "Exportbereitschaft: „{project}“",
-    "heading": "Exportbereitschaft",
-    "disclaimer": "Dies ist keine Rechtsberatung. Das Ergebnis ist eine geschätzte Einschätzung auf Grundlage von Beispieldaten, kein echtes rechtliches oder bautechnisches Gutachten.",
-    "viewProducts": "Ihre Produkte ansehen"
-  },
-  "GapClosureUploadSection": {
-    "heading": "Laden Sie die Unterlagen selbst hoch",
-    "submittedMessage": "Unterlagen zur Verifizierung eingereicht.",
-    "backToMap": "Zurück zur Exportbereitschaftskarte",
-    "intro": "Erklären Sie eigenständig, dass Sie die fehlenden Unterlagen hochladen. Dieser Weg verifiziert nichts und ändert den Status des Landes auf der Karte nicht.",
-    "uploadLabel": "Fehlende Unterlagen",
-    "submitButton": "Senden"
-  },
   "OfferForm": {
     "intro": "Kalkulieren Sie jedes Ihrer Produkte in dieser Anfrage einzeln und geben Sie anschließend Transport und Montage an.",
     "revisionIntro": "Sie überarbeiten ein zuvor abgegebenes Angebot — die neue Version ersetzt die vorherige, der Kunde sieht nur diese.",
@@ -1694,15 +1637,6 @@
     "accepted": "Angenommen",
     "rejected": "Abgelehnt",
     "genericError": "Die Entscheidung konnte nicht gespeichert werden. Bitte versuchen Sie es erneut."
-  },
-  "RegistrationForm": {
-    "nipLabel": "Steuernummer (NIP)",
-    "nipPlaceholder": "000-000-00-00",
-    "nipError": "Geben Sie eine gültige Steuernummer an (10 Ziffern).",
-    "deliveryCountriesLegend": "Lieferländer",
-    "technologyLabel": "Technologie",
-    "technologyPlaceholder": "Technologie auswählen",
-    "submitButton": "Registrieren"
   },
   "Hero": {
     "trustVerified": "Verifizierte Hersteller",
@@ -1833,20 +1767,6 @@
     "cancel": "Abbrechen",
     "confirm": "Löschen"
   },
-  "GapClosurePackageSection": {
-    "heading": "Lückenschließungspaket kaufen",
-    "intro": "Wir kaufen in Ihrem Namen den vollständigen Satz fehlender Unterlagen und erklären das Land als zugelassen.",
-    "priceLabel": "Paketpreis",
-    "payButton": "Bezahlen",
-    "processingPayment": "Zahlung wird verarbeitet…",
-    "approvedStatus": "Zugelassen",
-    "paidMessage": "Paket bezahlt — das Land ist jetzt zugelassen.",
-    "backToMap": "Zurück zur Exportbereitschaftskarte"
-  },
-  "ProducerRegistrationBar": {
-    "registeredBadge": "Registriert",
-    "nipLabel": "NIP-Nummer"
-  },
   "ClientRegistrationForm": {
     "checkInboxHeading": "Prüfen Sie Ihr Postfach",
     "checkInboxBody": "Wir haben einen Anmeldelink an die angegebene E-Mail-Adresse gesendet. Klicken Sie darauf, um die Kontoerstellung abzuschließen — der Link ist 24 Stunden gültig.",
@@ -1902,43 +1822,36 @@
     "alreadyHaveAccount": "Haben Sie bereits ein Konto?",
     "loginLink": "Anmelden"
   },
-  "ProductCatalogList": {
-    "heading": "Ihre Produkte",
-    "loading": "Wird geladen…",
-    "subtitle": "Alle Produkte, die unter der NIP-Nummer {nip} hinzugefügt wurden.",
-    "addProduct": "Produkt hinzufügen",
-    "emptyMessage": "Sie haben noch kein Produkt in Ihrem Katalog.",
-    "addFirstProduct": "Fügen Sie Ihr erstes Produkt hinzu",
-    "addedOn": "Hinzugefügt am {date}",
-    "bedroomsOne": "Schlafzimmer",
-    "bedroomsOther": "Schlafzimmer",
-    "editButton": "Bearbeiten",
-    "deleteButton": "Löschen"
-  },
-  "ProducerCatalogLookupForm": {
-    "label": "Haben Sie bereits ein Konto? Geben Sie Ihre NIP-Nummer ein, um Ihren Produktkatalog zu sehen",
-    "placeholder": "000-000-00-00",
-    "error": "Geben Sie eine gültige NIP-Nummer an (10 Ziffern).",
-    "submitButton": "Produkte ansehen"
-  },
   "ProducerPanelPage": {
-    "heading": "Konto",
-    "noProfile": "Für dieses Konto wurden keine Unternehmensdaten gefunden.",
-    "companyNameLabel": "Firmenname",
-    "deliveryCountriesLabel": "Lieferländer",
-    "technologyLabel": "Technologie",
-    "technologyNotSet": "Noch keine Technologie festgelegt.",
-    "verificationStatusLabel": "Verifizierungsstatus",
-    "verificationNotSubmitted": "Nicht eingereicht",
-    "verificationPending": "In Prüfung",
-    "verificationApproved": "Verifiziert",
-    "verificationRejected": "Abgelehnt",
-    "inquiriesOffers": "Anfragen und Angebote",
-    "demoScreensHeading": "Demomaterial",
-    "demoScreensDescription": "Diese Bildschirme zeigen, wie der weitere Herstellerweg aussieht — heute noch mit Beispieldaten, nicht mit Ihrem Konto.",
-    "demoExportReadiness": "Exportbereitschaft",
-    "demoCompanyVerification": "Unternehmensverifizierung",
-    "demoFulfillment": "Ausführungen"
+    "heading": "Übersicht",
+    "greeting": "Willkommen, {company}",
+    "noProfile": "Für dieses Konto wurden keine Firmendaten gefunden.",
+    "addProduct": "Produkt hinzufügen",
+    "reactionHeading": "Braucht Ihre Reaktion",
+    "reactionEmpty": "Nichts wartet auf Ihre Reaktion",
+    "reactionCta": "Öffnen",
+    "needsOfferTitle": "{count, plural, one {# Anfrage wartet auf ein Angebot} other {# Anfragen warten auf ein Angebot}}",
+    "oldestToday": "Die älteste kam heute an",
+    "oldestDays": "Die älteste wartet seit {days} T.",
+    "decisionTitle": "Ein Kunde hat über Ihr Angebot entschieden",
+    "decisionDetail": "Entscheidung und nächste Schritte ansehen",
+    "boardTitle": "{count, plural, one {# Ausschreibung wartet auf Ihr Angebot} other {# Ausschreibungen warten auf Ihr Angebot}}",
+    "boardDetail": "Reichen Sie das Angebot vor Fristablauf ein",
+    "capacityNotSubmitted": "Vervollständigen Sie das Kapazitätsprofil, um die Pinnwand zu sehen",
+    "capacityPending": "Ihr Kapazitätsprofil wartet auf die Prüfung",
+    "capacityRejected": "Ihr Kapazitätsprofil wurde abgelehnt, bitte korrigieren",
+    "tileInquiries": "Offene Anfragen",
+    "tileInquiriesDetail": "Gesendete Angebote: {count}",
+    "tileQuotes": "Meine Angebote",
+    "tileQuotesDetail": "Warten auf den Kunden",
+    "tileProducts": "Aktive Produkte",
+    "tileProductsDetail": "Zu ergänzen: {count}",
+    "checklistHeading": "Profil abschließen",
+    "checklistProgress": "{done} von {total}",
+    "taskCompany": "Firmendaten vervollständigen",
+    "taskCapacity": "Kapazitätsprofil bestätigen lassen",
+    "taskCertificate": "Zertifikat hinzufügen",
+    "taskProducts": "Produkte vervollständigen"
   },
   "ProducerProductPhotosStep": {
     "label": "Fotos",
@@ -1959,26 +1872,52 @@
     "addFirstProduct": "Fügen Sie Ihr erstes Produkt hinzu",
     "emptyMessage": "Sie haben noch kein Produkt in Ihrem Katalog.",
     "unnamedProduct": "Produkt ohne Namen",
-    "addedOn": "Hinzugefügt am {date}",
     "statusPublished": "Veröffentlicht",
     "statusDraft": "Entwurf",
     "editButton": "Bearbeiten",
     "deleteButton": "Löschen",
-    "deleteError": "Das Produkt konnte nicht gelöscht werden."
-  },
-  "DemoScreenNotice": {
-    "message": "Demoversion: Dieser Bildschirm zeigt Beispieldaten, nicht die Daten Ihres Kontos."
+    "deleteError": "Das Produkt konnte nicht gelöscht werden.",
+    "summary": "{published} veröffentlicht, {incomplete} zu vervollständigen",
+    "columnProduct": "Produkt",
+    "columnStatus": "Status",
+    "columnCompleteness": "Vollständigkeit",
+    "columnAdded": "Hinzugefügt",
+    "columnActions": "Aktionen",
+    "complete": "Vollständig",
+    "missingDraft": "Fertigstellen und veröffentlichen",
+    "missingPhoto": "Keine Fotos",
+    "missingPrice": "Kein Preis",
+    "missingTranslation": "Übersetzungen fehlen",
+    "missingMore": "+{count} weitere",
+    "completeButton": "Vervollständigen"
   },
   "ProducerPanelZapytaniaPage": {
     "heading": "Anfragen",
+    "intro": "Alle Kundenanfragen an einem Ort: aus der Vergleichsliste und zu Ihren Produkten.",
     "emptyMessage": "Sie haben noch keine Kundenanfragen.",
-    "columnProducts": "Produkte",
+    "emptyFiltered": "Keine Anfragen mit diesem Status.",
+    "filtersAriaLabel": "Statusfilter für Anfragen",
+    "filterNeedsOffer": "Angebot nötig",
+    "filterDecision": "Kundenentscheidung",
+    "filterOffered": "Angebot gesendet",
+    "filterClosed": "Geschlossen",
+    "filterAll": "Alle",
+    "columnProduct": "Produkt oder Projekt",
+    "columnSource": "Quelle",
+    "columnCountry": "Land",
     "columnStatus": "Status",
-    "columnDate": "Datum",
-    "statusOpen": "Wartet auf Antwort",
-    "statusOffered": "Angebot erhalten",
+    "columnAge": "Alter",
+    "columnAction": "Aktion",
+    "sourceShortlist": "Aus der Shortlist",
+    "sourceProduct": "Zu einem Produkt",
+    "statusNeedsOffer": "Angebot nötig",
+    "statusDecision": "Kundenentscheidung",
+    "statusOffered": "Angebot gesendet",
     "statusClosed": "Geschlossen",
-    "unreadDecisionLabel": "Kunde hat eine Entscheidung getroffen"
+    "ageToday": "Heute",
+    "ageDays": "{days} T.",
+    "open": "Öffnen",
+    "unreadDecisionLabel": "Der Kunde hat entschieden"
   },
   "ProducerPanelBoardPage": {
     "filtersAriaLabel": "Filter der Anfragenbörse",
@@ -2006,7 +1945,9 @@
     "columnOwnQuote": "Ihr Angebot",
     "ownQuoteNone": "Nicht abgegeben",
     "notDeliveringNote": "Dieses Land steht nicht auf Ihrer Lieferliste",
-    "notDeliveringLink": "Land im Kapazitätsprofil hinzufügen"
+    "notDeliveringLink": "Land im Kapazitätsprofil hinzufügen",
+    "onlyMyCountries": "Nur meine Lieferländer",
+    "hiddenByDelivery": "{count, plural, one {# Ausschreibung} other {# Ausschreibungen}} außerhalb Ihrer Lieferländer ausgeblendet."
   },
   "ProducerBoardDetailPage": {
     "quotesClosedNote": "Die Angebotsfrist ist abgelaufen oder der Kunde hat bereits ein Angebot gewählt. Ein neues Angebot kann nicht mehr abgegeben werden.",
@@ -2264,10 +2205,6 @@
   },
   "ProducerPanelSidebar": {
     "navAriaLabel": "Herstellerbereich",
-    "konto": "Konto",
-    "produkty": "Produkte",
-    "zapytania": "Anfragen",
-    "unreadBadgeLabel": "Kunde hat eine Entscheidung getroffen",
     "home": "Startseite",
     "signOut": "Abmelden",
     "openMenu": "Menü öffnen",
@@ -2275,10 +2212,17 @@
     "menu": "Menü",
     "collapseSidebar": "Menü einklappen",
     "expandSidebar": "Menü ausklappen",
+    "dashboard": "Übersicht",
+    "groupOrders": "Aufträge",
+    "groupOffer": "Angebot",
+    "groupCompany": "Unternehmen",
+    "inquiries": "Anfragen",
     "board": "Pinnwand",
-    "boardQuotes": "Meine Angebote",
+    "products": "Produkte",
     "capacity": "Kapazitätsprofil",
-    "productInquiries": "Produktanfragen"
+    "settings": "Firmeneinstellungen",
+    "inquiriesBadgeLabel": "Anfragen, die Ihre Reaktion brauchen: {count}",
+    "boardBadgeLabel": "Ausschreibungen, die auf Ihr Angebot warten: {count}"
   },
   "ClientPanelSidebar": {
     "navAriaLabel": "Kundenbereich",
@@ -2789,19 +2733,8 @@
     "intro": "Der Kunde hat ein Angebot gewählt, aber seine Firmendaten (B2B) sind noch nicht freigegeben. Geben Sie sie frei, dann werden die Parteien automatisch verbunden.",
     "cta": "Anfrage im Panel öffnen"
   },
-  "ProducerProductInquiriesPage": {
-    "heading": "Anfragen zu Ihren Produkten",
-    "intro": "Großauftragsanfragen zu bestimmten Produkten aus Ihrem Sortiment. Reichen Sie Ihr Angebot vor Fristende ein. Die Kontaktdaten des Investors erhalten Sie erst, wenn Ihr Angebot ausgewählt wurde.",
-    "emptyMessage": "Keine Anfragen zu Ihren Produkten.",
-    "columnProduct": "Produkt",
-    "columnCountry": "Lieferland",
-    "columnUnits": "Stückzahl",
-    "columnDeadline": "Angebotsfrist",
-    "columnOwnQuote": "Ihr Angebot",
-    "ownQuoteNone": "Nicht abgegeben"
-  },
   "ProducerProductInquiryDetailPage": {
-    "backToList": "Zurück zu den Produktanfragen",
+    "backToList": "Zurück zu den Anfragen",
     "scopeHeading": "Umfang des Auftrags",
     "countryLabel": "Lieferland",
     "unitCountLabel": "Stückzahl",
@@ -2935,5 +2868,23 @@
       "investor": "Als Investor beitreten",
       "client": "Als Privatkunde beitreten"
     }
+  },
+  "ProducerSettingsPage": {
+    "heading": "Firmeneinstellungen",
+    "noProfile": "Für dieses Konto wurden keine Firmendaten gefunden.",
+    "editHeading": "Firmendaten",
+    "companyNameLabel": "Firmenname",
+    "technologyLabel": "Technologie",
+    "technologyPlaceholder": "Technologie wählen",
+    "deliveryCountriesLabel": "Lieferländer",
+    "changeCountries": "Ändern",
+    "save": "Änderungen speichern",
+    "saved": "Gespeichert.",
+    "saveError": "Die Firmendaten konnten nicht gespeichert werden."
+  },
+  "ProducerBoardTabs": {
+    "ariaLabel": "Ausschreibungsbrett",
+    "available": "Verfügbare Ausschreibungen",
+    "myQuotes": "Meine Angebote"
   }
 }

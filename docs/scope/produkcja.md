@@ -77,6 +77,7 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 61 | Pasek filtrów dla rodziny Outdoor TV | Slice 2 | in progress |
 | 62 | Przebudowa menu nawigacji i strona Kontakt (klient) | Slice 2 | done |
 | 63 | Strona główna: gotowość produkcyjna (treść, niezawodność, SEO) | Utwardzenie | done |
+| 64 | Redesign panelu producenta: pulpit, jedna lista zapytań, ustawienia firmy | Slice 2b | in progress |
 
 ## Foundations
 
@@ -456,6 +457,19 @@ Dziś jedno konto producenta ma dokładnie jednego użytkownika (`producer.user_
 - [ ] Verify it: `/check verify wieloosobowe konta producenta`
 - [ ] Test it: `/test wieloosobowe konta producenta`
 
+### 64. Redesign panelu producenta: pulpit, jedna lista zapytań, ustawienia firmy · in progress
+Pierwsza strona panelu producenta pokazuje to, co wymaga reakcji (zapytania czekające na ofertę, ogłoszenia bez wyceny, decyzje klientów), a nie dane konta. Menu schodzi z siedmiu pozycji do pięciu w trzech grupach, "Zapytania" i "Zapytania o produkt" łączą się w jedną listę, tablica i "Moje wyceny" dostają wspólny pasek zakładek, lista produktów pokazuje kompletność, a dane firmy trafiają do "Ustawień firmy" z edycją nazwy i technologii. Ekrany demo znikają. Bez migracji.
+**Done when:** producent po zalogowaniu widzi pulpit z blokiem reakcji, trzema kafelkami i kartą "Dokończ profil"; menu ma pięć pozycji z liczbowymi znacznikami; jedna lista zapytań obejmuje oba źródła; tablica i wyceny mają wspólne zakładki; produkty pokazują braki z jednym kliknięciem do naprawy; ustawienia firmy pozwalają zmienić nazwę i technologię; ekrany demo i ich testy są usunięte.
+- [x] Zaprojektuj (spec): [0074](../specs/0074-redesign-panelu-producenta/index.md) (przebudowa na istniejących danych, bez migracji, trasa po trasie; weryfikacja wolumenowa zamiast statusu firmy; makieta zatwierdzona w sesji)
+- [ ] Zbuduj: `/develop redesign panelu producenta`
+  - [ ] Nawigacja i liczniki: pięć pozycji w trzech grupach, znaczniki liczbowe, moduł liczników, satisfies AC-1, AC-2, AC-14
+  - [ ] Pulpit i "Dokończ profil": blok reakcji, stan niezatwierdzonego producenta, kafelki, karta postępu, satisfies AC-3 do AC-6
+  - [ ] Listy: scalone zapytania z przekierowaniem, zakładki tablicy i wycen z przełącznikiem krajów, kolumna kompletności produktów, satisfies AC-7 do AC-10
+  - [ ] Ustawienia firmy: trasa `/settings`, edycja nazwy i technologii, satisfies AC-11, AC-15
+  - [ ] Czyszczenie i jakość: usunięcie ekranów demo z testami, teksty w czterech językach, tryb ciemny i telefon, e2e głównej ścieżki, satisfies AC-12 do AC-14
+- [ ] Zweryfikuj: `/check verify redesign panelu producenta`
+- [ ] Testuj: `/test redesign panelu producenta`
+
 ## Slice 3: oferta
 
 ### 11. Realna oferta i jej przyjęcie · done
@@ -821,7 +835,9 @@ Poza zakresem tej epiki, świadomie odłożone.
 - **Formatowanie liczb, dat i separatora dziesiętnego świadome języka**: next intl to umie, ale nikt dziś o to nie prosił (np. `120,5 m²` po polsku vs `120.5 m²` po angielsku) (from spec 0028) · needs a decision
 - **Podłączenie konta do już istniejącego, ręcznie zasianego producenta** (Castro, Steel House, Budman, Cocomodule…): dziś bez konta do zalogowania; świadomie odłożone, testowanie idzie na nowym, samodzielnie zarejestrowanym koncie (from spec 0032) · needs a decision
 - **Statystyki/analityka dla producenta** w panelu (np. liczba zapytań w czasie, popularność produktów) (from spec 0032) · needs a decision
-- **Edycja profilu firmy przez producenta** (nazwa, telefon, kraje dostawy): panel producenta dziś pokazuje wyłącznie podgląd (from spec 0032) · needs a decision
+- **Edycja profilu firmy przez producenta** (nazwa, telefon, kraje dostawy): panel producenta dziś pokazuje wyłącznie podgląd (from spec 0032). Nazwa i technologia wchodzą w funkcji 64 (spec 0074), kraje dostawy zostają w Profilu zdolności, telefon wymaga nowej kolumny i decyzji, gdzie jest widoczny · needs a decision
+- **Pomiar wyświetleń produktów per producent i lejek na pulpicie** (wyświetlenia, zapytania, oferty, akceptacje): zacząć zbierać dane przez `lib/observability/` wcześniej niż je pokazywać (from spec 0074) · needs a decision
+- **Śledzenie nieobejrzanych decyzji klienta dla zapytań o produkt**: dziś tylko `offer.producer_decision_viewed_at` dla zapytań z listy porównań (from spec 0074) · needs a decision
 - **Prawdziwy "konfigurator" zapytania o model w większej ilości**: ekran przeglądania producentów (spec 0038, funkcja 33) dostaje na razie prosty modal na `/project/[id]`; docelowy, bardziej prowadzący konfigurator to osobna decyzja (from spec 0038) · needs a decision
 - **Kontrakt i utworzenie zamówienia po wyborze finalisty**: w przepływie doradczym wybór finalisty nie tworzy `order`, zamówienie powstanie dopiero przy podpisanym kontrakcie (from spec 0048) · needs a decision · full weight
 - **Automatyczne przypomnienia i wygaszanie zaproszeń producentów**: wymaga zadania w tle (Vercel Cron w planie Pro albo zaplanowany workflow GitHub Actions), dziś ręcznie przez doradcę (from spec 0048) · needs a decision

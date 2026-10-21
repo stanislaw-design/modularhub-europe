@@ -1,24 +1,31 @@
 import { getTranslations } from "next-intl/server";
-import { Button, Card, Heading, Stack, Text } from "@/components/ui";
-import { ProducerCertificationsSection } from "@/components/producent/ProducerCertificationsSection";
-import { getProducerCertifications, getProducerIdForUser, getProducerProfile } from "@/lib/db/queries";
+import { ProducerProfileChecklist, type ChecklistTask } from "@/components/producent/ProducerProfileChecklist";
+import { ProducerReactionList, type ReactionRow } from "@/components/producent/ProducerReactionList";
+import { ProducerStatTiles } from "@/components/producent/ProducerStatTiles";
+import { Button, Heading, Stack, Text } from "@/components/ui";
+import {
+  getProducerCertifications,
+  getProducerIdForUser,
+  getProducerProfile,
+  getProducerVolumeVerificationStatus,
+  getUnreadDecisionInquiryIds,
+} from "@/lib/db/queries";
+import { ageInDays } from "@/lib/age-in-days";
 import { requirePanelProducerSession } from "@/lib/panel-session";
-import { PRODUCER_TECHNOLOGIES } from "@/lib/producer-technologies";
+import {
+  getActiveQuotesCount,
+  getBoardWithoutQuoteCount,
+  getNeedsOfferSummary,
+  getProductCompleteness,
+  getSentOffersCount,
+  summarizeProducts,
+} from "@/lib/producer-panel-summary";
 
-const verificationStatusKey = {
-  not_submitted: "verificationNotSubmitted",
-  pending: "verificationPending",
-  approved: "verificationApproved",
-  rejected: "verificationRejected",
-} as const;
 
-// Strona główna panelu producenta (spec 0032 AC-1, AC-2): wyłącznie podgląd
-// danych firmy z bazy, żaden formularz edycji w tej funkcji (Follow-up).
-export default async function ProducerPanelPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
+// Pulpit producenta (spec 0074 AC-3 do AC-6): to, co wymaga reakcji, trzy
+// kafelki i karta "Dokończ profil". Dane firmy przeniosły się do /settings.
+// Wszystkie zapytania dostają producerId z sesji (AC-15).
+export default async function ProducerPanelPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const selfHref = `/${locale}/producer/panel`;
   const [session, t] = await Promise.all([
@@ -28,9 +35,8 @@ export default async function ProducerPanelPage({
 
   const producerId = await getProducerIdForUser(session.user.id);
   const profile = producerId ? await getProducerProfile(producerId) : null;
-  const certifications = producerId ? await getProducerCertifications(producerId) : [];
 
-  if (!profile) {
+  if (!producerId || !profile) {
     return (
       <Stack gap={4}>
         <Heading level="h1">{t("heading")}</Heading>
@@ -39,77 +45,126 @@ export default async function ProducerPanelPage({
     );
   }
 
-  // Nullable od spec 0040 (formularz rejestracji przestał je zbierać, AC-8):
-  // konto bez ustawionej technologii pokazuje łagodny pusty stan (AC-9), nie
-  // pusty/błędny tekst.
-  const technologyLabel = profile.technology
-    ? (PRODUCER_TECHNOLOGIES.find((technology) => technology.value === profile.technology)?.label ??
-      profile.technology)
-    : t("technologyNotSet");
+  const verification = (await getProducerVolumeVerificationStatus(producerId)) ?? "not_submitted";
+  const approved = verification === "approved";
+
+  const [needsOffer, unreadDecisionIds, boardCount, activeQuotes, sentOffers, completeness, certifications] =
+    await Promise.all([
+      getNeedsOfferSummary(producerId),
+      getUnreadDecisionInquiryIds(producerId),
+      approved ? getBoardWithoutQuoteCount(producerId) : Promise.resolve(0),
+      getActiveQuotesCount(producerId),
+      getSentOffersCount(producerId),
+      getProductCompleteness(producerId),
+      getProducerCertifications(producerId),
+    ]);
+
+  const base = `/${locale}/producer/panel`;
+  const products = summarizeProducts(completeness);
+  const cta = t("reactionCta");
+
+  const rows: ReactionRow[] = [];
+  if (needsOffer.count > 0) {
+    let detail: string | undefined;
+    if (needsOffer.oldestAt) {
+      const days = ageInDays(needsOffer.oldestAt);
+      detail = days <= 0 ? t("oldestToday") : t("oldestDays", { days });
+    }
+    rows.push({
+      key: "needs-offer",
+      tone: "action",
+      title: t("needsOfferTitle", { count: needsOffer.count }),
+      detail,
+      href: `${base}/inquiries?status=needs-offer`,
+      cta,
+    });
+  }
+  if (unreadDecisionIds.size > 0) {
+    rows.push({
+      key: "decision",
+      tone: "decision",
+      title: t("decisionTitle"),
+      detail: t("decisionDetail"),
+      href: `${base}/inquiries?status=decision`,
+      cta,
+    });
+  }
+  if (approved) {
+    if (boardCount > 0) {
+      rows.push({
+        key: "board",
+        tone: "action",
+        title: t("boardTitle", { count: boardCount }),
+        detail: t("boardDetail"),
+        href: `${base}/board`,
+        cta,
+      });
+    }
+  } else {
+    const capacityTitle = {
+      not_submitted: t("capacityNotSubmitted"),
+      pending: t("capacityPending"),
+      rejected: t("capacityRejected"),
+      approved: "",
+    }[verification];
+    rows.push({ key: "capacity", tone: "warning", title: capacityTitle, href: `${base}/capacity`, cta });
+  }
+
+  const tasks: ChecklistTask[] = [
+    { key: "company", label: t("taskCompany"), done: profile.technology !== null, href: `${base}/settings` },
+    { key: "capacity", label: t("taskCapacity"), done: approved, href: `${base}/capacity` },
+    { key: "certificate", label: t("taskCertificate"), done: certifications.length > 0, href: `${base}/settings` },
+    { key: "products", label: t("taskProducts"), done: products.incompleteCount === 0, href: `${base}/products` },
+  ];
+  const doneCount = tasks.filter((task) => task.done).length;
 
   return (
     <Stack gap={4}>
-      <Heading level="h1">{t("heading")}</Heading>
-      <Card padding="lg">
-        <Stack gap={3}>
-          <Stack gap={1}>
-            <Text as="span" variant="label" tone="muted">
-              {t("companyNameLabel")}
-            </Text>
-            <Text>{profile.name}</Text>
-          </Stack>
-          <Stack gap={1}>
-            <Text as="span" variant="label" tone="muted">
-              NIP
-            </Text>
-            <Text>{profile.nip}</Text>
-          </Stack>
-          <Stack gap={1}>
-            <Text as="span" variant="label" tone="muted">
-              {t("deliveryCountriesLabel")}
-            </Text>
-            <Text>
-              {profile.deliveryCountries.length > 0
-                ? profile.deliveryCountries.map((country) => country.name).join(", ")
-                : "—"}
-            </Text>
-          </Stack>
-          <Stack gap={1}>
-            <Text as="span" variant="label" tone="muted">
-              {t("technologyLabel")}
-            </Text>
-            <Text>{technologyLabel}</Text>
-          </Stack>
-          <Stack gap={1}>
-            <Text as="span" variant="label" tone="muted">
-              {t("verificationStatusLabel")}
-            </Text>
-            <Text>{t(verificationStatusKey[profile.verificationStatus])}</Text>
-          </Stack>
+      <div className="flex flex-wrap items-center justify-between gap-brand-3">
+        <Stack gap={1}>
+          <Heading level="h1">{t("heading")}</Heading>
+          <Text tone="muted">{t("greeting", { company: profile.name })}</Text>
         </Stack>
-      </Card>
-      <ProducerCertificationsSection certifications={certifications} />
-      <Stack gap={2}>
-        <Button as="a" href={`/${locale}/producer/panel/inquiries`} size="sm" className="w-fit">
-          {t("inquiriesOffers")}
+        <Button as="a" href={`${base}/project`} size="md">
+          {t("addProduct")}
         </Button>
-      </Stack>
+      </div>
 
-      <Stack gap={2}>
-        <Heading level="h2">{t("demoScreensHeading")}</Heading>
-        <Text tone="muted">{t("demoScreensDescription")}</Text>
-        <Stack direction="row" gap={2} className="flex-wrap">
-          <Button as="a" href={`/${locale}/producer/export-readiness`} variant="secondary" size="sm">
-            {t("demoExportReadiness")}
-          </Button>
-          <Button as="a" href={`/${locale}/producer/company-verification`} variant="secondary" size="sm">
-            {t("demoCompanyVerification")}
-          </Button>
-          <Button as="a" href={`/${locale}/producer/fulfillments`} variant="secondary" size="sm">
-            {t("demoFulfillment")}
-          </Button>
+      <div className="grid items-start gap-brand-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <Stack gap={4}>
+          <ProducerReactionList heading={t("reactionHeading")} emptyMessage={t("reactionEmpty")} rows={rows} />
+          <ProducerStatTiles
+            tiles={[
+              {
+                key: "inquiries",
+                label: t("tileInquiries"),
+                value: needsOffer.count,
+                detail: t("tileInquiriesDetail", { count: sentOffers }),
+                href: `${base}/inquiries?status=needs-offer`,
+              },
+              {
+                key: "quotes",
+                label: t("tileQuotes"),
+                value: activeQuotes,
+                detail: t("tileQuotesDetail"),
+                href: `${base}/board-quotes`,
+              },
+              {
+                key: "products",
+                label: t("tileProducts"),
+                value: products.publishedCount,
+                detail: products.incompleteCount > 0 ? t("tileProductsDetail", { count: products.incompleteCount }) : undefined,
+                href: `${base}/products`,
+              },
+            ]}
+          />
         </Stack>
-      </Stack>
+        <ProducerProfileChecklist
+          heading={t("checklistHeading")}
+          progressLabel={t("checklistProgress", { done: doneCount, total: tasks.length })}
+          tasks={tasks}
+        />
+      </div>
     </Stack>
   );
 }

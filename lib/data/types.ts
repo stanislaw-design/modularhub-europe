@@ -397,13 +397,6 @@ export interface PlotAnalysisResult {
   reason: string;
 }
 
-export interface ExportReadinessCountryStatus {
-  countryCode: CountryCode;
-  status: EligibilityStatus;
-  reason: string;
-  gaps: string[];
-}
-
 export interface MockUploadedFile {
   name: string;
   sizeBytes: number;

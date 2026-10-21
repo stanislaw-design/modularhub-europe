@@ -59,7 +59,7 @@ export default async function ProducerProductInquiryDetailPage({
   return (
     <Stack gap={5}>
       <Link
-        href={`/${locale}/producer/panel/product-inquiries`}
+        href={`/${locale}/producer/panel/inquiries`}
         className="focus-ring inline-flex w-fit items-center gap-brand-1 rounded-data text-body text-brand-technical-graphite hover:text-brand-foundation-navy"
       >
         <ArrowLeft className="size-4" aria-hidden="true" />

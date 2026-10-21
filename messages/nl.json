@@ -95,22 +95,6 @@
     "completionBanner": "Bestelling voltooid — alle fasen zijn afgerond.",
     "backToOffer": "Terug naar aanvragen"
   },
-  "ProducentRealizacjaPage": {
-    "heading": "Uitvoering — {name}",
-    "areaUnknown": "oppervlakte nog te bepalen",
-    "deliveredBanner": "Bestelling opgeleverd — u kunt nu doorgaan naar bedrijfsverificatie voor de eerste uitbetaling.",
-    "backToList": "Terug naar uitvoering",
-    "verification": "Bedrijfsverificatie en uitbetaling"
-  },
-  "ProducerFulfillmentList": {
-    "heading": "Uitvoering",
-    "intro": "De statusas voor productie, transport, montage en oplevering — dezelfde die de klant ziet voor deze bestelling. Bedrijfsverificatie wordt ontgrendeld na oplevering, voor de eerste uitbetaling.",
-    "empty": "Nog geen uitvoeringen — bestellingen met een geaccepteerd aanbod verschijnen hier.",
-    "areaUnknown": "oppervlakte nog te bepalen",
-    "readyForVerification": "Klaar voor bedrijfsverificatie",
-    "currentStage": "Huidige fase: {stage}",
-    "viewTimeline": "Bekijk statusas"
-  },
   "ProducerCertificationsSection": {
     "heading": "Certificeringen van het bedrijf",
     "intro": "Certificeringen zijn openbaar zichtbaar. Totdat het platform ze bevestigt, markeren we ze als verklaring van de producent.",
@@ -220,6 +204,7 @@
     "price": "Prijs",
     "priceOnRequest": "Prijs op aanvraag",
     "priceOnRequestHint": "Rechtstreeks overeengekomen met de producent",
+    "priceEstimateHint": "Geschatte prijs, te bevestigen met de producent",
     "priceFrom": "vanaf €{price}",
     "leadTime": "{productionMin}–{productionMax} weken productie · {assemblyMin}–{assemblyMax} dagen montage",
     "costIncludedFallback": "Omvang nog te bevestigen",
@@ -264,7 +249,7 @@
   },
   "ResultsHeader": {
     "eligibleSuffix": " toegestaan {country}",
-    "hint": "Kies een land in de balk hierboven om te zien welke {familyFew} daar wettelijk zijn toegestaan.",
+    "hint": "Kies een land in de filters om te zien welke {familyFew} daar wettelijk zijn toegestaan.",
     "hintOutdoorTv": "Beperk de lijst op montagewijze en gebruik."
   },
   "EmptyResults": {
@@ -1564,6 +1549,7 @@
     "home": "Woningen",
     "more": "Meer dan een woning",
     "subNavAriaLabel": "Verfijn binnen Meer dan een woning",
+    "refineLabel": "Soort",
     "all": "Alles",
     "spa": "Modulaire spa's",
     "containers": "Modulaire containers",
@@ -1621,49 +1607,6 @@
     "saveLabel": "Wijzigingen opslaan",
     "genericError": "Kon de wijzigingen niet opslaan. Probeer het opnieuw."
   },
-  "CompanyVerificationView": {
-    "heading": "Bedrijfsverificatie — {name}",
-    "disclaimer": "Dit is een mockup — er wordt hier geen echte verificatie uitgevoerd en geen uitbetaling is echt.",
-    "disclaimerSuffix": "Vóór de eerste uitbetaling controleren we het bedrijf op basis van onderstaande documenten.",
-    "requiredDocsHeading": "Vereiste documenten",
-    "doc1": "Uittreksel uit het ondernemersregister (KRS of CEIDG)",
-    "doc2": "Verklaring van geen openstaande schulden (ZUS en belastingdienst)",
-    "doc3": "Bevestiging van de bedrijfsbankrekening (afschrift of verificatieoverschrijving)",
-    "doc4": "Polis bedrijfsaansprakelijkheidsverzekering",
-    "submittedMessage": "Documenten ingediend ter verificatie. De eerste uitbetaling wordt vrijgegeven zodra deze is afgerond (mockup, geen echte verificatie).",
-    "backToFulfillment": "Terug naar uitvoering",
-    "uploadLabel": "Documenten ter verificatie",
-    "submitButton": "Indienen ter verificatie"
-  },
-  "ExportReadinessCountryRow": {
-    "statusApproved": "Toegestaan",
-    "statusConditional": "Voorwaardelijk toegestaan",
-    "statusBlocked": "Niet toegestaan",
-    "resolvedReason": "Lacunes gesloten door aankoop van het lacunepakket (opgeslagen in deze browser).",
-    "whatsMissing": "Wat ontbreekt",
-    "closeGaps": "Lacunes sluiten"
-  },
-  "GapClosureView": {
-    "heading": "Lacunes sluiten: {country}",
-    "headingWithProject": "Lacunes sluiten: {country} — „{project}”",
-    "disclaimer": "Dit is geen juridisch advies. Het resultaat is een geschatte beoordeling op basis van voorbeelddata, geen echt juridisch of bouwkundig deskundigenoordeel.",
-    "alreadyResolved": "Dit land is al gesloten — de lacunes zijn opgelost door aankoop van het pakket.",
-    "backToMap": "Terug naar de exportgereedheidskaart"
-  },
-  "ExportReadinessMap": {
-    "headingWithProject": "Exportgereedheid: „{project}”",
-    "heading": "Exportgereedheid",
-    "disclaimer": "Dit is geen juridisch advies. Het resultaat is een geschatte beoordeling op basis van voorbeelddata, geen echt juridisch of bouwkundig deskundigenoordeel.",
-    "viewProducts": "Bekijk uw producten"
-  },
-  "GapClosureUploadSection": {
-    "heading": "Zelf documenten uploaden",
-    "submittedMessage": "Documenten ingediend ter verificatie.",
-    "backToMap": "Terug naar de exportgereedheidskaart",
-    "intro": "Verklaar zelf dat u de ontbrekende documenten uploadt. Dit pad verifieert niets en verandert de status van het land op de kaart niet.",
-    "uploadLabel": "Ontbrekende documenten",
-    "submitButton": "Versturen"
-  },
   "OfferForm": {
     "intro": "Prijs elk van uw producten in deze aanvraag apart en vul daarna transport en montage in.",
     "revisionIntro": "U herziet een eerder ingediend aanbod — de nieuwe versie vervangt de vorige, de klant ziet alleen deze.",
@@ -1687,15 +1630,6 @@
     "accepted": "Geaccepteerd",
     "rejected": "Afgewezen",
     "genericError": "De beslissing kon niet worden opgeslagen. Probeer het opnieuw."
-  },
-  "RegistrationForm": {
-    "nipLabel": "BTW/KVK-nummer (NIP)",
-    "nipPlaceholder": "000-000-00-00",
-    "nipError": "Voer een geldig NIP-nummer in (10 cijfers).",
-    "deliveryCountriesLegend": "Leverlanden",
-    "technologyLabel": "Technologie",
-    "technologyPlaceholder": "Kies een technologie",
-    "submitButton": "Registreren"
   },
   "Hero": {
     "trustVerified": "Geverifieerde producenten",
@@ -1826,20 +1760,6 @@
     "cancel": "Annuleren",
     "confirm": "Verwijderen"
   },
-  "GapClosurePackageSection": {
-    "heading": "Lacunepakket kopen",
-    "intro": "Wij kopen namens u de volledige set ontbrekende documenten en verklaren het land toegestaan.",
-    "priceLabel": "Pakketprijs",
-    "payButton": "Betalen",
-    "processingPayment": "Betaling wordt verwerkt…",
-    "approvedStatus": "Toegestaan",
-    "paidMessage": "Pakket betaald — het land is nu toegestaan.",
-    "backToMap": "Terug naar de exportgereedheidskaart"
-  },
-  "ProducerRegistrationBar": {
-    "registeredBadge": "Geregistreerd",
-    "nipLabel": "NIP-nummer"
-  },
   "ClientRegistrationForm": {
     "checkInboxHeading": "Controleer uw inbox",
     "checkInboxBody": "We hebben een inloglink gestuurd naar het opgegeven e-mailadres. Klik erop om uw account af te ronden — de link is 24 uur geldig.",
@@ -1895,43 +1815,36 @@
     "alreadyHaveAccount": "Heeft u al een account?",
     "loginLink": "Inloggen"
   },
-  "ProductCatalogList": {
-    "heading": "Uw producten",
-    "loading": "Laden…",
-    "subtitle": "Alle producten toegevoegd onder NIP-nummer {nip}.",
-    "addProduct": "Product toevoegen",
-    "emptyMessage": "U heeft nog geen producten in uw catalogus.",
-    "addFirstProduct": "Voeg uw eerste product toe",
-    "addedOn": "Toegevoegd op {date}",
-    "bedroomsOne": "slaapkamer",
-    "bedroomsOther": "slaapkamers",
-    "editButton": "Bewerken",
-    "deleteButton": "Verwijderen"
-  },
-  "ProducerCatalogLookupForm": {
-    "label": "Heeft u al een account? Voer uw NIP in om uw productcatalogus te bekijken",
-    "placeholder": "000-000-00-00",
-    "error": "Voer een geldig NIP in (10 cijfers).",
-    "submitButton": "Producten bekijken"
-  },
   "ProducerPanelPage": {
-    "heading": "Account",
-    "noProfile": "Geen bedrijfsgegevens gevonden voor dit account.",
-    "companyNameLabel": "Bedrijfsnaam",
-    "deliveryCountriesLabel": "Leveringslanden",
-    "technologyLabel": "Technologie",
-    "technologyNotSet": "Nog geen technologie ingesteld.",
-    "verificationStatusLabel": "Verificatiestatus",
-    "verificationNotSubmitted": "Niet ingediend",
-    "verificationPending": "In beoordeling",
-    "verificationApproved": "Geverifieerd",
-    "verificationRejected": "Afgewezen",
-    "inquiriesOffers": "Aanvragen en aanbiedingen",
-    "demoScreensHeading": "Demomateriaal",
-    "demoScreensDescription": "Deze schermen tonen hoe de rest van het producententraject eruitziet — vandaag nog met voorbeeldgegevens, niet met uw eigen account.",
-    "demoExportReadiness": "Exportgereedheid",
-    "demoCompanyVerification": "Bedrijfsverificatie",
-    "demoFulfillment": "Uitvoeringen"
+    "heading": "Overzicht",
+    "greeting": "Welkom, {company}",
+    "noProfile": "Er zijn geen bedrijfsgegevens gevonden voor dit account.",
+    "addProduct": "Product toevoegen",
+    "reactionHeading": "Vraagt uw reactie",
+    "reactionEmpty": "Er wacht niets op uw reactie",
+    "reactionCta": "Openen",
+    "needsOfferTitle": "{count, plural, one {# aanvraag wacht op een offerte} other {# aanvragen wachten op een offerte}}",
+    "oldestToday": "De oudste kwam vandaag binnen",
+    "oldestDays": "De oudste wacht al {days} d.",
+    "decisionTitle": "Een klant heeft over uw offerte beslist",
+    "decisionDetail": "Bekijk de beslissing en de vervolgstappen",
+    "boardTitle": "{count, plural, one {# aanvraag wacht op uw offerte} other {# aanvragen wachten op uw offerte}}",
+    "boardDetail": "Dien uw offerte in voor de deadline",
+    "capacityNotSubmitted": "Vul uw capaciteitsprofiel aan om het prikbord te zien",
+    "capacityPending": "Uw capaciteitsprofiel wacht op verificatie",
+    "capacityRejected": "Uw capaciteitsprofiel is afgewezen, pas het aan",
+    "tileInquiries": "Open aanvragen",
+    "tileInquiriesDetail": "Verzonden offertes: {count}",
+    "tileQuotes": "Mijn offertes",
+    "tileQuotesDetail": "Wachten op de klant",
+    "tileProducts": "Actieve producten",
+    "tileProductsDetail": "Aan te vullen: {count}",
+    "checklistHeading": "Rond uw profiel af",
+    "checklistProgress": "{done} van {total}",
+    "taskCompany": "Bedrijfsgegevens aanvullen",
+    "taskCapacity": "Capaciteitsprofiel laten goedkeuren",
+    "taskCertificate": "Certificaat toevoegen",
+    "taskProducts": "Producten aanvullen"
   },
   "ProducerProductPhotosStep": {
     "label": "Foto's",
@@ -1952,26 +1865,52 @@
     "addFirstProduct": "Voeg uw eerste product toe",
     "emptyMessage": "U heeft nog geen producten in uw catalogus.",
     "unnamedProduct": "Naamloos product",
-    "addedOn": "Toegevoegd op {date}",
     "statusPublished": "Gepubliceerd",
     "statusDraft": "Concept",
     "editButton": "Bewerken",
     "deleteButton": "Verwijderen",
-    "deleteError": "Verwijderen van het product is mislukt."
-  },
-  "DemoScreenNotice": {
-    "message": "Demoversie: dit scherm toont voorbeeldgegevens, niet de echte gegevens van uw account."
+    "deleteError": "Verwijderen van het product is mislukt.",
+    "summary": "{published} gepubliceerd, {incomplete} aan te vullen",
+    "columnProduct": "Product",
+    "columnStatus": "Status",
+    "columnCompleteness": "Volledigheid",
+    "columnAdded": "Toegevoegd",
+    "columnActions": "Acties",
+    "complete": "Compleet",
+    "missingDraft": "Afronden en publiceren",
+    "missingPhoto": "Geen foto's",
+    "missingPrice": "Geen prijs",
+    "missingTranslation": "Vertalingen ontbreken",
+    "missingMore": "+{count} meer",
+    "completeButton": "Aanvullen"
   },
   "ProducerPanelZapytaniaPage": {
     "heading": "Aanvragen",
+    "intro": "Alle klantaanvragen op één plek: uit de vergelijkingslijst en over uw producten.",
     "emptyMessage": "U heeft nog geen klantaanvragen.",
-    "columnProducts": "Producten",
+    "emptyFiltered": "Geen aanvragen met deze status.",
+    "filtersAriaLabel": "Statusfilter voor aanvragen",
+    "filterNeedsOffer": "Offerte nodig",
+    "filterDecision": "Beslissing klant",
+    "filterOffered": "Offerte verstuurd",
+    "filterClosed": "Gesloten",
+    "filterAll": "Alle",
+    "columnProduct": "Product of project",
+    "columnSource": "Bron",
+    "columnCountry": "Land",
     "columnStatus": "Status",
-    "columnDate": "Datum",
-    "statusOpen": "Wacht op antwoord",
-    "statusOffered": "Aanbieding ontvangen",
+    "columnAge": "Leeftijd",
+    "columnAction": "Actie",
+    "sourceShortlist": "Uit shortlist",
+    "sourceProduct": "Over een product",
+    "statusNeedsOffer": "Offerte nodig",
+    "statusDecision": "Beslissing klant",
+    "statusOffered": "Offerte verstuurd",
     "statusClosed": "Gesloten",
-    "unreadDecisionLabel": "Klant heeft een beslissing genomen"
+    "ageToday": "Vandaag",
+    "ageDays": "{days} d.",
+    "open": "Openen",
+    "unreadDecisionLabel": "De klant heeft beslist"
   },
   "ProducerPanelBoardPage": {
     "filtersAriaLabel": "Filters van het prikbord",
@@ -1999,7 +1938,9 @@
     "columnOwnQuote": "Uw offerte",
     "ownQuoteNone": "Niet ingediend",
     "notDeliveringNote": "Dit land staat niet op uw leverlijst",
-    "notDeliveringLink": "Voeg een land toe in uw capaciteitsprofiel"
+    "notDeliveringLink": "Voeg een land toe in uw capaciteitsprofiel",
+    "onlyMyCountries": "Alleen mijn leverlanden",
+    "hiddenByDelivery": "{count, plural, one {# opdracht} other {# opdrachten}} buiten uw leverlanden verborgen."
   },
   "ProducerBoardDetailPage": {
     "quotesClosedNote": "De deadline voor offertes is verstreken of de klant heeft al een offerte gekozen. Er kan geen nieuwe offerte meer worden ingediend.",
@@ -2264,10 +2205,6 @@
   },
   "ProducerPanelSidebar": {
     "navAriaLabel": "Fabrikantenpaneel",
-    "konto": "Account",
-    "produkty": "Producten",
-    "zapytania": "Aanvragen",
-    "unreadBadgeLabel": "Klant heeft een beslissing genomen",
     "home": "Startpagina",
     "signOut": "Uitloggen",
     "openMenu": "Menu openen",
@@ -2275,10 +2212,17 @@
     "menu": "Menu",
     "collapseSidebar": "Menu inklappen",
     "expandSidebar": "Menu uitklappen",
+    "dashboard": "Overzicht",
+    "groupOrders": "Opdrachten",
+    "groupOffer": "Aanbod",
+    "groupCompany": "Bedrijf",
+    "inquiries": "Aanvragen",
     "board": "Prikbord",
-    "boardQuotes": "Mijn offertes",
+    "products": "Producten",
     "capacity": "Capaciteitsprofiel",
-    "productInquiries": "Productaanvragen"
+    "settings": "Bedrijfsinstellingen",
+    "inquiriesBadgeLabel": "Aanvragen die uw reactie nodig hebben: {count}",
+    "boardBadgeLabel": "Aanvragen die op uw offerte wachten: {count}"
   },
   "ClientPanelSidebar": {
     "navAriaLabel": "Klantenpaneel",
@@ -2789,19 +2733,8 @@
     "intro": "De klant heeft een offerte gekozen, maar de bedrijfsgegevens (B2B) zijn nog niet goedgekeurd. Keur ze goed en de partijen worden automatisch verbonden.",
     "cta": "Aanvraag openen in het paneel"
   },
-  "ProducerProductInquiriesPage": {
-    "heading": "Aanvragen over uw producten",
-    "intro": "Grote bestelaanvragen over specifieke producten uit uw assortiment. Dien uw offerte in vóór de deadline. De contactgegevens van de investeerder ontvangt u pas nadat uw offerte is gekozen.",
-    "emptyMessage": "Geen aanvragen over uw producten.",
-    "columnProduct": "Product",
-    "columnCountry": "Leverland",
-    "columnUnits": "Aantal",
-    "columnDeadline": "Deadline offertes",
-    "columnOwnQuote": "Uw offerte",
-    "ownQuoteNone": "Niet ingediend"
-  },
   "ProducerProductInquiryDetailPage": {
-    "backToList": "Terug naar productaanvragen",
+    "backToList": "Terug naar aanvragen",
     "scopeHeading": "Omvang van de bestelling",
     "countryLabel": "Leverland",
     "unitCountLabel": "Aantal",
@@ -2935,5 +2868,23 @@
       "investor": "Aanmelden als investeerder",
       "client": "Aanmelden als particuliere klant"
     }
+  },
+  "ProducerSettingsPage": {
+    "heading": "Bedrijfsinstellingen",
+    "noProfile": "Voor dit account zijn geen bedrijfsgegevens gevonden.",
+    "editHeading": "Bedrijfsgegevens",
+    "companyNameLabel": "Bedrijfsnaam",
+    "technologyLabel": "Technologie",
+    "technologyPlaceholder": "Kies een technologie",
+    "deliveryCountriesLabel": "Leverlanden",
+    "changeCountries": "Wijzigen",
+    "save": "Wijzigingen opslaan",
+    "saved": "Opgeslagen.",
+    "saveError": "De bedrijfsgegevens konden niet worden opgeslagen."
+  },
+  "ProducerBoardTabs": {
+    "ariaLabel": "Opdrachtenbord",
+    "available": "Beschikbare opdrachten",
+    "myQuotes": "Mijn offertes"
   }
 }

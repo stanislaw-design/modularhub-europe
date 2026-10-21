@@ -8,9 +8,3 @@ export async function getFulfillmentOrder(projectId: string): Promise<Fulfillmen
   return match ?? null;
 }
 
-// All orders, for the producer-facing list (feature 16): not scoped to a
-// single producer's own projects, same "no login session" convention already
-// used by lib/gap-closure.ts.
-export async function getFulfillmentOrders(): Promise<FulfillmentOrder[]> {
-  return fulfillmentOrders;
-}

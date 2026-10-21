@@ -41,11 +41,6 @@ const OLD_PRODUCER_ROUTES: readonly [oldPrefix: string, newPrefix: string][] = [
   ["producent/panel/projekt", "producer/panel/project"],
   ["producent/panel", "producer/panel"],
   ["producent/rejestracja", "producer/registration"],
-  ["producent/realizacje", "producer/fulfillments"],
-  ["producent/realizacja", "producer/fulfillment"],
-  ["producent/domykanie-luk", "producer/gap-closure"],
-  ["producent/gotowosc-eksportowa", "producer/export-readiness"],
-  ["producent/weryfikacja-firmy", "producer/company-verification"],
   // Bezsegmentowy "/producent": musi być ostatni, patrz uwaga przy "klient" wyżej.
   ["producent", "producer"],
 ];

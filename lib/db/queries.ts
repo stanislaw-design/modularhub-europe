@@ -1009,6 +1009,8 @@ export interface ProjectRequestBoardFilters {
   countryCode?: string;
   projectType?: ProjectRequestBoardItem["projectType"];
   family?: ProjectRequestBoardItem["families"][number];
+  // Spec 0074 AC-9: ukryj ogłoszenia z krajów spoza listy krajów dostawy producenta.
+  onlyDeliveryCountries?: boolean;
 }
 
 export interface ProjectRequestBoardListItem extends ProjectRequestBoardItem {
@@ -1026,16 +1028,19 @@ export async function getOpenProjectRequestsForBoard({
   producerId: string;
   page: number;
   filters?: ProjectRequestBoardFilters;
-}): Promise<{ items: ProjectRequestBoardListItem[]; totalCount: number }> {
-  const whereClause = and(
+}): Promise<{ items: ProjectRequestBoardListItem[]; totalCount: number; hiddenByDeliveryCount: number }> {
+  const baseClauses = and(
     inArray(projectRequest.status, [...BOARD_OPEN_STATUSES]),
     producerMatchesProjectRequestSql(producerId),
     filters.countryCode ? eq(projectRequest.countryCode, filters.countryCode) : undefined,
     filters.projectType ? eq(projectRequest.projectType, filters.projectType) : undefined,
     filters.family ? sql`${projectRequest.families} @> ${JSON.stringify([filters.family])}::jsonb` : undefined,
   );
+  const whereClause = filters.onlyDeliveryCountries
+    ? and(baseClauses, producerDeliversToRequestCountrySql(producerId))
+    : baseClauses;
 
-  const [countRow, rows] = await Promise.all([
+  const [countRow, rows, hiddenRow] = await Promise.all([
     db.select({ count: sql<number>`count(*)::int` }).from(projectRequest).where(whereClause),
     db
       .select({
@@ -1054,11 +1059,19 @@ export async function getOpenProjectRequestsForBoard({
       .orderBy(desc(projectRequest.createdAt))
       .limit(PROJECT_REQUESTS_BOARD_PAGE_SIZE)
       .offset((page - 1) * PROJECT_REQUESTS_BOARD_PAGE_SIZE),
+    // Ile ogłoszeń ukrywa przełącznik krajów dostawy (tylko gdy jest włączony).
+    filters.onlyDeliveryCountries
+      ? db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(projectRequest)
+          .where(and(baseClauses, sql`not ${producerDeliversToRequestCountrySql(producerId)}`))
+      : Promise.resolve([{ count: 0 }]),
   ]);
 
   return {
     items: rows.map((row) => ({ ...row, deliversToCountry: row.deliversToCountry === true })),
     totalCount: countRow[0]?.count ?? 0,
+    hiddenByDeliveryCount: hiddenRow[0]?.count ?? 0,
   };
 }
 

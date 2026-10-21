@@ -95,22 +95,6 @@
     "completionBanner": "Zamówienie zrealizowane — wszystkie etapy zostały ukończone.",
     "backToOffer": "Wróć do zapytań"
   },
-  "ProducentRealizacjaPage": {
-    "heading": "Realizacja — {name}",
-    "areaUnknown": "metraż do ustalenia",
-    "deliveredBanner": "Zamówienie odebrane — można teraz przejść do weryfikacji firmy przed pierwszą wypłatą.",
-    "backToList": "Wróć do realizacji",
-    "verification": "Weryfikacja firmy i wypłata"
-  },
-  "ProducerFulfillmentList": {
-    "heading": "Realizacje",
-    "intro": "Oś statusu produkcji, transportu, montażu i odbioru — ta sama, którą widzi klient dla tego samego zamówienia. Po odbiorze odblokowuje się weryfikacja firmy przed pierwszą wypłatą.",
-    "empty": "Brak realizacji — pojawią się tu zamówienia z zaakceptowaną ofertą.",
-    "areaUnknown": "metraż do ustalenia",
-    "readyForVerification": "Gotowe do weryfikacji firmy",
-    "currentStage": "Aktualny etap: {stage}",
-    "viewTimeline": "Zobacz oś statusu"
-  },
   "ProducerCertificationsSection": {
     "heading": "Certyfikaty firmy",
     "intro": "Certyfikaty są widoczne publicznie. Dopóki platforma ich nie potwierdzi, oznaczamy je jako deklarację producenta.",
@@ -228,6 +212,7 @@
     "price": "Cena",
     "priceOnRequest": "Wycena indywidualna",
     "priceOnRequestHint": "Ustalana bezpośrednio z producentem",
+    "priceEstimateHint": "Cena szacunkowa, do potwierdzenia z producentem",
     "priceFrom": "od {price} €",
     "leadTime": "{productionMin}–{productionMax} tyg. produkcji · {assemblyMin}–{assemblyMax} dni montażu",
     "costIncludedFallback": "Zakres do potwierdzenia",
@@ -272,7 +257,7 @@
   },
   "ResultsHeader": {
     "eligibleSuffix": " dopuszczonych {country}",
-    "hint": "Wybierz kraj w pasku wyżej, żeby zobaczyć, które {familyFew} są tam dopuszczone prawnie.",
+    "hint": "Wybierz kraj w filtrach, żeby zobaczyć, które {familyFew} są tam dopuszczone prawnie.",
     "hintOutdoorTv": "Zawęź listę według sposobu montażu i przeznaczenia."
   },
   "EmptyResults": {
@@ -1579,6 +1564,7 @@
     "home": "Domy",
     "more": "Więcej niż dom",
     "subNavAriaLabel": "Doprecyzuj w grupie Więcej niż dom",
+    "refineLabel": "Rodzaj",
     "all": "Wszystko",
     "spa": "Spa modułowe",
     "containers": "Kontenery",
@@ -1636,49 +1622,6 @@
     "saveLabel": "Zapisz zmiany",
     "genericError": "Nie udało się zapisać zmian. Spróbuj ponownie."
   },
-  "CompanyVerificationView": {
-    "heading": "Weryfikacja firmy — {name}",
-    "disclaimer": "To jest makieta — żadna weryfikacja nie jest tu naprawdę przeprowadzana, a wypłata nie jest realna.",
-    "disclaimerSuffix": "Przed pierwszą wypłatą sprawdzamy firmę na podstawie poniższych dokumentów.",
-    "requiredDocsHeading": "Wymagane dokumenty",
-    "doc1": "Odpis z rejestru przedsiębiorców (KRS lub CEIDG)",
-    "doc2": "Zaświadczenie o niezaleganiu w ZUS i US",
-    "doc3": "Potwierdzenie rachunku bankowego firmy (wyciąg lub przelew weryfikacyjny)",
-    "doc4": "Polisa ubezpieczenia OC działalności",
-    "submittedMessage": "Dokumenty przesłane do weryfikacji. Pierwsza wypłata zostanie odblokowana po jej zakończeniu (makieta, bez realnej weryfikacji).",
-    "backToFulfillment": "Wróć do realizacji",
-    "uploadLabel": "Dokumenty do weryfikacji",
-    "submitButton": "Wyślij do weryfikacji"
-  },
-  "ExportReadinessCountryRow": {
-    "statusApproved": "Dopuszczone",
-    "statusConditional": "Warunkowo dopuszczone",
-    "statusBlocked": "Niedopuszczone",
-    "resolvedReason": "Luki domknięte poprzez zakup pakietu domykania luk (zapisane w tej przeglądarce).",
-    "whatsMissing": "Czego brakuje",
-    "closeGaps": "Domknij luki"
-  },
-  "GapClosureView": {
-    "heading": "Domknij luki: {country}",
-    "headingWithProject": "Domknij luki: {country} — „{project}”",
-    "disclaimer": "To nie jest opinia prawna. Wynik to szacunkowa ocena na podstawie danych przykładowych, nie realna ekspertyza prawna ani budowlana.",
-    "alreadyResolved": "Ten kraj jest już domknięty — luki zostały uzupełnione poprzez zakup pakietu.",
-    "backToMap": "Wróć do mapy gotowości eksportowej"
-  },
-  "ExportReadinessMap": {
-    "headingWithProject": "Gotowość eksportowa: „{project}”",
-    "heading": "Gotowość eksportowa",
-    "disclaimer": "To nie jest opinia prawna. Wynik to szacunkowa ocena na podstawie danych przykładowych, nie realna ekspertyza prawna ani budowlana.",
-    "viewProducts": "Zobacz swoje produkty"
-  },
-  "GapClosureUploadSection": {
-    "heading": "Wgraj dokumenty samodzielnie",
-    "submittedMessage": "Dokumenty przesłane do weryfikacji.",
-    "backToMap": "Wróć do mapy gotowości eksportowej",
-    "intro": "Zadeklaruj samodzielnie, że wgrywasz brakujące dokumenty. Ta ścieżka niczego nie weryfikuje i nie zmienia statusu kraju na mapie.",
-    "uploadLabel": "Brakujące dokumenty",
-    "submitButton": "Wyślij"
-  },
   "OfferForm": {
     "intro": "Wyceń każdy z Twoich produktów w tym zapytaniu osobno, a następnie podaj transport i montaż.",
     "revisionIntro": "Poprawiasz wcześniej złożoną ofertę — nowa wersja zastąpi poprzednią, klient zobaczy tylko tę.",
@@ -1702,15 +1645,6 @@
     "accepted": "Przyjęta",
     "rejected": "Odrzucona",
     "genericError": "Nie udało się zapisać decyzji. Spróbuj ponownie."
-  },
-  "RegistrationForm": {
-    "nipLabel": "NIP",
-    "nipPlaceholder": "000-000-00-00",
-    "nipError": "Podaj prawidłowy NIP (10 cyfr).",
-    "deliveryCountriesLegend": "Kraje dostawy",
-    "technologyLabel": "Technologia",
-    "technologyPlaceholder": "Wybierz technologię",
-    "submitButton": "Zarejestruj się"
   },
   "Hero": {
     "trustVerified": "Zweryfikowani producenci",
@@ -1841,20 +1775,6 @@
     "cancel": "Anuluj",
     "confirm": "Usuń"
   },
-  "GapClosurePackageSection": {
-    "heading": "Kup pakiet domknięcia luk",
-    "intro": "Kupujemy w Twoim imieniu komplet brakujących dokumentów i deklarujemy kraj jako dopuszczony.",
-    "priceLabel": "Cena pakietu",
-    "payButton": "Zapłać",
-    "processingPayment": "Przetwarzanie płatności…",
-    "approvedStatus": "Dopuszczone",
-    "paidMessage": "Pakiet opłacony — kraj jest teraz dopuszczony.",
-    "backToMap": "Wróć do mapy gotowości eksportowej"
-  },
-  "ProducerRegistrationBar": {
-    "registeredBadge": "Zarejestrowano",
-    "nipLabel": "NIP"
-  },
   "ClientRegistrationForm": {
     "checkInboxHeading": "Sprawdź swoją skrzynkę",
     "checkInboxBody": "Wysłaliśmy link logowania na podany adres e mail. Kliknij go, żeby dokończyć zakładanie konta — link jest ważny przez 24 godziny.",
@@ -1910,43 +1830,36 @@
     "alreadyHaveAccount": "Masz już konto?",
     "loginLink": "Zaloguj się"
   },
-  "ProductCatalogList": {
-    "heading": "Twoje produkty",
-    "loading": "Ładowanie…",
-    "subtitle": "Wszystkie produkty dodane pod NIP {nip}.",
-    "addProduct": "Dodaj produkt",
-    "emptyMessage": "Nie masz jeszcze żadnego produktu w katalogu.",
-    "addFirstProduct": "Dodaj pierwszy produkt",
-    "addedOn": "Dodano {date}",
-    "bedroomsOne": "sypialnia",
-    "bedroomsOther": "sypialnie",
-    "editButton": "Edytuj",
-    "deleteButton": "Usuń"
-  },
-  "ProducerCatalogLookupForm": {
-    "label": "Masz już konto? Wpisz NIP, żeby zobaczyć swój katalog produktów",
-    "placeholder": "000-000-00-00",
-    "error": "Podaj prawidłowy NIP (10 cyfr).",
-    "submitButton": "Zobacz produkty"
-  },
   "ProducerPanelPage": {
-    "heading": "Konto",
+    "heading": "Pulpit",
+    "greeting": "Witaj, {company}",
     "noProfile": "Nie znaleziono danych firmy dla tego konta.",
-    "companyNameLabel": "Nazwa firmy",
-    "deliveryCountriesLabel": "Kraje dostawy",
-    "technologyLabel": "Technologia",
-    "technologyNotSet": "Nie ustawiono jeszcze technologii.",
-    "verificationStatusLabel": "Status weryfikacji",
-    "verificationNotSubmitted": "Nie zgłoszono",
-    "verificationPending": "W trakcie weryfikacji",
-    "verificationApproved": "Zweryfikowana",
-    "verificationRejected": "Odrzucona",
-    "inquiriesOffers": "Zapytania i oferty",
-    "demoScreensHeading": "Materiały demonstracyjne",
-    "demoScreensDescription": "Te ekrany pokazują, jak wygląda dalsza część ścieżki producenta — dziś jeszcze na danych przykładowych, nie na Twoim koncie.",
-    "demoExportReadiness": "Gotowość eksportowa",
-    "demoCompanyVerification": "Weryfikacja firmy",
-    "demoFulfillment": "Realizacje"
+    "addProduct": "Dodaj produkt",
+    "reactionHeading": "Wymaga Twojej reakcji",
+    "reactionEmpty": "Nic nie czeka na Twoją reakcję",
+    "reactionCta": "Otwórz",
+    "needsOfferTitle": "{count, plural, one {# zapytanie czeka na ofertę} few {# zapytania czekają na ofertę} many {# zapytań czeka na ofertę} other {# zapytania czeka na ofertę}}",
+    "oldestToday": "Najstarsze wpłynęło dziś",
+    "oldestDays": "Najstarsze czeka {days} d.",
+    "decisionTitle": "Klient podjął decyzję w sprawie Twojej oferty",
+    "decisionDetail": "Sprawdź decyzję i dalsze kroki",
+    "boardTitle": "{count, plural, one {# ogłoszenie czeka na Twoją wycenę} few {# ogłoszenia czekają na Twoją wycenę} many {# ogłoszeń czeka na Twoją wycenę} other {# ogłoszenia czeka na Twoją wycenę}}",
+    "boardDetail": "Złóż wycenę, zanim minie termin",
+    "capacityNotSubmitted": "Uzupełnij profil zdolności, żeby zobaczyć tablicę",
+    "capacityPending": "Profil zdolności czeka na weryfikację",
+    "capacityRejected": "Profil zdolności odrzucony, popraw go",
+    "tileInquiries": "Otwarte zapytania",
+    "tileInquiriesDetail": "Wysłane oferty: {count}",
+    "tileQuotes": "Moje wyceny",
+    "tileQuotesDetail": "Czekają na klienta",
+    "tileProducts": "Aktywne produkty",
+    "tileProductsDetail": "Do uzupełnienia: {count}",
+    "checklistHeading": "Dokończ profil",
+    "checklistProgress": "{done} z {total}",
+    "taskCompany": "Uzupełnij dane firmy",
+    "taskCapacity": "Zatwierdź profil zdolności",
+    "taskCertificate": "Dodaj certyfikat",
+    "taskProducts": "Uzupełnij produkty"
   },
   "ProducerProductPhotosStep": {
     "label": "Zdjęcia",
@@ -1967,25 +1880,51 @@
     "addFirstProduct": "Dodaj pierwszy produkt",
     "emptyMessage": "Nie masz jeszcze żadnego produktu w katalogu.",
     "unnamedProduct": "Produkt bez nazwy",
-    "addedOn": "Dodano {date}",
     "statusPublished": "Opublikowany",
     "statusDraft": "Szkic",
     "editButton": "Edytuj",
     "deleteButton": "Usuń",
-    "deleteError": "Nie udało się usunąć produktu."
-  },
-  "DemoScreenNotice": {
-    "message": "Wersja demonstracyjna: ten ekran pokazuje dane przykładowe, nie dane Twojego konta."
+    "deleteError": "Nie udało się usunąć produktu.",
+    "summary": "{published} opublikowanych, {incomplete} wymaga uzupełnienia",
+    "columnProduct": "Produkt",
+    "columnStatus": "Status",
+    "columnCompleteness": "Kompletność",
+    "columnAdded": "Dodano",
+    "columnActions": "Akcje",
+    "complete": "Kompletny",
+    "missingDraft": "Dokończ i opublikuj",
+    "missingPhoto": "Brak zdjęć",
+    "missingPrice": "Brak ceny",
+    "missingTranslation": "Brak tłumaczeń",
+    "missingMore": "+{count} więcej",
+    "completeButton": "Uzupełnij"
   },
   "ProducerPanelZapytaniaPage": {
     "heading": "Zapytania",
+    "intro": "Wszystkie zapytania od klientów w jednym miejscu: z listy porównań i o Twoje produkty.",
     "emptyMessage": "Nie masz jeszcze żadnych zapytań od klientów.",
-    "columnProducts": "Produkty",
+    "emptyFiltered": "Brak zapytań w tym statusie.",
+    "filtersAriaLabel": "Filtr statusu zapytań",
+    "filterNeedsOffer": "Wymaga oferty",
+    "filterDecision": "Decyzja klienta",
+    "filterOffered": "Oferta wysłana",
+    "filterClosed": "Zamknięte",
+    "filterAll": "Wszystkie",
+    "columnProduct": "Produkt lub projekt",
+    "columnSource": "Źródło",
+    "columnCountry": "Kraj",
     "columnStatus": "Status",
-    "columnDate": "Data",
-    "statusOpen": "Oczekuje na odpowiedź",
-    "statusOffered": "Otrzymano ofertę",
+    "columnAge": "Wiek",
+    "columnAction": "Akcja",
+    "sourceShortlist": "Z shortlisty",
+    "sourceProduct": "O produkt",
+    "statusNeedsOffer": "Wymaga oferty",
+    "statusDecision": "Decyzja klienta",
+    "statusOffered": "Oferta wysłana",
     "statusClosed": "Zamknięte",
+    "ageToday": "Dziś",
+    "ageDays": "{days} d.",
+    "open": "Otwórz",
     "unreadDecisionLabel": "Klient podjął decyzję"
   },
   "ProducerPanelBoardPage": {
@@ -2014,7 +1953,9 @@
     "columnOwnQuote": "Twoja oferta",
     "ownQuoteNone": "Nie złożono",
     "notDeliveringNote": "Nie masz tego kraju na liście dostaw",
-    "notDeliveringLink": "Dodaj kraj w profilu zdolności"
+    "notDeliveringLink": "Dodaj kraj w profilu zdolności",
+    "onlyMyCountries": "Tylko moje kraje dostawy",
+    "hiddenByDelivery": "Ukryto {count, plural, one {# ogłoszenie} few {# ogłoszenia} many {# ogłoszeń} other {# ogłoszenia}} spoza Twoich krajów dostawy."
   },
   "ProducerBoardDetailPage": {
     "quotesClosedNote": "Termin składania ofert minął albo klient wybrał już ofertę. Nowej oferty nie można złożyć.",
@@ -2272,10 +2213,6 @@
   },
   "ProducerPanelSidebar": {
     "navAriaLabel": "Panel producenta",
-    "konto": "Konto",
-    "produkty": "Produkty",
-    "zapytania": "Zapytania",
-    "unreadBadgeLabel": "Klient podjął decyzję",
     "home": "Strona Główna",
     "signOut": "Wyloguj",
     "openMenu": "Otwórz menu",
@@ -2283,10 +2220,17 @@
     "menu": "Menu",
     "collapseSidebar": "Zwiń menu",
     "expandSidebar": "Rozwiń menu",
+    "dashboard": "Pulpit",
+    "groupOrders": "Zlecenia",
+    "groupOffer": "Oferta",
+    "groupCompany": "Firma",
+    "inquiries": "Zapytania",
     "board": "Tablica ogłoszeń",
-    "boardQuotes": "Moje wyceny",
+    "products": "Produkty",
     "capacity": "Profil zdolności",
-    "productInquiries": "Zapytania o produkt"
+    "settings": "Ustawienia firmy",
+    "inquiriesBadgeLabel": "Zapytania wymagające Twojej reakcji: {count}",
+    "boardBadgeLabel": "Ogłoszenia czekające na Twoją wycenę: {count}"
   },
   "ClientPanelSidebar": {
     "navAriaLabel": "Panel klienta",
@@ -2797,19 +2741,8 @@
     "intro": "Klient wybrał ofertę, ale jego dane firmy (B2B) nie są jeszcze zatwierdzone. Zatwierdź je, a strony połączą się automatycznie.",
     "cta": "Otwórz zapytanie w panelu"
   },
-  "ProducerProductInquiriesPage": {
-    "heading": "Zapytania o Twoje produkty",
-    "intro": "Zapytania o duże zamówienia konkretnych produktów z Twojej oferty. Złóż wycenę przed terminem. Dane kontaktowe inwestora poznasz dopiero po wyborze Twojej oferty.",
-    "emptyMessage": "Brak zapytań o Twoje produkty.",
-    "columnProduct": "Produkt",
-    "columnCountry": "Kraj dostawy",
-    "columnUnits": "Sztuki",
-    "columnDeadline": "Termin ofert",
-    "columnOwnQuote": "Twoja oferta",
-    "ownQuoteNone": "Nie złożono"
-  },
   "ProducerProductInquiryDetailPage": {
-    "backToList": "Wróć do zapytań o produkty",
+    "backToList": "Wróć do zapytań",
     "scopeHeading": "Zakres zamówienia",
     "countryLabel": "Kraj dostawy",
     "unitCountLabel": "Liczba sztuk",
@@ -2943,5 +2876,23 @@
       "investor": "Dołącz jako inwestor",
       "client": "Dołącz jako klient prywatny"
     }
+  },
+  "ProducerSettingsPage": {
+    "heading": "Ustawienia firmy",
+    "noProfile": "Nie znaleziono danych firmy dla tego konta.",
+    "editHeading": "Dane firmy",
+    "companyNameLabel": "Nazwa firmy",
+    "technologyLabel": "Technologia",
+    "technologyPlaceholder": "Wybierz technologię",
+    "deliveryCountriesLabel": "Kraje dostawy",
+    "changeCountries": "Zmień",
+    "save": "Zapisz zmiany",
+    "saved": "Zapisano.",
+    "saveError": "Nie udało się zapisać danych firmy."
+  },
+  "ProducerBoardTabs": {
+    "ariaLabel": "Tablica ogłoszeń",
+    "available": "Dostępne ogłoszenia",
+    "myQuotes": "Moje wyceny"
   }
 }

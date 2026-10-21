@@ -96,10 +96,10 @@ export function ProducerCertificationsSection({ certifications }: { certificatio
           />
         </div>
         <Stack direction="row" gap={2}>
-          <Button type="submit" size="sm" disabled={isPending}>
+          <Button type="submit" size="md" disabled={isPending}>
             {submitLabel}
           </Button>
-          <Button type="button" variant="ghost" size="sm" onClick={resetForm}>
+          <Button type="button" variant="ghost" size="md" onClick={resetForm}>
             {t("cancel")}
           </Button>
         </Stack>
@@ -147,10 +147,10 @@ export function ProducerCertificationsSection({ certifications }: { certificatio
                   </>
                 ) : (
                   <Stack direction="row" gap={2}>
-                    <Button type="button" variant="ghost" size="sm" disabled={isPending} onClick={() => startEdit(row)}>
+                    <Button type="button" variant="ghost" size="md" disabled={isPending} onClick={() => startEdit(row)}>
                       {t("edit")}
                     </Button>
-                    <Button type="button" variant="ghost" size="sm" disabled={isPending} onClick={() => remove(row)}>
+                    <Button type="button" variant="ghost" size="md" disabled={isPending} onClick={() => remove(row)}>
                       {t("remove")}
                     </Button>
                   </Stack>

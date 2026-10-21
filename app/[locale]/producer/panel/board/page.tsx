@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { BoardFilters } from "@/components/producent/BoardFilters";
+import { BoardTabs } from "@/components/producent/BoardTabs";
 import { Card, Heading, Stack, TAG_TONES, TagPill, Text } from "@/components/ui";
 import {
   getAllCountries,
@@ -12,6 +13,7 @@ import {
 } from "@/lib/db/queries";
 import { productFamilyEnum, projectTypeEnum } from "@/lib/db/schema";
 import { requirePanelProducerSession } from "@/lib/panel-session";
+import { getAllQuotesCount, getBoardWithoutQuoteCount } from "@/lib/producer-panel-summary";
 
 const PROJECT_TYPES = projectTypeEnum.enumValues;
 const FAMILIES = productFamilyEnum.enumValues;
@@ -28,10 +30,16 @@ export default async function ProducerPanelBoardPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ page?: string; country?: string; type?: string; family?: string }>;
+  searchParams: Promise<{ page?: string; country?: string; type?: string; family?: string; mine?: string }>;
 }) {
   const { locale } = await params;
-  const { page: pageParam, country: countryParam, type: typeParam, family: familyParam } = await searchParams;
+  const {
+    page: pageParam,
+    country: countryParam,
+    type: typeParam,
+    family: familyParam,
+    mine: mineParam,
+  } = await searchParams;
   const selfHref = `/${locale}/producer/panel/board`;
   const [session, t, tProjectRequest, tOptions, tDetail] = await Promise.all([
     requirePanelProducerSession(locale, selfHref),
@@ -40,14 +48,33 @@ export default async function ProducerPanelBoardPage({
     getTranslations("ProjectOptions"),
     getTranslations("ProducerBoardDetailPage"),
   ]);
+  const tTabs = await getTranslations("ProducerBoardTabs");
 
   const producerId = await getProducerIdForUser(session.user.id);
   const volumeStatus = producerId ? await getProducerVolumeVerificationStatus(producerId) : null;
+
+  const quotesCount = producerId ? await getAllQuotesCount(producerId) : 0;
+  const tabsFor = (availableCount: number | undefined) => (
+    <BoardTabs
+      ariaLabel={tTabs("ariaLabel")}
+      tabs={[
+        { key: "board", label: tTabs("available"), href: selfHref, active: true, count: availableCount },
+        {
+          key: "quotes",
+          label: tTabs("myQuotes"),
+          href: `/${locale}/producer/panel/board-quotes`,
+          active: false,
+          count: quotesCount,
+        },
+      ]}
+    />
+  );
 
   if (!producerId || volumeStatus !== "approved") {
     return (
       <Stack gap={4}>
         <Heading level="h1">{t("heading")}</Heading>
+        {tabsFor(undefined)}
         <Card as="div" padding="lg" className="flex flex-col items-center gap-brand-2 py-brand-5 text-center">
           <Heading level="h2">{t("notApprovedHeading")}</Heading>
           <Text tone="muted" measure className="mx-auto">
@@ -67,9 +94,13 @@ export default async function ProducerPanelBoardPage({
     countryCode: countries.find((c) => c.code === countryParam)?.code,
     projectType: PROJECT_TYPES.find((v) => v === typeParam),
     family: FAMILIES.find((v) => v === familyParam),
+    onlyDeliveryCountries: mineParam === "1" || undefined,
   };
   const hasFilters = Object.values(filters).some(Boolean);
-  const { items, totalCount } = await getOpenProjectRequestsForBoard({ producerId, page, filters });
+  const [{ items, totalCount, hiddenByDeliveryCount }, availableCount] = await Promise.all([
+    getOpenProjectRequestsForBoard({ producerId, page, filters }),
+    getBoardWithoutQuoteCount(producerId),
+  ]);
   const totalPages = Math.max(1, Math.ceil(totalCount / PROJECT_REQUESTS_BOARD_PAGE_SIZE));
 
   const ownQuoteLabel: Record<string, string> = {
@@ -88,6 +119,7 @@ export default async function ProducerPanelBoardPage({
     if (filters.countryCode) params.set("country", filters.countryCode);
     if (filters.projectType) params.set("type", filters.projectType);
     if (filters.family) params.set("family", filters.family);
+    if (filters.onlyDeliveryCountries) params.set("mine", "1");
     params.set("page", String(targetPage));
     return `${selfHref}?${params.toString()}`;
   }
@@ -98,6 +130,7 @@ export default async function ProducerPanelBoardPage({
         <Heading level="h1">{t("heading")}</Heading>
         <Text tone="muted">{t("intro")}</Text>
       </Stack>
+      {tabsFor(availableCount)}
       <BoardFilters
         countries={countries}
         projectTypes={[...PROJECT_TYPES]}
@@ -107,6 +140,11 @@ export default async function ProducerPanelBoardPage({
           family: Object.fromEntries(FAMILIES.map((v) => [v, tOptions(`family.${v}`)])),
         }}
       />
+      {hiddenByDeliveryCount > 0 && (
+        <div role="status">
+          <Text tone="muted">{t("hiddenByDelivery", { count: hiddenByDeliveryCount })}</Text>
+        </div>
+      )}
       {items.length === 0 ? (
         <Card as="div" padding="md">
           <Text tone="muted">{hasFilters ? t("emptyFiltered") : t("emptyMessage")}</Text>

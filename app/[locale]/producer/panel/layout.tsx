@@ -5,6 +5,7 @@ import { SkipLink } from "@/components/SkipLink";
 import { ProducerPanelSidebar } from "@/components/producent/ProducerPanelSidebar";
 import { Container, Stack, ThemeProvider } from "@/components/ui";
 import { getProducerIdForUser, getUnreadDecisionInquiryIds } from "@/lib/db/queries";
+import { getPanelNavCounts } from "@/lib/producer-panel-summary";
 import { isTheme, THEME_COOKIE_NAME } from "@/lib/theme";
 
 // Layout wspólny dla /producer/panel/* (spec 0032 Build plan zadanie 1):
@@ -25,11 +26,19 @@ export default async function ProducerPanelLayout({
 }) {
   const { locale } = await params;
 
-  // Zbiorczy sygnał nieprzeczytane przy "Zapytania" (spec 0033 AC-12): odczyt
-  // bez własnego przekierowania, bramka sesji żyje w każdej podstronie osobno.
+  // Liczby przy "Zapytania" i "Tablica ogłoszeń" (spec 0074 AC-2): odczyt bez
+  // własnego przekierowania, bramka sesji żyje w każdej podstronie osobno.
   const session = await auth();
   const producerId = session?.user.role === "producer" ? await getProducerIdForUser(session.user.id) : null;
-  const hasUnreadDecisions = producerId ? (await getUnreadDecisionInquiryIds(producerId)).size > 0 : false;
+  let navCounts: { inquiries: number; board: number } | undefined;
+  if (producerId) {
+    const unreadDecisionCount = (await getUnreadDecisionInquiryIds(producerId)).size;
+    const counts = await getPanelNavCounts(producerId, unreadDecisionCount);
+    navCounts = {
+      inquiries: counts.needsOfferCount + counts.unreadDecisionCount,
+      board: counts.boardWithoutQuoteCount,
+    };
+  }
 
   // Tryb ciemny panelu (spec 0046): drugi, niezależny zakres od flow klienta
   // (theme-producer obok theme-klient), reużywający ten sam cookie theme i
@@ -43,7 +52,7 @@ export default async function ProducerPanelLayout({
     <ThemeProvider initialTheme={initialTheme} scopeClassName="theme-producer">
       <SkipLink />
       <div className="flex min-h-screen flex-col md:flex-row">
-        <ProducerPanelSidebar locale={locale} hasUnreadZapytania={hasUnreadDecisions} />
+        <ProducerPanelSidebar locale={locale} counts={navCounts} />
         <main id="main-content" className="min-w-0 flex-1">
           <Container className="py-brand-6">
             <Stack gap={4}>{children}</Stack>

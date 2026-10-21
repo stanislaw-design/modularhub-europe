@@ -1,9 +1,16 @@
 import { getTranslations } from "next-intl/server";
 import { DownloadQuotePdfButton } from "@/components/producent/DownloadQuotePdfButton";
+import { BoardTabs } from "@/components/producent/BoardTabs";
 import { QuoteOutcomeControl } from "@/components/producent/QuoteOutcomeControl";
 import { Card, DataText, Heading, Stack, Text } from "@/components/ui";
-import { getProducerIdForUser, getProjectQuotesForProducer, type ProjectQuoteForProducer } from "@/lib/db/queries";
+import {
+  getProducerIdForUser,
+  getProducerVolumeVerificationStatus,
+  getProjectQuotesForProducer,
+  type ProjectQuoteForProducer,
+} from "@/lib/db/queries";
 import { requirePanelProducerSession } from "@/lib/panel-session";
+import { getBoardWithoutQuoteCount } from "@/lib/producer-panel-summary";
 
 const dateFormatter = new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium", timeStyle: "short" });
 const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0 });
@@ -21,13 +28,17 @@ export default async function ProducerPanelBoardQuotesPage({
 }) {
   const { locale } = await params;
   const selfHref = `/${locale}/producer/panel/board-quotes`;
-  const [session, t] = await Promise.all([
+  const [session, t, tTabs] = await Promise.all([
     requirePanelProducerSession(locale, selfHref),
     getTranslations("ProducerPanelBoardQuotesPage"),
+    getTranslations("ProducerBoardTabs"),
   ]);
 
   const producerId = await getProducerIdForUser(session.user.id);
   const quotes = producerId ? await getProjectQuotesForProducer(producerId) : [];
+  // Liczba przy "Dostępne ogłoszenia" tak jak w menu (AC-2): bez zatwierdzonej weryfikacji bez znacznika.
+  const approved = producerId ? (await getProducerVolumeVerificationStatus(producerId)) === "approved" : false;
+  const availableCount = producerId && approved ? await getBoardWithoutQuoteCount(producerId) : undefined;
 
   const statusLabel: Record<ProjectQuoteForProducer["status"], string> = {
     active: t("statusActive"),
@@ -43,6 +54,13 @@ export default async function ProducerPanelBoardQuotesPage({
   return (
     <Stack gap={4}>
       <Heading level="h1">{t("heading")}</Heading>
+      <BoardTabs
+        ariaLabel={tTabs("ariaLabel")}
+        tabs={[
+          { key: "board", label: tTabs("available"), href: `/${locale}/producer/panel/board`, active: false, count: availableCount },
+          { key: "quotes", label: tTabs("myQuotes"), href: selfHref, active: true, count: quotes.length },
+        ]}
+      />
       {quotes.length === 0 ? (
         <Card as="div" padding="md">
           <Text tone="muted">{t("emptyMessage")}</Text>

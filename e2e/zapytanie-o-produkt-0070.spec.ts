@@ -92,15 +92,18 @@ test.describe("spec 0070: zapytanie o produkt", () => {
 
     // Cudzy producent: lista pusta, szczegół 404 (AC-21, AC-22).
     await as(tokens.other);
-    await page.goto("/pl/producer/panel/product-inquiries");
-    await expect(page.getByText("Brak zapytań o Twoje produkty.")).toBeVisible({ timeout: 60_000 });
+    await page.goto("/pl/producer/panel/inquiries");
+    await expect(page.getByText("Nie masz jeszcze żadnych zapytań od klientów.")).toBeVisible({ timeout: 60_000 });
     const foreign = await page.goto(`/pl/producer/panel/product-inquiries/${inquiryId}`);
     expect(foreign?.status()).toBe(404);
 
     // Producent produktu: widzi zapytanie bez kontaktu i składa ofertę.
     await as(tokens.owner);
+    // Spec 0074 AC-8: stara lista przekierowuje na wspólną listę zapytań.
     await page.goto("/pl/producer/panel/product-inquiries");
+    await expect(page).toHaveURL(/\/pl\/producer\/panel\/inquiries/, { timeout: 60_000 });
     await page.getByRole("link", { name: productName }).click();
+    await page.getByRole("button", { name: "Złóż ofertę" }).click();
     await expect(page.locator("#quote-total-price")).toBeVisible({ timeout: 60_000 });
     expect(await page.locator("main").innerText()).not.toMatch(/e2e-pi-investor|\+48000000995/);
     await page.locator("#quote-total-price").fill("700000");

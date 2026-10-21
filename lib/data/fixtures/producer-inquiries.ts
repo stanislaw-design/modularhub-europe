@@ -2,8 +2,7 @@ import type { ProducerInquiry } from "../types";
 
 // One row per incoming client inquiry (feature 15). Not tied to the client's
 // own zapytanie flow (lib/inquiry.ts persists nothing across screens in this
-// Facade stage), same standalone mock convention as export-readiness/gap
-// closure fixtures.
+// Facade stage), standalone mock fixture.
 export const producerInquiries: ProducerInquiry[] = [
   {
     id: "inq-001",
