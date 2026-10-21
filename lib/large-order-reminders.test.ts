@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { and, eq, gte, inArray, or } from "drizzle-orm";
+import { and, eq, inArray, or } from "drizzle-orm";
 
 const reminderMock = vi.hoisted(() => vi.fn().mockResolvedValue(true));
 const teamDeadlineMock = vi.hoisted(() => vi.fn().mockResolvedValue(true));
@@ -38,7 +38,6 @@ import { claimNotification, runLargeOrderReminders } from "./large-order-reminde
 vi.setConfig({ testTimeout: 30_000, hookTimeout: 30_000 });
 
 describe.skipIf(!process.env.DATABASE_URL)("lib/large-order-reminders: real DB (spec 0070 AC-17, AC-25)", () => {
-  const startedAt = new Date();
   const hours = (count: number) => new Date(Date.now() + count * 3_600_000);
 
   const plain = { userId: crypto.randomUUID(), producerId: crypto.randomUUID() };
@@ -57,6 +56,10 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/large-order-reminders: real DB (
 
   // Zadanie obejmuje tylko zapytania z fixture, więc nie dotyka cudzych wierszy wspólnej bazy dev.
   const scope = () => [...allRequestIds, inquiryId];
+  // Dziennik sprzątamy po identyfikatorach rodziców z fixture, nie po czasie: sent_at ustawia baza, więc
+  // porównanie z zegarem lokalnym zostawiało wpisy (i blokowało kolejne przebiegi), gdy zegary się rozjeżdżały.
+  const ourLogRows = () =>
+    or(inArray(projectNotificationLog.projectRequestId, allRequestIds), eq(projectNotificationLog.bulkProductInquiryId, inquiryId));
   const ours = (call: unknown[]) => producerIds.includes((call[0] as { producerId: string }).producerId);
 
   beforeAll(async () => {
@@ -129,7 +132,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/large-order-reminders: real DB (
 
   beforeEach(async () => {
     // Każdy test zaczyna z pustym dziennikiem, bo wpis z poprzedniego testu blokowałby wysyłkę.
-    await db.delete(projectNotificationLog).where(gte(projectNotificationLog.sentAt, startedAt));
+    await db.delete(projectNotificationLog).where(ourLogRows());
     reminderMock.mockClear();
     teamDeadlineMock.mockClear();
     connectMock.mockClear();
@@ -138,7 +141,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/large-order-reminders: real DB (
   });
 
   afterAll(async () => {
-    await db.delete(projectNotificationLog).where(gte(projectNotificationLog.sentAt, startedAt));
+    await db.delete(projectNotificationLog).where(ourLogRows());
     await db.update(projectRequest).set({ selectedQuoteId: null }).where(eq(projectRequest.id, requestIds.selected));
     await db.delete(projectQuote).where(inArray(projectQuote.producerId, producerIds));
     await db.delete(bulkProductInquiry).where(eq(bulkProductInquiry.id, inquiryId));
@@ -244,7 +247,6 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/large-order-reminders: real DB (
       .from(projectNotificationLog)
       .where(
         and(
-          gte(projectNotificationLog.sentAt, startedAt),
           or(
             eq(projectNotificationLog.projectRequestId, requestIds.threeDays),
             eq(projectNotificationLog.bulkProductInquiryId, inquiryId),
