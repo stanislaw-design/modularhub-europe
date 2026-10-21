@@ -31,7 +31,7 @@ export async function SubcategoryFilterBar({ locale, filter }: SubcategoryFilter
   const ariaLabel = filter.family === "spa-modulowe" ? t("spaAriaLabel") : t("containerAriaLabel");
 
   return (
-    <nav aria-label={ariaLabel} className="flex items-center gap-brand-2 overflow-x-auto border-b border-brand-v5-line py-brand-2">
+    <nav aria-label={ariaLabel} className="flex items-center gap-brand-2 overflow-x-auto lg:flex-wrap lg:overflow-visible border-b border-brand-v5-line py-brand-2">
       {options.map(({ value, label }) => {
         const active = filter[key] === value;
         return (

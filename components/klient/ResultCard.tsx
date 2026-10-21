@@ -177,10 +177,11 @@ export function ResultCard({
                     : t("storeysUnknown"),
               })}
             </Text>
-            <Text tone="muted" surface="v5" className="text-data">
-              {project.constructionSystem}
-              {defaultVariant ? ` · ${standardLabel[defaultVariant.completionStandard]}` : ""}
-            </Text>
+            {defaultVariant && (
+              <Text tone="muted" surface="v5" className="text-data">
+                {standardLabel[defaultVariant.completionStandard]}
+              </Text>
+            )}
           </>
         )}
         {hasFloorPlan && (
@@ -199,6 +200,14 @@ export function ResultCard({
               <Text variant="label" tone="muted" surface="v5">{t("price")}</Text>
               <DataText as="p" surface="v5" className="mt-1 text-body-l font-semibold">{t("priceOnRequest")}</DataText>
               <Text tone="muted" surface="v5" className="mt-1 text-data">{t("priceOnRequestHint")}</Text>
+            </>
+          ) : priceDisplay.estimated ? (
+            <>
+              <Text variant="label" tone="muted" surface="v5">{t("price")}</Text>
+              <DataText as="p" surface="v5" className="mt-1 text-body-l font-semibold">
+                {t("priceFrom", { price: priceFormatter.format(priceDisplay.priceMin) })}
+              </DataText>
+              <Text tone="muted" surface="v5" className="mt-1 text-data">{t("priceEstimateHint")}</Text>
             </>
           ) : (
             <>

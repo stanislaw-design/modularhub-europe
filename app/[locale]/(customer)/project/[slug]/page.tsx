@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { notFound, permanentRedirect, redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { Button, Card, Container, DataText, Heading, StatusPill, Text } from "@/components/ui";
+import { Button, Card, DataText, Heading, StatusPill, Text } from "@/components/ui";
 import { BulkProductInquiryModal } from "@/components/klient/BulkProductInquiryModal";
 import { FavoriteButton } from "@/components/klient/FavoriteButton";
 import { ProducerRealizationsSection } from "@/components/klient/ProducerRealizationsSection";
@@ -17,7 +17,6 @@ import { ProjectLogistics } from "@/components/klient/ProjectLogistics";
 import { ProjectOptionsConfigurator } from "@/components/klient/ProjectOptionsConfigurator";
 import { ProjectRoomLayout } from "@/components/klient/ProjectRoomLayout";
 import { ProjectSectionNav } from "@/components/klient/ProjectSectionNav";
-import { ProjectStickyPriceBar } from "@/components/klient/ProjectStickyPriceBar";
 import { ProjectTechnicalSpecs } from "@/components/klient/ProjectTechnicalSpecs";
 import { ProjectTimeline } from "@/components/klient/ProjectTimeline";
 import { ProjectVariantPicker } from "@/components/klient/ProjectVariantPicker";
@@ -27,6 +26,7 @@ import {
   flattenSelectedProductOptionIds,
   getDefaultProjectVariant,
   getSelectedProductOptionsPrice,
+  getEstimatedMinPriceEur,
   resolveSelectedProductOptions,
   toggleProductOption,
 } from "@/lib/data/project-variants";
@@ -326,56 +326,58 @@ export default async function ProjektPage({
       ? selectedVariant.priceMin + optionsPrice.totalEur
       : undefined;
 
-  // Treść desktopowego floating bara (ProjectStickyPriceBar, 2026-10-02):
-  // ten sam kształt ceny co karta w hero (wariant + suma opcji, nigdy płaska
-  // project.priceMin jak w mobilnym pasku poniżej — tu chodzi o dokładną
-  // kontynuację tego, co klient już widział w karcie, zanim ją przewinął).
-  const floatingPriceBar = (
-    <Container className="flex items-center justify-between gap-brand-4 py-brand-2">
-      <div className="flex min-w-0 flex-col">
-        {showPriceOnRequest ? (
-          <DataText surface="v5" className="truncate text-body-l font-semibold">
-            {t("priceOnRequest")}
-          </DataText>
-        ) : selectedVariant?.priceMin !== undefined ? (
-          <>
-            <Text variant="label" tone="muted" surface="v5">
-              {selectedVariant.variantLabel ?? standardLabel[selectedVariant.completionStandard]}
-            </Text>
-            <DataText surface="v5" className="text-body-l font-black leading-none">
-              {priceFormatter.format(totalPriceEur ?? selectedVariant.priceMin)} €{" "}
-              <Text as="span" tone="muted" surface="v5" className="text-data font-normal">
-                {t("netVat")}
+  // Pasek kluczowych faktów pod galerią (od lg): odpowiedź na pierwsze pytania
+  // kupującego, zanim zacznie przewijać. Wartości z tego samego rozwiązanego
+  // układu co sekcja "Układ"; fakt bez danych po prostu wypada, a przy mniej
+  // niż dwóch faktach pasek się nie renderuje.
+  // Ta sama liczba co w sekcji "Układ": bez metrażu z wersji układu suma
+  // pomieszczeń, a dopiero bez niej pole produktu.
+  const roomAreas = (resolvedLayout.rooms ?? []).flatMap((room) => (room.areaM2 !== undefined ? [room.areaM2] : []));
+  const factArea =
+    resolvedLayout.floorAreaM2 ??
+    (roomAreas.length > 0 ? Math.round(roomAreas.reduce((sum, area) => sum + area, 0) * 10) / 10 : project.floorAreaM2);
+  const factRooms = resolvedLayout.roomCount ?? project.rooms;
+  const factBathrooms = resolvedLayout.bathroomCount;
+  const factAssemblyMax = montazStage?.durationMaxDays ?? 0;
+  const factAssemblyMin = montazStage?.durationMinDays ?? factAssemblyMax;
+  const facts: { value: string; label: string }[] = [
+    ...(factArea ? [{ value: `${factArea} m²`, label: t("floorAreaLabel") }] : []),
+    ...(factRooms ? [{ value: String(factRooms), label: t(`roomsLabel.${countBucket(factRooms)}`) }] : []),
+    ...(factBathrooms ? [{ value: String(factBathrooms), label: t(`bathroomsLabel.${factBathrooms === 1 ? "one" : "other"}`) }] : []),
+    ...(factAssemblyMax > 0
+      ? [
+          {
+            value:
+              factAssemblyMin === factAssemblyMax
+                ? t(factAssemblyMax === 1 ? "assemblyTimeOne" : "assemblyTimeMany", { count: factAssemblyMax })
+                : t("assemblyTimeValue", { min: factAssemblyMin, max: factAssemblyMax }),
+            label: t("assemblyTimeLabel"),
+          },
+        ]
+      : []),
+    ...(project.structuralWarrantyYears > 0
+      ? [{ value: t("warrantyYearsValue", { years: project.structuralWarrantyYears }), label: t("warrantyTermLabel") }]
+      : []),
+  ];
+  const factsStrip =
+    facts.length >= 2 ? (
+      <dl className="hidden grid-flow-col auto-cols-fr divide-x divide-brand-v5-line border-b border-brand-v5-line lg:grid">
+        {facts.map((fact) => (
+          <div key={fact.label} className="flex flex-col gap-1 px-brand-4 py-brand-3 first:pl-brand-4">
+            <dd className="order-1 m-0">
+              <DataText surface="v5" className="text-h3 font-semibold">
+                {fact.value}
+              </DataText>
+            </dd>
+            <dt className="order-2">
+              <Text variant="label" tone="muted" surface="v5">
+                {fact.label}
               </Text>
-            </DataText>
-          </>
-        ) : (
-          <>
-            <Text variant="label" tone="muted" surface="v5">
-              {t("from")}
-            </Text>
-            <DataText surface="v5" className="text-body-l font-black leading-none">
-              {priceFormatter.format(project.priceMin)} €
-            </DataText>
-          </>
-        )}
-      </div>
-      <div className="flex shrink-0 items-center gap-brand-3">
-        <FavoriteButton
-          productId={project.id}
-          productName={project.name}
-          locale={locale}
-          isClientSession={isClientSession}
-          initialFavorited={isFavorited}
-          surface="v5"
-          className="shrink-0 border border-brand-v5-line"
-        />
-        <Button as="a" href={zapytanieHref} size="md" surface="v5" className="shrink-0">
-          {t("sendInquiry")}
-        </Button>
-      </div>
-    </Container>
-  );
+            </dt>
+          </div>
+        ))}
+      </dl>
+    ) : null;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -405,14 +407,15 @@ export default async function ProjektPage({
           mobile znosi pt-brand-5 z RouteShell, żeby zdjęcie zaczynało się od
           razu pod navbarem, bez oddechu nad nim (desktopowy odstęp zostaje). */}
       <GalleryLightboxProvider images={lightboxImages}>
-      <div className="-mt-brand-5 flex flex-col gap-brand-6 pb-24 lg:mt-0 lg:pb-0">
-        {/* Hero: galeria (z zakładkami) + nazwa + przeznaczenie + cena i wariant +
-            CTA (spec 0020 AC-1, spec 0042 AC-1, AC-13) — zdjęcia dostają wizualną
-            przewagę (7 z 12 kolumn). Prawa kolumna jest wyrównana do wysokości
-            samej galerii (items-stretch w tym wierszu). */}
-        <div className="grid grid-cols-1 items-stretch gap-brand-4 lg:grid-cols-12">
-          <div className="lg:col-span-7">
-            <ProjectGalleryTabs
+      {/* Od lg: lewa kolumna to galeria do krawędzi ekranu, pasek faktów i
+          sekcje, prawa to panel zakupowy przyklejony przez całą długość strony
+          (cena i "Wyślij zapytanie" zawsze w zasięgu, zamiast dawnego
+          pływającego paska). Panel zajmuje oba wiersze siatki, więc sticky
+          działa do końca sekcji. Na mobile kolejność DOM (galeria, panel,
+          sekcje) daje ten sam układ co dotąd. */}
+      <div className="project-wide -mt-brand-5 pb-24 lg:mt-0 lg:grid lg:grid-cols-[minmax(0,1fr)_30rem] lg:pb-0 2xl:grid-cols-[minmax(0,1fr)_34rem]">
+        <div className="lg:col-start-1 lg:row-start-1">
+          <ProjectGalleryTabs
               projectName={project.name}
               altSubject={altSubject}
               coverImageUrl={project.coverImageUrl}
@@ -422,9 +425,11 @@ export default async function ProjektPage({
               activeTab={activeGalleryTab}
               hrefFor={hrefForGalleryTab}
             />
-          </div>
-          <div className="flex h-full flex-col justify-between gap-brand-3 lg:col-span-5">
-            <div className="flex flex-col gap-brand-3">
+          {factsStrip}
+        </div>
+
+        <aside className="mt-brand-4 flex flex-col gap-brand-4 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0 lg:h-[calc(100svh-5rem)] lg:self-start lg:overflow-y-auto lg:border-l lg:border-brand-v5-line lg:p-brand-5 lg:sticky lg:top-20">
+          <div className="flex flex-col gap-brand-3">
               <div className="flex items-start justify-between gap-brand-2">
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
                   <Heading level="h1" surface="v5">
@@ -449,6 +454,7 @@ export default async function ProjektPage({
                 />
               </div>
 
+
               <ProjectVariantPicker
                 variants={project.variants}
                 selectedVariantId={selectedVariant?.id ?? ""}
@@ -456,8 +462,6 @@ export default async function ProjektPage({
                 standardLabel={standardLabel}
                 ariaLabel={t("variantPickerAriaLabel")}
               />
-
-              <ProjectStickyPriceBar floatingBar={floatingPriceBar}>
               <Card padding="lg" surface="v5" className="flex flex-col gap-brand-3 border-brand-v5-amber-strong/30">
                 {/* Spec 0050 AC-13, AC-37: wariant może być priceOnRequest niezależnie
                     od flagi produktu wyżej — sprawdzany tu jawnie, inaczej wpadałby w
@@ -532,14 +536,14 @@ export default async function ProjektPage({
                       {t("estimatedPackage")}
                     </Text>
                     <DataText as="p" surface="v5" className="text-h2 font-semibold">
-                      {t("from")} {priceFormatter.format(project.priceMin)} €
+                      {t("from")} {priceFormatter.format(getEstimatedMinPriceEur(project) ?? project.priceMin)} €
                     </DataText>
                   </>
                 )}
-                <Button as="a" href={zapytanieHref} size="lg" surface="v5" className="mt-brand-1 w-full sm:w-fit">
+                <Button as="a" href={zapytanieHref} size="lg" surface="v5" className="mt-brand-1 w-full">
                   {t("sendInquiry")}
                 </Button>
-                <Button as="a" href={shortlistHref} variant="secondary" surface="v5" className="w-full sm:w-fit">
+                <Button as="a" href={shortlistHref} variant="ghost" surface="v5" className="w-full">
                   {t("compareWithAnother")}
                 </Button>
                 <div className="flex flex-col gap-1">
@@ -551,9 +555,7 @@ export default async function ProjektPage({
                   </Text>
                 </div>
               </Card>
-              </ProjectStickyPriceBar>
-            </div>
-
+          </div>
             {/* Szybkie sygnały zaufania, przypięte do dołu kolumny — ten sam moment
                 decyzji nie musi czekać na scroll do sekcji technicznej. */}
             <div className="flex flex-col gap-brand-2">
@@ -591,9 +593,10 @@ export default async function ProjektPage({
                 </span>
               )}
             </div>
-          </div>
-        </div>
+        </aside>
 
+        <div className="mt-brand-6 flex flex-col gap-brand-6 lg:[&_h2]:text-h2 lg:col-start-1 lg:row-start-2 lg:mt-0 lg:px-10 lg:py-brand-6">
+          <div className="lg:sticky lg:top-20 lg:z-30 lg:-mx-10 lg:bg-background lg:px-10">
         <ProjectSectionNav
           items={[
             { id: "opcje", label: t("sectionNav.opcje"), disabled: !hasOptionsSection },
@@ -610,6 +613,8 @@ export default async function ProjektPage({
           scrollLeftLabel={t("sectionNavScrollLeft")}
           scrollRightLabel={t("sectionNavScrollRight")}
         />
+          </div>
+
 
         {/* Spec 0059 + follow-up (2026-10-01): opcje dodatkowe konfiguratora
             katalogowego jako pierwsza sekcja po hero, przed układem i ceną —
@@ -617,7 +622,7 @@ export default async function ProjektPage({
             pozostałej treści. Pełna szerokość (nie wąska kolumna obok ceny),
             żeby siatka kart opcji faktycznie wykorzystała dostępną przestrzeń. */}
         {hasOptionsSection && (
-          <div id="opcje" className="scroll-mt-20">
+          <div id="opcje" className="scroll-mt-20 lg:scroll-mt-36">
             <ProjectOptionsConfigurator
               groups={optionGroups}
               selectedOptionIds={selectedOptionIds}
@@ -631,7 +636,7 @@ export default async function ProjektPage({
         )}
 
         {hasUkladSection && (
-          <div id="uklad" className="scroll-mt-20">
+          <div id="uklad" className="scroll-mt-20 lg:scroll-mt-36">
             <ProjectRoomLayout
               rooms={resolvedLayout.rooms ?? []}
               roomCount={resolvedLayout.roomCount}
@@ -655,24 +660,24 @@ export default async function ProjektPage({
             spec 0059 follow-up) gdy żaden wariant nie ma realnych pozycji
             kosztowych. */}
         {hasCenaSection && (
-          <div id="cena" className="scroll-mt-20">
+          <div id="cena" className="scroll-mt-20 lg:scroll-mt-36 lg:-mx-10 lg:bg-brand-v5-ink/[0.035] lg:px-10 lg:py-brand-6">
             <ProjectCostComparisonTable variants={project.variants} heading={t("priceAndScopeHeading")} />
           </div>
         )}
 
         {hasDzialkaSection && (
-          <div id="dzialka" className="scroll-mt-20">
+          <div id="dzialka" className="scroll-mt-20 lg:scroll-mt-36">
             <ProjectLogistics project={project} />
           </div>
         )}
 
         {hasHarmonogramSection && (
-          <div id="harmonogram" className="scroll-mt-20">
+          <div id="harmonogram" className="scroll-mt-20 lg:scroll-mt-36 lg:-mx-10 lg:bg-brand-v5-ink/[0.035] lg:px-10 lg:py-brand-6">
             <ProjectTimeline stages={selectedVariant?.timelineStages ?? []} />
           </div>
         )}
 
-        <div id="komfort" className="flex scroll-mt-20 flex-col gap-brand-4">
+        <div id="komfort" className="flex scroll-mt-20 lg:scroll-mt-36 flex-col gap-brand-4">
           <ProjectTechnicalSpecs project={project} />
 
           {Boolean(project.certifications?.length) && (
@@ -683,7 +688,7 @@ export default async function ProjektPage({
         </div>
 
         {producer && (
-          <div id="producent" className="flex scroll-mt-20 flex-col gap-brand-3">
+          <div id="producent" className="flex scroll-mt-20 flex-col gap-brand-3 lg:scroll-mt-36 lg:-mx-10 lg:bg-brand-v5-ink/[0.035] lg:px-10 lg:py-brand-6">
             <Heading level="h2" surface="v5" className="text-h3">
               {t("producerHeading")}
             </Heading>
@@ -698,7 +703,7 @@ export default async function ProjektPage({
         )}
 
         {hasDokumentySection && (
-          <div id="dokumenty" className="scroll-mt-20">
+          <div id="dokumenty" className="scroll-mt-20 lg:scroll-mt-36">
             <ProjectDocumentsAndFaq faq={project.faq} documents={project.documents} />
           </div>
         )}
@@ -737,6 +742,7 @@ export default async function ProjektPage({
           </div>
         )}
 
+      </div>
       </div>
       </GalleryLightboxProvider>
 

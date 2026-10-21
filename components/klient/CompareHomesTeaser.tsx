@@ -121,7 +121,7 @@ export async function CompareHomesTeaser({ locale, projects }: CompareHomesTease
           </div>
           <Link
             href={resultsHref}
-            className="focus-ring inline-flex shrink-0 items-center gap-1 rounded-v5-pill bg-brand-v5-amber px-brand-4 py-brand-2 text-body font-semibold text-brand-v5-amber-foreground hover:bg-brand-v5-amber-strong"
+            className="focus-ring inline-flex shrink-0 items-center gap-1 rounded-v5-pill border border-brand-v5-ink/25 px-brand-4 py-brand-2 text-body font-semibold text-brand-v5-ink transition-colors hover:bg-brand-v5-ink/5"
           >
             {t("compareButton")}
             <ArrowRight className="size-4" aria-hidden="true" />

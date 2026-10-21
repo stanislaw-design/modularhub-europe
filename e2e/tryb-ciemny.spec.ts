@@ -94,7 +94,7 @@ test.describe("Tryb ciemny flow klienta (spec 0043)", () => {
     context,
   }) => {
     await page.emulateMedia({ colorScheme: "dark" });
-    await page.goto("/pl/producer/export-readiness");
+    await page.goto("/pl/producer");
     await context.addCookies([{ name: "theme", value: "dark", url: page.url() }]);
     await page.reload();
 

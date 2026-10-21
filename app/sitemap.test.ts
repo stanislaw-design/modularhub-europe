@@ -34,7 +34,7 @@ describe("sitemap (spec 0073 AC-13)", () => {
     getSitemapProductsMock.mockRejectedValue(new Error("db down"));
     const entries = await sitemap();
 
-    expect(entries.length).toBe(6 * 4);
+    expect(entries.length).toBe(7 * 4);
     expect(entries.some((e) => e.url.includes("/project/"))).toBe(false);
     expect(captureErrorMock).toHaveBeenCalledWith(expect.any(Error), { area: "sitemap", section: "products" });
   });

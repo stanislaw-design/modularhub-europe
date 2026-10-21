@@ -24,7 +24,8 @@ describe("ResultCard", () => {
     expect(screen.getByText(/od 118\s?000\s?€/)).toBeInTheDocument();
     expect(screen.getByText(/Modulor Systems Sp\. z o\.o\..*Polska/)).toBeInTheDocument();
     expect(screen.getByText(/90 m² użytkowe.*4 pokoje.*1 kond/)).toBeInTheDocument();
-    expect(screen.getByText(/Prefabrykowany szkielet drewniany.*Standard deweloperski/)).toBeInTheDocument();
+    expect(screen.getByText("Standard deweloperski")).toBeInTheDocument();
+    expect(screen.queryByText(/Prefabrykowany szkielet drewniany/)).not.toBeInTheDocument();
     expect(screen.getByText(/12.*16 tyg. produkcji.*3.*5 dni montażu/)).toBeInTheDocument();
   });
 

@@ -32,7 +32,7 @@ export async function ProducerShowcase({ producers, locale }: ProducerShowcasePr
           </div>
           <Link
             href={`/${locale}/producers`}
-            className="focus-ring inline-flex shrink-0 items-center gap-1 rounded-v5-pill bg-brand-v5-amber px-brand-4 py-brand-2 text-body font-semibold text-brand-v5-amber-foreground hover:bg-brand-v5-amber-strong"
+            className="focus-ring inline-flex shrink-0 items-center gap-1 rounded-v5-pill border border-brand-v5-ink/25 px-brand-4 py-brand-2 text-body font-semibold text-brand-v5-ink transition-colors hover:bg-brand-v5-ink/5"
           >
             {t("viewAll")}
             <ArrowRight className="size-4" aria-hidden="true" />
@@ -42,7 +42,7 @@ export async function ProducerShowcase({ producers, locale }: ProducerShowcasePr
           {shown.map((producer) => (
             <li
               key={producer.id}
-              className="min-w-0 shrink-0 basis-[80%] snap-start sm:basis-[45%] lg:basis-[calc((100%-3*1.5rem)/4)] xl:basis-[calc((100%-4*1.5rem)/5)]"
+              className="min-w-0 shrink-0 basis-[80%] snap-start sm:basis-[45%] lg:basis-[calc((100%-3*2rem)/4)] xl:basis-[calc((100%-4*2rem)/5)]"
             >
               <ProducerShowcaseCard producer={producer} locale={locale} />
             </li>

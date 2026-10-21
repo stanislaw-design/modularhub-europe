@@ -11,7 +11,7 @@ test.describe("/pl/results", () => {
   }) => {
     await page.goto("/pl/results");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("24 domy");
-    await expect(page.getByText(/wybierz kraj w pasku wyżej/i)).toBeVisible();
+    await expect(page.getByText(/wybierz kraj w filtrach/i)).toBeVisible();
     await expect(page.locator("article")).toHaveCount(24);
   });
 

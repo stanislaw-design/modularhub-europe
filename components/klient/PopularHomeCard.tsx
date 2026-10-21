@@ -53,17 +53,17 @@ export async function PopularHomeCard({ project, countryName, href, locale, vari
   // Price, standard and per m² all come from the same default variant so a
   // price is never shown beside another variant's scope (spec 0044 AC-1).
   const price = getProjectPriceDisplay(project);
+  const priceMin = price.priceOnRequest ? undefined : price.estimated ? price.priceMin : price.variant.priceMin;
   const standard =
-    !price.priceOnRequest && price.variant.completionStandard !== "katalogowy"
+    !price.priceOnRequest && !price.estimated && price.variant.completionStandard !== "katalogowy"
       ? t(`completionStandard.${price.variant.completionStandard}`)
       : null;
   const pricePerM2 =
-    !price.priceOnRequest && project.floorAreaM2 !== null && project.floorAreaM2 > 0
-      ? formatPriceEur(Math.round(price.variant.priceMin / project.floorAreaM2), locale)
+    priceMin !== undefined && project.floorAreaM2 !== null && project.floorAreaM2 > 0
+      ? formatPriceEur(Math.round(priceMin / project.floorAreaM2), locale)
       : null;
-  const priceText = price.priceOnRequest
-    ? t("priceOnRequest")
-    : t("priceFrom", { price: formatPriceEur(price.variant.priceMin, locale) });
+  const priceText =
+    priceMin === undefined ? t("priceOnRequest") : t("priceFrom", { price: formatPriceEur(priceMin, locale) });
 
   // Plural form picked per locale (Polish has one/few/many), the keys nest one string per form.
   const plural = new Intl.PluralRules(locale);

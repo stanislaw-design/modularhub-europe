@@ -451,7 +451,8 @@ describe("ProjektPage (spec 0069: wersje układu wnętrz)", () => {
 
     expect(screen.getByText("Garderoba wersji dwa")).toBeInTheDocument();
     expect(screen.queryByText("Salon bazowy")).not.toBeInTheDocument();
-    expect(screen.getByText(/91[.,]05\s*m²/)).toBeInTheDocument();
+    // Metraż wersji widać dwa razy: w pasku faktów pod galerią i w sekcji "Układ".
+    expect(screen.getAllByText(/91[.,]05\s*m²/).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Trzy sypialnie i garderoba.")).toBeInTheDocument();
     expect(lastGalleryProps().floorPlans.map((d) => d.url)).toEqual(["/v2.webp"]);
     expect(lastGalleryProps().floorPlanVersionLabel).toBe("Wersja 2");

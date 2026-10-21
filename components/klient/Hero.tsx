@@ -13,6 +13,9 @@ interface HeroProps {
 // spec 0015 AC-2/AC-13's "single column, no photo, centered" decision, see
 // spec 0025. No dark scrim over the photo (deliberately dropped, not a TEMP
 // state — legibility relies on the heading's own text-shadow instead).
+// Update: a soft directional scrim was added below after the design review
+// (heading sat on a busy part of the photo); left padding now matches the
+// header and the sections below (3%) instead of the old 1%.
 // -mt-brand-5 fully cancels RouteShell's pt-brand-5 (not just partially, like
 // the old -mt-brand-4 did against the previously in-flow sticky header) so
 // the photo reaches the true top of the viewport — SiteHeader now floats
@@ -35,7 +38,7 @@ export async function Hero({ children }: HeroProps) {
         sizes="100vw"
         className="-z-10 object-cover"
       />
-      <Container className="flex flex-col items-start gap-brand-5 pl-[3%] text-left lg:pl-[1%]">
+      <Container className="mx-0 flex max-w-none flex-col items-start gap-brand-5 px-10 text-left">
         {/* hero-heading-mask (globals.css) clips only for the entrance's
             duration, then reverts to visible — so descenders/diacritics/the
             underline are never clipped once the heading settles. */}
@@ -63,6 +66,12 @@ export async function Hero({ children }: HeroProps) {
           </ul>
         </div>
       </Container>
+      {/* Soft scrim on the text side + bottom only: keeps the heading and USP
+          legible over the busy terrace/trees without darkening the pool. */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 -z-10 bg-[linear-gradient(to_top,rgba(0,0,0,0.65)_0%,rgba(0,0,0,0.25)_45%,transparent_70%),linear-gradient(to_right,rgba(0,0,0,0.45)_0%,transparent_60%)]"
+      />
       {/* Sentinel FloatingSearchButton observes to know when the hero has
           scrolled out of view — a plain marker rather than watching Hero's
           own root, so its visibility threshold doesn't shift if Hero's

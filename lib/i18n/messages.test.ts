@@ -13,11 +13,15 @@ function flattenKeys(value: unknown, prefix = ""): string[] {
   );
 }
 
+// "few" i "many" to kategorie liczby mnogiej tylko polskiego (CLDR); pozostałe języki mają "one" i "other",
+// a część katalogów trzyma też te dwie końcówki, więc porównujemy zestawy bez nich.
+const withoutPolishOnlyPlurals = (keys: string[]) => keys.filter((key) => !/\.(few|many)$/.test(key));
+
 describe("message catalog consistency", () => {
-  const plKeys = flattenKeys(pl).sort();
-  const enKeys = flattenKeys(en).sort();
-  const nlKeys = flattenKeys(nl).sort();
-  const deKeys = flattenKeys(de).sort();
+  const plKeys = withoutPolishOnlyPlurals(flattenKeys(pl)).sort();
+  const enKeys = withoutPolishOnlyPlurals(flattenKeys(en)).sort();
+  const nlKeys = withoutPolishOnlyPlurals(flattenKeys(nl)).sort();
+  const deKeys = withoutPolishOnlyPlurals(flattenKeys(de)).sort();
 
   it("en.json has exactly the same keys as pl.json", () => {
     expect(enKeys).toEqual(plKeys);

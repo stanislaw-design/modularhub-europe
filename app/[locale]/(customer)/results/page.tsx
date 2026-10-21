@@ -96,30 +96,42 @@ export default async function WynikiPage({
   );
 
   return (
-    <Stack gap={5} className="results-shell">
-      {isOutdoorTv ? (
-        <>
-          {familyFilter}
-          <OutdoorTvFilterBar locale={locale} filter={filter} />
-        </>
-      ) : (
-        <>
-          <div className="hidden sm:contents">{familyFilter}</div>
-          <ResultsFilterBar
-            locale={locale}
-            countries={countries}
-            filter={filter}
-            mobileFilters={
-              <>
-                {familyFilter}
-                {categoryFilters}
-              </>
-            }
-          />
-          <div className="hidden sm:contents">{categoryFilters}</div>
-        </>
+    <div className="results-shell results-wide grid gap-x-brand-5 gap-y-brand-5 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
+      {/* Od `lg` pasek wyszukiwania jest lewym, przyklejonym panelem
+          (kolumna 1); niżej zostaje poziomym rzędem nad treścią. Rodzina i
+          kategorie wraz z nagłówkiem i siatką żyją w kolumnie 2, jak dotąd. */}
+      {!isOutdoorTv && (
+        <ResultsFilterBar
+          locale={locale}
+          countries={countries}
+          filter={filter}
+          mobileFilters={
+            <>
+              {familyFilter}
+              {categoryFilters}
+            </>
+          }
+          sidebarFilters={
+            <>
+              {familyFilter}
+              {categoryFilters}
+            </>
+          }
+        />
       )}
-      <ResultsSelection
+      <Stack gap={5} className={isOutdoorTv ? "lg:col-span-2" : "lg:col-start-2 lg:row-start-1"}>
+        {isOutdoorTv ? (
+          <>
+            {familyFilter}
+            <OutdoorTvFilterBar locale={locale} filter={filter} />
+          </>
+        ) : (
+          <>
+            <div className="hidden sm:contents lg:hidden">{familyFilter}</div>
+            <div className="hidden sm:contents lg:hidden">{categoryFilters}</div>
+          </>
+        )}
+        <ResultsSelection
         locale={locale}
         countryCode={filter.countryCode}
         sizeMin={filter.sizeMin}
@@ -137,7 +149,8 @@ export default async function WynikiPage({
           eligibilityStatus: eligibilityByProjectId.get(project.id),
           favorited: favoritedIds.has(project.id),
         }))}
-      />
-    </Stack>
+        />
+      </Stack>
+    </div>
   );
 }

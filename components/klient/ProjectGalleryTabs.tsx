@@ -61,21 +61,23 @@ export async function ProjectGalleryTabs({
   const effectiveTab = tabs.some((tab) => tab.key === activeTab) ? activeTab : "wizualizacje";
 
   return (
-    <div className="flex flex-col gap-brand-3">
+    // Od lg galeria jest pełną wysokością hero (dopasowaną do ekranu), a
+    // zakładki i miniatury leżą na zdjęciu, więc nie zostaje pusty rząd pod nim.
+    <div className="flex flex-col gap-brand-3 lg:relative lg:block lg:h-[clamp(520px,calc(100svh-5rem),920px)]">
       {/* Zakładki (Wizualizacje/Rzut) chowają się na mobile — karuzela poniżej
           pokazuje już wszystkie zdjęcia po kolei, a rzut na tym rozmiarze na
           razie zostaje osiągalny tylko z poziomu lg (spec 0042 follow-up). */}
-      <div role="tablist" aria-label={t("tablistLabel")} className="hidden flex-wrap gap-brand-2 lg:flex">
+      <div role="tablist" aria-label={t("tablistLabel")} className="hidden flex-wrap gap-brand-2 lg:absolute lg:left-brand-4 lg:top-brand-4 lg:z-10 lg:flex">
         {tabs.map((tab) => (
           <Link
             key={tab.key}
             href={hrefFor(tab.key)}
             role="tab"
             aria-selected={effectiveTab === tab.key}
-            className={`focus-ring rounded-full border px-brand-3 py-1.5 text-body font-medium transition-colors ${
+            className={`focus-ring rounded-full border px-brand-3 py-1.5 text-body font-medium shadow-sm transition-colors ${
               effectiveTab === tab.key
-                ? "border-brand-v5-amber-strong bg-brand-v5-amber/10 text-brand-v5-ink"
-                : "border-brand-v5-line text-brand-v5-muted hover:text-brand-v5-ink"
+                ? "border-brand-v5-amber-strong bg-brand-v5-surface text-brand-v5-ink"
+                : "border-brand-v5-line bg-brand-v5-surface/90 text-brand-v5-muted hover:text-brand-v5-ink"
             }`}
           >
             {tab.label}
@@ -83,20 +85,21 @@ export async function ProjectGalleryTabs({
         ))}
       </div>
 
-      <div className="-mx-[6%] lg:mx-0">
+      <div className="-mx-[6%] lg:mx-0 lg:h-full">
         {effectiveTab === "wizualizacje" && (
           <>
             <div className="lg:hidden">
               <ProjectGalleryCarousel coverImageUrl={coverImageUrl} galleryImageUrls={galleryImageUrls} altSubject={altSubject} />
             </div>
-            <div className="hidden lg:block">
+            <div className="relative hidden lg:block lg:h-full">
               <ProjectGalleryCover
                 coverImageUrl={coverImageUrl}
                 totalCount={(galleryImageUrls?.length ?? 0) + 1}
                 altSubject={altSubject}
+                className="lg:!aspect-auto lg:h-full lg:w-full lg:rounded-none"
               />
-              <div className="mt-brand-2">
-                <ProjectGalleryThumbnails galleryImageUrls={galleryImageUrls} altSubject={altSubject} />
+              <div className="absolute bottom-brand-4 left-44 right-brand-4 flex justify-end">
+                <ProjectGalleryThumbnails galleryImageUrls={galleryImageUrls} altSubject={altSubject} overlay />
               </div>
             </div>
           </>
@@ -104,7 +107,7 @@ export async function ProjectGalleryTabs({
 
         {effectiveTab === "rzut" &&
           (floorPlans.length > 0 ? (
-            <div className="grid grid-cols-1 gap-brand-2 px-[6%] sm:grid-cols-2 lg:px-0">
+            <div className="grid grid-cols-1 gap-brand-2 px-[6%] sm:grid-cols-2 lg:h-full lg:content-start lg:overflow-y-auto lg:px-brand-4 lg:pb-brand-4 lg:pt-[4.5rem]">
               {floorPlans.map((doc, index) => (
                 <figure key={doc.url} className="m-0 flex flex-col gap-1">
                   <div className="relative aspect-[4/3] overflow-hidden rounded-v5-card border border-brand-v5-line bg-brand-v5-surface">
@@ -123,7 +126,7 @@ export async function ProjectGalleryTabs({
               ))}
             </div>
           ) : (
-            <div className="mx-[6%] flex flex-col items-center gap-brand-2 rounded-v5-card border border-dashed border-brand-v5-line p-brand-6 text-center lg:mx-0">
+            <div className="mx-[6%] flex flex-col items-center gap-brand-2 rounded-v5-card border border-dashed border-brand-v5-line p-brand-6 text-center lg:mx-brand-4 lg:mt-[4.5rem]">
               <Map className="size-8 text-brand-v5-muted" aria-hidden="true" />
               <Text tone="muted" surface="v5">
                 {t("rzutPlaceholder")}

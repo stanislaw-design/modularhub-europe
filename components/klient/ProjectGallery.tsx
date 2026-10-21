@@ -34,7 +34,7 @@ export async function ProjectGalleryCover({ coverImageUrl, totalCount, altSubjec
         alt={alt}
         fill
         priority
-        sizes="(min-width: 1024px) 66vw, 100vw"
+        sizes="(min-width: 1024px) calc(100vw - 480px), 100vw"
         className="object-cover transition-transform duration-300 ease-out motion-safe:group-hover:scale-[1.03]"
       />
       {totalCount > 1 && (
@@ -92,16 +92,44 @@ export async function ProjectGalleryCarousel({ coverImageUrl, galleryImageUrls, 
 interface ProjectGalleryThumbnailsProps {
   galleryImageUrls?: string[];
   altSubject: string;
+  /** Rząd małych miniatur leżący na zdjęciu głównym (desktop), zamiast siatki pod nim. */
+  overlay?: boolean;
 }
 
 // coverImageUrl (renderowany przez ProjectGalleryCover) zostaje pierwszym/głównym
 // zdjęciem niezależnie od galleryImageUrls (spec 0020 Feature design); brak
 // dodatkowych zdjęć nie renderuje pustego paska miniatur.
-export async function ProjectGalleryThumbnails({ galleryImageUrls, altSubject }: ProjectGalleryThumbnailsProps) {
+export async function ProjectGalleryThumbnails({ galleryImageUrls, altSubject, overlay }: ProjectGalleryThumbnailsProps) {
   const extraImages = galleryImageUrls?.filter((url) => url.length > 0) ?? [];
   if (extraImages.length === 0) return null;
 
   const t = await getTranslations("ProjectGallery");
+
+  if (overlay) {
+    return (
+      <div className="flex max-w-full gap-brand-2 overflow-x-auto rounded-v5-card bg-brand-v5-night/70 p-brand-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {extraImages.map((url, index) => {
+          const alt = t("thumbnailAlt", { subject: altSubject, index: index + 2 });
+          return (
+            <GalleryImageButton
+              key={url}
+              index={index + 1}
+              label={t("lightboxOpen", { alt })}
+              className="group relative aspect-[4/3] !w-28 shrink-0 overflow-hidden rounded-data"
+            >
+              <Image
+                src={url}
+                alt={alt}
+                fill
+                sizes="112px"
+                className="object-cover transition-transform duration-300 ease-out motion-safe:group-hover:scale-110"
+              />
+            </GalleryImageButton>
+          );
+        })}
+      </div>
+    );
+  }
 
   return (
     // Poziomy snap-scroll na mobile (przegląda się kciukiem jak karuzelę zdjęć),

@@ -57,14 +57,30 @@ describe("getProjectPriceDisplay", () => {
     expect(getProjectPriceDisplay(project)).toEqual({ priceOnRequest: true });
   });
 
-  it("flags priceOnRequest when the product has no variant at all (spec 0044 AC-2)", () => {
-    const project = createMockProject({ priceOnRequest: false, variants: [] });
+  it("estimates 1100 EUR per m² when the product has no variant and no flat price", () => {
+    const project = createMockProject({ priceOnRequest: false, variants: [], priceMin: 0, floorAreaM2: 26.2 });
+    expect(getProjectPriceDisplay(project)).toEqual({ priceOnRequest: false, estimated: true, priceMin: 28820 });
+  });
+
+  it("estimates from the area when the default variant itself has no priceMin", () => {
+    const variant = makeVariant({ id: "a", isDefault: true, priceMin: undefined });
+    const project = createMockProject({ priceOnRequest: false, variants: [variant], priceMin: 0, floorAreaM2: 30 });
+    expect(getProjectPriceDisplay(project)).toEqual({ priceOnRequest: false, estimated: true, priceMin: 33000 });
+  });
+
+  it("prefers the flat Project.priceMin over the per m² estimate", () => {
+    const project = createMockProject({ priceOnRequest: false, variants: [], priceMin: 27420, floorAreaM2: 26.2 });
+    expect(getProjectPriceDisplay(project)).toEqual({ priceOnRequest: false, estimated: true, priceMin: 27420 });
+  });
+
+  it("keeps priceOnRequest when there is no price and no area to estimate from", () => {
+    const project = createMockProject({ priceOnRequest: false, variants: [], priceMin: 0, floorAreaM2: null });
     expect(getProjectPriceDisplay(project)).toEqual({ priceOnRequest: true });
   });
 
-  it("flags priceOnRequest when the default variant itself has no priceMin", () => {
-    const variant = makeVariant({ id: "a", isDefault: true, priceMin: undefined });
-    const project = createMockProject({ priceOnRequest: false, variants: [variant] });
+  it("never estimates when the variant is explicitly priceOnRequest", () => {
+    const variant = makeVariant({ id: "a", isDefault: true, priceOnRequest: true });
+    const project = createMockProject({ priceOnRequest: false, variants: [variant], priceMin: 0, floorAreaM2: 30 });
     expect(getProjectPriceDisplay(project)).toEqual({ priceOnRequest: true });
   });
 });
@@ -91,6 +107,16 @@ describe("getInPriceCostLineItemLabels (spec 0051 AC-6)", () => {
       ],
     });
     expect(getInPriceCostLineItemLabels(variant)).toEqual({ labels: ["A", "B", "C"], extraCount: 1 });
+  });
+
+  it("keeps only the item name before a colon", () => {
+    const variant = makeVariant({
+      costLineItems: [
+        { id: "1", label: "Ściany zewnętrzne: Płyta G-K (x2), Paroizolacja", status: "w-cenie" },
+        { id: "2", label: "Drzwi wewnętrzne z ościeżnicami", status: "w-cenie" },
+      ],
+    });
+    expect(getInPriceCostLineItemLabels(variant)).toEqual({ labels: ["Ściany zewnętrzne", "Drzwi wewnętrzne z ościeżnicami"], extraCount: 0 });
   });
 
   it("returns an empty summary when there are no items, or none with status w-cenie", () => {

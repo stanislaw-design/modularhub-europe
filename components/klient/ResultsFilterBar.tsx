@@ -19,6 +19,9 @@ interface ResultsFilterBarProps {
    * page.tsx composes them in) — rendered only inside the mobile bottom
    * sheet below, so results start right at the top of the phone screen. */
   mobileFilters: ReactNode;
+  /** Same nodes again, shown only from `lg` up above the search fields in the
+   * left sidebar (below `lg` page.tsx keeps them in the content column). */
+  sidebarFilters?: ReactNode;
 }
 
 const sizeOptions: SegmentOption[] = SIZE_THRESHOLDS.map((threshold) => ({
@@ -30,7 +33,7 @@ const sizeOptions: SegmentOption[] = SIZE_THRESHOLDS.map((threshold) => ({
 // country/metraż poniżej: lokalny stan, nawigacja dopiero po kliknięciu "Szukaj"
 // (albo Enter w polu tekstowym), nigdy filtr atrybutów/podkategorii/ceny —
 // te przychodzą przez `filter` i zostają nietknięte (chipy je ustawiają osobno).
-export function ResultsFilterBar({ locale, countries, filter, mobileFilters }: ResultsFilterBarProps) {
+export function ResultsFilterBar({ locale, countries, filter, mobileFilters, sidebarFilters }: ResultsFilterBarProps) {
   const t = useTranslations("ResultsFilterBar");
   const router = useRouter();
   const [country, setCountry] = useState<CountryCode | null>(filter.countryCode ?? null);
@@ -95,9 +98,11 @@ export function ResultsFilterBar({ locale, countries, filter, mobileFilters }: R
           only lives in the bottom sheet there (see the Dialog below). Shares
           this component's own `country`/`min`/`max`/`sort`/`q` state with
           that sheet, so the two never drift out of sync. */}
+      <div className="hidden sm:block lg:sticky lg:top-24 lg:col-start-1 lg:row-start-1 lg:flex lg:flex-col lg:gap-brand-4">
+      {sidebarFilters && <div className="hidden flex-col gap-brand-3 lg:flex">{sidebarFilters}</div>}
       <div
         ref={inlineBarRef}
-        className="hidden w-full flex-col divide-y divide-brand-v5-line rounded-[2.5rem] border border-brand-v5-line bg-brand-v5-surface shadow-sm sm:flex sm:flex-row sm:items-stretch sm:divide-x sm:divide-y-0"
+        className="hidden w-full flex-col divide-y divide-brand-v5-line rounded-[2.5rem] border border-brand-v5-line bg-brand-v5-surface shadow-sm sm:flex sm:flex-row sm:items-stretch sm:divide-x sm:divide-y-0 lg:flex-col lg:divide-x-0 lg:divide-y lg:rounded-v5-card"
       >
         <SearchSegment
           label={t("countryLabel")}
@@ -151,16 +156,20 @@ export function ResultsFilterBar({ locale, countries, filter, mobileFilters }: R
             className="focus-ring w-full rounded-data bg-transparent text-body text-brand-v5-ink placeholder:text-brand-v5-muted/70"
           />
         </div>
-        <div className="flex items-center justify-center p-brand-2">
+        <div className="flex items-center justify-center p-brand-2 lg:p-brand-3">
           <button
             type="button"
             onClick={handleSearch}
             aria-label={t("searchAriaLabel")}
-            className="focus-ring flex size-12 shrink-0 items-center justify-center rounded-full bg-brand-v5-amber text-brand-v5-amber-foreground transition-colors hover:bg-brand-v5-amber-strong"
+            className="focus-ring flex size-12 shrink-0 items-center justify-center gap-2 rounded-full bg-brand-v5-amber text-brand-v5-amber-foreground transition-colors hover:bg-brand-v5-amber-strong lg:h-12 lg:w-full lg:rounded-v5-pill lg:text-body lg:font-semibold"
           >
             <Search className="size-5" aria-hidden="true" />
+            <span className="hidden lg:inline" aria-hidden="true">
+              {t("searchAriaLabel")}
+            </span>
           </button>
         </div>
+      </div>
       </div>
 
       {/* Every width: a compact pill stays pinned to the bottom of the

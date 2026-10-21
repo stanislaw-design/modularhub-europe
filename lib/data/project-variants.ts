@@ -28,10 +28,14 @@ export interface InPriceCostLineItemSummary {
 export function getInPriceCostLineItemLabels(variant: ProjectVariant, max = 3): InPriceCostLineItemSummary {
   const inPrice = variant.costLineItems.filter((item) => item.status === "w-cenie");
   return {
-    labels: inPrice.slice(0, max).map((item) => item.label),
+    // Karta pokazuje samą nazwę pozycji (tekst przed dwukropkiem); pełny opis zostaje na stronie produktu.
+    labels: inPrice.slice(0, max).map((item) => item.label.split(":")[0].trim()),
     extraCount: Math.max(0, inPrice.length - max),
   };
 }
+
+/** Stawka użyta do wyliczenia ceny minimalnej, gdy produkt nie ma żadnej ceny. */
+export const ESTIMATED_PRICE_PER_M2_EUR = 1100;
 
 export type ProjectPriceDisplay =
   | { priceOnRequest: true }
@@ -41,8 +45,29 @@ export type ProjectPriceDisplay =
        * its scope together, so a caller can never show a price paired with a
        * different variant's scope (spec 0044 AC-1). */
       priceOnRequest: false;
+      estimated?: false;
       variant: ProjectVariant & { priceMin: number };
+    }
+  | {
+      /** Produkt bez ceny wariantu: `priceMin` to płaskie `Project.priceMin`
+       * albo, gdy go brak, powierzchnia użytkowa razy ESTIMATED_PRICE_PER_M2_EUR.
+       * Nie ma wariantu, więc nie ma etykiety standardu ani zakresu. */
+      priceOnRequest: false;
+      estimated: true;
+      priceMin: number;
     };
+
+// Cena "od" dla produktu bez ceny w wariancie, wspólna dla karty wyniku, karty
+// z głównej i strony projektu, żeby wszystkie pokazywały tę samą liczbę.
+// Płaska cena produktu ma pierwszeństwo, wyliczenie z m² to ostatnia deska
+// ratunku. Bez powierzchni (floorAreaM2 null/0) zwraca undefined.
+export function getEstimatedMinPriceEur(project: Project): number | undefined {
+  if (project.priceMin > 0) return project.priceMin;
+  if (project.floorAreaM2 !== null && project.floorAreaM2 > 0) {
+    return Math.round(project.floorAreaM2 * ESTIMATED_PRICE_PER_M2_EUR);
+  }
+  return undefined;
+}
 
 // Wspólny selektor pary cena–standard–zakres (spec 0044 Projekt rozwiązania
 // #1), używany przez ResultCard, /compare i (przyszłościowo) katalog
@@ -54,8 +79,14 @@ export function getProjectPriceDisplay(project: Project): ProjectPriceDisplay {
   // wywnioskowany z `priceMin === undefined` (choć CHECK product_variant_
   // price_on_request gwarantuje dziś to samo) — jasny sygnał zamiast efektu
   // ubocznego innej kolumny.
-  if (project.priceOnRequest || !variant || variant.priceOnRequest || variant.priceMin === undefined) {
+  // Jawne "wycena indywidualna" (produkt albo wariant) zostaje bez zmian; tylko
+  // brak ceny bez takiej flagi dostaje cenę szacunkową.
+  if (project.priceOnRequest || variant?.priceOnRequest) {
     return { priceOnRequest: true };
+  }
+  if (!variant || variant.priceMin === undefined) {
+    const estimated = getEstimatedMinPriceEur(project);
+    return estimated === undefined ? { priceOnRequest: true } : { priceOnRequest: false, estimated: true, priceMin: estimated };
   }
   // TS narrows `variant.priceMin` at this point but not the `variant`
   // binding's own declared type; the guard above already proved it.

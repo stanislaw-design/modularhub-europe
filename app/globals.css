@@ -379,6 +379,31 @@ body {
   bottom: 77px;
 }
 
+/* Wyniki na desktopie: wyszukiwarka w lewym panelu, siatka domów dostaje całą
+   resztę szerokości, więc kontener trasy traci limit max-w-brand-max. Znacznik
+   `.results-wide` stawia tylko app/[locale]/(customer)/results/page.tsx;
+   pozostałe strony klienta zostają przy 1440px. */
+@media (min-width: 1024px) {
+  main:has(.results-wide) > .route-container {
+    max-width: none;
+    padding-inline: 2.5%;
+  }
+}
+
+/* Strona projektu na desktopie: galeria sięga lewej krawędzi ekranu, a panel
+   zakupowy trzyma prawą kolumnę, więc kontener trasy traci limit szerokości,
+   boczne marginesy i górny odstęp. Znacznik `.project-wide` stawia tylko
+   app/[locale]/(customer)/project/[slug]/page.tsx; sekcje pod hero dostają
+   własny padding w tej stronie. */
+@media (min-width: 1024px) {
+  main:has(.project-wide) > .route-container {
+    max-width: none;
+    padding-inline: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}
+
 /* Dark mode (spec 0043, extended by spec 0046 to a second scope, and by spec
    0055 to a third): scoped to .theme-klient (customer flow,
    app/[locale]/(customer)/layout.tsx), .theme-producer (protected producer

@@ -37,7 +37,9 @@ export async function ProducerShowcaseCard({ producer, locale }: ProducerShowcas
           <BadgeCheck className="size-4 text-status-approved" aria-hidden="true" />
           {t("verified")}
         </span>
-        <span className="font-display text-h3 font-bold text-brand-v5-ink">{producer.name}</span>
+        <span className="min-h-[2.4em] font-display text-h3 leading-[1.2] font-bold text-brand-v5-ink">
+          {producer.name}
+        </span>
         <ul className="flex flex-col gap-1 text-data text-brand-v5-muted">
           {producer.completedProjectsCount > 0 ? (
             <li className="font-semibold text-brand-v5-ink">

@@ -18,7 +18,7 @@ export function RouteShell({ children }: RouteShellProps) {
     // dark mode custom property overrides (spec 0043 AC-11 — producer/internal
     // never render inside that wrapper, so this is a no-op there).
     <main id="main-content" className="flex flex-1 flex-col bg-background text-foreground">
-      <Container className="flex flex-1 flex-col pt-brand-5 pb-brand-4">{children}</Container>
+      <Container className="route-container flex flex-1 flex-col pt-brand-5 pb-brand-4">{children}</Container>
     </main>
   );
 }

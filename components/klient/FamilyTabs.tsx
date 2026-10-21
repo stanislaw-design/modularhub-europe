@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { CountryCode } from "@/lib/data/types";
 import { resolveFamilyGroup, type FamilyFilterValue, type ProductFamilyGroup } from "@/lib/product-family-groups";
 import type { SizeThreshold } from "@/lib/size-thresholds";
+import { FamilyRefineSelect } from "./FamilyRefineSelect";
 
 interface FamilyTabsProps {
   locale: string;
@@ -66,28 +67,12 @@ export async function FamilyTabs({ locale, family, countryCode, sizeMin, sizeMax
         })}
       </nav>
       {activeGroup === "wiecej-niz-dom" && (
-        <nav
-          aria-label={t("subNavAriaLabel")}
-          className="flex items-center gap-brand-2 overflow-x-auto"
-        >
-          {refineTabs.map((tab) => {
-            const isCurrent = tab.value === family;
-            return (
-              <Link
-                key={tab.value}
-                href={hrefFor(tab.value)}
-                aria-current={isCurrent ? "true" : undefined}
-                className={`focus-ring shrink-0 whitespace-nowrap rounded-full border px-brand-2 py-1 text-body transition-colors ${
-                  isCurrent
-                    ? "border-brand-v5-amber-strong bg-brand-v5-amber/10 text-brand-v5-ink"
-                    : "border-brand-v5-line text-brand-v5-muted hover:text-brand-v5-ink"
-                }`}
-              >
-                {tab.label}
-              </Link>
-            );
-          })}
-        </nav>
+        <FamilyRefineSelect
+          label={t("refineLabel")}
+          ariaLabel={t("subNavAriaLabel")}
+          value={family}
+          options={refineTabs.map((tab) => ({ ...tab, href: hrefFor(tab.value) }))}
+        />
       )}
     </div>
   );

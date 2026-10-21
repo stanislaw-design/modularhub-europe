@@ -60,6 +60,16 @@ export function FloatingSearchButton({ locale }: FloatingSearchButtonProps) {
     return () => observer.disconnect();
   }, []);
 
+  // The prompt bubble is a one-off nudge: it fades out a few seconds after the
+  // widget first appears (and never shows on narrow screens, see below) so it
+  // stops covering content for the rest of the page.
+  const [nudgeExpired, setNudgeExpired] = useState(false);
+  useEffect(() => {
+    if (!visible || nudgeExpired) return;
+    const timer = setTimeout(() => setNudgeExpired(true), 6000);
+    return () => clearTimeout(timer);
+  }, [visible, nudgeExpired]);
+
   const shown = visible && !footerInView;
 
   return (
@@ -70,8 +80,9 @@ export function FloatingSearchButton({ locale }: FloatingSearchButtonProps) {
       }`}
     >
       <div
-        className={`relative rounded-v5-panel bg-brand-v5-night px-brand-3 py-brand-2 text-body font-medium whitespace-nowrap text-brand-v5-paper shadow-lg transition-[opacity,transform] duration-300 ease-out ${
-          bubbleHidden ? "translate-y-2 opacity-0" : "translate-y-0 opacity-100"
+        aria-hidden={bubbleHidden || nudgeExpired}
+        className={`relative hidden rounded-v5-panel bg-brand-v5-night px-brand-3 py-brand-2 text-body font-medium whitespace-nowrap text-brand-v5-paper shadow-lg transition-[opacity,transform] duration-300 ease-out sm:block ${
+          bubbleHidden || nudgeExpired ? "pointer-events-none translate-y-2 opacity-0" : "translate-y-0 opacity-100"
         }`}
       >
         {t("prompt")}
