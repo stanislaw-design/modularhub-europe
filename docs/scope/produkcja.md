@@ -78,6 +78,7 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 62 | Przebudowa menu nawigacji i strona Kontakt (klient) | Slice 2 | done |
 | 63 | Strona główna: gotowość produkcyjna (treść, niezawodność, SEO) | Utwardzenie | done |
 | 64 | Redesign panelu producenta: pulpit, jedna lista zapytań, ustawienia firmy | Slice 2b | in progress |
+| 65 | Parametry izolacji przegród, posadowienie i planowane użytkowanie | Slice 2 | in progress |
 
 ## Foundations
 
@@ -624,7 +625,7 @@ Dziś jeden płaski wpis "Zgodność z Bbl" wygląda jak certyfikat, a jest dekl
 **Done when:** inwestor widzi różnicę między certyfikatem potwierdzonym przez platformę a deklaracją producenta, ocena zgodności projektu jest w bazie i powiązana z produktem, a odznaka tożsamości firmy i zdolności wolumenowej są niezależne.
 - [x] Zaprojektuj (spec): [0065](../specs/0065-rozdzial-certyfikatow-od-oceny-zgodnosci/index.md)
 - [ ] Zbuduj: `/develop rozdział certyfikatów producenta od oceny zgodności`
-  - [ ] Dane i migracja: tabele certyfikatów i ocen, backfill wszystkich producentów, trigger audytu, satisfies AC-1 do AC-3, AC-10
+  - [x] Dane i migracja: tabele certyfikatów i ocen, backfill wszystkich producentów, trigger audytu, satisfies AC-1 do AC-3, AC-10
   - [ ] Odczyty i strony: `/project/[id]` i listing z odznakami, satisfies AC-5 do AC-8, AC-12, AC-14
   - [ ] Panele producenta i admina: dodawanie, potwierdzanie, oceny produktu, usunięcie starego zapisu, satisfies AC-9, AC-11, AC-16
   - [ ] Faza 2 migracji (usunięcie kolumny jsonb), tłumaczenia, satisfies AC-4, AC-13
@@ -816,6 +817,20 @@ Strona główna ma kompletne tłumaczenia, ale przed publicznym startem wprowadz
   - [x] Test e2e strony głównej, satisfies AC-11
 - [x] Zweryfikuj: `/check verify strona główna gotowość produkcyjna`
 - [x] Testuj: `/test strona główna gotowość produkcyjna`
+
+### 65. Parametry izolacji przegród, posadowienie i planowane użytkowanie · full · in progress
+Strona produktu nie ma dziś żadnej liczby izolacyjności (tylko klasę energetyczną), więc klient i producent nie mogą porównać domów pod kątem przepisów DE, BE, NL, IT i FR. Funkcja dodaje tabelę parametrów przegród (U, Rc, Uw, Ug) z metodą, datą i potwierdzeniem przez administratora, pole posadowienia stałego lub tymczasowego na produkcie, planowane użytkowanie w zapytaniach, kraje BE, IT i FR w ocenie zgodności oraz wyjaśnienia po ludzku obok każdego parametru. Źródło: `_docs/ModularHub_Porownanie_Izolacyjnosci_5_Krajow_PL.pdf`.
+**Done when:** klient widzi na `/project/[slug]` liczby izolacyjności z jednostką, metodą, datą i stanem potwierdzenia oraz wyjaśnieniem każdego parametru; porównanie domów ma wiersze U ścian, dachu i podłogi; zapytanie przyjmuje planowane użytkowanie; produkt bez danych wygląda jak dziś; strona nigdy nie ogłasza zgodności z przepisami; sekcja włącza się dopiero po weryfikacji merytorycznej tekstów.
+- [x] Zaprojektuj (spec): [0075](../specs/0075-parametry-izolacji-i-posadowienie/index.md)
+- [ ] Zbuduj: `/develop parametry izolacji przegród, posadowienie i planowane użytkowanie`
+  - [ ] Dane i migracja: tabela parametrów, kolumna posadowienia, pola użytkowania w trzech zapytaniach, kraje BE, IT, FR, trigger audytu, Zod, satisfies AC-1 do AC-3, AC-5, AC-6
+  - [x] Cienki wątek administratora i strona: akcje, panel na `/internal/producers/[id]`, odczyt, sekcja na stronie produktu z zastrzeżeniem i przełącznikiem, satisfies AC-10, AC-11, AC-18
+  - [x] Wyjaśnienia i tłumaczenia pl, en, de, nl, posadowienie, notka o progu 50 m², satisfies AC-5, AC-12, AC-14, AC-16, AC-17
+  - [x] Panel producenta i zapytania: sekcja na ekranie edycji, pole użytkowania w trzech formularzach, satisfies AC-4, AC-7, AC-9
+  - [x] Zgodność BE, IT, FR i porównanie domów, satisfies AC-8, AC-13
+  - [ ] Testy i pilotaż danych 2 do 3 producentów, satisfies AC-15
+- [ ] Zweryfikuj: `/check verify parametry izolacji przegród, posadowienie i planowane użytkowanie`
+- [ ] Testuj: `/test parametry izolacji przegród, posadowienie i planowane użytkowanie`
 
 ## Deferred
 Poza zakresem tej epiki, świadomie odłożone.

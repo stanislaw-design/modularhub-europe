@@ -9,6 +9,12 @@ import {
   setProductComplianceAssessmentConfirmation,
   updateProductComplianceAssessment,
 } from "@/lib/producer-certification-admin-actions";
+import {
+  COMPLIANCE_COUNTRY_CODES,
+  COMPLIANCE_RULES_BY_COUNTRY,
+  COMPLIANCE_RULE_OTHER,
+  type ComplianceCountryCode,
+} from "@/lib/product-envelope-parameters";
 
 type Status = "approved" | "conditional" | "blocked";
 
@@ -16,6 +22,15 @@ const statusLabel: Record<Status, string> = {
   approved: "Zgodny z przepisami",
   conditional: "Wymaga dodatkowych dokumentów",
   blocked: "Niedostępny w tym kraju",
+};
+
+const countryName: Record<ComplianceCountryCode, string> = {
+  PL: "Polska",
+  DE: "Niemcy",
+  NL: "Holandia",
+  BE: "Belgia",
+  IT: "Włochy",
+  FR: "Francja",
 };
 
 const dateFormatter = new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium" });
@@ -36,8 +51,10 @@ export function ProductComplianceAdminSection({ product }: { product: AdminProdu
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
-  const [newCountry, setNewCountry] = useState<"PL" | "DE" | "NL">("NL");
-  const [newRule, setNewRule] = useState("bbl");
+  const [newCountry, setNewCountry] = useState<ComplianceCountryCode>("NL");
+  const [ruleChoice, setRuleChoice] = useState<string>(COMPLIANCE_RULES_BY_COUNTRY.NL[0].value);
+  const [customRule, setCustomRule] = useState("");
+  const newRule = ruleChoice === COMPLIANCE_RULE_OTHER ? customRule : ruleChoice;
   const [newDraft, setNewDraft] = useState<Draft>(EMPTY_DRAFT);
 
   function run(action: () => Promise<{ ok: boolean; error?: string }>, onDone?: () => void) {
@@ -152,16 +169,39 @@ export function ProductComplianceAdminSection({ product }: { product: AdminProdu
         <div className="flex flex-wrap gap-brand-2">
           <label className="flex flex-col gap-1 text-body">
             Kraj
-            <select value={newCountry} onChange={(event) => setNewCountry(event.target.value as "PL" | "DE" | "NL")} className="focus-ring h-10 rounded-data border border-brand-steel px-brand-2">
-              <option value="PL">Polska</option>
-              <option value="DE">Niemcy</option>
-              <option value="NL">Holandia</option>
+            <select
+              value={newCountry}
+              onChange={(event) => {
+                const code = event.target.value as ComplianceCountryCode;
+                setNewCountry(code);
+                setRuleChoice(COMPLIANCE_RULES_BY_COUNTRY[code][0].value);
+              }}
+              className="focus-ring h-10 rounded-data border border-brand-steel px-brand-2"
+            >
+              {COMPLIANCE_COUNTRY_CODES.map((code) => (
+                <option key={code} value={code}>
+                  {countryName[code]}
+                </option>
+              ))}
             </select>
           </label>
           <label className="flex flex-col gap-1 text-body">
             Przepis
-            <input value={newRule} maxLength={50} onChange={(event) => setNewRule(event.target.value)} className="focus-ring h-10 rounded-data border border-brand-steel px-brand-2" />
+            <select value={ruleChoice} onChange={(event) => setRuleChoice(event.target.value)} className="focus-ring h-10 rounded-data border border-brand-steel px-brand-2">
+              {COMPLIANCE_RULES_BY_COUNTRY[newCountry].map((rule) => (
+                <option key={rule.value} value={rule.value}>
+                  {rule.label}
+                </option>
+              ))}
+              <option value={COMPLIANCE_RULE_OTHER}>Inny</option>
+            </select>
           </label>
+          {ruleChoice === COMPLIANCE_RULE_OTHER ? (
+            <label className="flex flex-col gap-1 text-body">
+              Nazwa przepisu
+              <input value={customRule} maxLength={50} required onChange={(event) => setCustomRule(event.target.value)} className="focus-ring h-10 rounded-data border border-brand-steel px-brand-2" />
+            </label>
+          ) : null}
         </div>
         <StatusSelect id={`new-status-${product.id}`} value={newDraft.status} onChange={(status) => setNewDraft({ ...newDraft, status })} />
         <ReasonField id={`new-reason-${product.id}`} value={newDraft.reason} onChange={(reason) => setNewDraft({ ...newDraft, reason })} />

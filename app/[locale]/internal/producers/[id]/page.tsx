@@ -3,6 +3,8 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { ProducerDeliveryCountriesAdminSection } from "@/components/internal/ProducerDeliveryCountriesAdminSection";
 import { ProducerCertificationAdminSection } from "@/components/internal/ProducerCertificationAdminSection";
+import { supportsEnvelopeParameters } from "@/lib/product-envelope-parameters";
+import { ProductEnvelopeAdminSection } from "@/components/internal/ProductEnvelopeAdminSection";
 import { ProductComplianceAdminSection } from "@/components/internal/ProductComplianceAdminSection";
 import { Heading, Stack, Text } from "@/components/ui";
 import {
@@ -67,6 +69,17 @@ export default async function InternalProducerDetailPage({
           <Text tone="muted">Producent nie ma jeszcze produktów.</Text>
         ) : (
           products.map((product) => <ProductComplianceAdminSection key={product.id} product={product} />)
+        )}
+      </section>
+
+      <section aria-labelledby="producer-envelope-heading" className="flex flex-col gap-brand-3">
+        <h2 id="producer-envelope-heading" className="text-h3 font-semibold">
+          Izolacja przegród i posadowienie
+        </h2>
+        {products.some((product) => supportsEnvelopeParameters(product)) ? (
+          products.map((product) => <ProductEnvelopeAdminSection key={product.id} product={product} />)
+        ) : (
+          <Text tone="muted">Producent nie ma produktów, którym można przypisać parametry izolacji.</Text>
         )}
       </section>
     </Stack>

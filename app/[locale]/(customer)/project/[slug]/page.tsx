@@ -10,6 +10,7 @@ import { ProducerRealizationsSection } from "@/components/klient/ProducerRealiza
 import { ProjectCertifications } from "@/components/klient/ProjectCertifications";
 import { ProjectComplianceAssessments } from "@/components/klient/ProjectComplianceAssessments";
 import { ProjectCostComparisonTable } from "@/components/klient/ProjectCostComparisonTable";
+import { ProjectEnvelopeParameters } from "@/components/klient/ProjectEnvelopeParameters";
 import { ProjectDocumentsAndFaq } from "@/components/klient/ProjectDocumentsAndFaq";
 import { ProjectGalleryTabs, type GalleryTabKey } from "@/components/klient/ProjectGalleryTabs";
 import { GalleryLightboxProvider } from "@/components/klient/ProjectGalleryLightbox";
@@ -36,11 +37,13 @@ import {
   getEligibilityByCountry,
   getProducerVolumeProfile,
   getProductComplianceAssessments,
+  getProductEnvelopeParameters,
   getProductOptionLayouts,
   getProjectBySlugOrId,
 } from "@/lib/data/projects";
 import type { CompletionStandard, EligibilityByCountry } from "@/lib/data/types";
 import { getClientIdForUser, getFavoritedProductIds, getProductOptionGroups } from "@/lib/db/queries";
+import { ENVELOPE_SECTION_ENABLED, supportsEnvelopeParameters } from "@/lib/product-envelope-parameters";
 import { routing, type Locale } from "@/lib/i18n/routing";
 import { resolveProductHref } from "@/lib/product-family-groups";
 import { parseResultsSearchParams } from "@/lib/results-filters";
@@ -165,7 +168,7 @@ export default async function ProjektPage({
 
   const { countryCode } = parseResultsSearchParams(rawSearchParams);
 
-  const [countries, producer, eligibilityRows, session, volumeProfile, optionGroups, complianceAssessments, optionLayouts] =
+  const [countries, producer, eligibilityRows, session, volumeProfile, optionGroups, complianceAssessments, optionLayouts, envelopeParameters] =
     await Promise.all([
       getCountries(),
       getProducerById(project.producerId, locale as Locale),
@@ -179,6 +182,10 @@ export default async function ProjektPage({
       // Wersje układu wnętrz (spec 0069): pusta mapa dla produktu bez opcji
       // niosących układ, wtedy strona wygląda jak przed tą zmianą.
       getProductOptionLayouts(project.id, locale as Locale),
+      // Spec 0075 AC-11: tylko dom i kontener mieszkalny, i tylko gdy sekcja jest włączona.
+      ENVELOPE_SECTION_ENABLED && supportsEnvelopeParameters(project)
+        ? getProductEnvelopeParameters(project.id)
+        : Promise.resolve([]),
     ]);
 
   const isClientSession = session?.user.role === "client";
@@ -719,6 +726,13 @@ export default async function ProjektPage({
             </Text>
           </div>
         )}
+
+        <ProjectEnvelopeParameters
+          parameters={envelopeParameters}
+          foundationStatus={project.foundationStatus}
+          floorAreaM2={project.floorAreaM2}
+          locale={locale}
+        />
 
         <ProjectComplianceAssessments assessments={complianceAssessments} locale={locale} />
 

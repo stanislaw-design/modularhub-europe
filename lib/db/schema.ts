@@ -382,6 +382,25 @@ export const projectTypeEnum = pgEnum("project_type", [
   "other",
 ]);
 
+// Spec 0075: parametry izolacji przegród, posadowienie, planowane użytkowanie.
+export const envelopeElementEnum = pgEnum("envelope_element", [
+  "wall",
+  "roof",
+  "floor_ground",
+  "floor_air",
+  "window",
+  "glazing",
+  "door",
+]);
+export const envelopeQuantityEnum = pgEnum("envelope_quantity", ["u_value", "rc_value"]);
+export const envelopeMethodEnum = pgEnum("envelope_method", [
+  "calculation",
+  "lab_test",
+  "manufacturer_declaration",
+]);
+export const foundationStatusEnum = pgEnum("foundation_status", ["permanent", "temporary"]);
+export const intendedUseEnum = pgEnum("intended_use", ["year_round", "seasonal"]);
+
 // ---------------------------------------------------------------------------
 // Dictionary: country
 // ---------------------------------------------------------------------------
@@ -613,6 +632,10 @@ export const product = pgTable(
     category: productCategoryEnum("category"),
     spaSubcategory: spaSubcategoryEnum("spa_subcategory"),
     containerSubcategory: containerSubcategoryEnum("container_subcategory"),
+    // Posadowienie stałe albo tymczasowe (spec 0075 AC-5): NULL znaczy "nie podano".
+    // Niezależne od product.category (w tym `mobilny`). Znaczące tylko dla domu
+    // i kontenera mieszkalnego (product_foundation_status_family_match).
+    foundationStatus: foundationStatusEnum("foundation_status"),
     // Wartości filtrów paska Outdoor TV (spec 0071 AC-8): tekst z CHECK, nie enum
     // Postgresa (enum jest nieodwracalny, ta sama zasada co document.floor_level).
     // Znaczące tylko dla family = 'outdoor-tv' (product_outdoor_tv_family_match).
@@ -710,6 +733,10 @@ export const product = pgTable(
     check(
       "product_outdoor_tv_family_match",
       sql`(${table.outdoorTvMounting} IS NULL AND ${table.outdoorTvSunExposure} IS NULL) OR ${table.family} = 'outdoor-tv'`,
+    ),
+    check(
+      "product_foundation_status_family_match",
+      sql`${table.foundationStatus} IS NULL OR ${table.family} = 'dom' OR (${table.family} = 'kontenery-modulowe' AND ${table.containerSubcategory} = 'mieszkalne')`,
     ),
     index("product_status_family_idx").on(table.status, table.family),
     index("product_floor_area_m2_idx").on(table.floorAreaM2),
@@ -1326,8 +1353,17 @@ export const inquiry = pgTable(
   contactEmailVerifiedAt: timestamp("contact_email_verified_at", { withTimezone: true }),
   // Język maili do gościa (spec 0066 AC-12), zapisywany przy wysyłce.
   locale: text("locale"),
+  // Spec 0075 AC-6: planowane użytkowanie, opcjonalne. Miesiące tylko przy `seasonal`.
+  intendedUse: intendedUseEnum("intended_use"),
+  intendedUseMonths: integer("intended_use_months"),
   },
-  (table) => [index("inquiry_email_received_idx").on(sql`lower(${table.email})`, table.receivedAt)],
+  (table) => [
+    index("inquiry_email_received_idx").on(sql`lower(${table.email})`, table.receivedAt),
+    check(
+      "inquiry_intended_use_months",
+      sql`${table.intendedUseMonths} IS NULL OR (${table.intendedUseMonths} BETWEEN 1 AND 11 AND ${table.intendedUse} = 'seasonal')`,
+    ),
+  ],
 );
 
 export const inquiryItem = pgTable(
@@ -1580,6 +1616,9 @@ export const projectRequest = pgTable(
     deliveryWindowFrom: date("delivery_window_from"),
     deliveryWindowTo: date("delivery_window_to"),
     extrasNote: text("extras_note"),
+    // Spec 0075 AC-6: planowane użytkowanie, opcjonalne.
+    intendedUse: intendedUseEnum("intended_use"),
+    intendedUseMonths: integer("intended_use_months"),
     status: bulkRequestStatusEnum("status").notNull().default("open"),
     // AC-1 (spec 0062): ustawiane raz przy wstawieniu, nigdy przeliczane.
     trustSignal: trustSignalEnum("trust_signal").notNull().default("new"),
@@ -1606,6 +1645,10 @@ export const projectRequest = pgTable(
   (table) => [
     check("project_request_families_not_empty", sql`jsonb_array_length(${table.families}) > 0`),
     check("project_request_unit_count", sql`${table.unitCount} >= 3`),
+    check(
+      "project_request_intended_use_months",
+      sql`${table.intendedUseMonths} IS NULL OR (${table.intendedUseMonths} BETWEEN 1 AND 11 AND ${table.intendedUse} = 'seasonal')`,
+    ),
     check("project_request_contact_locale", sql`${table.contactLocale} IN ('pl', 'en', 'de', 'nl')`),
     check(
       "project_request_staff_consent",
@@ -1652,6 +1695,9 @@ export const bulkProductInquiry = pgTable(
     deliveryWindowFrom: date("delivery_window_from"),
     deliveryWindowTo: date("delivery_window_to"),
     note: text("note"),
+    // Spec 0075 AC-6: planowane użytkowanie, opcjonalne.
+    intendedUse: intendedUseEnum("intended_use"),
+    intendedUseMonths: integer("intended_use_months"),
     status: bulkRequestStatusEnum("status").notNull().default("open"),
     // Spec 0070: przetarg. Termin składania ofert (domyślnie 14 dni od złożenia).
     deadlineAt: timestamp("deadline_at", { withTimezone: true })
@@ -1675,6 +1721,10 @@ export const bulkProductInquiry = pgTable(
   },
   (table) => [
     check("bulk_product_inquiry_unit_count", sql`${table.unitCount} >= 3`),
+    check(
+      "bulk_product_inquiry_intended_use_months",
+      sql`${table.intendedUseMonths} IS NULL OR (${table.intendedUseMonths} BETWEEN 1 AND 11 AND ${table.intendedUse} = 'seasonal')`,
+    ),
     check("bulk_product_inquiry_contact_locale", sql`${table.contactLocale} IN ('pl', 'en', 'de', 'nl')`),
     check(
       "bulk_product_inquiry_staff_consent",
@@ -1984,6 +2034,51 @@ export const productComplianceAssessment = pgTable(
     check("product_compliance_assessment_rule_nonempty", sql`char_length(btrim(${table.rule})) > 0`),
     check("product_compliance_assessment_reason_nonempty", sql`char_length(btrim(${table.reason})) > 0`),
     check("product_compliance_assessment_confirmation_consistent", confirmationConsistent(table)),
+  ],
+);
+
+// Spec 0075: parametry izolacji przegród produktu (U, Rc), każdy z własną metodą,
+// datą i potwierdzeniem administratora (ten sam wzorzec co spec 0065).
+export const productEnvelopeParameter = pgTable(
+  "product_envelope_parameter",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => product.id, { onDelete: "cascade" }),
+    element: envelopeElementEnum("element").notNull(),
+    quantity: envelopeQuantityEnum("quantity").notNull(),
+    value: numeric("value", { precision: 6, scale: 3 }).notNull(),
+    method: envelopeMethodEnum("method").notNull(),
+    methodNote: text("method_note"),
+    asOfDate: date("as_of_date").notNull(),
+    confirmationStatus: producerCertificationStatusEnum("confirmation_status").notNull().default("self_reported"),
+    confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
+    confirmedBy: text("confirmed_by").references(() => users.id, { onDelete: "restrict" }),
+    version: integer("version").notNull().default(1),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    unique("product_envelope_parameter_product_element_quantity_unique").on(
+      table.productId,
+      table.element,
+      table.quantity,
+    ),
+    index("product_envelope_parameter_product_idx").on(table.productId),
+    check(
+      "product_envelope_parameter_quantity_by_element",
+      sql`(${table.element} IN ('window', 'glazing', 'door') AND ${table.quantity} = 'u_value') OR ${table.element} IN ('wall', 'roof', 'floor_ground', 'floor_air')`,
+    ),
+    check(
+      "product_envelope_parameter_value_range",
+      sql`(${table.quantity} = 'u_value' AND ${table.value} BETWEEN 0.05 AND 6) OR (${table.quantity} = 'rc_value' AND ${table.value} BETWEEN 0.1 AND 20)`,
+    ),
+    check(
+      "product_envelope_parameter_method_note_length",
+      sql`${table.methodNote} IS NULL OR char_length(${table.methodNote}) <= 300`,
+    ),
+    check("product_envelope_parameter_confirmation_consistent", confirmationConsistent(table)),
   ],
 );
 

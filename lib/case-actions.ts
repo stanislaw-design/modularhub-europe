@@ -115,6 +115,8 @@ export async function submitAdvisoryInquiry(input: SubmitAdvisoryInquiryInput): 
         locale: data.locale,
         systemNoticeBody: t("caseReceived"),
         contactEmailVerifiedAt: isGuest ? null : systemClock.now(),
+        intendedUse: data.intendedUse,
+        intendedUseMonths: data.intendedUseMonths,
       },
       systemClock,
     );

@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq, isNull, notInArray } from "drizzle-orm";
+import { and, eq, isNull, notInArray, sql } from "drizzle-orm";
 import { after } from "next/server";
 import {
   generateProductTranslations,
@@ -548,6 +548,10 @@ export async function updateProducerProduct(
         .update(product)
         .set({
           ...buildProductValues(fields),
+          // Spec 0075 AC-5: zmiana podkategorii kontenera czyści posadowienie w tej
+          // samej instrukcji, żeby CHECK product_foundation_status_family_match
+          // nie zwrócił użytkownikowi surowego błędu bazy.
+          foundationStatus: sql`CASE WHEN ${product.family} = 'dom' OR ${fields.containerSubcategory ?? null}::text = 'mieszkalne' THEN ${product.foundationStatus} ELSE NULL END`,
           ...(slug !== undefined ? { slug } : {}),
           ...(options.publish && !publishError ? { status: "published" as const } : {}),
         })

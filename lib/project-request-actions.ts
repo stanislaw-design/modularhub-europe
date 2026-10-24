@@ -1,6 +1,7 @@
 "use server";
 
 import { z } from "zod";
+import { intendedUseColumns, intendedUseRefinement, intendedUseShape } from "@/lib/intended-use";
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { getMatchedProducersForRequest } from "@/lib/db/project-request-matching";
@@ -101,7 +102,9 @@ const submitProjectRequestSchema = z
     deliveryWindowFrom: dateStringSchema.optional(),
     deliveryWindowTo: dateStringSchema.optional(),
     extrasNote: z.string().trim().min(1).optional(),
+    ...intendedUseShape,
   })
+  .refine(intendedUseRefinement.check, intendedUseRefinement.params)
   .refine((data) => !data.startWindowFrom || !data.startWindowTo || data.startWindowTo >= data.startWindowFrom, {
     message: "Data 'do' okna startu musi być równa lub późniejsza niż 'od'.",
     path: ["startWindowTo"],
@@ -151,6 +154,7 @@ function buildProjectRequestInsert(
       deliveryWindowFrom: data.deliveryWindowFrom ?? null,
       deliveryWindowTo: data.deliveryWindowTo ?? null,
       extrasNote: data.extrasNote ?? null,
+      ...intendedUseColumns(data),
       trustSignal: computeTrustSignal(contactEmail, data.contactPhone),
       contactLocale: data.locale,
       createdByStaffUserId: staff?.userId ?? null,
@@ -219,7 +223,9 @@ const submitBulkProductInquirySchema = z
     deliveryWindowFrom: dateStringSchema.optional(),
     deliveryWindowTo: dateStringSchema.optional(),
     note: z.string().trim().min(1).optional(),
+    ...intendedUseShape,
   })
+  .refine(intendedUseRefinement.check, intendedUseRefinement.params)
   .refine((data) => !data.startWindowFrom || !data.startWindowTo || data.startWindowTo >= data.startWindowFrom, {
     message: "Data 'do' okna startu musi być równa lub późniejsza niż 'od'.",
     path: ["startWindowTo"],
@@ -255,6 +261,7 @@ function buildBulkProductInquiryInsert(
       deliveryWindowFrom: data.deliveryWindowFrom ?? null,
       deliveryWindowTo: data.deliveryWindowTo ?? null,
       note: data.note ?? null,
+      ...intendedUseColumns(data),
       contactLocale: data.locale,
       createdByStaffUserId: staff?.userId ?? null,
       staffConsentNote: staff?.consentNote ?? null,

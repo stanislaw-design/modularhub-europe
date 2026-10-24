@@ -124,12 +124,20 @@
     "country": {
       "PL": "Polska",
       "DE": "Niemcy",
-      "NL": "Holandia"
+      "NL": "Holandia",
+      "BE": "Belgia",
+      "IT": "Włochy",
+      "FR": "Francja"
     },
     "status": {
       "approved": "Zgodny z przepisami",
       "conditional": "Wymaga dodatkowych dokumentów",
       "blocked": "Niedostępny w tym kraju"
+    },
+    "terms": {
+      "summary": "Co znaczą HLL i logiesfunctie?",
+      "hll": "HLL (habitation légère de loisirs) to francuska kategoria lekkich domków rekreacyjnych. Obowiązują ją inne zasady niż dom całoroczny.",
+      "logiesfunctie": "Logiesfunctie to holenderskie określenie funkcji noclegowej budynku, czyli pobytu krótkiego, nie stałego mieszkania. Wymagania są inne niż dla funkcji mieszkalnej."
     }
   },
   "PopularHomeCard": {
@@ -1187,7 +1195,13 @@
     "priceOnRequest": "Wycena indywidualna",
     "unavailableColumnLabel": "Niedostępny",
     "unavailableColumnHint": "Ten dom został usunięty lub nie jest już publicznie dostępny.",
-    "notProvided": "Nie podano"
+    "notProvided": "Nie podano",
+    "envelopeWallLabel": "Ściany (U albo Rc)",
+    "envelopeRoofLabel": "Dach (U albo Rc)",
+    "envelopeFloorLabel": "Podłoga (U albo Rc)",
+    "envelopeValue": "{symbol} {value} {unit}",
+    "envelopeConfirmed": "potwierdzone",
+    "envelopeDeclared": "deklaracja"
   },
   "ProjectRoomLayout": {
     "heading": "Układ domu",
@@ -2894,5 +2908,90 @@
     "ariaLabel": "Tablica ogłoszeń",
     "available": "Dostępne ogłoszenia",
     "myQuotes": "Moje wyceny"
+  },
+  "EnvelopeParameters": {
+    "heading": "Izolacja przegród",
+    "intro": "Liczby podane przez producenta dla ścian, dachu, podłogi i okien. Im niższe U, tym lepiej dom trzyma ciepło. Im wyższe Rc, tym lepiej.",
+    "element": {
+      "wall": {
+        "label": "Ściany zewnętrzne",
+        "description": "Całość ściany od wewnątrz do zewnątrz, razem z ociepleniem."
+      },
+      "roof": {
+        "label": "Dach",
+        "description": "Dach albo strop pod dachem, razem z ociepleniem."
+      },
+      "floor_ground": {
+        "label": "Podłoga na gruncie",
+        "description": "Podłoga leżąca na gruncie, bez przestrzeni pod spodem."
+      },
+      "floor_air": {
+        "label": "Podłoga nad powietrzem",
+        "description": "Podłoga uniesiona nad gruntem, z powietrzem pod spodem."
+      },
+      "window": {
+        "label": "Okna",
+        "description": "Całe okno razem z ramą i szybą (Uw)."
+      },
+      "glazing": {
+        "label": "Szyby",
+        "description": "Tylko szyba, bez ramy (Ug). To nie to samo co całe okno."
+      },
+      "door": {
+        "label": "Drzwi",
+        "description": "Drzwi zewnętrzne (Ud)."
+      }
+    },
+    "symbol": {
+      "u_value": "U",
+      "rc_value": "Rc",
+      "window": "Uw",
+      "glazing": "Ug",
+      "door": "Ud"
+    },
+    "valueLabel": "{symbol} {value} {unit}",
+    "method": {
+      "calculation": "Obliczenia",
+      "lab_test": "Badanie laboratoryjne",
+      "manufacturer_declaration": "Deklaracja producenta"
+    },
+    "methodLabel": "Metoda",
+    "asOf": "Stan na dzień {date}",
+    "status": {
+      "confirmed": "Potwierdzone przez platformę",
+      "confirmedWithDate": "Potwierdzone przez platformę, {date}",
+      "declared": "Deklaracja producenta, niepotwierdzona",
+      "confirmedHelp": "Administrator platformy przejrzał dokument przekazany przez producenta. To nie jest certyfikat ani badanie."
+    },
+    "foundation": {
+      "label": "Posadowienie",
+      "permanent": "Posadowienie: stałe",
+      "temporary": "Posadowienie: tymczasowe"
+    },
+    "whatItMeans": "Co to znaczy?",
+    "explain": {
+      "u": "U to przenikanie ciepła, w W/m²K. Pokazuje, ile ciepła ucieka przez metr kwadratowy przegrody. Niższa liczba znaczy lepsza izolacja.",
+      "rc": "Rc to opór cieplny, w m²K/W. Pokazuje, jak mocno przegroda zatrzymuje ciepło. Wyższa liczba znaczy lepsza izolacja.",
+      "notEqual": "U i Rc to nie to samo. Nie da się ich przeliczyć prostym 1 podzielić przez Rc, bo U liczy się z całej przegrody razem z powierzchniami przy ścianie.",
+      "ug": "Ug dotyczy samej szyby. Uw dotyczy całego okna z ramą, więc zwykle jest wyższe niż Ug.",
+      "ud": "Ud to przenikanie ciepła drzwi zewnętrznych. Niższa liczba znaczy lepsza izolacja.",
+      "asOf": "Stan na dzień to data, z której pochodzi wartość. Przepisy i produkty się zmieniają, więc starsze liczby mogą być nieaktualne.",
+      "declared": "Deklaracja producenta to liczba, którą podał producent. Platforma jej jeszcze nie sprawdziła.",
+      "confirmed": "Potwierdzone przez platformę znaczy, że administrator przejrzał dokument przekazany przez producenta. To nie jest certyfikat ani badanie.",
+      "permanent": "Posadowienie stałe to dom związany z gruntem na trwałe, na przykład na fundamencie.",
+      "temporary": "Posadowienie tymczasowe to dom ustawiany bez trwałego związania z gruntem, na przykład na podkładach, i możliwy do przeniesienia."
+    },
+    "areaNote": "Powierzchnia z katalogu może różnić się od powierzchni liczonej według lokalnych przepisów. Próg 50 m² w przepisach liczy się według definicji danego kraju.",
+    "disclaimer": "Wartości pochodzą od producenta i nie zastępują obliczeń projektanta. Nie są oceną przepisów żadnego kraju."
+  },
+  "IntendedUse": {
+    "legend": "Planowane użytkowanie (nieobowiązkowe)",
+    "hint": "Producent odpowie z uwzględnieniem tego, czy dom będzie używany cały rok.",
+    "yearRound": "Cały rok",
+    "seasonal": "Sezonowo",
+    "monthsLabel": "Ile miesięcy w roku (od 1 do 11)",
+    "monthsRequired": "Podaj liczbę miesięcy od 1 do 11.",
+    "label": "Planowane użytkowanie",
+    "monthsValue": "sezonowo, {months} mies. w roku"
   }
 }

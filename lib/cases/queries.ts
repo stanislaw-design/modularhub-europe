@@ -33,6 +33,9 @@ export interface CaseView {
   receivedAt: Date;
   plot: { street: string | null; postalCode: string | null; city: string | null; countryCode: string };
   clientMessage: string | null;
+  // Spec 0075 AC-7: planowane użytkowanie, opcjonalne.
+  intendedUse: "year_round" | "seasonal" | null;
+  intendedUseMonths: number | null;
   clientName: string;
   // Migawka kontaktu z chwili wysłania (spec 0066 AC-11).
   contact: { email: string; phone: string };
@@ -187,6 +190,8 @@ export async function getCaseView(actor: CaseActor, inquiryId: string): Promise<
       city: inquiry.plotCity,
       countryCode: inquiry.deliveryCountryCode,
       clientMessage: inquiry.clientMessage,
+      intendedUse: inquiry.intendedUse,
+      intendedUseMonths: inquiry.intendedUseMonths,
       clientName: inquiry.name,
       contactEmail: inquiry.email,
       contactPhone: inquiry.phone,
@@ -223,6 +228,8 @@ export async function getCaseView(actor: CaseActor, inquiryId: string): Promise<
     receivedAt: row.receivedAt,
     plot: { street: row.street, postalCode: row.postalCode, city: row.city, countryCode: row.countryCode },
     clientMessage: row.clientMessage,
+    intendedUse: row.intendedUse,
+    intendedUseMonths: row.intendedUseMonths,
     clientName: row.clientName,
     contact: { email: row.contactEmail, phone: row.contactPhone },
     emailUnverified: row.contactEmailVerifiedAt === null,

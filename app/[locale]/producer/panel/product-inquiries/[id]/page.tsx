@@ -22,15 +22,21 @@ export default async function ProducerProductInquiryDetailPage({
 }) {
   const { locale, id } = await params;
   const selfHref = `/${locale}/producer/panel/product-inquiries/${id}`;
-  const [session, t, tBoard] = await Promise.all([
+  const [session, t, tBoard, tIntendedUse] = await Promise.all([
     requirePanelProducerSession(locale, selfHref),
     getTranslations("ProducerProductInquiryDetailPage"),
     getTranslations("ProducerBoardDetailPage"),
+    getTranslations("IntendedUse"),
   ]);
 
   const producerId = await getProducerIdForUser(session.user.id);
   const detail = producerId ? await getProductInquiryForProducerDetail(id, producerId) : null;
   if (!detail) notFound();
+  const intendedUseText = detail.intendedUse
+    ? detail.intendedUse === "seasonal" && detail.intendedUseMonths
+      ? tIntendedUse("monthsValue", { months: detail.intendedUseMonths })
+      : tIntendedUse(detail.intendedUse === "seasonal" ? "seasonal" : "yearRound")
+    : null;
   // Pliki inwestora (spec 0070 AC-31): producent produktu widzi je od razu po wgraniu.
   const [attachments, attachmentLabels] = await Promise.all([
     listInquiryAttachments("product", id),
@@ -104,6 +110,7 @@ export default async function ProducerProductInquiryDetailPage({
               <Fact label={t("countryLabel")} value={detail.countryName} />
               <Fact label={t("unitCountLabel")} value={String(detail.unitCount)} emphasis />
               <Fact label={t("deadlineLabel")} value={dateFormatter.format(detail.deadlineAt)} />
+              {intendedUseText && <Fact label={tIntendedUse("label")} value={intendedUseText} />}
             </dl>
           </section>
 

@@ -124,12 +124,20 @@
     "country": {
       "PL": "Poland",
       "DE": "Germany",
-      "NL": "Netherlands"
+      "NL": "Netherlands",
+      "BE": "Belgium",
+      "IT": "Italy",
+      "FR": "France"
     },
     "status": {
       "approved": "Compliant",
       "conditional": "Requires additional documents",
       "blocked": "Not available in this country"
+    },
+    "terms": {
+      "summary": "What do HLL and logiesfunctie mean?",
+      "hll": "HLL (habitation légère de loisirs) is a French category of light leisure cabins. Different rules apply to it than to a year-round house.",
+      "logiesfunctie": "Logiesfunctie is the Dutch term for the lodging use of a building, meaning short stays rather than permanent living. The requirements differ from those for a dwelling."
     }
   },
   "PopularHomeCard": {
@@ -1172,7 +1180,13 @@
     "priceOnRequest": "Price on request",
     "unavailableColumnLabel": "Unavailable",
     "unavailableColumnHint": "This home has been removed or is no longer publicly available.",
-    "notProvided": "Not provided"
+    "notProvided": "Not provided",
+    "envelopeWallLabel": "Walls (U or Rc)",
+    "envelopeRoofLabel": "Roof (U or Rc)",
+    "envelopeFloorLabel": "Floor (U or Rc)",
+    "envelopeValue": "{symbol} {value} {unit}",
+    "envelopeConfirmed": "confirmed",
+    "envelopeDeclared": "declared"
   },
   "ProjectRoomLayout": {
     "heading": "House layout",
@@ -2886,5 +2900,90 @@
     "ariaLabel": "Listings board",
     "available": "Available listings",
     "myQuotes": "My quotes"
+  },
+  "EnvelopeParameters": {
+    "heading": "Insulation of building parts",
+    "intro": "Numbers given by the manufacturer for the walls, roof, floor and windows. The lower the U value, the better the house keeps heat in. The higher the Rc value, the better.",
+    "element": {
+      "wall": {
+        "label": "External walls",
+        "description": "The whole wall from inside to outside, including the insulation."
+      },
+      "roof": {
+        "label": "Roof",
+        "description": "The roof or the ceiling under the roof, including the insulation."
+      },
+      "floor_ground": {
+        "label": "Floor on the ground",
+        "description": "A floor that rests on the ground, with no space underneath."
+      },
+      "floor_air": {
+        "label": "Floor over open air",
+        "description": "A floor raised above the ground, with air underneath."
+      },
+      "window": {
+        "label": "Windows",
+        "description": "The whole window with frame and glass (Uw)."
+      },
+      "glazing": {
+        "label": "Glazing",
+        "description": "The glass only, without the frame (Ug). This is not the same as the whole window."
+      },
+      "door": {
+        "label": "Doors",
+        "description": "External doors (Ud)."
+      }
+    },
+    "symbol": {
+      "u_value": "U",
+      "rc_value": "Rc",
+      "window": "Uw",
+      "glazing": "Ug",
+      "door": "Ud"
+    },
+    "valueLabel": "{symbol} {value} {unit}",
+    "method": {
+      "calculation": "Calculation",
+      "lab_test": "Laboratory test",
+      "manufacturer_declaration": "Manufacturer declaration"
+    },
+    "methodLabel": "Method",
+    "asOf": "As of {date}",
+    "status": {
+      "confirmed": "Confirmed by the platform",
+      "confirmedWithDate": "Confirmed by the platform, {date}",
+      "declared": "Manufacturer declaration, not confirmed",
+      "confirmedHelp": "A platform administrator reviewed the document the manufacturer provided. This is not a certificate or a test."
+    },
+    "foundation": {
+      "label": "Foundation",
+      "permanent": "Foundation: permanent",
+      "temporary": "Foundation: temporary"
+    },
+    "whatItMeans": "What does this mean?",
+    "explain": {
+      "u": "U is the heat transfer coefficient, in W/m²K. It shows how much heat escapes through one square metre of the building part. A lower number means better insulation.",
+      "rc": "Rc is thermal resistance, in m²K/W. It shows how strongly the building part holds heat back. A higher number means better insulation.",
+      "notEqual": "U and Rc are not the same thing. You cannot convert one to the other by simply dividing 1 by Rc, because U is calculated for the whole building part including the surfaces at the wall.",
+      "ug": "Ug is for the glass only. Uw is for the whole window with its frame, so it is usually higher than Ug.",
+      "ud": "Ud is the heat transfer coefficient of an external door. A lower number means better insulation.",
+      "asOf": "As of is the date the value comes from. Rules and products change, so older numbers may be out of date.",
+      "declared": "A manufacturer declaration is a number the manufacturer gave us. The platform has not checked it yet.",
+      "confirmed": "Confirmed by the platform means an administrator reviewed the document the manufacturer provided. This is not a certificate or a test.",
+      "permanent": "A permanent foundation means the house is fixed to the ground for good, for example on a foundation slab.",
+      "temporary": "A temporary foundation means the house stands without a lasting connection to the ground, for example on blocks, and can be moved."
+    },
+    "areaNote": "The floor area in the catalogue can differ from the area counted under local rules. The 50 m² limit in the rules is counted by each country's own definition.",
+    "disclaimer": "The values come from the manufacturer and do not replace a designer's calculations. They are not an assessment against the rules of any country."
+  },
+  "IntendedUse": {
+    "legend": "Planned use (optional)",
+    "hint": "The manufacturer will answer with this in mind: whether the house will be used all year.",
+    "yearRound": "All year",
+    "seasonal": "Seasonal",
+    "monthsLabel": "How many months a year (1 to 11)",
+    "monthsRequired": "Enter a number of months from 1 to 11.",
+    "label": "Planned use",
+    "monthsValue": "seasonal, {months} months a year"
   }
 }

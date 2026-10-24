@@ -26,11 +26,12 @@ export default async function ProducerBoardDetailPage({
 }) {
   const { locale, id } = await params;
   const selfHref = `/${locale}/producer/panel/board/${id}`;
-  const [session, t, tProjectRequest, tOptions] = await Promise.all([
+  const [session, t, tProjectRequest, tOptions, tIntendedUse] = await Promise.all([
     requirePanelProducerSession(locale, selfHref),
     getTranslations("ProducerBoardDetailPage"),
     getTranslations("ProjectRequestFlow"),
     getTranslations("ProjectOptions"),
+    getTranslations("IntendedUse"),
   ]);
 
   const producerId = await getProducerIdForUser(session.user.id);
@@ -46,6 +47,11 @@ export default async function ProducerBoardDetailPage({
   if (!detail) {
     notFound();
   }
+  const intendedUseText = detail.intendedUse
+    ? detail.intendedUse === "seasonal" && detail.intendedUseMonths
+      ? tIntendedUse("monthsValue", { months: detail.intendedUseMonths })
+      : tIntendedUse(detail.intendedUse === "seasonal" ? "seasonal" : "yearRound")
+    : null;
   // Pliki inwestora (spec 0070 AC-31): lista liczona tą samą regułą dopasowania co zapytanie.
   const [attachments, attachmentLabels] = await Promise.all([
     listInquiryAttachments("request", id),
@@ -168,6 +174,7 @@ export default async function ProducerBoardDetailPage({
                 value={tProjectRequest(`projectType.${detail.projectType}`)}
               />
               <Fact label={t("unitCountLabel")} value={unitCount} emphasis />
+              {intendedUseText && <Fact label={tIntendedUse("label")} value={intendedUseText} />}
               {floorArea && (
                 <Fact label={t("floorAreaLabel")} value={floorArea} emphasis />
               )}

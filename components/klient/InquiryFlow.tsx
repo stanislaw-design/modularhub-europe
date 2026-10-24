@@ -25,6 +25,7 @@ import {
   Text,
   Textarea,
 } from "@/components/ui";
+import { EMPTY_INTENDED_USE, IntendedUseField, intendedUseInput, type IntendedUseValue } from "@/components/klient/IntendedUseField";
 import { submitAdvisoryInquiry } from "@/lib/case-actions";
 import { resendGuestCaseLink } from "@/lib/guest-case-actions";
 import type { Country, CountryCode, Project } from "@/lib/data/types";
@@ -81,6 +82,7 @@ export function InquiryFlow({
     initialCountryCode,
   );
   const [message, setMessage] = useState("");
+  const [intendedUse, setIntendedUse] = useState<IntendedUseValue>(EMPTY_INTENDED_USE);
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [contactPhone, setContactPhone] = useState("");
@@ -114,6 +116,7 @@ export function InquiryFlow({
         projectIds: projects.map((project) => project.id),
         plot: { street, postalCode, city, countryCode },
         message: message.trim() || undefined,
+        ...intendedUseInput(intendedUse),
         idempotencyKey,
         locale,
         ...(isGuest
@@ -286,6 +289,7 @@ export function InquiryFlow({
                     onChange={(event) => setMessage(event.target.value)}
                   />
                 </Stack>
+                <IntendedUseField idPrefix="inquiry" value={intendedUse} onChange={setIntendedUse} />
               </Stack>
 
               <Stack

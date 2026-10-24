@@ -228,6 +228,11 @@ export interface Project {
    * ją odczytuje, żeby produkt podkategorii "sauna" wylądował pod /sauna/[slug], nie
    * /project/[slug]. null/undefined dla każdej innej rodziny. */
   spaSubcategory?: SpaSubcategory | null;
+  /** Spec 0075 AC-4, AC-5: znacząca tylko dla family = "kontenery-modulowe" (decyduje,
+   * czy produkt dostaje sekcję izolacji). */
+  containerSubcategory?: ContainerSubcategory | null;
+  /** Spec 0075 AC-5: posadowienie stałe albo tymczasowe, null = nie podano. */
+  foundationStatus?: "permanent" | "temporary" | null;
   /** Wartości filtrów paska Outdoor TV (spec 0071), tylko family = "outdoor-tv". */
   outdoorTvMounting?: string | null;
   outdoorTvSunExposure?: string | null;
@@ -383,10 +388,25 @@ export interface ProducerCertification {
 }
 
 export interface ProductComplianceAssessment {
-  countryCode: CountryCode;
+  // Spec 0075 AC-8: ocena zgodności przyjmuje też BE, IT i FR, których nie ma w CountryCode.
+  countryCode: CountryCode | "BE" | "IT" | "FR";
   rule: string;
   status: EligibilityStatus;
   reason: string;
+  confirmed: boolean;
+  confirmedAt: Date | null;
+}
+
+// Spec 0075: parametr izolacji przegrody, widok publiczny. confirmedBy celowo
+// nie trafia do tego typu, tak samo jak przy ocenie zgodności.
+export interface ProductEnvelopeParameter {
+  element: "wall" | "roof" | "floor_ground" | "floor_air" | "window" | "glazing" | "door";
+  quantity: "u_value" | "rc_value";
+  value: number;
+  method: "calculation" | "lab_test" | "manufacturer_declaration";
+  methodNote: string | null;
+  /** Data w formacie RRRR-MM-DD. */
+  asOfDate: string;
   confirmed: boolean;
   confirmedAt: Date | null;
 }

@@ -124,12 +124,20 @@
     "country": {
       "PL": "Polen",
       "DE": "Duitsland",
-      "NL": "Nederland"
+      "NL": "Nederland",
+      "BE": "België",
+      "IT": "Italië",
+      "FR": "Frankrijk"
     },
     "status": {
       "approved": "Conform de regelgeving",
       "conditional": "Vereist aanvullende documenten",
       "blocked": "Niet beschikbaar in dit land"
+    },
+    "terms": {
+      "summary": "Wat betekenen HLL en logiesfunctie?",
+      "hll": "HLL (habitation légère de loisirs) is een Franse categorie voor lichte recreatiewoningen. Hiervoor gelden andere regels dan voor een huis dat het hele jaar wordt bewoond.",
+      "logiesfunctie": "Logiesfunctie is de Nederlandse term voor het gebruik van een gebouw voor verblijf, dus korte verblijven in plaats van permanent wonen. De eisen verschillen van die voor een woonfunctie."
     }
   },
   "PopularHomeCard": {
@@ -1172,7 +1180,13 @@
     "priceOnRequest": "Prijs op aanvraag",
     "unavailableColumnLabel": "Niet beschikbaar",
     "unavailableColumnHint": "Deze woning is verwijderd of niet meer openbaar beschikbaar.",
-    "notProvided": "Niet opgegeven"
+    "notProvided": "Niet opgegeven",
+    "envelopeWallLabel": "Muren (U of Rc)",
+    "envelopeRoofLabel": "Dak (U of Rc)",
+    "envelopeFloorLabel": "Vloer (U of Rc)",
+    "envelopeValue": "{symbol} {value} {unit}",
+    "envelopeConfirmed": "bevestigd",
+    "envelopeDeclared": "opgave fabrikant"
   },
   "ProjectRoomLayout": {
     "heading": "Indeling van de woning",
@@ -2886,5 +2900,90 @@
     "ariaLabel": "Opdrachtenbord",
     "available": "Beschikbare opdrachten",
     "myQuotes": "Mijn offertes"
+  },
+  "EnvelopeParameters": {
+    "heading": "Isolatie van bouwdelen",
+    "intro": "Waarden die de fabrikant opgeeft voor muren, dak, vloer en ramen. Hoe lager de U-waarde, hoe beter het huis de warmte vasthoudt. Hoe hoger de Rc-waarde, hoe beter.",
+    "element": {
+      "wall": {
+        "label": "Buitenmuren",
+        "description": "De hele muur van binnen naar buiten, inclusief isolatie."
+      },
+      "roof": {
+        "label": "Dak",
+        "description": "Het dak of het plafond onder het dak, inclusief isolatie."
+      },
+      "floor_ground": {
+        "label": "Vloer op de grond",
+        "description": "Een vloer die op de grond rust, zonder ruimte eronder."
+      },
+      "floor_air": {
+        "label": "Vloer boven buitenlucht",
+        "description": "Een vloer die boven de grond is opgetild, met lucht eronder."
+      },
+      "window": {
+        "label": "Ramen",
+        "description": "Het hele raam met kozijn en glas (Uw)."
+      },
+      "glazing": {
+        "label": "Beglazing",
+        "description": "Alleen het glas, zonder kozijn (Ug). Dit is niet hetzelfde als het hele raam."
+      },
+      "door": {
+        "label": "Deuren",
+        "description": "Buitendeuren (Ud)."
+      }
+    },
+    "symbol": {
+      "u_value": "U",
+      "rc_value": "Rc",
+      "window": "Uw",
+      "glazing": "Ug",
+      "door": "Ud"
+    },
+    "valueLabel": "{symbol} {value} {unit}",
+    "method": {
+      "calculation": "Berekening",
+      "lab_test": "Laboratoriumtest",
+      "manufacturer_declaration": "Opgave van de fabrikant"
+    },
+    "methodLabel": "Methode",
+    "asOf": "Stand per {date}",
+    "status": {
+      "confirmed": "Bevestigd door het platform",
+      "confirmedWithDate": "Bevestigd door het platform, {date}",
+      "declared": "Opgave van de fabrikant, niet bevestigd",
+      "confirmedHelp": "Een beheerder van het platform heeft het document van de fabrikant bekeken. Dit is geen certificaat en geen test."
+    },
+    "foundation": {
+      "label": "Fundering",
+      "permanent": "Fundering: blijvend",
+      "temporary": "Fundering: tijdelijk"
+    },
+    "whatItMeans": "Wat betekent dit?",
+    "explain": {
+      "u": "U is de warmtedoorgangscoëfficiënt, in W/m²K. Het laat zien hoeveel warmte door een vierkante meter van het bouwdeel verdwijnt. Een lager getal betekent betere isolatie.",
+      "rc": "Rc is de warmteweerstand, in m²K/W. Het laat zien hoe sterk het bouwdeel de warmte tegenhoudt. Een hoger getal betekent betere isolatie.",
+      "notEqual": "U en Rc zijn niet hetzelfde. Je kunt ze niet omrekenen door simpelweg 1 te delen door Rc, omdat U wordt berekend voor het hele bouwdeel inclusief de overgangsweerstanden aan de oppervlakken.",
+      "ug": "Ug geldt alleen voor het glas. Uw geldt voor het hele raam met kozijn en is daarom meestal hoger dan Ug.",
+      "ud": "Ud is de warmtedoorgangscoëfficiënt van een buitendeur. Een lager getal betekent betere isolatie.",
+      "asOf": "Stand per is de datum waarvan de waarde afkomstig is. Regels en producten veranderen, dus oudere waarden kunnen verouderd zijn.",
+      "declared": "Een opgave van de fabrikant is een getal dat de fabrikant heeft doorgegeven. Het platform heeft het nog niet gecontroleerd.",
+      "confirmed": "Bevestigd door het platform betekent dat een beheerder het document van de fabrikant heeft bekeken. Dit is geen certificaat en geen test.",
+      "permanent": "Een blijvende fundering betekent dat het huis blijvend aan de grond vastzit, bijvoorbeeld op een funderingsplaat.",
+      "temporary": "Een tijdelijke fundering betekent dat het huis zonder blijvende verbinding met de grond staat, bijvoorbeeld op blokken, en kan worden verplaatst."
+    },
+    "areaNote": "De oppervlakte in de catalogus kan afwijken van de oppervlakte die volgens de lokale regels wordt geteld. De grens van 50 m² in de regels wordt per land volgens de eigen definitie berekend.",
+    "disclaimer": "De waarden komen van de fabrikant en vervangen de berekeningen van de ontwerper niet. Ze zijn geen beoordeling aan de hand van de regels van een land."
+  },
+  "IntendedUse": {
+    "legend": "Beoogd gebruik (optioneel)",
+    "hint": "De fabrikant antwoordt met dit in gedachten: of het huis het hele jaar wordt gebruikt.",
+    "yearRound": "Het hele jaar",
+    "seasonal": "Seizoensgebonden",
+    "monthsLabel": "Hoeveel maanden per jaar (1 tot 11)",
+    "monthsRequired": "Vul een aantal maanden van 1 tot 11 in.",
+    "label": "Beoogd gebruik",
+    "monthsValue": "seizoensgebonden, {months} maanden per jaar"
   }
 }

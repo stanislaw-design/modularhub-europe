@@ -124,12 +124,20 @@
     "country": {
       "PL": "Polen",
       "DE": "Deutschland",
-      "NL": "Niederlande"
+      "NL": "Niederlande",
+      "BE": "Belgien",
+      "IT": "Italien",
+      "FR": "Frankreich"
     },
     "status": {
       "approved": "Konform mit den Vorschriften",
       "conditional": "Erfordert zusätzliche Unterlagen",
       "blocked": "In diesem Land nicht verfügbar"
+    },
+    "terms": {
+      "summary": "Was bedeuten HLL und logiesfunctie?",
+      "hll": "HLL (habitation légère de loisirs) ist eine französische Kategorie für leichte Freizeithäuser. Dafür gelten andere Regeln als für ein ganzjährig bewohntes Haus.",
+      "logiesfunctie": "Logiesfunctie ist der niederländische Begriff für die Beherbergungsnutzung eines Gebäudes, also kurze Aufenthalte statt dauerhaftem Wohnen. Die Anforderungen unterscheiden sich von denen an eine Wohnnutzung."
     }
   },
   "PopularHomeCard": {
@@ -1179,7 +1187,13 @@
     "priceOnRequest": "Preis auf Anfrage",
     "unavailableColumnLabel": "Nicht verfügbar",
     "unavailableColumnHint": "Dieses Haus wurde entfernt oder ist nicht mehr öffentlich verfügbar.",
-    "notProvided": "Nicht angegeben"
+    "notProvided": "Nicht angegeben",
+    "envelopeWallLabel": "Wände (U oder Rc)",
+    "envelopeRoofLabel": "Dach (U oder Rc)",
+    "envelopeFloorLabel": "Boden (U oder Rc)",
+    "envelopeValue": "{symbol} {value} {unit}",
+    "envelopeConfirmed": "bestätigt",
+    "envelopeDeclared": "Herstellerangabe"
   },
   "ProjectRoomLayout": {
     "heading": "Raumaufteilung",
@@ -2886,5 +2900,90 @@
     "ariaLabel": "Ausschreibungsbrett",
     "available": "Verfügbare Ausschreibungen",
     "myQuotes": "Meine Angebote"
+  },
+  "EnvelopeParameters": {
+    "heading": "Dämmung der Bauteile",
+    "intro": "Werte, die der Hersteller für Wände, Dach, Boden und Fenster angibt. Je niedriger der U-Wert, desto besser hält das Haus die Wärme. Je höher der Rc-Wert, desto besser.",
+    "element": {
+      "wall": {
+        "label": "Außenwände",
+        "description": "Die ganze Wand von innen nach außen, einschließlich Dämmung."
+      },
+      "roof": {
+        "label": "Dach",
+        "description": "Das Dach oder die Decke unter dem Dach, einschließlich Dämmung."
+      },
+      "floor_ground": {
+        "label": "Boden auf dem Erdreich",
+        "description": "Ein Boden, der auf dem Erdreich liegt, ohne Hohlraum darunter."
+      },
+      "floor_air": {
+        "label": "Boden über Luft",
+        "description": "Ein Boden, der über dem Erdreich angehoben ist, mit Luft darunter."
+      },
+      "window": {
+        "label": "Fenster",
+        "description": "Das ganze Fenster mit Rahmen und Glas (Uw)."
+      },
+      "glazing": {
+        "label": "Verglasung",
+        "description": "Nur das Glas, ohne Rahmen (Ug). Das ist nicht dasselbe wie das ganze Fenster."
+      },
+      "door": {
+        "label": "Türen",
+        "description": "Außentüren (Ud)."
+      }
+    },
+    "symbol": {
+      "u_value": "U",
+      "rc_value": "Rc",
+      "window": "Uw",
+      "glazing": "Ug",
+      "door": "Ud"
+    },
+    "valueLabel": "{symbol} {value} {unit}",
+    "method": {
+      "calculation": "Berechnung",
+      "lab_test": "Laborprüfung",
+      "manufacturer_declaration": "Herstellerangabe"
+    },
+    "methodLabel": "Methode",
+    "asOf": "Stand: {date}",
+    "status": {
+      "confirmed": "Von der Plattform bestätigt",
+      "confirmedWithDate": "Von der Plattform bestätigt, {date}",
+      "declared": "Herstellerangabe, nicht bestätigt",
+      "confirmedHelp": "Ein Administrator der Plattform hat das vom Hersteller übermittelte Dokument gesichtet. Das ist kein Zertifikat und keine Prüfung."
+    },
+    "foundation": {
+      "label": "Gründung",
+      "permanent": "Gründung: dauerhaft",
+      "temporary": "Gründung: vorübergehend"
+    },
+    "whatItMeans": "Was bedeutet das?",
+    "explain": {
+      "u": "U ist der Wärmedurchgangskoeffizient in W/m²K. Er zeigt, wie viel Wärme durch einen Quadratmeter des Bauteils entweicht. Ein niedrigerer Wert bedeutet bessere Dämmung.",
+      "rc": "Rc ist der Wärmedurchlasswiderstand in m²K/W. Er zeigt, wie stark das Bauteil die Wärme zurückhält. Ein höherer Wert bedeutet bessere Dämmung.",
+      "notEqual": "U und Rc sind nicht dasselbe. Man kann sie nicht einfach mit 1 geteilt durch Rc umrechnen, weil U für das ganze Bauteil einschließlich der Oberflächenübergänge berechnet wird.",
+      "ug": "Ug gilt nur für das Glas. Uw gilt für das ganze Fenster mit Rahmen und ist daher meist höher als Ug.",
+      "ud": "Ud ist der Wärmedurchgangskoeffizient einer Außentür. Ein niedrigerer Wert bedeutet bessere Dämmung.",
+      "asOf": "Stand ist das Datum, aus dem der Wert stammt. Vorschriften und Produkte ändern sich, ältere Werte können daher überholt sein.",
+      "declared": "Eine Herstellerangabe ist ein Wert, den der Hersteller genannt hat. Die Plattform hat ihn noch nicht geprüft.",
+      "confirmed": "Von der Plattform bestätigt heißt, dass ein Administrator das vom Hersteller übermittelte Dokument gesichtet hat. Das ist kein Zertifikat und keine Prüfung.",
+      "permanent": "Eine dauerhafte Gründung bedeutet, dass das Haus fest mit dem Boden verbunden ist, zum Beispiel auf einem Fundament.",
+      "temporary": "Eine vorübergehende Gründung bedeutet, dass das Haus ohne dauerhafte Verbindung zum Boden steht, zum Beispiel auf Blöcken, und versetzt werden kann."
+    },
+    "areaNote": "Die Fläche im Katalog kann von der Fläche abweichen, die nach den örtlichen Vorschriften gezählt wird. Die 50-m²-Grenze in den Vorschriften wird nach der Definition des jeweiligen Landes berechnet.",
+    "disclaimer": "Die Werte stammen vom Hersteller und ersetzen keine Berechnung durch den Planer. Sie sind keine Beurteilung nach den Vorschriften eines Landes."
+  },
+  "IntendedUse": {
+    "legend": "Geplante Nutzung (optional)",
+    "hint": "Der Hersteller antwortet mit Blick darauf, ob das Haus das ganze Jahr genutzt wird.",
+    "yearRound": "Ganzjährig",
+    "seasonal": "Saisonal",
+    "monthsLabel": "Wie viele Monate im Jahr (1 bis 11)",
+    "monthsRequired": "Geben Sie eine Anzahl Monate von 1 bis 11 an.",
+    "label": "Geplante Nutzung",
+    "monthsValue": "saisonal, {months} Monate im Jahr"
   }
 }

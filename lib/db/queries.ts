@@ -1,9 +1,10 @@
-import { and, asc, desc, eq, ilike, inArray, isNotNull, isNull, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, isNotNull, isNull, notInArray, or, sql } from "drizzle-orm";
 import { db } from "./client";
 import { producerDeliversToRequestCountrySql, producerMatchesProjectRequestSql } from "./project-request-matching";
 import { buildPublicUrl } from "@/lib/storage/r2-client";
 import type { Locale } from "@/lib/i18n/routing";
 import { resolveTranslatedText } from "@/lib/i18n/resolve-translated-text";
+import { COMPLIANCE_ONLY_COUNTRY_CODES } from "@/lib/product-envelope-parameters";
 import { storedLogisticsSchema, type StoredLogistics } from "@/lib/project-quote-specs";
 import {
   bulkProductInquiry,
@@ -24,6 +25,7 @@ import {
   producerMember,
   product,
   productComplianceAssessment,
+  productEnvelopeParameter,
   productCountryEligibility,
   productFamilyEnum,
   productOption,
@@ -181,22 +183,90 @@ export interface AdminProductAssessmentRow {
   version: number;
 }
 
+export interface AdminProductEnvelopeRow {
+  id: string;
+  element: (typeof productEnvelopeParameter.$inferSelect)["element"];
+  quantity: (typeof productEnvelopeParameter.$inferSelect)["quantity"];
+  value: number;
+  method: (typeof productEnvelopeParameter.$inferSelect)["method"];
+  methodNote: string | null;
+  asOfDate: string;
+  confirmed: boolean;
+  confirmedAt: Date | null;
+  version: number;
+}
+
+function mapEnvelopeRow(row: typeof productEnvelopeParameter.$inferSelect): AdminProductEnvelopeRow {
+  return {
+    id: row.id,
+    element: row.element,
+    quantity: row.quantity,
+    value: Number(row.value),
+    method: row.method,
+    methodNote: row.methodNote,
+    asOfDate: row.asOfDate,
+    confirmed: row.confirmationStatus === "platform_confirmed",
+    confirmedAt: row.confirmedAt,
+    version: row.version,
+  };
+}
+
+// Spec 0075 AC-9: wiersze izolacji i posadowienie jednego produktu dla ekranu edycji
+// producenta. Własność produktu sprawdza strona (getProducerProductForEdit) przed wywołaniem.
+export async function getProductEnvelopeForEdit(
+  productId: string,
+): Promise<{ foundationStatus: (typeof product.$inferSelect)["foundationStatus"]; rows: AdminProductEnvelopeRow[] }> {
+  const [productRow] = await db
+    .select({ foundationStatus: product.foundationStatus })
+    .from(product)
+    .where(eq(product.id, productId));
+  const rows = await db
+    .select()
+    .from(productEnvelopeParameter)
+    .where(eq(productEnvelopeParameter.productId, productId))
+    .orderBy(asc(productEnvelopeParameter.element), asc(productEnvelopeParameter.quantity));
+  return { foundationStatus: productRow?.foundationStatus ?? null, rows: rows.map(mapEnvelopeRow) };
+}
+
 export interface AdminProducerProductRow {
   id: string;
   name: string | null;
   status: string;
+  family: (typeof product.$inferSelect)["family"];
+  containerSubcategory: (typeof product.$inferSelect)["containerSubcategory"];
+  /** Spec 0075: tylko dla produktów, które mogą mieć parametry izolacji. */
+  foundationStatus: (typeof product.$inferSelect)["foundationStatus"];
   assessments: AdminProductAssessmentRow[];
+  envelopeParameters: AdminProductEnvelopeRow[];
 }
 
 // Produkty producenta z ich ocenami zgodności (spec 0065 AC-10), wszystkie
 // statusy, także szkice: ocenę można przygotować przed publikacją.
 export async function getProducerProductsWithAssessmentsForAdmin(producerId: string): Promise<AdminProducerProductRow[]> {
   const products = await db
-    .select({ id: product.id, name: product.name, status: product.status })
+    .select({
+      id: product.id,
+      name: product.name,
+      status: product.status,
+      family: product.family,
+      containerSubcategory: product.containerSubcategory,
+      foundationStatus: product.foundationStatus,
+    })
     .from(product)
     .where(and(eq(product.producerId, producerId), isNull(product.deletedAt)))
     .orderBy(asc(product.name));
   if (products.length === 0) return [];
+
+  const envelopeRows = await db
+    .select()
+    .from(productEnvelopeParameter)
+    .where(
+      inArray(
+        productEnvelopeParameter.productId,
+        products.map((item) => item.id),
+      ),
+    )
+    .orderBy(asc(productEnvelopeParameter.element), asc(productEnvelopeParameter.quantity));
 
   const assessmentRows = await db
     .select({
@@ -223,6 +293,23 @@ export async function getProducerProductsWithAssessmentsForAdmin(producerId: str
     id: item.id,
     name: item.name,
     status: item.status,
+    family: item.family,
+    containerSubcategory: item.containerSubcategory,
+    foundationStatus: item.foundationStatus,
+    envelopeParameters: envelopeRows
+      .filter((row) => row.productId === item.id)
+      .map((row) => ({
+        id: row.id,
+        element: row.element,
+        quantity: row.quantity,
+        value: Number(row.value),
+        method: row.method,
+        methodNote: row.methodNote,
+        asOfDate: row.asOfDate,
+        confirmed: row.confirmationStatus === "platform_confirmed",
+        confirmedAt: row.confirmedAt,
+        version: row.version,
+      })),
     assessments: assessmentRows
       .filter((row) => row.productId === item.id)
       .map((row) => ({
@@ -969,6 +1056,9 @@ export interface ProjectRequestBoardItem {
   deliveryWindowTo: string | null;
   locationDetail: string | null;
   extrasNote: string | null;
+  // Spec 0075 AC-7: planowane użytkowanie, opcjonalne.
+  intendedUse: (typeof projectRequest.$inferSelect)["intendedUse"];
+  intendedUseMonths: number | null;
   // Spec 0070 AC-22: producent widzi termin i stan własnej oferty, nigdy status
   // zapytania (open/quoted zdradzałoby, że ktoś inny już złożył ofertę).
   deadlineAt: Date;
@@ -992,6 +1082,8 @@ const BOARD_COLUMNS = {
   deliveryWindowTo: projectRequest.deliveryWindowTo,
   locationDetail: projectRequest.locationDetail,
   extrasNote: projectRequest.extrasNote,
+  intendedUse: projectRequest.intendedUse,
+  intendedUseMonths: projectRequest.intendedUseMonths,
   deadlineAt: projectRequest.deadlineAt,
   createdAt: projectRequest.createdAt,
 } as const;
@@ -1154,6 +1246,8 @@ export interface ProductInquiryForProducer {
   deliveryWindowFrom: string | null;
   deliveryWindowTo: string | null;
   note: string | null;
+  intendedUse: (typeof bulkProductInquiry.$inferSelect)["intendedUse"];
+  intendedUseMonths: number | null;
   deadlineAt: Date;
   createdAt: Date;
   ownQuoteStatus: (typeof projectQuote.$inferSelect)["status"] | null;
@@ -1177,6 +1271,8 @@ const PRODUCT_INQUIRY_PRODUCER_COLUMNS = {
   deliveryWindowFrom: bulkProductInquiry.deliveryWindowFrom,
   deliveryWindowTo: bulkProductInquiry.deliveryWindowTo,
   note: bulkProductInquiry.note,
+  intendedUse: bulkProductInquiry.intendedUse,
+  intendedUseMonths: bulkProductInquiry.intendedUseMonths,
   deadlineAt: bulkProductInquiry.deadlineAt,
   createdAt: bulkProductInquiry.createdAt,
   status: bulkProductInquiry.status,
@@ -1210,6 +1306,8 @@ function toProductInquiryForProducer(row: {
   deliveryWindowFrom: string | null;
   deliveryWindowTo: string | null;
   note: string | null;
+  intendedUse: ProductInquiryForProducer["intendedUse"];
+  intendedUseMonths: number | null;
   deadlineAt: Date;
   createdAt: Date;
   status: string;
@@ -1230,6 +1328,8 @@ function toProductInquiryForProducer(row: {
     deliveryWindowFrom: row.deliveryWindowFrom,
     deliveryWindowTo: row.deliveryWindowTo,
     note: row.note,
+    intendedUse: row.intendedUse,
+    intendedUseMonths: row.intendedUseMonths,
     deadlineAt: row.deadlineAt,
     createdAt: row.createdAt,
     ownQuoteStatus: row.ownQuoteStatus,
@@ -2468,7 +2568,13 @@ export interface CountryOption {
 
 // Lista krajów do wyboru krajów dostawy (spec 0070 AC-5), z tabeli country.
 export async function getAllCountries(): Promise<CountryOption[]> {
-  return db.select({ code: country.code, name: country.name }).from(country).orderBy(asc(country.name));
+  // Spec 0075 AC-8: BE, IT i FR są w słowniku tylko dla ocen zgodności, nie jako
+  // kraje dostawy, więc wybierajki krajów dostawy ich nie pokazują.
+  return db
+    .select({ code: country.code, name: country.name })
+    .from(country)
+    .where(notInArray(country.code, [...COMPLIANCE_ONLY_COUNTRY_CODES]))
+    .orderBy(asc(country.name));
 }
 
 export interface ProducerCapacityProfileForPanel {
