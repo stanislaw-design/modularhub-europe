@@ -30,11 +30,25 @@ describe("sitemap (spec 0073 AC-13)", () => {
     expect(entry?.lastModified).toEqual(UPDATED);
   });
 
+  it("lists the modular projects page and every entry with publishedAt as lastModified (spec 0076 AC-11)", async () => {
+    getSitemapProductsMock.mockResolvedValue([]);
+    const entries = await sitemap();
+
+    for (const locale of ["pl", "en", "nl", "de"]) {
+      const list = entries.find((e) => e.url === `http://localhost:3000/${locale}/modularprojects`);
+      expect(list).toBeDefined();
+      const entry = entries.find((e) => e.url === `http://localhost:3000/${locale}/modularprojects/succes-resorts`);
+      expect(entry?.lastModified).toEqual(new Date("2026-10-24"));
+      expect(entry?.alternates?.languages?.de).toBe("http://localhost:3000/de/modularprojects/succes-resorts");
+    }
+  });
+
   it("falls back to the static pages and reports when the database fails", async () => {
     getSitemapProductsMock.mockRejectedValue(new Error("db down"));
     const entries = await sitemap();
 
-    expect(entries.length).toBe(7 * 4);
+    // 8 stałych stron i 1 wpis ModularProjects, każde w czterech językach.
+    expect(entries.length).toBe(9 * 4);
     expect(entries.some((e) => e.url.includes("/project/"))).toBe(false);
     expect(captureErrorMock).toHaveBeenCalledWith(expect.any(Error), { area: "sitemap", section: "products" });
   });

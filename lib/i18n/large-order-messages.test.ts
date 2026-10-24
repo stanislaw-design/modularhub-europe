@@ -44,7 +44,14 @@ const LARGE_ORDER_NAMESPACES = [
   "LargeOrderClientSummaryPublishedEmail",
   "LargeOrderProducerReminderEmail",
   "LargeOrderTeamDeadlineEmail",
+  // Spec 0076 AC-5: publiczna strona realizacji.
+  "ModularProjectsPage",
+  "ModularProjectPage",
 ];
+
+// Spec 0076 AC-5: nazwa własna brzmi tak samo w czterech językach i nie jest tłumaczona.
+const PROPER_NAME = "ModularProjects";
+const isCopyOfPolish = (value: string, polish: string | undefined) => value === polish && value !== PROPER_NAME;
 
 // Nowe klucze w istniejącej przestrzeni nazw (reszta przestrzeni ma wspólne słowa, np. "Status").
 const CLIENT_PANEL_QUOTES_NEW_KEYS = ["heading", "emptyTitle", "emptyDescription", "addRequest", "activeCounter", "limitHint", "noQuotesYet", "closedGroupHeading"];
@@ -73,7 +80,7 @@ describe("spec 0070 message namespaces are translated, not copied", () => {
         expect(translated.length).toBeGreaterThan(0);
         for (const [path, value] of translated) {
           expect(value.trim(), `${locale}:${name}.${path}`).not.toBe("");
-          expect(value, `${locale}:${name}.${path} equals the Polish text`).not.toBe(polish.get(path));
+          expect(isCopyOfPolish(value, polish.get(path)), `${locale}:${name}.${path} equals the Polish text`).toBe(false);
         }
       });
     }
@@ -88,7 +95,7 @@ describe("spec 0070 message namespaces are translated, not copied", () => {
         expect(polish?.trim()).toBeTruthy();
         for (const catalog of [en, de, nl]) {
           expect(get(catalog)?.trim()).toBeTruthy();
-          expect(get(catalog)).not.toBe(polish);
+          expect(isCopyOfPolish(get(catalog), polish), `${ns}.${key}`).toBe(false);
         }
       });
     }
@@ -101,11 +108,11 @@ describe("spec 0070 message namespaces are translated, not copied", () => {
       expect(quotesPage(pl)[key]?.trim(), `pl:${key}`).toBeTruthy();
       for (const catalog of [en, de, nl]) {
         expect(quotesPage(catalog)[key]?.trim(), key).toBeTruthy();
-        expect(quotesPage(catalog)[key], key).not.toBe(quotesPage(pl)[key]);
+        expect(isCopyOfPolish(quotesPage(catalog)[key], quotesPage(pl)[key]), key).toBe(false);
       }
     }
-    expect(sidebar(pl).quotes).toBe("Duże zamówienia");
-    for (const catalog of [en, de, nl]) expect(sidebar(catalog).quotes).not.toBe(sidebar(pl).quotes);
+    expect(sidebar(pl).quotes).toBe(PROPER_NAME);
+    for (const catalog of [en, de, nl]) expect(sidebar(catalog).quotes).toBe(PROPER_NAME);
   });
 
   it("ProducerPanelSidebar.capacity is translated in every language", () => {

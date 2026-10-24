@@ -20,7 +20,7 @@ describe("BulkRequestLimitMessage", () => {
   it("shows three of three and links to the request list in the panel", () => {
     render(<BulkRequestLimitMessage locale="pl" contactEmail="jan@example.com" />);
 
-    expect(screen.getByRole("alert")).toHaveTextContent("Masz już 3 z 3 aktywnych zapytań o duże zamówienie");
+    expect(screen.getByRole("alert")).toHaveTextContent("Masz już 3 z 3 aktywnych zapytań ModularProjects");
     expect(screen.getByRole("link", { name: "Przejdź do listy zapytań" })).toHaveAttribute("href", "/pl/panel/quotes");
   });
 

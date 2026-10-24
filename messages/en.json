@@ -19,7 +19,8 @@
         "containers": "Modular containers"
       },
       "orders": {
-        "largeOrder": "Large order enquiry",
+        "largeOrder": "ModularProjects request (from 3 houses)",
+        "modularProjects": "ModularProjects showcase",
         "verifiedManufacturers": "Verified manufacturers"
       },
       "platform": {
@@ -902,15 +903,15 @@
       "zamkniete_bez_wyboru": "Closed without a choice",
       "legacy_direct": "Direct request"
     },
-    "addInquiry": "Add a large order inquiry",
+    "addInquiry": "Add a ModularProjects request",
     "verifyHint": "Verify your company account to get the producer's contact after you choose an offer.",
     "verifyLink": "Verify account"
   },
   "ClientPanelQuotesPage": {
-    "heading": "Large orders",
-    "emptyTitle": "You have no large order requests yet",
+    "heading": "ModularProjects",
+    "emptyTitle": "You have no ModularProjects requests yet",
     "emptyDescription": "Describe your project once and manufacturers will submit offers. Your request will appear here with its deadline and offers.",
-    "addRequest": "Add a large order request",
+    "addRequest": "Add a ModularProjects request",
     "activeCounter": "Active requests: {count} of {max}",
     "limitHint": "Close one request to add another.",
     "noQuotesYet": "Waiting for manufacturer offers, deadline {date}.",
@@ -1842,9 +1843,9 @@
     "oldestDays": "The oldest has waited {days} d.",
     "decisionTitle": "A client decided on your offer",
     "decisionDetail": "Check the decision and next steps",
-    "boardTitle": "{count, plural, one {# listing is waiting for your quote} other {# listings are waiting for your quote}}",
+    "boardTitle": "{count, plural, one {# ModularProjects request is waiting for your quote} other {# ModularProjects requests are waiting for your quote}}",
     "boardDetail": "Submit a quote before the deadline",
-    "capacityNotSubmitted": "Complete your capacity profile to see the job board",
+    "capacityNotSubmitted": "Complete your capacity profile to see ModularProjects",
     "capacityPending": "Your capacity profile is awaiting verification",
     "capacityRejected": "Your capacity profile was rejected, please fix it",
     "tileInquiries": "Open inquiries",
@@ -1927,13 +1928,13 @@
     "unreadDecisionLabel": "Client made a decision"
   },
   "ProducerPanelBoardPage": {
-    "filtersAriaLabel": "Board filters",
+    "filtersAriaLabel": "ModularProjects filters",
     "filterAll": "All",
     "filterClear": "Clear filters",
     "emptyFiltered": "No requests match the selected filters.",
-    "heading": "Board",
-    "intro": "Large order requests that match your profile: delivery country, product families and capacity. Submit a quote on any of them.",
-    "notApprovedHeading": "The board is only available to volume-verified producers",
+    "heading": "ModularProjects",
+    "intro": "ModularProjects requests that match your profile: delivery country, product families and capacity. Submit a quote on any of them.",
+    "notApprovedHeading": "ModularProjects is only available to volume-verified producers",
     "notApprovedDescription": "Fill in your production capacity profile so an administrator can verify you.",
     "completeProfileLink": "Complete your capacity profile",
     "emptyMessage": "No requests match your profile.",
@@ -1945,7 +1946,7 @@
     "previousPage": "Previous",
     "nextPage": "Next",
     "pageLabel": "Page {current} of {total}",
-    "paginationAriaLabel": "Board pages",
+    "paginationAriaLabel": "ModularProjects pages",
     "columnFamilies": "Families",
     "columnFloorArea": "Floor area (m²)",
     "columnDeadline": "Offer deadline",
@@ -1954,7 +1955,7 @@
     "notDeliveringNote": "This country is not on your delivery list",
     "notDeliveringLink": "Add a country in your capacity profile",
     "onlyMyCountries": "Only my delivery countries",
-    "hiddenByDelivery": "{count, plural, one {# listing} other {# listings}} outside your delivery countries hidden."
+    "hiddenByDelivery": "{count, plural, one {# request} other {# requests}} outside your delivery countries hidden."
   },
   "ProducerBoardDetailPage": {
     "quotesClosedNote": "The deadline for quotes has passed or the client has already chosen a quote. A new quote can no longer be submitted.",
@@ -1962,7 +1963,7 @@
     "scopeHeading": "Order scope",
     "scheduleHeading": "Timing and location",
     "heading": "Request details",
-    "backToBoard": "Back to the board",
+    "backToBoard": "Back to ModularProjects",
     "countryLabel": "Country",
     "projectTypeLabel": "Project type",
     "familiesLabel": "Product families",
@@ -2044,7 +2045,7 @@
     "columnPrice": "Price",
     "columnStatus": "Status",
     "columnDate": "Date",
-    "sourceProjectRequest": "Board",
+    "sourceProjectRequest": "ModularProjects",
     "sourceBulkProductInquiry": "Product inquiry",
     "statusActive": "Active",
     "statusAccepted": "Accepted",
@@ -2080,41 +2081,21 @@
   },
   "FeaturedProjectShowcase": {
     "eyebrow": "Project in progress",
-    "heading": "Succes Resorts – 49 modern holiday cabins",
-    "status": "In production",
-    "intro": "ModularHub Europe presents an investment of 49 modern holiday cabins being built for Succes Resorts. BUDMAN HOUSE, a specialist in prefabricated construction, was chosen for production.",
     "factsHeading": "Project details",
-    "investor": "Investor",
-    "producer": "Producer",
-    "count": "Number of cabins",
-    "model": "Model",
-    "area": "Area of a single cabin",
-    "terrace": "Terrace area",
-    "total": "Total area of the cabins",
-    "statusLabel": "Status",
-    "statusValue": "Production in progress",
-    "gallery": {
-      "top": "Top view",
-      "side": "Side view",
-      "right": "Right view",
-      "front": "Front view",
-      "left": "Left view",
-      "bedroom": "Bedroom",
-      "living": "Living room",
-      "deep": "Interior, depth of the living room",
-      "galleryLabel": "Project gallery",
-      "showImage": "Show image"
-    },
     "investorCta": "Commission a similar project",
-    "producerCta": "Build projects like this"
+    "producerCta": "Build projects like this",
+    "galleryLabel": "Project gallery",
+    "showImage": "Show image",
+    "allProjectsCta": "See all projects",
+    "readProjectCta": "View the project"
   },
   "ProjectRequestPage": {
-    "metaTitle": "Submit a large B2B project (from 3 homes) | ModularHub Europe",
-    "metaDescription": "Send one request for a large investment project (3 or more modular homes) to verified producers across Europe, no account needed."
+    "metaTitle": "ModularProjects: submit a large project (from 3 homes) | ModularHub Europe",
+    "metaDescription": "Send one ModularProjects request for a large investment project (3 or more modular homes) to verified producers across Europe, no account needed."
   },
   "ProjectRequestFlow": {
-    "heading": "Submit a large project",
-    "intro": "Send one request for a project of 3 or more modular homes — it will reach verified producers ready for volume in your chosen country.",
+    "heading": "Submit a large project to ModularProjects",
+    "intro": "ModularProjects is one request for a project of 3 or more modular homes — it will reach verified producers ready for volume in your chosen country.",
     "sentHeading": "Request sent",
     "backToHome": "Back to homepage",
     "sectionAboutHeading": "About the project",
@@ -2162,8 +2143,8 @@
     "nextStepLabel": "Next",
     "stepperLabel": "Form progress",
     "stepAnnouncement": "Step {current} of {total}: {label}",
-    "locationDetailVisibilityHint": "This detail is visible to every volume-verified producer on the board — don't enter anything that identifies you personally.",
-    "extrasNoteVisibilityHint": "This note is visible to every volume-verified producer on the board — don't enter anything that identifies you personally."
+    "locationDetailVisibilityHint": "This detail is visible to every volume-verified producer in ModularProjects — don't enter anything that identifies you personally.",
+    "extrasNoteVisibilityHint": "This note is visible to every volume-verified producer in ModularProjects — don't enter anything that identifies you personally."
   },
   "ProjectRequestConfirmationCard": {
     "statusLabel": "Sent",
@@ -2173,7 +2154,7 @@
   },
   "VerifiedManufacturersPage": {
     "metaTitle": "Verified volume manufacturers | ModularHub Europe",
-    "metaDescription": "Browse real projects from volume-verified producers before you send a large order request.",
+    "metaDescription": "Browse real projects from volume-verified producers before you send a ModularProjects request.",
     "heading": "Verified volume manufacturers",
     "ctaLabel": "Submit a request",
     "requestPromoHeading": "Know exactly what you're looking for?",
@@ -2231,12 +2212,12 @@
     "groupOffer": "Offer",
     "groupCompany": "Company",
     "inquiries": "Inquiries",
-    "board": "Job board",
+    "board": "ModularProjects",
     "products": "Products",
     "capacity": "Capacity profile",
     "settings": "Company settings",
     "inquiriesBadgeLabel": "Inquiries that need your reply: {count}",
-    "boardBadgeLabel": "Listings waiting for your quote: {count}"
+    "boardBadgeLabel": "ModularProjects requests waiting for your quote: {count}"
   },
   "ClientPanelSidebar": {
     "navAriaLabel": "Client panel",
@@ -2251,7 +2232,7 @@
     "menu": "Menu",
     "collapseSidebar": "Collapse sidebar",
     "expandSidebar": "Expand sidebar",
-    "quotes": "Large orders",
+    "quotes": "ModularProjects",
     "weryfikacja": "Verify account"
   },
   "CaseChat": {
@@ -2521,7 +2502,7 @@
   },
   "ContactPage": {
     "metaTitle": "Contact | ModularHub Europe",
-    "metaDescription": "Write to the ModularHub Europe team: questions about the offer, producer registration and large orders.",
+    "metaDescription": "Write to the ModularHub Europe team: questions about the offer, producer registration and ModularProjects.",
     "heading": "Contact",
     "intro": "Have a question about the platform, the offer or your enquiry? Write to us and we will reply as soon as we can.",
     "emailLabel": "Team email address",
@@ -2531,13 +2512,13 @@
     "producerHeading": "I am a producer",
     "producerText": "Want to add your products to the catalogue? Start with registration, and send any questions to the address above.",
     "producerLink": "Join as a producer",
-    "largeOrderHeading": "I have a large order",
-    "largeOrderText": "Planning to order many units at once? Describe the project in a large order enquiry.",
-    "largeOrderLink": "Large order enquiry"
+    "largeOrderHeading": "I have a ModularProjects project",
+    "largeOrderText": "Planning to order many units at once (from 3 houses)? Describe the project in a ModularProjects request.",
+    "largeOrderLink": "ModularProjects request"
   },
   "ProducerPanelCapacityPage": {
     "heading": "Production capacity profile",
-    "intro": "Complete your profile so an administrator can verify you. Verified producers see large order requests that match their delivery countries, product families and capacity.",
+    "intro": "Complete your profile so an administrator can verify you. Verified producers see ModularProjects requests that match their delivery countries, product families and capacity.",
     "noProducer": "No producer account found.",
     "status": {
       "not_submitted": "Status: profile not yet submitted for verification.",
@@ -2581,7 +2562,7 @@
   },
   "ClientB2bDetailsForm": {
     "heading": "Company details",
-    "intro": "Large orders require a verified company. Enter the company name and tax number, the ModularHub team will verify them.",
+    "intro": "ModularProjects requires a verified company. Enter the company name and tax number, the ModularHub team will verify them.",
     "status": {
       "not_submitted": "Status: company details not yet submitted.",
       "pending": "Status: details are waiting for verification.",
@@ -2597,15 +2578,15 @@
     "genericError": "Could not save the company details. Please try again."
   },
   "LargeOrderTeamNewRequestEmail": {
-    "subject": "New large order request ({units} houses, {country})",
+    "subject": "New ModularProjects request ({units} houses, {country})",
     "greeting": "Hello,",
-    "intro": "A client has submitted a new large order request. Details and contact data are in the admin panel.",
+    "intro": "A client has submitted a new ModularProjects request. Details and contact data are in the admin panel.",
     "countryLabel": "Country",
     "unitsLabel": "Number of houses",
     "deadlineLabel": "Offer deadline",
     "languageLabel": "Client language",
     "cta": "Open the request in the panel",
-    "subjectNoMatch": "No matching producers: large order request ({units} houses, {country})",
+    "subjectNoMatch": "No matching producers: ModularProjects request ({units} houses, {country})",
     "matchedLabel": "Matching producers",
     "noMatchWarning": "No producer can see this request. Add a producer as an exception or check the producers' profiles (product families, completion standards, capacity), otherwise the request will get no offers."
   },
@@ -2642,7 +2623,7 @@
     "genericError": "The request could not be closed. Please try again."
   },
   "BulkRequestLimitMessage": {
-    "text": "You already have {count} of {max} active large order requests for this email address. Close one in your request list to add another.",
+    "text": "You already have {count} of {max} active ModularProjects requests for this email address. Close one in your request list to add another.",
     "listLink": "Go to my requests",
     "guestHint": "You can close requests after signing in. If you do not have an account yet, we will send a sign in link to this email address.",
     "sendLink": "Send me a sign in link",
@@ -2650,8 +2631,8 @@
     "sent": "If this address has active requests, we have sent a sign in link to it."
   },
   "LargeOrderTeamClientCancelledEmail": {
-    "subject": "Client closed a large order request ({units} houses, {country})",
-    "intro": "The client closed their own large order request. It is now closed with the reason cancelled by client.",
+    "subject": "Client closed a ModularProjects request ({units} houses, {country})",
+    "intro": "The client closed their own ModularProjects request. It is now closed with the reason cancelled by client.",
     "publishedNote": "The summary for this request had already been published.",
     "pendingSelectionNote": "The client had chosen an offer and the choice was waiting for company data approval. The connection will not happen.",
     "cta": "Open the request in the panel"
@@ -2659,7 +2640,7 @@
   "LargeOrderClientOnBehalfEmail": {
     "subject": "ModularHub submitted a request on your behalf",
     "greeting": "Hello {name},",
-    "intro": "As agreed in our conversation, a ModularHub advisor has submitted a large order request on your behalf. Manufacturers that match your project will submit offers in one common format, and we will prepare a comparison for you.",
+    "intro": "As agreed in our conversation, a ModularHub advisor has submitted a ModularProjects request on your behalf. Manufacturers that match your project will submit offers in one common format, and we will prepare a comparison for you.",
     "countryLabel": "Country",
     "unitsLabel": "Number of houses",
     "deadlineLabel": "Offer deadline",
@@ -2669,7 +2650,7 @@
   "LargeOrderClientReceivedEmail": {
     "subject": "We have received your request",
     "greeting": "Hello {name},",
-    "intro": "Thank you, your large order request has reached ModularHub. Manufacturers that match your project will submit offers in one common format, and we will prepare a comparison for you.",
+    "intro": "Thank you, your ModularProjects request has reached ModularHub. Manufacturers that match your project will submit offers in one common format, and we will prepare a comparison for you.",
     "countryLabel": "Country",
     "unitsLabel": "Number of houses",
     "deadlineLabel": "Offer deadline",
@@ -2678,18 +2659,18 @@
   },
   "LargeOrderProducerClosedEmail": {
     "subject": "The request has been closed",
-    "body": "The request you submitted an offer for has been closed. You do not need to do anything. You can find new requests on the board.",
-    "cta": "Open the request board"
+    "body": "The ModularProjects request you submitted an offer for has been closed. You do not need to do anything. You can find new requests in ModularProjects.",
+    "cta": "Open ModularProjects"
   },
   "LargeOrderProducerNotSelectedEmail": {
     "subject": "The client chose another producer",
-    "body": "For this request the client chose the offer of another producer. Thank you for your offer, you do not need to do anything. You can find new requests on the board.",
-    "cta": "Open the request board"
+    "body": "For this ModularProjects request the client chose the offer of another producer. Thank you for your offer, you do not need to do anything. You can find new requests in ModularProjects.",
+    "cta": "Open ModularProjects"
   },
   "ReopenRequestButton": {
     "trigger": "Reopen request",
     "reopening": "Reopening…",
-    "emailLimit": "You already have 3 of 3 active large order requests for this email address. Close one in your request list to reopen this one.",
+    "emailLimit": "You already have 3 of 3 active ModularProjects requests for this email address. Close one in your request list to reopen this one.",
     "notReopenable": "This request can no longer be reopened. Submit a new request or contact ModularHub.",
     "notFound": "Request not found. Refresh the page.",
     "genericError": "Could not reopen the request. Please try again."
@@ -2726,7 +2707,7 @@
   },
   "LargeOrderProducerConnectedEmail": {
     "subject": "A client has chosen your offer",
-    "intro": "A client has chosen your offer for a large order. The client's details are below.",
+    "intro": "A client has chosen your offer in ModularProjects. The client's details are below.",
     "nameLabel": "Contact person",
     "emailLabel": "Email address",
     "phoneLabel": "Phone",
@@ -2736,7 +2717,7 @@
     "cta": "Open the offers panel"
   },
   "LargeOrderTeamConnectedEmail": {
-    "subject": "Parties connected on a large order ({units} houses, {country})",
+    "subject": "Parties connected in ModularProjects ({units} houses, {country})",
     "intro": "The client chose an offer and the parties have been connected. The client and the manufacturer each received the other's contact details.",
     "producerLabel": "Manufacturer",
     "clientLabel": "Client",
@@ -2816,8 +2797,8 @@
     }
   },
   "LargeOrderProducerNewRequestEmail": {
-    "subject": "New large order request ({units} houses, {country})",
-    "intro": "A large order request matching your profile has appeared on the board. You will see the client's contact details only after your offer is chosen.",
+    "subject": "New ModularProjects request ({units} houses, {country})",
+    "intro": "A ModularProjects request matching your profile has appeared. You will see the client's contact details only after your offer is chosen.",
     "countryLabel": "Delivery country",
     "unitsLabel": "Number of houses",
     "familiesLabel": "Product families",
@@ -2835,7 +2816,7 @@
   "LargeOrderClientSummaryPublishedEmail": {
     "subject": "The comparison of offers for your request is ready",
     "greeting": "Hello {name},",
-    "intro": "ModularHub has prepared a comparison of producers' offers for your large order request. You will see it in your panel, choose a producer, and we will connect you with them.",
+    "intro": "ModularHub has prepared a comparison of producers' offers for your ModularProjects request. You will see it in your panel, choose a producer, and we will connect you with them.",
     "countryLabel": "Country",
     "unitsLabel": "Number of houses",
     "loginHint": "Log in with {email}. We will send you a one time link, no password is needed.",
@@ -2844,7 +2825,7 @@
   "LargeOrderProducerReminderEmail": {
     "subject3d": "Reminder: 3 days left to submit offers",
     "subject1d": "Reminder: only one day left to submit offers",
-    "intro": "You have not yet submitted an offer on a large order request matching your profile.",
+    "intro": "You have not yet submitted an offer on a ModularProjects request matching your profile.",
     "countryLabel": "Delivery country",
     "unitsLabel": "Number of houses",
     "deadlineLabel": "Offer deadline",
@@ -2870,7 +2851,7 @@
   "SiteFooter": {
     "ctaHeading": "Planning to order several homes at once?",
     "ctaText": "Describe your project once and verified manufacturers reply with offers you can compare in one place.",
-    "ctaButton": "Request a large order",
+    "ctaButton": "Ask ModularProjects",
     "about": "Buy modular homes from verified manufacturers, checked against the building rules of your country.",
     "markets": "Manufacturers from Poland, builds in Poland, Germany and the Netherlands",
     "navLabel": "Footer navigation",
@@ -2897,8 +2878,8 @@
     "saveError": "Could not save the company details."
   },
   "ProducerBoardTabs": {
-    "ariaLabel": "Listings board",
-    "available": "Available listings",
+    "ariaLabel": "ModularProjects",
+    "available": "Available requests",
     "myQuotes": "My quotes"
   },
   "EnvelopeParameters": {
@@ -2985,5 +2966,38 @@
     "monthsRequired": "Enter a number of months from 1 to 11.",
     "label": "Planned use",
     "monthsValue": "seasonal, {months} months a year"
+  },
+  "ModularProjectsPage": {
+    "metaTitle": "ModularProjects showcase | ModularHub Europe",
+    "metaDescription": "Large projects delivered through ModularHub Europe: renderings, structural design and construction photos. See how projects of 3 or more houses come to life.",
+    "heading": "ModularProjects showcase",
+    "intro": "This is what the large projects delivered by ModularHub Europe look like. See renderings, the structural design and photos from the build.",
+    "empty": "The first projects will appear here soon.",
+    "listLabel": "List of projects",
+    "status": {
+      "planned": "Planned",
+      "in_production": "In production",
+      "delivered": "Delivered"
+    }
+  },
+  "ModularProjectPage": {
+    "backToList": "All projects",
+    "factsHeading": "Project details",
+    "galleryHeading": "Photos",
+    "groups": {
+      "visualization": "Renderings",
+      "design": "Structural design",
+      "construction": "Construction"
+    },
+    "investorCta": "Commission a similar project",
+    "producerCta": "Build projects like this",
+    "ctaHeading": "Have a similar project?",
+    "modelHeading": "3D model",
+    "modelHint": "Drag to rotate. Mouse wheel or pinch to zoom. Arrow keys also rotate.",
+    "modelShell": "Finished house",
+    "modelFrame": "Structural frame",
+    "modelViewLabel": "Model view",
+    "modelUnsupported": "This browser cannot show 3D models. Photos and renderings are in the gallery below.",
+    "modelLoading": "Loading 3D model"
   }
 }

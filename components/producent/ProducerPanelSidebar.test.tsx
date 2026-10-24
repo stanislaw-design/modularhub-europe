@@ -47,7 +47,7 @@ describe("ProducerPanelSidebar structure (spec 0074 AC-1)", () => {
     expect(nav.getAllByRole("link").map((link) => link.textContent)).toEqual([
       "Pulpit",
       "Zapytania",
-      "Tablica ogłoszeń",
+      "ModularProjects",
       "Produkty",
       "Profil zdolności",
       "Ustawienia firmy",
@@ -72,9 +72,9 @@ describe("ProducerPanelSidebar structure (spec 0074 AC-1)", () => {
   it.each([
     ["/pl/producer/panel/inquiries/abc", "Zapytania"],
     ["/pl/producer/panel/product-inquiries/abc", "Zapytania"],
-    ["/pl/producer/panel/board", "Tablica ogłoszeń"],
-    ["/pl/producer/panel/board/abc", "Tablica ogłoszeń"],
-    ["/pl/producer/panel/board-quotes", "Tablica ogłoszeń"],
+    ["/pl/producer/panel/board", "ModularProjects"],
+    ["/pl/producer/panel/board/abc", "ModularProjects"],
+    ["/pl/producer/panel/board-quotes", "ModularProjects"],
     ["/pl/producer/panel/settings", "Ustawienia firmy"],
   ])("highlights the right entry on %s", (path, label) => {
     mockPathname = path;
@@ -92,7 +92,7 @@ describe("ProducerPanelSidebar counts (spec 0074 AC-2)", () => {
     const nav = desktopNav();
 
     expect(nav.getByRole("img", { name: "Zapytania wymagające Twojej reakcji: 3" })).toHaveTextContent("3");
-    expect(nav.getByRole("img", { name: "Ogłoszenia czekające na Twoją wycenę: 2" })).toHaveTextContent("2");
+    expect(nav.getByRole("img", { name: "Zapytania ModularProjects czekające na Twoją wycenę: 2" })).toHaveTextContent("2");
   });
 
   it("hides a badge at zero", () => {

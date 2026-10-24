@@ -30,7 +30,7 @@ describe("ContactPage (spec 0072)", () => {
       "href",
       "/pl/producer/registration",
     );
-    expect(screen.getByRole("link", { name: "Zapytanie o duże zamówienie" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Zapytanie ModularProjects" })).toHaveAttribute(
       "href",
       "/pl/project-request",
     );

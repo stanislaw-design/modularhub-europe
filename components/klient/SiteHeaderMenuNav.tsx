@@ -58,6 +58,7 @@ const GROUPS: MenuGroup[] = [
     titleKey: "nav.groups.orders",
     items: [
       { key: "largeOrder", labelKey: "nav.orders.largeOrder", path: "/project-request" },
+      { key: "modularProjects", labelKey: "nav.orders.modularProjects", path: "/modularprojects" },
       { key: "verifiedManufacturers", labelKey: "nav.orders.verifiedManufacturers", path: "/verified-manufacturers" },
     ],
   },

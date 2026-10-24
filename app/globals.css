@@ -404,6 +404,17 @@ body {
   }
 }
 
+/* Wpis ModularProjects (spec 0076): pasy kolorów sięgają krawędzi ekranu, więc
+   kontener trasy traci limit szerokości, marginesy i odstępy. Znacznik
+   `.modularproject-wide` stawia tylko ModularProjectArticle; każdy pas ma własny
+   Container i padding. */
+main:has(.modularproject-wide) > .route-container {
+  max-width: none;
+  padding-inline: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
 /* Dark mode (spec 0043, extended by spec 0046 to a second scope, and by spec
    0055 to a third): scoped to .theme-klient (customer flow,
    app/[locale]/(customer)/layout.tsx), .theme-producer (protected producer
