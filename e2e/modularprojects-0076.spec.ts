@@ -9,11 +9,11 @@ test("lista, wpis i przejście do formularza dużego projektu", async ({ page })
   await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(pl.ModularProjectsPage.heading);
 
-  const card = page.getByRole("link", { name: /Succes Resorts/ });
-  await expect(card).toHaveAttribute("href", "/pl/modularprojects/succes-resorts");
+  const card = page.getByRole("link", { name: /CocoLeisure/ });
+  await expect(card).toHaveAttribute("href", "/pl/modularprojects/cocoleisure");
   await card.click();
 
-  await expect(page).toHaveURL(/\/pl\/modularprojects\/succes-resorts$/);
+  await expect(page).toHaveURL(/\/pl\/modularprojects\/cocoleisure$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
   for (const name of Object.values(pl.ModularProjectPage.groups)) {
     await expect(page.getByRole("heading", { level: 2, name })).toBeVisible();
@@ -31,7 +31,7 @@ test("nieznany wpis daje 404", async ({ page }) => {
 });
 
 test("wpis w języku angielskim ma tytuł po angielsku i hreflang", async ({ page }) => {
-  await page.goto("/en/modularprojects/succes-resorts");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Succes Resorts – 49 modern holiday cabins");
-  await expect(page.locator('link[rel="alternate"][hreflang="de"]')).toHaveAttribute("href", /\/de\/modularprojects\/succes-resorts$/);
+  await page.goto("/en/modularprojects/cocoleisure");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("CocoLeisure – 49 modern holiday cabins");
+  await expect(page.locator('link[rel="alternate"][hreflang="de"]')).toHaveAttribute("href", /\/de\/modularprojects\/cocoleisure$/);
 });

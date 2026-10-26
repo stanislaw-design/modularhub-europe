@@ -37,9 +37,9 @@ describe("sitemap (spec 0073 AC-13)", () => {
     for (const locale of ["pl", "en", "nl", "de"]) {
       const list = entries.find((e) => e.url === `http://localhost:3000/${locale}/modularprojects`);
       expect(list).toBeDefined();
-      const entry = entries.find((e) => e.url === `http://localhost:3000/${locale}/modularprojects/succes-resorts`);
+      const entry = entries.find((e) => e.url === `http://localhost:3000/${locale}/modularprojects/cocoleisure`);
       expect(entry?.lastModified).toEqual(new Date("2026-10-24"));
-      expect(entry?.alternates?.languages?.de).toBe("http://localhost:3000/de/modularprojects/succes-resorts");
+      expect(entry?.alternates?.languages?.de).toBe("http://localhost:3000/de/modularprojects/cocoleisure");
     }
   });
 

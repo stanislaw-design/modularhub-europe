@@ -7,7 +7,7 @@ describe("FeaturedProjectShowcase", () => {
     render(await FeaturedProjectShowcase({ locale: "pl" }));
 
     expect(
-      screen.getByRole("heading", { level: 2, name: "Succes Resorts – 49 nowoczesnych domków rekreacyjnych" })
+      screen.getByRole("heading", { level: 2, name: "CocoLeisure – 49 nowoczesnych domków rekreacyjnych" })
     ).toBeInTheDocument();
     expect(screen.getByText("W produkcji")).toBeInTheDocument();
   });
@@ -33,7 +33,7 @@ describe("FeaturedProjectShowcase", () => {
 
     expect(screen.getByRole("link", { name: "Zobacz realizację" })).toHaveAttribute(
       "href",
-      "/pl/modularprojects/succes-resorts"
+      "/pl/modularprojects/cocoleisure"
     );
     expect(screen.getByRole("link", { name: "Zobacz wszystkie realizacje" })).toHaveAttribute(
       "href",

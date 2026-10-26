@@ -74,19 +74,19 @@ describe("wpisy ModularProjects (spec 0076)", () => {
     const list = await getModularProjects("en");
     const dates = list.map((item) => item.publishedAt);
     expect(dates).toEqual([...dates].sort().reverse());
-    expect(list[0].title).toBe("Succes Resorts – 49 modern holiday cabins");
+    expect(list[0].title).toBe("CocoLeisure – 49 modern holiday cabins");
   });
 
   it("finds an entry by slug and returns null for an unknown one", async () => {
-    expect((await getModularProjectBySlug("succes-resorts", "de"))?.title).toContain("Ferienhäuser");
+    expect((await getModularProjectBySlug("cocoleisure", "de"))?.title).toContain("Ferienhäuser");
     expect(await getModularProjectBySlug("nie-ma", "pl")).toBeNull();
   });
 
   it("returns the featured entry with split paragraphs and image paths", async () => {
     const featured = await getFeaturedModularProject("pl");
-    expect(featured?.slug).toBe("succes-resorts");
+    expect(featured?.slug).toBe("cocoleisure");
     expect(featured?.sections[0].paragraphs).toHaveLength(2);
-    expect(featured?.cover.src).toBe("/images/modularprojects/succes-resorts/04-przod.webp");
+    expect(featured?.cover.src).toBe("/images/modularprojects/cocoleisure/04-przod.webp");
   });
 });
 
@@ -95,7 +95,7 @@ describe("model 3D wpisu (spec 0076)", () => {
     for (const entry of MODULARPROJECT_ENTRIES.filter((item) => item.model)) {
       for (const locale of LOCALES) expect(entry.model!.alt[locale].trim(), `${entry.slug}/${locale}`).not.toBe("");
     }
-    const project = await getModularProjectBySlug("succes-resorts", "en");
+    const project = await getModularProjectBySlug("cocoleisure", "en");
     expect(project?.model?.type).toBe("stilt-chalet");
     expect(project?.model?.alt).toContain("Interactive 3D model");
   });

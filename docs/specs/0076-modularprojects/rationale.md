@@ -8,7 +8,7 @@ Część decyzyjna specyfikacji [0076](index.md). Czyta ją człowiek lub `/arch
 
 Przetarg na duże zamówienia (od 3 domów, spec 0070) działa, ale nie ma własnej nazwy. Producent widzi go jako "Tablicę ogłoszeń" w swoim panelu, inwestor jako "Duże zamówienia" w swoim, formularz nazywa się "Zgłoś duży projekt", a maile mówią "zapytanie o duże zamówienie". Ta sama usługa ma więc cztery nazwy w zależności od tego, kto na nią patrzy i gdzie. Właściciel chce jednej nazwy, ModularProjects, widocznej po obu stronach, bez zmiany tego, jak przetarg działa.
 
-Druga potrzeba jest marketingowa. Strona główna pokazuje dziś jedną realizację (Succes Resorts, 49 domków), zahardkodowaną w `lib/data/featured-showcase.ts` i w kluczach `FeaturedProjectShowcase` w `messages/*.json`. Nie ma strony, na której odwiedzający zobaczy więcej niż jeden projekt albo przeczyta o jednym szerzej. Właściciel dodał zdjęcia wizualizacji, rysunków konstrukcji i budowy, żeby pokazać, że to prawdziwa realizacja, i chce zrobić z tego sekcję w formie bloga o większych projektach.
+Druga potrzeba jest marketingowa. Strona główna pokazuje dziś jedną realizację (CocoLeisure, 49 domków), zahardkodowaną w `lib/data/featured-showcase.ts` i w kluczach `FeaturedProjectShowcase` w `messages/*.json`. Nie ma strony, na której odwiedzający zobaczy więcej niż jeden projekt albo przeczyta o jednym szerzej. Właściciel dodał zdjęcia wizualizacji, rysunków konstrukcji i budowy, żeby pokazać, że to prawdziwa realizacja, i chce zrobić z tego sekcję w formie bloga o większych projektach.
 
 Siły, które kształtują wybór: przetarg (spec 0070) jest jeszcze w budowie i ma wiele testów i tekstów, więc zmiana jego logiki jest ryzykowna i niepotrzebna; strona publiczna musi działać w czterech językach (pl, en, de, nl); zasoby zespołu są małe (jeden właściciel produktu, który sam wgrywa treść w kodzie); limit optymalizacji obrazów Vercel był już wyczerpany raz.
 
@@ -58,7 +58,7 @@ Treść jako pliki `.mdx` z metadanymi, jeden plik na język i wpis.
 
 ### Option 4: Tylko nazwa, bez bloga
 
-Zmiana tekstów w panelach i formularzu, a realizacja Succes Resorts zostaje zahardkodowana na stronie głównej.
+Zmiana tekstów w panelach i formularzu, a realizacja CocoLeisure zostaje zahardkodowana na stronie głównej.
 
 **Pros**:
 - Najmniejsza zmiana.
@@ -75,4 +75,4 @@ Opcja 2 jest lepsza dopiero wtedy, gdy wpisy mają prowadzić osoby spoza zespo�
 
 Przy nazwie wybraliśmy etykietę, a nie nowe pole tytułu, bo właściciel odpowiedział, że zmiana ma dotyczyć samej nazwy ("nie zmiana logiki albo czegoś tylko to"). Dlatego też adresy tras i klucze w `messages/*.json` zostają, co sprawia, że zmiana jest odwracalna i nie psuje linków w wysłanych mailach ani zakładek. Adresy tras zostają angielskie, jak reszta projektu, a publiczny adres `/modularprojects` nie koliduje z istniejącym `project/` (karta produktu).
 
-Wcześniejsza koncepcja powiązania wpisu bloga z projektem z przetargu odpada, bo wpisy w plikach nie mają klucza obcego do bazy. Succes Resorts mógł zresztą powstać poza platformą, a automatyczne generowanie wpisów z przetargów groziłoby ujawnieniem danych inwestora i producenta bez ich zgody.
+Wcześniejsza koncepcja powiązania wpisu bloga z projektem z przetargu odpada, bo wpisy w plikach nie mają klucza obcego do bazy. CocoLeisure mógł zresztą powstać poza platformą, a automatyczne generowanie wpisów z przetargów groziłoby ujawnieniem danych inwestora i producenta bez ich zgody.

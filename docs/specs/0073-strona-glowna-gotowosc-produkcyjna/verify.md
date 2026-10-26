@@ -6,7 +6,7 @@ _Steps derived from spec 0073 acceptance criteria. `/check verify` runs these; `
 - [ ] Na `/pl` wybierz Budżet "50K–100K €" i kliknij Szukaj → adres `/pl/results?country=PL&priceMin=50000&priceMax=100000` → AC-2
 - [ ] Wybierz Budżet "Dowolny budżet" i Szukaj → w adresie brak `priceMin` i `priceMax` → AC-2
 - [ ] Zakładka "Więcej niż dom" w wyszukiwarce → brak pola Budżet → AC-2
-- [ ] Sekcja realizacji pokazowej wygląda jak przed zmianą (zdjęcia, liczby Succes Resorts) → AC-3
+- [ ] Sekcja realizacji pokazowej wygląda jak przed zmianą (zdjęcia, liczby CocoLeisure) → AC-3
 - [ ] Karta Compliance Engine ma plakietkę "Przykład ilustracyjny" (sprawdź też `/en`, `/de`, `/nl`) → AC-4
 - [ ] Sekcja producentów nie ma wyłączonego przycisku "Zobacz wszystkich producentów" → AC-5
 - [ ] Ceny na kartach polecanych domów i w tabeli porównawczej: `/pl` "od 129 000 €", `/en` "from €129,000", `/de` "ab 129.000 €" → AC-6

@@ -9,8 +9,8 @@ _Steps derived from spec 0076 acceptance criteria. `/check verify` runs these; `
 - [ ] Złóż trzy zapytania na jeden adres e mail, spróbuj czwartego → okno limitu mówi "aktywnych zapytań ModularProjects"   → AC-2, AC-3
 - [ ] Złóż nowe zapytanie i sprawdź maile (temat i treść) do klienta, producenta i zespołu w pl, en, de, nl → zawierają "ModularProjects"   → AC-3
 - [ ] Przejdź kolejno `/producer/panel/board`, `/panel/quotes`, `/project-request`, `/internal/large-orders` → adresy bez zmian, panel admina nadal ze starym słownictwem   → AC-4
-- [ ] Otwórz `/pl/modularprojects` → jeden h1, karta Succes Resorts z okładką, statusem (ikona plus tekst) i trzema faktami, cała karta jest linkiem   → AC-6, AC-12
-- [ ] Otwórz `/en/modularprojects/succes-resorts` → tytuł po angielsku, fakty, trzy grupy zdjęć (Renderings, Structural design, Construction), przyciski "Commission a similar project" (`/en/project-request`) i "Build projects like this" (`/en/producer/registration`), link powrotny   → AC-7
+- [ ] Otwórz `/pl/modularprojects` → jeden h1, karta CocoLeisure z okładką, statusem (ikona plus tekst) i trzema faktami, cała karta jest linkiem   → AC-6, AC-12
+- [ ] Otwórz `/en/modularprojects/cocoleisure` → tytuł po angielsku, fakty, trzy grupy zdjęć (Renderings, Structural design, Construction), przyciski "Commission a similar project" (`/en/project-request`) i "Build projects like this" (`/en/producer/registration`), link powrotny   → AC-7
 - [ ] Otwórz `/pl/modularprojects/nie-ma-takiego` → 404   → AC-7
 - [ ] Otwórz stronę główną → kafel pokazuje tytuł, lead, fakty i dziesięć zdjęć z wpisu wyróżnionego, linki "Zobacz realizację" i "Zobacz wszystkie realizacje"   → AC-9
 - [ ] Źródło obu stron: `<link rel="canonical">`, `hreflang` z `x-default`, `og:image`, JSON-LD `Article` (wpis) i `CollectionPage` (lista)   → AC-11

@@ -1,10 +1,10 @@
-import { succesResorts } from "./entries/succes-resorts";
+import { cocoleisure } from "./entries/cocoleisure";
 import type { ModularProjectEntry, ModularProjectLocale, ResolvedModularProject } from "./types";
 
 export * from "./types";
 
 // Nowa realizacja: plik w entries/, wpis tutaj i zdjęcia w public/images/modularprojects/<slug>/ (spec 0076 AC-8).
-export const MODULARPROJECT_ENTRIES: readonly ModularProjectEntry[] = [succesResorts];
+export const MODULARPROJECT_ENTRIES: readonly ModularProjectEntry[] = [cocoleisure];
 
 export const MODULARPROJECT_IMAGE_ROOT = "/images/modularprojects";
 

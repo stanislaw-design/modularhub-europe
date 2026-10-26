@@ -1,27 +1,27 @@
 import { same, type ModularProjectEntry } from "../types";
 
 // Pierwsza realizacja ModularProjects i zarazem wpis wyróżniony na stronie głównej (spec 0076 AC-9).
-export const succesResorts: ModularProjectEntry = {
-  slug: "succes-resorts",
+export const cocoleisure: ModularProjectEntry = {
+  slug: "cocoleisure",
   publishedAt: "2026-10-24",
   featured: true,
   status: "in_production",
   title: {
-    pl: "Succes Resorts – 49 nowoczesnych domków rekreacyjnych",
-    en: "Succes Resorts – 49 modern holiday cabins",
-    de: "Succes Resorts – 49 moderne Ferienhäuser",
-    nl: "Succes Resorts – 49 moderne vakantiehuisjes",
+    pl: "CocoLeisure – 49 nowoczesnych domków rekreacyjnych",
+    en: "CocoLeisure – 49 modern holiday cabins",
+    de: "CocoLeisure – 49 moderne Ferienhäuser",
+    nl: "CocoLeisure – 49 moderne vakantiehuisjes",
   },
   lead: {
-    pl: "ModularHub Europe prezentuje inwestycję obejmującą 49 nowoczesnych domków rekreacyjnych realizowanych dla Succes Resorts. Do produkcji wybrano firmę BUDMAN HOUSE, specjalizującą się w budownictwie prefabrykowanym.",
-    en: "ModularHub Europe presents an investment of 49 modern holiday cabins being built for Succes Resorts. BUDMAN HOUSE, a specialist in prefabricated construction, was chosen for production.",
-    de: "ModularHub Europe präsentiert eine Investition von 49 modernen Ferienhäusern, die für Succes Resorts realisiert werden. Für die Produktion wurde BUDMAN HOUSE ausgewählt, ein Spezialist für Fertigbau.",
-    nl: "ModularHub Europe presenteert een investering van 49 moderne vakantiehuisjes die worden gerealiseerd voor Succes Resorts. Voor de productie is gekozen voor BUDMAN HOUSE, specialist in prefabbouw.",
+    pl: "ModularHub Europe prezentuje inwestycję obejmującą 49 nowoczesnych domków rekreacyjnych realizowanych dla CocoLeisure. Do produkcji wybrano firmę BUDMAN HOUSE, specjalizującą się w budownictwie prefabrykowanym.",
+    en: "ModularHub Europe presents an investment of 49 modern holiday cabins being built for CocoLeisure. BUDMAN HOUSE, a specialist in prefabricated construction, was chosen for production.",
+    de: "ModularHub Europe präsentiert eine Investition von 49 modernen Ferienhäusern, die für CocoLeisure realisiert werden. Für die Produktion wurde BUDMAN HOUSE ausgewählt, ein Spezialist für Fertigbau.",
+    nl: "ModularHub Europe presenteert een investering van 49 moderne vakantiehuisjes die worden gerealiseerd voor CocoLeisure. Voor de productie is gekozen voor BUDMAN HOUSE, specialist in prefabbouw.",
   },
   facts: [
     {
       label: { pl: "Inwestor", en: "Investor", de: "Investor", nl: "Investeerder" },
-      value: same("Succes Resorts"),
+      value: same("CocoLeisure"),
     },
     {
       label: { pl: "Producent", en: "Producer", de: "Hersteller", nl: "Producent" },
