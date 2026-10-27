@@ -7,7 +7,7 @@ describe("FeaturedProjectShowcase", () => {
     render(await FeaturedProjectShowcase({ locale: "pl" }));
 
     expect(
-      screen.getByRole("heading", { level: 2, name: "CocoLeisure – 49 nowoczesnych domków rekreacyjnych" })
+      screen.getByRole("heading", { level: 3, name: "CocoLeisure – 49 nowoczesnych domków rekreacyjnych" })
     ).toBeInTheDocument();
     expect(screen.getByText("W produkcji")).toBeInTheDocument();
   });

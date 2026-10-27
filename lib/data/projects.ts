@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, inArray, isNull, lte, ne, or, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNull, lte, or, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
   costLineItem,
@@ -974,11 +974,13 @@ function mapRowToProject(
 // z project-variants.ts, patrz komentarz tam.
 export { getDefaultProjectVariant } from "./project-variants";
 
-// countryCode filter: a project surfaces for a country when it has an
-// eligibility row there and that row is not "blocked" ("approved" and
-// "conditional" both count as usable, per brand-guidelines-v3.md section 12,
-// which treats a conditional status as a valid, displayable outcome, not a
-// hidden one). Boundary confirmed as spec 0004's Decision (Option 1).
+// countryCode filter: a project surfaces for every country except where its
+// eligibility row is explicitly "blocked" ("approved" and "conditional" both
+// count as usable, per brand-guidelines-v3.md section 12, which treats a
+// conditional status as a valid, displayable outcome, not a hidden one). A
+// missing row no longer hides a project (it did under spec 0004's Decision,
+// Option 1): most imported catalogs have no rows for DE/NL, which emptied the
+// results for those countries.
 // family defaults to "dom" (spec 0023 AC-4): this feeds house search/results
 // (/wyniki, Popularne domy, Porównaj domy) by default, with a URL switch to
 // the other two families.
@@ -1123,17 +1125,17 @@ export async function getProjects(filters?: GetProjectsFilters): Promise<Project
   }
 
   if (countryCode && !isOutdoorTv) {
-    const eligibleRows = await db
+    const blockedRows = await db
       .select({ productId: productCountryEligibility.productId })
       .from(productCountryEligibility)
       .where(
         and(
           eq(productCountryEligibility.countryCode, countryCode),
-          ne(productCountryEligibility.status, "blocked")
+          eq(productCountryEligibility.status, "blocked")
         )
       );
-    const eligibleIds = new Set(eligibleRows.map((row) => row.productId));
-    projects = projects.filter((project) => eligibleIds.has(project.id));
+    const blockedIds = new Set(blockedRows.map((row) => row.productId));
+    projects = projects.filter((project) => !blockedIds.has(project.id));
   }
 
   const projectIds = projects.map((project) => project.id);

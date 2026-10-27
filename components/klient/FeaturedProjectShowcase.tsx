@@ -16,6 +16,12 @@ export async function FeaturedProjectShowcase({ locale }: { locale: string }) {
   return (
     <section className="py-brand-7">
       <ScrollReveal>
+        <div className="mb-brand-4 flex flex-col items-center gap-1 text-center">
+          <Heading level="h2" className="text-h1">
+            ModularProjects
+          </Heading>
+          <Text tone="muted">{t("tagline")}</Text>
+        </div>
         <div className="flex flex-col overflow-hidden rounded-v5-panel bg-brand-v5-night text-brand-v5-paper">
           <div className="grid grid-cols-1 lg:grid-cols-2">
             <FeaturedProjectGallery
@@ -26,7 +32,7 @@ export async function FeaturedProjectShowcase({ locale }: { locale: string }) {
             />
             <div className="flex flex-col justify-center gap-brand-2 p-brand-4 sm:p-brand-5">
               <span className="text-label uppercase tracking-[0.08em] text-brand-v5-amber">{t("eyebrow")}</span>
-              <Heading level="h2" surface="v5" className="text-h2 !text-brand-v5-paper">
+              <Heading level="h3" surface="v5" className="text-h2 !text-brand-v5-paper">
                 {project.title}
               </Heading>
               <Text surface="v5" className="text-body !text-brand-v5-paper/80" measure>
