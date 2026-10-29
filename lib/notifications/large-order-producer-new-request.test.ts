@@ -105,7 +105,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/notifications/large-order-produc
     expect(calls).toHaveLength(1);
     const mail = calls[0][0];
     expect(mail).toMatchObject({ emailType: "large_order_producer_new_request", entityId: requestId, distinctId: matching.producerId });
-    expect(mail.subject).toBe("Nowe zapytanie o duże zamówienie (12 domów, PL)");
+    expect(mail.subject).toBe("Nowe zapytanie ModularProjects (12 domów, PL)");
     expect(mail.text).toContain(`https://hub.example.test/pl/producer/panel/board/${requestId}`);
     expect(mail.text).toContain("dom");
     expect(mail.text).not.toContain(secretName);

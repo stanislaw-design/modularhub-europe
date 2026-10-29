@@ -14,7 +14,7 @@ Zrobione 2026-10-19: metadane SEO strony głównej (title, description, canonica
 ## Do poprawy
 - [x] Nazwy krajów w wyszukiwarce są fixture'em po polsku (`lib/data/fixtures/countries.ts`); przetłumaczyć i wyjąć z fixture'ów.
 - [x] Pole "Budżet" w `SearchCard` nic nie filtruje; podpiąć do wyników albo usunąć.
-- [x] `FeaturedProjectShowcase`: realizacja Succes Resorts wpisana na stałe (liczby, zdjęcia); przenieść do bazy/konfiguracji.
+- [x] `FeaturedProjectShowcase`: realizacja CocoLeisure wpisana na stałe (liczby, zdjęcia); przenieść do bazy/konfiguracji.
 - [x] `ComplianceEngineShowcase`: przykład "Nordic 126 / 92%" to dane na sztywno; oznaczyć wyraźnie jako ilustrację albo podpiąć pod prawdziwy wynik.
 - [x] Wyłączony przycisk "Zobacz wszystkich producentów" (`ProducerShowcase`): ukryć albo podlinkować do `/verified-manufacturers`.
 - [x] Stany puste: brak produktów `featured` w `PopularHomes` i `CompareHomesTeaser`.

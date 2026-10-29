@@ -12,10 +12,12 @@ interface FeaturedProjectGalleryProps {
   images: FeaturedProjectGalleryImage[];
   label: string;
   showImageLabel: string;
-  statusLabel: string;
+  /** Bez etykiety znacznik statusu na zdjęciu się nie pokazuje (galerie grup we wpisie). */
+  statusLabel?: string;
+  priority?: boolean;
 }
 
-export function FeaturedProjectGallery({ images, label, showImageLabel, statusLabel }: FeaturedProjectGalleryProps) {
+export function FeaturedProjectGallery({ images, label, showImageLabel, statusLabel, priority = true }: FeaturedProjectGalleryProps) {
   const [active, setActive] = useState(0);
   const current = images[active];
 
@@ -27,16 +29,18 @@ export function FeaturedProjectGallery({ images, label, showImageLabel, statusLa
           src={current.src}
           alt={current.alt}
           fill
-          priority={active === 0}
+          priority={priority && active === 0}
           sizes="(min-width: 1024px) 50vw, 100vw"
           className="object-cover"
         />
-        <span className="absolute left-brand-3 top-brand-3 inline-flex items-center gap-2 rounded-v5-pill bg-brand-v5-night/85 px-brand-3 py-1.5 text-data font-semibold text-brand-v5-paper">
-          <span className="size-2 rounded-full bg-emerald-400" aria-hidden="true" />
-          {statusLabel}
-        </span>
+        {statusLabel && (
+          <span className="absolute left-brand-3 top-brand-3 inline-flex items-center gap-2 rounded-v5-pill bg-brand-v5-night/85 px-brand-3 py-1.5 text-data font-semibold text-brand-v5-paper">
+            <span className="size-2 rounded-full bg-emerald-400" aria-hidden="true" />
+            {statusLabel}
+          </span>
+        )}
       </div>
-      <ul className="grid grid-cols-4 gap-2 sm:grid-cols-8">
+      <ul className="grid grid-cols-5 gap-2">
         {images.map((image, index) => (
           <li key={image.src} className="min-w-0">
             <button

@@ -1,10 +1,11 @@
 "use server";
 
 import { z } from "zod";
-import { eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { AuthError } from "next-auth";
 import { signIn } from "@/auth";
 import { db } from "@/lib/db/client";
+import { isAdminInviteExpired } from "@/lib/admin-invite";
 import { pendingRegistration, producer, users } from "@/lib/db/schema";
 import { PRODUCER_PRODUCTION_SCALES } from "@/lib/producer-production-scale";
 import type { PendingRegistrationPayload } from "@/lib/auth-shared";
@@ -62,6 +63,20 @@ const loginSchema = z.object({
   callbackUrl: z.string().min(1),
 });
 
+// Spec 0077 D AC-37: wiersz pending_registration z rolą admin należy do zaproszenia. Publiczna
+// rejestracja go nie nadpisuje, bo inaczej każdy mógłby zamienić zaproszenie w konto klienta
+// (a adresu nie dałoby się już zaprosić). Zwracamy ten sam ogólny błąd, co przy każdej innej
+// porażce, żeby nie zdradzać, że adres jest zaproszony.
+const REGISTRATION_BLOCKED_MESSAGE = "Nie udało się rozpocząć rejestracji. Spróbuj ponownie lub skontaktuj się z nami.";
+
+async function hasAdminInvite(email: string): Promise<boolean> {
+  const [pending] = await db
+    .select({ role: pendingRegistration.role })
+    .from(pendingRegistration)
+    .where(and(eq(pendingRegistration.email, email), eq(pendingRegistration.role, "admin")));
+  return Boolean(pending);
+}
+
 async function sendMagicLink(email: string, callbackUrl: string): Promise<{ ok: boolean; message?: string }> {
   try {
     await signIn("resend", { email, redirect: false, redirectTo: callbackUrl });
@@ -100,14 +115,20 @@ export async function registerClient(
     return { status: "error", message: "Ten adres e mail ma już założone konto. Zaloguj się zamiast rejestracji." };
   }
 
+  if (await hasAdminInvite(email)) return { status: "error", message: REGISTRATION_BLOCKED_MESSAGE };
+
   const payload: PendingRegistrationPayload = { name, phone, nip: nip || undefined, companyName: companyName || undefined };
-  await db
+  // setWhere to druga warstwa na wyścig: zaproszenie admina mogło powstać po sprawdzeniu wyżej.
+  const written = await db
     .insert(pendingRegistration)
     .values({ email, role: "client", payload })
     .onConflictDoUpdate({
       target: pendingRegistration.email,
       set: { role: "client", payload, createdAt: new Date() },
-    });
+      setWhere: ne(pendingRegistration.role, "admin"),
+    })
+    .returning({ email: pendingRegistration.email });
+  if (written.length === 0) return { status: "error", message: REGISTRATION_BLOCKED_MESSAGE };
 
   const result = await sendMagicLink(email, callbackUrl);
   if (!result.ok) return { status: "error", message: result.message };
@@ -142,6 +163,8 @@ export async function registerProducer(
     return { status: "error", message: "Ten NIP jest już zarejestrowany na platformie." };
   }
 
+  if (await hasAdminInvite(email)) return { status: "error", message: REGISTRATION_BLOCKED_MESSAGE };
+
   const payload: PendingRegistrationPayload = {
     name,
     phone,
@@ -149,13 +172,16 @@ export async function registerProducer(
     countryCode,
     productionScale: productionScale as PendingRegistrationPayload["productionScale"],
   };
-  await db
+  const written = await db
     .insert(pendingRegistration)
     .values({ email, role: "producer", payload })
     .onConflictDoUpdate({
       target: pendingRegistration.email,
       set: { role: "producer", payload, createdAt: new Date() },
-    });
+      setWhere: ne(pendingRegistration.role, "admin"),
+    })
+    .returning({ email: pendingRegistration.email });
+  if (written.length === 0) return { status: "error", message: REGISTRATION_BLOCKED_MESSAGE };
 
   const result = await sendMagicLink(email, callbackUrl);
   if (!result.ok) return { status: "error", message: result.message };
@@ -182,10 +208,15 @@ export async function requestLogin(
   const [existingUser] = await db.select({ id: users.id }).from(users).where(eq(users.email, email));
   if (!existingUser) {
     const [pending] = await db
-      .select({ email: pendingRegistration.email })
+      .select({ role: pendingRegistration.role, createdAt: pendingRegistration.createdAt })
       .from(pendingRegistration)
       .where(eq(pendingRegistration.email, email));
     if (!pending) {
+      return { status: "unknown-email" };
+    }
+    // Spec 0077 D AC-36: wygasłe zaproszenie admina nie tworzy konta, więc nie wysyłamy linku,
+    // który skończyłby się błędem w createUser (admin wysyła zaproszenie ponownie).
+    if (pending.role === "admin" && isAdminInviteExpired(pending.createdAt)) {
       return { status: "unknown-email" };
     }
   }

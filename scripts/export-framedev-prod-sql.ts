@@ -2,7 +2,10 @@
 // Tylko czyta dev, niczego nie zapisuje do żadnej bazy. Wynik: drizzle/_promote_framedev_to_prod/NN-*.sql,
 // które człowiek uruchamia po kolei w Neon SQL Editor na produkcji (ten sam wzorzec co import MOHO).
 //
-// Użycie: npx tsx --env-file=.env.local scripts/export-framedev-prod-sql.ts
+// Użycie: npx tsx --env-file=.env.local scripts/export-framedev-prod-sql.ts [--batch2]
+// Bez flagi: cały katalog FrameDEV do drizzle/_promote_framedev_to_prod. Z --batch2: tylko 30 modeli partii 2 (FrameDEV 14-43)
+// do drizzle/_promote_framedev_batch2_to_prod (producent i słowniki idą z nimi, ale ON CONFLICT DO NOTHING nie dubluje
+// tego, co partia 1 już wgrała).
 //
 // Pliki R2 (zdjęcia, rzuty) leżą w tym samym buckecie co na dev, więc dokumenty tylko odwołują się
 // do istniejących kluczy r2_key. Wszystkie INSERT-y mają ON CONFLICT DO NOTHING, więc ponowne
@@ -11,9 +14,11 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { neon } from "@neondatabase/serverless";
 import { IMPORT_USER_ID, PRODUCER_ID } from "./data/framedev-catalog";
+import { FRAMEDEV_PROJECTS_BATCH2 } from "./data/framedev-projects-batch2";
 
 const sql = neon(process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL!);
-const OUT_DIR = path.join(process.cwd(), "drizzle", "_promote_framedev_to_prod");
+const BATCH2 = process.argv.includes("--batch2");
+const OUT_DIR = path.join(process.cwd(), "drizzle", BATCH2 ? "_promote_framedev_batch2_to_prod" : "_promote_framedev_to_prod");
 
 // Kolumny wyliczane po stronie bazy: nie wolno ich wstawiać (search_vector jest GENERATED ALWAYS,
 // price_min_cents/price_max_cents na produkcie liczy wyzwalacz z wariantu domyślnego).
@@ -78,7 +83,8 @@ async function insertsFor(table: string, where: string, params: unknown[] = []):
 }
 
 const P = PRODUCER_ID;
-const PRODUCT_IDS = `(select id from product where producer_id = '${P}')`;
+const ONLY_BATCH2 = BATCH2 ? ` and id in (${FRAMEDEV_PROJECTS_BATCH2.map((item) => `'${item.id}'`).join(", ")})` : "";
+const PRODUCT_IDS = `(select id from product where producer_id = '${P}'${ONLY_BATCH2})`;
 const VARIANT_IDS = `(select id from product_variant where product_id in ${PRODUCT_IDS})`;
 
 function write(name: string, header: string, statements: string[]): void {
@@ -107,11 +113,11 @@ async function main(): Promise<void> {
   write("01-producent.sql", "FrameDEV: użytkownik techniczny, producent, kraje dostawy, tłumaczenia.", part1);
 
   const part2 = [
-    ...(await insertsFor("product", `producer_id = $1`, [P])),
+    ...(await insertsFor("product", `producer_id = $1${ONLY_BATCH2}`, [P])),
     ...(await insertsFor("product_translation", `product_id in ${PRODUCT_IDS}`)),
     ...(await insertsFor("product_country_eligibility", `product_id in ${PRODUCT_IDS}`)),
   ];
-  write("02-produkty.sql", "FrameDEV: 13 produktów, tłumaczenia, kwalifikacja krajów.", part2);
+  write("02-produkty.sql", `FrameDEV: ${BATCH2 ? FRAMEDEV_PROJECTS_BATCH2.length : "wszystkie"} produktów, tłumaczenia, kwalifikacja krajów.`, part2);
 
   // Warianty po produktach (FK); cenę product.price_min_cents wylicza na prodzie wyzwalacz z wariantu domyślnego.
   const variants = [

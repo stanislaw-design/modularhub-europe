@@ -6,6 +6,7 @@ import Link from "next/link";
 import { type FormEvent, useState, useTransition } from "react";
 import { Button, Input, Label, Select, Stack, Text, Textarea } from "@/components/ui";
 import type { Country, CountryCode } from "@/lib/data/types";
+import { EMPTY_INTENDED_USE, IntendedUseField, intendedUseInput, type IntendedUseValue } from "@/components/klient/IntendedUseField";
 import { submitBulkProductInquiry } from "@/lib/project-request-actions";
 import { InquiryAttachmentsAfterSubmit } from "@/components/inquiry-attachments/InquiryAttachmentsAfterSubmit";
 import { BulkRequestLimitMessage } from "./BulkRequestLimitMessage";
@@ -33,6 +34,7 @@ export function BulkProductInquiryModal({ productId, countries, prefill }: BulkP
   const [unitCount, setUnitCount] = useState("");
   const [deliveryCountryCode, setDeliveryCountryCode] = useState<CountryCode | null>(null);
   const [note, setNote] = useState("");
+  const [intendedUse, setIntendedUse] = useState<IntendedUseValue>(EMPTY_INTENDED_USE);
   const [error, setError] = useState<string | null>(null);
   const [limitReached, setLimitReached] = useState(false);
   // Spec 0070 AC-29: po zapisie zapytania pokazujemy krok plików; token żyje tylko tu.
@@ -69,6 +71,7 @@ export function BulkProductInquiryModal({ productId, countries, prefill }: BulkP
         unitCount: unitCountValue,
         deliveryCountryCode,
         note: note.trim() ? note.trim() : undefined,
+        ...intendedUseInput(intendedUse),
       });
       if (!result.ok) {
         setLimitReached(result.errorCode === "email_limit");
@@ -210,6 +213,7 @@ export function BulkProductInquiryModal({ productId, countries, prefill }: BulkP
                     onChange={(event) => setNote(event.target.value)}
                   />
                 </Stack>
+                <IntendedUseField idPrefix="bulk-inquiry" value={intendedUse} onChange={setIntendedUse} />
                 {error && limitReached ? (
                   <BulkRequestLimitMessage locale={locale} contactEmail={contactEmail} />
                 ) : (

@@ -5,7 +5,6 @@ import { QuoteOutcomeControl } from "@/components/producent/QuoteOutcomeControl"
 import { Card, DataText, Heading, Stack, Text } from "@/components/ui";
 import {
   getProducerIdForUser,
-  getProducerVolumeVerificationStatus,
   getProjectQuotesForProducer,
   type ProjectQuoteForProducer,
 } from "@/lib/db/queries";
@@ -28,17 +27,18 @@ export default async function ProducerPanelBoardQuotesPage({
 }) {
   const { locale } = await params;
   const selfHref = `/${locale}/producer/panel/board-quotes`;
-  const [session, t, tTabs] = await Promise.all([
+  const [session, t, tTabs, tPlatform, tDetail] = await Promise.all([
     requirePanelProducerSession(locale, selfHref),
     getTranslations("ProducerPanelBoardQuotesPage"),
     getTranslations("ProducerBoardTabs"),
+    getTranslations("ProducerPlatformVariants"),
+    getTranslations("ProducerBoardDetailPage"),
   ]);
 
   const producerId = await getProducerIdForUser(session.user.id);
   const quotes = producerId ? await getProjectQuotesForProducer(producerId) : [];
-  // Liczba przy "Dostępne ogłoszenia" tak jak w menu (AC-2): bez zatwierdzonej weryfikacji bez znacznika.
-  const approved = producerId ? (await getProducerVolumeVerificationStatus(producerId)) === "approved" : false;
-  const availableCount = producerId && approved ? await getBoardWithoutQuoteCount(producerId) : undefined;
+  // Liczba przy "Dostępne ogłoszenia" tak jak w menu; bez weryfikacji wolumenowej obejmuje tylko projekty własne ModularHub.
+  const availableCount = producerId ? await getBoardWithoutQuoteCount(producerId) : undefined;
 
   const statusLabel: Record<ProjectQuoteForProducer["status"], string> = {
     active: t("statusActive"),
@@ -89,7 +89,12 @@ export default async function ProducerPanelBoardQuotesPage({
               {quotes.map((quote) => (
                 <tr key={quote.id} className="border-b border-brand-steel/50 align-top last:border-b-0">
                   <td className="p-brand-2">
-                    <Text>{sourceLabel[quote.source]}</Text>
+                    <Text>{quote.isPlatformOwned && quote.projectTitle ? quote.projectTitle : sourceLabel[quote.source]}</Text>
+                    {quote.isPlatformOwned && quote.variantLabel && (
+                      <Text tone="muted" variant="label" className="mt-1">
+                        {tPlatform("columnVariant")}: {quote.variantLabel}
+                      </Text>
+                    )}
                     {quote.contactEmail && (
                       <Text tone="muted" variant="label" className="mt-1">
                         {t("contactRevealedLabel")}: {quote.contactName} · {quote.contactEmail}
@@ -101,7 +106,7 @@ export default async function ProducerPanelBoardQuotesPage({
                     <DataText>{priceFormatter.format(quote.totalPriceCents / 100)} €</DataText>
                   </Text>
                   <Text as="td" className="p-brand-2">
-                    {statusLabel[quote.status]}
+                    {quote.isPlatformOwned && quote.status === "rejected" ? tDetail("platformSelectionDone") : statusLabel[quote.status]}
                   </Text>
                   <Text as="td" className="p-brand-2">
                     {dateFormatter.format(quote.submittedAt)}

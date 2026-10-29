@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
 import { ProjectCompareTable, type CompareTableColumn } from "@/components/klient/ProjectCompareTable";
 import { SaunaCompareTable, type SaunaCompareColumn } from "@/components/klient/SaunaCompareTable";
-import { getProjectById, getPublishedProductIds } from "@/lib/data/projects";
-import type { CompletionStandard } from "@/lib/data/types";
+import { getEnvelopeParametersByProduct, getProjectById, getPublishedProductIds } from "@/lib/data/projects";
+import type { CompletionStandard, ProductEnvelopeParameter } from "@/lib/data/types";
+import { ENVELOPE_SECTION_ENABLED, supportsEnvelopeParameters } from "@/lib/product-envelope-parameters";
 import { parseCompareProjectIds } from "@/lib/compare";
 import { getCompareListPath, isEligibleForCompareKind, parseCompareKind } from "@/lib/compare-rows";
 import type { Locale } from "@/lib/i18n/routing";
@@ -80,6 +81,12 @@ export default async function ComparePage({
   // się jako dostępna oferta (spec 0044 AC-10) — kolumna zostaje, ale bez
   // danych, żeby widok jasno pokazał "część pozycji niedostępna" zamiast po
   // cichu zredukować porównanie albo przekierować od razu.
+  // Spec 0075 AC-13: jedno zapytanie po product_id dla wszystkich porównywanych domów.
+  const envelopeByProduct = ENVELOPE_SECTION_ENABLED
+    ? await getEnvelopeParametersByProduct(
+        resolvedProjects.flatMap((project) => (project && supportsEnvelopeParameters(project) ? [project.id] : [])),
+      )
+    : new Map<string, ProductEnvelopeParameter[]>();
   const columns: CompareTableColumn[] = ids.map((id, index) => {
     const project = resolvedProjects[index];
     const eligible = project !== null && isEligibleForCompareKind("dom", project) && publishedIds.has(id);
@@ -102,7 +109,7 @@ export default async function ComparePage({
           }))
         : [];
 
-    return { id, project, selectedVariant, variantLinks };
+    return { id, project, selectedVariant, variantLinks, envelope: envelopeByProduct.get(project.id) };
   });
 
   const availableCount = columns.filter((column) => column.project !== null).length;
@@ -116,6 +123,7 @@ export default async function ComparePage({
       columns={columns}
       hasUnavailable={availableCount < columns.length}
       resultsHref={resultsHref}
+      showEnvelopeRows={ENVELOPE_SECTION_ENABLED}
     />
   );
 }

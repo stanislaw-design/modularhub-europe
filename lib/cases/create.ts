@@ -1,4 +1,5 @@
 import { eq, sql } from "drizzle-orm";
+import { intendedUseColumns } from "@/lib/intended-use";
 import { db } from "@/lib/db/client";
 import { getPgErrorCode } from "@/lib/db/pg-error";
 import { channel, inquiry, inquiryItem, message } from "@/lib/db/schema";
@@ -19,6 +20,9 @@ export interface CreateAdvisoryCaseInput {
   // Spec 0066 AC-14: zalogowany klient ma kontakt potwierdzony od razu, gość
   // nie (null).
   contactEmailVerifiedAt?: Date | null;
+  // Spec 0075 AC-6, AC-7: planowane użytkowanie, opcjonalne.
+  intendedUse?: "year_round" | "seasonal";
+  intendedUseMonths?: number;
 }
 
 // Ten sam klucz idempotencji użyty z innym e mailem albo innym klientem
@@ -106,6 +110,7 @@ export async function createAdvisoryCase(
         contactEmailVerifiedAt: input.contactEmailVerifiedAt ?? null,
         waitingOn: "advisor",
         lastClientActivityAt: now,
+        ...intendedUseColumns(input),
       }),
       db.insert(inquiryItem).values(input.projectIds.map((productId) => ({ inquiryId, productId }))),
       db.insert(channel).values({ id: channelId, inquiryId, kind: "klient_doradca" }),

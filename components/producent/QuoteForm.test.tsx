@@ -263,3 +263,60 @@ describe("QuoteForm", () => {
     expect(await screen.findByRole("button", { name: "Wyślij wycenę" })).toBeInTheDocument();
   });
 });
+
+describe("QuoteForm variants (spec 0077 AC-11, AC-44)", () => {
+  it("does not show the variant field for client requests", () => {
+    render(<QuoteForm projectRequestId="req-1" isRevision={false} />);
+    expect(screen.queryByLabelText(/Nazwa wariantu/)).not.toBeInTheDocument();
+  });
+
+  it("requires a variant name for a platform project and sends it trimmed", async () => {
+    const user = userEvent.setup();
+    mockedSubmitProjectQuote.mockResolvedValue({ ok: true });
+    render(<QuoteForm projectRequestId="req-1" isRevision={false} requireVariant />);
+
+    await fillRequired(user, "900000");
+    const submit = screen.getByRole("button", { name: "Wyślij wycenę" });
+    expect(submit).toBeDisabled();
+    await user.type(screen.getByLabelText(/Nazwa wariantu/), "  Pod klucz ");
+    expect(submit).toBeEnabled();
+    await user.click(submit);
+
+    await waitFor(() => expect(mockedSubmitProjectQuote).toHaveBeenCalledTimes(1));
+    expect(mockedSubmitProjectQuote.mock.calls[0]![0].variantLabel).toBe("Pod klucz");
+  });
+
+  it("prefills the form from an existing variant", () => {
+    render(
+      <QuoteForm
+        projectRequestId="req-1"
+        isRevision
+        requireVariant
+        initialValues={{
+          variantLabel: "Stan surowy",
+          priceTaxMode: "gross",
+          vatRatePercent: "23",
+          totalPriceEur: "700000",
+          unitPriceEur: "",
+          scopeIncluded: "Konstrukcja",
+          scopeExcluded: "",
+          logistics: {
+            transport: { mode: "tbd", amountEur: "", maxAmountEur: "", note: "" },
+            assembly: { mode: "tbd", amountEur: "", maxAmountEur: "", note: "" },
+            crane: { mode: "tbd", amountEur: "", maxAmountEur: "", note: "" },
+          },
+          paymentPlan: "",
+          validUntil: "2030-01-31",
+          warrantyNote: "",
+          proposedLeadTimeWeeks: "",
+          deliveryWindowFrom: "",
+          deliveryWindowTo: "",
+          notes: "",
+        }}
+      />,
+    );
+    expect(screen.getByLabelText(/Nazwa wariantu/)).toHaveValue("Stan surowy");
+    expect(screen.getByLabelText(/Cena całkowita/)).toHaveValue(700000);
+    expect(screen.getByRole("button", { name: /Wyślij/ })).toBeEnabled();
+  });
+});

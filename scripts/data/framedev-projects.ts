@@ -1,9 +1,11 @@
-// Projekty FrameDEV (13 modeli), wygenerowane ze stron framedev.pl/modele/<slug>; teksty i stałe w framedev-catalog.ts.
+// Projekty FrameDEV: partia 1 (13 modeli, tu) i partia 2 (30 modeli, framedev-projects-batch2.ts), ze stron framedev.pl/modele/<slug>;
+// teksty i stałe w framedev-catalog.ts.
 // Zdjęcia: do 10 na model (okładka pierwsza, potem elewacje i wnętrza), rzuty osobno; plansze zagospodarowania
 // działki (strona FDPL) nie są importowane, bo to nie rzuty kondygnacji.
 import { FramedevProjectSource, ROOF_TYPES, detUuid, L, photos, plan, room } from "./framedev-catalog";
+import { FRAMEDEV_PROJECTS_BATCH2 } from "./framedev-projects-batch2";
 
-export const FRAMEDEV_PROJECTS: FramedevProjectSource[] = [
+const FRAMEDEV_PROJECTS_BATCH1: FramedevProjectSource[] = [
   {
     key: "hk73",
     id: detUuid("product:hk73"),
@@ -626,3 +628,5 @@ export const FRAMEDEV_PROJECTS: FramedevProjectSource[] = [
     sourceUrl: "https://www.framedev.pl/modele/fdpl-zx127",
   },
 ];
+
+export const FRAMEDEV_PROJECTS: FramedevProjectSource[] = [...FRAMEDEV_PROJECTS_BATCH1, ...FRAMEDEV_PROJECTS_BATCH2];

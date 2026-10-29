@@ -1,4 +1,4 @@
-// FrameDEV: 13 domów na szkielecie stalowym LGS ze strony framedev.pl (dane w scripts/data/framedev-catalog.ts
+// FrameDEV: 43 domy na szkielecie stalowym LGS ze strony framedev.pl (dane w scripts/data/framedev-catalog.ts
 // i framedev-projects.ts). Spec 0067: tłumaczenia en/de/nl powstają razem z importem; po nim
 // `npm run check:translations` ma zgłosić zero braków. Zapis tylko do dev DB (assertDevDatabase); prod to
 // osobny, jawny krok. `--dry-run` waliduje dane i pliki, niczego nie zapisuje.
@@ -134,7 +134,7 @@ interface LocalAsset {
   purpose: "product_photo" | "product_floor_plan";
   isCover: boolean;
   sortOrder: number;
-  floorLevel: "parter" | "pietro" | null;
+  floorLevel: "parter" | "pietro" | "poddasze" | null;
 }
 
 async function loadAsset(

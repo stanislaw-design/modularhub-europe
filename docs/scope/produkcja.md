@@ -78,6 +78,9 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 62 | Przebudowa menu nawigacji i strona Kontakt (klient) | Slice 2 | done |
 | 63 | Strona główna: gotowość produkcyjna (treść, niezawodność, SEO) | Utwardzenie | done |
 | 64 | Redesign panelu producenta: pulpit, jedna lista zapytań, ustawienia firmy | Slice 2b | in progress |
+| 65 | Parametry izolacji przegród, posadowienie i planowane użytkowanie | Slice 2 | in progress |
+| 66 | Projekt własny ModularHub w ModularProjects | Slice 12 | in progress |
+| 67 | Koszty hostingu Vercel: Cache Components i ochrona przed botami | Utwardzenie | in progress |
 
 ## Foundations
 
@@ -600,6 +603,7 @@ Dokończenie mechanizmu audytu ze spec 0018: tabela `audit_log` i jej trigger ju
 ### 52. Samoobsługowe role i konta w panelu admina · needs a decision · full
 Rozdzielone ze spec [0064](../specs/0064-atrybucja-audytu-panelu-admina/index.md) podczas projektowania funkcji 44: dziś nadanie lub odebranie roli (klient/producent/admin) wymaga ręcznej zmiany w bazie. Ta funkcja dodaje zarządzanie kontami i rolami z poziomu panelu admina.
 **Done when:** administrator może nadać lub odebrać rolę użytkownikowi z poziomu panelu, bez ręcznej zmiany w bazie.
+Zakres admina (zaproszenie e mailem, odebranie dostępu, ochrona ostatniego admina) jest zaprojektowany w części D spec [0077](../specs/0077-projekt-wlasny-modularhub/0077-czesc-d-konta-admina.md) i budowany w funkcji 66. Zostaje tu to, czego 0077 świadomie nie robi: awans lub zmiana roli klienta i producenta oraz więcej niż jedna rola na konto.
 - [ ] Zaprojektuj (spec): `/architect samoobsługowe role i konta w panelu admina`
 
 ### 53. Log kto przeglądał dane klienta lub producenta · needs a decision · full
@@ -624,7 +628,7 @@ Dziś jeden płaski wpis "Zgodność z Bbl" wygląda jak certyfikat, a jest dekl
 **Done when:** inwestor widzi różnicę między certyfikatem potwierdzonym przez platformę a deklaracją producenta, ocena zgodności projektu jest w bazie i powiązana z produktem, a odznaka tożsamości firmy i zdolności wolumenowej są niezależne.
 - [x] Zaprojektuj (spec): [0065](../specs/0065-rozdzial-certyfikatow-od-oceny-zgodnosci/index.md)
 - [ ] Zbuduj: `/develop rozdział certyfikatów producenta od oceny zgodności`
-  - [ ] Dane i migracja: tabele certyfikatów i ocen, backfill wszystkich producentów, trigger audytu, satisfies AC-1 do AC-3, AC-10
+  - [x] Dane i migracja: tabele certyfikatów i ocen, backfill wszystkich producentów, trigger audytu, satisfies AC-1 do AC-3, AC-10
   - [ ] Odczyty i strony: `/project/[id]` i listing z odznakami, satisfies AC-5 do AC-8, AC-12, AC-14
   - [ ] Panele producenta i admina: dodawanie, potwierdzanie, oceny produktu, usunięcie starego zapisu, satisfies AC-9, AC-11, AC-16
   - [ ] Faza 2 migracji (usunięcie kolumny jsonb), tłumaczenia, satisfies AC-4, AC-13
@@ -700,6 +704,18 @@ Zmienia model dużych zamówień (od 3 domów) z otwartej tablicy (funkcja 49) n
 - [ ] Zweryfikuj: `/check verify przetarg na duże zamówienia z podsumowaniem ModularHub`
 - [ ] Testuj: `/test przetarg na duże zamówienia z podsumowaniem ModularHub`
 
+### 66. Projekt własny ModularHub w ModularProjects · full · in progress
+ModularHub sam jest zamawiającym: admin zakłada projekt (bez zgody klienta, B2B, publikacji podsumowania i limitu trzech zapytań, także poniżej 3 domów), wskazani producenci widzą ModularHub z jego kontaktem i składają kilka wariantów oferty, admin porównuje je w jednej tabeli, oznacza najlepszą i zamyka wybór jednym neutralnym mailem do wszystkich. Do tego grupy producentów (gotowe po rodzinie i własne listy), język maili zapisany na koncie producenta (pl, en, de, nl) oraz ekran kont admina z zaproszeniem e mailem (obejmuje funkcję 52). Nadbudowa na przetargu (funkcja 60).
+**Done when:** admin zakłada projekt własny dla wybranych producentów, producent składa dwa warianty oferty, admin widzi je od razu, oznacza jedną i kończy wybór, a każdy producent z ofertą dostaje jeden neutralny mail w swoim języku; admin tworzy grupę producentów i zaprasza drugiego admina z panelu, a ostatniego admina nie da się usunąć.
+- [x] Zaprojektuj (spec): [0077](../specs/0077-projekt-wlasny-modularhub/index.md)
+- [ ] Zbuduj: `/develop projekt własny ModularHub w ModularProjects`
+  - [ ] Wątek A, cienki przekrój end to end: migracja A (flaga, tytuł, etykieta wariantu, oznaczenie, indeks, limity), dopasowanie i bramki projektu własnego, formularz i akcja zakładania, widok producenta z kontaktem i wariantami, widok porównawczy admina, oznaczenie i zakończenie wyboru z mailem, satisfies AC-1 do AC-22, AC-44, AC-45
+  - [ ] Grupy producentów (część B): migracja B, `expandRecipients`, ekran `/internal/producer-groups`, wybór grup w formularzu, satisfies AC-23 do AC-28
+  - [x] Język producenta (część C): kolumna `communication_locale`, pomocnik, przełączenie wszystkich maili producenta i tłumaczeń, satisfies AC-29 do AC-33 (kod w `lib/producer-communication-locale.ts`, `lib/producer-communication-locale-actions.ts`, `components/producent/CommunicationLocaleForm.tsx`, migracja `drizzle/0064_producer_communication_locale.sql` zastosowana na dev, na produkcji jeszcze nie; zweryfikowane 2026-10-27: ustawienia producenta i karta admina, maile de i pl na żywo, AC-31 uznane za pokryte kodem i testami)
+  - [ ] Konta admina (część D): audyt `pending_registration`, poprawki `auth.ts`, zaproszenie i odebranie dostępu, ochrona ostatniego admina, ekran `/internal/admins`, satisfies AC-34 do AC-42
+- [ ] Zweryfikuj: `/check verify projekt własny ModularHub w ModularProjects`
+- [ ] Testuj: `/test projekt własny ModularHub w ModularProjects`
+
 ## Utwardzenie przed startem
 
 ### 20. SEO podstawowe stron publicznych · needs a decision
@@ -711,6 +727,18 @@ Metadane, sitemapa, dane strukturalne i obrazy OG na stronach publicznych (start
 Konkretne progi wydajnościowe dla stron publicznych i jeden dedykowany audyt oraz utwardzenie przed startem, ważne dla SEO i konwersji.
 **Done when:** strona startowa i wyniki spełniają zapisane progi Core Web Vitals w pomiarze produkcyjnym, nie tylko lokalnym, a wyniki audytu są zapisane (basis: web.dev, Core Web Vitals, progi LCP do 2,5 s, INP do 200 ms, CLS do 0,1 na 75 percentylu).
 - [ ] Zaprojektuj (spec): `/architect wydajność: cel i audyt Core Web Vitals`
+
+### 67. Koszty hostingu Vercel: Cache Components i ochrona przed botami · medium · in progress
+Koszt użycia Vercel wzrósł około 9 razy w trzy tygodnie, prawie cały z funkcji serwerowych. Strony publiczne stają się statyczne z cache danych i tagami, stan logowania ustala wyspa w przeglądarce, a boty i wydatki są pod kontrolą Firewall i Spend Management. Spec [0078](../specs/0078-koszty-vercel-cache-components/index.md).
+**Done when:** po 7 dniach koszt użycia bez subskrypcji Pro jest poniżej 0,50 USD dziennie przy podobnym ruchu, a progi z kryterium AC-13 są spełnione.
+- [x] Zaprojektuj (spec): `/architect koszty hostingu Vercel`
+- [ ] Zbuduj: `/develop koszty hostingu Vercel`
+  - [ ] Bez kodu i szybki pomiar: punkt odniesienia, alerty wydatków, Bot Protection (Log) i limit żądań, zawężenie `proxy.ts` i pomiar przed refaktorem (zadania 1 do 3a, AC-1, AC-2, AC-3, AC-13)
+  - [ ] Szkielet statyczny: flaga `cacheComponents`, `setRequestLocale`, layout `(customer)` bez sesji, wyspa `HeaderAccount` z ciasteczkiem `has_session`, motyw skryptem, trasy publiczne po jednej (zadania 4 do 8, AC-4, AC-5, AC-6, AC-11)
+  - [ ] Cache danych i unieważnianie: `"use cache"` z tagami, `updateTag` w akcjach, endpoint `/api/revalidate` i wywołanie ze skryptów importu (zadania 9 do 11, AC-7, AC-8, AC-9)
+  - [ ] Trasy prywatne, awarie i pomiar końcowy: opt out paneli, błąd bazy bez zapisu w cache, Bot Protection w trybie Challenge, 7 dni pomiaru (zadania 12 do 15, AC-10, AC-12, AC-13, AC-14)
+- [ ] Zweryfikuj: `/check verify koszty hostingu Vercel`
+- [ ] Przetestuj: `/test koszty hostingu Vercel`
 
 ### 22. Testy regresyjne ścieżek krytycznych
 Automatyczny test end to end obejmujący krytyczne ścieżki transakcyjne (logowanie, dodanie produktu, zapytanie, oferta, płatność, zmiana statusu realizacji) przechodzące przez prawdziwe zaplecze, łapiący regresje między modułami zamiast tylko wewnątrz jednej funkcji.
@@ -816,6 +844,20 @@ Strona główna ma kompletne tłumaczenia, ale przed publicznym startem wprowadz
   - [x] Test e2e strony głównej, satisfies AC-11
 - [x] Zweryfikuj: `/check verify strona główna gotowość produkcyjna`
 - [x] Testuj: `/test strona główna gotowość produkcyjna`
+
+### 65. Parametry izolacji przegród, posadowienie i planowane użytkowanie · full · in progress
+Strona produktu nie ma dziś żadnej liczby izolacyjności (tylko klasę energetyczną), więc klient i producent nie mogą porównać domów pod kątem przepisów DE, BE, NL, IT i FR. Funkcja dodaje tabelę parametrów przegród (U, Rc, Uw, Ug) z metodą, datą i potwierdzeniem przez administratora, pole posadowienia stałego lub tymczasowego na produkcie, planowane użytkowanie w zapytaniach, kraje BE, IT i FR w ocenie zgodności oraz wyjaśnienia po ludzku obok każdego parametru. Źródło: `_docs/ModularHub_Porownanie_Izolacyjnosci_5_Krajow_PL.pdf`.
+**Done when:** klient widzi na `/project/[slug]` liczby izolacyjności z jednostką, metodą, datą i stanem potwierdzenia oraz wyjaśnieniem każdego parametru; porównanie domów ma wiersze U ścian, dachu i podłogi; zapytanie przyjmuje planowane użytkowanie; produkt bez danych wygląda jak dziś; strona nigdy nie ogłasza zgodności z przepisami; sekcja włącza się dopiero po weryfikacji merytorycznej tekstów.
+- [x] Zaprojektuj (spec): [0075](../specs/0075-parametry-izolacji-i-posadowienie/index.md)
+- [ ] Zbuduj: `/develop parametry izolacji przegród, posadowienie i planowane użytkowanie`
+  - [ ] Dane i migracja: tabela parametrów, kolumna posadowienia, pola użytkowania w trzech zapytaniach, kraje BE, IT, FR, trigger audytu, Zod, satisfies AC-1 do AC-3, AC-5, AC-6
+  - [x] Cienki wątek administratora i strona: akcje, panel na `/internal/producers/[id]`, odczyt, sekcja na stronie produktu z zastrzeżeniem i przełącznikiem, satisfies AC-10, AC-11, AC-18
+  - [x] Wyjaśnienia i tłumaczenia pl, en, de, nl, posadowienie, notka o progu 50 m², satisfies AC-5, AC-12, AC-14, AC-16, AC-17
+  - [x] Panel producenta i zapytania: sekcja na ekranie edycji, pole użytkowania w trzech formularzach, satisfies AC-4, AC-7, AC-9
+  - [x] Zgodność BE, IT, FR i porównanie domów, satisfies AC-8, AC-13
+  - [ ] Testy i pilotaż danych 2 do 3 producentów, satisfies AC-15
+- [ ] Zweryfikuj: `/check verify parametry izolacji przegród, posadowienie i planowane użytkowanie`
+- [ ] Testuj: `/test parametry izolacji przegród, posadowienie i planowane użytkowanie`
 
 ## Deferred
 Poza zakresem tej epiki, świadomie odłożone.

@@ -44,7 +44,34 @@ const LARGE_ORDER_NAMESPACES = [
   "LargeOrderClientSummaryPublishedEmail",
   "LargeOrderProducerReminderEmail",
   "LargeOrderTeamDeadlineEmail",
+  // Spec 0076 AC-5: publiczna strona realizacji.
+  "ModularProjectsPage",
+  "ModularProjectPage",
+  // Spec 0077 AC-8, AC-18, AC-44: maile i panel wariantów dla producenta w projekcie własnym.
+  "LargeOrderProducerNewPlatformProjectEmail",
+  "LargeOrderProducerPlatformSelectionDoneEmail",
+  "ProducerPlatformVariants",
+  // Spec 0077 AC-32: pozostałe maile do producenta (wspólny test niżej sprawdza też temat).
+  "LargeOrderProducerConnectedEmail",
 ];
+
+// Spec 0077 AC-32: każdy mail do producenta ma temat, który różni się między czterema językami
+// (porównanie samej treści jest kruche dla tekstów złożonych głównie z liczb i nazw własnych).
+const PRODUCER_EMAIL_SUBJECTS: [string, string[]][] = [
+  ["LargeOrderProducerNewRequestEmail", ["subject"]],
+  ["LargeOrderProducerNewPlatformProjectEmail", ["subject"]],
+  ["LargeOrderProducerReminderEmail", ["subject3d", "subject1d"]],
+  ["LargeOrderProducerClosedEmail", ["subject"]],
+  ["LargeOrderProducerNotSelectedEmail", ["subject"]],
+  ["LargeOrderProducerPlatformSelectionDoneEmail", ["subject"]],
+  ["LargeOrderProducerConnectedEmail", ["subject"]],
+];
+
+// Spec 0076 AC-5: nazwa własna brzmi tak samo w czterech językach i nie jest tłumaczona.
+const PROPER_NAME = "ModularProjects";
+// Spec 0077: "ModularHub" jako zamawiający to też nazwa własna.
+const PROPER_NAMES = [PROPER_NAME, "ModularHub"];
+const isCopyOfPolish = (value: string, polish: string | undefined) => value === polish && !PROPER_NAMES.includes(value);
 
 // Nowe klucze w istniejącej przestrzeni nazw (reszta przestrzeni ma wspólne słowa, np. "Status").
 const CLIENT_PANEL_QUOTES_NEW_KEYS = ["heading", "emptyTitle", "emptyDescription", "addRequest", "activeCounter", "limitHint", "noQuotesYet", "closedGroupHeading"];
@@ -73,7 +100,7 @@ describe("spec 0070 message namespaces are translated, not copied", () => {
         expect(translated.length).toBeGreaterThan(0);
         for (const [path, value] of translated) {
           expect(value.trim(), `${locale}:${name}.${path}`).not.toBe("");
-          expect(value, `${locale}:${name}.${path} equals the Polish text`).not.toBe(polish.get(path));
+          expect(isCopyOfPolish(value, polish.get(path)), `${locale}:${name}.${path} equals the Polish text`).toBe(false);
         }
       });
     }
@@ -88,7 +115,7 @@ describe("spec 0070 message namespaces are translated, not copied", () => {
         expect(polish?.trim()).toBeTruthy();
         for (const catalog of [en, de, nl]) {
           expect(get(catalog)?.trim()).toBeTruthy();
-          expect(get(catalog)).not.toBe(polish);
+          expect(isCopyOfPolish(get(catalog), polish), `${ns}.${key}`).toBe(false);
         }
       });
     }
@@ -101,11 +128,30 @@ describe("spec 0070 message namespaces are translated, not copied", () => {
       expect(quotesPage(pl)[key]?.trim(), `pl:${key}`).toBeTruthy();
       for (const catalog of [en, de, nl]) {
         expect(quotesPage(catalog)[key]?.trim(), key).toBeTruthy();
-        expect(quotesPage(catalog)[key], key).not.toBe(quotesPage(pl)[key]);
+        expect(isCopyOfPolish(quotesPage(catalog)[key], quotesPage(pl)[key]), key).toBe(false);
       }
     }
-    expect(sidebar(pl).quotes).toBe("Duże zamówienia");
-    for (const catalog of [en, de, nl]) expect(sidebar(catalog).quotes).not.toBe(sidebar(pl).quotes);
+    expect(sidebar(pl).quotes).toBe(PROPER_NAME);
+    for (const catalog of [en, de, nl]) expect(sidebar(catalog).quotes).toBe(PROPER_NAME);
+  });
+
+  // Spec 0077 AC-19: producent, który nie wygrał, nie widzi słów "odrzucona" ani "przegrana" w żadnym
+  // tekście wyboru w projekcie własnym (maile i etykiety).
+  it("platform selection texts for producers never say rejected or lost (AC-19)", () => {
+    const forbidden = /odrzucon|przegran|rejected|lost|abgelehnt|verloren|afgewezen|verloren/i;
+    const checks: [string, string[]][] = [
+      ["LargeOrderProducerPlatformSelectionDoneEmail", ["subject", "body", "cta"]],
+      ["ProducerBoardDetailPage", ["platformSelectionDone", "platformSelected"]],
+    ];
+    for (const catalog of [pl, en, de, nl]) {
+      for (const [ns, keys] of checks) {
+        for (const key of keys) {
+          const value = (namespace(catalog, ns) as Record<string, string>)[key];
+          expect(value?.trim(), `${ns}.${key}`).toBeTruthy();
+          expect(forbidden.test(value), `${ns}.${key}: ${value}`).toBe(false);
+        }
+      }
+    }
   });
 
   it("ProducerPanelSidebar.capacity is translated in every language", () => {
@@ -114,5 +160,27 @@ describe("spec 0070 message namespaces are translated, not copied", () => {
     expect(get(en)).not.toBe(polish);
     expect(get(de)).not.toBe(polish);
     expect(get(nl)).not.toBe(polish);
+  });
+
+  for (const [ns, keys] of PRODUCER_EMAIL_SUBJECTS) {
+    for (const key of keys) {
+      it(`${ns}.${key} is non empty and differs between pl, en, de and nl (spec 0077 AC-32)`, () => {
+        const values = [pl, en, de, nl].map((catalog) => (namespace(catalog, ns) as Record<string, string>)[key]?.trim());
+        for (const value of values) expect(value, `${ns}.${key}`).toBeTruthy();
+        expect(new Set(values).size, `${ns}.${key}`).toBe(4);
+      });
+    }
+  }
+
+  // Spec 0077 AC-29: pole języka komunikacji w ustawieniach firmy producenta.
+  it("ProducerSettingsPage communication language keys are translated in every language", () => {
+    const get = (catalog: unknown) => namespace(catalog, "ProducerSettingsPage") as Record<string, string>;
+    for (const key of ["communicationHeading", "communicationLocaleLabel", "communicationHint"]) {
+      expect(get(pl)[key]?.trim(), `pl:${key}`).toBeTruthy();
+      for (const catalog of [en, de, nl]) {
+        expect(get(catalog)[key]?.trim(), key).toBeTruthy();
+        expect(isCopyOfPolish(get(catalog)[key], get(pl)[key]), key).toBe(false);
+      }
+    }
   });
 });

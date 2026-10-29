@@ -13,7 +13,7 @@ describe("productComplianceAssessmentInputSchema", () => {
   });
 
   it("rejects an unknown country", () => {
-    expect(productComplianceAssessmentInputSchema.safeParse({ ...valid, countryCode: "FR" }).success).toBe(false);
+    expect(productComplianceAssessmentInputSchema.safeParse({ ...valid, countryCode: "US" }).success).toBe(false);
   });
 
   it("rejects an empty reason", () => {

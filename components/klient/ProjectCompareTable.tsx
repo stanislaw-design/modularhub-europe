@@ -7,7 +7,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { Checkbox, DataText, Heading, Text } from "@/components/ui";
 import { getInPriceCostLineItemLabels } from "@/lib/data/project-variants";
-import type { CompletionStandard, Project, ProjectVariant } from "@/lib/data/types";
+import type { CompletionStandard, Project, ProjectVariant, ProductEnvelopeParameter } from "@/lib/data/types";
+import { ENVELOPE_UNIT, envelopeSymbol, type EnvelopeElement } from "@/lib/product-envelope-parameters";
 import { resolveProductHref } from "@/lib/product-family-groups";
 
 export interface CompareTableColumn {
@@ -16,6 +17,8 @@ export interface CompareTableColumn {
   project: Project | null;
   selectedVariant?: ProjectVariant;
   variantLinks: { standard: CompletionStandard; href: string; isSelected: boolean }[];
+  /** Spec 0075 AC-13: parametry izolacji produktu (pusta lub brak = "Nie podano"). */
+  envelope?: ProductEnvelopeParameter[];
 }
 
 interface ProjectCompareTableProps {
@@ -23,6 +26,8 @@ interface ProjectCompareTableProps {
   columns: CompareTableColumn[];
   hasUnavailable: boolean;
   resultsHref: string;
+  /** Spec 0075 AC-13: wiersze izolacji są za stałą ENVELOPE_SECTION_ENABLED, ustawianą przez stronę. */
+  showEnvelopeRows?: boolean;
 }
 
 const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0 });
@@ -55,7 +60,13 @@ function hasFloorPlan(column: CompareTableColumn): boolean {
 // cost_line_item → kategoria, którego dziś nie ma (Ryzyka: "Mapowanie
 // kosztów"). Dodanie ich teraz zgadywałoby znaczenie wolnego tekstu `label`,
 // dokładnie to, czego AC-8 zabrania.
-export function ProjectCompareTable({ locale, columns, hasUnavailable, resultsHref }: ProjectCompareTableProps) {
+export function ProjectCompareTable({
+  locale,
+  columns,
+  hasUnavailable,
+  resultsHref,
+  showEnvelopeRows = false,
+}: ProjectCompareTableProps) {
   const t = useTranslations("ProjectCompareTable");
   const [onlyDifferences, setOnlyDifferences] = useState(false);
 
@@ -67,6 +78,41 @@ export function ProjectCompareTable({ locale, columns, hasUnavailable, resultsHr
     // shortlisted and compared here too (AC-5).
     katalogowy: t("completionStandard.katalogowy"),
   };
+
+  const numberFormatter = new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 3 });
+
+  // Spec 0075 AC-13: U (albo Rc, gdy producent podał tylko Rc) z jednostką i oznaczeniem
+  // potwierdzenia. Brak danych to undefined, które tabela zamienia na "Nie podano", nigdy 0.
+  function envelopeCell(column: CompareTableColumn, elements: EnvelopeElement[]): string | undefined {
+    if (!column.project) return undefined;
+    const rows = column.envelope ?? [];
+    for (const element of elements) {
+      const match =
+        rows.find((row) => row.element === element && row.quantity === "u_value") ??
+        rows.find((row) => row.element === element && row.quantity === "rc_value");
+      if (!match) continue;
+      const value = t("envelopeValue", {
+        symbol: envelopeSymbol(match.element, match.quantity),
+        value: numberFormatter.format(match.value),
+        unit: ENVELOPE_UNIT[match.quantity],
+      });
+      return `${value} (${match.confirmed ? t("envelopeConfirmed") : t("envelopeDeclared")})`;
+    }
+    return undefined;
+  }
+
+  const envelopeRows: CompareRow[] = showEnvelopeRows
+    ? [
+        { key: "envelopeWall", label: t("envelopeWallLabel"), elements: ["wall"] },
+        { key: "envelopeRoof", label: t("envelopeRoofLabel"), elements: ["roof"] },
+        { key: "envelopeFloor", label: t("envelopeFloorLabel"), elements: ["floor_ground", "floor_air"] },
+      ].map(({ key, label, elements }) => ({
+        key,
+        label,
+        getValue: (c) => envelopeCell(c, elements as EnvelopeElement[]),
+        render: (c) => envelopeCell(c, elements as EnvelopeElement[]),
+      }))
+    : [];
 
   const rows: CompareRow[] = [
       {
@@ -141,6 +187,7 @@ export function ProjectCompareTable({ locale, columns, hasUnavailable, resultsHr
         getValue: (c) => (c.project ? String(hasFloorPlan(c)) : undefined),
         render: (c) => (c.project ? (hasFloorPlan(c) ? t("floorPlanYes") : t("floorPlanNo")) : undefined),
       },
+      ...envelopeRows,
   ];
 
   const visibleRows = onlyDifferences

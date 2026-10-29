@@ -91,11 +91,11 @@ test.describe("spec 0074: redesign panelu producenta", () => {
 
     // Tablica: wspólny pasek zakładek i przełącznik krajów dostawy (AC-9).
     await page.goto("/pl/producer/panel/board");
-    const tabs = page.getByRole("navigation", { name: "Tablica ogłoszeń" });
-    await expect(tabs.getByRole("link", { name: /Dostępne ogłoszenia/ })).toHaveAttribute("aria-current", "page", { timeout: 60_000 });
+    const tabs = page.getByRole("navigation", { name: "ModularProjects" });
+    await expect(tabs.getByRole("link", { name: /Dostępne zapytania/ })).toHaveAttribute("aria-current", "page", { timeout: 60_000 });
     await tabs.getByRole("link", { name: /Moje wyceny/ }).click();
     await expect(page).toHaveURL(/board-quotes/, { timeout: 60_000 });
-    await expect(page.getByRole("navigation", { name: "Tablica ogłoszeń" }).getByRole("link", { name: /Moje wyceny/ })).toHaveAttribute("aria-current", "page", { timeout: 60_000 });
+    await expect(page.getByRole("navigation", { name: "ModularProjects" }).getByRole("link", { name: /Moje wyceny/ })).toHaveAttribute("aria-current", "page", { timeout: 60_000 });
 
     // Produkty: produkt bez zdjęcia jest niekompletny (AC-10).
     await page.goto("/pl/producer/panel/products");

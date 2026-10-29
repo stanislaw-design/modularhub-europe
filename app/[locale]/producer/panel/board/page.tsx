@@ -70,23 +70,24 @@ export default async function ProducerPanelBoardPage({
     />
   );
 
-  if (!producerId || volumeStatus !== "approved") {
-    return (
-      <Stack gap={4}>
-        <Heading level="h1">{t("heading")}</Heading>
-        {tabsFor(undefined)}
-        <Card as="div" padding="lg" className="flex flex-col items-center gap-brand-2 py-brand-5 text-center">
-          <Heading level="h2">{t("notApprovedHeading")}</Heading>
-          <Text tone="muted" measure className="mx-auto">
-            {t("notApprovedDescription")}
-          </Text>
-          <Link href={`/${locale}/producer/panel/capacity`} className="focus-ring rounded-data font-medium text-brand-passage-blue hover:underline">
-            {t("completeProfileLink")}
-          </Link>
-        </Card>
-      </Stack>
-    );
-  }
+  // Spec 0077 AC-9: producent bez weryfikacji wolumenowej widzi tablicę, jeśli ma projekt własny
+  // ModularHub (dopasowanie robi wiersz include). Bez takich projektów dostaje komunikat jak dotąd.
+  const notApprovedView = (
+    <Stack gap={4}>
+      <Heading level="h1">{t("heading")}</Heading>
+      {tabsFor(undefined)}
+      <Card as="div" padding="lg" className="flex flex-col items-center gap-brand-2 py-brand-5 text-center">
+        <Heading level="h2">{t("notApprovedHeading")}</Heading>
+        <Text tone="muted" measure className="mx-auto">
+          {t("notApprovedDescription")}
+        </Text>
+        <Link href={`/${locale}/producer/panel/capacity`} className="focus-ring rounded-data font-medium text-brand-passage-blue hover:underline">
+          {t("completeProfileLink")}
+        </Link>
+      </Card>
+    </Stack>
+  );
+  if (!producerId) return notApprovedView;
 
   const page = Math.max(1, Number.parseInt(pageParam ?? "1", 10) || 1);
   const countries = await getAllCountries();
@@ -101,6 +102,8 @@ export default async function ProducerPanelBoardPage({
     getOpenProjectRequestsForBoard({ producerId, page, filters }),
     getBoardWithoutQuoteCount(producerId),
   ]);
+  // Bez weryfikacji wolumenowej lista zawiera wyłącznie projekty własne ModularHub (AC-9); gdy ich nie ma, komunikat jak dotąd.
+  if (volumeStatus !== "approved" && totalCount === 0 && !hasFilters) return notApprovedView;
   const totalPages = Math.max(1, Math.ceil(totalCount / PROJECT_REQUESTS_BOARD_PAGE_SIZE));
 
   const ownQuoteLabel: Record<string, string> = {
@@ -185,11 +188,18 @@ export default async function ProducerPanelBoardPage({
                       href={`/${locale}/producer/panel/board/${row.id}`}
                       className="focus-ring rounded-data font-medium text-brand-passage-blue hover:underline after:absolute after:inset-0 after:content-['']"
                     >
-                      {row.countryName}
+                      {row.isPlatformOwned && row.title ? row.title : row.countryName}
                     </Link>
-                    <Text as="span" tone="muted" variant="label" className="ml-2">
-                      {trustSignalLabel[row.trustSignal]}
-                    </Text>
+                    {row.isPlatformOwned && (
+                      <Text as="span" variant="label" className="mt-1 block font-medium">
+                        {`${tDetail("platformBuyerLabel")}: ${tDetail("platformBuyerValue")} · ${row.countryName}`}
+                      </Text>
+                    )}
+                    {!row.isPlatformOwned && (
+                      <Text as="span" tone="muted" variant="label" className="ml-2">
+                        {trustSignalLabel[row.trustSignal]}
+                      </Text>
+                    )}
                     {!row.deliversToCountry && (
                       <Text as="span" variant="label" className="mt-1 block text-status-conditional">
                         {t("notDeliveringNote")}{" "}
@@ -226,7 +236,13 @@ export default async function ProducerPanelBoardPage({
                     {dateFormatter.format(row.deadlineAt)}
                   </Text>
                   <Text as="td" className="p-brand-2">
-                    {row.ownQuoteStatus ? (ownQuoteLabel[row.ownQuoteStatus] ?? row.ownQuoteStatus) : t("ownQuoteNone")}
+                    {row.ownQuoteStatus
+                      ? row.isPlatformOwned && row.ownQuoteStatus !== "active"
+                        ? row.ownQuoteStatus === "accepted"
+                          ? tDetail("platformSelected")
+                          : tDetail("platformSelectionDone")
+                        : (ownQuoteLabel[row.ownQuoteStatus] ?? row.ownQuoteStatus)
+                      : t("ownQuoteNone")}
                   </Text>
                 </tr>
               ))}

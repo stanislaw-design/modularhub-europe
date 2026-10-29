@@ -20,6 +20,7 @@
     "import:framedev": "tsx --env-file=.env.local scripts/import-framedev-catalog.ts",
     "import:logbar": "tsx --env-file=.env.local scripts/import-logbar-catalog.ts",
     "import:mkb": "tsx --env-file=.env.local scripts/import-mkb-catalog.ts",
+    "import:wencel": "tsx --env-file=.env.local scripts/import-wencel-catalog.ts",
     "import:moduhome": "tsx --env-file=.env.local scripts/import-moduhome-catalog.ts",
     "import:miragevision-tv": "tsx --env-file=.env.local scripts/import-miragevision-tv.ts",
     "import:miragevision-lift": "tsx --env-file=.env.local scripts/import-miragevision-lift.ts",
@@ -37,6 +38,7 @@
     "@react-email/components": "^1.0.12",
     "@react-email/render": "^2.1.0",
     "@sentry/nextjs": "^10.73.0",
+    "@types/three": "^0.186.0",
     "@vercel/functions": "^3.9.5",
     "drizzle-orm": "^0.45.2",
     "lucide-react": "^1.31.0",
@@ -52,6 +54,7 @@
     "recharts": "^3.10.1",
     "server-only": "^0.0.1",
     "tailwind-variants": "^3.3.1",
+    "three": "^0.186.1",
     "zod": "^4.5.4"
   },
   "devDependencies": {

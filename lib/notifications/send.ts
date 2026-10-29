@@ -29,6 +29,8 @@ export type NotificationEmailType =
   | "large_order_team_connected"
   | "large_order_team_pending_selection"
   | "large_order_producer_new_request"
+  | "large_order_producer_new_platform_project"
+  | "large_order_producer_platform_selection_done"
   | "large_order_team_new_quote"
   | "large_order_client_summary_published"
   | "large_order_producer_reminder"

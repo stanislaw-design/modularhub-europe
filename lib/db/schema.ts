@@ -382,6 +382,25 @@ export const projectTypeEnum = pgEnum("project_type", [
   "other",
 ]);
 
+// Spec 0075: parametry izolacji przegród, posadowienie, planowane użytkowanie.
+export const envelopeElementEnum = pgEnum("envelope_element", [
+  "wall",
+  "roof",
+  "floor_ground",
+  "floor_air",
+  "window",
+  "glazing",
+  "door",
+]);
+export const envelopeQuantityEnum = pgEnum("envelope_quantity", ["u_value", "rc_value"]);
+export const envelopeMethodEnum = pgEnum("envelope_method", [
+  "calculation",
+  "lab_test",
+  "manufacturer_declaration",
+]);
+export const foundationStatusEnum = pgEnum("foundation_status", ["permanent", "temporary"]);
+export const intendedUseEnum = pgEnum("intended_use", ["year_round", "seasonal"]);
+
 // ---------------------------------------------------------------------------
 // Dictionary: country
 // ---------------------------------------------------------------------------
@@ -509,10 +528,15 @@ export const producer = pgTable("producer", {
   // Generic producer bio (spec 0056 AC-9); any producer may use it, not just
   // a reseller partner. Empty renders as an absent section (never a blank one).
   description: text("description"),
+  // Język maili o dużych zamówieniach do producenta (spec 0077 AC-29), niezależny od języka
+  // interfejsu panelu. Domyślnie pl, więc istniejące konta nic nie zauważają (AC-33).
+  communicationLocale: text("communication_locale").notNull().default("pl"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
-});
+}, (table) => [
+  check("producer_communication_locale_check", sql`${table.communicationLocale} IN ('pl','en','de','nl')`),
+]);
 
 export const producerDeliveryCountry = pgTable(
   "producer_delivery_country",
@@ -613,6 +637,10 @@ export const product = pgTable(
     category: productCategoryEnum("category"),
     spaSubcategory: spaSubcategoryEnum("spa_subcategory"),
     containerSubcategory: containerSubcategoryEnum("container_subcategory"),
+    // Posadowienie stałe albo tymczasowe (spec 0075 AC-5): NULL znaczy "nie podano".
+    // Niezależne od product.category (w tym `mobilny`). Znaczące tylko dla domu
+    // i kontenera mieszkalnego (product_foundation_status_family_match).
+    foundationStatus: foundationStatusEnum("foundation_status"),
     // Wartości filtrów paska Outdoor TV (spec 0071 AC-8): tekst z CHECK, nie enum
     // Postgresa (enum jest nieodwracalny, ta sama zasada co document.floor_level).
     // Znaczące tylko dla family = 'outdoor-tv' (product_outdoor_tv_family_match).
@@ -710,6 +738,10 @@ export const product = pgTable(
     check(
       "product_outdoor_tv_family_match",
       sql`(${table.outdoorTvMounting} IS NULL AND ${table.outdoorTvSunExposure} IS NULL) OR ${table.family} = 'outdoor-tv'`,
+    ),
+    check(
+      "product_foundation_status_family_match",
+      sql`${table.foundationStatus} IS NULL OR ${table.family} = 'dom' OR (${table.family} = 'kontenery-modulowe' AND ${table.containerSubcategory} = 'mieszkalne')`,
     ),
     index("product_status_family_idx").on(table.status, table.family),
     index("product_floor_area_m2_idx").on(table.floorAreaM2),
@@ -920,6 +952,10 @@ export const productOption = pgTable(
     priceCents: integer("price_cents"),
     priceOnRequest: boolean("price_on_request").notNull().default(false),
     isDefault: boolean("is_default").notNull().default(false),
+    // Opis dopłaty pokazywany zamiast "w cenie", gdy opcja nie zmienia wyświetlanej ceny (price_cents = 0), a
+    // producent podał dopłatę w innej jednostce, np. "+27 € za m²" albo "dopłata do ustalenia". Czysto
+    // informacyjny: nie wchodzi do sumy opcji (getSelectedProductOptionsPrice liczy tylko price_cents).
+    priceNote: text("price_note"),
     // Opcjonalna ikona/zdjęcie opcji (spec 0059 follow-up, 2026-10-01): zwykły
     // zewnętrzny URL, ten sam wzorzec co product.coverImageUrl/videoUrl, nie
     // pełny pipeline lib/storage (zbyt ciężki dla kilku małych ikon
@@ -1021,6 +1057,7 @@ export const productOptionTranslation = pgTable(
       .references(() => productOption.id),
     locale: productTranslationLocaleEnum("locale").notNull(),
     label: text("label").notNull(),
+    priceNote: text("price_note"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
@@ -1326,8 +1363,17 @@ export const inquiry = pgTable(
   contactEmailVerifiedAt: timestamp("contact_email_verified_at", { withTimezone: true }),
   // Język maili do gościa (spec 0066 AC-12), zapisywany przy wysyłce.
   locale: text("locale"),
+  // Spec 0075 AC-6: planowane użytkowanie, opcjonalne. Miesiące tylko przy `seasonal`.
+  intendedUse: intendedUseEnum("intended_use"),
+  intendedUseMonths: integer("intended_use_months"),
   },
-  (table) => [index("inquiry_email_received_idx").on(sql`lower(${table.email})`, table.receivedAt)],
+  (table) => [
+    index("inquiry_email_received_idx").on(sql`lower(${table.email})`, table.receivedAt),
+    check(
+      "inquiry_intended_use_months",
+      sql`${table.intendedUseMonths} IS NULL OR (${table.intendedUseMonths} BETWEEN 1 AND 11 AND ${table.intendedUse} = 'seasonal')`,
+    ),
+  ],
 );
 
 export const inquiryItem = pgTable(
@@ -1557,6 +1603,13 @@ export const projectRequest = pgTable(
     // Uzupełniane dopiero przy pierwszym logowaniu z pasującym e mailem (AC-7),
     // nigdy przy samym wysłaniu formularza (spec 0037 Key invariants).
     clientId: uuid("client_id").references(() => client.id),
+    // Spec 0077: projekt własny ModularHub (zamawiającym jest platforma, nie klient).
+    // Tytuł obowiązkowy tylko dla projektu własnego; `platformMarkedQuoteId` to
+    // tymczasowe oznaczenie admina, a `selectedQuoteId` dla projektu własnego
+    // ustawia dopiero zakończenie wyboru.
+    isPlatformOwned: boolean("is_platform_owned").notNull().default(false),
+    title: text("title"),
+    platformMarkedQuoteId: uuid("platform_marked_quote_id").references((): AnyPgColumn => projectQuote.id),
     contactName: text("contact_name").notNull(),
     // Znormalizowany (małe litery, przycięty) przed zapisem, żeby dopasowanie
     // przy logowaniu (AC-7) i limit zgłoszeń (AC-10) nie ominęły wariantów
@@ -1580,6 +1633,9 @@ export const projectRequest = pgTable(
     deliveryWindowFrom: date("delivery_window_from"),
     deliveryWindowTo: date("delivery_window_to"),
     extrasNote: text("extras_note"),
+    // Spec 0075 AC-6: planowane użytkowanie, opcjonalne.
+    intendedUse: intendedUseEnum("intended_use"),
+    intendedUseMonths: integer("intended_use_months"),
     status: bulkRequestStatusEnum("status").notNull().default("open"),
     // AC-1 (spec 0062): ustawiane raz przy wstawieniu, nigdy przeliczane.
     trustSignal: trustSignalEnum("trust_signal").notNull().default("new"),
@@ -1605,11 +1661,22 @@ export const projectRequest = pgTable(
   },
   (table) => [
     check("project_request_families_not_empty", sql`jsonb_array_length(${table.families}) > 0`),
-    check("project_request_unit_count", sql`${table.unitCount} >= 3`),
+    check(
+      "project_request_unit_count",
+      sql`${table.unitCount} >= 1 AND (${table.isPlatformOwned} OR ${table.unitCount} >= 3)`,
+    ),
+    check(
+      "project_request_platform_title",
+      sql`NOT ${table.isPlatformOwned} OR (${table.title} IS NOT NULL AND char_length(btrim(${table.title})) BETWEEN 3 AND 120)`,
+    ),
+    check(
+      "project_request_intended_use_months",
+      sql`${table.intendedUseMonths} IS NULL OR (${table.intendedUseMonths} BETWEEN 1 AND 11 AND ${table.intendedUse} = 'seasonal')`,
+    ),
     check("project_request_contact_locale", sql`${table.contactLocale} IN ('pl', 'en', 'de', 'nl')`),
     check(
       "project_request_staff_consent",
-      sql`${table.createdByStaffUserId} IS NULL OR ${table.staffConsentNote} IS NOT NULL`,
+      sql`${table.createdByStaffUserId} IS NULL OR ${table.staffConsentNote} IS NOT NULL OR ${table.isPlatformOwned}`,
     ),
     check(
       "project_request_closed_consistent",
@@ -1652,6 +1719,9 @@ export const bulkProductInquiry = pgTable(
     deliveryWindowFrom: date("delivery_window_from"),
     deliveryWindowTo: date("delivery_window_to"),
     note: text("note"),
+    // Spec 0075 AC-6: planowane użytkowanie, opcjonalne.
+    intendedUse: intendedUseEnum("intended_use"),
+    intendedUseMonths: integer("intended_use_months"),
     status: bulkRequestStatusEnum("status").notNull().default("open"),
     // Spec 0070: przetarg. Termin składania ofert (domyślnie 14 dni od złożenia).
     deadlineAt: timestamp("deadline_at", { withTimezone: true })
@@ -1675,6 +1745,10 @@ export const bulkProductInquiry = pgTable(
   },
   (table) => [
     check("bulk_product_inquiry_unit_count", sql`${table.unitCount} >= 3`),
+    check(
+      "bulk_product_inquiry_intended_use_months",
+      sql`${table.intendedUseMonths} IS NULL OR (${table.intendedUseMonths} BETWEEN 1 AND 11 AND ${table.intendedUse} = 'seasonal')`,
+    ),
     check("bulk_product_inquiry_contact_locale", sql`${table.contactLocale} IN ('pl', 'en', 'de', 'nl')`),
     check(
       "bulk_product_inquiry_staff_consent",
@@ -1711,6 +1785,8 @@ export const projectQuote = pgTable(
     producerId: uuid("producer_id")
       .notNull()
       .references(() => producer.id),
+    // Spec 0077: nazwa wariantu oferty, tylko dla projektu własnego (dla zapytań klientów NULL).
+    variantLabel: text("variant_label"),
     currency: text("currency").notNull().default("EUR"),
     unitPriceCents: bigint("unit_price_cents", { mode: "number" }),
     totalPriceCents: bigint("total_price_cents", { mode: "number" }).notNull(),
@@ -1762,8 +1838,14 @@ export const projectQuote = pgTable(
     // patrz lib/db/AGENTS.md, document_one_cover_per_product, więc rząd z
     // przeciwnej ścieżki po prostu nigdy nie trafia w ten indeks) — ten sam
     // wzorzec co offer_active_per_inquiry_producer (spec 0018).
+    check(
+      "project_quote_variant_label",
+      sql`${table.variantLabel} IS NULL OR char_length(btrim(${table.variantLabel})) BETWEEN 1 AND 60`,
+    ),
+    // Spec 0077: etykieta wariantu wchodzi do klucza (dla klientów jest pusta, więc
+    // zasada "jedna aktywna oferta na producenta" działa jak dawniej).
     uniqueIndex("project_quote_active_per_request_producer")
-      .on(table.projectRequestId, table.producerId)
+      .on(table.projectRequestId, table.producerId, sql`COALESCE(lower(btrim(${table.variantLabel})), '')`)
       .where(sql`${table.status} = 'active'`),
     uniqueIndex("project_quote_active_per_bulk_inquiry_producer")
       .on(table.bulkProductInquiryId, table.producerId)
@@ -1984,6 +2066,51 @@ export const productComplianceAssessment = pgTable(
     check("product_compliance_assessment_rule_nonempty", sql`char_length(btrim(${table.rule})) > 0`),
     check("product_compliance_assessment_reason_nonempty", sql`char_length(btrim(${table.reason})) > 0`),
     check("product_compliance_assessment_confirmation_consistent", confirmationConsistent(table)),
+  ],
+);
+
+// Spec 0075: parametry izolacji przegród produktu (U, Rc), każdy z własną metodą,
+// datą i potwierdzeniem administratora (ten sam wzorzec co spec 0065).
+export const productEnvelopeParameter = pgTable(
+  "product_envelope_parameter",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => product.id, { onDelete: "cascade" }),
+    element: envelopeElementEnum("element").notNull(),
+    quantity: envelopeQuantityEnum("quantity").notNull(),
+    value: numeric("value", { precision: 6, scale: 3 }).notNull(),
+    method: envelopeMethodEnum("method").notNull(),
+    methodNote: text("method_note"),
+    asOfDate: date("as_of_date").notNull(),
+    confirmationStatus: producerCertificationStatusEnum("confirmation_status").notNull().default("self_reported"),
+    confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
+    confirmedBy: text("confirmed_by").references(() => users.id, { onDelete: "restrict" }),
+    version: integer("version").notNull().default(1),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    unique("product_envelope_parameter_product_element_quantity_unique").on(
+      table.productId,
+      table.element,
+      table.quantity,
+    ),
+    index("product_envelope_parameter_product_idx").on(table.productId),
+    check(
+      "product_envelope_parameter_quantity_by_element",
+      sql`(${table.element} IN ('window', 'glazing', 'door') AND ${table.quantity} = 'u_value') OR ${table.element} IN ('wall', 'roof', 'floor_ground', 'floor_air')`,
+    ),
+    check(
+      "product_envelope_parameter_value_range",
+      sql`(${table.quantity} = 'u_value' AND ${table.value} BETWEEN 0.05 AND 6) OR (${table.quantity} = 'rc_value' AND ${table.value} BETWEEN 0.1 AND 20)`,
+    ),
+    check(
+      "product_envelope_parameter_method_note_length",
+      sql`${table.methodNote} IS NULL OR char_length(${table.methodNote}) <= 300`,
+    ),
+    check("product_envelope_parameter_confirmation_consistent", confirmationConsistent(table)),
   ],
 );
 
@@ -2433,3 +2560,39 @@ export const auditLog = pgTable("audit_log", {
   newValues: jsonb("new_values").$type<Record<string, unknown>>(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
+
+// Spec 0077 część B: własne grupy producentów admina (lista odbiorców projektu własnego). Nazwa
+// jest unikalna po lower(btrim(name)). Gotowe grupy po rodzinie produktu nie mają tabeli, liczą się
+// na żywo. Producent nigdy nie widzi grup (AC-28).
+export const producerGroup = pgTable(
+  "producer_group",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: text("name").notNull(),
+    description: text("description"),
+    createdByUserId: text("created_by_user_id")
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("producer_group_name_unique").on(sql`lower(btrim(${table.name}))`),
+    check("producer_group_name_length", sql`char_length(btrim(${table.name})) BETWEEN 2 AND 60`),
+    check("producer_group_description_length", sql`${table.description} IS NULL OR char_length(${table.description}) <= 300`),
+  ],
+);
+
+export const producerGroupMember = pgTable(
+  "producer_group_member",
+  {
+    groupId: uuid("group_id")
+      .notNull()
+      .references(() => producerGroup.id, { onDelete: "cascade" }),
+    producerId: uuid("producer_id")
+      .notNull()
+      .references(() => producer.id),
+    addedAt: timestamp("added_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.groupId, table.producerId] }), index("producer_group_member_producer_idx").on(table.producerId)],
+);

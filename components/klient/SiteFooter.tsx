@@ -40,6 +40,7 @@ function buildColumns(locale: string): FooterColumn[] {
       titleKey: "nav.groups.orders",
       links: [
         { labelKey: "nav.orders.largeOrder", href: `/${locale}/project-request` },
+        { labelKey: "nav.orders.modularProjects", href: `/${locale}/modularprojects` },
         { labelKey: "nav.orders.verifiedManufacturers", href: `/${locale}/verified-manufacturers` },
       ],
     },

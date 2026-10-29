@@ -10,6 +10,7 @@ import {
   LARGE_ORDER_STATUSES,
   LARGE_ORDERS_PAGE_SIZE,
   type LargeOrderKind,
+  type LargeOrderOrigin,
 } from "@/lib/db/queries";
 
 const kindLabel: Record<LargeOrderKind, string> = {
@@ -31,10 +32,10 @@ export default async function InternalLargeOrdersPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ status?: string; kind?: string; page?: string }>;
+  searchParams: Promise<{ status?: string; kind?: string; origin?: string; page?: string }>;
 }) {
   const { locale } = await params;
-  const { status: statusParam, kind: kindParam, page: pageParam } = await searchParams;
+  const { status: statusParam, kind: kindParam, origin: originParam, page: pageParam } = await searchParams;
   const session = await auth();
   const selfHref = `/${locale}/internal/large-orders`;
 
@@ -47,17 +48,20 @@ export default async function InternalLargeOrdersPage({
 
   const status = LARGE_ORDER_STATUSES.find((value) => value === statusParam);
   const kind: LargeOrderKind | undefined = kindParam === "request" || kindParam === "product" ? kindParam : undefined;
+  const origin: LargeOrderOrigin | undefined = originParam === "own" || originParam === "client" ? originParam : undefined;
   const page = Math.max(1, Number.parseInt(pageParam ?? "1", 10) || 1);
-  const { items, totalCount } = await getLargeOrdersForAdmin({ status, kind, page });
+  const { items, totalCount } = await getLargeOrdersForAdmin({ status, kind, origin, page });
   const now = getNow();
   const totalPages = Math.max(1, Math.ceil(totalCount / LARGE_ORDERS_PAGE_SIZE));
 
-  function hrefWith(overrides: { status?: string | null; kind?: string | null; page?: number }): string {
+  function hrefWith(overrides: { status?: string | null; kind?: string | null; origin?: string | null; page?: number }): string {
     const next = new URLSearchParams();
     const nextStatus = overrides.status === undefined ? status : overrides.status;
     const nextKind = overrides.kind === undefined ? kind : overrides.kind;
     if (nextStatus) next.set("status", nextStatus);
     if (nextKind) next.set("kind", nextKind);
+    const nextOrigin = overrides.origin === undefined ? origin : overrides.origin;
+    if (nextOrigin) next.set("origin", nextOrigin);
     if (overrides.page && overrides.page > 1) next.set("page", String(overrides.page));
     const query = next.toString();
     return query ? `${selfHref}?${query}` : selfHref;
@@ -67,12 +71,20 @@ export default async function InternalLargeOrdersPage({
     <Stack gap={5}>
       <div className="flex flex-wrap items-center justify-between gap-brand-3">
         <Heading level="h1">Duże zamówienia</Heading>
-        <Link
-          href={`${selfHref}/new`}
-          className="focus-ring inline-flex h-10 items-center rounded-data border border-brand-steel px-brand-3 text-body font-medium hover:bg-brand-steel/30"
-        >
-          Złóż zapytanie w imieniu klienta
-        </Link>
+        <div className="flex flex-wrap gap-brand-2">
+          <Link
+            href={`${selfHref}/new-own`}
+            className="focus-ring inline-flex h-10 items-center rounded-data bg-brand-foundation-navy px-brand-3 text-body font-medium text-brand-warm-white"
+          >
+            Załóż projekt własny ModularHub
+          </Link>
+          <Link
+            href={`${selfHref}/new`}
+            className="focus-ring inline-flex h-10 items-center rounded-data border border-brand-steel px-brand-3 text-body font-medium hover:bg-brand-steel/30"
+          >
+            Złóż zapytanie w imieniu klienta
+          </Link>
+        </div>
       </div>
       <div className="flex flex-wrap gap-x-brand-5 gap-y-brand-3">
         <FilterGroup label="Status">
@@ -81,6 +93,11 @@ export default async function InternalLargeOrdersPage({
             <FilterLink key={value} href={hrefWith({ status: value })} active={status === value} label={LARGE_ORDER_STATUS_LABEL[value]} />
           ))}
         </FilterGroup>
+        <FilterGroup label="Pochodzenie">
+          <FilterLink href={hrefWith({ origin: null })} active={!origin} label="Wszystkie" />
+          <FilterLink href={hrefWith({ origin: "own" })} active={origin === "own"} label="Własne" />
+          <FilterLink href={hrefWith({ origin: "client" })} active={origin === "client"} label="Klientów" />
+        </FilterGroup>
         <FilterGroup label="Rodzaj">
           <FilterLink href={hrefWith({ kind: null })} active={!kind} label="Wszystkie" />
           <FilterLink href={hrefWith({ kind: "request" })} active={kind === "request"} label={kindLabel.request} />
@@ -88,7 +105,7 @@ export default async function InternalLargeOrdersPage({
         </FilterGroup>
       </div>
       {items.length === 0 ? (
-        <Text tone="muted">Brak zapytań{status || kind ? " dla wybranych filtrów" : ""}.</Text>
+        <Text tone="muted">Brak zapytań{status || kind || origin ? " dla wybranych filtrów" : ""}.</Text>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[56rem] border-collapse text-body">
@@ -116,7 +133,12 @@ export default async function InternalLargeOrdersPage({
                       >
                         {item.investorName}
                       </Link>
-                      {item.investorName !== item.investorEmail && (
+                      {item.isPlatformOwned && (
+                        <span className="mt-0.5 inline-flex rounded-data border border-brand-steel px-brand-1 text-label font-medium text-brand-technical-graphite">
+                          Własny
+                        </span>
+                      )}
+                      {!item.isPlatformOwned && item.investorName !== item.investorEmail && (
                         <span className="block truncate text-label text-brand-technical-graphite">{item.investorEmail}</span>
                       )}
                     </td>
@@ -138,7 +160,7 @@ export default async function InternalLargeOrdersPage({
                     <td className="p-brand-2 text-brand-technical-graphite">{item.countryCode}</td>
                     <td className="p-brand-2 whitespace-nowrap tabular-nums">
                       <span className={item.quoteCount === 0 ? "text-brand-technical-graphite" : undefined}>{item.quoteCount}</span>
-                      {item.pendingPublicationCount > 0 && (
+                      {!item.isPlatformOwned && item.pendingPublicationCount > 0 && (
                         <span className="text-label font-medium text-status-conditional">
                           {" "}
                           ({item.pendingPublicationCount} do publikacji)

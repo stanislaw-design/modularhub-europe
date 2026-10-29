@@ -2,12 +2,15 @@ import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "./client";
 import { bulkProductInquiry, producer, producerMember, product, projectRequest, users } from "./schema";
 import { producerMatchesProjectRequestSql } from "./project-request-matching";
+import { normalizeCommunicationLocale, type CommunicationLocale } from "@/lib/producer-communication-locale";
 
 export type LargeOrderKind = "request" | "product";
 
 export interface LargeOrderProducerRecipient {
   producerId: string;
   email: string;
+  // Język maili z konta producenta (spec 0077 AC-30), pobierany razem z adresem.
+  locale: CommunicationLocale;
 }
 
 // Każdy użytkownik producenta (spec 0057: właściciel `producer.userId` i wszyscy z
@@ -17,14 +20,15 @@ export async function getProducerUserEmails(producerIds: string[]): Promise<Larg
   if (producerIds.length === 0) return [];
   const [owners, members] = await Promise.all([
     db
-      .select({ producerId: producer.id, email: users.email })
+      .select({ producerId: producer.id, email: users.email, locale: producer.communicationLocale })
       .from(producer)
       .innerJoin(users, eq(users.id, producer.userId))
       .where(inArray(producer.id, producerIds)),
     db
-      .select({ producerId: producerMember.producerId, email: users.email })
+      .select({ producerId: producerMember.producerId, email: users.email, locale: producer.communicationLocale })
       .from(producerMember)
       .innerJoin(users, eq(users.id, producerMember.userId))
+      .innerJoin(producer, eq(producer.id, producerMember.producerId))
       .where(inArray(producerMember.producerId, producerIds)),
   ]);
   const seen = new Set<string>();
@@ -34,7 +38,7 @@ export async function getProducerUserEmails(producerIds: string[]): Promise<Larg
     const key = `${row.producerId}:${row.email.toLowerCase()}`;
     if (seen.has(key)) continue;
     seen.add(key);
-    result.push({ producerId: row.producerId, email: row.email });
+    result.push({ producerId: row.producerId, email: row.email, locale: normalizeCommunicationLocale(row.locale) });
   }
   return result;
 }

@@ -61,7 +61,7 @@ describe("BulkProductInquiryModal", () => {
     await user.click(screen.getByRole("button", { name: "Wyślij zapytanie" }));
 
     await waitFor(() => {
-      expect(screen.getByText(/Masz już 3 z 3 aktywnych zapytań o duże zamówienie/)).toBeInTheDocument();
+      expect(screen.getByText(/Masz już 3 z 3 aktywnych zapytań ModularProjects/)).toBeInTheDocument();
     });
     expect(screen.getByRole("link", { name: "Przejdź do listy zapytań" })).toBeInTheDocument();
   });

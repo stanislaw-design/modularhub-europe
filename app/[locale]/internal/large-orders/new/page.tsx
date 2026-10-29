@@ -31,6 +31,13 @@ export default async function InternalNewLargeOrderPage({ params }: { params: Pr
       </div>
       <Heading level="h1">Złóż zapytanie w imieniu klienta</Heading>
       <Text tone="muted">
+        Zamawiasz sam jako ModularHub?{" "}
+        <Link href={`/${locale}/internal/large-orders/new-own`} className="focus-ring rounded-data text-brand-passage-blue underline">
+          Załóż projekt własny
+        </Link>
+        .
+      </Text>
+      <Text tone="muted">
         Klient dostanie mail w wybranym języku z linkiem do logowania. Zapytanie trafi do dopasowanych producentów tak
         samo jak zapytanie złożone przez klienta, a limit trzech aktywnych zapytań na adres e mail obowiązuje także tutaj.
       </Text>

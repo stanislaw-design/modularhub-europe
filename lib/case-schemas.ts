@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { intendedUseRefinement, intendedUseShape } from "@/lib/intended-use";
 import { NIE_WIEM, START_CARDS, startCardValues } from "@/lib/cases/start-cards";
 
 // Walidacja wejścia akcji sprawy doradczej (spec 0048). Osobno od akcji, bo
@@ -20,7 +21,8 @@ export const guestContactSchema = z.object({
   phone: z.string().trim().min(5).max(40),
 });
 
-export const submitAdvisoryInquirySchema = z.object({
+export const submitAdvisoryInquirySchema = z
+  .object({
   projectIds: z.array(z.uuid()).min(1).max(MAX_ADVISORY_HOMES),
   plot: plotAddressSchema,
   message: z.string().trim().max(MAX_MESSAGE_LENGTH).optional(),
@@ -30,7 +32,10 @@ export const submitAdvisoryInquirySchema = z.object({
   contact: guestContactSchema.optional(),
   // Ukryte pole pułapka (spec 0066 AC-5): człowiek go nie widzi i nie wypełnia.
   website: z.string().max(200).optional(),
-});
+  // Spec 0075 AC-7: planowane użytkowanie, opcjonalne.
+  ...intendedUseShape,
+})
+  .refine(intendedUseRefinement.check, intendedUseRefinement.params);
 
 export type SubmitAdvisoryInquiryInput = z.input<typeof submitAdvisoryInquirySchema>;
 

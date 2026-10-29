@@ -390,6 +390,16 @@ body {
   }
 }
 
+/* Lista realizacji ModularProjects: siatka kart i filtry dostają prawie całą
+   szerokość ekranu. Znacznik `.modularprojects-wide` stawia tylko
+   app/[locale]/(customer)/modularprojects/page.tsx. */
+@media (min-width: 1024px) {
+  main:has(.modularprojects-wide) > .route-container {
+    max-width: none;
+    padding-inline: 2.5%;
+  }
+}
+
 /* Strona projektu na desktopie: galeria sięga lewej krawędzi ekranu, a panel
    zakupowy trzyma prawą kolumnę, więc kontener trasy traci limit szerokości,
    boczne marginesy i górny odstęp. Znacznik `.project-wide` stawia tylko
@@ -402,6 +412,17 @@ body {
     padding-top: 0;
     padding-bottom: 0;
   }
+}
+
+/* Wpis ModularProjects (spec 0076): pasy kolorów sięgają krawędzi ekranu, więc
+   kontener trasy traci limit szerokości, marginesy i odstępy. Znacznik
+   `.modularproject-wide` stawia tylko ModularProjectArticle; każdy pas ma własny
+   Container i padding. */
+main:has(.modularproject-wide) > .route-container {
+  max-width: none;
+  padding-inline: 0;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 /* Dark mode (spec 0043, extended by spec 0046 to a second scope, and by spec

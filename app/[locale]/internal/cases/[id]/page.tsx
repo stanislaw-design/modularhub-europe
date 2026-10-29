@@ -35,6 +35,16 @@ export default async function InternalCasePage({ params }: { params: Promise<{ l
         <Text tone="muted">
           Klient: {view.clientName} · {view.contact.email} · {view.contact.phone}
         </Text>
+        {view.intendedUse && (
+          <Text tone="muted">
+            Planowane użytkowanie:{" "}
+            {view.intendedUse === "year_round"
+              ? "cały rok"
+              : view.intendedUseMonths
+                ? `sezonowo, ${view.intendedUseMonths} mies. w roku`
+                : "sezonowo"}
+          </Text>
+        )}
         {view.emailUnverified && <Text tone="muted">E mail niepotwierdzony</Text>}
         <CaseChat
           inquiryId={view.id}

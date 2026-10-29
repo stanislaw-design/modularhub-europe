@@ -5,7 +5,7 @@ import { z } from "zod";
 import { and, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db/client";
-import { getPgErrorCode } from "@/lib/db/pg-error";
+import { getPgErrorCode, getPgErrorMessage } from "@/lib/db/pg-error";
 import { withAdminActor } from "@/lib/db/with-admin-actor";
 import { doesProducerMatchProjectRequest } from "@/lib/db/project-request-matching";
 import { getClientIdForUser, getProducerIdForUser } from "@/lib/db/queries";
@@ -67,6 +67,8 @@ const submitProjectQuoteSchema = z
   .object({
     projectRequestId: z.uuid().optional(),
     bulkProductInquiryId: z.uuid().optional(),
+    // Spec 0077 AC-11: nazwa wariantu, wymagana tylko przy projekcie własnym (sprawdza akcja).
+    variantLabel: z.string().optional(),
     ...projectQuoteFieldsShape,
   })
   .refine((data) => Boolean(data.projectRequestId) !== Boolean(data.bulkProductInquiryId), {
@@ -86,6 +88,10 @@ const SELECTION_MADE_ERROR = "Klient wybrał już ofertę na to zapytanie — ni
 const NOT_OPEN_ERROR = "To zapytanie nie jest już otwarte na wyceny.";
 const PUBLISHED_LOCK_ERROR =
   "Ta oferta jest już opublikowana klientowi. Nową wersję złożysz, gdy ModularHub cofnie jej publikację.";
+const VARIANT_REQUIRED_ERROR = "Podaj nazwę wariantu (1 do 60 znaków).";
+const VARIANT_NOT_ALLOWED_ERROR = "To zapytanie klienta nie przyjmuje wariantów oferty.";
+const VARIANT_LIMIT_ERROR = "Masz już pięć aktywnych wariantów w tym projekcie. Wycofaj jeden, żeby dodać kolejny.";
+const PLATFORM_SELECTION_DONE_ERROR = "Wybór w tym projekcie został już zakończony — nie można składać nowych ofert.";
 const ALREADY_ACCEPTED_ERROR = "Klient już przyjął wcześniejszą wycenę na to zapytanie — nie można jej zastąpić.";
 
 // Stan zapytania, od którego zależy przyjęcie oferty (spec 0070 AC-12): termin,
@@ -164,26 +170,33 @@ export async function submitProjectQuote(input: SubmitProjectQuoteInput): Promis
     return { ok: false, error: "Nie znaleziono konta producenta." };
   }
 
+  let isPlatformOwned = false;
   if (data.projectRequestId) {
     // AC-13: realna granica bezpieczeństwa żyje tutaj, w samej akcji
     // serwerowej, nie tylko w bramce ekranu /producer/panel/board — ta
     // akcja jest wołalna niezależnie od UI, które ją woła.
-    const [capacityRow] = await db
-      .select({ status: producerCapacityProfile.volumeVerificationStatus })
-      .from(producerCapacityProfile)
-      .where(eq(producerCapacityProfile.producerId, producerId));
-    if (capacityRow?.status !== "approved") {
-      return { ok: false, error: "Twój profil zdolności produkcyjnej nie jest jeszcze zweryfikowany wolumenowo." };
-    }
     const [requestRow] = await db
       .select({
         status: projectRequest.status,
         deadlineAt: projectRequest.deadlineAt,
         selectedQuoteId: projectRequest.selectedQuoteId,
+        isPlatformOwned: projectRequest.isPlatformOwned,
       })
       .from(projectRequest)
       .where(eq(projectRequest.id, data.projectRequestId));
     if (!requestRow) return { ok: false, error: "Nie znaleziono zapytania." };
+    isPlatformOwned = requestRow.isPlatformOwned;
+    // Spec 0077 AC-9: projekt własny omija bramkę weryfikacji wolumenowej, dopasowanie
+    // (wiersz include) sprawdza ta sama funkcja niżej.
+    if (!isPlatformOwned) {
+      const [capacityRow] = await db
+        .select({ status: producerCapacityProfile.volumeVerificationStatus })
+        .from(producerCapacityProfile)
+        .where(eq(producerCapacityProfile.producerId, producerId));
+      if (capacityRow?.status !== "approved") {
+        return { ok: false, error: "Twój profil zdolności produkcyjnej nie jest jeszcze zweryfikowany wolumenowo." };
+      }
+    }
     // Spec 0070 AC-10: ta sama reguła dopasowania co lista i szczegół tablicy.
     // Ten sam komunikat co brak zapytania, żeby niedopasowany producent nie
     // dowiadywał się, że zapytanie istnieje.
@@ -209,6 +222,15 @@ export async function submitProjectQuote(input: SubmitProjectQuoteInput): Promis
     if (blockReason) return { ok: false, error: blockReason };
   }
 
+  // Spec 0077 AC-11: etykieta wariantu wymagana wtedy i tylko wtedy, gdy projekt jest własny.
+  const variantLabel = data.variantLabel?.trim() ?? "";
+  if (isPlatformOwned) {
+    if (variantLabel.length < 1 || variantLabel.length > 60) return { ok: false, error: VARIANT_REQUIRED_ERROR };
+  } else if (variantLabel.length > 0) {
+    return { ok: false, error: VARIANT_NOT_ALLOWED_ERROR };
+  }
+  const storedVariantLabel = isPlatformOwned ? variantLabel : null;
+
   const newQuoteId = crypto.randomUUID();
   const totalPriceCents = toPriceCents(data.totalPriceEur);
   const unitPriceCents = data.unitPriceEur !== undefined ? toPriceCents(data.unitPriceEur) : null;
@@ -224,11 +246,17 @@ export async function submitProjectQuote(input: SubmitProjectQuoteInput): Promis
     // Oba kroki niosą warunek openForQuotes: batch jest atomowy, ale jego kroki
     // nie zależą od siebie, więc bez tego samego warunku w kroku zastąpienia
     // przegrany wyścig z wyborem klienta zastąpiłby wybraną ofertę bez wstawienia nowej.
+    // Spec 0077 AC-45: blokada doradcza na projekcie, ta sama co w finishPlatformSelection,
+    // więc zakończenie wyboru i składanie oferty wykluczają się wzajemnie (dla zapytań
+    // klientów blokada jest niegroźna, tylko serializuje oferty jednego zapytania).
+    const lockStep = db.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${(data.projectRequestId ?? data.bulkProductInquiryId)!}))`);
     const batchResults = await db.batch([
+      lockStep,
       data.projectRequestId
         ? db.execute(sql`
             UPDATE "project_quote" SET "status" = 'superseded'
             WHERE "project_request_id" = ${data.projectRequestId} AND "producer_id" = ${producerId} AND "status" = 'active'
+              AND coalesce(lower(btrim("variant_label")), '') = coalesce(lower(btrim(${storedVariantLabel}::text)), '')
               AND ${openForQuotes} AND NOT ${ownPublishedQuote}
           `)
         : db.execute(sql`
@@ -238,8 +266,8 @@ export async function submitProjectQuote(input: SubmitProjectQuoteInput): Promis
           `),
       data.projectRequestId
         ? db.execute(sql`
-            INSERT INTO "project_quote" ("id", "project_request_id", "producer_id", "currency", "unit_price_cents", "total_price_cents", "proposed_lead_time_weeks", "notes", "price_tax_mode", "vat_rate_percent", "scope_included", "scope_excluded", "logistics", "payment_plan", "valid_until", "warranty_note", "delivery_window_from", "delivery_window_to", "published_to_client_at", "status", "submitted_at", "created_at")
-            SELECT ${newQuoteId}, ${data.projectRequestId}, ${producerId}, 'EUR', ${unitPriceCents}, ${totalPriceCents}, ${data.proposedLeadTimeWeeks ?? null}, ${data.notes ?? null}, ${data.priceTaxMode}, ${data.vatRatePercent ?? null}, ${data.scopeIncluded}, ${data.scopeExcluded ?? null}, ${logisticsJson}::jsonb, ${data.paymentPlan ?? null}, ${data.validUntil}::date, ${data.warrantyNote ?? null}, ${data.deliveryWindowFrom ?? null}::date, ${data.deliveryWindowTo ?? null}::date, NULL, 'active', now(), now()
+            INSERT INTO "project_quote" ("id", "project_request_id", "producer_id", "variant_label", "currency", "unit_price_cents", "total_price_cents", "proposed_lead_time_weeks", "notes", "price_tax_mode", "vat_rate_percent", "scope_included", "scope_excluded", "logistics", "payment_plan", "valid_until", "warranty_note", "delivery_window_from", "delivery_window_to", "published_to_client_at", "status", "submitted_at", "created_at")
+            SELECT ${newQuoteId}, ${data.projectRequestId}, ${producerId}, ${storedVariantLabel}, 'EUR', ${unitPriceCents}, ${totalPriceCents}, ${data.proposedLeadTimeWeeks ?? null}, ${data.notes ?? null}, ${data.priceTaxMode}, ${data.vatRatePercent ?? null}, ${data.scopeIncluded}, ${data.scopeExcluded ?? null}, ${logisticsJson}::jsonb, ${data.paymentPlan ?? null}, ${data.validUntil}::date, ${data.warrantyNote ?? null}, ${data.deliveryWindowFrom ?? null}::date, ${data.deliveryWindowTo ?? null}::date, NULL, 'active', now(), now()
             WHERE NOT EXISTS (SELECT 1 FROM "project_quote" WHERE "project_request_id" = ${data.projectRequestId} AND "status" = 'accepted')
               AND ${openForQuotes} AND NOT ${ownPublishedQuote}
           `)
@@ -251,7 +279,7 @@ export async function submitProjectQuote(input: SubmitProjectQuoteInput): Promis
           `),
     ]);
 
-    const insertResult = batchResults[1] as { rowCount: number | null };
+    const insertResult = batchResults[2] as { rowCount: number | null };
     if ((insertResult.rowCount ?? 0) === 0) {
       return { ok: false, error: await explainRejectedQuote(target, producerId) };
     }
@@ -268,18 +296,26 @@ export async function submitProjectQuote(input: SubmitProjectQuoteInput): Promis
         .where(and(eq(bulkProductInquiry.id, data.bulkProductInquiryId!), eq(bulkProductInquiry.status, "open")));
     }
   } catch (error) {
+    if (getPgErrorCode(error) === "P0001" && getPgErrorMessage(error)?.includes("platform_quote_variant_limit_exceeded")) {
+      return { ok: false, error: VARIANT_LIMIT_ERROR };
+    }
     captureError(error, { path: "submitProjectQuote", userId: session.user.id });
     return { ok: false, error: isUniqueViolation(error) ? "Ktoś właśnie zapisał wycenę na to zapytanie. Odśwież i spróbuj ponownie." : GENERIC_ERROR };
   }
 
   trackEvent("project_quote_submitted", { quoteId: newQuoteId }, session.user.id);
-  await alertTeamOfNewQuote(target, producerId, totalPriceCents);
+  await alertTeamOfNewQuote(target, producerId, totalPriceCents, storedVariantLabel);
   return { ok: true, quoteId: newQuoteId };
 }
 
 // Spec 0070 AC-24: zespół dostaje mail o nowej ofercie (klient jej jeszcze nie widzi).
 // Best effort: błąd odczytu albo wysyłki trafia do Sentry i nie cofa zapisanej oferty.
-async function alertTeamOfNewQuote(target: QuoteTarget, producerId: string, totalPriceCents: number): Promise<void> {
+async function alertTeamOfNewQuote(
+  target: QuoteTarget,
+  producerId: string,
+  totalPriceCents: number,
+  variantLabel: string | null,
+): Promise<void> {
   try {
     const [producerRow] = await db.select({ name: producer.name }).from(producer).where(eq(producer.id, producerId));
     if ("projectRequestId" in target) {
@@ -295,6 +331,7 @@ async function alertTeamOfNewQuote(target: QuoteTarget, producerId: string, tota
         unitCount: row.unitCount,
         producerName: producerRow?.name ?? "",
         totalPriceCents,
+        variantLabel,
       });
       return;
     }
@@ -327,7 +364,13 @@ async function explainRejectedQuote(target: QuoteTarget, producerId: string): Pr
       .from(projectQuote)
       .where(and(eq(projectQuote.projectRequestId, target.projectRequestId), eq(projectQuote.status, "accepted")))
       .limit(1);
-    if (accepted) return ALREADY_ACCEPTED_ERROR;
+    if (accepted) {
+      const [owner] = await db
+        .select({ isPlatformOwned: projectRequest.isPlatformOwned })
+        .from(projectRequest)
+        .where(eq(projectRequest.id, target.projectRequestId));
+      return owner?.isPlatformOwned ? PLATFORM_SELECTION_DONE_ERROR : ALREADY_ACCEPTED_ERROR;
+    }
   }
 
   const [state] =
@@ -427,7 +470,7 @@ export async function selectProjectQuote(quoteId: string): Promise<SelectProject
     // already_connected nie powinno wystąpić zaraz po zapisie, który wymaga braku połączenia.
     return { ok: true, outcome: outcome === "connected" ? "connected" : undefined };
   } catch (error) {
-    // Wybór jest zapisany. Połączenie dokończy godzinne zadanie czyszczące albo administrator.
+    // Wybór jest zapisany. Połączenie dokończy cykliczne zadanie czyszczące albo administrator.
     captureError(error, { path: "selectProjectQuote:connectSelection", userId: session.user.id });
     return { ok: true };
   }
@@ -819,7 +862,11 @@ export async function setProducerDeliveryCountriesAsAdmin(
 // po stronie aplikacji).
 export async function linkRequestsToClientOnLogin(email: string, clientId: string): Promise<void> {
   await db.batch([
-    db.update(projectRequest).set({ clientId }).where(and(eq(projectRequest.contactEmail, email), isNull(projectRequest.clientId))),
+    // Spec 0077 AC-21: projekt własny ModularHub nigdy nie dostaje klienta z dopasowania e maila.
+    db
+      .update(projectRequest)
+      .set({ clientId })
+      .where(and(eq(projectRequest.contactEmail, email), isNull(projectRequest.clientId), eq(projectRequest.isPlatformOwned, false))),
     db.update(bulkProductInquiry).set({ clientId }).where(and(eq(bulkProductInquiry.contactEmail, email), isNull(bulkProductInquiry.clientId))),
   ]);
 }

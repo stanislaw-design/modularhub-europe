@@ -19,6 +19,8 @@ import { ExtendDeadlineControl } from "@/components/internal/ExtendDeadlineContr
 import { PublishSummaryControl } from "@/components/internal/PublishSummaryControl";
 import { QuotePublicationControls } from "@/components/internal/QuotePublicationControls";
 import { ProducerOverridesAdminSection } from "@/components/internal/ProducerOverridesAdminSection";
+import { PlatformQuoteComparison } from "@/components/internal/PlatformQuoteComparison";
+import { FinishPlatformSelectionControl } from "@/components/internal/PlatformSelectionControls";
 import { Heading, Stack, Text } from "@/components/ui";
 import { getProducerMatchesForAdmin } from "@/lib/db/project-request-matching";
 import { getLargeOrderForAdmin, type LargeOrderKind, type LargeOrderQuoteForAdmin } from "@/lib/db/queries";
@@ -90,23 +92,40 @@ export default async function InternalLargeOrderDetailPage({
   const pendingPublication = order.quotes.filter((quote) => quote.status === "active" && !quote.publishedToClientAt).length;
   const units = String(order.unitCount);
 
-  const timeline: { label: string; at: Date | null }[] = [
-    { label: "Złożenie zapytania", at: order.createdAt },
-    { label: "Publikacja podsumowania", at: order.summaryPublishedAt },
-    { label: "Wybór klienta", at: order.selectedAt },
-    { label: "Połączenie stron", at: contactRevealedAt },
-    { label: "Zamknięcie", at: order.closedAt },
-  ];
+  // Spec 0077: projekt własny ModularHub nie ma publikacji podsumowania, wyboru klienta ani połączenia stron.
+  const isPlatform = order.isPlatformOwned;
+  const activeQuoteCount = order.quotes.filter((quote) => quote.status !== "superseded").length;
+  const selectionOpen = order.status === "open" || order.status === "quoted";
+  const producerCount = new Set(order.quotes.map((quote) => quote.producerId)).size;
+
+  const timeline: { label: string; at: Date | null }[] = isPlatform
+    ? [
+        { label: "Założenie projektu", at: order.createdAt },
+        { label: "Zakończenie wyboru", at: order.selectedAt },
+        { label: "Zamknięcie", at: order.closedAt },
+      ]
+    : [
+        { label: "Złożenie zapytania", at: order.createdAt },
+        { label: "Publikacja podsumowania", at: order.summaryPublishedAt },
+        { label: "Wybór klienta", at: order.selectedAt },
+        { label: "Połączenie stron", at: contactRevealedAt },
+        { label: "Zamknięcie", at: order.closedAt },
+      ];
 
   return (
     <Stack gap={5}>
       <header className="flex flex-col gap-brand-3">
         <div className="flex flex-wrap items-center gap-x-brand-3 gap-y-brand-2">
           <LargeOrderKindPill kind={order.kind} />
+          {isPlatform && (
+            <LargeOrderTonePill tone="teal" icon={Megaphone}>
+              Własny
+            </LargeOrderTonePill>
+          )}
           <LargeOrderStatusPill status={order.status} />
           <Text as="span">
-            <span className="font-medium">{order.contactName}</span>
-            <span className="text-brand-technical-graphite">, złożone {dateTimeFormatter.format(order.createdAt)}</span>
+            <span className="font-medium">{isPlatform ? "Zamawiający: ModularHub" : order.contactName}</span>
+            <span className="text-brand-technical-graphite">, {isPlatform ? "założony" : "złożone"} {dateTimeFormatter.format(order.createdAt)}</span>
           </Text>
           {order.closedReason && (
             <Text as="span" tone="muted">
@@ -123,7 +142,7 @@ export default async function InternalLargeOrderDetailPage({
         </div>
         <div className="flex flex-wrap items-start justify-between gap-x-brand-5 gap-y-brand-3">
           <Heading level="h1" className="min-w-0">
-            {order.kind === "product" ? order.productName : "Zapytanie wolne"}
+            {order.kind === "product" ? order.productName : isPlatform ? (order.title ?? "Projekt własny") : "Zapytanie wolne"}
           </Heading>
           <section aria-labelledby="order-timeline-heading" className="ml-auto">
             <h2 id="order-timeline-heading" className="sr-only">
@@ -167,7 +186,7 @@ export default async function InternalLargeOrderDetailPage({
           )}
           {order.status !== "accepted" && order.status !== "closed" && <ExtendDeadlineControl id={id} kind={kind} />}
         </Fact>
-        <Fact label="Liczba domów">
+        <Fact label={isPlatform ? "Liczba sztuk" : "Liczba domów"}>
           <span className="block font-semibold tabular-nums">{units}</span>
         </Fact>
         <Fact label="Kraj">
@@ -177,9 +196,9 @@ export default async function InternalLargeOrderDetailPage({
         </Fact>
         <Fact label="Oferty">
           <span className={`block font-semibold tabular-nums ${order.quotes.length === 0 ? "text-brand-technical-graphite" : ""}`}>
-            {order.quotes.length}
+            {isPlatform ? activeQuoteCount : order.quotes.length}
           </span>
-          {pendingPublication > 0 && (
+          {!isPlatform && pendingPublication > 0 && (
             <span className="block text-data font-medium text-status-conditional">{pendingPublication} do publikacji</span>
           )}
         </Fact>
@@ -192,7 +211,7 @@ export default async function InternalLargeOrderDetailPage({
               Oferty producentów
             </h2>
             {order.status !== "closed" && <CloseRequestControl id={id} kind={kind} />}
-            {pendingPublication > 0 && order.status !== "accepted" && order.status !== "closed" && (
+            {!isPlatform && pendingPublication > 0 && order.status !== "accepted" && order.status !== "closed" && (
               <PublishSummaryControl
                 id={id}
                 kind={kind}
@@ -200,10 +219,34 @@ export default async function InternalLargeOrderDetailPage({
                 alreadyPublished={order.summaryPublishedAt !== null}
               />
             )}
-            {order.selectedQuoteId && !contactRevealedAt && order.status !== "accepted" && order.status !== "closed" && (
+            {!isPlatform && order.selectedQuoteId && !contactRevealedAt && order.status !== "accepted" && order.status !== "closed" && (
               <ConnectSelectionControl id={id} kind={kind} />
             )}
-            {order.quotes.length === 0 ? (
+            {isPlatform ? (
+              <>
+                <PlatformQuoteComparison
+                  requestId={order.id}
+                  quotes={order.quotes}
+                  markedQuoteId={order.platformMarkedQuoteId}
+                  selectionOpen={selectionOpen}
+                />
+                {selectionOpen && (
+                  <FinishPlatformSelectionControl
+                    requestId={order.id}
+                    hasMarkedQuote={order.platformMarkedQuoteId !== null}
+                    producerCount={producerCount}
+                  />
+                )}
+                {order.status === "accepted" && (
+                  <p role="status" className="text-body">
+                    Wybór zakończony{order.selectedAt ? ` ${dateTimeFormatter.format(order.selectedAt)}` : ""}.{" "}
+                    {order.platformSelectionMailed.length > 0
+                      ? `Mail zakolejkowano dla: ${order.platformSelectionMailed.join(", ")}.`
+                      : "Brak zakolejkowanych maili."}
+                  </p>
+                )}
+              </>
+            ) : order.quotes.length === 0 ? (
               <div className="rounded-card border border-dashed border-brand-steel p-brand-4">
                 <Text tone="muted">Nikt jeszcze nie złożył oferty. Pojawią się tutaj, gdy producenci odpowiedzą przed terminem.</Text>
               </div>
@@ -227,18 +270,18 @@ export default async function InternalLargeOrderDetailPage({
 
           <section aria-labelledby="order-scope-heading" className="flex flex-col gap-brand-2">
             <h2 id="order-scope-heading" className="text-h3 font-semibold">
-              Czego chce klient
+              {isPlatform ? "Zakres projektu" : "Czego chce klient"}
             </h2>
             <dl className="grid grid-cols-1 gap-x-brand-4 gap-y-brand-2 sm:grid-cols-2">
               {order.projectType && <Row label="Rodzaj projektu" value={order.projectType} />}
               {order.families.length > 0 && <Row label="Rodziny" value={order.families.join(", ")} />}
             </dl>
             <div className="rounded-card bg-brand-steel/10 p-brand-3">
-              <p className="text-label font-medium uppercase tracking-[0.08em] text-brand-technical-graphite">Uwagi klienta</p>
+              <p className="text-label font-medium uppercase tracking-[0.08em] text-brand-technical-graphite">{isPlatform ? "Uwagi" : "Uwagi klienta"}</p>
               {order.note ? (
                 <p className="mt-brand-1 max-w-[68ch] whitespace-pre-line text-body">{order.note}</p>
               ) : (
-                <p className="mt-brand-1 text-body text-brand-technical-graphite">Klient nie dodał uwag.</p>
+                <p className="mt-brand-1 text-body text-brand-technical-graphite">{isPlatform ? "Brak uwag." : "Klient nie dodał uwag."}</p>
               )}
             </div>
           </section>
@@ -248,9 +291,11 @@ export default async function InternalLargeOrderDetailPage({
           <section aria-labelledby="order-contact-heading" className="flex flex-col gap-brand-3 rounded-card border border-brand-steel p-brand-3">
             <div>
               <h2 id="order-contact-heading" className="text-body font-semibold">
-                Klient
+                {isPlatform ? "Zamawiający: ModularHub" : "Klient"}
               </h2>
-              <p className="text-label uppercase tracking-[0.08em] text-brand-technical-graphite">Dane tylko dla zespołu</p>
+              <p className="text-label uppercase tracking-[0.08em] text-brand-technical-graphite">
+                {isPlatform ? "Wspólny kontakt widoczny dla producentów" : "Dane tylko dla zespołu"}
+              </p>
             </div>
             <p className="text-body-l font-semibold">{order.contactName}</p>
             <ul className="flex flex-col gap-brand-2 text-body">
@@ -272,9 +317,11 @@ export default async function InternalLargeOrderDetailPage({
               </li>
             </ul>
             <dl className="flex flex-col gap-brand-2 border-t border-brand-steel pt-brand-3 text-data">
-              <Row label="Język maili" value={order.contactLocale} stacked />
-              <Row label="Konto klienta" value={order.clientId ? "Powiązane" : "Niepowiązane, klient się nie zalogował"} stacked />
-              {order.createdByStaffUserId && <Row label="Złożone przez doradcę" value="Tak" stacked />}
+              {!isPlatform && <Row label="Język maili" value={order.contactLocale} stacked />}
+              {!isPlatform && (
+                <Row label="Konto klienta" value={order.clientId ? "Powiązane" : "Niepowiązane, klient się nie zalogował"} stacked />
+              )}
+              {!isPlatform && order.createdByStaffUserId && <Row label="Złożone przez doradcę" value="Tak" stacked />}
             </dl>
           </section>
         </aside>

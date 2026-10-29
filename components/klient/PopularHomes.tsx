@@ -16,13 +16,21 @@ interface PopularHomesProps {
 // composition, the rest is one click away on the results page.
 const MAX_SHOWN = 4;
 
+// The big left-hand card; the rest keep their incoming order.
+const LEAD_SLUG = "framedev-31";
+
 // Real projects (Project.featured === true, already "polecane" per spec
 // 0004 AC-12) shown right after the search card, so the product sells
 // itself before any marketing copy (spec 0015 AC-4). Illustrative in the
 // sense that "popular" isn't computed from real view counts. Full-bleed band,
 // same breakout as Hero, so the section runs edge to edge of the viewport.
 export async function PopularHomes({ locale, projects, countries }: PopularHomesProps) {
-  const featured = projects.filter((project) => project.featured).slice(0, MAX_SHOWN);
+  // getProjects has no ORDER BY, so without this the lead card is whichever
+  // featured row Postgres returns first.
+  const featured = projects
+    .filter((project) => project.featured)
+    .sort((a, b) => Number(b.slug === LEAD_SLUG) - Number(a.slug === LEAD_SLUG))
+    .slice(0, MAX_SHOWN);
   // Pusta lista nie zostawia samego nagłówka (spec 0073 AC-9).
   if (featured.length === 0) return null;
   const t = await getTranslations("PopularHomes");

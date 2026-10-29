@@ -57,6 +57,21 @@ export async function ProjectComplianceAssessments({ assessments, locale }: Proj
           </li>
         ))}
       </ul>
+      {assessments.some((assessment) => assessment.countryCode === "FR" || assessment.countryCode === "NL") ? (
+        <details className="text-data">
+          <summary className="focus-ring cursor-pointer rounded-data text-brand-passage-blue underline">
+            {t("terms.summary")}
+          </summary>
+          <div className="mt-brand-1 flex flex-col gap-brand-1">
+            <Text tone="muted" surface="v5" className="text-data">
+              {t("terms.hll")}
+            </Text>
+            <Text tone="muted" surface="v5" className="text-data">
+              {t("terms.logiesfunctie")}
+            </Text>
+          </div>
+        </details>
+      ) : null}
       <Text tone="muted" surface="v5" className="text-data">
         {tEngine("disclaimer")}
       </Text>

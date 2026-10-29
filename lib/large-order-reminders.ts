@@ -6,7 +6,7 @@ import { sendDeadlineReminderToProducer, type DeadlineReminderThreshold } from "
 import { hasTeamRecipient, notifyTeamOfDeadlinePassed } from "@/lib/notifications/large-order-team";
 import { captureError } from "@/lib/observability";
 
-// Bez "use server": logika godzinnego zadania (spec 0070 AC-17, AC-25), wołana tylko z
+// Bez "use server": logika cyklicznego zadania (co 6 godzin) (spec 0070 AC-17, AC-25), wołana tylko z
 // app/api/cron/large-orders-reminders/route.ts po sprawdzeniu sekretu.
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -132,6 +132,7 @@ export async function runLargeOrderReminders(
             producerId: recipient.producerId,
             email: recipient.email,
             threshold,
+            locale: recipient.locale,
           });
           if (sent) run.remindersSent += 1;
         }

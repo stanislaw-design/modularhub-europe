@@ -700,8 +700,9 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: getProductOptionGrou
         priceOnRequest: false,
         isDefault: true,
         imageUrl: "https://konfigurator.dampol-investment.com/static/thumbnail/shop-configurator-option/med/168.webp",
+        priceNote: null,
       },
-      { id: premiumOptionId, label: "Premium", sourceLabel: "Premium", priceCents: 980_000, priceOnRequest: false, isDefault: false, imageUrl: null },
+      { id: premiumOptionId, label: "Premium", sourceLabel: "Premium", priceCents: 980_000, priceOnRequest: false, isDefault: false, imageUrl: null, priceNote: null },
     ]);
 
     const extras = results[1];
@@ -715,6 +716,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: getProductOptionGrou
         priceOnRequest: false,
         isDefault: false,
         imageUrl: null,
+        priceNote: null,
       },
     ]);
   });

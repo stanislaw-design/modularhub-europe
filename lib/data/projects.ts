@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, inArray, isNull, lte, ne, or, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNull, lte, or, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
   costLineItem,
@@ -13,6 +13,7 @@ import {
   product,
   productComplianceAssessment,
   productCountryEligibility,
+  productEnvelopeParameter,
   productOption,
   productOptionGroup,
   productOptionGroupAssignment,
@@ -46,6 +47,7 @@ import type {
   ProjectFaqItem,
   ProjectVariant,
   ProductComplianceAssessment,
+  ProductEnvelopeParameter,
   ProductFamily,
   ProductTechnicalSpecsDraft,
   ProducerCertification,
@@ -921,6 +923,8 @@ function mapRowToProject(
     family: row.family,
     category: row.category ?? "caloroczny",
     spaSubcategory: row.spaSubcategory,
+    containerSubcategory: row.containerSubcategory,
+    foundationStatus: row.foundationStatus,
     outdoorTvMounting: row.outdoorTvMounting,
     outdoorTvSunExposure: row.outdoorTvSunExposure,
     constructionSystem: resolveTranslatedText(row.constructionSystem, translation?.constructionSystem),
@@ -970,11 +974,13 @@ function mapRowToProject(
 // z project-variants.ts, patrz komentarz tam.
 export { getDefaultProjectVariant } from "./project-variants";
 
-// countryCode filter: a project surfaces for a country when it has an
-// eligibility row there and that row is not "blocked" ("approved" and
-// "conditional" both count as usable, per brand-guidelines-v3.md section 12,
-// which treats a conditional status as a valid, displayable outcome, not a
-// hidden one). Boundary confirmed as spec 0004's Decision (Option 1).
+// countryCode filter: a project surfaces for every country except where its
+// eligibility row is explicitly "blocked" ("approved" and "conditional" both
+// count as usable, per brand-guidelines-v3.md section 12, which treats a
+// conditional status as a valid, displayable outcome, not a hidden one). A
+// missing row no longer hides a project (it did under spec 0004's Decision,
+// Option 1): most imported catalogs have no rows for DE/NL, which emptied the
+// results for those countries.
 // family defaults to "dom" (spec 0023 AC-4): this feeds house search/results
 // (/wyniki, Popularne domy, Porównaj domy) by default, with a URL switch to
 // the other two families.
@@ -1119,17 +1125,17 @@ export async function getProjects(filters?: GetProjectsFilters): Promise<Project
   }
 
   if (countryCode && !isOutdoorTv) {
-    const eligibleRows = await db
+    const blockedRows = await db
       .select({ productId: productCountryEligibility.productId })
       .from(productCountryEligibility)
       .where(
         and(
           eq(productCountryEligibility.countryCode, countryCode),
-          ne(productCountryEligibility.status, "blocked")
+          eq(productCountryEligibility.status, "blocked")
         )
       );
-    const eligibleIds = new Set(eligibleRows.map((row) => row.productId));
-    projects = projects.filter((project) => eligibleIds.has(project.id));
+    const blockedIds = new Set(blockedRows.map((row) => row.productId));
+    projects = projects.filter((project) => !blockedIds.has(project.id));
   }
 
   const projectIds = projects.map((project) => project.id);
@@ -1331,13 +1337,57 @@ export async function getProductComplianceAssessments(
     locale,
   );
   return rows.map((row) => ({
-    countryCode: row.countryCode as CountryCode,
+    countryCode: row.countryCode as ProductComplianceAssessment["countryCode"],
     rule: row.rule,
     status: row.status,
     reason: row.reason ? translateReference(row.reason) : row.reason,
     confirmed: row.confirmationStatus === "platform_confirmed",
     confirmedAt: row.confirmedAt,
   }));
+}
+
+// Spec 0075 AC-11, AC-13: parametry izolacji dla wielu produktów jednym
+// zapytaniem (bez N+1 w porównaniu). Produkt bez wierszy nie ma wpisu w mapie.
+export async function getEnvelopeParametersByProduct(
+  productIds: string[],
+): Promise<Map<string, ProductEnvelopeParameter[]>> {
+  const ids = productIds.filter((id) => UUID_PATTERN.test(id));
+  const byProduct = new Map<string, ProductEnvelopeParameter[]>();
+  if (ids.length === 0) return byProduct;
+  const rows = await db
+    .select({
+      productId: productEnvelopeParameter.productId,
+      element: productEnvelopeParameter.element,
+      quantity: productEnvelopeParameter.quantity,
+      value: productEnvelopeParameter.value,
+      method: productEnvelopeParameter.method,
+      methodNote: productEnvelopeParameter.methodNote,
+      asOfDate: productEnvelopeParameter.asOfDate,
+      confirmationStatus: productEnvelopeParameter.confirmationStatus,
+      confirmedAt: productEnvelopeParameter.confirmedAt,
+    })
+    .from(productEnvelopeParameter)
+    .where(inArray(productEnvelopeParameter.productId, ids))
+    .orderBy(productEnvelopeParameter.element, productEnvelopeParameter.quantity);
+  for (const row of rows) {
+    const list = byProduct.get(row.productId) ?? [];
+    list.push({
+      element: row.element,
+      quantity: row.quantity,
+      value: Number(row.value),
+      method: row.method,
+      methodNote: row.methodNote,
+      asOfDate: row.asOfDate,
+      confirmed: row.confirmationStatus === "platform_confirmed",
+      confirmedAt: row.confirmedAt,
+    });
+    byProduct.set(row.productId, list);
+  }
+  return byProduct;
+}
+
+export async function getProductEnvelopeParameters(productId: string): Promise<ProductEnvelopeParameter[]> {
+  return (await getEnvelopeParametersByProduct([productId])).get(productId) ?? [];
 }
 
 // Adres publicznej strony produktu przyjmuje slug albo id (spec 0058 AC-3):

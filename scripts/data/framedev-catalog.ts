@@ -1,5 +1,5 @@
-// FrameDEV (framedev.pl, stan 2026-10-21): 13 domów na szkielecie stalowym LGS wybranych ze strony /modele
-// (6 z serii Homekoncept, 7 z serii Z500/FDPL). Źródło to publiczne strony modeli; producent potwierdził
+// FrameDEV (framedev.pl, stan 2026-10-22): 43 domy na szkielecie stalowym LGS wybrane ze strony /modele
+// (partia 1: 13 domów, 6 Homekoncept i 7 Z500/FDPL; partia 2: 30 domów, głównie małych i średnich, framedev-projects-batch2.ts). Źródło to publiczne strony modeli; producent potwierdził
 // zgodę na użycie zdjęć. Każdy tekst widoczny dla klienta ma tu cztery wersje językowe (pl jest źródłem,
 // en/de/nl idą do tabel tłumaczeń, spec 0067). Same projekty są w framedev-projects.ts.
 //
@@ -68,7 +68,7 @@ export const CUSTOMIZATION_SCOPE = L(
 export const WALL_BUILD_UP = "Szkielet LGS + wełna mineralna, płyta cementowo-wiórowa, wiatroizolacja, izolacja fasadowa 150 mm, paroizolacja, płyta G-K (x2).";
 export const INSULATION = "Wełna mineralna w szkielecie i izolacja fasadowa 150 mm.";
 
-// Zakres pakietów jest identyczny na wszystkich 13 stronach modeli: zdanie wstępne trafia do scopeSummary,
+// Zakres pakietów jest identyczny na wszystkich stronach modeli: zdanie wstępne trafia do scopeSummary,
 // punkty listy "Zakres pakietu" do pozycji kosztowych (cost_line_item, status "w-cenie"), słowo w słowo ze strony.
 export const DEV_INTRO = L(
   "Podstawowy pakiet w technologii stalowego szkieletu FrameDEV – gotowy dom w stanie zamkniętym, z pełnym dociepleniem, stolarką i instalacjami.",
@@ -240,7 +240,7 @@ export interface FramedevProjectSource {
   garageAreaM2: number;
   minPlotWidthM: number;
   plotMinimum: string;
-  bedrooms: number;
+  bedrooms: number | null;
   bathrooms: number;
   storeys: number;
   roofType: L10n;
@@ -252,7 +252,7 @@ export interface FramedevProjectSource {
   // Ścieżki względem katalogu głównego repo (tmp/ jest w .gitignore), okładka pierwsza.
   photos: string[];
   // Rzuty od parteru w górę; floorLevel null, gdy rzut nie jest kondygnacją (np. rzut dachu).
-  floorPlans: { file: string; floorLevel: "parter" | "pietro" | null }[];
+  floorPlans: { file: string; floorLevel: "parter" | "pietro" | "poddasze" | null }[];
   sourceUrl: string;
 }
 
@@ -286,6 +286,29 @@ export const ROOM_NAMES: Record<string, L10n> = {
   SIŁOWNIA: n("Siłownia", "Gym", "Fitnessraum", "Fitnessruimte"),
   SCHOWEK: n("Schowek", "Storage closet", "Abstellraum", "Berging"),
   "BIBLIOTEKA/GABINET": n("Biblioteka / gabinet", "Library / study", "Bibliothek / Arbeitszimmer", "Bibliotheek / studeerkamer"),
+  // Nazwy z drugiej partii (modele 14-43), pisownia klucza jak na stronie producenta.
+  HOL: n("Hol", "Hall", "Diele", "Hal"),
+  HALL: n("Hol", "Hall", "Diele", "Hal"),
+  SIEŃ: n("Sień", "Entrance hall", "Eingangshalle", "Entree"),
+  KORYTARZ: n("Korytarz", "Corridor", "Korridor", "Gang"),
+  WC: n("WC", "Toilet", "WC", "Toilet"),
+  SAUNA: n("Sauna", "Sauna", "Sauna", "Sauna"),
+  "POMIESZCZENIE GOSPODARCZE": n("Pomieszczenie gospodarcze", "Utility room", "Hauswirtschaftsraum", "Bijkeuken"),
+  "POMIESZCZENIE USŁUGOWE": n("Pomieszczenie usługowe", "Service room", "Serviceraum", "Serviceruimte"),
+  "P.G. + SPIŻARKA": n("Pomieszczenie gospodarcze ze spiżarką", "Utility room with pantry", "Hauswirtschaftsraum mit Vorratsraum", "Bijkeuken met voorraadkast"),
+  "SALON + JADALNIA": n("Salon z jadalnią", "Living and dining room", "Wohn- und Esszimmer", "Woon- en eetkamer"),
+  "SALON + KUCHNIA": n("Salon z kuchnią", "Living room with kitchen", "Wohnzimmer mit Küche", "Woonkamer met keuken"),
+  "KUCHNIA + JADALNIA": n("Kuchnia z jadalnią", "Kitchen and dining room", "Küche mit Essbereich", "Keuken met eethoek"),
+  "POKÓJ DZIENNY + JADALNIA": n("Pokój dzienny z jadalnią", "Living and dining room", "Wohn- und Esszimmer", "Woon- en eetkamer"),
+  "POKÓJ DZIENNY + KUCHNIA + JADALNIA": n(
+    "Pokój dzienny z kuchnią i jadalnią",
+    "Living room with kitchen and dining area",
+    "Wohnzimmer mit Küche und Essbereich",
+    "Woonkamer met keuken en eethoek",
+  ),
+  "KOTŁOWNIA + PRALNIA": n("Kotłownia / pralnia", "Boiler room / laundry room", "Heizraum / Waschküche", "Ketelruimte / wasruimte"),
+  "KOTŁOWNIA / PRALNIA": n("Kotłownia / pralnia", "Boiler room / laundry room", "Heizraum / Waschküche", "Ketelruimte / wasruimte"),
+  "HOL + SCHODY": n("Hol ze schodami", "Hall with stairs", "Diele mit Treppe", "Hal met trap"),
 };
 
 export const ROOF_TYPES = {
@@ -328,7 +351,7 @@ export const room = (key: string, areaM2: number, floorLevel: FloorLevel = "part
 });
 
 export const photos = (slug: string, names: string[]): string[] => names.map((name) => `${PHOTO_DIR}/${slug}/${name}`);
-export const plan = (slug: string, name: string, floorLevel: "parter" | "pietro" | null) => ({
+export const plan = (slug: string, name: string, floorLevel: "parter" | "pietro" | "poddasze" | null) => ({
   file: `${PHOTO_DIR}/${slug}/${name}`,
   floorLevel,
 });

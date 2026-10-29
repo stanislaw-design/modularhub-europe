@@ -70,7 +70,7 @@ describe("SiteHeader (spec 0030)", () => {
     expect(href("Sauny")).toBe("/pl/sauna");
     expect(href("Outdoor TV")).toBe("/pl/results?family=outdoor-tv");
     expect(href("Kontenery modułowe")).toBe("/pl/results?family=kontenery-modulowe");
-    expect(href("Zapytanie o duże zamówienie")).toBe("/pl/project-request");
+    expect(href("Zapytanie ModularProjects (od 3 domów)")).toBe("/pl/project-request");
     expect(href("Zweryfikowani producenci")).toBe("/pl/verified-manufacturers");
     expect(href("Jak to działa")).toBe("/pl#jak-to-dziala");
     expect(href("Najczęstsze pytania")).toBe("/pl#faq");

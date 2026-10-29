@@ -177,7 +177,11 @@ export async function publishSummary(
   const adminId = session.user.id;
   const table = sql.identifier(parsed.data.kind === "request" ? "project_request" : "bulk_product_inquiry");
   const quoteColumn = sql.identifier(parsed.data.kind === "request" ? "project_request_id" : "bulk_product_inquiry_id");
-  const publishable = sql`r."id" = ${parsed.data.id} AND r."status" IN ('open', 'quoted', 'published')`;
+  // Spec 0077 AC-6: projektu własnego ModularHub nie publikujemy (nie ma klienta), bramka jest w samym SQL.
+  const publishable =
+    parsed.data.kind === "request"
+      ? sql`r."id" = ${parsed.data.id} AND r."status" IN ('open', 'quoted', 'published') AND NOT r."is_platform_owned"`
+      : sql`r."id" = ${parsed.data.id} AND r."status" IN ('open', 'quoted', 'published')`;
 
   try {
     const [, requestStep] = await withAdminActor(adminId, [
@@ -276,7 +280,7 @@ export async function unpublishQuote(quoteId: string): Promise<ActionResult> {
         WHERE q."id" = ${quoteId} AND q."status" = 'active' AND q."published_to_client_at" IS NOT NULL
           AND NOT EXISTS (
             SELECT 1 FROM "project_request" r
-            WHERE r."id" = q."project_request_id" AND (r."selected_quote_id" = q."id" OR r."status" IN ('accepted', 'closed'))
+            WHERE r."id" = q."project_request_id" AND (r."selected_quote_id" = q."id" OR r."status" IN ('accepted', 'closed') OR r."is_platform_owned")
           )
           AND NOT EXISTS (
             SELECT 1 FROM "bulk_product_inquiry" b

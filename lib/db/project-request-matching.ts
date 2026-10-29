@@ -12,6 +12,7 @@ const request = {
   families: sql.raw('"project_request"."families"'),
   completion_standard: sql.raw('"project_request"."completion_standard"'),
   unit_count: sql.raw('"project_request"."unit_count"'),
+  is_platform_owned: sql.raw('"project_request"."is_platform_owned"'),
 } as const;
 
 // Spec 0070 AC-10: jedna reguła dopasowania producenta do zapytania wolnego
@@ -23,6 +24,7 @@ const request = {
 // zapytania zewnętrznego (to zapytanie musi mieć tę tabelę w FROM), a producenta
 // bierze z podanego wyrażenia (parametr albo kolumna `producer.id`).
 //
+// Zapytanie klienta:
 //   1. profil zdolności zatwierdzony wolumenowo, producent i jego członkowie nie
 //      są usunięci ani zablokowani (blokada leży na użytkownikach, patrz
 //      lib/producer-block-actions.ts), oraz
@@ -30,16 +32,17 @@ const request = {
 //   3. wyjątek `include`, albo wszystkie trzy warunki: rodzina opublikowanego
 //      produktu, standard wykończenia, moc (brak wartości w profilu nie wyklucza).
 //
+// Projekt własny ModularHub (spec 0077 AC-9): tylko warunki 1 bez weryfikacji
+// wolumenowej (producent i członkowie nie usunięci ani zablokowani), 2, oraz
+// wymagany wiersz `include`. Reguły rodziny, standardu, mocy i weryfikacji
+// wolumenowej nie obowiązują.
+//
 // Kraj dostawy NIE jest warunkiem: producent, który nie dowozi do kraju zapytania,
 // nadal je widzi i może złożyć ofertę, tylko dostaje znacznik (patrz
 // producerDeliversToRequestCountrySql).
 export function producerMatchesProjectRequestSql(producerId: SQL | string): SQL {
   return sql`(
-    exists (
-      select 1 from producer_capacity_profile m_cp
-      where m_cp.producer_id = ${producerId} and m_cp.volume_verification_status = 'approved'
-    )
-    and exists (select 1 from producer m_p where m_p.id = ${producerId} and m_p.deleted_at is null)
+    exists (select 1 from producer m_p where m_p.id = ${producerId} and m_p.deleted_at is null)
     and not exists (
       select 1 from producer_member m_pm
       join users m_u on m_u.id = m_pm.user_id
@@ -50,6 +53,20 @@ export function producerMatchesProjectRequestSql(producerId: SQL | string): SQL 
       where m_ox.project_request_id = ${request.id} and m_ox.producer_id = ${producerId} and m_ox.mode = 'exclude'
     )
     and (
+      (
+        ${request.is_platform_owned}
+        and exists (
+          select 1 from project_request_producer_override m_pi
+          where m_pi.project_request_id = ${request.id} and m_pi.producer_id = ${producerId} and m_pi.mode = 'include'
+        )
+      )
+      or (
+      not ${request.is_platform_owned}
+      and exists (
+        select 1 from producer_capacity_profile m_cp
+        where m_cp.producer_id = ${producerId} and m_cp.volume_verification_status = 'approved'
+      )
+      and (
       exists (
         select 1 from project_request_producer_override m_oi
         where m_oi.project_request_id = ${request.id} and m_oi.producer_id = ${producerId} and m_oi.mode = 'include'
@@ -72,6 +89,8 @@ export function producerMatchesProjectRequestSql(producerId: SQL | string): SQL 
             )
             and (m_cs.units_per_month is null or m_cs.units_per_month * 12 >= ${request.unit_count})
         )
+      )
+      )
       )
     )
   )`;
@@ -137,7 +156,7 @@ export async function getProducerMatchesForAdmin(projectRequestId: string): Prom
     })
     .from(producer)
     .innerJoin(projectRequest, eq(projectRequest.id, projectRequestId))
-    .innerJoin(producerCapacityProfile, eq(producerCapacityProfile.producerId, producer.id))
+    .leftJoin(producerCapacityProfile, eq(producerCapacityProfile.producerId, producer.id))
     .leftJoin(
       projectRequestProducerOverride,
       and(
@@ -148,7 +167,12 @@ export async function getProducerMatchesForAdmin(projectRequestId: string): Prom
     .where(
       and(
         isNull(producer.deletedAt),
-        or(eq(producerCapacityProfile.volumeVerificationStatus, "approved"), isNotNull(projectRequestProducerOverride.mode)),
+        // Projekt własny (spec 0077 AC-9): producent bez profilu wolumenowego też jest na liście.
+        or(
+          eq(projectRequest.isPlatformOwned, true),
+          eq(producerCapacityProfile.volumeVerificationStatus, "approved"),
+          isNotNull(projectRequestProducerOverride.mode),
+        ),
       ),
     )
     .orderBy(asc(producer.name));

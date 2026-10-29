@@ -98,6 +98,10 @@ export const COMPARE_ROWS_BY_KIND = {
     { key: "completionStandard" },
     { key: "productionTime" },
     { key: "floorPlan" },
+    // Spec 0075 AC-13: wiersze izolacji, renderowane tylko przy ENVELOPE_SECTION_ENABLED.
+    { key: "envelopeWall" },
+    { key: "envelopeRoof" },
+    { key: "envelopeFloor" },
   ],
   sauna: SAUNA_COMPARE_ROWS,
 } as const satisfies Record<CompareKind, readonly CompareRowDefinition[]>;

@@ -25,7 +25,14 @@ export async function requestPanelLoginLink(email: string, locale: string): Prom
     const [request] = await db
       .select({ name: projectRequest.contactName, phone: projectRequest.contactPhone })
       .from(projectRequest)
-      .where(and(eq(projectRequest.contactEmail, address), inArray(projectRequest.status, [...ACTIVE_STATUSES])))
+      // Spec 0077 AC-6: projekt własny ModularHub nie ma klienta, więc nie wysyłamy linku logowania klienta na adres zespołu.
+      .where(
+        and(
+          eq(projectRequest.contactEmail, address),
+          eq(projectRequest.isPlatformOwned, false),
+          inArray(projectRequest.status, [...ACTIVE_STATUSES]),
+        ),
+      )
       .limit(1);
     const [bulk] = request
       ? []

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { ProductEnvelopeSection } from "@/components/producent/ProductEnvelopeSection";
 import { ProductEditWizard } from "@/components/producent/ProductEditWizard";
 import { getCountries } from "@/lib/data/countries";
 import type { ProductTechnicalSpecsDraft, ProjectDraft } from "@/lib/data/types";
@@ -6,6 +7,7 @@ import {
   getProducerIdForUser,
   getProducerProductForEdit,
   getProducerVariantsForEdit,
+  getProductEnvelopeForEdit,
   getProductFloorPlansForAdmin,
   getProductPhotosForAdmin,
   getProductSalesPdfForAdmin,
@@ -13,6 +15,7 @@ import {
   type ProducerProductForEdit,
   type ProducerVariantForEdit,
 } from "@/lib/db/queries";
+import { supportsEnvelopeParameters } from "@/lib/product-envelope-parameters";
 import { requirePanelProducerSession } from "@/lib/panel-session";
 import { alignClientRequirementsTranslation, alignFaqTranslation, alignRoomLayoutTranslation } from "@/lib/producer-project-draft";
 import { clientRequirementsSchema, clientRequirementTranslationSchema } from "@/lib/product-client-requirements";
@@ -127,12 +130,14 @@ export default async function ProducerPanelEdytujProduktPage({
     getProductSalesPdfForAdmin(id),
     getProducerVariantsForEdit(id),
   ]);
+  const envelope = supportsEnvelopeParameters(productRow) ? await getProductEnvelopeForEdit(id) : null;
   const draft = producerProductToDraft(productRow, variants);
   draft.photoFiles = photos.map((photo) => ({ name: photo.filename, sizeBytes: 0 }));
   draft.floorPlanFiles = floorPlans.map((plan) => ({ name: plan.filename, sizeBytes: 0 }));
 
   return (
-    <ProductEditWizard
+    <>
+      <ProductEditWizard
       locale={locale}
       productId={id}
       initialDraft={draft}
@@ -142,6 +147,12 @@ export default async function ProducerPanelEdytujProduktPage({
       initialSalesPdf={salesPdf}
       initialVariants={variants}
       countries={countries}
-    />
+      />
+      {envelope ? (
+        <div className="mx-auto w-full max-w-5xl px-brand-3 pb-brand-6">
+          <ProductEnvelopeSection productId={id} foundationStatus={envelope.foundationStatus} rows={envelope.rows} />
+        </div>
+      ) : null}
+    </>
   );
 }

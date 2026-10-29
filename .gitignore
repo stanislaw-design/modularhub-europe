@@ -73,3 +73,20 @@ __pycache__/
 # Jednorazowe skrypty czyszczace prod
 /drizzle/_wipe_project_requests.sql
 /scripts/wipe-project-requests.mjs
+
+# Materialy zrodlowe producentow (duze pliki, nie do repozytorium)
+/_docs/przemyslawwencel/
+/_docs/saunyidomki/
+/_docs/FrameDEV Katalog nowy.pdf
+
+# Jednorazowe SQL z danymi osobowymi (prawdziwy e mail, telefon, NIP producenta), repozytorium jest publiczne
+/drizzle/_reassign_*
+/drizzle/_check_wencel_prod.sql
+
+# Wygenerowane oferty i obrazy, zdjecia konfiguratora (uzywane tylko przez dane w bazie)
+/output/images/
+/output/pdf/CocoLeisure_*.pdf
+/public/images/configurator/
+
+# Tymczasowe scenariusze /check verify
+/e2e/zz-verify-*.spec.ts

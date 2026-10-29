@@ -8,7 +8,7 @@ import { notifyProducersOfOtherSelected } from "@/lib/notifications/large-order-
 // Bez "use server": to funkcja serwerowa wołana tylko z innych akcji i z zadania
 // czyszczącego, nigdy bezpośrednio z przeglądarki. Gdyby była akcją, każdy mógłby
 // wymusić połączenie. Cztery miejsca wołają ją po zapisaniu własnego faktu
-// (spec 0070 AC-17): wybór klienta, zatwierdzenie B2B, godzinne zadanie czyszczące
+// (spec 0070 AC-17): wybór klienta, zatwierdzenie B2B, cykliczne zadanie czyszczące
 // i przycisk administratora.
 
 export type LargeOrderKind = "request" | "product";
@@ -37,6 +37,9 @@ function tables(kind: LargeOrderKind) {
 // Maile połączenia wychodzą tylko wtedy, gdy pierwszy krok faktycznie zmienił wiersz,
 // czyli najwyżej raz na zapytanie.
 export async function connectSelection(kind: LargeOrderKind, id: string): Promise<ConnectSelectionOutcome> {
+  // Spec 0077 AC-6: projekt własny ModularHub nie ma klienta ani łączenia stron, wybór kończy finishPlatformSelection.
+  if (kind === "request" && (await isPlatformOwnedRequest(id))) return "skipped";
+
   const { parent, quoteLink } = tables(kind);
   const parentTable = sql.identifier(parent);
   const link = sql.identifier(quoteLink);
@@ -86,6 +89,11 @@ export async function connectSelection(kind: LargeOrderKind, id: string): Promis
   return readConnectionState(kind, id);
 }
 
+async function isPlatformOwnedRequest(id: string): Promise<boolean> {
+  const [row] = await db.select({ owned: projectRequest.isPlatformOwned }).from(projectRequest).where(eq(projectRequest.id, id));
+  return row?.owned === true;
+}
+
 // Gdy nic nie zmieniono, czytamy stan, żeby wołający wiedział dlaczego.
 async function readConnectionState(kind: LargeOrderKind, id: string): Promise<ConnectSelectionOutcome> {
   const parentTable = kind === "request" ? projectRequest : bulkProductInquiry;
@@ -110,7 +118,7 @@ async function readConnectionState(kind: LargeOrderKind, id: string): Promise<Co
 
 // Po zatwierdzeniu B2B łączymy wszystkie zapytania tego klienta, które mają wybór bez
 // połączenia (AC-17). Błąd jednego zapytania nie zatrzymuje pozostałych i nie cofa
-// zatwierdzenia: zaległość zbierze godzinne zadanie czyszczące.
+// zatwierdzenia: zaległość zbierze cykliczne zadanie czyszczące.
 export async function connectPendingSelectionsForClient(clientId: string): Promise<void> {
   const pending = await getPendingSelections({ clientId });
   for (const item of pending) {
@@ -132,6 +140,7 @@ export async function getPendingSelections(scope: { clientId?: string } = {}): P
       .where(
         and(
           scope.clientId ? eq(projectRequest.clientId, scope.clientId) : undefined,
+          eq(projectRequest.isPlatformOwned, false),
           inArray(projectRequest.status, ["open", "quoted", "published"]),
           sql`${projectRequest.selectedQuoteId} IS NOT NULL`,
         ),

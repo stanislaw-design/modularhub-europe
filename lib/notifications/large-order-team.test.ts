@@ -57,7 +57,7 @@ describe("notifyTeamOfNewLargeOrder", () => {
       emailType: "large_order_team_new_request",
       entityId: order.id,
     });
-    expect(call.subject).toBe("Nowe zapytanie o duże zamówienie (12 domów, DE)");
+    expect(call.subject).toBe("Nowe zapytanie ModularProjects (12 domów, DE)");
     expect(call.text).toContain(`https://hub.example.test/pl/internal/large-orders/${order.id}?kind=request`);
     expect(call.text).toContain("12");
     expect(call.text).toContain("Język klienta: de");
@@ -70,7 +70,7 @@ describe("notifyTeamOfNewLargeOrder", () => {
     await notifyTeamOfNewLargeOrder({ ...order, matchedProducerCount: 0 });
 
     const call = sendNotificationEmailMock.mock.calls[0][0];
-    expect(call.subject).toBe("Brak dopasowanych producentów: zapytanie o duże zamówienie (12 domów, DE)");
+    expect(call.subject).toBe("Brak dopasowanych producentów: zapytanie ModularProjects (12 domów, DE)");
     expect(call.text).toContain("Żaden producent nie widzi tego zapytania");
     expect(call.text).toContain("Dopasowani producenci: 0");
   });
@@ -81,7 +81,7 @@ describe("notifyTeamOfNewLargeOrder", () => {
     await notifyTeamOfNewLargeOrder({ ...order, matchedProducerCount: 4 });
 
     const call = sendNotificationEmailMock.mock.calls[0][0];
-    expect(call.subject).toBe("Nowe zapytanie o duże zamówienie (12 domów, DE)");
+    expect(call.subject).toBe("Nowe zapytanie ModularProjects (12 domów, DE)");
     expect(call.text).not.toContain("Żaden producent nie widzi");
     expect(call.text).toContain("Dopasowani producenci: 4");
   });
@@ -139,7 +139,7 @@ describe("notifyTeamOfClientCancelledRequest", () => {
 
     const call = sendNotificationEmailMock.mock.calls[0][0];
     expect(call).toMatchObject({ to: "ops@example.test", emailType: "large_order_team_client_cancelled", entityId: order.id });
-    expect(call.subject).toBe("Klient zamknął zapytanie o duże zamówienie (12 domów, DE)");
+    expect(call.subject).toBe("Klient zamknął zapytanie ModularProjects (12 domów, DE)");
     expect(call.text).toContain("Podsumowanie dla tego zapytania było już opublikowane.");
     expect(call.text).toContain(`https://hub.example.test/pl/internal/large-orders/${order.id}?kind=request`);
   });

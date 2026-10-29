@@ -9,6 +9,7 @@ import type { Country, CountryCode, ProductFamily } from "@/lib/data/types";
 import { PRODUCT_FAMILIES } from "@/lib/product-technical-specs";
 import { COMPLETION_STANDARDS } from "@/lib/producer-capacity-profile-specs";
 import { PROJECT_TYPES } from "@/lib/project-request-specs";
+import { EMPTY_INTENDED_USE, IntendedUseField, intendedUseInput, type IntendedUseValue } from "@/components/klient/IntendedUseField";
 import { submitProjectRequest, type SubmitProjectRequestInput } from "@/lib/project-request-actions";
 import { InquiryAttachmentsAfterSubmit } from "@/components/inquiry-attachments/InquiryAttachmentsAfterSubmit";
 import { StagedAttachmentPicker } from "@/components/inquiry-attachments/StagedAttachmentPicker";
@@ -90,6 +91,7 @@ export function ProjectRequestFlow({ locale, countries, prefill }: ProjectReques
   const [deliveryWindowFrom, setDeliveryWindowFrom] = useState("");
   const [deliveryWindowTo, setDeliveryWindowTo] = useState("");
   const [extrasNote, setExtrasNote] = useState("");
+  const [intendedUse, setIntendedUse] = useState<IntendedUseValue>(EMPTY_INTENDED_USE);
   const [contactName, setContactName] = useState(prefill?.name ?? "");
   const [contactEmail, setContactEmail] = useState(prefill?.email ?? "");
   const [contactPhone, setContactPhone] = useState(prefill?.phone ?? "");
@@ -159,6 +161,7 @@ export function ProjectRequestFlow({ locale, countries, prefill }: ProjectReques
       deliveryWindowFrom: toOptionalString(deliveryWindowFrom),
       deliveryWindowTo: toOptionalString(deliveryWindowTo),
       extrasNote: toOptionalString(extrasNote),
+      ...intendedUseInput(intendedUse),
     };
 
     startTransition(async () => {
@@ -532,6 +535,7 @@ export function ProjectRequestFlow({ locale, countries, prefill }: ProjectReques
                   {t("extrasNoteVisibilityHint")}
                 </Text>
               </Stack>
+              <IntendedUseField idPrefix="project-request" value={intendedUse} onChange={setIntendedUse} />
               <Stack gap={2}>
                 <Label surface="v5">{attachmentLabels.heading}</Label>
                 <Text tone="muted" surface="v5" className="text-data">

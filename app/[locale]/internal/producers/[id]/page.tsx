@@ -1,8 +1,12 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { CommunicationLocaleForm } from "@/components/producent/CommunicationLocaleForm";
 import { ProducerDeliveryCountriesAdminSection } from "@/components/internal/ProducerDeliveryCountriesAdminSection";
 import { ProducerCertificationAdminSection } from "@/components/internal/ProducerCertificationAdminSection";
+import { setProducerCommunicationLocaleAsAdmin } from "@/lib/producer-communication-locale-actions";
+import { supportsEnvelopeParameters } from "@/lib/product-envelope-parameters";
+import { ProductEnvelopeAdminSection } from "@/components/internal/ProductEnvelopeAdminSection";
 import { ProductComplianceAdminSection } from "@/components/internal/ProductComplianceAdminSection";
 import { Heading, Stack, Text } from "@/components/ui";
 import {
@@ -51,6 +55,20 @@ export default async function InternalProducerDetailPage({
       <Heading level="h1">{profile.name}</Heading>
       <Text tone="muted">NIP {profile.nip}</Text>
 
+      {/* Spec 0077 AC-29: język maili o dużych zamówieniach, panel admina zostaje po polsku. */}
+      <CommunicationLocaleForm
+        initialLocale={profile.communicationLocale}
+        onSave={setProducerCommunicationLocaleAsAdmin.bind(null, id)}
+        labels={{
+          heading: "Język komunikacji",
+          label: "Język maili o zapytaniach i ofertach",
+          hint: "Maile o dużych zamówieniach do tego producenta wychodzą w tym języku. Producent może to zmienić w ustawieniach firmy.",
+          save: "Zapisz język",
+          saved: "Zapisano.",
+          saveError: "Nie udało się zapisać języka.",
+        }}
+      />
+
       <ProducerDeliveryCountriesAdminSection
         producerId={id}
         countries={countries}
@@ -67,6 +85,17 @@ export default async function InternalProducerDetailPage({
           <Text tone="muted">Producent nie ma jeszcze produktów.</Text>
         ) : (
           products.map((product) => <ProductComplianceAdminSection key={product.id} product={product} />)
+        )}
+      </section>
+
+      <section aria-labelledby="producer-envelope-heading" className="flex flex-col gap-brand-3">
+        <h2 id="producer-envelope-heading" className="text-h3 font-semibold">
+          Izolacja przegród i posadowienie
+        </h2>
+        {products.some((product) => supportsEnvelopeParameters(product)) ? (
+          products.map((product) => <ProductEnvelopeAdminSection key={product.id} product={product} />)
+        ) : (
+          <Text tone="muted">Producent nie ma produktów, którym można przypisać parametry izolacji.</Text>
         )}
       </section>
     </Stack>
