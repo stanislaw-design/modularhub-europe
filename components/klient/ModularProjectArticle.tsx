@@ -53,12 +53,29 @@ export async function ModularProjectArticle({ project, locale }: { project: Reso
             {t("factsHeading")}
           </h2>
           <dl className="grid grid-cols-1 gap-x-brand-4 gap-y-brand-3 sm:grid-cols-2 lg:grid-cols-4">
-            {project.facts.map((fact) => (
-              <div key={fact.label} className="flex flex-col gap-0.5 border-t border-current/30 pt-2">
-                <dt className="text-data opacity-80">{fact.label}</dt>
-                <dd className="text-h3 font-semibold">{fact.value}</dd>
-              </div>
-            ))}
+            {project.facts.map((fact) => {
+              const showInvestorLogo = project.slug === "cocoleisure" && fact.value === "CocoLeisure";
+
+              return (
+                <div key={fact.label} className="flex flex-col gap-0.5 border-t border-current/30 pt-2">
+                  <dt className="text-data opacity-80">{fact.label}</dt>
+                  {showInvestorLogo ? (
+                    <dd className="mt-1 w-fit rounded-lg bg-white px-3 py-2 shadow-sm">
+                      <Image
+                        src="/images/modularprojects/cocoleisure/logo.webp"
+                        alt={fact.value}
+                        width={640}
+                        height={312}
+                        sizes="208px"
+                        className="h-auto w-48 sm:w-52"
+                      />
+                    </dd>
+                  ) : (
+                    <dd className="text-h3 font-semibold">{fact.value}</dd>
+                  )}
+                </div>
+              );
+            })}
           </dl>
         </Container>
       </section>

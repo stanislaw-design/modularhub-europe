@@ -390,6 +390,16 @@ body {
   }
 }
 
+/* Lista realizacji ModularProjects: siatka kart i filtry dostają prawie całą
+   szerokość ekranu. Znacznik `.modularprojects-wide` stawia tylko
+   app/[locale]/(customer)/modularprojects/page.tsx. */
+@media (min-width: 1024px) {
+  main:has(.modularprojects-wide) > .route-container {
+    max-width: none;
+    padding-inline: 2.5%;
+  }
+}
+
 /* Strona projektu na desktopie: galeria sięga lewej krawędzi ekranu, a panel
    zakupowy trzyma prawą kolumnę, więc kontener trasy traci limit szerokości,
    boczne marginesy i górny odstęp. Znacznik `.project-wide` stawia tylko

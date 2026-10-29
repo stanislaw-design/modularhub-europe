@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ModularProjectCard } from "@/components/klient/ModularProjectCard";
+import { ModularProjectsBrowser } from "@/components/klient/ModularProjectsBrowser";
 import { ModularProjectStructuredData } from "@/components/klient/ModularProjectStructuredData";
-import { Container, Heading, Text } from "@/components/ui";
+import { Heading, Text } from "@/components/ui";
 import { getModularProjects } from "@/lib/data/modularprojects";
 import { routing } from "@/lib/i18n/routing";
 
@@ -39,7 +40,7 @@ export default async function ModularProjectsPage({ params }: { params: Promise<
   const projects = await getModularProjects(locale);
 
   return (
-    <Container className="py-brand-6">
+    <div className="modularprojects-wide py-brand-6">
       <ModularProjectStructuredData
         kind="collection"
         locale={locale}
@@ -59,15 +60,20 @@ export default async function ModularProjectsPage({ params }: { params: Promise<
         {projects.length === 0 ? (
           <Text surface="v5">{t("empty")}</Text>
         ) : (
-          <ul aria-label={t("listLabel")} className="grid grid-cols-1 gap-brand-3 sm:grid-cols-2 lg:grid-cols-3">
-            {projects.map((project) => (
-              <li key={project.slug}>
-                <ModularProjectCard project={project} locale={locale} />
-              </li>
-            ))}
-          </ul>
+          <ModularProjectsBrowser
+            locale={locale}
+            items={projects.map((project) => ({
+              slug: project.slug,
+              title: project.title,
+              lead: project.lead,
+              status: project.status,
+              publishedAt: project.publishedAt,
+              card: <ModularProjectCard project={project} locale={locale} />,
+              featuredCard: <ModularProjectCard project={project} locale={locale} variant="featured" />,
+            }))}
+          />
         )}
       </div>
-    </Container>
+    </div>
   );
 }
