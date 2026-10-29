@@ -470,7 +470,7 @@ export async function selectProjectQuote(quoteId: string): Promise<SelectProject
     // already_connected nie powinno wystąpić zaraz po zapisie, który wymaga braku połączenia.
     return { ok: true, outcome: outcome === "connected" ? "connected" : undefined };
   } catch (error) {
-    // Wybór jest zapisany. Połączenie dokończy godzinne zadanie czyszczące albo administrator.
+    // Wybór jest zapisany. Połączenie dokończy cykliczne zadanie czyszczące albo administrator.
     captureError(error, { path: "selectProjectQuote:connectSelection", userId: session.user.id });
     return { ok: true };
   }

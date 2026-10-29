@@ -8,7 +8,7 @@ import { notifyProducersOfOtherSelected } from "@/lib/notifications/large-order-
 // Bez "use server": to funkcja serwerowa wołana tylko z innych akcji i z zadania
 // czyszczącego, nigdy bezpośrednio z przeglądarki. Gdyby była akcją, każdy mógłby
 // wymusić połączenie. Cztery miejsca wołają ją po zapisaniu własnego faktu
-// (spec 0070 AC-17): wybór klienta, zatwierdzenie B2B, godzinne zadanie czyszczące
+// (spec 0070 AC-17): wybór klienta, zatwierdzenie B2B, cykliczne zadanie czyszczące
 // i przycisk administratora.
 
 export type LargeOrderKind = "request" | "product";
@@ -118,7 +118,7 @@ async function readConnectionState(kind: LargeOrderKind, id: string): Promise<Co
 
 // Po zatwierdzeniu B2B łączymy wszystkie zapytania tego klienta, które mają wybór bez
 // połączenia (AC-17). Błąd jednego zapytania nie zatrzymuje pozostałych i nie cofa
-// zatwierdzenia: zaległość zbierze godzinne zadanie czyszczące.
+// zatwierdzenia: zaległość zbierze cykliczne zadanie czyszczące.
 export async function connectPendingSelectionsForClient(clientId: string): Promise<void> {
   const pending = await getPendingSelections({ clientId });
   for (const item of pending) {
