@@ -112,7 +112,8 @@ export async function getPanelNavCounts(
   const verification = (await getProducerVolumeVerificationStatus(producerId)) ?? "not_submitted";
   const [needsOffer, boardWithoutQuoteCount] = await Promise.all([
     getNeedsOfferSummary(producerId),
-    verification === "approved" ? getBoardWithoutQuoteCount(producerId) : Promise.resolve(0),
+    // Spec 0077 AC-9: bez weryfikacji wolumenowej licznik obejmuje tylko projekty własne ModularHub (reguła dopasowania).
+    getBoardWithoutQuoteCount(producerId),
   ]);
   return {
     needsOfferCount: needsOffer.count,

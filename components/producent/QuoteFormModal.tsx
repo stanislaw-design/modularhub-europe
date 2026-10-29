@@ -12,7 +12,12 @@ import { QuoteForm, type QuoteFormProps } from "./QuoteForm";
 // formularz w wąską kolumnę obok szczegółów zapytania (długi formularz rozciągał
 // stronę i zostawiał pustą przestrzeń pod danymi zapytania). Po zapisie oferty
 // zamknięcie okna odświeża stronę serwerową, żeby status oferty był aktualny.
-export function QuoteFormModal(props: QuoteFormProps) {
+// Spec 0077: `triggerLabel` i `compact` pozwalają użyć modala jako małego przycisku "Popraw" przy wariancie.
+export function QuoteFormModal({
+  triggerLabel,
+  compact = false,
+  ...props
+}: QuoteFormProps & { triggerLabel?: string; compact?: boolean }) {
   const t = useTranslations("QuoteForm");
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -28,8 +33,14 @@ export function QuoteFormModal(props: QuoteFormProps) {
 
   return (
     <>
-      <Button type="button" onClick={() => setOpen(true)} className="w-full">
-        {props.isRevision ? t("openRevision") : t("open")}
+      <Button
+        type="button"
+        onClick={() => setOpen(true)}
+        className={compact ? undefined : "w-full"}
+        variant={compact ? "secondary" : undefined}
+        size={compact ? "sm" : undefined}
+      >
+        {triggerLabel ?? (props.isRevision ? t("openRevision") : t("open"))}
       </Button>
       <Dialog open={open} onClose={close} transition className="relative z-30">
         <DialogBackdrop

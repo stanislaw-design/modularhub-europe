@@ -1973,6 +1973,15 @@
     "hiddenByDelivery": "Ukryto {count, plural, one {# zapytanie} few {# zapytania} many {# zapytań} other {# zapytania}} spoza Twoich krajów dostawy."
   },
   "ProducerBoardDetailPage": {
+    "platformBuyerLabel": "Zamawiający",
+    "platformBuyerValue": "ModularHub",
+    "platformContactHeading": "Kontakt ModularHub",
+    "platformContactName": "Osoba",
+    "platformContactEmail": "E mail",
+    "platformContactPhone": "Telefon",
+    "platformSelectionDone": "Wybór zakończony",
+    "platformSelected": "Wybrana",
+    "platformIntro": "To projekt ModularHub. Możesz złożyć kilka wariantów oferty (do pięciu) i poprawiać je do terminu.",
     "quotesClosedNote": "Termin składania ofert minął albo klient wybrał już ofertę. Nowej oferty nie można złożyć.",
     "ownQuotePublishedNote": "Twoja oferta jest już opublikowana klientowi. Nową wersję złożysz, gdy ModularHub cofnie jej publikację.",
     "scopeHeading": "Zakres zamówienia",
@@ -2000,7 +2009,23 @@
     "notDeliveringNote": "Nie masz tego kraju na liście dostaw",
     "notDeliveringLink": "Dodaj kraj w profilu zdolności"
   },
+  "ProducerPlatformVariants": {
+    "heading": "Twoje warianty oferty",
+    "empty": "Nie złożono jeszcze żadnego wariantu.",
+    "columnVariant": "Wariant",
+    "columnPrice": "Cena łączna",
+    "columnSubmitted": "Złożono",
+    "edit": "Popraw",
+    "withdraw": "Wycofaj",
+    "withdrawing": "Wycofywanie…",
+    "withdrawError": "Nie udało się wycofać wariantu. Spróbuj ponownie.",
+    "addVariant": "Dodaj wariant",
+    "editTitle": "Popraw wariant",
+    "limitNote": "Masz pięć wariantów. Wycofaj jeden, żeby dodać kolejny."
+  },
   "QuoteForm": {
+    "variantLabel": "Nazwa wariantu",
+    "variantHint": "Np. „Stan surowy” albo „Pod klucz”. Możesz złożyć do pięciu wariantów w jednym projekcie.",
     "heading": "Twoja wycena",
     "intro": "Podaj wycenę na to zapytanie.",
     "revisionIntro": "Poprawiasz wcześniej złożoną wycenę — nowa wersja zastąpi poprzednią.",
@@ -2088,6 +2113,7 @@
     "backToInquiries": "Wróć do zapytań"
   },
   "FeaturedProjectShowcase": {
+    "tagline": "Realizacje na platformie ModularHub Europe",
     "eyebrow": "Realizacja w toku",
     "factsHeading": "Informacje o projekcie",
     "investorCta": "Zleć podobny projekt",
@@ -2113,7 +2139,6 @@
     "locationDetailLabel": "Lokalizacja (opcjonalnie)",
     "sectionDetailsHeading": "Szczegóły",
     "unitCountLabel": "Liczba domów",
-    "tagline": "Realizacje na platformie ModularHub Europe",
     "unitCountHint": "Podaj jedną dokładną liczbę, od 3 domów. Nie znasz jej jeszcze? Wpisz liczbę pierwszego etapu, a resztę opisz w uwagach.",
     "unitCountSmallHint": "Przy 1 lub 2 domach użyj zwykłej ścieżki zapytania:",
     "unitCountSmallHintLink": "wybierz projekt w katalogu i zapytaj producenta.",
@@ -2815,6 +2840,22 @@
     "deadlineLabel": "Termin składania ofert",
     "cta": "Otwórz zapytanie"
   },
+  "LargeOrderProducerNewPlatformProjectEmail": {
+    "subject": "Nowy projekt ModularHub: {title}",
+    "intro": "ModularHub zapytuje o ofertę w nowym projekcie. Możesz złożyć jedną lub kilka wycen (warianty), np. stan surowy i pod klucz.",
+    "titleLabel": "Projekt",
+    "buyerLabel": "Zamawiający",
+    "buyerValue": "ModularHub",
+    "countryLabel": "Kraj",
+    "unitsLabel": "Liczba sztuk",
+    "deadlineLabel": "Termin składania ofert",
+    "cta": "Otwórz projekt"
+  },
+  "LargeOrderProducerPlatformSelectionDoneEmail": {
+    "subject": "Wybór w projekcie zakończony: {title}",
+    "body": "Dziękujemy za złożenie oferty w projekcie „{title}”. Wybór został dokonany. ModularHub wróci do Państwa z dalszymi krokami.",
+    "cta": "Otwórz panel"
+  },
   "LargeOrderTeamNewQuoteEmail": {
     "subject": "Nowa oferta na zapytanie ({units} domów, {country})",
     "intro": "Producent złożył ofertę. Klient jej nie widzi, dopóki nie opublikujesz podsumowania.",
@@ -2884,7 +2925,10 @@
     "changeCountries": "Zmień",
     "save": "Zapisz zmiany",
     "saved": "Zapisano.",
-    "saveError": "Nie udało się zapisać danych firmy."
+    "saveError": "Nie udało się zapisać danych firmy.",
+    "communicationHeading": "Język komunikacji",
+    "communicationLocaleLabel": "Język maili o zapytaniach i ofertach",
+    "communicationHint": "W tym języku wysyłamy maile o dużych zamówieniach, przypomnieniach i wyniku wyboru. Nie zmienia języka panelu."
   },
   "ProducerBoardTabs": {
     "ariaLabel": "ModularProjects",
@@ -2983,6 +3027,23 @@
     "intro": "Tak wyglądają duże projekty realizowane przez ModularHub Europe. Zobacz wizualizacje, projekt konstrukcji i zdjęcia z budowy.",
     "empty": "Pierwsze realizacje pojawią się tutaj wkrótce.",
     "listLabel": "Lista realizacji",
+    "filters": {
+      "viewProject": "Zobacz realizację",
+      "searchLabel": "Szukaj",
+      "searchPlaceholder": "Nazwa lub opis realizacji",
+      "statusLabel": "Etap realizacji",
+      "statusAll": "Wszystkie statusy",
+      "addedFrom": "Dodano od",
+      "addedTo": "Dodano do",
+      "sortLabel": "Sortuj",
+      "sortNewest": "Najnowsze",
+      "sortOldest": "Najstarsze",
+      "sortTitle": "Nazwa A–Z",
+      "reset": "Wyczyść filtry",
+      "count": "Wyniki: {shown} z {total}",
+      "noResults": "Brak realizacji pasujących do filtrów.",
+      "addedOn": "Dodano {date}"
+    },
     "status": {
       "planned": "Planowana",
       "in_production": "W produkcji",

@@ -5,6 +5,7 @@ import { Upload } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { ProjectQuotePdfUploadStep } from "@/components/producent/ProjectQuotePdfUploadStep";
 import { Button, Card, Heading, Input, Label, Radio, Stack, Text, Textarea } from "@/components/ui";
+import type { QuoteFormInitialValues } from "@/lib/platform-quote-variants";
 import { submitProjectQuote, uploadProjectQuotePdf } from "@/lib/project-quote-actions";
 import {
   QUOTE_LOGISTICS_ITEMS,
@@ -16,7 +17,14 @@ import {
 } from "@/lib/project-quote-specs";
 
 // Dokładnie jedno z dwojga: zapytanie wolne z tablicy albo zapytanie o produkt producenta (AC-21).
-export type QuoteFormProps = { isRevision: boolean; onSubmitted?: () => void } & (
+// Spec 0077: `requireVariant` włącza obowiązkowe pole nazwy wariantu (projekt własny ModularHub),
+// `initialValues` wypełnia formularz danymi istniejącego wariantu przy poprawianiu.
+export type QuoteFormProps = {
+  isRevision: boolean;
+  onSubmitted?: () => void;
+  requireVariant?: boolean;
+  initialValues?: QuoteFormInitialValues;
+} & (
   | { projectRequestId: string; bulkProductInquiryId?: undefined }
   | { bulkProductInquiryId: string; projectRequestId?: undefined }
 );
@@ -58,28 +66,38 @@ function toLogisticsInput(draft: LogisticsDraft): QuoteLogisticsItemInput {
 // document.projectQuoteId wymaga, żeby wiersz project_quote już istniał (FK).
 // Gdy samo wgranie PDF się nie powiedzie, oferta i tak zostaje zapisana --
 // ProjectQuotePdfUploadStep zostaje pokazany jako krok do ponowienia.
-export function QuoteForm({ projectRequestId, bulkProductInquiryId, isRevision, onSubmitted }: QuoteFormProps) {
+export function QuoteForm({
+  projectRequestId,
+  bulkProductInquiryId,
+  isRevision,
+  onSubmitted,
+  requireVariant = false,
+  initialValues,
+}: QuoteFormProps) {
   const t = useTranslations("QuoteForm");
   const tPdf = useTranslations("ProjectQuotePdfUploadStep");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [priceTaxMode, setPriceTaxMode] = useState<QuotePriceTaxMode>("net");
-  const [vatRatePercent, setVatRatePercent] = useState("");
-  const [totalPriceEur, setTotalPriceEur] = useState("");
-  const [unitPriceEur, setUnitPriceEur] = useState("");
-  const [scopeIncluded, setScopeIncluded] = useState("");
-  const [scopeExcluded, setScopeExcluded] = useState("");
-  const [logistics, setLogistics] = useState<Record<QuoteLogisticsItem, LogisticsDraft>>({
-    transport: EMPTY_LOGISTICS,
-    assembly: EMPTY_LOGISTICS,
-    crane: EMPTY_LOGISTICS,
-  });
-  const [paymentPlan, setPaymentPlan] = useState("");
-  const [validUntil, setValidUntil] = useState("");
-  const [warrantyNote, setWarrantyNote] = useState("");
-  const [proposedLeadTimeWeeks, setProposedLeadTimeWeeks] = useState("");
-  const [deliveryWindowFrom, setDeliveryWindowFrom] = useState("");
-  const [deliveryWindowTo, setDeliveryWindowTo] = useState("");
-  const [notes, setNotes] = useState("");
+  const [variantLabel, setVariantLabel] = useState(initialValues?.variantLabel ?? "");
+  const [priceTaxMode, setPriceTaxMode] = useState<QuotePriceTaxMode>(initialValues?.priceTaxMode ?? "net");
+  const [vatRatePercent, setVatRatePercent] = useState(initialValues?.vatRatePercent ?? "");
+  const [totalPriceEur, setTotalPriceEur] = useState(initialValues?.totalPriceEur ?? "");
+  const [unitPriceEur, setUnitPriceEur] = useState(initialValues?.unitPriceEur ?? "");
+  const [scopeIncluded, setScopeIncluded] = useState(initialValues?.scopeIncluded ?? "");
+  const [scopeExcluded, setScopeExcluded] = useState(initialValues?.scopeExcluded ?? "");
+  const [logistics, setLogistics] = useState<Record<QuoteLogisticsItem, LogisticsDraft>>(
+    initialValues?.logistics ?? {
+      transport: EMPTY_LOGISTICS,
+      assembly: EMPTY_LOGISTICS,
+      crane: EMPTY_LOGISTICS,
+    },
+  );
+  const [paymentPlan, setPaymentPlan] = useState(initialValues?.paymentPlan ?? "");
+  const [validUntil, setValidUntil] = useState(initialValues?.validUntil ?? "");
+  const [warrantyNote, setWarrantyNote] = useState(initialValues?.warrantyNote ?? "");
+  const [proposedLeadTimeWeeks, setProposedLeadTimeWeeks] = useState(initialValues?.proposedLeadTimeWeeks ?? "");
+  const [deliveryWindowFrom, setDeliveryWindowFrom] = useState(initialValues?.deliveryWindowFrom ?? "");
+  const [deliveryWindowTo, setDeliveryWindowTo] = useState(initialValues?.deliveryWindowTo ?? "");
+  const [notes, setNotes] = useState(initialValues?.notes ?? "");
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pdfError, setPdfError] = useState<string | null>(null);
@@ -89,7 +107,8 @@ export function QuoteForm({ projectRequestId, bulkProductInquiryId, isRevision, 
   const [isPending, startTransition] = useTransition();
 
   const totalPrice = Number(totalPriceEur) || 0;
-  const canSubmit = totalPrice > 0 && scopeIncluded.trim().length > 0 && validUntil.length > 0;
+  const canSubmit =
+    totalPrice > 0 && scopeIncluded.trim().length > 0 && validUntil.length > 0 && (!requireVariant || variantLabel.trim().length > 0);
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const files = event.target.files;
@@ -106,6 +125,7 @@ export function QuoteForm({ projectRequestId, bulkProductInquiryId, isRevision, 
     startTransition(async () => {
       const result = await submitProjectQuote({
         ...(projectRequestId ? { projectRequestId } : { bulkProductInquiryId }),
+        ...(requireVariant ? { variantLabel: variantLabel.trim() } : {}),
         priceTaxMode,
         vatRatePercent: optionalNumber(vatRatePercent),
         totalPriceEur: totalPrice,
@@ -168,6 +188,24 @@ export function QuoteForm({ projectRequestId, bulkProductInquiryId, isRevision, 
           <Heading level="h3">{t("heading")}</Heading>
           <Text tone="muted">{isRevision ? t("revisionIntro") : t("intro")}</Text>
         </Stack>
+
+        {requireVariant && (
+          <Stack gap={1} className="w-full">
+            <Label htmlFor="quote-variant-label" required>
+              {t("variantLabel")}
+            </Label>
+            <Input
+              id="quote-variant-label"
+              maxLength={60}
+              required
+              value={variantLabel}
+              onChange={(event) => setVariantLabel(event.target.value)}
+            />
+            <Text as="span" variant="label" tone="muted">
+              {t("variantHint")}
+            </Text>
+          </Stack>
+        )}
 
         <fieldset className="flex flex-col gap-brand-3">
           <legend className="mb-brand-2 font-display text-body-l font-semibold text-brand-foundation-navy">{t("priceSection")}</legend>

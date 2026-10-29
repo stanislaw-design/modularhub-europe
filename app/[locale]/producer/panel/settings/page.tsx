@@ -2,9 +2,11 @@ import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { Card, Heading, Stack, Text } from "@/components/ui";
 import { ProducerCertificationsSection } from "@/components/producent/ProducerCertificationsSection";
+import { CommunicationLocaleForm } from "@/components/producent/CommunicationLocaleForm";
 import { ProducerCompanyForm } from "@/components/producent/ProducerCompanyForm";
 import { getProducerCertifications, getProducerIdForUser, getProducerProfile } from "@/lib/db/queries";
 import { requirePanelProducerSession } from "@/lib/panel-session";
+import { setProducerCommunicationLocale } from "@/lib/producer-communication-locale-actions";
 
 // Ustawienia firmy (spec 0074 AC-11): nazwa i technologia do zmiany formularzem,
 // NIP i kraje dostawy tylko do odczytu (kraje zmienia się w Profilu zdolności),
@@ -39,6 +41,18 @@ export default async function ProducerSettingsPage({
       <Heading level="h1">{t("heading")}</Heading>
       {/* Nullable od spec 0040: konto bez ustawionej technologii zaczyna z pustym wyborem. */}
       <ProducerCompanyForm initialName={profile.name} initialTechnology={profile.technology} />
+      <CommunicationLocaleForm
+        initialLocale={profile.communicationLocale}
+        onSave={setProducerCommunicationLocale}
+        labels={{
+          heading: t("communicationHeading"),
+          label: t("communicationLocaleLabel"),
+          hint: t("communicationHint"),
+          save: t("save"),
+          saved: t("saved"),
+          saveError: t("saveError"),
+        }}
+      />
       <Card padding="lg">
         <Stack gap={3}>
           <Stack gap={1}>

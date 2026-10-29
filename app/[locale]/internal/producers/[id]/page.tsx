@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { CommunicationLocaleForm } from "@/components/producent/CommunicationLocaleForm";
 import { ProducerDeliveryCountriesAdminSection } from "@/components/internal/ProducerDeliveryCountriesAdminSection";
 import { ProducerCertificationAdminSection } from "@/components/internal/ProducerCertificationAdminSection";
+import { setProducerCommunicationLocaleAsAdmin } from "@/lib/producer-communication-locale-actions";
 import { supportsEnvelopeParameters } from "@/lib/product-envelope-parameters";
 import { ProductEnvelopeAdminSection } from "@/components/internal/ProductEnvelopeAdminSection";
 import { ProductComplianceAdminSection } from "@/components/internal/ProductComplianceAdminSection";
@@ -52,6 +54,20 @@ export default async function InternalProducerDetailPage({
       </Link>
       <Heading level="h1">{profile.name}</Heading>
       <Text tone="muted">NIP {profile.nip}</Text>
+
+      {/* Spec 0077 AC-29: język maili o dużych zamówieniach, panel admina zostaje po polsku. */}
+      <CommunicationLocaleForm
+        initialLocale={profile.communicationLocale}
+        onSave={setProducerCommunicationLocaleAsAdmin.bind(null, id)}
+        labels={{
+          heading: "Język komunikacji",
+          label: "Język maili o zapytaniach i ofertach",
+          hint: "Maile o dużych zamówieniach do tego producenta wychodzą w tym języku. Producent może to zmienić w ustawieniach firmy.",
+          save: "Zapisz język",
+          saved: "Zapisano.",
+          saveError: "Nie udało się zapisać języka.",
+        }}
+      />
 
       <ProducerDeliveryCountriesAdminSection
         producerId={id}

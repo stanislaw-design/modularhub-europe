@@ -426,7 +426,14 @@ export async function reopenRequest(id: string, kind: "request" | "product"): Pr
     const [before] = await db
       .select({ status: table.status, closedReason: table.closedReason })
       .from(table)
-      .where(and(eq(table.id, id), eq(table.clientId, clientId)));
+      .where(
+        and(
+          eq(table.id, id),
+          eq(table.clientId, clientId),
+          // Spec 0077 AC-6: projektu własnego ModularHub klient nie wznawia.
+          kind === "request" ? eq(projectRequest.isPlatformOwned, false) : undefined,
+        ),
+      );
     if (!before) return { ok: false, errorCode: "not_found" };
     // Powtórne kliknięcie po udanym wznowieniu: sukces bez zmiany.
     if (before.status !== "closed" && before.status !== "accepted") return { ok: true };

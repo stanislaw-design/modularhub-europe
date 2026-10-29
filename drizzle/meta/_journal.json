@@ -435,6 +435,41 @@
       "when": 1792822846005,
       "tag": "0061_envelope_parameters",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1793010440727,
+      "tag": "0062_platform_owned_projects",
+      "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "7",
+      "when": 1793018867012,
+      "tag": "0063_producer_groups",
+      "breakpoints": true
+    },
+    {
+      "idx": 64,
+      "version": "7",
+      "when": 1793034502853,
+      "tag": "0064_producer_communication_locale",
+      "breakpoints": true
+    },
+    {
+      "idx": 65,
+      "version": "7",
+      "when": 1793091542734,
+      "tag": "0065_product_option_price_note",
+      "breakpoints": true
+    },
+    {
+      "idx": 66,
+      "version": "7",
+      "when": 1793200000000,
+      "tag": "0066_admin_accounts_audit",
+      "breakpoints": true
     }
   ]
 }

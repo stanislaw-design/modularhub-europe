@@ -1,3 +1,4 @@
+import { normalizeCommunicationLocale, type CommunicationLocale } from "@/lib/producer-communication-locale";
 import { and, asc, desc, eq, ilike, inArray, isNotNull, isNull, notInArray, or, sql } from "drizzle-orm";
 import { db } from "./client";
 import { producerDeliversToRequestCountrySql, producerMatchesProjectRequestSql } from "./project-request-matching";
@@ -6,6 +7,7 @@ import type { Locale } from "@/lib/i18n/routing";
 import { resolveTranslatedText } from "@/lib/i18n/resolve-translated-text";
 import { COMPLIANCE_ONLY_COUNTRY_CODES } from "@/lib/product-envelope-parameters";
 import { storedLogisticsSchema, type StoredLogistics } from "@/lib/project-quote-specs";
+import { toPlatformQuoteVariant, type PlatformQuoteVariant } from "@/lib/platform-quote-variants";
 import {
   bulkProductInquiry,
   client,
@@ -21,6 +23,7 @@ import {
   producerCapacityProfile,
   producerCertification,
   producerCertificationTranslation,
+  projectNotificationLog,
   producerDeliveryCountry,
   producerMember,
   product,
@@ -80,6 +83,7 @@ export interface ProducerProfile {
   countryCode: string;
   technology: (typeof producer.$inferSelect)["technology"];
   verificationStatus: (typeof producer.$inferSelect)["verificationStatus"];
+  communicationLocale: CommunicationLocale;
   deliveryCountries: { code: string; name: string }[];
 }
 
@@ -103,6 +107,7 @@ export async function getProducerProfile(producerId: string): Promise<ProducerPr
     countryCode: row.countryCode,
     technology: row.technology,
     verificationStatus: row.verificationStatus,
+    communicationLocale: normalizeCommunicationLocale(row.communicationLocale),
     deliveryCountries,
   };
 }
@@ -530,6 +535,8 @@ export interface ProductOptionGroupOption {
   priceOnRequest: boolean;
   isDefault: boolean;
   imageUrl: string | null;
+  // Opis dopłaty pokazywany zamiast "w cenie" (np. "+27 € za m²"); nie wchodzi do sumy opcji.
+  priceNote?: string | null;
 }
 
 export interface ProductOptionGroup {
@@ -570,6 +577,7 @@ export async function getProductOptionGroups(
 
   const groupNames = new Map<string, string>();
   const optionLabels = new Map<string, string>();
+  const optionPriceNotes = new Map<string, string>();
   if (locale !== "pl") {
     const [groupTranslations, optionTranslations] = await Promise.all([
       db
@@ -577,9 +585,9 @@ export async function getProductOptionGroups(
         .from(productOptionGroupTranslation)
         .where(and(inArray(productOptionGroupTranslation.groupId, groupIds), eq(productOptionGroupTranslation.locale, locale))),
       optionRows.length === 0
-        ? Promise.resolve([] as { optionId: string; label: string }[])
+        ? Promise.resolve([] as { optionId: string; label: string; priceNote: string | null }[])
         : db
-            .select({ optionId: productOptionTranslation.optionId, label: productOptionTranslation.label })
+            .select({ optionId: productOptionTranslation.optionId, label: productOptionTranslation.label, priceNote: productOptionTranslation.priceNote })
             .from(productOptionTranslation)
             .where(
               and(
@@ -592,7 +600,10 @@ export async function getProductOptionGroups(
             ),
     ]);
     for (const row of groupTranslations) groupNames.set(row.groupId, row.name);
-    for (const row of optionTranslations) optionLabels.set(row.optionId, row.label);
+    for (const row of optionTranslations) {
+      optionLabels.set(row.optionId, row.label);
+      if (row.priceNote) optionPriceNotes.set(row.optionId, row.priceNote);
+    }
   }
 
   return groupRows.map((group) => ({
@@ -610,6 +621,7 @@ export async function getProductOptionGroups(
         priceOnRequest: row.priceOnRequest,
         isDefault: row.isDefault,
         imageUrl: row.imageUrl,
+        priceNote: resolveTranslatedText(row.priceNote ?? "", optionPriceNotes.get(row.id)) || null,
       })),
   }));
 }
@@ -1041,6 +1053,9 @@ export const PROJECT_REQUESTS_BOARD_PAGE_SIZE = 20;
 
 export interface ProjectRequestBoardItem {
   id: string;
+  // Spec 0077: projekt własny ModularHub (z nazwą projektu), zamawiającym jest platforma.
+  isPlatformOwned: boolean;
+  title: string | null;
   trustSignal: (typeof projectRequest.$inferSelect)["trustSignal"];
   countryCode: string;
   countryName: string;
@@ -1067,6 +1082,8 @@ export interface ProjectRequestBoardItem {
 
 const BOARD_COLUMNS = {
   id: projectRequest.id,
+  isPlatformOwned: projectRequest.isPlatformOwned,
+  title: projectRequest.title,
   trustSignal: projectRequest.trustSignal,
   countryCode: projectRequest.countryCode,
   countryName: country.name,
@@ -1178,6 +1195,15 @@ export interface ProjectRequestBoardDetail extends ProjectRequestBoardItem {
   deliversToCountry: boolean;
   // Pliki inwestora zmieniły się po złożeniu własnej aktywnej oferty (spec 0070 AC-33).
   filesChangedAfterOwnQuote: boolean;
+  // Spec 0077 AC-10: wspólny kontakt ModularHub, tylko dla projektu własnego (dla zapytań klientów
+  // kolumny kontaktowe nie są w ogóle wybierane, patrz CASE w zapytaniu).
+  platformContact: { name: string; email: string; phone: string | null } | null;
+  // Spec 0077 AC-19: wybór w projekcie własnym zakończony (accepted) albo projekt zamknięty.
+  selectionDone: boolean;
+  // Własna oferta producenta jest wybraną (status accepted).
+  ownQuoteSelected: boolean;
+  // Spec 0077 AC-44: aktywne warianty własne producenta (tylko projekt własny).
+  ownVariants: PlatformQuoteVariant[];
 }
 
 // Zasila /producer/panel/board/[id] (AC-4): pełne dane do wyceny (bez
@@ -1195,6 +1221,9 @@ export async function getProjectRequestForBoardDetail(
       item: BOARD_COLUMNS,
       status: projectRequest.status,
       selectedQuoteId: projectRequest.selectedQuoteId,
+      platformContactName: sql<string | null>`case when ${projectRequest.isPlatformOwned} then ${projectRequest.contactName} end`,
+      platformContactEmail: sql<string | null>`case when ${projectRequest.isPlatformOwned} then ${projectRequest.contactEmail} end`,
+      platformContactPhone: sql<string | null>`case when ${projectRequest.isPlatformOwned} then ${projectRequest.contactPhone} end`,
       matches: producerMatchesProjectRequestSql(producerId),
       deliversToCountry: producerDeliversToRequestCountrySql(producerId),
       filesChangedAfterOwnQuote: sql<boolean>`exists (
@@ -1221,8 +1250,51 @@ export async function getProjectRequestForBoardDetail(
 
   const acceptingQuotes = row.matches === true && isOnBoard && row.selectedQuoteId === null && row.item.deadlineAt.getTime() >= Date.now();
 
+  const isPlatform = row.item.isPlatformOwned;
+  const ownVariants = isPlatform
+    ? (
+        await db
+          .select({
+            id: projectQuote.id,
+            variantLabel: projectQuote.variantLabel,
+            currency: projectQuote.currency,
+            priceTaxMode: projectQuote.priceTaxMode,
+            vatRatePercent: projectQuote.vatRatePercent,
+            totalPriceCents: projectQuote.totalPriceCents,
+            unitPriceCents: projectQuote.unitPriceCents,
+            scopeIncluded: projectQuote.scopeIncluded,
+            scopeExcluded: projectQuote.scopeExcluded,
+            logistics: projectQuote.logistics,
+            paymentPlan: projectQuote.paymentPlan,
+            validUntil: projectQuote.validUntil,
+            warrantyNote: projectQuote.warrantyNote,
+            proposedLeadTimeWeeks: projectQuote.proposedLeadTimeWeeks,
+            deliveryWindowFrom: projectQuote.deliveryWindowFrom,
+            deliveryWindowTo: projectQuote.deliveryWindowTo,
+            notes: projectQuote.notes,
+            submittedAt: projectQuote.submittedAt,
+          })
+          .from(projectQuote)
+          .where(and(eq(projectQuote.projectRequestId, id), eq(projectQuote.producerId, producerId), eq(projectQuote.status, "active")))
+          .orderBy(asc(projectQuote.submittedAt))
+      ).map(toPlatformQuoteVariant)
+    : [];
+  const [acceptedOwn] = isPlatform
+    ? await db
+        .select({ id: projectQuote.id })
+        .from(projectQuote)
+        .where(and(eq(projectQuote.projectRequestId, id), eq(projectQuote.producerId, producerId), eq(projectQuote.status, "accepted")))
+        .limit(1)
+    : [];
+
   return {
     ...row.item,
+    platformContact: isPlatform
+      ? { name: row.platformContactName ?? "", email: row.platformContactEmail ?? "", phone: row.platformContactPhone }
+      : null,
+    selectionDone: isPlatform && (row.status === "accepted" || row.status === "closed"),
+    ownQuoteSelected: acceptedOwn !== undefined,
+    ownVariants,
     ownQuoteStatus: ownQuote?.status ?? null,
     ownQuotePublished: ownQuote?.status === "active" && ownQuote.publishedToClientAt !== null,
     deliversToCountry: row.deliversToCountry === true,
@@ -1382,6 +1454,10 @@ export async function getProductInquiryForProducerDetail(
 
 export interface ProjectQuoteForProducer {
   id: string;
+  // Spec 0077: projekt własny ModularHub (tytuł projektu i nazwa wariantu oferty).
+  isPlatformOwned: boolean;
+  projectTitle: string | null;
+  variantLabel: string | null;
   source: "project_request" | "bulk_product_inquiry";
   sourceId: string;
   status: (typeof projectQuote.$inferSelect)["status"];
@@ -1405,6 +1481,9 @@ export async function getProjectQuotesForProducer(producerId: string): Promise<P
   const rows = await db
     .select({
       id: projectQuote.id,
+      isPlatformOwned: sql<boolean>`coalesce(${projectRequest.isPlatformOwned}, false)`,
+      projectTitle: projectRequest.title,
+      variantLabel: projectQuote.variantLabel,
       projectRequestId: projectQuote.projectRequestId,
       bulkProductInquiryId: projectQuote.bulkProductInquiryId,
       status: projectQuote.status,
@@ -1432,6 +1511,9 @@ export async function getProjectQuotesForProducer(producerId: string): Promise<P
 
   return rows.map((row) => ({
     id: row.id,
+    isPlatformOwned: row.isPlatformOwned === true,
+    projectTitle: row.projectTitle,
+    variantLabel: row.variantLabel,
     source: row.projectRequestId ? ("project_request" as const) : ("bulk_product_inquiry" as const),
     sourceId: (row.projectRequestId ?? row.bulkProductInquiryId) as string,
     status: row.status,
@@ -2184,10 +2266,15 @@ export interface LargeOrderListItem {
   pendingPublicationCount: number;
   createdAt: Date;
   // Nazwa inwestora do pierwszej kolumny: firma klienta, w razie braku imię i
-  // nazwisko z zapytania, w ostateczności sam e mail (spec 0070 AC-1).
+  // nazwisko z zapytania, w ostateczności sam e mail (spec 0070 AC-1). Dla projektu
+  // własnego ModularHub (spec 0077 AC-22) to nazwa projektu.
   investorName: string;
   investorEmail: string;
+  isPlatformOwned: boolean;
 }
+
+// Spec 0077 AC-22: filtr pochodzenia na liście (projekty własne albo zapytania klientów).
+export type LargeOrderOrigin = "own" | "client";
 
 export interface LargeOrdersPage {
   items: LargeOrderListItem[];
@@ -2201,30 +2288,37 @@ export interface LargeOrdersPage {
 export async function getLargeOrdersForAdmin({
   status,
   kind,
+  origin,
   page,
 }: {
   status?: LargeOrderStatus;
   kind?: LargeOrderKind;
+  origin?: LargeOrderOrigin;
   page: number;
 }): Promise<LargeOrdersPage> {
-  const filters = [status ? sql`o.status = ${status}` : undefined, kind ? sql`o.kind = ${kind}` : undefined].filter(
-    (part) => part !== undefined,
-  );
+  const filters = [
+    status ? sql`o.status = ${status}` : undefined,
+    kind ? sql`o.kind = ${kind}` : undefined,
+    origin ? sql`o.is_platform_owned = ${origin === "own"}` : undefined,
+  ].filter((part) => part !== undefined);
   const where = filters.length > 0 ? sql`where ${sql.join(filters, sql` and `)}` : sql``;
   const offset = (Math.max(1, page) - 1) * LARGE_ORDERS_PAGE_SIZE;
 
   const orders = sql`
     select 'request'::text as kind, pr.id, pr.country_code, pr.unit_count, pr.deadline_at,
            pr.status::text as status, pr.created_at,
-           coalesce(nullif(trim(c.company_name), ''), nullif(trim(pr.contact_name), ''), pr.contact_email) as investor_name,
-           pr.contact_email as investor_email
+           case when pr.is_platform_owned then pr.title
+                else coalesce(nullif(trim(c.company_name), ''), nullif(trim(pr.contact_name), ''), pr.contact_email) end as investor_name,
+           pr.contact_email as investor_email,
+           pr.is_platform_owned
       from project_request pr
       left join client c on c.id = pr.client_id
     union all
     select 'product'::text, b.id, b.delivery_country_code, b.unit_count, b.deadline_at,
            b.status::text, b.created_at,
            coalesce(nullif(trim(c.company_name), ''), nullif(trim(b.contact_name), ''), b.contact_email),
-           b.contact_email
+           b.contact_email,
+           false
       from bulk_product_inquiry b
       left join client c on c.id = b.client_id`;
 
@@ -2242,6 +2336,7 @@ export async function getLargeOrdersForAdmin({
       pending_publication_count: number;
       investor_name: string;
       investor_email: string;
+      is_platform_owned: boolean;
     }>(sql`
       with o as (${orders})
       select o.*,
@@ -2272,12 +2367,15 @@ export async function getLargeOrdersForAdmin({
       createdAt: new Date(row.created_at),
       investorName: row.investor_name,
       investorEmail: row.investor_email,
+      isPlatformOwned: row.is_platform_owned === true,
     })),
   };
 }
 
 export interface LargeOrderQuoteForAdmin {
   id: string;
+  // Spec 0077: nazwa wariantu (tylko projekt własny).
+  variantLabel: string | null;
   producerId: string;
   producerName: string;
   status: (typeof projectQuote.$inferSelect)["status"];
@@ -2329,6 +2427,12 @@ export interface LargeOrderDetail {
   closedAt: Date | null;
   closedReason: (typeof projectRequest.$inferSelect)["closedReason"];
   createdByStaffUserId: string | null;
+  // Spec 0077: projekt własny ModularHub, jego nazwa i tymczasowe oznaczenie admina.
+  isPlatformOwned: boolean;
+  title: string | null;
+  platformMarkedQuoteId: string | null;
+  // Producenci, którym zakolejkowano mail końcowy (project_notification_log), po nazwie.
+  platformSelectionMailed: string[];
   quotes: LargeOrderQuoteForAdmin[];
 }
 
@@ -2367,6 +2471,10 @@ export async function getLargeOrderForAdmin(kind: LargeOrderKind, id: string): P
         closedAt: r.closedAt,
         closedReason: r.closedReason,
         createdByStaffUserId: r.createdByStaffUserId,
+        isPlatformOwned: r.isPlatformOwned,
+        title: r.title,
+        platformMarkedQuoteId: r.platformMarkedQuoteId,
+        platformSelectionMailed: [],
       };
     }
   } else {
@@ -2402,10 +2510,24 @@ export async function getLargeOrderForAdmin(kind: LargeOrderKind, id: string): P
         closedAt: r.closedAt,
         closedReason: r.closedReason,
         createdByStaffUserId: r.createdByStaffUserId,
+        isPlatformOwned: false,
+        title: null,
+        platformMarkedQuoteId: null,
+        platformSelectionMailed: [],
       };
     }
   }
   if (!base) return null;
+
+  if (base.isPlatformOwned) {
+    const mailed = await db
+      .select({ name: producer.name })
+      .from(projectNotificationLog)
+      .innerJoin(producer, eq(producer.id, projectNotificationLog.producerId))
+      .where(and(eq(projectNotificationLog.projectRequestId, id), eq(projectNotificationLog.kind, "platform_selection_done")))
+      .orderBy(asc(producer.name));
+    base.platformSelectionMailed = mailed.map((row) => row.name);
+  }
 
   const quoteRows = await db
     .select({
@@ -2422,6 +2544,7 @@ export async function getLargeOrderForAdmin(kind: LargeOrderKind, id: string): P
     ...base,
     quotes: quoteRows.map(({ quote: q, producerName, hasPdf }) => ({
       id: q.id,
+      variantLabel: q.variantLabel,
       producerId: q.producerId,
       producerName,
       status: q.status,
@@ -2652,4 +2775,20 @@ export async function getPublishedProductOptionsForAdmin(): Promise<PublishedPro
     .where(and(eq(product.status, "published"), isNull(product.deletedAt)))
     .orderBy(producer.name, product.name);
   return rows.map((row) => ({ id: row.id, name: row.name ?? "", producerName: row.producerName }));
+}
+
+export interface PlatformProjectProducerOption {
+  id: string;
+  name: string;
+  countryCode: string;
+}
+
+// Spec 0077 AC-7: producenci do wskazania jako odbiorcy projektu własnego. Bez usuniętych.
+// Zablokowanych członków pomija dopiero zapis (createPlatformProject pokazuje listę pominiętych).
+export async function getProducersForPlatformProject(): Promise<PlatformProjectProducerOption[]> {
+  return db
+    .select({ id: producer.id, name: producer.name, countryCode: producer.countryCode })
+    .from(producer)
+    .where(isNull(producer.deletedAt))
+    .orderBy(asc(producer.name));
 }

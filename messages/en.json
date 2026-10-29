@@ -1958,6 +1958,15 @@
     "hiddenByDelivery": "{count, plural, one {# request} other {# requests}} outside your delivery countries hidden."
   },
   "ProducerBoardDetailPage": {
+    "platformBuyerLabel": "Buyer",
+    "platformBuyerValue": "ModularHub",
+    "platformContactHeading": "ModularHub contact",
+    "platformContactName": "Contact person",
+    "platformContactEmail": "Email",
+    "platformContactPhone": "Phone",
+    "platformSelectionDone": "Selection completed",
+    "platformSelected": "Selected",
+    "platformIntro": "This is a ModularHub project. You can submit several offer variants (up to five) and revise them until the deadline.",
     "quotesClosedNote": "The deadline for quotes has passed or the client has already chosen a quote. A new quote can no longer be submitted.",
     "ownQuotePublishedNote": "Your quote has already been published to the client. You can submit a new version once ModularHub withdraws its publication.",
     "scopeHeading": "Order scope",
@@ -1985,7 +1994,23 @@
     "notDeliveringNote": "This country is not on your delivery list",
     "notDeliveringLink": "Add a country in your capacity profile"
   },
+  "ProducerPlatformVariants": {
+    "heading": "Your offer variants",
+    "empty": "No variant has been submitted yet.",
+    "columnVariant": "Variant",
+    "columnPrice": "Total price",
+    "columnSubmitted": "Submitted",
+    "edit": "Edit",
+    "withdraw": "Withdraw",
+    "withdrawing": "Withdrawing…",
+    "withdrawError": "Could not withdraw the variant. Please try again.",
+    "addVariant": "Add a variant",
+    "editTitle": "Edit variant",
+    "limitNote": "You have five variants. Withdraw one to add another."
+  },
   "QuoteForm": {
+    "variantLabel": "Variant name",
+    "variantHint": "For example \"Shell stage\" or \"Turnkey\". You can submit up to five variants in one project.",
     "heading": "Your quote",
     "intro": "Submit your quote for this request.",
     "revisionIntro": "You're revising a quote you already submitted — the new version replaces the previous one.",
@@ -2080,6 +2105,7 @@
     "emptyMessage": "No producer has responded to this inquiry yet."
   },
   "FeaturedProjectShowcase": {
+    "tagline": "Projects delivered on the ModularHub Europe platform",
     "eyebrow": "Project in progress",
     "factsHeading": "Project details",
     "investorCta": "Commission a similar project",
@@ -2105,7 +2131,6 @@
     "locationDetailLabel": "Location (optional)",
     "sectionDetailsHeading": "Details",
     "unitCountLabel": "Number of homes",
-    "tagline": "Projects delivered on the ModularHub Europe platform",
     "unitCountHint": "Enter one exact number, from 3 homes. Don't know it yet? Enter the number for the first stage and describe the rest in the notes.",
     "unitCountSmallHint": "For 1 or 2 homes, use the regular inquiry path:",
     "unitCountSmallHintLink": "pick a project in the catalog and ask the producer.",
@@ -2807,6 +2832,22 @@
     "deadlineLabel": "Offer deadline",
     "cta": "Open the request"
   },
+  "LargeOrderProducerNewPlatformProjectEmail": {
+    "subject": "New ModularHub project: {title}",
+    "intro": "ModularHub is asking for offers in a new project. You can submit one or several quotes (variants), for example shell stage and turnkey.",
+    "titleLabel": "Project",
+    "buyerLabel": "Buyer",
+    "buyerValue": "ModularHub",
+    "countryLabel": "Country",
+    "unitsLabel": "Number of units",
+    "deadlineLabel": "Offer deadline",
+    "cta": "Open the project"
+  },
+  "LargeOrderProducerPlatformSelectionDoneEmail": {
+    "subject": "Selection completed in project: {title}",
+    "body": "Thank you for submitting an offer in the project \"{title}\". The selection has been made. ModularHub will get back to you with the next steps.",
+    "cta": "Open the panel"
+  },
   "LargeOrderTeamNewQuoteEmail": {
     "subject": "New offer on a request ({units} houses, {country})",
     "intro": "A producer has submitted an offer. The client cannot see it until you publish the summary.",
@@ -2876,7 +2917,10 @@
     "changeCountries": "Change",
     "save": "Save changes",
     "saved": "Saved.",
-    "saveError": "Could not save the company details."
+    "saveError": "Could not save the company details.",
+    "communicationHeading": "Communication language",
+    "communicationLocaleLabel": "Language of emails about enquiries and offers",
+    "communicationHint": "We send emails about large orders, reminders and the selection result in this language. It does not change the language of the panel."
   },
   "ProducerBoardTabs": {
     "ariaLabel": "ModularProjects",
@@ -2975,6 +3019,23 @@
     "intro": "This is what the large projects delivered by ModularHub Europe look like. See renderings, the structural design and photos from the build.",
     "empty": "The first projects will appear here soon.",
     "listLabel": "List of projects",
+    "filters": {
+      "viewProject": "View project",
+      "searchLabel": "Search",
+      "searchPlaceholder": "Project name or description",
+      "statusLabel": "Project stage",
+      "statusAll": "All statuses",
+      "addedFrom": "Added from",
+      "addedTo": "Added to",
+      "sortLabel": "Sort",
+      "sortNewest": "Newest",
+      "sortOldest": "Oldest",
+      "sortTitle": "Name A–Z",
+      "reset": "Clear filters",
+      "count": "Results: {shown} of {total}",
+      "noResults": "No projects match the filters.",
+      "addedOn": "Added {date}"
+    },
     "status": {
       "planned": "Planned",
       "in_production": "In production",

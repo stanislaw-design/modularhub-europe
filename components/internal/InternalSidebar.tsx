@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
-import { Activity, BadgeCheck, Bell, BriefcaseBusiness, ChevronsLeft, ChevronsRight, ClipboardList, Factory, FolderKanban, House, LayoutDashboard, LogOut, Menu, Package, X, type LucideIcon } from "lucide-react";
+import { Activity, BadgeCheck, Bell, BriefcaseBusiness, ChevronsLeft, ChevronsRight, ClipboardList, Factory, FolderKanban, House, LayoutDashboard, LogOut, Menu, Package, ShieldCheck, Users, X, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -44,10 +44,12 @@ export function InternalSidebar({ locale }: InternalSidebarProps) {
     { key: "producers", path: "producers", label: "Producenci", icon: Factory },
     { key: "cases-and-inquiries", path: "cases-and-inquiries", label: "Projekty i zapytania", icon: FolderKanban },
     { key: "large-orders", path: "large-orders", label: "Duże zamówienia", icon: ClipboardList },
+    { key: "producer-groups", path: "producer-groups", label: "Grupy producentów", icon: Users },
     { key: "volume-verification", path: "producers/volume-verification", label: "Weryfikacja wolumenowa", icon: BadgeCheck },
     { key: "b2b-verification", path: "clients/b2b-verification", label: "Weryfikacja B2B", icon: BriefcaseBusiness },
     { key: "products", path: "products", label: "Produkty", icon: Package },
     { key: "notifications", path: "notifications", label: "Powiadomienia", icon: Bell },
+    { key: "admins", path: "admins", label: "Konta administratorów", icon: ShieldCheck },
     { key: "monitoring", path: "monitoring", label: "Monitoring", icon: Activity },
   ];
 

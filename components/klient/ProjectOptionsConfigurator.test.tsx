@@ -98,6 +98,34 @@ describe("ProjectOptionsConfigurator (spec 0059)", () => {
     expect(screen.getByRole("checkbox", { name: /Rolety/ })).toHaveTextContent("w cenie");
   });
 
+  it("shows the surcharge note instead of 'included' for a free option, and never changes the 'on request' or +X € cases", () => {
+    const group: ProductOptionGroup = {
+      id: "g-facade",
+      name: "Elewacja", sourceName: "Elewacja",
+      selectionType: "single",
+      options: [
+        { id: "o-seam", label: "Blacha na rąbek", sourceLabel: "Blacha na rąbek", priceCents: 0, priceOnRequest: false, isDefault: true, imageUrl: null, priceNote: "w cenie bazowej" },
+        { id: "o-corten", label: "Blacha CORTEN", sourceLabel: "Blacha CORTEN", priceCents: 0, priceOnRequest: false, isDefault: false, imageUrl: null, priceNote: "+27 € za m²" },
+        { id: "o-plain", label: "Profile PCV", sourceLabel: "Profile PCV", priceCents: 0, priceOnRequest: false, isDefault: false, imageUrl: null },
+      ],
+    };
+    render(
+      <ProjectOptionsConfigurator
+        groups={[group]}
+        selectedOptionIds={[]}
+        hrefFor={(groupId, optionId) => `?opcje=${groupId}:${optionId}`}
+        heading="Opcje dodatkowe"
+        ariaLabel="Opcje dodatkowe"
+        includedLabel="w cenie"
+        priceOnRequestLabel="cena na zapytanie"
+      />,
+    );
+
+    expect(screen.getByRole("radio", { name: /Blacha CORTEN/ })).toHaveTextContent("+27 € za m²");
+    expect(screen.getByRole("radio", { name: /Blacha na rąbek/ })).toHaveTextContent("w cenie bazowej");
+    expect(screen.getByRole("radio", { name: /Profile PCV/ })).toHaveTextContent("w cenie");
+  });
+
   it("renders the option's image when set, and a fallback icon (no broken <img>) when it isn't", () => {
     const groupWithImage: ProductOptionGroup = {
       id: "g-panel",

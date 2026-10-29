@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { InquiryAttachmentsPanel } from "@/components/inquiry-attachments/InquiryAttachmentsPanel";
 import { getInquiryAttachmentLabels } from "@/components/inquiry-attachments/getInquiryAttachmentLabels";
+import { PlatformVariantsPanel } from "@/components/producent/PlatformVariantsPanel";
 import { QuoteFormModal } from "@/components/producent/QuoteFormModal";
 import { Heading, Stack, StatusPill, Text } from "@/components/ui";
 import {
@@ -38,15 +39,18 @@ export default async function ProducerBoardDetailPage({
   const volumeStatus = producerId
     ? await getProducerVolumeVerificationStatus(producerId)
     : null;
-  if (volumeStatus !== "approved") {
-    redirect(`/${locale}/producer/panel/board`);
-  }
   const detail = producerId
     ? await getProjectRequestForBoardDetail(id, producerId)
     : null;
+  // Spec 0077 AC-9: projekt własny ModularHub omija bramkę weryfikacji wolumenowej
+  // (dopasowanie robi wiersz include), zapytania klientów działają jak dawniej.
+  if (volumeStatus !== "approved" && !detail?.isPlatformOwned) {
+    redirect(`/${locale}/producer/panel/board`);
+  }
   if (!detail) {
     notFound();
   }
+  const isPlatform = detail.isPlatformOwned;
   const intendedUseText = detail.intendedUse
     ? detail.intendedUse === "seasonal" && detail.intendedUseMonths
       ? tIntendedUse("monthsValue", { months: detail.intendedUseMonths })
@@ -71,7 +75,7 @@ export default async function ProducerBoardDetailPage({
 
   const isLocked = detail.ownQuoteStatus === "accepted";
   const showQuoteForm =
-    !isLocked && detail.acceptingQuotes && !detail.ownQuotePublished;
+    !isPlatform && !isLocked && detail.acceptingQuotes && !detail.ownQuotePublished;
   const ownQuoteStatusTone: Record<
     string,
     "approved" | "conditional" | "blocked"
@@ -107,22 +111,33 @@ export default async function ProducerBoardDetailPage({
         <Stack gap={5}>
           <div className="flex flex-col gap-brand-3 sm:flex-row sm:items-start sm:justify-between">
             <Stack gap={2}>
-              <Heading level="h1">{t("heading")}</Heading>
+              <Heading level="h1">{isPlatform ? (detail.title ?? t("heading")) : t("heading")}</Heading>
               <div className="flex flex-wrap items-center gap-x-brand-3 gap-y-brand-1">
-                <StatusPill
-                  status={
-                    detail.trustSignal === "complete" ? "approved" : "conditional"
-                  }
-                >
-                  {`${t("trustSignalLabel")}: ${trustSignalLabel[detail.trustSignal]}`}
-                </StatusPill>
+                {isPlatform ? (
+                  <Text as="span" className="font-medium">
+                    {`${t("platformBuyerLabel")}: ${t("platformBuyerValue")}`}
+                  </Text>
+                ) : (
+                  <StatusPill
+                    status={
+                      detail.trustSignal === "complete" ? "approved" : "conditional"
+                    }
+                  >
+                    {`${t("trustSignalLabel")}: ${trustSignalLabel[detail.trustSignal]}`}
+                  </StatusPill>
+                )}
                 <Text as="span" tone="muted">
                   {dateFormatter.format(detail.createdAt)}
                 </Text>
               </div>
             </Stack>
             <div className="flex flex-col gap-brand-2 sm:max-w-xs sm:items-end sm:text-right">
-            {detail.ownQuoteStatus && (
+            {isPlatform && detail.selectionDone && (
+              <StatusPill status={detail.ownQuoteSelected ? "approved" : "conditional"}>
+                {detail.ownQuoteSelected ? t("platformSelected") : t("platformSelectionDone")}
+              </StatusPill>
+            )}
+            {!isPlatform && detail.ownQuoteStatus && (
               <div className="flex flex-wrap items-center gap-brand-2">
                 <Text as="span" tone="muted">
                   {t("ownQuoteStatusLabel")}
@@ -140,7 +155,7 @@ export default async function ProducerBoardDetailPage({
             {detail.ownQuotePublished && detail.acceptingQuotes && !isLocked && (
               <Text tone="muted">{t("ownQuotePublishedNote")}</Text>
             )}
-            {!showQuoteForm && !isLocked && !detail.ownQuotePublished && (
+            {!isPlatform && !showQuoteForm && !isLocked && !detail.ownQuotePublished && (
               <Text tone="muted">
                 {t("quotesClosedNote")}
               </Text>
@@ -153,6 +168,18 @@ export default async function ProducerBoardDetailPage({
             )}
             </div>
           </div>
+
+          {isPlatform && detail.platformContact && (
+            <section className="flex flex-col gap-brand-3">
+              <Text tone="muted">{t("platformIntro")}</Text>
+              <Heading level="h3">{t("platformContactHeading")}</Heading>
+              <dl className="grid grid-cols-1 gap-x-brand-4 gap-y-brand-3 sm:grid-cols-2 lg:grid-cols-3">
+                <Fact label={t("platformContactName")} value={detail.platformContact.name} />
+                <Fact label={t("platformContactEmail")} value={detail.platformContact.email} />
+                {detail.platformContact.phone && <Fact label={t("platformContactPhone")} value={detail.platformContact.phone} />}
+              </dl>
+            </section>
+          )}
 
           <section className="flex flex-col gap-brand-3">
             <Heading level="h3">{t("scopeHeading")}</Heading>
@@ -226,6 +253,15 @@ export default async function ProducerBoardDetailPage({
               <Heading level="h3">{t("extrasNoteLabel")}</Heading>
               <Text measure>{detail.extrasNote}</Text>
             </section>
+          )}
+
+          {isPlatform && (
+            <PlatformVariantsPanel
+              projectRequestId={detail.id}
+              variants={detail.ownVariants}
+              locale={locale}
+              acceptingQuotes={detail.acceptingQuotes}
+            />
           )}
 
           {(attachments.length > 0 || detail.filesChangedAfterOwnQuote) && (

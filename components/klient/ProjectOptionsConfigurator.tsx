@@ -3,8 +3,12 @@ import {
   AppWindow,
   Blinds,
   Check,
+  BrickWall,
   ChefHat,
+  Flame,
+  Layers,
   type LucideIcon,
+  PaintRoller,
   Settings2,
   Thermometer,
   Toilet,
@@ -34,6 +38,10 @@ const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0
 // miały prawdziwego zdjęcia (to konfiguracja, nie katalogowy produkt), więc
 // fallback nie powinien wyglądać jak błąd/brak treści.
 const GROUP_ICON_RULES: { test: (normalizedName: string) => boolean; Icon: LucideIcon }[] = [
+  { test: (n) => n.includes("ogrzew"), Icon: Flame },
+  { test: (n) => n.includes("elewacj"), Icon: BrickWall },
+  { test: (n) => n.includes("izolacj"), Icon: Layers },
+  { test: (n) => n.includes("wykoncz") || n.includes("wnetrz"), Icon: PaintRoller },
   { test: (n) => n.includes("ociepl"), Icon: Thermometer },
   { test: (n) => n.includes("konstruk"), Icon: Warehouse },
   { test: (n) => n.includes("klimatyzacj"), Icon: AirVent },
@@ -61,6 +69,8 @@ function OptionPriceLabel({
   priceOnRequestLabel: string;
 }) {
   if (option.priceOnRequest) return <>{priceOnRequestLabel}</>;
+  // Opis dopłaty (np. "+27 € za m²") zastępuje "w cenie" przy opcji, która nie zmienia wyświetlanej ceny.
+  if (!option.priceCents && option.priceNote) return <>{option.priceNote}</>;
   if (!option.priceCents) return <>{includedLabel}</>;
   return <>+{priceFormatter.format(option.priceCents / 100)} €</>;
 }

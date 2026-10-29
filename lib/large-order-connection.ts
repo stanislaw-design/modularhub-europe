@@ -37,6 +37,9 @@ function tables(kind: LargeOrderKind) {
 // Maile połączenia wychodzą tylko wtedy, gdy pierwszy krok faktycznie zmienił wiersz,
 // czyli najwyżej raz na zapytanie.
 export async function connectSelection(kind: LargeOrderKind, id: string): Promise<ConnectSelectionOutcome> {
+  // Spec 0077 AC-6: projekt własny ModularHub nie ma klienta ani łączenia stron, wybór kończy finishPlatformSelection.
+  if (kind === "request" && (await isPlatformOwnedRequest(id))) return "skipped";
+
   const { parent, quoteLink } = tables(kind);
   const parentTable = sql.identifier(parent);
   const link = sql.identifier(quoteLink);
@@ -86,6 +89,11 @@ export async function connectSelection(kind: LargeOrderKind, id: string): Promis
   return readConnectionState(kind, id);
 }
 
+async function isPlatformOwnedRequest(id: string): Promise<boolean> {
+  const [row] = await db.select({ owned: projectRequest.isPlatformOwned }).from(projectRequest).where(eq(projectRequest.id, id));
+  return row?.owned === true;
+}
+
 // Gdy nic nie zmieniono, czytamy stan, żeby wołający wiedział dlaczego.
 async function readConnectionState(kind: LargeOrderKind, id: string): Promise<ConnectSelectionOutcome> {
   const parentTable = kind === "request" ? projectRequest : bulkProductInquiry;
@@ -132,6 +140,7 @@ export async function getPendingSelections(scope: { clientId?: string } = {}): P
       .where(
         and(
           scope.clientId ? eq(projectRequest.clientId, scope.clientId) : undefined,
+          eq(projectRequest.isPlatformOwned, false),
           inArray(projectRequest.status, ["open", "quoted", "published"]),
           sql`${projectRequest.selectedQuoteId} IS NOT NULL`,
         ),

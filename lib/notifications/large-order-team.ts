@@ -138,6 +138,8 @@ export interface NewQuoteForTeam {
   unitCount: number;
   producerName: string;
   totalPriceCents: number;
+  // Spec 0077: nazwa wariantu oferty w projekcie własnym.
+  variantLabel?: string | null;
 }
 
 // Spec 0070 AC-24: nowa oferta, mail do zespołu po polsku. Klient jej jeszcze nie widzi
@@ -155,7 +157,14 @@ export async function notifyTeamOfNewQuote(order: NewQuoteForTeam): Promise<void
     const content: TransactionalEmailProps = {
       preview: subject,
       heading: subject,
-      body: [t("intro"), `${t("producerLabel")}: ${order.producerName}`, `${t("totalLabel")}: ${total}`].join("\n"),
+      body: [
+        t("intro"),
+        `${t("producerLabel")}: ${order.producerName}`,
+        order.variantLabel ? `Wariant: ${order.variantLabel}` : undefined,
+        `${t("totalLabel")}: ${total}`,
+      ]
+        .filter((line) => line !== undefined)
+        .join("\n"),
       ctaLabel: t("cta"),
       ctaHref: `${baseUrl()}/pl/internal/large-orders/${order.id}?kind=${order.kind}`,
       reference: shortReference(order.id),

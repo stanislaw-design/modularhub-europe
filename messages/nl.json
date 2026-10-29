@@ -1958,6 +1958,15 @@
     "hiddenByDelivery": "{count, plural, one {# aanvraag} other {# aanvragen}} buiten uw leverlanden verborgen."
   },
   "ProducerBoardDetailPage": {
+    "platformBuyerLabel": "Opdrachtgever",
+    "platformBuyerValue": "ModularHub",
+    "platformContactHeading": "Contact ModularHub",
+    "platformContactName": "Contactpersoon",
+    "platformContactEmail": "E-mail",
+    "platformContactPhone": "Telefoon",
+    "platformSelectionDone": "Keuze afgerond",
+    "platformSelected": "Gekozen",
+    "platformIntro": "Dit is een ModularHub-project. U kunt meerdere offertevarianten (maximaal vijf) indienen en tot de deadline aanpassen.",
     "quotesClosedNote": "De deadline voor offertes is verstreken of de klant heeft al een offerte gekozen. Er kan geen nieuwe offerte meer worden ingediend.",
     "ownQuotePublishedNote": "Uw offerte is al aan de klant gepubliceerd. U kunt een nieuwe versie indienen zodra ModularHub de publicatie heeft ingetrokken.",
     "scopeHeading": "Omvang van de opdracht",
@@ -1985,7 +1994,23 @@
     "notDeliveringNote": "Dit land staat niet op uw leverlijst",
     "notDeliveringLink": "Voeg een land toe in uw capaciteitsprofiel"
   },
+  "ProducerPlatformVariants": {
+    "heading": "Uw offertevarianten",
+    "empty": "Er is nog geen variant ingediend.",
+    "columnVariant": "Variant",
+    "columnPrice": "Totaalprijs",
+    "columnSubmitted": "Ingediend",
+    "edit": "Aanpassen",
+    "withdraw": "Intrekken",
+    "withdrawing": "Intrekken…",
+    "withdrawError": "De variant kon niet worden ingetrokken. Probeer het opnieuw.",
+    "addVariant": "Variant toevoegen",
+    "editTitle": "Variant aanpassen",
+    "limitNote": "U heeft vijf varianten. Trek er een in om een nieuwe toe te voegen."
+  },
   "QuoteForm": {
+    "variantLabel": "Naam van de variant",
+    "variantHint": "Bijvoorbeeld \"Ruwbouw\" of \"Sleutelklaar\". U kunt maximaal vijf varianten per project indienen.",
     "heading": "Uw offerte",
     "intro": "Dien je offerte in voor deze aanvraag.",
     "revisionIntro": "Je past een eerder ingediende offerte aan — de nieuwe versie vervangt de vorige.",
@@ -2080,6 +2105,7 @@
     "emptyMessage": "Nog geen producent heeft op deze aanvraag gereageerd."
   },
   "FeaturedProjectShowcase": {
+    "tagline": "Projecten op het platform ModularHub Europe",
     "eyebrow": "Project in uitvoering",
     "factsHeading": "Projectinformatie",
     "investorCta": "Laat een vergelijkbaar project bouwen",
@@ -2105,7 +2131,6 @@
     "locationDetailLabel": "Locatie (optioneel)",
     "sectionDetailsHeading": "Details",
     "unitCountLabel": "Aantal woningen",
-    "tagline": "Projecten op het platform ModularHub Europe",
     "unitCountHint": "Geef één exact aantal op, vanaf 3 woningen. Nog niet bekend? Vul het aantal voor de eerste fase in en beschrijf de rest in de opmerkingen.",
     "unitCountSmallHint": "Bij 1 of 2 woningen gebruikt u de gewone aanvraagroute:",
     "unitCountSmallHintLink": "kies een project in de catalogus en vraag de producent.",
@@ -2807,6 +2832,22 @@
     "deadlineLabel": "Uiterste datum voor offertes",
     "cta": "Aanvraag openen"
   },
+  "LargeOrderProducerNewPlatformProjectEmail": {
+    "subject": "Nieuw ModularHub-project: {title}",
+    "intro": "ModularHub vraagt om offertes in een nieuw project. U kunt één of meerdere offertes (varianten) indienen, bijvoorbeeld ruwbouw en sleutelklaar.",
+    "titleLabel": "Project",
+    "buyerLabel": "Opdrachtgever",
+    "buyerValue": "ModularHub",
+    "countryLabel": "Land",
+    "unitsLabel": "Aantal eenheden",
+    "deadlineLabel": "Uiterste datum voor offertes",
+    "cta": "Project openen"
+  },
+  "LargeOrderProducerPlatformSelectionDoneEmail": {
+    "subject": "Keuze in project afgerond: {title}",
+    "body": "Hartelijk dank voor uw offerte in het project \"{title}\". De keuze is gemaakt. ModularHub neemt contact met u op over de vervolgstappen.",
+    "cta": "Paneel openen"
+  },
   "LargeOrderTeamNewQuoteEmail": {
     "subject": "Nieuwe offerte op een aanvraag ({units} woningen, {country})",
     "intro": "Een producent heeft een offerte ingediend. De klant ziet die pas nadat u de samenvatting publiceert.",
@@ -2876,7 +2917,10 @@
     "changeCountries": "Wijzigen",
     "save": "Wijzigingen opslaan",
     "saved": "Opgeslagen.",
-    "saveError": "De bedrijfsgegevens konden niet worden opgeslagen."
+    "saveError": "De bedrijfsgegevens konden niet worden opgeslagen.",
+    "communicationHeading": "Communicatietaal",
+    "communicationLocaleLabel": "Taal van e-mails over aanvragen en offertes",
+    "communicationHint": "In deze taal sturen we e-mails over grote bestellingen, herinneringen en de uitkomst van de keuze. De taal van het paneel verandert hierdoor niet."
   },
   "ProducerBoardTabs": {
     "ariaLabel": "ModularProjects",
@@ -2975,6 +3019,23 @@
     "intro": "Zo zien de grote projecten eruit die ModularHub Europe realiseert. Bekijk visualisaties, het constructieontwerp en foto's van de bouw.",
     "empty": "De eerste projecten verschijnen hier binnenkort.",
     "listLabel": "Lijst van projecten",
+    "filters": {
+      "viewProject": "Bekijk project",
+      "searchLabel": "Zoeken",
+      "searchPlaceholder": "Projectnaam of beschrijving",
+      "statusLabel": "Projectfase",
+      "statusAll": "Alle statussen",
+      "addedFrom": "Toegevoegd vanaf",
+      "addedTo": "Toegevoegd tot",
+      "sortLabel": "Sorteren",
+      "sortNewest": "Nieuwste",
+      "sortOldest": "Oudste",
+      "sortTitle": "Naam A–Z",
+      "reset": "Filters wissen",
+      "count": "Resultaten: {shown} van {total}",
+      "noResults": "Geen projecten komen overeen met de filters.",
+      "addedOn": "Toegevoegd op {date}"
+    },
     "status": {
       "planned": "Gepland",
       "in_production": "In productie",

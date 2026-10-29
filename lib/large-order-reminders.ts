@@ -132,6 +132,7 @@ export async function runLargeOrderReminders(
             producerId: recipient.producerId,
             email: recipient.email,
             threshold,
+            locale: recipient.locale,
           });
           if (sent) run.remindersSent += 1;
         }

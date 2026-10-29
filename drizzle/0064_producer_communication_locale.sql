@@ -1,0 +1,2 @@
+ALTER TABLE "producer" ADD COLUMN "communication_locale" text DEFAULT 'pl' NOT NULL;--> statement-breakpoint
+ALTER TABLE "producer" ADD CONSTRAINT "producer_communication_locale_check" CHECK ("producer"."communication_locale" IN ('pl','en','de','nl'));

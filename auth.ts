@@ -13,6 +13,7 @@ import {
   users,
   verificationTokens,
 } from "@/lib/db/schema";
+import { isAdminInviteExpired } from "@/lib/admin-invite";
 import { DEFAULT_FROM_EMAIL } from "@/lib/notifications/send";
 import { sendLoginLinkEmail } from "@/lib/notifications/login";
 
@@ -58,6 +59,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         throw new Error(
           "Brak oczekującej rejestracji dla tego adresu e mail. Zarejestruj się najpierw."
         );
+      }
+
+      // Spec 0077 D AC-36: zaproszenie admina żyje 7 dni. Starsze nie tworzy konta (admin wysyła link
+      // ponownie albo anuluje zaproszenie). Wiersz zostaje, żeby ekran /internal/admins go pokazał.
+      if (pending.role === "admin" && isAdminInviteExpired(pending.createdAt)) {
+        throw new Error("Zaproszenie administratora wygasło. Poproś o nowe.");
       }
 
       const payload = pending.payload;
@@ -142,7 +149,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async session({ session, user }) {
       const dbUser = user as unknown as typeof users.$inferSelect;
       session.user.id = user.id;
-      session.user.role = dbUser.role;
+      // Spec 0077 D AC-40: odebranie dostępu zostawia rolę `admin` w bazie (ślad), a `session` nie może
+      // odrzucić sesji. Zablokowany admin dostaje więc rolę bez uprawnień, więc każda bramka
+      // `role !== "admin"` (ekrany i akcje) go zatrzymuje, nawet gdyby usunięcie sesji się nie udało.
+      session.user.role = dbUser.role === "admin" && dbUser.blockedAt ? "client" : dbUser.role;
       session.user.phone = dbUser.phone;
       return session;
     },
