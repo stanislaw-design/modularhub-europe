@@ -20,6 +20,7 @@
     "import:framedev": "tsx --env-file=.env.local scripts/import-framedev-catalog.ts",
     "import:logbar": "tsx --env-file=.env.local scripts/import-logbar-catalog.ts",
     "import:mkb": "tsx --env-file=.env.local scripts/import-mkb-catalog.ts",
+    "import:wencel": "tsx --env-file=.env.local scripts/import-wencel-catalog.ts",
     "import:moduhome": "tsx --env-file=.env.local scripts/import-moduhome-catalog.ts",
     "import:miragevision-tv": "tsx --env-file=.env.local scripts/import-miragevision-tv.ts",
     "import:miragevision-lift": "tsx --env-file=.env.local scripts/import-miragevision-lift.ts",
