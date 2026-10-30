@@ -1381,6 +1381,7 @@
     "priceOnRequest": "Wycena indywidualna",
     "netVat": "netto",
     "estimatedPackage": "Cena orientacyjna",
+    "backToSaunas": "Wróć do listy saun",
     "from": "od",
     "sendInquiry": "Wyślij zapytanie",
     "variantPickerAriaLabel": "Wybór wariantu",
@@ -1422,6 +1423,8 @@
     "sortPriceAsc": "Cena rosnąco",
     "sortPriceDesc": "Cena malejąco",
     "clearFilters": "Wyczyść filtry",
+    "allOption": "Wszystkie",
+    "sortDefault": "Domyślnie",
     "compare": {
       "heading": "Porównanie saun",
       "back": "Wróć do listy saun",

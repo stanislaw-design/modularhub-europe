@@ -1373,6 +1373,7 @@
     "priceOnRequest": "Individuelles Angebot",
     "netVat": "netto",
     "estimatedPackage": "Richtpreis",
+    "backToSaunas": "Zurück zu den Saunen",
     "from": "ab",
     "sendInquiry": "Anfrage senden",
     "variantPickerAriaLabel": "Variantenauswahl",
@@ -1414,6 +1415,8 @@
     "sortPriceAsc": "Preis aufsteigend",
     "sortPriceDesc": "Preis absteigend",
     "clearFilters": "Filter zurücksetzen",
+    "allOption": "Alle",
+    "sortDefault": "Standard",
     "compare": {
       "heading": "Saunavergleich",
       "back": "Zurück zu den Saunen",

@@ -1366,6 +1366,7 @@
     "priceOnRequest": "Custom quote",
     "netVat": "net",
     "estimatedPackage": "Estimated price",
+    "backToSaunas": "Back to saunas",
     "from": "from",
     "sendInquiry": "Send inquiry",
     "variantPickerAriaLabel": "Variant selection",
@@ -1407,6 +1408,8 @@
     "sortPriceAsc": "Price, low to high",
     "sortPriceDesc": "Price, high to low",
     "clearFilters": "Clear filters",
+    "allOption": "All",
+    "sortDefault": "Default",
     "compare": {
       "heading": "Sauna comparison",
       "back": "Back to saunas",

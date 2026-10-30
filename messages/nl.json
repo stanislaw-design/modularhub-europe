@@ -1366,6 +1366,7 @@
     "priceOnRequest": "Prijs op aanvraag",
     "netVat": "netto",
     "estimatedPackage": "Richtprijs",
+    "backToSaunas": "Terug naar de sauna’s",
     "from": "vanaf",
     "sendInquiry": "Aanvraag versturen",
     "variantPickerAriaLabel": "Variantkeuze",
@@ -1407,6 +1408,8 @@
     "sortPriceAsc": "Prijs oplopend",
     "sortPriceDesc": "Prijs aflopend",
     "clearFilters": "Filters wissen",
+    "allOption": "Alle",
+    "sortDefault": "Standaard",
     "compare": {
       "heading": "Saunavergelijking",
       "back": "Terug naar de sauna's",
