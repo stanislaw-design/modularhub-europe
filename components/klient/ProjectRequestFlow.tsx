@@ -4,6 +4,7 @@ import { Building2, CheckCircle2, Mail, SlidersHorizontal, type LucideIcon } fro
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { type FormEvent, type ReactNode, type RefObject, useEffect, useRef, useState, useTransition } from "react";
+import { useClientContactPrefill } from "@/components/klient/useAccountSession";
 import { Button, Card, Checkbox, Input, Label, Select, Stack, Text, Textarea } from "@/components/ui";
 import type { Country, CountryCode, ProductFamily } from "@/lib/data/types";
 import { PRODUCT_FAMILIES } from "@/lib/product-technical-specs";
@@ -68,8 +69,12 @@ function StepHeading({
   );
 }
 
-export function ProjectRequestFlow({ locale, countries, prefill }: ProjectRequestFlowProps) {
+export function ProjectRequestFlow({ locale, countries, prefill: prefillProp }: ProjectRequestFlowProps) {
   const t = useTranslations("ProjectRequestFlow");
+  // Spec 0078: strona jest statyczna, więc dane zalogowanego klienta dochodzą
+  // z AccountProvider po załadowaniu strony, nie z serwera.
+  const accountPrefill = useClientContactPrefill();
+  const prefill = prefillProp ?? accountPrefill;
   const tOptions = useTranslations("ProjectOptions");
 
   const [phase, setPhase] = useState<"form" | "sent">("form");
@@ -95,6 +100,19 @@ export function ProjectRequestFlow({ locale, countries, prefill }: ProjectReques
   const [contactName, setContactName] = useState(prefill?.name ?? "");
   const [contactEmail, setContactEmail] = useState(prefill?.email ?? "");
   const [contactPhone, setContactPhone] = useState(prefill?.phone ?? "");
+  const accountName = accountPrefill?.name;
+  const accountEmail = accountPrefill?.email;
+  const accountPhone = accountPrefill?.phone;
+  useEffect(() => {
+    if (accountEmail === undefined) return;
+    /* eslint-disable react-hooks/set-state-in-effect -- dane klienta dochodzą dopiero po załadowaniu strony */
+    setContactName((current) => current || (accountName ?? ""));
+    setContactEmail((current) => current || accountEmail);
+    setContactPhone((current) => current || (accountPhone ?? ""));
+    // Zalogowany klient pomija krok kontaktowy, jeśli jeszcze go nie opuścił.
+    if (accountName) setStep((current) => (current === 0 ? 1 : current));
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [accountName, accountEmail, accountPhone]);
   const [emailTouched, setEmailTouched] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [limitReached, setLimitReached] = useState(false);

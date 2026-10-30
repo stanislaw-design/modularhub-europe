@@ -2,6 +2,11 @@ import { getTranslations } from "next-intl/server";
 import { GuestClaimButton } from "@/components/klient/GuestClaimButton";
 import { Container, Heading, Stack, Text } from "@/components/ui";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 // Spec 0066 AC-7: strona z jednym przyciskiem. Samo wejście w link niczego nie
 // wysyła (skaner poczty nie uruchomi akcji) i nie pokazuje żadnych danych
 // sprawy, także dla nieznanego identyfikatora.

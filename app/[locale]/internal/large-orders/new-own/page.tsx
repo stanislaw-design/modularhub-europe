@@ -8,6 +8,11 @@ import { getProducersForPlatformProject } from "@/lib/db/queries";
 import { getPlatformContact } from "@/lib/platform-contact";
 import { getCustomProducerGroup, getCustomProducerGroups, getReadyProducerGroups } from "@/lib/producer-groups";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 // Spec 0077 AC-1: projekt własny ModularHub (zamawiającym jest platforma). Ten sam inline wzorzec
 // sesji co pozostałe ekrany /internal (internal/AGENTS.md).
 export default async function InternalNewPlatformProjectPage({ params }: { params: Promise<{ locale: string }> }) {

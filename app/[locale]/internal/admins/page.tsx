@@ -6,6 +6,11 @@ import { Heading, Stack, Text } from "@/components/ui";
 import { getAdminAccounts, getOpenAdminInvites } from "@/lib/admin-accounts";
 import { ADMIN_INVITE_MAX_OPEN, ADMIN_INVITE_TTL_DAYS } from "@/lib/admin-invite";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 const dateFormat = new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium", timeZone: "Europe/Warsaw" });
 
 // Spec 0077 część D AC-34: konta administratora. Ten sam inline wzorzec sesji co pozostałe ekrany

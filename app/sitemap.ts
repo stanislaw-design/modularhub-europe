@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { cacheLife, cacheTag } from "next/cache";
 import { getModularProjects } from "@/lib/data/modularprojects";
 import { getSitemapProducts } from "@/lib/data/projects";
 import { routing } from "@/lib/i18n/routing";
@@ -6,8 +7,15 @@ import { captureError } from "@/lib/observability/errors";
 import { resolveProductHref } from "@/lib/product-family-groups";
 import { getSiteUrl } from "@/lib/site-url";
 
-// Treść zmienia się wolno, a roboty wołają często: baza jest czytana raz na dobę (spec 0073 AC-13).
-export const revalidate = 86400;
+// Treść zmienia się wolno, a roboty wołają często: baza jest czytana raz na dobę (spec 0073 AC-13,
+// spec 0078 AC-11). Funkcja z cache rzuca błąd bazy, a łapie go wywołujący, więc fallback (same
+// stałe strony) nie zostaje zapisany w cache na dobę (spec 0078 AC-12).
+async function getCachedSitemapProducts() {
+  "use cache";
+  cacheLife("days");
+  cacheTag("products");
+  return getSitemapProducts();
+}
 
 const PUBLIC_PATHS = ["", "/results", "/producers", "/verified-manufacturers", "/sauna", "/project-request", "/contact", "/modularprojects"];
 
@@ -35,7 +43,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const fixedEntries = [...staticEntries, ...modularProjectEntries];
 
   try {
-    const products = await getSitemapProducts();
+    const products = await getCachedSitemapProducts();
     const productEntries = products.flatMap((item) =>
       localizedEntry(
         base,

@@ -8,6 +8,11 @@ import { parseCompareProjectIds } from "@/lib/compare";
 import { getCompareListPath, isEligibleForCompareKind, parseCompareKind } from "@/lib/compare-rows";
 import type { Locale } from "@/lib/i18n/routing";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 type PageSearchParams = { [key: string]: string | string[] | undefined };
 
 function firstParam(value: string | string[] | undefined): string | undefined {

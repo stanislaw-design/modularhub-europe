@@ -7,6 +7,11 @@ import { ProducerRegistrationForm } from "@/components/auth/ProducerRegistration
 import { RegistrationRoleStep } from "@/components/auth/RegistrationRoleStep";
 import { getCountries } from "@/lib/data/countries";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 // Wspólny wizard rejestracji (spec 0040 Decision): jedna trasa, krok w
 // parametrze URL `role`. Brak `role` -> krok 1 (wybór), `client`/`producer`
 // -> właściwy formularz kroku 2. Domyślny callbackUrl różni się per rola

@@ -7,6 +7,11 @@ import { getProjectById, getPublishedProductIds } from "@/lib/data/projects";
 import type { Locale } from "@/lib/i18n/routing";
 import { parseInquiryProjectIds } from "@/lib/inquiry";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 const VALID_COUNTRY_CODES: readonly CountryCode[] = ["PL", "DE", "NL"];
 
 function buildResultsHref(

@@ -1,5 +1,6 @@
 "use server";
 
+import { invalidateProduct } from "@/lib/cache-tags";
 import { and, eq, sql } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db/client";
@@ -70,6 +71,7 @@ export async function adminUpsertProductEnvelopeParameter(
           .values(envelopeInsertValues(target.id, parsed.data))
           .returning({ id: productEnvelopeParameter.id }),
       ]);
+      invalidateProduct();
       return { ok: true, id: inserted[0].id };
     }
 
@@ -88,6 +90,7 @@ export async function adminUpsertProductEnvelopeParameter(
         .returning({ id: productEnvelopeParameter.id }),
     ]);
     if (updated.length === 0) return { ok: false, error: (await rowExists(input.id)) ? STALE_ERROR : NOT_FOUND_ERROR };
+    invalidateProduct();
     return { ok: true, id: input.id };
   } catch (error) {
     if (getPgErrorCode(error) === UNIQUE_VIOLATION) return { ok: false, error: DUPLICATE_ERROR };
@@ -108,6 +111,7 @@ export async function adminDeleteProductEnvelopeParameter(id: string, expectedVe
         .returning({ id: productEnvelopeParameter.id }),
     ]);
     if (deleted.length === 0) return { ok: false, error: (await rowExists(id)) ? STALE_ERROR : NOT_FOUND_ERROR };
+    invalidateProduct();
     return { ok: true };
   } catch (error) {
     captureError(error, { path: "adminDeleteProductEnvelopeParameter", userId: adminId });
@@ -137,6 +141,7 @@ export async function setProductEnvelopeParameterConfirmation(
         .returning({ id: productEnvelopeParameter.id }),
     ]);
     if (updated.length === 0) return { ok: false, error: (await rowExists(id)) ? STALE_ERROR : NOT_FOUND_ERROR };
+    invalidateProduct();
     return { ok: true };
   } catch (error) {
     captureError(error, { path: "setProductEnvelopeParameterConfirmation", userId: adminId });
@@ -162,6 +167,7 @@ export async function adminSetProductFoundationStatus(
     await withAdminActor(adminId, [
       db.update(product).set({ foundationStatus: status, updatedAt: new Date() }).where(eq(product.id, productId)),
     ]);
+    invalidateProduct();
     return { ok: true };
   } catch (error) {
     captureError(error, { path: "adminSetProductFoundationStatus", userId: adminId });

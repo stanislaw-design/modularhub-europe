@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import type { Session } from "next-auth";
@@ -24,18 +25,13 @@ vi.mock("next/navigation", async (importOriginal) => {
 
 const getProjectsMock = vi.fn();
 const getSaunaProducerOptionsMock = vi.fn();
-vi.mock("@/lib/data/projects", () => ({
-  getProjects: (...args: unknown[]) => getProjectsMock(...args),
-  getSaunaProducerOptions: (...args: unknown[]) => getSaunaProducerOptionsMock(...args),
+vi.mock("@/lib/data/public-cache", () => ({
+  getProjectsForRequestCached: (...args: unknown[]) => getProjectsMock(...args),
+  getSaunaProducerOptionsCached: (...args: unknown[]) => getSaunaProducerOptionsMock(...args),
 }));
 
 vi.mock("@/lib/data/countries", () => ({
   getCountries: async () => [{ code: "PL", name: "Polska" }],
-}));
-
-vi.mock("@/lib/db/queries", () => ({
-  getClientIdForUser: vi.fn(),
-  getFavoritedProductIds: vi.fn(async () => new Set<string>()),
 }));
 
 import SaunaCategoryPage, { generateMetadata } from "./page";
@@ -120,16 +116,16 @@ describe("SaunaCategoryPage (spec 0068)", () => {
   });
 
   // AC-9: chips grow with the DB, not with code.
-  it("renders one producer chip per option from getSaunaProducerOptions", async () => {
+  it("renders one producer option per entry from getSaunaProducerOptions", async () => {
     getSaunaProducerOptionsMock.mockResolvedValue([
       { id: PRODUCER_ID, name: "Kora", count: 2 },
       { id: "3c7c7d3f-0f3b-4f4b-8b2b-3c8b7d6f5e4d", name: "Wooden Dream House", count: 1 },
     ]);
     await renderPage();
 
-    const nav = screen.getByRole("navigation", { name: "Filtry saun" });
-    expect(nav).toHaveTextContent("Kora");
-    expect(nav).toHaveTextContent("Wooden Dream House");
+    await userEvent.setup().click(screen.getByRole("button", { name: /Producent/ }));
+    expect(screen.getByRole("option", { name: "Kora" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Wooden Dream House" })).toBeInTheDocument();
   });
 
   // AC-4
@@ -147,11 +143,24 @@ describe("SaunaCategoryPage (spec 0068)", () => {
     const container = await renderPage({ seatingMin: "4" });
     expect(container.querySelector('script[type="application/ld+json"]')).toBeNull();
   });
+
+  // AC-4 (spec 0078): metadata can no longer read searchParams, so the page itself
+  // marks a filtered view noindex with a robots meta tag.
+  it("marks a filtered view noindex, follow and leaves an unfiltered view indexable", async () => {
+    await renderPage({ seatingMin: "4" });
+    // React 19 przenosi <meta> do <head>.
+    expect(document.head.querySelector('meta[name="robots"]')).toHaveAttribute("content", "noindex, follow");
+  });
+
+  it("stays indexable when the only params are invalid", async () => {
+    await renderPage({ seatingMin: "abc" });
+    expect(document.head.querySelector('meta[name="robots"]')).toBeNull();
+  });
 });
 
 describe("SaunaCategoryPage generateMetadata (spec 0068 AC-4)", () => {
-  async function metadata(searchParams: Record<string, string> = {}, locale = "pl") {
-    return generateMetadata({ params: Promise.resolve({ locale }), searchParams: Promise.resolve(searchParams) });
+  async function metadata(locale = "pl") {
+    return generateMetadata({ params: Promise.resolve({ locale }) });
   }
 
   it("has a self canonical and hreflang for all four locales", async () => {
@@ -167,19 +176,6 @@ describe("SaunaCategoryPage generateMetadata (spec 0068 AC-4)", () => {
     });
     expect(meta.robots).toBeUndefined();
   });
-
-  it("is noindex, follow with canonical on /sauna when any filter param is valid", async () => {
-    const meta = await metadata({ seatingMin: "4" }, "en");
-
-    expect(meta.robots).toEqual({ index: false, follow: true });
-    expect(meta.alternates?.canonical).toBe("/en/sauna");
-  });
-
-  it("stays indexable when the only params are invalid", async () => {
-    const meta = await metadata({ seatingMin: "abc" });
-    expect(meta.robots).toBeUndefined();
-  });
-
 });
 
 // Zamiast mocka (który zawsze zwraca polski), sprawdza prawdziwe pliki

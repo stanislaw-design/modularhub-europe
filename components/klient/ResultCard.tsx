@@ -29,8 +29,8 @@ interface ResultCardProps {
   countryCode?: CountryCode;
   /** Serce "dodaj do ulubionych" (spec 0024 AC-2, AC-4). */
   favorite?: {
-    isClientSession: boolean;
-    initialFavorited: boolean;
+    isClientSession?: boolean;
+    initialFavorited?: boolean;
   };
 }
 

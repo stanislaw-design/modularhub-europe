@@ -1,5 +1,6 @@
 "use server";
 
+import { invalidateProduct } from "@/lib/cache-tags";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { after } from "next/server";
 import type { CompletionStandard, CostLineItemStatus, TimelineStageKey } from "@/lib/data/types";
@@ -107,6 +108,7 @@ export async function createVariant(
         sortOrder: maxSortOrder + 1,
       })
       .returning({ id: productVariant.id });
+    invalidateProduct();
     return { ok: true, variantId: inserted.id };
   } catch (error) {
     captureError(error, { path: "createVariant", userId: actor.userId });
@@ -226,6 +228,7 @@ export async function cloneVariant(
     // źródłowego tego samego produktu), ale nie zawsze — np. źródłowy wariant
     // sam nigdy nie przeszedł przez ten mechanizm. Nigdy nie blokuje odpowiedzi.
     after(() => generateMissingCostLineItemLabelTranslations(newCostItems.map((item) => item.label)));
+    invalidateProduct();
     return {
       ok: true,
       variant: {
@@ -282,6 +285,7 @@ export async function updateVariant(variantId: string, fields: UpdateVariantFiel
         updatedAt: new Date(),
       })
       .where(eq(productVariant.id, variantId));
+    invalidateProduct();
     return { ok: true };
   } catch (error) {
     captureError(error, { path: "updateVariant", userId: actor.userId });
@@ -304,6 +308,7 @@ export async function setDefaultVariant(variantId: string): Promise<ActionResult
       .update(productVariant)
       .set({ isDefault: sql<boolean>`${productVariant.id} = ${variantId}`, updatedAt: new Date() })
       .where(and(eq(productVariant.productId, ownership.productId!), isNull(productVariant.deletedAt)));
+    invalidateProduct();
     return { ok: true };
   } catch (error) {
     captureError(error, { path: "setDefaultVariant", userId: actor.userId });
@@ -331,6 +336,7 @@ export async function deleteVariant(variantId: string): Promise<ActionResult> {
       db.delete(productTimelineStage).where(eq(productTimelineStage.productVariantId, variantId)),
       db.update(productVariant).set({ deletedAt: new Date(), isDefault: false }).where(eq(productVariant.id, variantId)),
     ]);
+    invalidateProduct();
     return { ok: true };
   } catch (error) {
     captureError(error, { path: "deleteVariant", userId: actor.userId });
@@ -379,6 +385,7 @@ export async function upsertCostLineItem(
         })
         .where(eq(costLineItem.id, fields.id));
       after(() => generateMissingCostLineItemLabelTranslations([fields.label]));
+      invalidateProduct();
       return { ok: true, itemId: fields.id };
     } catch (error) {
       captureError(error, { path: "upsertCostLineItem.update", userId: actor.userId });
@@ -408,6 +415,7 @@ export async function upsertCostLineItem(
       })
       .returning({ id: costLineItem.id });
     after(() => generateMissingCostLineItemLabelTranslations([fields.label]));
+    invalidateProduct();
     return { ok: true, itemId: inserted.id };
   } catch (error) {
     captureError(error, { path: "upsertCostLineItem.insert", userId: actor.userId });
@@ -424,6 +432,7 @@ export async function deleteCostLineItem(itemId: string): Promise<ActionResult> 
 
   try {
     await db.delete(costLineItem).where(eq(costLineItem.id, itemId));
+    invalidateProduct();
     return { ok: true };
   } catch (error) {
     captureError(error, { path: "deleteCostLineItem", userId: actor.userId });
@@ -481,6 +490,7 @@ export async function upsertTimelineStage(
           updatedAt: new Date(),
         },
       });
+    invalidateProduct();
     return { ok: true };
   } catch (error) {
     captureError(error, { path: "upsertTimelineStage", userId: actor.userId });

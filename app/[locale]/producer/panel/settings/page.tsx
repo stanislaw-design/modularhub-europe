@@ -8,6 +8,11 @@ import { getProducerCertifications, getProducerIdForUser, getProducerProfile } f
 import { requirePanelProducerSession } from "@/lib/panel-session";
 import { setProducerCommunicationLocale } from "@/lib/producer-communication-locale-actions";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 // Ustawienia firmy (spec 0074 AC-11): nazwa i technologia do zmiany formularzem,
 // NIP i kraje dostawy tylko do odczytu (kraje zmienia się w Profilu zdolności),
 // certyfikaty bez zmian logiki. Status weryfikacji firmy nie jest już pokazywany.

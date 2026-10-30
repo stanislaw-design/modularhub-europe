@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { notFound, permanentRedirect, redirect } from "next/navigation";
-import { auth } from "@/auth";
 import { Button, Card, DataText, Heading, Text } from "@/components/ui";
 import { FavoriteButton } from "@/components/klient/FavoriteButton";
 import { GalleryLightboxProvider } from "@/components/klient/ProjectGalleryLightbox";
@@ -16,12 +15,19 @@ import { ProjectFeatureTiles } from "@/components/klient/ProjectFeatureTiles";
 import { ProjectVideoSection } from "@/components/klient/ProjectVideoSection";
 import { getDefaultProjectVariant } from "@/lib/data/project-variants";
 import { getProductAltSubject } from "@/lib/product-alt";
-import { getProducerById, getProducerPhotoUrl } from "@/lib/data/producers";
-import { getProjectBySlugOrId } from "@/lib/data/projects";
+import {
+  getProducerByIdCached,
+  getProducerPhotoUrlCached,
+  getProjectBySlugOrIdCached,
+} from "@/lib/data/public-cache";
 import type { CompletionStandard } from "@/lib/data/types";
-import { getClientIdForUser, getFavoritedProductIds } from "@/lib/db/queries";
 import { routing, type Locale } from "@/lib/i18n/routing";
 import { resolveProductHref } from "@/lib/product-family-groups";
+
+// Spec 0078: strona szczegółów czyta searchParams (wariant, opcje, kraj) w całej treści,
+// więc nie jest w pełni statyczna. Dane są z "use cache", sesja nie jest czytana na serwerze.
+// Pełna statyka wymaga przeniesienia wyboru wariantu do wysp klienckich (osobna decyzja).
+export const instant = false;
 
 const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0 });
 
@@ -52,7 +58,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale, slug } = await params;
   const [project, t] = await Promise.all([
-    getProjectBySlugOrId(slug, locale as Locale),
+    getProjectBySlugOrIdCached(slug, locale as Locale),
     getTranslations({ locale, namespace: "OutdoorTvPage" }),
   ]);
   if (!project || project.family !== "outdoor-tv") return {};
@@ -100,7 +106,7 @@ export default async function OutdoorTvPage({
     getTranslations("OutdoorTvPage"),
     getTranslations("ProjectGallery"),
   ]);
-  const project = await getProjectBySlugOrId(slug, locale as Locale);
+  const project = await getProjectBySlugOrIdCached(slug, locale as Locale);
   if (!project) notFound();
   // Odwrotność strażnika na /project/[slug] (spec 0056 AC-6): stary lub błędny
   // link na inną rodzinę trafia na jej właściwy route zamiast renderować się
@@ -116,18 +122,12 @@ export default async function OutdoorTvPage({
     permanentRedirect(`/${locale}/outdoor-tv/${project.slug}${preserveQuery(rawSearchParams)}`);
   }
 
-  const [producer, producerPhotoUrl, session] = await Promise.all([
-    getProducerById(project.producerId, locale as Locale),
-    getProducerPhotoUrl(project.producerId),
-    auth(),
+  const [producer, producerPhotoUrl] = await Promise.all([
+    getProducerByIdCached(project.producerId, locale as Locale),
+    getProducerPhotoUrlCached(project.producerId),
   ]);
 
-  const isClientSession = session?.user.role === "client";
-  let isFavorited = false;
-  if (session && isClientSession) {
-    const clientId = await getClientIdForUser(session.user.id);
-    if (clientId) isFavorited = (await getFavoritedProductIds(clientId)).has(project.id);
-  }
+  // Spec 0078: serce ulubionych dostaje stan konta z przeglądarki (AccountProvider).
 
   const altSubject = await getProductAltSubject(project);
   const galleryExtraImages = project.galleryImageUrls?.filter((url) => url.length > 0) ?? [];
@@ -230,8 +230,6 @@ export default async function OutdoorTvPage({
                     productId={project.id}
                     productName={project.name}
                     locale={locale}
-                    isClientSession={isClientSession}
-                    initialFavorited={isFavorited}
                     surface="v5"
                   />
                 </div>

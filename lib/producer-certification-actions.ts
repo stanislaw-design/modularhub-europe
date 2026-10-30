@@ -1,5 +1,6 @@
 "use server";
 
+import { invalidateProducer } from "@/lib/cache-tags";
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { getPgErrorCode } from "@/lib/db/pg-error";
@@ -39,6 +40,7 @@ export async function addProducerCertification(input: ProducerCertificationFormI
     captureError(error, { path: "addProducerCertification", userId: actor.userId });
     return { ok: false, error: "Nie udało się dodać certyfikatu. Spróbuj ponownie." };
   }
+  invalidateProducer();
   return { ok: true };
 }
 
@@ -79,6 +81,7 @@ export async function updateProducerCertification(
     captureError(error, { path: "updateProducerCertification", userId: actor.userId });
     return { ok: false, error: "Nie udało się zapisać certyfikatu. Spróbuj ponownie." };
   }
+  invalidateProducer();
   return { ok: true };
 }
 
@@ -96,5 +99,6 @@ export async function deleteProducerCertification(id: string): Promise<ActionRes
     captureError(error, { path: "deleteProducerCertification", userId: actor.userId });
     return { ok: false, error: "Nie udało się usunąć certyfikatu. Spróbuj ponownie." };
   }
+  invalidateProducer();
   return { ok: true };
 }

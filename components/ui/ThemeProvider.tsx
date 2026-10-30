@@ -1,7 +1,16 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
-import { THEME_COOKIE_MAX_AGE, THEME_COOKIE_NAME, type Theme } from "@/lib/theme";
+import { isTheme, THEME_COOKIE_MAX_AGE, THEME_COOKIE_NAME, type Theme } from "@/lib/theme";
+
+// Runs while the browser parses the HTML, before the first paint: puts the saved
+// choice on the wrapper div that is the script's parent.
+const THEME_COOKIE_SCRIPT = `(function(){var m=document.cookie.match(/(?:^|; )${THEME_COOKIE_NAME}=(light|dark)/);var s=document.currentScript;if(m&&s&&s.parentElement)s.parentElement.classList.add(m[1])})()`;
+
+function readThemeCookie(): Theme | null {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${THEME_COOKIE_NAME}=([^;]*)`));
+  return match && isTheme(match[1]) ? match[1] : null;
+}
 
 interface ThemeContextValue {
   /** The effective theme this render should paint with (explicit choice, else detected system preference). */
@@ -32,6 +41,14 @@ function getServerSystemTheme(): Theme {
 interface ThemeProviderProps {
   /** The `theme` cookie's value, read server side; `null` means no explicit choice yet (follow system). */
   initialTheme: Theme | null;
+  /**
+   * Spec 0078 AC-6: skeleton layouts that must not read cookies on the server
+   * pass `initialTheme={null}` plus this flag. An inline script, first child of
+   * the wrapper, copies the cookie choice onto the wrapper before first paint,
+   * and the state catches up after mount (the wrapper keeps the script's class
+   * until then, which is why it suppresses hydration warnings).
+   */
+  themeFromCookieScript?: boolean;
   /** CSS scope class this instance paints under (e.g. `theme-klient`, `theme-producer`; see app/globals.css). */
   scopeClassName: string;
   children: ReactNode;
@@ -48,8 +65,15 @@ interface ThemeProviderProps {
 // hydration with no blocking script (AC-3). `contents` keeps this div
 // invisible to layout, it exists purely to scope the CSS custom property
 // overrides.
-export function ThemeProvider({ initialTheme, scopeClassName, children }: ThemeProviderProps) {
+export function ThemeProvider({ initialTheme, themeFromCookieScript = false, scopeClassName, children }: ThemeProviderProps) {
   const [explicitTheme, setExplicitTheme] = useState<Theme | null>(initialTheme);
+
+  useEffect(() => {
+    if (!themeFromCookieScript) return;
+    const cookieTheme = readThemeCookie();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the cookie is only readable in the browser
+    if (cookieTheme) setExplicitTheme(cookieTheme);
+  }, [themeFromCookieScript]);
   const systemTheme = useSyncExternalStore(subscribeToSystemTheme, getSystemTheme, getServerSystemTheme);
 
   // Headless UI's Dialog (SiteHeader's mobile menu, ResultsFilterBar's mobile
@@ -81,7 +105,10 @@ export function ThemeProvider({ initialTheme, scopeClassName, children }: ThemeP
 
   return (
     <ThemeContext.Provider value={{ theme: explicitTheme ?? systemTheme, setTheme }}>
-      <div className={`contents ${scopeClassName} ${explicitTheme ?? ""}`}>{children}</div>
+      <div className={`contents ${scopeClassName} ${explicitTheme ?? ""}`} suppressHydrationWarning={themeFromCookieScript}>
+        {themeFromCookieScript && <script dangerouslySetInnerHTML={{ __html: THEME_COOKIE_SCRIPT }} />}
+        {children}
+      </div>
     </ThemeContext.Provider>
   );
 }

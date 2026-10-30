@@ -5,6 +5,11 @@ import { auth } from "@/auth";
 import { Heading, Text } from "@/components/ui";
 import { CASES_AND_INQUIRIES_PAGE_SIZE, listCasesAndInquiriesForAdmin } from "@/lib/cases/queries";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 const dateFormatter = new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium", timeStyle: "short" });
 
 const kindLabel: Record<string, string> = {

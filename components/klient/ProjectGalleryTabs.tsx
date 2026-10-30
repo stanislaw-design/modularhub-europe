@@ -20,6 +20,8 @@ interface ProjectGalleryTabsProps {
   floorPlanVersionLabel?: string;
   activeTab: GalleryTabKey;
   hrefFor: (tab: GalleryTabKey) => string;
+  /** false dla produktów bez rzutów (sauny): tylko zdjęcia, bez zakładek. */
+  showFloorPlanTab?: boolean;
 }
 
 // Zakładka Wizualizacje reużywa dzisiejszy coverImageUrl/galleryImageUrls
@@ -40,6 +42,7 @@ export async function ProjectGalleryTabs({
   floorPlanVersionLabel,
   activeTab,
   hrefFor,
+  showFloorPlanTab = true,
 }: ProjectGalleryTabsProps) {
   const t = await getTranslations("ProjectGalleryTabs");
 
@@ -56,7 +59,7 @@ export async function ProjectGalleryTabs({
   // AC-7 (zakładka bez dokumentu się nie pojawia).
   const tabs: { key: GalleryTabKey; label: string }[] = [
     { key: "wizualizacje", label: t("tabWizualizacje") },
-    { key: "rzut", label: t("tabRzut") },
+    ...(showFloorPlanTab ? [{ key: "rzut" as const, label: t("tabRzut") }] : []),
   ];
   const effectiveTab = tabs.some((tab) => tab.key === activeTab) ? activeTab : "wizualizacje";
 
@@ -68,7 +71,7 @@ export async function ProjectGalleryTabs({
           pokazuje już wszystkie zdjęcia po kolei, a rzut na tym rozmiarze na
           razie zostaje osiągalny tylko z poziomu lg (spec 0042 follow-up). */}
       <div role="tablist" aria-label={t("tablistLabel")} className="hidden flex-wrap gap-brand-2 lg:absolute lg:left-brand-4 lg:top-brand-4 lg:z-10 lg:flex">
-        {tabs.map((tab) => (
+        {tabs.length > 1 && tabs.map((tab) => (
           <Link
             key={tab.key}
             href={hrefFor(tab.key)}

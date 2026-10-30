@@ -8,7 +8,7 @@ const captureErrorMock = vi.hoisted(() => vi.fn());
 const FakeAuthError = vi.hoisted(() => class FakeAuthError extends Error {});
 vi.mock("@/auth", () => ({ auth: authMock, signIn: vi.fn() }));
 vi.mock("next-auth", () => ({ AuthError: FakeAuthError }));
-vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+vi.mock("next/cache", () => ({ revalidatePath: vi.fn(), updateTag: vi.fn() }));
 vi.mock("@/lib/observability", () => ({ trackEvent: vi.fn(), captureError: captureErrorMock }));
 vi.mock("@/lib/observability/errors", () => ({ captureError: captureErrorMock }));
 

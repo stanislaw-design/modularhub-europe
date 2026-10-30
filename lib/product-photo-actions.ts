@@ -1,5 +1,6 @@
 "use server";
 
+import { invalidateProduct } from "@/lib/cache-tags";
 import { randomUUID } from "node:crypto";
 import { and, eq, isNull } from "drizzle-orm";
 import type { BatchItem, BatchResponse } from "drizzle-orm/batch";
@@ -132,6 +133,7 @@ export async function uploadProductPhoto(productId: string, file: File): Promise
         .returning({ id: document.id }),
     ]);
 
+    invalidateProduct();
     return { ok: true, documentId: insertedRows[0].id, url: buildPublicUrl(r2Key) };
   } catch (error) {
     // Plik już jest w R2 w tym momencie; osierocony obiekt bez wiersza to
@@ -172,6 +174,7 @@ export async function setCoverPhoto(documentId: string): Promise<ActionResult> {
         ),
       db.update(document).set({ isCover: true }).where(eq(document.id, documentId)),
     ]);
+    invalidateProduct();
     return { ok: true };
   } catch (error) {
     captureError(error, { path: "setCoverPhoto", userId: actor.userId });
@@ -207,6 +210,7 @@ export async function reorderProductPhotos(productId: string, orderedDocumentIds
       db.update(document).set({ sortOrder: index }).where(eq(document.id, documentId)),
     );
     await runAsActor(actor, updates as [typeof updates[number], ...(typeof updates)]);
+    invalidateProduct();
     return { ok: true };
   } catch (error) {
     captureError(error, { path: "reorderProductPhotos", userId: actor.userId });
@@ -241,6 +245,7 @@ export async function deleteProductPhoto(documentId: string): Promise<ActionResu
     captureError(error, { path: "deleteProductPhoto.r2", userId: actor.userId });
   }
 
+  invalidateProduct();
   return { ok: true };
 }
 
@@ -336,6 +341,7 @@ export async function uploadFloorPlan(
         .returning({ id: document.id }),
     ]);
 
+    invalidateProduct();
     return { ok: true, documentId: insertedRows[0].id, url: buildPublicUrl(r2Key) };
   } catch (error) {
     captureError(error, { path: "uploadFloorPlan", userId: actor.userId });
@@ -369,6 +375,7 @@ export async function deleteFloorPlan(documentId: string): Promise<ActionResult>
     captureError(error, { path: "deleteFloorPlan.r2", userId: actor.userId });
   }
 
+  invalidateProduct();
   return { ok: true };
 }
 
@@ -434,6 +441,7 @@ export async function uploadProductSpecificationPdf(productId: string, file: Fil
     ];
     await runAsActor(actor, statements as [(typeof statements)[number], ...typeof statements]);
 
+    invalidateProduct();
     return { ok: true, documentId: newDocumentId, url: buildPublicUrl(r2Key) };
   } catch (error) {
     captureError(error, { path: "uploadProductSpecificationPdf", userId: actor.userId });
@@ -465,6 +473,7 @@ export async function deleteProductSpecificationPdf(documentId: string): Promise
     captureError(error, { path: "deleteProductSpecificationPdf.r2", userId: actor.userId });
   }
 
+  invalidateProduct();
   return { ok: true };
 }
 
@@ -527,6 +536,7 @@ export async function uploadProductSalesPdf(productId: string, file: File): Prom
     ];
     await runAsActor(actor, statements as [(typeof statements)[number], ...typeof statements]);
 
+    invalidateProduct();
     return { ok: true, documentId: newDocumentId, url: buildPublicUrl(r2Key) };
   } catch (error) {
     captureError(error, { path: "uploadProductSalesPdf", userId: actor.userId });
@@ -558,5 +568,6 @@ export async function deleteProductSalesPdf(documentId: string): Promise<ActionR
     captureError(error, { path: "deleteProductSalesPdf.r2", userId: actor.userId });
   }
 
+  invalidateProduct();
   return { ok: true };
 }

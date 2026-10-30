@@ -17,6 +17,11 @@ import type { Locale } from "@/lib/i18n/routing";
 import { requirePanelClientSession } from "@/lib/panel-session";
 import { BULK_REQUEST_EMAIL_LIMIT } from "@/lib/project-request-specs";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 // Zamknięte zapytanie można wznowić przez 30 dni (spec 0070 AC-19), starszych nie pokazujemy.
 const CLOSED_VISIBLE_DAYS = 30;
 function closedVisibleCutoff(): number {

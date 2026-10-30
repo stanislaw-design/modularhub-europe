@@ -6,11 +6,15 @@ import { notFound } from "next/navigation";
 import { PopularHomeCard } from "@/components/klient/PopularHomeCard";
 import { Heading, Text } from "@/components/ui";
 import { getCountries } from "@/lib/data/countries";
-import { getProducerById } from "@/lib/data/producers";
+import { getProducerByIdCached } from "@/lib/data/public-cache";
 import { getProjects } from "@/lib/data/projects";
 import type { ProductFamily } from "@/lib/data/types";
 import { routing, type Locale } from "@/lib/i18n/routing";
 import { resolveProductHref } from "@/lib/product-family-groups";
+
+// Spec 0078: parametr [id] nie ma generateStaticParams, więc strona jest renderowana na żądanie,
+// z danymi z "use cache".
+export const instant = false;
 
 type PageParams = { locale: string; id: string };
 
@@ -22,7 +26,7 @@ export async function generateMetadata({
   params: Promise<PageParams>;
 }): Promise<Metadata> {
   const { locale, id } = await params;
-  const producer = await getProducerById(id, locale as Locale);
+  const producer = await getProducerByIdCached(id, locale as Locale);
   if (!producer || !producer.verified) return { robots: { index: false } };
   const t = await getTranslations({ locale, namespace: "ProducerDetailPage" });
   const canonicalPath = `/${locale}/producers/${id}`;
@@ -46,7 +50,7 @@ export async function generateMetadata({
 // wszystkich rodzin (getProjects filtruje po jednej rodzinie naraz).
 export default async function ProducerDetailPage({ params }: { params: Promise<PageParams> }) {
   const { locale, id } = await params;
-  const producer = await getProducerById(id, locale as Locale);
+  const producer = await getProducerByIdCached(id, locale as Locale);
   if (!producer || !producer.verified) notFound();
 
   const [t, countries, projectsByFamily] = await Promise.all([

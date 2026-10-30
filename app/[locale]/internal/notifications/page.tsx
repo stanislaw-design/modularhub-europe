@@ -7,6 +7,11 @@ import { shortReference } from "@/lib/notifications/templates/reference";
 import { TransactionalEmail } from "@/lib/notifications/templates/TransactionalEmail";
 import type { TransactionalEmailProps } from "@/lib/notifications/templates/types";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 // Widok wewnętrzny dla roli administratora (spec 0051 AC-12, AC-13), ten sam
 // wzorzec auth co /internal/products: podgląd wszystkich pięciu szablonów e
 // mail na fikcyjnych, na sztywno wpisanych danych. Nigdy nie czyta prawdziwego

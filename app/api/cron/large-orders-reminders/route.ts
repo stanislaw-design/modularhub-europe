@@ -6,7 +6,6 @@ import { runLargeOrderReminders } from "@/lib/large-order-reminders";
 // `Authorization: Bearer ${CRON_SECRET}` do wywołań crona, gdy zmienna CRON_SECRET jest
 // ustawiona. Bez sekretu endpoint odmawia (fail closed), więc nie da się go wywołać z zewnątrz.
 // Zadanie nie działa na stagingu; testuje się je ręcznie tym samym nagłówkiem.
-export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 function isAuthorized(header: string | null): boolean {

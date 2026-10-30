@@ -1,5 +1,6 @@
 "use server";
 
+import { invalidateProduct } from "@/lib/cache-tags";
 import { and, eq, isNull, notInArray, sql } from "drizzle-orm";
 import { after } from "next/server";
 import {
@@ -504,6 +505,7 @@ export async function createProducerProduct(fields: ProducerProductFields): Prom
     await upsertTranslations(inserted.id, fields);
     await upsertProductCountryEligibility(inserted.id, fields.deliveryCountries);
     after(() => generateMissingProductTranslations(inserted.id));
+    invalidateProduct();
     return { ok: true, productId: inserted.id, published: false };
   } catch (error) {
     captureError(error, { path: "createProducerProduct", userId: actor.userId });
@@ -576,6 +578,7 @@ export async function updateProducerProduct(
   if (options.publish) {
     trackEvent(existing.status === "published" ? "product_updated" : "product_added", { productId }, actor.userId);
   }
+  invalidateProduct();
   return { ok: true, productId, published: options.publish };
 }
 
@@ -598,5 +601,6 @@ export async function deleteProducerProduct(productId: string): Promise<ActionRe
   }
 
   trackEvent("product_deleted", { productId }, actor.userId);
+  invalidateProduct();
   return { ok: true };
 }

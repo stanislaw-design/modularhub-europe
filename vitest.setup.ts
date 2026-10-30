@@ -138,3 +138,14 @@ vi.mock("next-intl/server", async (importOriginal) => {
       createTestTranslator(typeof namespaceOrOptions === "string" ? namespaceOrOptions : namespaceOrOptions?.namespace),
   };
 });
+
+// Spec 0078: "use cache" is a compiler directive, so in Vitest it is a plain
+// string and cacheLife()/cacheTag() would run outside any cache scope and throw.
+// Tests exercise the wrapped logic, not Next.js' cache, so these are no-ops.
+vi.mock("next/cache", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/cache")>()),
+  cacheLife: vi.fn(),
+  cacheTag: vi.fn(),
+  updateTag: vi.fn(),
+  revalidateTag: vi.fn(),
+}));

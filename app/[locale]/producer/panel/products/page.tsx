@@ -3,6 +3,11 @@ import { getProducerIdForUser, getProductsForProducer } from "@/lib/db/queries";
 import { requirePanelProducerSession } from "@/lib/panel-session";
 import { getProductCompleteness } from "@/lib/producer-panel-summary";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 // Katalog własny producenta (spec 0032 AC-3): produkty pobrane z tabeli
 // product filtrowanej po producerId z sesji, nigdy po wartości z przeglądarki.
 // Kompletność (spec 0074 AC-10) liczy jedno zapytanie dla wszystkich produktów,

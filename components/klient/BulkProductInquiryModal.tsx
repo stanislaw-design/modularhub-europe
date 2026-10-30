@@ -3,7 +3,8 @@
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
-import { type FormEvent, useState, useTransition } from "react";
+import { type FormEvent, useEffect, useState, useTransition } from "react";
+import { useClientContactPrefill } from "@/components/klient/useAccountSession";
 import { Button, Input, Label, Select, Stack, Text, Textarea } from "@/components/ui";
 import type { Country, CountryCode } from "@/lib/data/types";
 import { EMPTY_INTENDED_USE, IntendedUseField, intendedUseInput, type IntendedUseValue } from "@/components/klient/IntendedUseField";
@@ -22,8 +23,12 @@ interface BulkProductInquiryModalProps {
 // konfigurator (spec 0038 Follow-up) — woła wprost już przetestowaną
 // submitBulkProductInquiry (spec 0037), ten sam wzorzec useTransition/isPending
 // i błędu limitu co ProjectRequestFlow, bez opuszczania /project/[id].
-export function BulkProductInquiryModal({ productId, countries, prefill }: BulkProductInquiryModalProps) {
+export function BulkProductInquiryModal({ productId, countries, prefill: prefillProp }: BulkProductInquiryModalProps) {
   const t = useTranslations("BulkProductInquiryModal");
+  // Spec 0078: strona produktu jest statyczna, więc dane zalogowanego klienta
+  // dochodzą z AccountProvider po załadowaniu strony, nie z serwera.
+  const accountPrefill = useClientContactPrefill();
+  const prefill = prefillProp ?? accountPrefill;
   const locale = useLocale();
 
   const [open, setOpen] = useState(false);
@@ -31,6 +36,17 @@ export function BulkProductInquiryModal({ productId, countries, prefill }: BulkP
   const [contactName, setContactName] = useState(prefill?.name ?? "");
   const [contactEmail, setContactEmail] = useState(prefill?.email ?? "");
   const [contactPhone, setContactPhone] = useState(prefill?.phone ?? "");
+  const accountName = accountPrefill?.name;
+  const accountEmail = accountPrefill?.email;
+  const accountPhone = accountPrefill?.phone;
+  useEffect(() => {
+    if (accountEmail === undefined) return;
+    /* eslint-disable react-hooks/set-state-in-effect -- dane klienta dochodzą dopiero po załadowaniu strony */
+    setContactName((current) => current || (accountName ?? ""));
+    setContactEmail((current) => current || accountEmail);
+    setContactPhone((current) => current || (accountPhone ?? ""));
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [accountName, accountEmail, accountPhone]);
   const [unitCount, setUnitCount] = useState("");
   const [deliveryCountryCode, setDeliveryCountryCode] = useState<CountryCode | null>(null);
   const [note, setNote] = useState("");

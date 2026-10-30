@@ -5,6 +5,11 @@ import { ProducerGroupManager } from "@/components/internal/ProducerGroupManager
 import { Heading, Stack } from "@/components/ui";
 import { getCustomProducerGroup } from "@/lib/producer-groups";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 // Spec 0077 część B AC-23, AC-24: szczegół własnej grupy. Ten sam inline wzorzec sesji co pozostałe ekrany /internal.
 export default async function InternalProducerGroupPage({ params }: { params: Promise<{ locale: string; id: string }> }) {
   const { locale, id } = await params;

@@ -1,5 +1,6 @@
 "use server";
 
+import { invalidateProduct } from "@/lib/cache-tags";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { getPgErrorCode } from "@/lib/db/pg-error";
@@ -60,6 +61,7 @@ export async function upsertProductEnvelopeParameter(
         .insert(productEnvelopeParameter)
         .values(envelopeInsertValues(target.id, parsed.data))
         .returning({ id: productEnvelopeParameter.id });
+      invalidateProduct();
       return { ok: true, id: inserted.id };
     }
 
@@ -82,6 +84,7 @@ export async function upsertProductEnvelopeParameter(
         .where(and(eq(productEnvelopeParameter.id, input.id), eq(productEnvelopeParameter.productId, target.id)));
       return { ok: false, error: existing.length > 0 ? STALE_ERROR : NOT_FOUND_ERROR };
     }
+    invalidateProduct();
     return { ok: true, id: input.id };
   } catch (error) {
     if (getPgErrorCode(error) === UNIQUE_VIOLATION) return { ok: false, error: DUPLICATE_ERROR };
@@ -108,6 +111,7 @@ export async function deleteProductEnvelopeParameter(id: string, expectedVersion
       .where(and(eq(productEnvelopeParameter.id, id), eq(productEnvelopeParameter.version, expectedVersion)))
       .returning({ id: productEnvelopeParameter.id });
     if (deleted.length === 0) return { ok: false, error: STALE_ERROR };
+    invalidateProduct();
     return { ok: true };
   } catch (error) {
     captureError(error, { path: "deleteProductEnvelopeParameter", userId: actor.userId });
@@ -132,6 +136,7 @@ export async function setProductFoundationStatus(
 
   try {
     await db.update(product).set({ foundationStatus: status, updatedAt: new Date() }).where(eq(product.id, productId));
+    invalidateProduct();
     return { ok: true };
   } catch (error) {
     captureError(error, { path: "setProductFoundationStatus", userId: actor.userId });

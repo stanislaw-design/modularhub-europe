@@ -5,6 +5,11 @@ import { ProducerGroupCreateForm } from "@/components/internal/ProducerGroupCrea
 import { Heading, Stack, Text } from "@/components/ui";
 import { getCustomProducerGroups, getReadyProducerGroups } from "@/lib/producer-groups";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 // Spec 0077 część B AC-23, AC-25: gotowe grupy po rodzinie produktu (tylko do odczytu, liczone na żywo)
 // i własne grupy admina. Ten sam inline wzorzec sesji co pozostałe ekrany /internal (internal/AGENTS.md).
 export default async function InternalProducerGroupsPage({ params }: { params: Promise<{ locale: string }> }) {

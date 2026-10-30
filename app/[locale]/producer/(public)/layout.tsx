@@ -3,6 +3,11 @@ import { RouteShell } from "@/components/RouteShell";
 import { SkipLink } from "@/components/SkipLink";
 import { ProducerHeader } from "@/components/producent/ProducerHeader";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 // Shell for the public/pre-auth producer routes (landing, registration, demo
 // screens): logo + home/language/account header. Scoped to this route group
 // (not app/[locale]/producer/layout.tsx) so the signed-in panel branch, which

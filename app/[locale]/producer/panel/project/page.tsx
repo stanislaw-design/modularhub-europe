@@ -2,6 +2,11 @@ import { ProjectWizard } from "@/components/producent/ProjectWizard";
 import { getCountries } from "@/lib/data/countries";
 import { requirePanelProducerSession } from "@/lib/panel-session";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 // Kreator nowego produktu na sesji producenta (spec 0032 AC-4, AC-9): jedyna
 // bramka to sesja, żadnych parametrów NIP/rejestracji z URL jak w dawnym
 // mocku (spec 0016).

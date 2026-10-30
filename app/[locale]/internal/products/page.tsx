@@ -4,6 +4,11 @@ import { auth } from "@/auth";
 import { Heading, Text } from "@/components/ui";
 import { getAllProductsForAdmin } from "@/lib/db/queries";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 // Widok wewnętrzny dla roli administratora (spec 0031 AC-9), ten sam wzorzec co
 // /internal/inquiries (spec 0023): lista produktów, link do zarządzania
 // zdjęciami każdego z osobna.
