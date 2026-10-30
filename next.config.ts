@@ -47,6 +47,14 @@ const nextConfig: NextConfig = {
         hostname: "konfigurator.dampol-investment.com",
         pathname: "/static/thumbnail/shop-configurator-option/**",
       },
+      // Stały wzorzec dla publicznych adresów R2 (`pub-….r2.dev`): `vercel pull` w workflow
+      // wdrożeniowym nie pobiera zmiennych typu sensitive, więc R2_PUBLIC_DOMAIN bywa przy
+      // buildzie puste i bez tego wzorca /_next/image odrzuca każde zdjęcie (400).
+      {
+        protocol: "https",
+        hostname: "**.r2.dev",
+        pathname: "/**",
+      },
       ...(r2PublicDomain
         ? [
             {
