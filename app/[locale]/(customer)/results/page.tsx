@@ -97,7 +97,7 @@ async function WynikiResults({ params, searchParams }: ResultsPageProps) {
   );
 
   return (
-    <div className="results-shell results-wide grid gap-x-brand-5 gap-y-brand-5 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
+    <div className="results-shell results-wide grid gap-x-brand-5 gap-y-brand-5 lg:px-brand-4 lg:pt-brand-4 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
       {/* Od `lg` pasek wyszukiwania jest lewym, przyklejonym panelem
           (kolumna 1); niżej zostaje poziomym rzędem nad treścią. Rodzina i
           kategorie wraz z nagłówkiem i siatką żyją w kolumnie 2, jak dotąd. */}

@@ -256,7 +256,13 @@
     "DE": "in Duitsland",
     "NL": "in Nederland"
   },
+  "CategoryHeading": {
+    "breadcrumbAriaLabel": "Kruimelpad",
+    "breadcrumbHome": "Home",
+    "modelCount": "{count, plural, one {# model} other {# modellen}}"
+  },
   "ResultsHeader": {
+    "eligibleLine": "Wettelijk toegestaan {country}",
     "eligibleSuffix": " toegestaan {country}",
     "hint": "Kies een land in de filters om te zien welke {familyFew} daar wettelijk zijn toegestaan.",
     "hintOutdoorTv": "Beperk de lijst op montagewijze en gebruik."
@@ -863,7 +869,9 @@
   },
   "SubcategoryFilterBar": {
     "spaAriaLabel": "Subcategorie modulaire spa",
-    "containerAriaLabel": "Subcategorie modulaire container"
+    "containerAriaLabel": "Subcategorie modulaire container",
+    "containerLabel": "Type",
+    "containerAll": "Alle"
   },
   "ProducentPage": {
     "heading": "Word producent bij ModularHub Europe",
@@ -1492,10 +1500,9 @@
     "areaPlaceholder": "Elke",
     "searchButton": "Woningen zoeken",
     "categoryLinksAriaLabel": "Categorieën binnen Meer dan een woning",
-    "categoryLinkSpa": "Modulaire spa's",
+    "categoryLinkSpa": "Sauna's",
     "categoryLinkContainers": "Modulaire containers",
-    "categoryLinkOutdoorTv": "Outdoor TV",
-    "categoryLinkSauna": "Sauna's"
+    "categoryLinkOutdoorTv": "Outdoor TV"
   },
   "FloatingSearchButton": {
     "prompt": "Waar bent u vandaag naar op zoek?",
@@ -1546,8 +1553,8 @@
   "CategoryShowcase": {
     "headingUnderline": "Meer",
     "headingRest": "dan een woning",
-    "spaName": "Modulaire spa's",
-    "spaDescription": "Sauna's, jacuzzi's en wellnesszones voor uw tuin",
+    "spaName": "Sauna's",
+    "spaDescription": "Modulaire sauna's voor uw tuin",
     "containersName": "Modulaire containers",
     "containersDescription": "Horeca, dienstverlening en wonen, kant-en-klaar te plaatsen",
     "imageAlt": "Voorbeeldproject uit de categorie {category}",
@@ -1569,7 +1576,7 @@
     "subNavAriaLabel": "Verfijn binnen Meer dan een woning",
     "refineLabel": "Soort",
     "all": "Alles",
-    "spa": "Modulaire spa's",
+    "spa": "Sauna's",
     "containers": "Modulaire containers",
     "outdoorTv": "Outdoor TV"
   },

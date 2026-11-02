@@ -90,7 +90,7 @@ export function ResultsSelection({
 
   return (
     <Stack gap={5}>
-      {!hideHeader && <ResultsHeader count={items.length} family={family} countryCode={countryCode} />}
+      {!hideHeader && <ResultsHeader locale={locale} count={items.length} family={family} countryCode={countryCode} />}
       {showCompare && compareIds.length > 0 && (
         <CompareSelectionBar
           locale={locale}

@@ -72,7 +72,7 @@ describe("SaunaCategoryPage (spec 0068)", () => {
 
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Sauny");
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Modeli: 2");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Sauny: 2 modele");
     const hrefs = screen.getAllByRole("link").map((link) => link.getAttribute("href"));
     expect(hrefs).toContain("/pl/sauna/slug-a");
     expect(hrefs).toContain("/pl/sauna/slug-b");
@@ -198,7 +198,7 @@ describe("SaunaCategoryPage translations (spec 0068)", () => {
     for (const locale of ["en", "de", "nl"]) {
       const messages = load(locale);
       expect(keysOf(messages.SaunaCategoryPage).sort(), locale).toEqual(expected);
-      expect(keysOf(messages.SearchCard)).toContain("categoryLinkSauna");
+      expect(keysOf(messages.SearchCard)).toContain("categoryLinkSpa");
       expect(keysOf(messages.CompareSelectionBar)).toEqual(expect.arrayContaining(["compareCtaSauna", "needTwoHintSauna"]));
     }
   });

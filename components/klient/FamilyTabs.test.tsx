@@ -41,7 +41,7 @@ describe("FamilyTabs", () => {
     await user.click(trigger);
     expect(screen.getAllByRole("option").map((option) => option.textContent)).toEqual([
       "Wszystko",
-      "Spa modułowe",
+      "Sauny",
       "Kontenery",
       "Outdoor TV",
     ]);
@@ -50,7 +50,7 @@ describe("FamilyTabs", () => {
   it("shows the specific refine value when family is spa-modulowe or outdoor-tv (AC-3)", async () => {
     const { unmount } = render(await resolveAsyncTree(<FamilyTabs locale="pl" family="spa-modulowe" />));
     expect(screen.getByRole("link", { name: "Więcej niż dom" })).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("button", { name: "Doprecyzuj w grupie Więcej niż dom" })).toHaveTextContent("Spa modułowe");
+    expect(screen.getByRole("button", { name: "Doprecyzuj w grupie Więcej niż dom" })).toHaveTextContent("Sauny");
     unmount();
 
     render(await resolveAsyncTree(<FamilyTabs locale="pl" family="outdoor-tv" />));
@@ -80,7 +80,7 @@ describe("FamilyTabs", () => {
       "/pl/results?country=DE&sizeMin=50&sizeMax=100"
     );
     await user.click(screen.getByRole("button", { name: "Doprecyzuj w grupie Więcej niż dom" }));
-    await user.click(screen.getByRole("option", { name: "Spa modułowe" }));
-    expect(push).toHaveBeenCalledWith("/pl/results?family=spa-modulowe&country=DE&sizeMin=50&sizeMax=100");
+    await user.click(screen.getByRole("option", { name: "Sauny" }));
+    expect(push).toHaveBeenCalledWith("/pl/sauna");
   });
 });

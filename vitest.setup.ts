@@ -100,9 +100,36 @@ function getNested(source: unknown, key: string): unknown {
     );
 }
 
+// Minimal ICU `{name, plural, one {...} few {...} other {...}}` for the "pl" locale
+// (production formats these with next-intl; the mock only has to resolve the form).
+function resolvePlurals(template: string, values: Record<string, unknown>): string {
+  const start = template.search(/\{\w+, plural,/);
+  if (start === -1) return template;
+  const header = /^\{(\w+), plural,/.exec(template.slice(start));
+  if (!header) return template;
+  let depth = 0;
+  let end = -1;
+  for (let i = start; i < template.length; i++) {
+    if (template[i] === "{") depth++;
+    else if (template[i] === "}" && --depth === 0) {
+      end = i;
+      break;
+    }
+  }
+  if (end === -1) return template;
+  const body = template.slice(start + header[0].length, end);
+  const forms = new Map<string, string>();
+  for (const part of body.matchAll(/(\w+)\s*\{((?:[^{}]|\{[^{}]*\})*)\}/g)) forms.set(part[1], part[2]);
+  const count = Number(values[header[1]]);
+  const category = new Intl.PluralRules("pl").select(count);
+  const chosen = forms.get(category) ?? forms.get("other") ?? "";
+  const resolved = chosen.replace(/#/g, String(count));
+  return resolvePlurals(template.slice(0, start) + resolved + template.slice(end + 1), values);
+}
+
 function interpolate(template: string, values?: Record<string, unknown>): string {
   if (!values) return template;
-  return template.replace(/\{(\w+)\}/g, (match, name) => (name in values ? String(values[name]) : match));
+  return resolvePlurals(template, values).replace(/\{(\w+)\}/g, (match, name) => (name in values ? String(values[name]) : match));
 }
 
 function createTestTranslator(namespace?: string) {

@@ -26,6 +26,11 @@ async function pick(listLabel: string, optionName: string | RegExp) {
   await user.click(screen.getByRole("option", { name: optionName }));
 }
 
+async function search() {
+  const user = userEvent.setup();
+  await user.click(screen.getByRole("button", { name: "Szukaj" }));
+}
+
 describe("SaunaFilterBar (spec 0068)", () => {
   beforeEach(() => push.mockClear());
 
@@ -46,13 +51,24 @@ describe("SaunaFilterBar (spec 0068)", () => {
     expect(screen.getByRole("button", { name: /Producent/ })).toHaveTextContent("Kora");
 
     await pick("Liczba miejsc", "6+ miejsc");
+    expect(push).not.toHaveBeenCalled();
+    await search();
     expect(push).toHaveBeenCalledWith(`/pl/sauna?seatingMin=6&producer=${KORA}`, { scroll: false });
+  });
+
+  it("has the same Szukaj button as the results filter and does not navigate before it is clicked (AC-7)", async () => {
+    await renderBar();
+
+    expect(screen.getByRole("button", { name: "Szukaj" })).toBeInTheDocument();
+    await pick("Liczba miejsc", "4+ miejsc");
+    expect(push).not.toHaveBeenCalled();
   });
 
   it("clears only its own dimension with 'Wszystkie' (AC-10)", async () => {
     await renderBar({ seatingMin: 4, producer: KORA });
 
     await pick("Liczba miejsc", "Wszystkie");
+    await search();
     expect(push).toHaveBeenCalledWith(`/pl/sauna?producer=${KORA}`, { scroll: false });
   });
 
@@ -60,12 +76,15 @@ describe("SaunaFilterBar (spec 0068)", () => {
     await renderBar();
 
     await pick("Cena od", "do 5000 €");
+    await search();
     expect(push).toHaveBeenLastCalledWith("/pl/sauna?priceMax=5000", { scroll: false });
 
     await pick("Cena od", /^5000 do 10\s000 €$/);
+    await search();
     expect(push).toHaveBeenLastCalledWith("/pl/sauna?priceMin=5000&priceMax=10000", { scroll: false });
 
     await pick("Cena od", /^od 25\s000 €$/);
+    await search();
     expect(push).toHaveBeenLastCalledWith("/pl/sauna?priceMin=25000", { scroll: false });
   });
 
@@ -80,6 +99,7 @@ describe("SaunaFilterBar (spec 0068)", () => {
 
     expect(screen.getByRole("button", { name: /Producent/ })).toHaveTextContent("Wooden Dream House");
     await pick("Producent", "Kora");
+    await search();
     expect(push).toHaveBeenCalledWith(`/pl/sauna?producer=${KORA}`, { scroll: false });
   });
 
@@ -94,6 +114,7 @@ describe("SaunaFilterBar (spec 0068)", () => {
 
     expect(screen.getByRole("button", { name: /Sortuj/ })).toHaveTextContent("Cena malejąco");
     await pick("Sortuj", "Cena rosnąco");
+    await search();
     expect(push).toHaveBeenCalledWith("/pl/sauna?seatingMin=2&sort=price-asc", { scroll: false });
     expect(screen.getByRole("link", { name: "Wyczyść filtry" })).toHaveAttribute("href", "/pl/sauna");
   });

@@ -55,11 +55,11 @@ describe("CategoryShowcase", () => {
     expect(screen.queryByText("Domy modułowe")).not.toBeInTheDocument();
     // The category name renders twice per category (the big overlay caption
     // and again inside the offer card next to its price), by design.
-    expect(screen.getAllByText("Spa modułowe")).toHaveLength(2);
+    expect(screen.getAllByText("Sauny")).toHaveLength(2);
     expect(screen.getAllByText("Kontenery modułowe")).toHaveLength(2);
     expect(screen.getAllByText("0 produktów")).toHaveLength(2);
 
-    expect(offerLinkForCategory("Przykładowa realizacja z kategorii Spa modułowe")).toHaveAttribute(
+    expect(offerLinkForCategory("Przykładowa realizacja z kategorii Sauny")).toHaveAttribute(
       "href",
       "/pl/results"
     );
@@ -110,7 +110,7 @@ describe("CategoryShowcase", () => {
 
     render(await CategoryShowcase({ locale: "pl" }));
 
-    expect(offerLinkForCategory("Przykładowa realizacja z kategorii Spa modułowe")).toHaveAttribute(
+    expect(offerLinkForCategory("Przykładowa realizacja z kategorii Sauny")).toHaveAttribute(
       "href",
       "/pl/project/prj-spa-modulowe-example"
     );
@@ -131,7 +131,7 @@ describe("CategoryShowcase", () => {
 
     render(await CategoryShowcase({ locale: "pl" }));
 
-    expect(offerLinkForCategory("Przykładowa realizacja z kategorii Spa modułowe")).toHaveAttribute(
+    expect(offerLinkForCategory("Przykładowa realizacja z kategorii Sauny")).toHaveAttribute(
       "href",
       "/pl/project/spa-modulowe-example-slug"
     );
@@ -159,7 +159,7 @@ describe("CategoryShowcase", () => {
 
     render(await CategoryShowcase({ locale: "pl" }));
 
-    const spaDot = screen.getByRole("button", { name: "Przejdź do kategorii Spa modułowe" });
+    const spaDot = screen.getByRole("button", { name: "Przejdź do kategorii Sauny" });
     const containerDot = screen.getByRole("button", { name: "Przejdź do kategorii Kontenery modułowe" });
     const nextButton = screen.getByRole("button", { name: "Następna kategoria" });
 
