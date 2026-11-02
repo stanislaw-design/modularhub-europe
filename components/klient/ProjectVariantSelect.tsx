@@ -45,6 +45,7 @@ export function ProjectVariantSelect({ options, selectedValue, ariaLabel }: Proj
           <ChevronDown className="size-4 shrink-0 text-brand-v5-muted" aria-hidden="true" />
         </ListboxButton>
         <ListboxOptions
+          modal={false}
           transition
           className="absolute z-10 mt-1 w-full overflow-auto rounded-data border border-brand-v5-line bg-brand-v5-surface py-1 shadow-md transition duration-100 ease-out focus:outline-none data-[closed]:scale-95 data-[closed]:opacity-0"
         >

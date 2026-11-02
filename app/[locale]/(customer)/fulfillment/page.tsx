@@ -7,6 +7,11 @@ import { getFulfillmentOrder } from "@/lib/data/fulfillment";
 import { getProjectById } from "@/lib/data/projects";
 import type { FulfillmentStageName } from "@/lib/data/types";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 const STAGE_ORDER: FulfillmentStageName[] = ["produkcja", "transport", "montaz", "odbior", "gwarancja"];
 
 const dateFormatter = new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium" });

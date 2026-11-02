@@ -36,6 +36,9 @@ export async function FamilyTabs({ locale, family, countryCode, sizeMin, sizeMax
   ];
 
   function hrefFor(value: FamilyFilterValue): string {
+    // Sauny mają własną stronę kategorii (spec 0068) z własnymi filtrami, więc
+    // wybór "Sauny" prowadzi tam, a nie na /results?family=spa-modulowe.
+    if (value === "spa-modulowe") return `/${locale}/sauna`;
     const params = new URLSearchParams();
     if (value !== "dom") params.set("family", value);
     if (countryCode) params.set("country", countryCode);

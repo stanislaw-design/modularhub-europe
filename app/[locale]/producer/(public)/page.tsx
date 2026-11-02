@@ -4,6 +4,11 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { auth } from "@/auth";
 import { Button, Card, Grid, Heading, Stack, Text } from "@/components/ui";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 // Strona główna /producer (spec 0032 AC-10): treść marketingowa z CTA do
 // rejestracji/logowania, zastępuje dzisiejszy mockowy formularz NIP. Sesja z
 // rolą producer trafiająca tu jest przekierowana prosto do panelu — root

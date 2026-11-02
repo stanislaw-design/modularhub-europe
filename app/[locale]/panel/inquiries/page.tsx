@@ -12,6 +12,11 @@ import {
 import { listCasesForClient } from "@/lib/cases/queries";
 import { requirePanelClientSession } from "@/lib/panel-session";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 const dateFormatter = new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium", timeStyle: "short" });
 
 // Tylko własne zapytania zalogowanego klienta (spec 0024 AC-1, AC-10):

@@ -1,5 +1,6 @@
 "use server";
 
+import { invalidateProducer } from "@/lib/cache-tags";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db/client";
@@ -48,5 +49,6 @@ export async function updateProducerCompany(input: ProducerCompanyFormInput): Pr
   }
 
   revalidatePath("/[locale]/producer/panel", "layout");
+  invalidateProducer();
   return { ok: true };
 }

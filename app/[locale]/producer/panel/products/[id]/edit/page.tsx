@@ -22,6 +22,11 @@ import { clientRequirementsSchema, clientRequirementTranslationSchema } from "@/
 import { faqSchema, faqTranslationSchema } from "@/lib/product-faq";
 import { roomLayoutSchema, roomLayoutTranslationSchema } from "@/lib/product-room-layout";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 // Odwrotność zapisu w lib/producer-product-actions.ts: pole po polu, żeby
 // createdAt/id/status nie trafiły do stanu formularza edycji (mirror
 // savedProductToDraft, dawny lib/producer-products.ts). roomLayout/faq

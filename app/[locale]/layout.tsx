@@ -3,6 +3,7 @@ import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import "../globals.css";
+import { SessionHintScript } from "@/components/SessionHintScript";
 import { ScrollProgressBar } from "@/components/ui";
 import { routing } from "@/lib/i18n/routing";
 import { getSiteUrl } from "@/lib/site-url";
@@ -39,7 +40,11 @@ export default async function LocaleLayout({
     <html
       lang={locale}
       className={`h-full antialiased ${manrope.variable}`}
+      suppressHydrationWarning
     >
+      <head>
+        <SessionHintScript />
+      </head>
       <body className="min-h-full flex flex-col font-sans">
         <ScrollProgressBar />
         <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>

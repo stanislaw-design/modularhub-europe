@@ -1,12 +1,18 @@
 import { cookies } from "next/headers";
 import type { ReactNode } from "react";
 import { auth } from "@/auth";
+import { SessionHint } from "@/components/SessionHint";
 import { SkipLink } from "@/components/SkipLink";
 import { ProducerPanelSidebar } from "@/components/producent/ProducerPanelSidebar";
 import { Container, Stack, ThemeProvider } from "@/components/ui";
 import { getProducerIdForUser, getUnreadDecisionInquiryIds } from "@/lib/db/queries";
 import { getPanelNavCounts } from "@/lib/producer-panel-summary";
 import { isTheme, THEME_COOKIE_NAME } from "@/lib/theme";
+
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
 
 // Layout wspólny dla /producer/panel/* (spec 0032 Build plan zadanie 1):
 // kolumna nawigacji po lewej zamiast dawnego górnego nagłówka + paska
@@ -51,6 +57,7 @@ export default async function ProducerPanelLayout({
   return (
     <ThemeProvider initialTheme={initialTheme} scopeClassName="theme-producer">
       <SkipLink />
+      <SessionHint />
       <div className="flex min-h-screen flex-col md:flex-row">
         <ProducerPanelSidebar locale={locale} counts={navCounts} />
         <main id="main-content" className="min-w-0 flex-1">

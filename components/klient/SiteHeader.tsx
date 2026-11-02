@@ -8,28 +8,34 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { SiteHeaderMenuNav } from "@/components/klient/SiteHeaderMenuNav";
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { useAccountSession } from "@/components/klient/useAccountSession";
 import { Button, LanguageSwitcher, ThemeToggle } from "@/components/ui";
-
-interface SiteHeaderSession {
-  user: {
-    name?: string | null;
-    email?: string | null;
-    role: "client" | "producer" | "admin";
-  };
-}
 
 interface SiteHeaderProps {
   locale: string;
-  session: SiteHeaderSession | null;
 }
+
+// Spec 0078 AC-5: szkielet strony nie zna sesji, więc stan konta ustala ta wyspa
+// po stronie przeglądarki. W stanie "unknown" (serwer i hydracja) w HTML są oba
+// warianty, a o widocznym decyduje atrybut data-has-session na <html>, ustawiany
+// skryptem w <head> przed pierwszym malowaniem, więc nic nie miga ani nie skacze.
+const HIDE_WHEN_NO_HINT = "[html:not([data-has-session])_&]:hidden";
+const HIDE_WHEN_HINT = "[html[data-has-session]_&]:hidden";
+const SKELETON = "animate-pulse rounded-data bg-brand-v5-line";
 
 // How far (px) the visitor scrolls past the top of the home hero before its
 // transparent overlay header (see isHomeRoute below) switches to the same
 // solid header every other customer route always uses.
 const HOME_HERO_SCROLL_THRESHOLD = 96;
 
-export function SiteHeader({ locale, session }: SiteHeaderProps) {
+export function SiteHeader({ locale }: SiteHeaderProps) {
   const t = useTranslations("SiteHeader");
+  const account = useAccountSession();
+  const session = account.status === "authenticated" ? account.session : null;
+  const showAnonymous = account.status === "unknown" || account.status === "anonymous";
+  const showSkeleton = account.status === "unknown" || account.status === "loading";
+  const anonymousVisibility = account.status === "unknown" ? HIDE_WHEN_HINT : "";
+  const skeletonVisibility = account.status === "unknown" ? HIDE_WHEN_NO_HINT : "";
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
   // Only the home route renders Hero's full-bleed photo directly under the
@@ -95,6 +101,9 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
               pointless chrome for a signed-out visitor rather than a real
               destination. Producers have no favorites of their own either,
               so the link is dropped for that role too. */}
+          {showSkeleton && (
+            <span aria-hidden="true" className={`${SKELETON} hidden h-5 w-24 sm:block ${skeletonVisibility}`} />
+          )}
           {session && session.user.role !== "producer" && (
             <Link
               href={`/${locale}/panel/favorites`}
@@ -104,10 +113,10 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
               {t("favorites")}
             </Link>
           )}
-          {!session && (
+          {showAnonymous && (
             <Link
               href={`/${locale}/login`}
-              className={`focus-ring hidden items-center gap-1 rounded-data text-body font-medium md:flex ${navTextClass}`}
+              className={`focus-ring hidden items-center gap-1 rounded-data text-body font-medium md:flex ${anonymousVisibility} ${navTextClass}`}
             >
               <User className="size-4" aria-hidden="true" />
               {t("signIn")}
@@ -121,10 +130,20 @@ export function SiteHeader({ locale, session }: SiteHeaderProps) {
               part that moves into the slide out menu instead (see below),
               which is also what keeps the logo/hamburger fitting at 320px
               without needing this button's width too (spec 0030 AC-1). */}
-          <Button as="a" href={cta.href} surface="v5" className="hidden shrink-0 sm:inline-flex">
-            {cta.icon && <User className="size-4" aria-hidden="true" />}
-            {cta.label}
-          </Button>
+          {showSkeleton && (
+            <span aria-hidden="true" className={`${SKELETON} hidden h-10 w-32 shrink-0 sm:block ${skeletonVisibility}`} />
+          )}
+          {(showAnonymous || session) && (
+            <Button
+              as="a"
+              href={cta.href}
+              surface="v5"
+              className={`hidden shrink-0 sm:inline-flex ${session ? "" : anonymousVisibility}`}
+            >
+              {cta.icon && <User className="size-4" aria-hidden="true" />}
+              {cta.label}
+            </Button>
+          )}
           {/* Fixed 44×44 touch target (spec 0030 AC-1) plus `shrink-0` so the
               hamburger is never the first thing to give up space when the
               row runs tight. The fix is shrinking the logo, the gaps, and

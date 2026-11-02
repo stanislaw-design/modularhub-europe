@@ -1,11 +1,17 @@
 import { cookies } from "next/headers";
 import type { ReactNode } from "react";
 import { auth } from "@/auth";
+import { SessionHint } from "@/components/SessionHint";
 import { SkipLink } from "@/components/SkipLink";
 import { ClientPanelSidebar } from "@/components/klient/ClientPanelSidebar";
 import { Container, Stack, ThemeProvider } from "@/components/ui";
 import { getClientIdForUser, getUnreadOfferInquiryIds } from "@/lib/db/queries";
 import { isTheme, THEME_COOKIE_NAME } from "@/lib/theme";
+
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
 
 // Layout panelu klienta /panel/* — boczna kolumna nawigacji zamiast dawnego
 // górnego nagłówka (SiteHeader) + paska zakładek (PanelTabs), analogicznie do
@@ -32,6 +38,7 @@ export default async function PanelLayout({
   return (
     <ThemeProvider initialTheme={initialTheme} scopeClassName="theme-klient">
       <SkipLink />
+      <SessionHint />
       <div className="flex min-h-screen flex-col md:flex-row">
         <ClientPanelSidebar locale={locale} hasUnreadZapytania={hasUnreadOffers} />
         <main id="main-content" className="min-w-0 flex-1">

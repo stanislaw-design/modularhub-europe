@@ -78,6 +78,7 @@ export function SearchSegment({
                 }
               >
                 <ListboxOptions
+                  modal={false}
                   static
                   className={
                     isV5

@@ -1,6 +1,13 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SaunaFilterBar } from "./SaunaFilterBar";
+
+const push = vi.fn();
+vi.mock("next/navigation", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/navigation")>()),
+  useRouter: () => ({ push }),
+}));
 
 const KORA = "2b6b6c2e-9e2a-4e3a-9a1a-2b7a6c5e4d3c";
 const WDH = "3c7c7d3f-0f3b-4f4b-8b2b-3c8b7d6f5e4d";
@@ -13,62 +20,90 @@ async function renderBar(filter = {}, options = producers) {
   render(await SaunaFilterBar({ locale: "pl", filter, producers: options }));
 }
 
+async function pick(listLabel: string, optionName: string | RegExp) {
+  const user = userEvent.setup();
+  await user.click(screen.getByRole("button", { name: new RegExp(listLabel) }));
+  await user.click(screen.getByRole("option", { name: optionName }));
+}
+
+async function search() {
+  const user = userEvent.setup();
+  await user.click(screen.getByRole("button", { name: "Szukaj" }));
+}
+
 describe("SaunaFilterBar (spec 0068)", () => {
-  it("renders real links for every seating threshold, none active by default (AC-7)", async () => {
+  beforeEach(() => push.mockClear());
+
+  it("renders one dropdown per dimension, showing 'Wszystkie' by default (AC-7)", async () => {
     await renderBar();
 
-    for (const count of [2, 4, 6, 8]) {
-      const link = screen.getByRole("link", { name: `${count}+ miejsc` });
-      expect(link).toHaveAttribute("href", `/pl/sauna?seatingMin=${count}`);
-      expect(link).not.toHaveAttribute("aria-current");
+    for (const label of ["Liczba miejsc", "Cena od", "Producent"]) {
+      expect(screen.getByRole("button", { name: new RegExp(label) })).toHaveTextContent("Wszystkie");
     }
+    expect(screen.getByRole("button", { name: /Sortuj/ })).toHaveTextContent("Domyślnie");
     expect(screen.queryByRole("link", { name: "Wyczyść filtry" })).not.toBeInTheDocument();
   });
 
-  it("marks the active chip with aria-current and links it back to a cleared dimension (AC-7, AC-10)", async () => {
+  it("shows the active value and keeps the rest of the filter when another is picked (AC-7)", async () => {
     await renderBar({ seatingMin: 4, producer: KORA });
 
-    const active = screen.getByRole("link", { name: "4+ miejsc" });
-    expect(active).toHaveAttribute("aria-current", "true");
-    // Ponowne kliknięcie czyści ten wymiar, producent zostaje.
-    expect(active).toHaveAttribute("href", `/pl/sauna?producer=${KORA}`);
-    // Inny chip miejsc zachowuje producenta.
-    expect(screen.getByRole("link", { name: "6+ miejsc" })).toHaveAttribute(
-      "href",
-      `/pl/sauna?seatingMin=6&producer=${KORA}`,
-    );
+    expect(screen.getByRole("button", { name: /Liczba miejsc/ })).toHaveTextContent("4+ miejsc");
+    expect(screen.getByRole("button", { name: /Producent/ })).toHaveTextContent("Kora");
+
+    await pick("Liczba miejsc", "6+ miejsc");
+    expect(push).not.toHaveBeenCalled();
+    await search();
+    expect(push).toHaveBeenCalledWith(`/pl/sauna?seatingMin=6&producer=${KORA}`, { scroll: false });
   });
 
-  it("builds price chips from the threshold scale with open ends (AC-8)", async () => {
+  it("has the same Szukaj button as the results filter and does not navigate before it is clicked (AC-7)", async () => {
     await renderBar();
 
-    expect(screen.getByRole("link", { name: "do 5000 €" })).toHaveAttribute("href", "/pl/sauna?priceMax=5000");
-    expect(screen.getByRole("link", { name: /^5000 do 10\s000 €$/ })).toHaveAttribute(
-      "href",
-      "/pl/sauna?priceMin=5000&priceMax=10000",
-    );
-    expect(screen.getByRole("link", { name: /^od 25\s000 €$/ })).toHaveAttribute("href", "/pl/sauna?priceMin=25000");
+    expect(screen.getByRole("button", { name: "Szukaj" })).toBeInTheDocument();
+    await pick("Liczba miejsc", "4+ miejsc");
+    expect(push).not.toHaveBeenCalled();
   });
 
-  it("activates a price chip only when both bounds match, and clears both on a second click (AC-8)", async () => {
+  it("clears only its own dimension with 'Wszystkie' (AC-10)", async () => {
+    await renderBar({ seatingMin: 4, producer: KORA });
+
+    await pick("Liczba miejsc", "Wszystkie");
+    await search();
+    expect(push).toHaveBeenCalledWith(`/pl/sauna?producer=${KORA}`, { scroll: false });
+  });
+
+  it("builds price options from the threshold scale with open ends (AC-8)", async () => {
+    await renderBar();
+
+    await pick("Cena od", "do 5000 €");
+    await search();
+    expect(push).toHaveBeenLastCalledWith("/pl/sauna?priceMax=5000", { scroll: false });
+
+    await pick("Cena od", /^5000 do 10\s000 €$/);
+    await search();
+    expect(push).toHaveBeenLastCalledWith("/pl/sauna?priceMin=5000&priceMax=10000", { scroll: false });
+
+    await pick("Cena od", /^od 25\s000 €$/);
+    await search();
+    expect(push).toHaveBeenLastCalledWith("/pl/sauna?priceMin=25000", { scroll: false });
+  });
+
+  it("marks a price range active only when both bounds match (AC-8)", async () => {
     await renderBar({ priceMin: 5000, priceMax: 10000 });
 
-    const active = screen.getByRole("link", { name: /^5000 do 10\s000 €$/ });
-    expect(active).toHaveAttribute("aria-current", "true");
-    expect(active).toHaveAttribute("href", "/pl/sauna");
-    expect(screen.getByRole("link", { name: "do 5000 €" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("button", { name: /Cena od/ })).toHaveTextContent(/5000 do 10\s000 €/);
   });
 
-  it("renders one chip per producer and toggles it (AC-9)", async () => {
+  it("lists every producer and navigates on pick (AC-9)", async () => {
     await renderBar({ producer: WDH });
 
-    expect(screen.getByRole("link", { name: "Kora" })).toHaveAttribute("href", `/pl/sauna?producer=${KORA}`);
-    const active = screen.getByRole("link", { name: "Wooden Dream House" });
-    expect(active).toHaveAttribute("aria-current", "true");
-    expect(active).toHaveAttribute("href", "/pl/sauna");
+    expect(screen.getByRole("button", { name: /Producent/ })).toHaveTextContent("Wooden Dream House");
+    await pick("Producent", "Kora");
+    await search();
+    expect(push).toHaveBeenCalledWith(`/pl/sauna?producer=${KORA}`, { scroll: false });
   });
 
-  it("hides the producer group when no producer has a published sauna (AC-9)", async () => {
+  it("hides the producer dropdown when no producer has a published sauna (AC-9)", async () => {
     await renderBar({}, []);
 
     expect(screen.queryByText("Producent")).not.toBeInTheDocument();
@@ -77,11 +112,10 @@ describe("SaunaFilterBar (spec 0068)", () => {
   it("offers sorting and a clear link that drops every filter (AC-10)", async () => {
     await renderBar({ seatingMin: 2, sort: "price-desc" });
 
-    expect(screen.getByRole("link", { name: "Cena malejąco" })).toHaveAttribute("aria-current", "true");
-    expect(screen.getByRole("link", { name: "Cena rosnąco" })).toHaveAttribute(
-      "href",
-      "/pl/sauna?seatingMin=2&sort=price-asc",
-    );
+    expect(screen.getByRole("button", { name: /Sortuj/ })).toHaveTextContent("Cena malejąco");
+    await pick("Sortuj", "Cena rosnąco");
+    await search();
+    expect(push).toHaveBeenCalledWith("/pl/sauna?seatingMin=2&sort=price-asc", { scroll: false });
     expect(screen.getByRole("link", { name: "Wyczyść filtry" })).toHaveAttribute("href", "/pl/sauna");
   });
 });

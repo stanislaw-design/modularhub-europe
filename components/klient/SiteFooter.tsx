@@ -1,4 +1,5 @@
 import { ArrowRight } from "lucide-react";
+import { cacheLife } from "next/cache";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { BrandLogo } from "@/components/brand/BrandLogo";
@@ -65,6 +66,14 @@ const joinClass =
 // Stała ciemna powierzchnia (v5-night, v5-paper i amber nie odwracają się w
 // trybie ciemnym, patrz komentarz w app/globals.css), więc stopka wygląda tak
 // samo w obu motywach i zamyka stronę ciężką, czytelną podstawą.
+// `new Date()` w szkielecie to synchroniczne IO, które psuje prerender (spec 0078
+// krok 5); rok liczony w funkcji z cache zmienia się najwyżej raz na dobę.
+async function getCurrentYear(): Promise<number> {
+  "use cache";
+  cacheLife("days");
+  return new Date().getFullYear();
+}
+
 export async function SiteFooter({ locale, contactEmail }: SiteFooterProps) {
   const t = await getTranslations({ locale, namespace: "SiteFooter" });
   const tNav = await getTranslations({ locale, namespace: "SiteHeader" });
@@ -79,7 +88,7 @@ export async function SiteFooter({ locale, contactEmail }: SiteFooterProps) {
     },
     { key: "client", href: `/${locale}/registration?role=client` },
   ];
-  const year = new Date().getFullYear();
+  const year = await getCurrentYear();
 
   return (
     <footer

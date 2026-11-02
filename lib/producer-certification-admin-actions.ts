@@ -1,5 +1,6 @@
 "use server";
 
+import { invalidateProducer } from "@/lib/cache-tags";
 import { and, eq, sql } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db/client";
@@ -79,6 +80,7 @@ export async function setProducerCertificationConfirmation(
     if (updated.length === 0) {
       return { ok: false, error: (await rowExists("producer_certification", id)) ? STALE_ERROR : NOT_FOUND_ERROR };
     }
+    invalidateProducer();
     return { ok: true };
   } catch (error) {
     captureError(error, { path: "setProducerCertificationConfirmation", userId: adminId });
@@ -103,6 +105,7 @@ export async function createProductComplianceAssessment(
         .values({ productId, ...parsed.data })
         .returning({ id: productComplianceAssessment.id }),
     ]);
+    invalidateProducer();
     return { ok: true, id: inserted[0].id };
   } catch (error) {
     if (getPgErrorCode(error) === UNIQUE_VIOLATION) return { ok: false, error: DUPLICATE_ERROR };
@@ -146,6 +149,7 @@ export async function updateProductComplianceAssessment(
     if (updated.length === 0) {
       return { ok: false, error: (await rowExists("product_compliance_assessment", id)) ? STALE_ERROR : NOT_FOUND_ERROR };
     }
+    invalidateProducer();
     return { ok: true };
   } catch (error) {
     captureError(error, { path: "updateProductComplianceAssessment", userId: adminId });
@@ -172,6 +176,7 @@ export async function setProductComplianceAssessmentConfirmation(
     if (updated.length === 0) {
       return { ok: false, error: (await rowExists("product_compliance_assessment", id)) ? STALE_ERROR : NOT_FOUND_ERROR };
     }
+    invalidateProducer();
     return { ok: true };
   } catch (error) {
     captureError(error, { path: "setProductComplianceAssessmentConfirmation", userId: adminId });
@@ -193,6 +198,7 @@ export async function deleteProductComplianceAssessment(id: string, expectedVers
     if (deleted.length === 0) {
       return { ok: false, error: (await rowExists("product_compliance_assessment", id)) ? STALE_ERROR : NOT_FOUND_ERROR };
     }
+    invalidateProducer();
     return { ok: true };
   } catch (error) {
     captureError(error, { path: "deleteProductComplianceAssessment", userId: adminId });

@@ -13,6 +13,11 @@ import {
   type MergedInquiryRow,
 } from "@/lib/producer-inquiry-list";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 const FILTER_KEY: Record<InquiryListFilter, string> = {
   "needs-offer": "filterNeedsOffer",
   decision: "filterDecision",

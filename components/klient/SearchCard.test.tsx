@@ -137,7 +137,7 @@ describe("SearchCard", () => {
       expect(screen.queryByRole("button", { name: "Powierzchnia" })).not.toBeInTheDocument();
       expect(screen.queryByRole("button", { name: /szukaj/i })).not.toBeInTheDocument();
     });
-    expect(screen.getByRole("link", { name: "Spa modułowe" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Sauny" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Kontenery" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Outdoor TV" })).toBeInTheDocument();
   });
@@ -150,10 +150,7 @@ describe("SearchCard", () => {
 
     // findBy* waits out the Domy panel's collapse before the links panel
     // mounts (AnimatePresence mode="wait", spec 0060 follow-up crossfade).
-    expect(await screen.findByRole("link", { name: "Spa modułowe" })).toHaveAttribute(
-      "href",
-      "/pl/results?family=spa-modulowe",
-    );
+    expect(await screen.findByRole("link", { name: "Sauny" })).toHaveAttribute("href", "/pl/sauna");
     expect(screen.getByRole("link", { name: "Kontenery" })).toHaveAttribute(
       "href",
       "/pl/results?family=kontenery-modulowe",
@@ -164,7 +161,7 @@ describe("SearchCard", () => {
     );
   });
 
-  it("renders the families in FAMILY_GROUPS['wiecej-niz-dom'] as links, not a list hardcoded separately in SearchCard, plus the one explicit Sauny exception (spec 0060 AC-4, spec 0068 AC-6)", async () => {
+  it("renders the families in FAMILY_GROUPS['wiecej-niz-dom'] as links, not a list hardcoded separately in SearchCard, with the spa family shown as the one explicit Sauny exception (spec 0060 AC-4, spec 0068 AC-6)", async () => {
     const user = userEvent.setup();
     render(<SearchCard locale="pl" countries={countries} />);
 
@@ -172,8 +169,9 @@ describe("SearchCard", () => {
 
     const links = await screen.findAllByRole("link");
     expect(links.map((link) => link.getAttribute("href"))).toEqual([
-      ...FAMILY_GROUPS["wiecej-niz-dom"].map((family) => `/pl/results?family=${family}`),
-      "/pl/sauna",
+      ...FAMILY_GROUPS["wiecej-niz-dom"].map((family) =>
+        family === "spa-modulowe" ? "/pl/sauna" : `/pl/results?family=${family}`,
+      ),
     ]);
   });
 

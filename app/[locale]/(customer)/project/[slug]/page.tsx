@@ -2,7 +2,6 @@ import { Award, ShieldCheck, Truck } from "lucide-react";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { notFound, permanentRedirect, redirect } from "next/navigation";
-import { auth } from "@/auth";
 import { Button, Card, DataText, Heading, StatusPill, Text } from "@/components/ui";
 import { BulkProductInquiryModal } from "@/components/klient/BulkProductInquiryModal";
 import { FavoriteButton } from "@/components/klient/FavoriteButton";
@@ -32,21 +31,26 @@ import {
   toggleProductOption,
 } from "@/lib/data/project-variants";
 import { resolveProjectLayout, selectFloorPlans } from "@/lib/data/project-layout";
-import { getProducerById } from "@/lib/data/producers";
 import {
-  getEligibilityByCountry,
-  getProducerVolumeProfile,
-  getProductComplianceAssessments,
-  getProductEnvelopeParameters,
-  getProductOptionLayouts,
-  getProjectBySlugOrId,
-} from "@/lib/data/projects";
+  getEligibilityByCountryCached,
+  getProducerByIdCached,
+  getProducerVolumeProfileCached,
+  getProductComplianceAssessmentsCached,
+  getProductEnvelopeParametersCached,
+  getProductOptionGroupsCached,
+  getProductOptionLayoutsCached,
+  getProjectBySlugOrIdCached,
+} from "@/lib/data/public-cache";
 import type { CompletionStandard, EligibilityByCountry } from "@/lib/data/types";
-import { getClientIdForUser, getFavoritedProductIds, getProductOptionGroups } from "@/lib/db/queries";
 import { ENVELOPE_SECTION_ENABLED, supportsEnvelopeParameters } from "@/lib/product-envelope-parameters";
 import { routing, type Locale } from "@/lib/i18n/routing";
 import { resolveProductHref } from "@/lib/product-family-groups";
 import { parseResultsSearchParams } from "@/lib/results-filters";
+
+// Spec 0078: strona szczegółów czyta searchParams (wariant, opcje, kraj) w całej treści,
+// więc nie jest w pełni statyczna. Dane są z "use cache", sesja nie jest czytana na serwerze.
+// Pełna statyka wymaga przeniesienia wyboru wariantu do wysp klienckich (osobna decyzja).
+export const instant = false;
 
 const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0 });
 
@@ -86,7 +90,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale, slug } = await params;
   const [project, t] = await Promise.all([
-    getProjectBySlugOrId(slug, locale as Locale),
+    getProjectBySlugOrIdCached(slug, locale as Locale),
     getTranslations({ locale, namespace: "KlientProjektPage" }),
   ]);
   if (!project || project.family === "outdoor-tv" || (project.family === "spa-modulowe" && project.spaSubcategory === "sauna")) {
@@ -150,7 +154,7 @@ export default async function ProjektPage({
     getTranslations("ProjectGallery"),
     getTranslations("ProjectOptions"),
   ]);
-  const project = await getProjectBySlugOrId(slug, locale as Locale);
+  const project = await getProjectBySlugOrIdCached(slug, locale as Locale);
   if (!project) notFound();
   // Strona domu nie ma sekcji, jakich potrzebuje katalogowy produkt outdoor-tv
   // (spec 0056 AC-6): każdy stary lub błędny link na tę rodzinę trafia na jej
@@ -168,32 +172,27 @@ export default async function ProjektPage({
 
   const { countryCode } = parseResultsSearchParams(rawSearchParams);
 
-  const [countries, producer, eligibilityRows, session, volumeProfile, optionGroups, complianceAssessments, optionLayouts, envelopeParameters] =
+  const [countries, producer, eligibilityRows, volumeProfile, optionGroups, complianceAssessments, optionLayouts, envelopeParameters] =
     await Promise.all([
       getCountries(),
-      getProducerById(project.producerId, locale as Locale),
+      getProducerByIdCached(project.producerId, locale as Locale),
       countryCode
-        ? getEligibilityByCountry(countryCode, locale as Locale)
+        ? getEligibilityByCountryCached(countryCode, locale as Locale)
         : Promise.resolve<EligibilityByCountry[]>([]),
-      auth(),
-      getProducerVolumeProfile(project.producerId, locale as Locale),
-      getProductOptionGroups(project.id, locale as Locale),
-      getProductComplianceAssessments(project.id, locale as Locale),
+      getProducerVolumeProfileCached(project.producerId, locale as Locale),
+      getProductOptionGroupsCached(project.id, locale as Locale),
+      getProductComplianceAssessmentsCached(project.id, locale as Locale),
       // Wersje układu wnętrz (spec 0069): pusta mapa dla produktu bez opcji
       // niosących układ, wtedy strona wygląda jak przed tą zmianą.
-      getProductOptionLayouts(project.id, locale as Locale),
+      getProductOptionLayoutsCached(project.id, locale as Locale),
       // Spec 0075 AC-11: tylko dom i kontener mieszkalny, i tylko gdy sekcja jest włączona.
       ENVELOPE_SECTION_ENABLED && supportsEnvelopeParameters(project)
-        ? getProductEnvelopeParameters(project.id)
+        ? getProductEnvelopeParametersCached(project.id)
         : Promise.resolve([]),
     ]);
 
-  const isClientSession = session?.user.role === "client";
-  let isFavorited = false;
-  if (session && isClientSession) {
-    const clientId = await getClientIdForUser(session.user.id);
-    if (clientId) isFavorited = (await getFavoritedProductIds(clientId)).has(project.id);
-  }
+  // Spec 0078: stan konta (serce ulubionych, dane do formularza) dochodzi z
+  // przeglądarki przez AccountProvider, nie z sesji na serwerze.
 
   const countryNameByCode = new Map(countries.map((country) => [country.code, country.name]));
   const countryName = countryNameByCode.get(project.countryOfProduction) ?? project.countryOfProduction;
@@ -455,8 +454,6 @@ export default async function ProjektPage({
                   productId={project.id}
                   productName={project.name}
                   locale={locale}
-                  isClientSession={isClientSession}
-                  initialFavorited={isFavorited}
                   surface="v5"
                 />
               </div>
@@ -538,14 +535,14 @@ export default async function ProjektPage({
                   // standard nie ma wiersza, choć inne standardy mają" jest
                   // nieosiągalna: selectedVariant to zawsze prawdziwy wiersz z
                   // project.variants albo w ogóle go nie ma (spec 0054 AC-4).
-                  <>
+                  (<>
                     <Text variant="label" tone="muted" surface="v5">
                       {t("estimatedPackage")}
                     </Text>
                     <DataText as="p" surface="v5" className="text-h2 font-semibold">
                       {t("from")} {priceFormatter.format(getEstimatedMinPriceEur(project) ?? project.priceMin)} €
                     </DataText>
-                  </>
+                  </>)
                 )}
                 <Button as="a" href={zapytanieHref} size="lg" surface="v5" className="mt-brand-1 w-full">
                   {t("sendInquiry")}
@@ -747,11 +744,6 @@ export default async function ProjektPage({
             <BulkProductInquiryModal
               productId={project.id}
               countries={countries}
-              prefill={
-                isClientSession && session?.user.email
-                  ? { name: session.user.name ?? "", email: session.user.email, phone: session.user.phone ?? "" }
-                  : undefined
-              }
             />
           </div>
         )}
@@ -759,7 +751,6 @@ export default async function ProjektPage({
       </div>
       </div>
       </GalleryLightboxProvider>
-
       {/* Sticky CTA na mobile: cena + ulubione + "Wyślij zapytanie" pod ręką
           bez scrollowania do hero. Shortlista/działka jako osobne akcje tu
           zostały wycofane (na razie nieużywane funkcjonalności) na rzecz
@@ -788,8 +779,6 @@ export default async function ProjektPage({
             productId={project.id}
             productName={project.name}
             locale={locale}
-            isClientSession={isClientSession}
-            initialFavorited={isFavorited}
             surface="v5"
             className="shrink-0 border border-brand-v5-line"
           />

@@ -256,7 +256,13 @@
     "DE": "in Deutschland",
     "NL": "in den Niederlanden"
   },
+  "CategoryHeading": {
+    "breadcrumbAriaLabel": "Brotkrumennavigation",
+    "breadcrumbHome": "Startseite",
+    "modelCount": "{count, plural, one {# Modell} other {# Modelle}}"
+  },
   "ResultsHeader": {
+    "eligibleLine": "Rechtlich zugelassen {country}",
     "eligibleSuffix": " zugelassen {country}",
     "hint": "Wählen Sie in den Filtern ein Land aus, um zu sehen, welche {familyFew} dort rechtlich zugelassen sind.",
     "hintOutdoorTv": "Grenzen Sie die Liste nach Montageart und Verwendung ein."
@@ -863,7 +869,9 @@
   },
   "SubcategoryFilterBar": {
     "spaAriaLabel": "Unterkategorie modulares Spa",
-    "containerAriaLabel": "Unterkategorie Modularcontainer"
+    "containerAriaLabel": "Unterkategorie Modularcontainer",
+    "containerLabel": "Typ",
+    "containerAll": "Alle"
   },
   "ProducentPage": {
     "heading": "Werden Sie Hersteller bei ModularHub Europe",
@@ -1373,6 +1381,7 @@
     "priceOnRequest": "Individuelles Angebot",
     "netVat": "netto",
     "estimatedPackage": "Richtpreis",
+    "backToSaunas": "Zurück zu den Saunen",
     "from": "ab",
     "sendInquiry": "Anfrage senden",
     "variantPickerAriaLabel": "Variantenauswahl",
@@ -1414,6 +1423,8 @@
     "sortPriceAsc": "Preis aufsteigend",
     "sortPriceDesc": "Preis absteigend",
     "clearFilters": "Filter zurücksetzen",
+    "allOption": "Alle",
+    "sortDefault": "Standard",
     "compare": {
       "heading": "Saunavergleich",
       "back": "Zurück zu den Saunen",
@@ -1496,10 +1507,9 @@
     "areaPlaceholder": "Beliebig",
     "searchButton": "Häuser suchen",
     "categoryLinksAriaLabel": "Kategorien innerhalb von Mehr als ein Haus",
-    "categoryLinkSpa": "Modulare Spas",
+    "categoryLinkSpa": "Saunen",
     "categoryLinkContainers": "Container",
-    "categoryLinkOutdoorTv": "Outdoor TV",
-    "categoryLinkSauna": "Saunen"
+    "categoryLinkOutdoorTv": "Outdoor TV"
   },
   "FloatingSearchButton": {
     "prompt": "Wonach suchen Sie heute?",
@@ -1550,8 +1560,8 @@
   "CategoryShowcase": {
     "headingUnderline": "Mehr",
     "headingRest": "als ein Haus",
-    "spaName": "Modulare Spas",
-    "spaDescription": "Saunen, Jacuzzis und Wellnessbereiche für Ihren Garten",
+    "spaName": "Saunen",
+    "spaDescription": "Modulare Saunen für Ihren Garten",
     "containersName": "Modularcontainer",
     "containersDescription": "Gastronomie, Dienstleistung und Wohnen, sofort aufstellbar",
     "imageAlt": "Beispielprojekt aus der Kategorie {category}",
@@ -1573,7 +1583,7 @@
     "subNavAriaLabel": "Verfeinern innerhalb von Mehr als ein Haus",
     "refineLabel": "Art",
     "all": "Alle",
-    "spa": "Modulare Spas",
+    "spa": "Saunen",
     "containers": "Container",
     "outdoorTv": "Outdoor TV"
   },

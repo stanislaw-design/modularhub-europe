@@ -6,6 +6,11 @@ import { getFavoritesForClient } from "@/lib/data/projects";
 import { getClientIdForUser } from "@/lib/db/queries";
 import { requirePanelClientSession } from "@/lib/panel-session";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 const MAX_COMPARE = 3;
 
 function buildSelfHref(

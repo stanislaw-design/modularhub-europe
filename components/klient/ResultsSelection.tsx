@@ -19,8 +19,6 @@ export interface ResultItem {
   project: Project;
   countryName: string;
   eligibilityStatus?: EligibilityStatus;
-  /** Czy zalogowany klient już zapisał ten projekt do ulubionych (spec 0024 AC-2). */
-  favorited?: boolean;
 }
 
 interface ResultsSelectionProps {
@@ -30,9 +28,6 @@ interface ResultsSelectionProps {
   sizeMin?: SizeThreshold;
   sizeMax?: SizeThreshold;
   family: FamilyFilterValue;
-  /** Sesja istnieje i ma rolę client (spec 0024 Key invariants): serce staje
-   * się przyciskiem zamiast linku do logowania. */
-  isClientSession: boolean;
   /** Strona kategorii (spec 0068) renderuje własny <h1>, więc pomija ResultsHeader,
    * którego <h1> by go dublował. */
   hideHeader?: boolean;
@@ -53,7 +48,6 @@ export function ResultsSelection({
   sizeMin,
   sizeMax,
   family,
-  isClientSession,
   hideHeader = false,
   emptyClearHref,
   compareKind,
@@ -96,7 +90,7 @@ export function ResultsSelection({
 
   return (
     <Stack gap={5}>
-      {!hideHeader && <ResultsHeader count={items.length} family={family} countryCode={countryCode} />}
+      {!hideHeader && <ResultsHeader locale={locale} count={items.length} family={family} countryCode={countryCode} />}
       {showCompare && compareIds.length > 0 && (
         <CompareSelectionBar
           locale={locale}
@@ -112,7 +106,7 @@ export function ResultsSelection({
           when ShortlistActionBar stacks above it too (selection made). */}
       <div className={selectedIds.length > 0 ? "pb-48" : "pb-24"}>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,20rem),1fr))] gap-brand-4">
-          {items.map(({ project, countryName, eligibilityStatus, favorited }, index) => (
+          {items.map(({ project, countryName, eligibilityStatus }, index) => (
             <ScrollReveal
               key={project.id}
               className="h-full"
@@ -130,7 +124,7 @@ export function ResultsSelection({
                 compareSelectionDisabled={compareLimitReached && !compareIds.includes(project.id)}
                 onToggleCompare={showCompare ? () => toggleCompare(project.id) : undefined}
                 countryCode={countryCode}
-                favorite={{ isClientSession, initialFavorited: favorited ?? false }}
+                favorite={{}}
               />
             </ScrollReveal>
           ))}

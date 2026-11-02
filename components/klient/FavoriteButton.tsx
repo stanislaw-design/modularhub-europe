@@ -4,7 +4,8 @@ import { Heart } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
+import { useAccountSession, useFavoriteIds } from "@/components/klient/useAccountSession";
 import { toggleFavorite } from "@/lib/favorite-actions";
 
 interface FavoriteButtonProps {
@@ -12,9 +13,11 @@ interface FavoriteButtonProps {
   productName: string;
   locale: string;
   /** Sesja istnieje i ma rolę client (spec 0024 Key invariants); w przeciwnym
-   * razie serce jest linkiem do logowania, nie wywołuje toggleFavorite. */
-  isClientSession: boolean;
-  initialFavorited: boolean;
+   * razie serce jest linkiem do logowania, nie wywołuje toggleFavorite.
+   * Strony publiczne są statyczne (spec 0078), więc pomijają ten props i serce
+   * ustala to samo z AccountProvider; panele, które znają sesję, nadal go podają. */
+  isClientSession?: boolean;
+  initialFavorited?: boolean;
   className?: string;
   surface?: "v3" | "v5";
 }
@@ -29,7 +32,7 @@ export function FavoriteButton({
   productId,
   productName,
   locale,
-  isClientSession,
+  isClientSession: isClientSessionProp,
   initialFavorited,
   className,
   surface = "v3",
@@ -37,7 +40,19 @@ export function FavoriteButton({
   const t = useTranslations("FavoriteButton");
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [favorited, setFavorited] = useState(initialFavorited);
+  const account = useAccountSession();
+  const favoriteIds = useFavoriteIds();
+  const isClientSession =
+    isClientSessionProp ?? (account.status === "authenticated" && account.session.user.role === "client");
+  const [favorited, setFavorited] = useState(initialFavorited ?? favoriteIds?.has(productId) ?? false);
+
+  // Ulubione klienta dochodzą po załadowaniu strony (spec 0078); zsynchronizuj serce, gdy dotrą.
+  useEffect(() => {
+    if (initialFavorited !== undefined || !favoriteIds) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- stan serca zależy od danych pobieranych w przeglądarce
+    setFavorited(favoriteIds.has(productId));
+  }, [favoriteIds, initialFavorited, productId]);
+
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const isV5 = surface === "v5";

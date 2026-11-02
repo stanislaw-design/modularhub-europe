@@ -1,13 +1,32 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { ComponentProps } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { AccountState } from "@/components/klient/useAccountSession";
 import { ThemeProvider } from "@/components/ui";
 import { SiteHeader } from "./SiteHeader";
 
+// Spec 0078 AC-5: the header no longer receives the session as a prop, it reads
+// it from the useAccountSession island. The tests drive that hook directly.
+const account = vi.hoisted(() => ({ state: { status: "anonymous" } as AccountState }));
+vi.mock("@/components/klient/useAccountSession", () => ({
+  useAccountSession: () => account.state,
+}));
+
+interface HeaderTestProps {
+  locale: string;
+  session: { user: { role: "client" | "producer" | "admin" } } | null;
+}
+
+function setSession(session: HeaderTestProps["session"]) {
+  account.state = session
+    ? { status: "authenticated", session: { user: { role: session.user.role } } }
+    : { status: "anonymous" };
+}
+
 // SiteHeader renders ThemeToggle, which needs a ThemeProvider ancestor
 // (spec 0043); "light" keeps every existing assertion below theme-agnostic.
-function renderHeader(props: ComponentProps<typeof SiteHeader>) {
+function renderHeader({ session, ...props }: HeaderTestProps) {
+  setSession(session);
   return render(
     <ThemeProvider initialTheme="light" scopeClassName="theme-klient">
       <SiteHeader {...props} />
@@ -207,16 +226,18 @@ describe("SiteHeader (spec 0030)", () => {
     const { rerender } = renderHeader({ locale: "pl", session: null });
     expect(screen.getByRole("link", { name: "Załóż konto" }).querySelector("svg")).not.toBeInTheDocument();
 
+    setSession({ user: { role: "client" } });
     rerender(
       <ThemeProvider initialTheme="light" scopeClassName="theme-klient">
-        <SiteHeader locale="pl" session={{ user: { role: "client" } }} />
+        <SiteHeader locale="pl" />
       </ThemeProvider>
     );
     expect(screen.getByRole("link", { name: "Mój profil" }).querySelector("svg")).toBeInTheDocument();
 
+    setSession({ user: { role: "admin" } });
     rerender(
       <ThemeProvider initialTheme="light" scopeClassName="theme-klient">
-        <SiteHeader locale="pl" session={{ user: { role: "admin" } }} />
+        <SiteHeader locale="pl" />
       </ThemeProvider>
     );
     expect(screen.getByRole("link", { name: "Panel administratora" }).querySelector("svg")).not.toBeInTheDocument();

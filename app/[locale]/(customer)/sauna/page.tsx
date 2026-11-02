@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import Link from "next/link";
-import { auth } from "@/auth";
+import { Suspense } from "react";
+import { CategoryHeading } from "@/components/klient/CategoryHeading";
+import { FamilyTabs } from "@/components/klient/FamilyTabs";
 import { ResultsSelection } from "@/components/klient/ResultsSelection";
 import { SaunaFilterBar } from "@/components/klient/SaunaFilterBar";
-import { Heading, Stack, Text } from "@/components/ui";
+import { Stack, Text } from "@/components/ui";
 import { getCountries } from "@/lib/data/countries";
-import { getProjects, getSaunaProducerOptions } from "@/lib/data/projects";
-import { getClientIdForUser, getFavoritedProductIds } from "@/lib/db/queries";
+import { getProjectsForRequestCached, getSaunaProducerOptionsCached } from "@/lib/data/public-cache";
 import { routing, type Locale } from "@/lib/i18n/routing";
 import { resolveProductHref } from "@/lib/product-family-groups";
 import { sortResults } from "@/lib/results-filters";
@@ -20,19 +20,12 @@ type PageSearchParams = { [key: string]: string | string[] | undefined };
 // zapytanie (getProjects) i te same karty (ResultsSelection) co /results, więc
 // nie powstaje druga kopia listy. Istnieje tylko dlatego, że /sauna/[slug] sam
 // zwracał 404 pod adresem /sauna.
-export async function generateMetadata({
-  params,
-  searchParams,
-}: {
-  params: Promise<PageParams>;
-  searchParams: Promise<PageSearchParams>;
-}): Promise<Metadata> {
-  const [{ locale }, rawSearchParams] = await Promise.all([params, searchParams]);
+export async function generateMetadata({ params }: { params: Promise<PageParams> }): Promise<Metadata> {
+  const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "SaunaCategoryPage" });
-  // Spec 0068 AC-4: ktokolwiek parametr filtra, canonical zawsze na /sauna bez
-  // parametrów, a widok z filtrem dostaje noindex, follow (parametry nie mnożą
-  // indeksowanych adresów).
-  const filtered = hasActiveSaunaFilter(parseSaunaSearchParams(rawSearchParams));
+  // Spec 0068 AC-4: canonical zawsze na /sauna bez parametrów. Noindex dla widoku
+  // z filtrem ustawia sama strona znacznikiem <meta robots> (spec 0078: metadane
+  // nie mogą czytać searchParams, żeby reszta strony została statyczna).
   const canonicalPath = `/${locale}/sauna`;
   const languageAlternates = Object.fromEntries(routing.locales.map((code) => [code, `/${code}/sauna`]));
 
@@ -41,27 +34,41 @@ export async function generateMetadata({
     description: t("metaDescription"),
     alternates: {
       canonical: canonicalPath,
-      languages: { ...languageAlternates, "x-default": `/${routing.defaultLocale}/sauna` },
+      languages: {
+        ...languageAlternates,
+        "x-default": `/${routing.defaultLocale}/sauna`,
+      },
     },
-    ...(filtered ? { robots: { index: false, follow: true } } : {}),
-    openGraph: { title: t("metaTitle"), description: t("metaDescription"), url: canonicalPath },
+    openGraph: {
+      title: t("metaTitle"),
+      description: t("metaDescription"),
+      url: canonicalPath,
+    },
   };
 }
 
-export default async function SaunaCategoryPage({
-  params,
-  searchParams,
-}: {
+interface SaunaCategoryPageProps {
   params: Promise<PageParams>;
   searchParams: Promise<PageSearchParams>;
-}) {
+}
+
+// Spec 0078: statyczny szkielet, lista saun (zależna od searchParams) za Suspense.
+export default function SaunaCategoryPage(props: SaunaCategoryPageProps) {
+  return (
+    <Suspense fallback={<div className="results-shell results-wide min-h-[60vh]" aria-busy="true" />}>
+      <SaunaCategoryContent {...props} />
+    </Suspense>
+  );
+}
+
+async function SaunaCategoryContent({ params, searchParams }: SaunaCategoryPageProps) {
   const [{ locale }, rawSearchParams] = await Promise.all([params, searchParams]);
   const filter = parseSaunaSearchParams(rawSearchParams);
   const t = await getTranslations({ locale, namespace: "SaunaCategoryPage" });
 
-  const [countries, projects, producerOptions, session] = await Promise.all([
+  const [countries, projects, producerOptions] = await Promise.all([
     getCountries(),
-    getProjects({
+    getProjectsForRequestCached({
       family: "spa-modulowe",
       spaSubcategory: "sauna",
       seatingMin: filter.seatingMin,
@@ -70,16 +77,8 @@ export default async function SaunaCategoryPage({
       producerId: filter.producer,
       locale: locale as Locale,
     }),
-    getSaunaProducerOptions(),
-    auth(),
+    getSaunaProducerOptionsCached(),
   ]);
-
-  const isClientSession = session?.user.role === "client";
-  let favoritedIds = new Set<string>();
-  if (session && isClientSession) {
-    const clientId = await getClientIdForUser(session.user.id);
-    if (clientId) favoritedIds = await getFavoritedProductIds(clientId);
-  }
 
   const sortedProjects = sortResults(projects, filter.sort);
   const countryNameByCode = new Map(countries.map((country) => [country.code, country.name]));
@@ -102,45 +101,37 @@ export default async function SaunaCategoryPage({
 
   return (
     <>
+      {hasActiveSaunaFilter(filter) && <meta name="robots" content="noindex, follow" />}
       {jsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />}
-      <Stack gap={5} className="results-shell">
-        <nav aria-label={t("breadcrumbAriaLabel")}>
-          <ol className="flex items-center gap-brand-1 text-data text-brand-v5-muted">
-            <li>
-              <Link href={`/${locale}`} className="focus-ring rounded-data underline-offset-2 hover:underline">
-                {t("breadcrumbHome")}
-              </Link>
-            </li>
-            <li aria-hidden="true">/</li>
-            <li aria-current="page">{t("breadcrumbCurrent")}</li>
-          </ol>
-        </nav>
-        <Stack gap={2}>
-          <Heading level="h1" surface="v5">
-            {t("heading")}
-            <span className="ml-brand-2 text-brand-v5-muted">
-              {t("modelCount", { count: sortedProjects.length })}
-            </span>
-          </Heading>
-          <Text tone="muted" surface="v5" measure>
-            {t("intro")}
-          </Text>
-        </Stack>
-        <SaunaFilterBar locale={locale} filter={filter} producers={producerOptions} />
-        <ResultsSelection
+      {/* Jak /results: od `lg` filtry w lewym panelu, wyniki dostają resztę
+          szerokości (`.results-wide` zdejmuje limit kontenera, globals.css). */}
+      <div className="results-shell results-wide grid gap-x-brand-5 gap-y-brand-5 lg:px-brand-4 lg:pt-brand-4 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
+        <SaunaFilterBar
           locale={locale}
-          family="spa-modulowe"
-          isClientSession={isClientSession}
-          hideHeader
-          compareKind="sauna"
-          emptyClearHref={buildSaunaHref(locale)}
-          serverItems={sortedProjects.map((project) => ({
-            project,
-            countryName: countryNameByCode.get(project.countryOfProduction) ?? project.countryOfProduction,
-            favorited: favoritedIds.has(project.id),
-          }))}
+          filter={filter}
+          producers={producerOptions}
+          familyTabs={<FamilyTabs locale={locale} family="spa-modulowe" />}
         />
-      </Stack>
+        <Stack gap={5} className="lg:col-start-2 lg:row-start-1">
+          <Stack gap={2}>
+            <CategoryHeading locale={locale} title={t("heading")} count={sortedProjects.length} />
+            <Text tone="muted" surface="v5" measure>
+              {t("intro")}
+            </Text>
+          </Stack>
+          <ResultsSelection
+            locale={locale}
+            family="spa-modulowe"
+            hideHeader
+            compareKind="sauna"
+            emptyClearHref={buildSaunaHref(locale)}
+            serverItems={sortedProjects.map((project) => ({
+              project,
+              countryName: countryNameByCode.get(project.countryOfProduction) ?? project.countryOfProduction,
+            }))}
+          />
+        </Stack>
+      </div>
     </>
   );
 }

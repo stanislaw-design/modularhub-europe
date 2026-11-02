@@ -256,7 +256,13 @@
     "DE": "in Germany",
     "NL": "in the Netherlands"
   },
+  "CategoryHeading": {
+    "breadcrumbAriaLabel": "Breadcrumb",
+    "breadcrumbHome": "Home",
+    "modelCount": "{count, plural, one {# model} other {# models}}"
+  },
   "ResultsHeader": {
+    "eligibleLine": "Legally allowed {country}",
     "eligibleSuffix": " allowed {country}",
     "hint": "Choose a country in the filters to see which {familyFew} are legally allowed there.",
     "hintOutdoorTv": "Narrow the list by mounting type and intended use."
@@ -863,7 +869,9 @@
   },
   "SubcategoryFilterBar": {
     "spaAriaLabel": "Modular spa subcategory",
-    "containerAriaLabel": "Modular container subcategory"
+    "containerAriaLabel": "Modular container subcategory",
+    "containerLabel": "Type",
+    "containerAll": "All"
   },
   "ProducentPage": {
     "heading": "Become a ModularHub Europe producer",
@@ -1366,6 +1374,7 @@
     "priceOnRequest": "Custom quote",
     "netVat": "net",
     "estimatedPackage": "Estimated price",
+    "backToSaunas": "Back to saunas",
     "from": "from",
     "sendInquiry": "Send inquiry",
     "variantPickerAriaLabel": "Variant selection",
@@ -1407,6 +1416,8 @@
     "sortPriceAsc": "Price, low to high",
     "sortPriceDesc": "Price, high to low",
     "clearFilters": "Clear filters",
+    "allOption": "All",
+    "sortDefault": "Default",
     "compare": {
       "heading": "Sauna comparison",
       "back": "Back to saunas",
@@ -1489,10 +1500,9 @@
     "areaPlaceholder": "Any",
     "searchButton": "Search houses",
     "categoryLinksAriaLabel": "Categories within More than a house",
-    "categoryLinkSpa": "Modular spas",
+    "categoryLinkSpa": "Saunas",
     "categoryLinkContainers": "Modular containers",
-    "categoryLinkOutdoorTv": "Outdoor TV",
-    "categoryLinkSauna": "Saunas"
+    "categoryLinkOutdoorTv": "Outdoor TV"
   },
   "FloatingSearchButton": {
     "prompt": "What are you looking for today?",
@@ -1543,8 +1553,8 @@
   "CategoryShowcase": {
     "headingUnderline": "More",
     "headingRest": "than a house",
-    "spaName": "Modular spas",
-    "spaDescription": "Saunas, hot tubs, and wellness zones for your garden",
+    "spaName": "Saunas",
+    "spaDescription": "Modular saunas for your garden",
     "containersName": "Modular containers",
     "containersDescription": "Catering, service, and residential, ready to install",
     "imageAlt": "Example project from the {category} category",
@@ -1566,7 +1576,7 @@
     "subNavAriaLabel": "Refine within More than a house",
     "refineLabel": "Type",
     "all": "All",
-    "spa": "Modular spas",
+    "spa": "Saunas",
     "containers": "Modular containers",
     "outdoorTv": "Outdoor TV"
   },

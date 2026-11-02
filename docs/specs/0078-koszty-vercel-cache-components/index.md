@@ -1,7 +1,7 @@
 # 0078. Obniżenie kosztów funkcji serwerowych na Vercel przez Cache Components
 
 **Date**: 2026-10-28
-**Status**: Proposed
+**Status**: In Progress
 
 ## Summary
 

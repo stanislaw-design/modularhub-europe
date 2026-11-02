@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { notFound, permanentRedirect, redirect } from "next/navigation";
-import { auth } from "@/auth";
 import { Button, Card, DataText, Heading, Text } from "@/components/ui";
 import { FavoriteButton } from "@/components/klient/FavoriteButton";
 import { GalleryLightboxProvider } from "@/components/klient/ProjectGalleryLightbox";
-import { ProjectGalleryCarousel, ProjectGalleryCover, ProjectGalleryThumbnails } from "@/components/klient/ProjectGallery";
+import { ProjectGalleryTabs } from "@/components/klient/ProjectGalleryTabs";
 import { ProjectDocumentsAndFaq } from "@/components/klient/ProjectDocumentsAndFaq";
 import { ProjectLogistics } from "@/components/klient/ProjectLogistics";
 import { ProjectOptionsConfigurator } from "@/components/klient/ProjectOptionsConfigurator";
@@ -22,13 +23,21 @@ import {
   resolveSelectedProductOptions,
   toggleProductOption,
 } from "@/lib/data/project-variants";
-import { getProducerById, getProducerPhotoUrl } from "@/lib/data/producers";
 import { getProductAltSubject } from "@/lib/product-alt";
-import { getProjectBySlugOrId } from "@/lib/data/projects";
+import {
+  getProducerByIdCached,
+  getProducerPhotoUrlCached,
+  getProductOptionGroupsCached,
+  getProjectBySlugOrIdCached,
+} from "@/lib/data/public-cache";
 import type { CompletionStandard } from "@/lib/data/types";
-import { getClientIdForUser, getFavoritedProductIds, getProductOptionGroups } from "@/lib/db/queries";
 import { routing, type Locale } from "@/lib/i18n/routing";
 import { resolveProductHref } from "@/lib/product-family-groups";
+
+// Spec 0078: strona szczegółów czyta searchParams (wariant, opcje, kraj) w całej treści,
+// więc nie jest w pełni statyczna. Dane są z "use cache", sesja nie jest czytana na serwerze.
+// Pełna statyka wymaga przeniesienia wyboru wariantu do wysp klienckich (osobna decyzja).
+export const instant = false;
 
 const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0 });
 
@@ -65,7 +74,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale, slug } = await params;
   const [project, t] = await Promise.all([
-    getProjectBySlugOrId(slug, locale as Locale),
+    getProjectBySlugOrIdCached(slug, locale as Locale),
     getTranslations({ locale, namespace: "SaunaPage" }),
   ]);
   if (!project || !isSaunaProduct(project)) return {};
@@ -113,7 +122,7 @@ export default async function SaunaPage({
     getTranslations("SaunaPage"),
     getTranslations("ProjectGallery"),
   ]);
-  const project = await getProjectBySlugOrId(slug, locale as Locale);
+  const project = await getProjectBySlugOrIdCached(slug, locale as Locale);
   if (!project) notFound();
   // Strażnik rodziny/podkategorii (spec 0061 AC-11): każdy stary lub błędny
   // link na inny produkt trafia na jego właściwy route zamiast renderować się
@@ -129,19 +138,13 @@ export default async function SaunaPage({
     permanentRedirect(`/${locale}/sauna/${project.slug}${preserveQuery(rawSearchParams)}`);
   }
 
-  const [producer, producerPhotoUrl, session, optionGroups] = await Promise.all([
-    getProducerById(project.producerId, locale as Locale),
-    getProducerPhotoUrl(project.producerId),
-    auth(),
-    getProductOptionGroups(project.id, locale as Locale),
+  const [producer, producerPhotoUrl, optionGroups] = await Promise.all([
+    getProducerByIdCached(project.producerId, locale as Locale),
+    getProducerPhotoUrlCached(project.producerId),
+    getProductOptionGroupsCached(project.id, locale as Locale),
   ]);
 
-  const isClientSession = session?.user.role === "client";
-  let isFavorited = false;
-  if (session && isClientSession) {
-    const clientId = await getClientIdForUser(session.user.id);
-    if (clientId) isFavorited = (await getFavoritedProductIds(clientId)).has(project.id);
-  }
+  // Spec 0078: serce ulubionych dostaje stan konta z przeglądarki (AccountProvider).
 
   const altSubject = await getProductAltSubject(project);
   const galleryExtraImages = project.galleryImageUrls?.filter((url) => url.length > 0) ?? [];
@@ -235,25 +238,36 @@ export default async function SaunaPage({
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <GalleryLightboxProvider images={lightboxImages}>
-        <div className="-mt-brand-5 flex flex-col gap-brand-6 pb-24 lg:mt-0 lg:pb-0">
-          <div className="grid grid-cols-1 items-stretch gap-brand-4 lg:grid-cols-12">
-            <div className="flex flex-col gap-brand-3 lg:col-span-7">
-              <div className="lg:hidden">
-                <ProjectGalleryCarousel coverImageUrl={project.coverImageUrl} galleryImageUrls={project.galleryImageUrls} altSubject={altSubject} />
-              </div>
-              <div className="hidden lg:block">
-                <ProjectGalleryCover
-                  coverImageUrl={project.coverImageUrl}
-                  totalCount={galleryExtraImages.length + 1}
-                  altSubject={altSubject}
-                />
-                <div className="mt-brand-2">
-                  <ProjectGalleryThumbnails galleryImageUrls={project.galleryImageUrls} altSubject={altSubject} />
-                </div>
-              </div>
-            </div>
-            <div className="flex h-full flex-col justify-between gap-brand-3 lg:col-span-5">
-              <div className="flex flex-col gap-brand-3">
+        {/* Ten sam układ hero co /project/[slug]: od lg galeria do krawędzi
+            ekranu po lewej, panel zakupowy przyklejony po prawej przez całą
+            długość strony (cena i "Wyślij zapytanie" zawsze w zasięgu). Sauny
+            nie mają rzutów, więc galeria bez zakładek. */}
+        <div className="project-wide -mt-brand-5 pb-24 lg:mt-0 lg:grid lg:grid-cols-[minmax(0,1fr)_30rem] lg:pb-0 2xl:grid-cols-[minmax(0,1fr)_34rem]">
+          <div className="lg:col-start-1 lg:row-start-1">
+            <ProjectGalleryTabs
+              projectName={project.name}
+              altSubject={altSubject}
+              coverImageUrl={project.coverImageUrl}
+              galleryImageUrls={project.galleryImageUrls}
+              floorPlans={[]}
+              activeTab="wizualizacje"
+              hrefFor={() => ""}
+              showFloorPlanTab={false}
+            />
+          </div>
+
+          {/* Panel rozciąga się na całą wysokość siatki (linia po lewej biegnie
+              do końca strony), a sama treść zostaje przyklejona u góry, bo u
+              sauny jest jej mało i wysoki panel świeciłby pustką. */}
+          <aside className="mt-brand-4 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0 lg:border-l lg:border-brand-v5-line">
+            <div className="flex flex-col gap-brand-3 lg:sticky lg:top-20 lg:p-brand-5">
+                <Link
+                  href={`/${locale}/sauna`}
+                  className="focus-ring inline-flex w-fit items-center gap-1 rounded-data text-data font-semibold text-brand-v5-muted hover:text-brand-v5-ink"
+                >
+                  <ArrowLeft className="size-4" aria-hidden="true" />
+                  {t("backToSaunas")}
+                </Link>
                 <div className="flex items-start justify-between gap-brand-2">
                   <div className="flex min-w-0 flex-1 flex-col gap-1">
                     <Heading level="h1" surface="v5">
@@ -267,8 +281,6 @@ export default async function SaunaPage({
                     productId={project.id}
                     productName={project.name}
                     locale={locale}
-                    isClientSession={isClientSession}
-                    initialFavorited={isFavorited}
                     surface="v5"
                   />
                 </div>
@@ -313,14 +325,14 @@ export default async function SaunaPage({
                       </DataText>
                     </>
                   )}
-                  <Button as="a" href={zapytanieHref} size="lg" surface="v5" className="mt-brand-1 w-full sm:w-fit">
+                  <Button as="a" href={zapytanieHref} size="lg" surface="v5" className="mt-brand-1 w-full">
                     {t("sendInquiry")}
                   </Button>
                 </Card>
               </div>
-            </div>
-          </div>
+          </aside>
 
+          <div className="mt-brand-6 flex flex-col gap-brand-6 lg:[&_h2]:text-h2 lg:col-start-1 lg:row-start-2 lg:mt-0 lg:px-10 lg:py-brand-6">
           {/* Spec 0061 AC-4: opcje dodatkowe konfiguratora (piec, kolor
               impregnacji, panele podczerwieni) zaraz po hero, przed sekcją
               wideo i specyfikacją — klient widzi dopłaty i decyduje o
@@ -342,6 +354,7 @@ export default async function SaunaPage({
 
           <ProjectVideoSection productName={project.name} videoUrl={project.videoUrl} usageNote={project.usageNote} />
 
+          <div className="lg:sticky lg:top-20 lg:z-30 lg:-mx-10 lg:bg-background lg:px-10">
           <ProjectSectionNav
             items={[
               { id: "opcje", label: t("sectionNav.opcje"), disabled: !hasOptionsSection },
@@ -355,6 +368,7 @@ export default async function SaunaPage({
             scrollLeftLabel={t("sectionNavScrollLeft")}
             scrollRightLabel={t("sectionNavScrollRight")}
           />
+          </div>
 
           {hasFeaturesSection && (
             <div id="cechy" className="scroll-mt-20">
@@ -389,8 +403,41 @@ export default async function SaunaPage({
               <ProjectDocumentsAndFaq faq={project.faq} documents={project.documents} />
             </div>
           )}
+          </div>
         </div>
       </GalleryLightboxProvider>
+      {/* Sticky CTA na mobile (jak /project/[slug]): cena, serce i "Wyślij
+          zapytanie" pod ręką; desktop ma je w przyklejonym panelu. */}
+      <div className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-brand-2 border-t-2 border-brand-v5-ink bg-brand-v5-surface px-brand-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-brand-3 lg:hidden">
+        <div className="flex min-w-0 flex-col">
+          {showPriceOnRequest ? (
+            <DataText surface="v5" className="truncate text-body-l font-semibold">
+              {t("priceOnRequest")}
+            </DataText>
+          ) : (
+            <>
+              <Text variant="label" tone="muted" surface="v5">
+                {totalPriceEur !== undefined ? t("price") : t("from")}
+              </Text>
+              <DataText surface="v5" className="text-body-l font-black leading-none">
+                {priceFormatter.format(totalPriceEur ?? project.priceMin)} €
+              </DataText>
+            </>
+          )}
+        </div>
+        <div className="flex shrink-0 items-center gap-brand-2">
+          <FavoriteButton
+            productId={project.id}
+            productName={project.name}
+            locale={locale}
+            surface="v5"
+            className="shrink-0 border border-brand-v5-line"
+          />
+          <Button as="a" href={zapytanieHref} size="md" surface="v5" className="shrink-0">
+            {t("sendInquiry")}
+          </Button>
+        </div>
+      </div>
     </>
   );
 }

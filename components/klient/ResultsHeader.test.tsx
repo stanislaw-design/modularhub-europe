@@ -1,83 +1,67 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { ResultsHeader } from "./ResultsHeader";
 
 describe("ResultsHeader", () => {
-  it("uses singular form for exactly 1 result (AC-9)", () => {
-    render(<ResultsHeader count={1} family="dom" />);
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("1 dom");
-  });
-
-  it.each([2, 3, 4])("uses the 2-4 plural form for %i results (AC-9)", (count) => {
-    render(<ResultsHeader count={count} family="dom" />);
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(`${count} domy`);
-  });
-
-  it.each([5, 12, 21])(
-    "uses the 5+ plural form for %i results, including the 11-14 exception (AC-9)",
-    (count) => {
-      render(<ResultsHeader count={count} family="dom" />);
-      expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(`${count} domów`);
-    }
-  );
-
-  it("names the country in the heading when countryCode is present (AC-9)", () => {
-    render(<ResultsHeader count={12} family="dom" countryCode="DE" />);
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("dopuszczonych w Niemczech");
-  });
-
-  it("does not mention a country and shows a hint when countryCode is absent (AC-9)", () => {
-    render(<ResultsHeader count={6} family="dom" />);
+  it("shows the family title and the model count in the heading, like the sauna page", () => {
+    render(<ResultsHeader locale="pl" count={231} family="dom" />);
     const heading = screen.getByRole("heading", { level: 1 });
-    expect(heading).not.toHaveTextContent("dopuszczonych");
+    expect(heading).toHaveTextContent("Domy:");
+    expect(heading).toHaveTextContent("231 modeli");
+  });
+
+  it("renders a breadcrumb: home link, separator and the current family", () => {
+    render(<ResultsHeader locale="pl" count={5} family="dom" />);
+    const nav = screen.getByRole("navigation", { name: "Ścieżka nawigacji" });
+    expect(within(nav).getByRole("link", { name: "Strona główna" })).toHaveAttribute("href", "/pl");
+    expect(within(nav).getByText("Domy")).toHaveAttribute("aria-current", "page");
+  });
+
+  it("states the country below the heading, not in it, when countryCode is present (spec 0004)", () => {
+    render(<ResultsHeader locale="pl" count={12} family="dom" countryCode="DE" />);
+    expect(screen.getByRole("heading", { level: 1 })).not.toHaveTextContent("Niemczech");
+    expect(screen.getByText("Dopuszczone prawnie w Niemczech")).toBeInTheDocument();
+  });
+
+  it("shows the hint when countryCode is absent and no country line", () => {
+    render(<ResultsHeader locale="pl" count={6} family="dom" />);
     expect(screen.getByText(/wybierz kraj/i)).toBeInTheDocument();
+    expect(screen.queryByText(/^dopuszczone prawnie/i)).not.toBeInTheDocument();
   });
 
   it("does not show the hint when countryCode is present", () => {
-    render(<ResultsHeader count={6} family="dom" countryCode="PL" />);
+    render(<ResultsHeader locale="pl" count={6} family="dom" countryCode="PL" />);
     expect(screen.queryByText(/wybierz kraj/i)).not.toBeInTheDocument();
   });
 
   // Regression: the heading and hint used to say "dom"/"domy" regardless of the
   // active family switch (spec 0023 AC-4, found by /check verify on 2026-09-04).
   describe("family switch (spec 0023 AC-4)", () => {
-    it("uses the spa-modulowe noun (invariant across counts) in the heading", () => {
-      render(<ResultsHeader count={1} family="spa-modulowe" />);
-      expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("1 spa modułowe");
+    it.each([
+      ["spa-modulowe", "Sauny"],
+      ["kontenery-modulowe", "Kontenery"],
+      ["outdoor-tv", "Outdoor TV"],
+      ["wiecej-niz-dom", "Więcej niż dom"],
+    ] as const)("uses the %s tab label as the title", (family, title) => {
+      render(<ResultsHeader locale="pl" count={2} family={family} />);
+      expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(title);
     });
 
     it("uses the spa-modulowe noun in the hint, not 'domy'", () => {
-      render(<ResultsHeader count={1} family="spa-modulowe" />);
+      render(<ResultsHeader locale="pl" count={1} family="spa-modulowe" />);
       expect(screen.getByText(/wybierz kraj/i)).toHaveTextContent("spa modułowe");
       expect(screen.getByText(/wybierz kraj/i)).not.toHaveTextContent("domy");
     });
 
-    it("uses the kontenery-modulowe noun forms by count in the heading (spec 0039)", () => {
-      render(<ResultsHeader count={1} family="kontenery-modulowe" />);
-      expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("1 kontener modułowy");
-    });
-
-    it.each([2, 3, 4])("uses the kontenery-modulowe 2-4 plural form for %i results", (count) => {
-      render(<ResultsHeader count={count} family="kontenery-modulowe" />);
-      expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(`${count} kontenery modułowe`);
-    });
-
-    it.each([5, 12])("uses the kontenery-modulowe 5+ plural form for %i results", (count) => {
-      render(<ResultsHeader count={count} family="kontenery-modulowe" />);
-      expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(`${count} kontenerów modułowych`);
-    });
-
     it("uses the kontenery-modulowe noun in the hint, not 'domy'", () => {
-      render(<ResultsHeader count={1} family="kontenery-modulowe" />);
+      render(<ResultsHeader locale="pl" count={1} family="kontenery-modulowe" />);
       expect(screen.getByText(/wybierz kraj/i)).toHaveTextContent("kontenery modułowe");
       expect(screen.getByText(/wybierz kraj/i)).not.toHaveTextContent("domy");
     });
 
-    // spec 0035 AC-8: the wiecej-niz-dom group sentinel needs its own
-    // ProductFamilyNoun entry, or this throws a missing-message error at runtime.
-    it("uses the wiecej-niz-dom noun for the combined group value", () => {
-      render(<ResultsHeader count={2} family="wiecej-niz-dom" />);
-      expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("2 produkty");
+    it("shows the outdoor TV hint instead of the country hint", () => {
+      render(<ResultsHeader locale="pl" count={2} family="outdoor-tv" />);
+      expect(screen.getByText(/sposobu montażu/i)).toBeInTheDocument();
     });
   });
 });

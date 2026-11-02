@@ -26,6 +26,11 @@ import { getProducerMatchesForAdmin } from "@/lib/db/project-request-matching";
 import { getLargeOrderForAdmin, type LargeOrderKind, type LargeOrderQuoteForAdmin } from "@/lib/db/queries";
 import { listInquiryAttachments } from "@/lib/inquiry-attachment-actions";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const closeReasonLabel: Record<string, string> = {

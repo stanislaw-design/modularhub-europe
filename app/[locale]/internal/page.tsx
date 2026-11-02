@@ -10,6 +10,11 @@ import {
 } from "@/lib/db/queries";
 import { getPageviewsLast30Days } from "@/lib/observability/posthog-metrics";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 const dateFormatter = new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium", timeStyle: "short" });
 
 // Dashboard /internal (spec 0055 Build plan zadania 3, 4, 5, 6, 7): ten sam

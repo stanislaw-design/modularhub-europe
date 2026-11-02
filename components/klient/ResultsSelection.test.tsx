@@ -38,7 +38,7 @@ const items: ResultItem[] = [
 
 describe("ResultsSelection", () => {
   it("shows no action bar and no checked boxes when nothing is selected (AC-2)", () => {
-    render(<ResultsSelection serverItems={items} locale="pl" family="dom" isClientSession={false} />);
+    render(<ResultsSelection serverItems={items} locale="pl" family="dom" />);
     expect(screen.queryByText(/Zaznaczono:/)).not.toBeInTheDocument();
     for (const checkbox of screen.getAllByRole("checkbox")) {
       expect(checkbox).not.toBeChecked();
@@ -47,7 +47,7 @@ describe("ResultsSelection", () => {
 
   it("shows a pinned action bar with the count once at least 1 project is selected, and does not navigate on toggle (AC-1, AC-2)", async () => {
     const user = userEvent.setup();
-    render(<ResultsSelection serverItems={items} locale="pl" family="dom" isClientSession={false} />);
+    render(<ResultsSelection serverItems={items} locale="pl" family="dom" />);
 
     await user.click(screen.getByRole("checkbox", { name: "Zaznacz Dom Jeden do zapytania" }));
 
@@ -57,7 +57,7 @@ describe("ResultsSelection", () => {
 
   it("hides the action bar again once the last selection is unchecked (AC-2)", async () => {
     const user = userEvent.setup();
-    render(<ResultsSelection serverItems={items} locale="pl" family="dom" isClientSession={false} />);
+    render(<ResultsSelection serverItems={items} locale="pl" family="dom" />);
     const checkbox = screen.getByRole("checkbox", { name: "Zaznacz Dom Jeden do zapytania" });
 
     await user.click(checkbox);
@@ -69,7 +69,7 @@ describe("ResultsSelection", () => {
 
   it("disables the remaining unselected checkboxes once 3 are selected, and unblocks them when one is deselected (AC-3)", async () => {
     const user = userEvent.setup();
-    render(<ResultsSelection serverItems={items} locale="pl" family="dom" isClientSession={false} />);
+    render(<ResultsSelection serverItems={items} locale="pl" family="dom" />);
 
     await user.click(screen.getByRole("checkbox", { name: "Zaznacz Dom Jeden do zapytania" }));
     await user.click(screen.getByRole("checkbox", { name: "Zaznacz Dom Dwa do zapytania" }));
@@ -87,7 +87,7 @@ describe("ResultsSelection", () => {
 
   it("never disables an already selected checkbox at the limit, only the unselected ones (AC-3)", async () => {
     const user = userEvent.setup();
-    render(<ResultsSelection serverItems={items} locale="pl" family="dom" isClientSession={false} />);
+    render(<ResultsSelection serverItems={items} locale="pl" family="dom" />);
 
     await user.click(screen.getByRole("checkbox", { name: "Zaznacz Dom Jeden do zapytania" }));
     await user.click(screen.getByRole("checkbox", { name: "Zaznacz Dom Dwa do zapytania" }));
@@ -108,7 +108,7 @@ describe("ResultsSelection", () => {
         sizeMin={50}
         sizeMax={100}
         family="dom"
-        isClientSession={false}
+       
       />
     );
 
@@ -123,7 +123,7 @@ describe("ResultsSelection", () => {
 
   it("keeps the compare selection independent from the inquiry selection (spec 0044 AC-4)", async () => {
     const user = userEvent.setup();
-    render(<ResultsSelection serverItems={items} locale="pl" family="dom" isClientSession={false} />);
+    render(<ResultsSelection serverItems={items} locale="pl" family="dom" />);
 
     await user.click(screen.getByRole("checkbox", { name: "Porównaj Dom Jeden z innymi domami" }));
 
@@ -135,7 +135,7 @@ describe("ResultsSelection", () => {
   it("disables the compare CTA until at least 2 homes are selected, then navigates to /compare (spec 0044 AC-5)", async () => {
     const user = userEvent.setup();
     render(
-      <ResultsSelection serverItems={items} locale="pl" countryCode="DE" family="dom" isClientSession={false} />
+      <ResultsSelection serverItems={items} locale="pl" countryCode="DE" family="dom" />
     );
 
     await user.click(screen.getByRole("checkbox", { name: "Porównaj Dom Jeden z innymi domami" }));
@@ -151,7 +151,7 @@ describe("ResultsSelection", () => {
 
   it("clears the compare selection when 'Wyczyść' is clicked (spec 0044 AC-4)", async () => {
     const user = userEvent.setup();
-    render(<ResultsSelection serverItems={items} locale="pl" family="dom" isClientSession={false} />);
+    render(<ResultsSelection serverItems={items} locale="pl" family="dom" />);
 
     await user.click(screen.getByRole("checkbox", { name: "Porównaj Dom Jeden z innymi domami" }));
     await user.click(screen.getByRole("button", { name: "Wyczyść" }));
@@ -161,7 +161,7 @@ describe("ResultsSelection", () => {
 
   it("hides the compare control entirely for a non-dom family (spec 0044 AC-4)", () => {
     render(
-      <ResultsSelection serverItems={items} locale="pl" family="spa-modulowe" isClientSession={false} />
+      <ResultsSelection serverItems={items} locale="pl" family="spa-modulowe" />
     );
     expect(screen.queryByRole("checkbox", { name: /Porównaj/ })).not.toBeInTheDocument();
   });
@@ -169,11 +169,11 @@ describe("ResultsSelection", () => {
   // spec 0068 AC-3, AC-2: strona kategorii renderuje własny <h1>, więc
   // ResultsHeader (z własnym <h1>) jest pomijany, a pusty stan kieruje na emptyClearHref.
   it("omits the ResultsHeader h1 when hideHeader is set, and keeps it otherwise (spec 0068)", () => {
-    const { unmount } = render(<ResultsSelection serverItems={items} locale="pl" family="dom" isClientSession={false} />);
+    const { unmount } = render(<ResultsSelection serverItems={items} locale="pl" family="dom" />);
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
     unmount();
 
-    render(<ResultsSelection serverItems={items} locale="pl" family="dom" isClientSession={false} hideHeader />);
+    render(<ResultsSelection serverItems={items} locale="pl" family="dom" hideHeader />);
     expect(screen.queryByRole("heading", { level: 1 })).not.toBeInTheDocument();
     expect(screen.getAllByRole("checkbox").length).toBeGreaterThan(0);
   });
@@ -184,7 +184,7 @@ describe("ResultsSelection", () => {
         serverItems={[]}
         locale="pl"
         family="spa-modulowe"
-        isClientSession={false}
+       
         hideHeader
         emptyClearHref="/pl/sauna"
       />,
@@ -211,7 +211,7 @@ describe("ResultsSelection", () => {
         serverItems={saunaItems}
         locale="pl"
         family="spa-modulowe"
-        isClientSession={false}
+       
         compareKind="sauna"
       />,
     );

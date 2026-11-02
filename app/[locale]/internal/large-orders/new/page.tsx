@@ -6,6 +6,11 @@ import { Heading, Stack, Text } from "@/components/ui";
 import { getCountries } from "@/lib/data/countries";
 import { getPublishedProductOptionsForAdmin } from "@/lib/db/queries";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 // Spec 0070 AC-20: doradca składa zapytanie w imieniu klienta, który zadzwonił lub
 // napisał. Ten sam inline wzorzec sesji co pozostałe ekrany /internal (internal/AGENTS.md).
 export default async function InternalNewLargeOrderPage({ params }: { params: Promise<{ locale: string }> }) {

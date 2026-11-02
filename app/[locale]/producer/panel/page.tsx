@@ -22,6 +22,12 @@ import {
 } from "@/lib/producer-panel-summary";
 
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
+
 // Pulpit producenta (spec 0074 AC-3 do AC-6): to, co wymaga reakcji, trzy
 // kafelki i karta "Dokończ profil". Dane firmy przeniosły się do /settings.
 // Wszystkie zapytania dostają producerId z sesji (AC-15).

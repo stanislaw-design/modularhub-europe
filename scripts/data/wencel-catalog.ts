@@ -191,6 +191,8 @@ export interface WencelProjectSource {
   builtUpAreaM2?: number;
   /** Czas realizacji od zamówienia i zaliczki, w tygodniach (odpowiedź producenta 2026-10-27: ok. 1 miesiąc). */
   leadTimeWeeks?: { min: number; max: number };
+  /** Domyślnie "pod-klucz"; wóz z pustym wnętrzem to "surowy-zamkniety". */
+  completionStandard?: "pod-klucz" | "surowy-zamkniety";
   /** Domyślnie "rekreacyjny-caloroczny". */
   category?: "caloroczny" | "rekreacyjny-caloroczny" | "mobilny";
   /** Domyślnie "temporary" (dom na stalowej ramie, który można przenosić); null = oferta nie podaje. */
@@ -663,10 +665,10 @@ export const WENCEL_PROJECTS: WencelProjectSource[] = [
       "Onderstel: stalen frame van 120x60 mm gesloten profielen (4 mm wanddikte). Wanden: constructiehout C24 (kantelen 8x4 cm), gevel van Siberisch lariks, windscherm, 8 cm wol, dampopen folie, interieur van Scandinavisch vurenhout. Dak: aluminium liggende felsplaat, beplanking, 15 cm minerale wol. Vloer: larikshouten bekleding, windscherm, 8 cm polystyreen, 18 mm waterbestendig multiplex met pvc-vloerbedekking.",
     ),
     customizationScope: L(
-      "Dostępne są dwie wersje kolorystyczne, jak na zdjęciach: naturalny modrzew syberyjski z szarymi elementami albo czerwono-kremowa.",
-      "Two colour versions are available, as in the photos: natural Siberian larch with grey details, or red and cream.",
-      "Es gibt zwei Farbvarianten, wie auf den Fotos: naturbelassene sibirische Lärche mit grauen Elementen oder Rot-Creme.",
-      "Er zijn twee kleurvarianten, zoals op de foto's: natuurlijk Siberisch lariks met grijze onderdelen of rood-crème.",
+      "Elewacja z naturalnego modrzewia syberyjskiego z szarymi elementami metalowymi, jak na zdjęciach. Szczegóły wykończenia do uzgodnienia z producentem.",
+      "Natural Siberian larch facade with grey metal details, as in the photos. Finishing details to be agreed with the producer.",
+      "Fassade aus naturbelassener sibirischer Lärche mit grauen Metallelementen, wie auf den Fotos. Einzelheiten zur Ausführung nach Absprache mit dem Hersteller.",
+      "Gevel van natuurlijk Siberisch lariks met grijze metalen onderdelen, zoals op de foto's. Afwerkingsdetails in overleg met de producent.",
     ),
     specs: {
       wallBuildUp: "Drewno C24 (kantówka 8x4 cm), elewacja z modrzewia syberyjskiego, wełna 8 cm, wnętrze ze świerku skandynawskiego.",
@@ -746,10 +748,219 @@ export const WENCEL_PROJECTS: WencelProjectSource[] = [
         floorLevel: "parter",
       },
     ],
-    // Prawdziwe zdjęcia realizacji (dwie wersje kolorystyczne): jako galeria główna ("wizualizacje") i jako realizacje,
+    // Prawdziwe zdjęcia realizacji (folder WÓZ NR2: trzy zewnętrzne i trzy wnętrza): jako galeria główna ("wizualizacje") i jako realizacje,
     // dlatego dwie kopie plików o różnych nazwach (wiersz dokumentu jest rozróżniany po nazwie pliku).
-    photos: [3, 1, 2, 5, 4, 6].map((n) => `tmp/wencel/wencel-woz-${n}.jpg`),
+    photos: [
+      ...[3, 1, 2].map((n) => `tmp/wencel/wencel-woz-${n}.jpg`),
+      ...["kuchnia", "lazienka", "prysznic"].map((n) => `tmp/wencel/wencel-woz-wnetrze-${n}.jpg`),
+    ],
     floorPlans: [],
-    realizations: [3, 1, 2, 5, 4, 6].map((n) => `tmp/wencel/wencel-woz-realizacja-${n}.jpg`),
+    realizations: [
+      ...[3, 1, 2].map((n) => `tmp/wencel/wencel-woz-realizacja-${n}.jpg`),
+      ...["kuchnia", "lazienka", "prysznic"].map((n) => `tmp/wencel/wencel-woz-realizacja-wnetrze-${n}.jpg`),
+    ],
+  },
+  {
+    key: "woz-mieszkalny",
+    id: detUuid("product:woz-mieszkalny"),
+    name: "Wóz Mieszkalny 40",
+    floorAreaM2: 40,
+    category: "mobilny",
+    optionGroupKeys: [],
+    bedrooms: 2,
+    bathrooms: 1,
+    storeys: 1,
+    roofType: L(
+      "Dach z aluminiowej blachy na rąbek stojący",
+      "Roof of aluminium standing-seam sheet metal",
+      "Dach aus Aluminium-Stehfalzblech",
+      "Dak van aluminium liggende felsplaat",
+    ),
+    description: L(
+      "Mieszkalny wóz całoroczny: wnętrze 40 m² oraz zadaszony taras 27 m². W środku są pełnowymiarowa kuchnia z salonem, łazienka z prysznicem i dwie sypialnie. Elewacja jest z modrzewia syberyjskiego, dach z aluminiowej blachy na rąbek stojący, elementy metalowe malowane proszkowo, a wnętrze obite boazerią ze świerku skandynawskiego. Wóz jest ocieplony i wyposażony we wszystkie media, a instalacja elektryczna i hydrauliczna jest wykonana zgodnie z obowiązującymi normami. Cena jest podana w euro, netto, bez transportu.",
+      "A year-round residential wagon: 40 m² inside plus a 27 m² covered terrace. Inside are a full-size kitchen with a living area, a bathroom with a shower and two bedrooms. The facade is Siberian larch, the roof is aluminium standing-seam sheet metal, metal parts are powder-coated, and the interior is lined with Scandinavian spruce panelling. The wagon is insulated and equipped with all utilities, and the electrical and plumbing installations are made to current standards. The price is given in euro, net, excluding transport.",
+      "Ein ganzjährig bewohnbarer Wagen: 40 m² Innenfläche plus 27 m² überdachte Terrasse. Im Inneren befinden sich eine vollwertige Küche mit Wohnbereich, ein Bad mit Dusche und zwei Schlafzimmer. Die Fassade besteht aus sibirischer Lärche, das Dach aus Aluminium-Stehfalzblech, Metallteile sind pulverbeschichtet, und der Innenraum ist mit skandinavischer Fichte verkleidet. Der Wagen ist gedämmt und mit allen Anschlüssen ausgestattet, Elektro- und Sanitärinstallation sind nach geltenden Normen ausgeführt. Der Preis ist in Euro angegeben, netto, ohne Transport.",
+      "Een jaarrond bewoonbare woonwagen: 40 m² binnenruimte plus een overdekt terras van 27 m². Binnen zijn een volwaardige keuken met woonruimte, een badkamer met douche en twee slaapkamers. De gevel is van Siberisch lariks, het dak van aluminium liggende felsplaat, metalen onderdelen zijn poedergecoat en het interieur is bekleed met Scandinavisch vurenhout. De woonwagen is geïsoleerd en uitgerust met alle aansluitingen, en de elektrische en sanitaire installatie is volgens de geldende normen uitgevoerd. De prijs is in euro, netto, exclusief transport.",
+    ),
+    constructionSystem: L(
+      "Elewacja z modrzewia syberyjskiego, wnętrze ze świerku skandynawskiego, dach z aluminiowej blachy na rąbek stojący, całość ocieplona.",
+      "Siberian larch facade, Scandinavian spruce interior, aluminium standing-seam roof, fully insulated.",
+      "Fassade aus sibirischer Lärche, Innenraum aus skandinavischer Fichte, Dach aus Aluminium-Stehfalzblech, vollständig gedämmt.",
+      "Gevel van Siberisch lariks, interieur van Scandinavisch vurenhout, dak van aluminium liggende felsplaat, volledig geïsoleerd.",
+    ),
+    customizationScope: L(
+      "Szczegóły wykończenia i kolorystyki do uzgodnienia z producentem.",
+      "Finishing and colour details to be agreed with the producer.",
+      "Einzelheiten zu Ausführung und Farbgebung nach Absprache mit dem Hersteller.",
+      "Afwerking en kleurstelling in overleg met de producent.",
+    ),
+    specs: {
+      heatSourceOther: "Brak danych w ofercie producenta.",
+      constructionTechnology: "inne",
+      constructionTechnologyOther: "Brak danych w ofercie producenta.",
+    },
+    priceEur: 49000,
+    scope: L(
+      "Wóz przedstawiony na zdjęciach: wnętrze 40 m² (kuchnia z salonem, łazienka z prysznicem, dwie sypialnie) i zadaszony taras 27 m², ze wszystkimi mediami.",
+      "The wagon shown in the photos: 40 m² interior (kitchen with living area, bathroom with shower, two bedrooms) and a 27 m² covered terrace, with all utilities.",
+      "Der auf den Fotos gezeigte Wagen: 40 m² Innenfläche (Küche mit Wohnbereich, Bad mit Dusche, zwei Schlafzimmer) und eine überdachte Terrasse von 27 m², mit allen Anschlüssen.",
+      "De woonwagen op de foto's: 40 m² binnenruimte (keuken met woonruimte, badkamer met douche, twee slaapkamers) en een overdekt terras van 27 m², met alle aansluitingen.",
+    ),
+    excluded: L(
+      "Transport. Cena jest kwotą netto.",
+      "Transport. The price is a net amount.",
+      "Transport. Der Preis ist ein Nettobetrag.",
+      "Transport. De prijs is een nettobedrag.",
+    ),
+    includedItems: [
+      L(
+        "Elewacja z modrzewia syberyjskiego, elementy metalowe malowane proszkowo",
+        "Siberian larch facade, powder-coated metal parts",
+        "Fassade aus sibirischer Lärche, pulverbeschichtete Metallteile",
+        "Gevel van Siberisch lariks, poedergecoate metalen onderdelen",
+      ),
+      L(
+        "Dach z aluminiowej blachy na rąbek stojący",
+        "Aluminium standing-seam roof",
+        "Dach aus Aluminium-Stehfalzblech",
+        "Dak van aluminium liggende felsplaat",
+      ),
+      L(
+        "Ocieplenie na użytek całoroczny, wnętrze obite boazerią ze świerku skandynawskiego",
+        "Insulation for year-round use, interior lined with Scandinavian spruce panelling",
+        "Dämmung für die ganzjährige Nutzung, Innenraum mit Profilholz aus skandinavischer Fichte verkleidet",
+        "Isolatie voor jaarrond gebruik, interieur bekleed met Scandinavisch vurenhout",
+      ),
+      L(
+        "Pełnowymiarowa kuchnia z salonem",
+        "Full-size kitchen with a living area",
+        "Vollwertige Küche mit Wohnbereich",
+        "Volwaardige keuken met woonruimte",
+      ),
+      L("Łazienka z prysznicem", "Bathroom with a shower", "Bad mit Dusche", "Badkamer met douche"),
+      L("Dwie sypialnie", "Two bedrooms", "Zwei Schlafzimmer", "Twee slaapkamers"),
+      L(
+        "Wszystkie media, instalacja elektryczna i hydrauliczna wykonana według obowiązujących norm",
+        "All utilities, electrical and plumbing installation made to current standards",
+        "Alle Anschlüsse, Elektro- und Sanitärinstallation nach geltenden Normen",
+        "Alle aansluitingen, elektrische en sanitaire installatie volgens de geldende normen",
+      ),
+      L("Zadaszony taras 27 m²", "27 m² covered terrace", "Überdachte Terrasse 27 m²", "Overdekt terras van 27 m²"),
+    ],
+    rooms: [
+      {
+        name: L(
+          "Kuchnia z salonem, łazienka i dwie sypialnie",
+          "Kitchen with living area, bathroom and two bedrooms",
+          "Küche mit Wohnbereich, Bad und zwei Schlafzimmer",
+          "Keuken met woonruimte, badkamer en twee slaapkamers",
+        ),
+        areaM2: 40,
+        floorLevel: "parter",
+      },
+    ],
+    // Prawdziwe zdjęcia realizacji: jako galeria główna i jako realizacje (dwie kopie plików o różnych nazwach,
+    // wiersz dokumentu jest rozróżniany po nazwie pliku).
+    photos: [1, 2, 4, 6, 3, 5].map((n) => `tmp/wencel/wencel-woz-mieszkalny-${n}.jpg`),
+    floorPlans: [],
+    realizations: [1, 2, 4, 6, 3, 5].map((n) => `tmp/wencel/wencel-woz-mieszkalny-realizacja-${n}.jpg`),
+  },
+  {
+    key: "woz-13",
+    id: detUuid("product:woz-13"),
+    name: "Wóz 13",
+    floorAreaM2: 13,
+    category: "mobilny",
+    completionStandard: "surowy-zamkniety",
+    optionGroupKeys: [],
+    bedrooms: null,
+    bathrooms: null,
+    storeys: 1,
+    roofType: L(
+      "Dach z aluminiowej blachy na rąbek stojący",
+      "Roof of aluminium standing-seam sheet metal",
+      "Dach aus Aluminium-Stehfalzblech",
+      "Dak van aluminium liggende felsplaat",
+    ),
+    description: L(
+      "Całoroczny wóz z pustym wnętrzem do wykończenia: wnętrze 13 m² oraz mały zadaszony taras 4,5 m². Elewacja jest ze świerku skandynawskiego, dach z aluminiowej blachy na rąbek stojący, elementy metalowe malowane proszkowo, a wnętrze obite boazerią ze świerku skandynawskiego. Wóz jest ocieplony, a instalacja elektryczna wykonana zgodnie z obowiązującymi normami. Wykończenie wnętrza na życzenie klienta jest możliwe za dodatkową opłatą. Cena jest podana w euro, netto, bez transportu.",
+      "A year-round wagon with an empty interior ready to be finished: 13 m² inside plus a small 4.5 m² covered terrace. The facade is Scandinavian spruce, the roof is aluminium standing-seam sheet metal, metal parts are powder-coated, and the interior is lined with Scandinavian spruce panelling. The wagon is insulated, and the electrical installation is made to current standards. Finishing the interior to the client's wishes is possible for an additional fee. The price is given in euro, net, excluding transport.",
+      "Ein ganzjährig nutzbarer Wagen mit leerem Innenraum zum Ausbauen: 13 m² Innenfläche plus eine kleine überdachte Terrasse von 4,5 m². Die Fassade besteht aus skandinavischer Fichte, das Dach aus Aluminium-Stehfalzblech, Metallteile sind pulverbeschichtet, und der Innenraum ist mit Profilholz aus skandinavischer Fichte verkleidet. Der Wagen ist gedämmt, die Elektroinstallation ist nach geltenden Normen ausgeführt. Ein Ausbau des Innenraums nach Kundenwunsch ist gegen Aufpreis möglich. Der Preis ist in Euro angegeben, netto, ohne Transport.",
+      "Een jaarrond bruikbare woonwagen met een leeg interieur om af te werken: 13 m² binnenruimte plus een klein overdekt terras van 4,5 m². De gevel is van Scandinavisch vurenhout, het dak van aluminium liggende felsplaat, metalen onderdelen zijn poedergecoat en het interieur is bekleed met Scandinavisch vurenhout. De woonwagen is geïsoleerd en de elektrische installatie is volgens de geldende normen uitgevoerd. Afwerking van het interieur naar wens van de klant is mogelijk tegen meerprijs. De prijs is in euro, netto, exclusief transport.",
+    ),
+    constructionSystem: L(
+      "Elewacja ze świerku skandynawskiego, wnętrze obite boazerią ze świerku, dach z aluminiowej blachy na rąbek stojący, całość ocieplona.",
+      "Scandinavian spruce facade, interior lined with spruce panelling, aluminium standing-seam roof, fully insulated.",
+      "Fassade aus skandinavischer Fichte, Innenraum mit Fichtenprofilholz verkleidet, Dach aus Aluminium-Stehfalzblech, vollständig gedämmt.",
+      "Gevel van Scandinavisch vurenhout, interieur bekleed met vurenhout, dak van aluminium liggende felsplaat, volledig geïsoleerd.",
+    ),
+    customizationScope: L(
+      "Wykończenie wnętrza na życzenie klienta za dodatkową opłatą, producent jest otwarty na propozycje.",
+      "Finishing the interior to the client's wishes for an additional fee; the producer is open to proposals.",
+      "Ausbau des Innenraums nach Kundenwunsch gegen Aufpreis, der Hersteller ist für Vorschläge offen.",
+      "Afwerking van het interieur naar wens van de klant tegen meerprijs; de producent staat open voor voorstellen.",
+    ),
+    specs: {
+      heatSourceOther: "Brak danych w ofercie producenta.",
+      constructionTechnology: "inne",
+      constructionTechnologyOther: "Brak danych w ofercie producenta.",
+    },
+    priceEur: 21500,
+    scope: L(
+      "Wóz przedstawiony na zdjęciach: wnętrze 13 m² (puste, obite boazerią) i zadaszony taras 4,5 m², z instalacją elektryczną.",
+      "The wagon shown in the photos: 13 m² interior (empty, lined with panelling) and a 4.5 m² covered terrace, with an electrical installation.",
+      "Der auf den Fotos gezeigte Wagen: 13 m² Innenfläche (leer, mit Profilholz verkleidet) und eine überdachte Terrasse von 4,5 m², mit Elektroinstallation.",
+      "De woonwagen op de foto's: 13 m² binnenruimte (leeg, bekleed met houten panelen) en een overdekt terras van 4,5 m², met elektrische installatie.",
+    ),
+    excluded: L(
+      "Transport oraz wykończenie wnętrza (wnętrze jest puste, wykończenie na życzenie klienta za dodatkową opłatą). Cena jest kwotą netto.",
+      "Transport and interior finishing (the interior is empty, finishing to the client's wishes for an additional fee). The price is a net amount.",
+      "Transport und Innenausbau (der Innenraum ist leer, Ausbau nach Kundenwunsch gegen Aufpreis). Der Preis ist ein Nettobetrag.",
+      "Transport en interieurafwerking (het interieur is leeg, afwerking naar wens van de klant tegen meerprijs). De prijs is een nettobedrag.",
+    ),
+    includedItems: [
+      L(
+        "Elewacja ze świerku skandynawskiego, elementy metalowe malowane proszkowo",
+        "Scandinavian spruce facade, powder-coated metal parts",
+        "Fassade aus skandinavischer Fichte, pulverbeschichtete Metallteile",
+        "Gevel van Scandinavisch vurenhout, poedergecoate metalen onderdelen",
+      ),
+      L(
+        "Dach z aluminiowej blachy na rąbek stojący",
+        "Aluminium standing-seam roof",
+        "Dach aus Aluminium-Stehfalzblech",
+        "Dak van aluminium liggende felsplaat",
+      ),
+      L(
+        "Ocieplenie na użytek całoroczny, wnętrze obite boazerią ze świerku skandynawskiego",
+        "Insulation for year-round use, interior lined with Scandinavian spruce panelling",
+        "Dämmung für die ganzjährige Nutzung, Innenraum mit Profilholz aus skandinavischer Fichte verkleidet",
+        "Isolatie voor jaarrond gebruik, interieur bekleed met Scandinavisch vurenhout",
+      ),
+      L(
+        "Instalacja elektryczna wykonana według obowiązujących norm",
+        "Electrical installation made to current standards",
+        "Elektroinstallation nach geltenden Normen",
+        "Elektrische installatie volgens de geldende normen",
+      ),
+      L("Mały zadaszony taras 4,5 m²", "Small 4.5 m² covered terrace", "Kleine überdachte Terrasse 4,5 m²", "Klein overdekt terras van 4,5 m²"),
+    ],
+    rooms: [
+      {
+        name: L(
+          "Puste wnętrze do wykończenia",
+          "Empty interior to be finished",
+          "Leerer Innenraum zum Ausbauen",
+          "Leeg interieur om af te werken",
+        ),
+        areaM2: 13,
+        floorLevel: "parter",
+      },
+    ],
+    // Prawdziwe zdjęcia realizacji (folder WÓZ NR3, czerwono-kremowa wersja): jako galeria główna i jako realizacje,
+    // dwie kopie plików o różnych nazwach (wiersz dokumentu jest rozróżniany po nazwie pliku).
+    photos: [1, 2, 3, 4, 5, 6].map((n) => `tmp/wencel/wencel-woz13-${n}.jpg`),
+    floorPlans: [],
+    realizations: [1, 2, 3, 4, 5, 6].map((n) => `tmp/wencel/wencel-woz13-realizacja-${n}.jpg`),
   },
 ];

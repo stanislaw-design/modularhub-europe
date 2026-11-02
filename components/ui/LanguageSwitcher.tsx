@@ -95,7 +95,8 @@ function LanguageSwitcherMenu({ locale, surface, align, triggerClassName = "" }:
         {locale.toUpperCase()}
         <ChevronDown className="size-4 shrink-0" aria-hidden="true" />
       </MenuButton>
-      <MenuItems transition anchor={align === "start" ? "bottom start" : "bottom end"} className={panel({ surface })}>
+      {/* `modal={false}`: no <html> scroll lock, which made the page jump on open. */}
+      <MenuItems transition modal={false} anchor={align === "start" ? "bottom start" : "bottom end"} className={panel({ surface })}>
         {routing.locales.map((code) => (
           <MenuItem key={code}>
             <button type="button" onClick={() => switchTo(code)} className={option({ surface })}>

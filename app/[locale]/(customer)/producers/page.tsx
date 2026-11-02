@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { ProducerShowcaseCard } from "@/components/klient/ProducerShowcaseCard";
 import { Heading, Text } from "@/components/ui";
-import { getProducers } from "@/lib/data/producers";
+import { getProducersCached } from "@/lib/data/public-cache";
 import { routing, type Locale } from "@/lib/i18n/routing";
 import { sortVerifiedProducers } from "@/lib/verified-producers";
 
@@ -36,7 +36,7 @@ export async function generateMetadata({
 export default async function ProducersPage({ params }: { params: Promise<PageParams> }) {
   const { locale } = await params;
   const [producers, t] = await Promise.all([
-    getProducers(locale as Locale),
+    getProducersCached(locale as Locale),
     getTranslations({ locale, namespace: "ProducersPage" }),
   ]);
   const verified = sortVerifiedProducers(producers);

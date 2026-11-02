@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { Suspense } from "react";
 import { CategoryFilterBar } from "@/components/klient/CategoryFilterBar";
 import { FamilyTabs } from "@/components/klient/FamilyTabs";
 import { OutdoorTvFilterBar } from "@/components/klient/OutdoorTvFilterBar";
@@ -7,20 +7,29 @@ import { ResultsSelection } from "@/components/klient/ResultsSelection";
 import { SubcategoryFilterBar } from "@/components/klient/SubcategoryFilterBar";
 import { Stack } from "@/components/ui";
 import { getCountries } from "@/lib/data/countries";
-import { getEligibilityByCountry, getProjects } from "@/lib/data/projects";
+import { getEligibilityByCountryCached, getProjectsForRequestCached } from "@/lib/data/public-cache";
 import type { EligibilityByCountry } from "@/lib/data/types";
-import { getClientIdForUser, getFavoritedProductIds } from "@/lib/db/queries";
 import type { Locale } from "@/lib/i18n/routing";
 import { sortOutdoorTvResults } from "@/lib/outdoor-tv-filters";
 import { parseResultsSearchParams, sortResults } from "@/lib/results-filters";
 
-export default async function WynikiPage({
-  params,
-  searchParams,
-}: {
+interface ResultsPageProps {
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
+}
+
+// Spec 0078: szkielet strony jest statyczny, a wyniki (zależne od searchParams)
+// strumieniują się za Suspense. Zapytania idą przez wspólny cache, a serca
+// ulubionych ustala w przeglądarce AccountProvider, nie serwer.
+export default function WynikiPage(props: ResultsPageProps) {
+  return (
+    <Suspense fallback={<div className="results-shell results-wide min-h-[60vh]" aria-busy="true" />}>
+      <WynikiResults {...props} />
+    </Suspense>
+  );
+}
+
+async function WynikiResults({ params, searchParams }: ResultsPageProps) {
   const [{ locale }, rawSearchParams] = await Promise.all([
     params,
     searchParams,
@@ -41,21 +50,13 @@ export default async function WynikiPage({
       }
     : parsedFilter;
 
-  const [countries, projects, eligibilityRows, session] = await Promise.all([
+  const [countries, projects, eligibilityRows] = await Promise.all([
     getCountries(),
-    getProjects({ ...filter, locale: locale as Locale }),
+    getProjectsForRequestCached({ ...filter, locale: locale as Locale }),
     filter.countryCode
-      ? getEligibilityByCountry(filter.countryCode)
+      ? getEligibilityByCountryCached(filter.countryCode)
       : Promise.resolve<EligibilityByCountry[]>([]),
-    auth(),
   ]);
-
-  const isClientSession = session?.user.role === "client";
-  let favoritedIds = new Set<string>();
-  if (session && isClientSession) {
-    const clientId = await getClientIdForUser(session.user.id);
-    if (clientId) favoritedIds = await getFavoritedProductIds(clientId);
-  }
 
   const sortedProjects = isOutdoorTv
     ? sortOutdoorTvResults(projects, locale)
@@ -96,7 +97,7 @@ export default async function WynikiPage({
   );
 
   return (
-    <div className="results-shell results-wide grid gap-x-brand-5 gap-y-brand-5 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
+    <div className="results-shell results-wide grid gap-x-brand-5 gap-y-brand-5 lg:px-brand-4 lg:pt-brand-4 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
       {/* Od `lg` pasek wyszukiwania jest lewym, przyklejonym panelem
           (kolumna 1); niżej zostaje poziomym rzędem nad treścią. Rodzina i
           kategorie wraz z nagłówkiem i siatką żyją w kolumnie 2, jak dotąd. */}
@@ -140,14 +141,12 @@ export default async function WynikiPage({
         emptyClearHref={
           isOutdoorTv ? `/${locale}/results?family=outdoor-tv` : undefined
         }
-        isClientSession={isClientSession}
         serverItems={sortedProjects.map((project) => ({
           project,
           countryName:
             countryNameByCode.get(project.countryOfProduction) ??
             project.countryOfProduction,
           eligibilityStatus: eligibilityByProjectId.get(project.id),
-          favorited: favoritedIds.has(project.id),
         }))}
         />
       </Stack>

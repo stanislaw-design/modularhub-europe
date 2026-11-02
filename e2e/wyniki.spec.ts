@@ -20,7 +20,7 @@ test.describe("/pl/results", () => {
   }) => {
     await page.goto("/pl/results?country=DE&sizeMin=50&sizeMax=100");
 
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("dopuszczonych w Niemczech");
+    await expect(page.getByText("Dopuszczone prawnie w Niemczech")).toBeVisible();
 
     const cardNames = await page.locator("article h3").allTextContents();
     // Featured project first (Cocomodule CH-72), then every non-featured match by
@@ -72,7 +72,7 @@ test.describe("/pl/results", () => {
     await page.getByRole("button", { name: "Szukaj" }).click();
 
     await expect(page).toHaveURL(/country=DE/);
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("dopuszczonych w Niemczech");
+    await expect(page.getByText("Dopuszczone prawnie w Niemczech")).toBeVisible();
   });
 
   // Rebuilt as real, connected chips (spec 0026 AC-7): the "fully disabled" placeholder

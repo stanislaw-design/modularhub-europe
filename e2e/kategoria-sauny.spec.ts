@@ -25,9 +25,10 @@ test.describe("/pl/sauna (spec 0068)", () => {
     await page.goto("/pl/sauna");
     const all = await page.locator("article").count();
 
-    await page.getByRole("link", { name: "6+ miejsc" }).click();
+    await page.getByRole("button", { name: "Liczba miejsc" }).click();
+    await page.getByRole("option", { name: "6+ miejsc" }).click();
     await expect(page).toHaveURL(/seatingMin=6/);
-    await expect(page.getByRole("link", { name: "6+ miejsc" })).toHaveAttribute("aria-current", "true");
+    await expect(page.getByRole("button", { name: "Liczba miejsc" })).toHaveText("6+ miejsc");
     expect(await page.locator("article").count()).toBeLessThanOrEqual(all);
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
   });

@@ -10,6 +10,11 @@ import { getProducerIdForUser, getProductInquiryForProducerDetail } from "@/lib/
 import { listInquiryAttachments } from "@/lib/inquiry-attachment-actions";
 import { requirePanelProducerSession } from "@/lib/panel-session";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 const dateFormatter = new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium" });
 
 // Szczegóły zapytania o produkt producenta (spec 0070 AC-21): pełne dane do wyceny bez

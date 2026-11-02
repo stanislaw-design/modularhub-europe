@@ -7,6 +7,11 @@ import { Container, Stack, Text } from "@/components/ui";
 import { getCaseActor } from "@/lib/cases/actor";
 import { getCaseView } from "@/lib/cases/queries";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 const dateFormatter = new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium", timeStyle: "short" });
 
 // Widok sprawy dla doradcy (spec 0048 AC-30, w zakresie kroku 4): dane

@@ -62,7 +62,8 @@ const WARRANTY_YEARS = 2;
 
 const groupId = (key: string) => detUuid(`group:${key}`);
 const optionId = (groupKey: string, optionKey: string) => detUuid(`option:${groupKey}:${optionKey}`);
-const variantId = (item: WencelProjectSource) => detUuid(`variant:${item.key}:pod-klucz`);
+const standardOf = (item: WencelProjectSource) => item.completionStandard ?? ("pod-klucz" as const);
+const variantId = (item: WencelProjectSource) => detUuid(`variant:${item.key}:${standardOf(item)}`);
 
 // Oferta nie podaje klasy energetycznej ani wentylacji; źródło ciepła jest do wyboru klienta.
 const DEFAULT_SPECS = {
@@ -157,7 +158,7 @@ function productValues(item: WencelProjectSource) {
     floorAreaM2: item.floorAreaM2,
     builtUpAreaM2: item.builtUpAreaM2 ?? null,
     description: item.description.pl,
-    completionStandard: "pod-klucz" as const,
+    completionStandard: standardOf(item),
     productionLeadTimeWeeksMin: item.leadTimeWeeks?.min ?? LEAD_TIME_WEEKS.min,
     productionLeadTimeWeeksMax: item.leadTimeWeeks?.max ?? LEAD_TIME_WEEKS.max,
     structuralWarrantyYears: WARRANTY_YEARS,
@@ -386,7 +387,7 @@ async function upsertProject(item: WencelProjectSource): Promise<void> {
       .values({
         id,
         productId: item.id,
-        completionStandard: "pod-klucz",
+        completionStandard: standardOf(item),
         priceMinCents: priceCents,
         priceOnRequest: false,
         scopeSummary: item.scope.pl,
@@ -436,6 +437,10 @@ async function uploadProjectDocuments(item: WencelProjectSource): Promise<number
   const existingByName = new Map(existing.map((row) => [row.filename, row.id]));
 
   const assets = await loadProjectAssets(item);
+  // Galeria należy do tego skryptu: plik usunięty z danych (np. zdjęcie przypisane do złego produktu) znika z produktu.
+  const wanted = new Set(assets.map((asset) => asset.filename));
+  const stale = existing.filter((row) => !wanted.has(row.filename)).map((row) => row.id);
+  if (stale.length > 0) await db.update(document).set({ deletedAt: new Date() }).where(inArray(document.id, stale));
   const fresh = assets.filter((asset) => !existingByName.has(asset.filename));
   for (const asset of fresh) await uploadObject(asset.r2Key, asset.buffer, asset.mimeType);
 
@@ -467,7 +472,7 @@ async function uploadProjectDocuments(item: WencelProjectSource): Promise<number
       .set({ isCover: sql`(${document.filename} = ${cover.filename})` })
       .where(and(eq(document.productId, item.id), eq(document.purpose, "product_photo"), isNull(document.deletedAt)));
   }
-  return fresh.length;
+  return fresh.length + stale.length;
 }
 
 async function main(): Promise<void> {

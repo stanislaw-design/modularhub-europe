@@ -109,7 +109,10 @@ export function Select<T extends string>({
             aria-hidden="true"
           />
         </ListboxButton>
-        <ListboxOptions transition className={panel({ surface })}>
+        {/* `modal={false}`: the default scroll lock sets `overflow: hidden` on
+            <html>, which breaks body's overflow-x propagation (see globals.css)
+            and makes the page jump when a dropdown opens mid-scroll. */}
+        <ListboxOptions transition modal={false} className={panel({ surface })}>
           {options.map((item) => (
             <ListboxOption key={item.value} value={item.value} className={option({ surface })}>
               {({ selected: isSelected }) => (

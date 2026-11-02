@@ -4,6 +4,11 @@ import { Heading, Stack } from "@/components/ui";
 import { getClientB2bDetails } from "@/lib/db/queries";
 import { requirePanelClientSession } from "@/lib/panel-session";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 // Weryfikacja konta (spec 0070 część A, AC-6): NIP lub numer VAT UE i nazwa
 // firmy, wcześniej sekcja w /panel/profile. Osobna pozycja w menu, bo bez
 // zatwierdzonej weryfikacji B2B klient nie dostanie połączenia z producentem.

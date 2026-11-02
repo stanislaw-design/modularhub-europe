@@ -15,8 +15,7 @@ import { ProducerShowcase } from "@/components/klient/ProducerShowcase";
 import { SearchCard } from "@/components/klient/SearchCard";
 import { Testimonials } from "@/components/klient/Testimonials";
 import { getCountries } from "@/lib/data/countries";
-import { getProducers } from "@/lib/data/producers";
-import { getProjects } from "@/lib/data/projects";
+import { getProducersCached, getProjectsCached } from "@/lib/data/public-cache";
 import { routing, type Locale } from "@/lib/i18n/routing";
 import { captureError } from "@/lib/observability/errors";
 
@@ -71,8 +70,8 @@ export default async function KlientHomePage({
   // Awaria jednego zapytania (np. limit bazy) ukrywa tylko zależne od niego sekcje, nie całą
   // stronę (spec 0073 AC-8). Błąd idzie do Sentry z area/section, żeby ukrycie nie było ciche.
   const [projectsResult, producersResult] = await Promise.allSettled([
-    getProjects({ locale: locale as Locale }),
-    getProducers(locale as Locale),
+    getProjectsCached({ locale: locale as Locale }),
+    getProducersCached(locale as Locale),
   ]);
   if (projectsResult.status === "rejected") {
     captureError(projectsResult.reason, { area: "home", section: "projects" });

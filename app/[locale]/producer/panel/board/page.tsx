@@ -15,6 +15,11 @@ import { productFamilyEnum, projectTypeEnum } from "@/lib/db/schema";
 import { requirePanelProducerSession } from "@/lib/panel-session";
 import { getAllQuotesCount, getBoardWithoutQuoteCount } from "@/lib/producer-panel-summary";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 const PROJECT_TYPES = projectTypeEnum.enumValues;
 const FAMILIES = productFamilyEnum.enumValues;
 

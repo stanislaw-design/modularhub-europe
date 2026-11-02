@@ -81,6 +81,7 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 65 | Parametry izolacji przegród, posadowienie i planowane użytkowanie | Slice 2 | in progress |
 | 66 | Projekt własny ModularHub w ModularProjects | Slice 12 | in progress |
 | 67 | Koszty hostingu Vercel: Cache Components i ochrona przed botami | Utwardzenie | in progress |
+| 68 | Analityka ruchu i maili w panelu admina | Slice 10 | in progress |
 
 ## Foundations
 
@@ -615,6 +616,17 @@ Rozdzielone ze spec [0064](../specs/0064-atrybucja-audytu-panelu-admina/index.md
 Rozdzielone ze spec [0064](../specs/0064-atrybucja-audytu-panelu-admina/index.md): dziś logowanie na każde konto, w tym administratora, jest jednoskładnikowe (magic link e mail, `auth.ts`). Ta funkcja dokłada drugi składnik logowania wyłącznie dla roli admin.
 **Done when:** logowanie na konto z rolą admin wymaga poprawnego kodu z drugiego składnika oprócz magic linku, zanim panel stanie się dostępny.
 - [ ] Zaprojektuj (spec): `/architect dwuskładnikowe logowanie dla kont administratora`
+
+### 68. Analityka ruchu i maili w panelu admina · full · in progress
+Dziś kafelek ruchu na dashboardzie pokazuje zero, bo przeglądarka nic nie wysyła do PostHog. Ta funkcja dodaje pomiar ruchu (goście, sesje, czas, strony, ruch na producenta) wyłącznie po zgodzie z banera, dziennik maili do producentów z danymi z webhooka Resend (dostarczono, odbito, skarga) oraz, za osobną dobrowolną zgodą użytkownika producenta zbieraną przy rejestracji i zmienianą w ustawieniach, otwarcia i kliknięcia, a wszystko w sekcji `/internal/analytics` z widokami Ruch, Strony, Producenci i Maile.
+**Done when:** administrator widzi w `/internal/analytics` ruch portalu (odwiedzających, którzy wyrazili zgodę) z rozbiciem na strony i producentów oraz dostarczalność maili do producentów, a u zgodzonych użytkowników także otwarcia i kliknięcia; odwiedzający bez zgody nie ma niczego załadowanego, wysłanego ani zapisanego przez analitykę, a użytkownik producenta bez zgody dostaje maile bez pikselki i bez śledzonych linków.
+- [x] Zaprojektuj (spec): [0079](../specs/0079-analityka-ruchu-i-maili/index.md)
+- [ ] Zbuduj: `/develop analityka ruchu i maili w panelu admina`
+  - [ ] Etap 1, ruch: tracker ładowany po zgodzie, baner zgody, `/ingest`, atrybucja do producenta, widoki Ruch, Strony, Producenci, polityka prywatności, satisfies AC-1 do AC-9, AC-11, AC-12, AC-17 (przed produkcją opinia prawnika o banerze i polityce prywatności)
+  - [ ] Etap 2, dziennik maili do producentów: migracja `email_message`, dziennik i tag w `sendNotificationEmail()`, webhook Resend, widok Maile (dostarczalność), satisfies AC-10, AC-13 do AC-16
+  - [ ] Etap 3, otwarcia i kliknięcia za zgodą: tabele `user_consent` i `email_event`, pole zgody w rejestracji producenta, przełącznik w ustawieniach, wariant śledzony maila, pikselka i przekierowanie, retencja, satisfies AC-17 do AC-23 (przed produkcją opinia prawnika o tekście zgody)
+- [ ] Zweryfikuj: `/check verify analityka ruchu i maili w panelu admina`
+- [ ] Testuj: `/test analityka ruchu i maili w panelu admina`
 
 ## Slice 11: weryfikacja firmy
 

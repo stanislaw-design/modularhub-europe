@@ -149,10 +149,14 @@ async function main(): Promise<void> {
   const documents = (await insertsFor("document", `product_id in ${PRODUCT_IDS}`)).map((statement) =>
     ONLY_ITEMS ? statement.split(quote(IMPORT_USER_ID)).join(ownerNow) : statement,
   );
+  // Dokumenty usunięte miękko na dev (np. zdjęcie przypisane do złego produktu) trzeba usunąć też na produkcji, gdzie
+  // INSERT ... DO NOTHING zostawiłby je aktywne. Id dokumentów są te same na dev i na produkcji.
+  const removed = (await sql.query(`select id from document where product_id in ${PRODUCT_IDS} and deleted_at is not null`)) as { id: string }[];
+  const removals = DOCS_ONLY && removed.length > 0 ? [`UPDATE document SET deleted_at = now() WHERE deleted_at IS NULL AND id IN (${removed.map((r) => quote(r.id)).join(", ")});`] : [];
   write(
     "04-dokumenty.sql",
     "Przemysław Wencel: dokumenty (zdjęcia, rzuty, realizacje), odwołania do plików już wgranych do bucketa R2.",
-    documents,
+    [...documents, ...removals],
   );
 
   // 00: kontrola wstępna, że prod ma każdą kolumnę, której użyją pliki 01 do 04 (bez migracji).

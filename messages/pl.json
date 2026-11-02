@@ -264,7 +264,13 @@
     "DE": "w Niemczech",
     "NL": "w Holandii"
   },
+  "CategoryHeading": {
+    "breadcrumbAriaLabel": "Ścieżka nawigacji",
+    "breadcrumbHome": "Strona główna",
+    "modelCount": "{count, plural, one {# model} few {# modele} many {# modeli} other {# modeli}}"
+  },
   "ResultsHeader": {
+    "eligibleLine": "Dopuszczone prawnie {country}",
     "eligibleSuffix": " dopuszczonych {country}",
     "hint": "Wybierz kraj w filtrach, żeby zobaczyć, które {familyFew} są tam dopuszczone prawnie.",
     "hintOutdoorTv": "Zawęź listę według sposobu montażu i przeznaczenia."
@@ -871,7 +877,9 @@
   },
   "SubcategoryFilterBar": {
     "spaAriaLabel": "Podkategoria spa modułowego",
-    "containerAriaLabel": "Podkategoria kontenera modułowego"
+    "containerAriaLabel": "Podkategoria kontenera modułowego",
+    "containerLabel": "Typ",
+    "containerAll": "Wszystkie"
   },
   "ProducentPage": {
     "heading": "Zostań producentem ModularHub Europe",
@@ -1381,6 +1389,7 @@
     "priceOnRequest": "Wycena indywidualna",
     "netVat": "netto",
     "estimatedPackage": "Cena orientacyjna",
+    "backToSaunas": "Wróć do listy saun",
     "from": "od",
     "sendInquiry": "Wyślij zapytanie",
     "variantPickerAriaLabel": "Wybór wariantu",
@@ -1422,6 +1431,8 @@
     "sortPriceAsc": "Cena rosnąco",
     "sortPriceDesc": "Cena malejąco",
     "clearFilters": "Wyczyść filtry",
+    "allOption": "Wszystkie",
+    "sortDefault": "Domyślnie",
     "compare": {
       "heading": "Porównanie saun",
       "back": "Wróć do listy saun",
@@ -1504,10 +1515,9 @@
     "areaPlaceholder": "Dowolna",
     "searchButton": "Szukaj domów",
     "categoryLinksAriaLabel": "Kategorie w grupie Więcej niż dom",
-    "categoryLinkSpa": "Spa modułowe",
+    "categoryLinkSpa": "Sauny",
     "categoryLinkContainers": "Kontenery",
-    "categoryLinkOutdoorTv": "Outdoor TV",
-    "categoryLinkSauna": "Sauny"
+    "categoryLinkOutdoorTv": "Outdoor TV"
   },
   "FloatingSearchButton": {
     "prompt": "Czego dziś szukasz?",
@@ -1558,8 +1568,8 @@
   "CategoryShowcase": {
     "headingUnderline": "Więcej",
     "headingRest": "niż dom",
-    "spaName": "Spa modułowe",
-    "spaDescription": "Sauny, jacuzzi i strefy wellness do Twojego ogrodu",
+    "spaName": "Sauny",
+    "spaDescription": "Sauny modułowe do Twojego ogrodu",
     "containersName": "Kontenery modułowe",
     "containersDescription": "Gastronomiczne, usługowe i mieszkalne, gotowe do ustawienia",
     "imageAlt": "Przykładowa realizacja z kategorii {category}",
@@ -1581,7 +1591,7 @@
     "subNavAriaLabel": "Doprecyzuj w grupie Więcej niż dom",
     "refineLabel": "Rodzaj",
     "all": "Wszystko",
-    "spa": "Spa modułowe",
+    "spa": "Sauny",
     "containers": "Kontenery",
     "outdoorTv": "Outdoor TV"
   },

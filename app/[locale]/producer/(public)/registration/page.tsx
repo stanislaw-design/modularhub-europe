@@ -1,5 +1,10 @@
 import { redirect } from "next/navigation";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 // Cienki alias (spec 0040 AC-10): stara trasa nadal działa, ale przekierowuje
 // na wspólny wizard zamiast renderować własny formularz. Zostaje jako plik,
 // bo dzisiejsze linki (nawigacja, BulkOrdersShowcase, marketing producenta,

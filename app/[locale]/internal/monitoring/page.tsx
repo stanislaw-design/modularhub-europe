@@ -4,6 +4,11 @@ import { getAdminServicesHealth, type ServiceHealthStatus } from "@/lib/admin-mo
 import { Card, Heading, Stack, Text } from "@/components/ui";
 import { getRecentSentryIssues } from "@/lib/observability/sentry-issues";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 const dateFormatter = new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium", timeStyle: "short" });
 
 const healthLabel: Record<ServiceHealthStatus, string> = {

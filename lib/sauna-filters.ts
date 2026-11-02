@@ -39,6 +39,11 @@ export const SAUNA_PRICE_RANGES: readonly SaunaPriceRange[] = [
   { priceMin: SAUNA_PRICE_THRESHOLDS[SAUNA_PRICE_THRESHOLDS.length - 1] },
 ];
 
+// Klucz przedziału ceny jako wartość opcji listy rozwijanej.
+export function saunaPriceKey(range: Pick<SaunaPriceRange, "priceMin" | "priceMax">): string {
+  return `${range.priceMin ?? "x"}-${range.priceMax ?? "x"}`;
+}
+
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function parseThreshold<T extends number>(raw: string | string[] | undefined, valid: readonly T[]): T | undefined {

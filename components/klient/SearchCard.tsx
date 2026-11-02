@@ -97,24 +97,23 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
   // needs its own translation key, since a family id isn't human readable.
   const activeGroup = resolveFamilyGroup(activeCategory);
   const categoryLinkLabels: Partial<Record<ProductFamily, string>> = {
-    "spa-modulowe": t("categoryLinkSpa"),
     "kontenery-modulowe": t("categoryLinkContainers"),
     "outdoor-tv": t("categoryLinkOutdoorTv"),
   };
 
   // Spec 0068 AC-6: "Sauny" prowadzi na własną stronę kategorii /sauna, nie na
-  // /results. To jawny wyjątek obok listy sterowanej przez FAMILY_GROUPS (spec
-  // 0060 AC-4): sauna to podkategoria rodziny spa-modulowe, a nie osobna
-  // rodzina, więc nie ma jej w FAMILY_GROUPS i nie da się jej wyprowadzić z
-  // tej listy.
-  const moreCategoryLinks = [
-    ...FAMILY_GROUPS["wiecej-niz-dom"].map((family) => ({
-      key: family,
-      href: `/${locale}/results?family=${family}`,
-      label: categoryLinkLabels[family] ?? family,
-    })),
-    { key: "sauna", href: `/${locale}/sauna`, label: t("categoryLinkSauna") },
-  ];
+  // /results. To jawny wyjątek w liście sterowanej przez FAMILY_GROUPS (spec
+  // 0060 AC-4): rodzina spa-modulowe ma dziś tylko sauny, więc jej wpis
+  // zastępuje jedno łącze "Sauny" w tym samym miejscu listy.
+  const moreCategoryLinks = FAMILY_GROUPS["wiecej-niz-dom"].map((family) =>
+    family === "spa-modulowe"
+      ? { key: "sauna", href: `/${locale}/sauna`, label: t("categoryLinkSpa") }
+      : {
+          key: family,
+          href: `/${locale}/results?family=${family}`,
+          label: categoryLinkLabels[family] ?? family,
+        },
+  );
 
   function handleSearch() {
     if (!country) return;

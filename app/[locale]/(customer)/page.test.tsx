@@ -21,8 +21,10 @@ vi.mock("@/components/klient/ProducerCard", () => ({
 
 const getProjectsMock = vi.fn();
 const getProducersMock = vi.fn();
-vi.mock("@/lib/data/projects", () => ({ getProjects: (...args: unknown[]) => getProjectsMock(...args) }));
-vi.mock("@/lib/data/producers", () => ({ getProducers: (...args: unknown[]) => getProducersMock(...args) }));
+vi.mock("@/lib/data/public-cache", () => ({
+  getProjectsCached: (...args: unknown[]) => getProjectsMock(...args),
+  getProducersCached: (...args: unknown[]) => getProducersMock(...args),
+}));
 
 const captureErrorMock = vi.fn();
 vi.mock("@/lib/observability/errors", () => ({ captureError: (...args: unknown[]) => captureErrorMock(...args) }));

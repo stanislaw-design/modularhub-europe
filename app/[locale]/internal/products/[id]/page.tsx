@@ -5,6 +5,11 @@ import { Container, Heading, Stack, Text } from "@/components/ui";
 import { getProductForAdmin, getProductPhotosForAdmin } from "@/lib/db/queries";
 import { ProductPhotoManager } from "./ProductPhotoManager";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 // Widok wewnętrzny dla roli administratora (spec 0031 AC-2, AC-4, AC-5, AC-6,
 // AC-9), ten sam wzorzec auth co /internal/inquiries i /internal/products.
 export default async function InternalProduktDetailPage({

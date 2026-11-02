@@ -10,6 +10,21 @@ const withNextIntl = createNextIntlPlugin("./lib/i18n/request.ts");
 const r2PublicDomain = process.env.R2_PUBLIC_DOMAIN;
 
 const nextConfig: NextConfig = {
+  // Spec 0078: strony publiczne to prerenderowany szkielet z CDN, a dane
+  // publiczne siedzą w `"use cache"` z tagami. Flaga jest globalna: bez niej
+  // `"use cache"` jest błędem budowania.
+  cacheComponents: true,
+  cacheLife: {
+    // Jedyny profil danych publicznych: wartości jawnie w jednym miejscu
+    // (stale 5 min w przeglądarce, odświeżanie w tle co godzinę, wygaśnięcie po
+    // dobie). Zmiany z paneli unieważniają tagami (`updateTag`), więc godzina
+    // to tylko górna granica dla zapisów, które pominą tag.
+    public: {
+      stale: 300,
+      revalidate: 3600,
+      expire: 86400,
+    },
+  },
   // Next.js 16 domyślnie odrzuca akcje serwerowe powyżej 1 MB na poziomie
   // transportu, zanim walidacja pliku w kodzie akcji w ogóle zobaczy bajty
   // (spec 0063 AC-12). 24mb daje zapas na narzut multipart ponad limit 20 MB

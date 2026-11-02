@@ -1,9 +1,15 @@
 import { cookies } from "next/headers";
 import type { ReactNode } from "react";
 import { InternalSidebar } from "@/components/internal/InternalSidebar";
+import { SessionHint } from "@/components/SessionHint";
 import { SkipLink } from "@/components/SkipLink";
 import { Container, Stack, ThemeProvider } from "@/components/ui";
 import { isTheme, THEME_COOKIE_NAME } from "@/lib/theme";
+
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
 
 // Wspólna powłoka dla /internal/* (spec 0055 Build plan zadanie 1): boczna
 // nawigacja spinająca dziś rozłączone ekrany panelu, wzorem
@@ -30,6 +36,7 @@ export default async function InternalLayout({
   return (
     <ThemeProvider initialTheme={initialTheme} scopeClassName="theme-internal">
       <SkipLink />
+      <SessionHint />
       <div className="flex min-h-screen flex-col md:flex-row">
         <InternalSidebar locale={locale} />
         <main id="main-content" className="min-w-0 flex-1">
