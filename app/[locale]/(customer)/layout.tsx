@@ -3,6 +3,8 @@ import { Suspense } from "react";
 import { setRequestLocale } from "next-intl/server";
 import { RouteShell } from "@/components/RouteShell";
 import { SkipLink } from "@/components/SkipLink";
+import { AnalyticsTracker } from "@/components/analytics/AnalyticsTracker";
+import { ConsentBanner } from "@/components/analytics/ConsentBanner";
 import { AccountProvider } from "@/components/klient/AccountProvider";
 import { SiteFooter } from "@/components/klient/SiteFooter";
 import { SiteHeader } from "@/components/klient/SiteHeader";
@@ -30,6 +32,11 @@ export default async function KlientLayout({
           <SiteHeader locale={locale} />
         </Suspense>
         <RouteShell>{children}</RouteShell>
+        {/* Spec 0079: pomiar ruchu tylko po zgodzie, wyłącznie po stronie klienta. */}
+        <Suspense fallback={null}>
+          <AnalyticsTracker />
+          <ConsentBanner />
+        </Suspense>
         <SiteFooter locale={locale} contactEmail={process.env.SUPPORT_REPLY_TO_EMAIL || undefined} />
       </AccountProvider>
     </ThemeProvider>

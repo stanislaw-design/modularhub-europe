@@ -1,13 +1,14 @@
 "use client";
 
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
-import { Activity, BadgeCheck, Bell, BriefcaseBusiness, ChevronsLeft, ChevronsRight, ClipboardList, Factory, FolderKanban, House, LayoutDashboard, LogOut, Menu, Package, ShieldCheck, Users, X, type LucideIcon } from "lucide-react";
+import { ChevronsLeft, ChevronsRight, House, LogOut, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { ThemeToggle } from "@/components/ui";
 import { signOutAction } from "@/lib/auth-session-actions";
+import { INTERNAL_NAV, internalHref, resolveCurrent } from "./internal-nav";
 
 interface InternalSidebarProps {
   locale: string;
@@ -15,22 +16,13 @@ interface InternalSidebarProps {
 
 const LABEL_FADE = "transition-opacity duration-200 ease-out motion-reduce:transition-none";
 
-interface PanelNavItem {
-  key: string;
-  path: string;
-  label: string;
-  icon: LucideIcon;
-}
-
 // Lewa kolumna nawigacji dla /internal/* (spec 0055 Build plan zadanie 2),
 // wzorem components/producent/ProducerPanelSidebar.tsx (spec 0032/0046), bez
 // LanguageSwitcher (panel admina jest dziś wyłącznie po polsku, tak jak
 // każdy istniejący ekran /internal/*, patrz internal/products/page.tsx) i
-// bez zbiorczego sygnału nieprzeczytane (nie ma go w tej spec). Każda pozycja
-// menu pojawia się dopiero w zadaniu, które buduje jej stronę — dziś tylko
-// cztery już istniejące ekrany, Dashboard/Producenci/Monitoring dochodzą w
-// kolejnych zadaniach, a Sprawy+Zapytania później scalają się w jedną pozycję
-// (zadanie 10).
+// bez zbiorczego sygnału nieprzeczytane (nie ma go w tej spec). Pozycje i
+// podzakładki sekcji definiuje internal-nav.ts, podzakładki rysuje
+// InternalSectionTabs w layoucie.
 export function InternalSidebar({ locale }: InternalSidebarProps) {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -39,33 +31,14 @@ export function InternalSidebar({ locale }: InternalSidebarProps) {
   // więc stan przeżywa nawigację.
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const navItems: PanelNavItem[] = [
-    { key: "dashboard", path: "", label: "Dashboard", icon: LayoutDashboard },
-    { key: "producers", path: "producers", label: "Producenci", icon: Factory },
-    { key: "cases-and-inquiries", path: "cases-and-inquiries", label: "Projekty i zapytania", icon: FolderKanban },
-    { key: "large-orders", path: "large-orders", label: "Duże zamówienia", icon: ClipboardList },
-    { key: "producer-groups", path: "producer-groups", label: "Grupy producentów", icon: Users },
-    { key: "volume-verification", path: "producers/volume-verification", label: "Weryfikacja wolumenowa", icon: BadgeCheck },
-    { key: "b2b-verification", path: "clients/b2b-verification", label: "Weryfikacja B2B", icon: BriefcaseBusiness },
-    { key: "products", path: "products", label: "Produkty", icon: Package },
-    { key: "notifications", path: "notifications", label: "Powiadomienia", icon: Bell },
-    { key: "admins", path: "admins", label: "Konta administratorów", icon: ShieldCheck },
-    { key: "monitoring", path: "monitoring", label: "Monitoring", icon: Activity },
-  ];
-
-  // Najdłuższa pasująca ścieżka wygrywa, żeby "Producenci" nie świecił razem z
-  // "Weryfikacją wolumenową" (jej ścieżka zaczyna się od producers/).
-  const currentKey = navItems
-    .filter((item) => {
-      const href = `/${locale}/internal${item.path ? `/${item.path}` : ""}`;
-      return pathname === href || (item.path !== "" && pathname.startsWith(`${href}/`));
-    })
-    .sort((a, b) => b.path.length - a.path.length)[0]?.key;
+  // Siedem pozycji menu z internal-nav.ts; wejście w sekcję prowadzi do jej
+  // pierwszej podzakładki, a podświetla ją każdy ekran należący do sekcji.
+  const currentKey = resolveCurrent(pathname, locale)?.section.key;
 
   const renderNav = (onNavigate?: () => void, collapsed = false) => (
     <nav aria-label="Nawigacja panelu administracyjnego" className="flex flex-col">
-      {navItems.map((item) => {
-        const href = `/${locale}/internal${item.path ? `/${item.path}` : ""}`;
+      {INTERNAL_NAV.map((item) => {
+        const href = internalHref(locale, item.tabs[0].paths[0]);
         const isCurrent = item.key === currentKey;
         const Icon = item.icon;
         return (

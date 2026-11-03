@@ -131,6 +131,7 @@ export async function runLargeOrderReminders(
             id: due.id,
             producerId: recipient.producerId,
             email: recipient.email,
+            recipientUserId: recipient.userId,
             threshold,
             locale: recipient.locale,
           });

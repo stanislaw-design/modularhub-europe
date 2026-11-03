@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { DashboardTrendChart } from "@/components/internal/DashboardTrendChart";
@@ -52,13 +53,13 @@ export default async function InternalDashboardPage({
     getPageviewsLast30Days(),
   ]);
 
-  const tiles: Array<{ label: string; value: number | null }> = [
+  const tiles: Array<{ label: string; value: number | null; href?: string }> = [
     { label: "Aktywne konta klientów", value: activeClientCount },
     { label: "Aktywne konta producentów", value: activeProducerCount },
     { label: "Projekty", value: projectCount },
     { label: "Zapytania", value: inquiryCount },
     { label: "Oferty", value: offerCount },
-    { label: "Wyświetlenia stron (30 dni)", value: pageviewsResult.ok ? pageviewsResult.count : null },
+    { label: "Wyświetlenia stron (30 dni)", value: pageviewsResult.ok ? pageviewsResult.count : null, href: `/${locale}/internal/analytics` },
   ];
 
   return (
@@ -78,6 +79,11 @@ export default async function InternalDashboardPage({
               <DataText as="p" className="text-h2">
                 {tile.value}
               </DataText>
+            )}
+            {tile.href && (
+              <Link href={tile.href} className="focus-ring mt-1 inline-block rounded-data text-data underline underline-offset-4">
+                Szczegóły w Analityce
+              </Link>
             )}
           </Card>
         ))}

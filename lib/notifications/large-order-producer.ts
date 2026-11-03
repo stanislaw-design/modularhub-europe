@@ -59,6 +59,7 @@ export async function notifyProducersOfClosedRequest(input: { kind: "request" | 
           emailType: "large_order_producer_request_closed",
           entityId: input.id,
           distinctId: recipient.producerId,
+          tracking: { producerId: recipient.producerId, recipientUserId: recipient.userId },
         });
       }
     }
@@ -106,6 +107,7 @@ export async function notifyProducersOfOtherSelected(input: { kind: "request" | 
           emailType: "large_order_producer_not_selected",
           entityId: input.id,
           distinctId: recipient.producerId,
+          tracking: { producerId: recipient.producerId, recipientUserId: recipient.userId },
         });
       }
     }
@@ -204,6 +206,7 @@ export async function notifyProducersOfNewLargeOrder(input: { kind: LargeOrderKi
           emailType: "large_order_producer_new_request",
           entityId: input.id,
           distinctId: recipient.producerId,
+          tracking: { producerId: recipient.producerId, recipientUserId: recipient.userId },
         });
         if (!sent) failed.push(recipient.producerId);
       }
@@ -229,6 +232,8 @@ export async function sendDeadlineReminderToProducer(input: {
   id: string;
   producerId: string;
   email: string;
+  // Spec 0079 AC-13: odbiorca w dzienniku maili (id użytkownika, nigdy adres).
+  recipientUserId?: string | null;
   threshold: DeadlineReminderThreshold;
   // Język z listy odbiorców; bez niego jest czytany z konta (spec 0077 AC-30).
   locale?: CommunicationLocale;
@@ -263,6 +268,7 @@ export async function sendDeadlineReminderToProducer(input: {
       emailType: "large_order_producer_reminder",
       entityId: input.id,
       distinctId: input.producerId,
+      tracking: { producerId: input.producerId, recipientUserId: input.recipientUserId ?? null },
     });
   } catch (error) {
     captureError(error, { path: "notifications:sendDeadlineReminderToProducer" });
@@ -323,6 +329,7 @@ export async function notifyProducersOfNewPlatformProject(input: { id: string })
           emailType: "large_order_producer_new_platform_project",
           entityId: input.id,
           distinctId: recipient.producerId,
+          tracking: { producerId: recipient.producerId, recipientUserId: recipient.userId },
         });
         if (!sent) failed.push(recipient.producerId);
       }
@@ -375,6 +382,7 @@ export async function sendPlatformSelectionDoneToProducer(input: { id: string; p
           emailType: "large_order_producer_platform_selection_done",
           entityId: input.id,
           distinctId: recipient.producerId,
+          tracking: { producerId: recipient.producerId, recipientUserId: recipient.userId },
         });
         sentAny = sentAny || sent;
       }

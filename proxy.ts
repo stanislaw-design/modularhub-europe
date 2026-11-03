@@ -147,5 +147,7 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next|api|favicon.ico|.*\\..*).*)"],
+  // `ingest` (spec 0079 AC-4): zdarzenia PostHog nie mogą przechodzić przez next intl,
+  // który przekierowałby /ingest/e/ na /pl/ingest/e.
+  matcher: ["/((?!_next|api|ingest|favicon.ico|.*\\..*).*)"],
 };

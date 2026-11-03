@@ -3,6 +3,7 @@ import { cacheLife } from "next/cache";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { ConsentSettingsLink } from "@/components/analytics/ConsentSettingsLink";
 import { Button } from "@/components/ui";
 
 interface SiteFooterProps {
@@ -189,12 +190,18 @@ export async function SiteFooter({ locale, contactEmail }: SiteFooterProps) {
 
         <div className="flex flex-col gap-1 border-t border-brand-v5-paper/15 py-brand-3 text-data text-brand-v5-paper/65 sm:flex-row sm:items-center sm:justify-between">
           <p>{t("rights", { year })}</p>
-          <Link
-            href={`/${locale}/privacy`}
-            className="focus-ring inline-flex min-h-11 items-center rounded-data hover:text-brand-v5-amber sm:min-h-9"
-          >
-            {t("privacy")}
-          </Link>
+          <div className="flex flex-wrap items-center gap-x-brand-3">
+            <Link
+              href={`/${locale}/privacy`}
+              className="focus-ring inline-flex min-h-11 items-center rounded-data hover:text-brand-v5-amber sm:min-h-9"
+            >
+              {t("privacy")}
+            </Link>
+            <ConsentSettingsLink
+              label={t("privacySettings")}
+              className="focus-ring inline-flex min-h-11 items-center rounded-data hover:text-brand-v5-amber sm:min-h-9"
+            />
+          </div>
         </div>
       </div>
     </footer>

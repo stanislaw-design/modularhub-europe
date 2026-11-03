@@ -2534,7 +2534,13 @@
     "purpose": "We process the details from the request form (name, email, phone, plot address, message) only to handle your request and to contact you about it.",
     "noMarketing": "We do not use these details for marketing and do not share them with anyone except the producers you yourself decide to send the request to.",
     "deletion": "You can ask us to delete your data. We handle such requests manually.",
-    "contact": "Contact about your data:"
+    "contact": "Contact about your data:",
+    "trafficHeading": "Traffic measurement",
+    "trafficText": "With your consent (the banner on the site) we measure traffic on the site: which pages you view and for how long. We use PostHog (EU servers) and events pass through our own domain. Without consent nothing is loaded or stored in your browser except the decision itself. You can change or withdraw consent at any time with the \"Privacy settings\" link in the footer.",
+    "emailLogHeading": "Log of emails to producers",
+    "emailLogText": "For the emails about inquiries that we send to producers we keep a log: the email type, the producer, the time sent, and the information from the sending service (Resend) on whether the email was delivered, bounced or reported as spam. The log does not store the email address or the content of the message.",
+    "emailTrackingHeading": "Measuring opens and clicks in emails (optional)",
+    "emailTrackingText": "If a producer account user gives separate consent (a field when creating the account or a switch in the company settings), emails from ModularHub Europe sent to that person contain an invisible image and links that pass through our server. We then record the time of an open and a click and the address of the clicked link, not the content of emails. We delete this measurement data after 13 months. Consent is optional, independent of the terms and not needed to use the site. You can withdraw it at any time in the company settings in the producer panel, and from then on the measurement stops. Emails without your consent contain no image and no measuring redirects."
   },
   "ContactPage": {
     "metaTitle": "Contact | ModularHub Europe",
@@ -2914,7 +2920,12 @@
       "producer": "Join as a manufacturer",
       "investor": "Join as an investor",
       "client": "Join as a private client"
-    }
+    },
+    "privacySettings": "Privacy settings"
+  },
+  "ProducerEmailTrackingConsent": {
+    "label": "I agree to the measurement of opens and clicks in emails from ModularHub Europe sent to my address (optional)",
+    "description": "If you agree, emails about inquiries and offers from ModularHub will contain an invisible image and links that pass through our server. This lets us see whether an email was opened and a link was clicked, so we can reach you better. We only record the fact and time of an open or click, not the content of emails. Consent is optional, is not needed to create an account or use the site, and is separate from the terms. You can withdraw it at any time in the company settings."
   },
   "ProducerSettingsPage": {
     "heading": "Company settings",
@@ -2930,7 +2941,14 @@
     "saveError": "Could not save the company details.",
     "communicationHeading": "Communication language",
     "communicationLocaleLabel": "Language of emails about enquiries and offers",
-    "communicationHint": "We send emails about large orders, reminders and the selection result in this language. It does not change the language of the panel."
+    "communicationHint": "We send emails about large orders, reminders and the selection result in this language. It does not change the language of the panel.",
+    "emailTrackingHeading": "Measuring opens and clicks in emails",
+    "emailTrackingStatusOn": "Consent is given.",
+    "emailTrackingStatusOff": "Consent is not given.",
+    "emailTrackingGrant": "I agree",
+    "emailTrackingWithdraw": "Withdraw consent",
+    "emailTrackingSaved": "Saved.",
+    "emailTrackingSaveError": "Could not save your consent. Please try again."
   },
   "ProducerBoardTabs": {
     "ariaLabel": "ModularProjects",
@@ -3071,5 +3089,15 @@
     "modelViewLabel": "Model view",
     "modelUnsupported": "This browser cannot show 3D models. Photos and renderings are in the gallery below.",
     "modelLoading": "Loading 3D model"
+  },
+  "ConsentBanner": {
+    "title": "May we measure traffic on this site?",
+    "text": "If you agree, we record visit statistics (which pages you view and for how long). Without your consent nothing is loaded or stored. You can change your mind at any time.",
+    "privacyLink": "Privacy policy",
+    "accept": "Accept",
+    "decline": "Decline",
+    "close": "Close",
+    "currentGranted": "Currently: measurement is on.",
+    "currentDenied": "Currently: measurement is off."
   }
 }

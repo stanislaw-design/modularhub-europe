@@ -2542,7 +2542,13 @@
     "purpose": "Dane z formularza zapytania (imię, e mail, telefon, adres działki, wiadomość) przetwarzamy wyłącznie po to, żeby obsłużyć Twoje zapytanie i skontaktować się z Tobą w tej sprawie.",
     "noMarketing": "Nie używamy tych danych do marketingu i nie przekazujemy ich nikomu poza producentami, do których sam zdecydujesz się skierować zapytanie.",
     "deletion": "Możesz poprosić o usunięcie swoich danych. Prośby obsługujemy ręcznie.",
-    "contact": "Kontakt w sprawie danych:"
+    "contact": "Kontakt w sprawie danych:",
+    "trafficHeading": "Pomiar ruchu",
+    "trafficText": "Za Twoją zgodą (baner na stronie) mierzymy ruch w serwisie: które strony oglądasz i jak długo. Używamy do tego narzędzia PostHog (serwery w UE), a zdarzenia przechodzą przez naszą domenę. Bez zgody nic nie jest ładowane ani zapisywane w Twojej przeglądarce poza samą decyzją. Zgodę możesz zmienić lub wycofać w każdej chwili przez link „Ustawienia prywatności” w stopce.",
+    "emailLogHeading": "Dziennik maili do producentów",
+    "emailLogText": "Dla maili o zapytaniach, które wysyłamy do producentów, prowadzimy dziennik: typ maila, producent, czas wysyłki oraz informacja z usługi wysyłkowej (Resend), czy mail został dostarczony, odbity lub zgłoszony jako spam. W dzienniku nie zapisujemy adresu e mail ani treści wiadomości.",
+    "emailTrackingHeading": "Pomiar otwarć i kliknięć w mailach (dobrowolny)",
+    "emailTrackingText": "Jeśli użytkownik konta producenta wyrazi na to osobną zgodę (pole przy zakładaniu konta lub przełącznik w ustawieniach firmy), maile od ModularHub Europe wysyłane do tej osoby zawierają niewidoczny obrazek oraz linki prowadzące przez nasz serwer. Zapisujemy wtedy czas otwarcia i kliknięcia oraz adres klikniętego linku, bez treści maili. Dane z tego pomiaru usuwamy po 13 miesiącach. Zgoda jest dobrowolna, niezależna od regulaminu i niepotrzebna do korzystania z serwisu. Możesz ją wycofać w każdej chwili w ustawieniach firmy w panelu producenta, a od tej chwili pomiar zostaje zatrzymany. Maile bez Twojej zgody nie zawierają obrazka ani przekierowań pomiarowych."
   },
   "ContactPage": {
     "metaTitle": "Kontakt | ModularHub Europe",
@@ -2922,7 +2928,12 @@
       "producer": "Dołącz jako producent",
       "investor": "Dołącz jako inwestor",
       "client": "Dołącz jako klient prywatny"
-    }
+    },
+    "privacySettings": "Ustawienia prywatności"
+  },
+  "ProducerEmailTrackingConsent": {
+    "label": "Zgadzam się na pomiar otwarć i kliknięć w mailach od ModularHub Europe wysyłanych na mój adres (dobrowolnie)",
+    "description": "Jeśli się zgodzisz, maile o zapytaniach i ofertach od ModularHub będą zawierały niewidoczny obrazek oraz linki prowadzące przez nasz serwer. Dzięki temu zobaczymy, czy mail został otwarty i czy link został kliknięty, i będziemy lepiej do Ciebie docierać. Zapisujemy tylko fakt i czas otwarcia lub kliknięcia, nie treść maili. Zgoda jest dobrowolna, nie jest potrzebna do założenia konta ani do korzystania z serwisu i nie ma związku z regulaminem. Możesz ją wycofać w każdej chwili w ustawieniach firmy."
   },
   "ProducerSettingsPage": {
     "heading": "Ustawienia firmy",
@@ -2938,7 +2949,14 @@
     "saveError": "Nie udało się zapisać danych firmy.",
     "communicationHeading": "Język komunikacji",
     "communicationLocaleLabel": "Język maili o zapytaniach i ofertach",
-    "communicationHint": "W tym języku wysyłamy maile o dużych zamówieniach, przypomnieniach i wyniku wyboru. Nie zmienia języka panelu."
+    "communicationHint": "W tym języku wysyłamy maile o dużych zamówieniach, przypomnieniach i wyniku wyboru. Nie zmienia języka panelu.",
+    "emailTrackingHeading": "Pomiar otwarć i kliknięć w mailach",
+    "emailTrackingStatusOn": "Zgoda jest udzielona.",
+    "emailTrackingStatusOff": "Zgoda nie jest udzielona.",
+    "emailTrackingGrant": "Wyrażam zgodę",
+    "emailTrackingWithdraw": "Wycofaj zgodę",
+    "emailTrackingSaved": "Zapisano.",
+    "emailTrackingSaveError": "Nie udało się zapisać zgody. Spróbuj ponownie."
   },
   "ProducerBoardTabs": {
     "ariaLabel": "ModularProjects",
@@ -3079,5 +3097,15 @@
     "modelViewLabel": "Widok modelu",
     "modelUnsupported": "Ta przeglądarka nie pokazuje modeli 3D. Zdjęcia i wizualizacje są w galerii poniżej.",
     "modelLoading": "Ładowanie modelu 3D"
+  },
+  "ConsentBanner": {
+    "title": "Czy możemy mierzyć ruch na portalu?",
+    "text": "Jeśli się zgodzisz, zapiszemy anonimowe statystyki odwiedzin (jakie strony oglądasz i jak długo). Bez Twojej zgody nic nie jest ładowane ani zapisywane. Możesz zmienić decyzję w każdej chwili.",
+    "privacyLink": "Polityka prywatności",
+    "accept": "Akceptuję",
+    "decline": "Odrzucam",
+    "close": "Zamknij",
+    "currentGranted": "Obecnie: pomiar włączony.",
+    "currentDenied": "Obecnie: pomiar wyłączony."
   }
 }

@@ -2534,7 +2534,13 @@
     "purpose": "Wir verarbeiten die Angaben aus dem Anfrageformular (Name, E Mail, Telefon, Grundstücksadresse, Nachricht) ausschließlich, um Ihre Anfrage zu bearbeiten und Sie dazu zu kontaktieren.",
     "noMarketing": "Wir nutzen diese Daten nicht für Werbung und geben sie an niemanden weiter, außer an die Hersteller, an die Sie Ihre Anfrage selbst weiterleiten lassen.",
     "deletion": "Sie können die Löschung Ihrer Daten verlangen. Solche Anfragen bearbeiten wir manuell.",
-    "contact": "Kontakt zu Ihren Daten:"
+    "contact": "Kontakt zu Ihren Daten:",
+    "trafficHeading": "Messung des Datenverkehrs",
+    "trafficText": "Mit Ihrer Zustimmung (Banner auf der Seite) messen wir den Datenverkehr: welche Seiten Sie ansehen und wie lange. Wir nutzen PostHog (Server in der EU), die Ereignisse laufen über unsere eigene Domain. Ohne Zustimmung wird in Ihrem Browser nichts geladen oder gespeichert, außer der Entscheidung selbst. Sie können Ihre Zustimmung jederzeit über den Link „Datenschutzeinstellungen“ in der Fußzeile ändern oder widerrufen.",
+    "emailLogHeading": "Protokoll der E-Mails an Hersteller",
+    "emailLogText": "Für die E-Mails zu Anfragen, die wir an Hersteller senden, führen wir ein Protokoll: E-Mail-Typ, Hersteller, Sendezeitpunkt sowie die Information des Versanddienstes (Resend), ob die E-Mail zugestellt wurde, abgewiesen wurde oder als Spam gemeldet wurde. Die E-Mail-Adresse und der Inhalt der Nachricht werden im Protokoll nicht gespeichert.",
+    "emailTrackingHeading": "Messung von Öffnungen und Klicks in E-Mails (freiwillig)",
+    "emailTrackingText": "Wenn ein Nutzer eines Herstellerkontos gesondert einwilligt (ein Feld bei der Kontoerstellung oder ein Schalter in den Firmeneinstellungen), enthalten E-Mails von ModularHub Europe an diese Person ein unsichtbares Bild und Links, die über unseren Server laufen. Wir speichern dann den Zeitpunkt einer Öffnung und eines Klicks sowie die Adresse des angeklickten Links, nicht den Inhalt der E-Mails. Diese Messdaten löschen wir nach 13 Monaten. Die Einwilligung ist freiwillig, unabhängig von den Nutzungsbedingungen und für die Nutzung der Seite nicht nötig. Sie können sie jederzeit in den Firmeneinstellungen im Herstellerbereich widerrufen, ab dann wird die Messung gestoppt. E-Mails ohne Ihre Einwilligung enthalten kein Bild und keine Mess-Weiterleitungen."
   },
   "ContactPage": {
     "metaTitle": "Kontakt | ModularHub Europe",
@@ -2914,7 +2920,12 @@
       "producer": "Als Hersteller beitreten",
       "investor": "Als Investor beitreten",
       "client": "Als Privatkunde beitreten"
-    }
+    },
+    "privacySettings": "Datenschutzeinstellungen"
+  },
+  "ProducerEmailTrackingConsent": {
+    "label": "Ich stimme der Messung von Öffnungen und Klicks in E-Mails von ModularHub Europe an meine Adresse zu (freiwillig)",
+    "description": "Wenn Sie zustimmen, enthalten E-Mails zu Anfragen und Angeboten von ModularHub ein unsichtbares Bild und Links, die über unseren Server laufen. So sehen wir, ob eine E-Mail geöffnet und ein Link angeklickt wurde, und können Sie besser erreichen. Wir speichern nur, dass und wann geöffnet oder geklickt wurde, nicht den Inhalt der E-Mails. Die Einwilligung ist freiwillig, für die Kontoerstellung und die Nutzung der Seite nicht nötig und unabhängig von den Nutzungsbedingungen. Sie können sie jederzeit in den Firmeneinstellungen widerrufen."
   },
   "ProducerSettingsPage": {
     "heading": "Firmeneinstellungen",
@@ -2930,7 +2941,14 @@
     "saveError": "Die Firmendaten konnten nicht gespeichert werden.",
     "communicationHeading": "Kommunikationssprache",
     "communicationLocaleLabel": "Sprache der E-Mails zu Anfragen und Angeboten",
-    "communicationHint": "In dieser Sprache senden wir E-Mails zu Großaufträgen, Erinnerungen und dem Ergebnis der Auswahl. Die Sprache des Panels ändert sich dadurch nicht."
+    "communicationHint": "In dieser Sprache senden wir E-Mails zu Großaufträgen, Erinnerungen und dem Ergebnis der Auswahl. Die Sprache des Panels ändert sich dadurch nicht.",
+    "emailTrackingHeading": "Öffnungen und Klicks in E-Mails messen",
+    "emailTrackingStatusOn": "Die Einwilligung ist erteilt.",
+    "emailTrackingStatusOff": "Die Einwilligung ist nicht erteilt.",
+    "emailTrackingGrant": "Ich stimme zu",
+    "emailTrackingWithdraw": "Einwilligung widerrufen",
+    "emailTrackingSaved": "Gespeichert.",
+    "emailTrackingSaveError": "Die Einwilligung konnte nicht gespeichert werden. Bitte versuchen Sie es erneut."
   },
   "ProducerBoardTabs": {
     "ariaLabel": "ModularProjects",
@@ -3071,5 +3089,15 @@
     "modelViewLabel": "Modellansicht",
     "modelUnsupported": "Dieser Browser kann keine 3D-Modelle anzeigen. Fotos und Visualisierungen finden Sie in der Galerie unten.",
     "modelLoading": "3D-Modell wird geladen"
+  },
+  "ConsentBanner": {
+    "title": "Dürfen wir den Datenverkehr auf dieser Website messen?",
+    "text": "Wenn Sie zustimmen, erfassen wir Besuchsstatistiken (welche Seiten Sie ansehen und wie lange). Ohne Ihre Zustimmung wird nichts geladen oder gespeichert. Sie können Ihre Entscheidung jederzeit ändern.",
+    "privacyLink": "Datenschutzerklärung",
+    "accept": "Akzeptieren",
+    "decline": "Ablehnen",
+    "close": "Schließen",
+    "currentGranted": "Aktuell: Messung ist aktiv.",
+    "currentDenied": "Aktuell: Messung ist deaktiviert."
   }
 }

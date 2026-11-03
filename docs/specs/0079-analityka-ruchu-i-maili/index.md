@@ -1,7 +1,7 @@
 # 0079. Analityka ruchu i maili w panelu admina
 
 **Date**: 2026-10-30
-**Status**: Proposed
+**Status**: In Progress
 
 ## Summary
 
@@ -204,21 +204,21 @@ Podejście projektu to Tracer Bullet, więc najpierw cienka nitka przez wszystki
 
 **Etap 2: dziennik maili do producentów (bez śledzenia)**
 
-7. Migracja: tabele `email_message` (z kolumnami śledzenia, na razie nieużywanymi), indeksy (migrację zweryfikować na jednorazowej gałęzi Neon, `db:migrate` na dev), satisfies **AC-15**
-8. `sendNotificationEmail()` z `tracking`, lista `TRACKED_EMAIL_TYPES`, wstawienie wiersza przed wysyłką, tag Resend `message_id`, UTM w linkach do naszej domeny, dopisanie `resend_email_id` lub usunięcie wiersza po porażce, przekazanie `recipientUserId` przez nadawców w `large-order-producer.ts`, test migawkowy maili bez śledzenia, satisfies **AC-13**, **AC-16**
-9. Webhook `/api/webhooks/resend` z weryfikacją Svix na surowym ciele, ignorowaniem zdarzeń bez tagu `message_id` i idempotencją, konfiguracja webhooka w Resend, satisfies **AC-14**
-10. Agregaty `email-stats.ts`, widok Maile (dostarczalność) i statystyki maili w szczególe producenta, satisfies **AC-10**, **AC-9**
+7. [x] Migracja: tabele `email_message` (z kolumnami śledzenia, na razie nieużywanymi), indeksy (migrację zweryfikować na jednorazowej gałęzi Neon, `db:migrate` na dev), satisfies **AC-15**
+8. [x] `sendNotificationEmail()` z `tracking`, lista `TRACKED_EMAIL_TYPES`, wstawienie wiersza przed wysyłką, tag Resend `message_id`, UTM w linkach do naszej domeny, dopisanie `resend_email_id` lub usunięcie wiersza po porażce, przekazanie `recipientUserId` przez nadawców w `large-order-producer.ts`, test migawkowy maili bez śledzenia, satisfies **AC-13**, **AC-16**
+9. [x] Webhook `/api/webhooks/resend` z weryfikacją Svix na surowym ciele, ignorowaniem zdarzeń bez tagu `message_id` i idempotencją, konfiguracja webhooka w Resend, satisfies **AC-14**
+10. [x] Agregaty `email-stats.ts`, widok Maile (dostarczalność) i statystyki maili w szczególe producenta, satisfies **AC-10**, **AC-9**
 
 **Etap 3: śledzenie otwarć i kliknięć za zgodą użytkownika producenta** (po opinii prawnika o tekście zgody, patrz Follow-up)
 
-11. Migracja: `user_consent`, `email_event`, enumy, częściowy indeks unikalny aktywnej zgody, satisfies **AC-15**
-12. Pole zgody w formularzu rejestracji producenta (niezaznaczone, osobne od regulaminu, teksty w czterech językach) i zapis w `user_consent` z wersją tekstu, satisfies **AC-18**
-13. Przełącznik zgody w ustawieniach panelu producenta (udziel, wycofaj, stan; skoordynować z redesignem ustawień w spec 0074), satisfies **AC-19**
-14. Wariant śledzony w `sendNotificationEmail()`: sprawdzenie zgody, pikselka, przepisanie linków, `tracked = true`, satisfies **AC-13**, **AC-20**
-15. Trasy `/api/email/o/[id]` i `/api/email/c/[id]` z podpisem HMAC, listą dozwolonych hostów, sprawdzeniem aktywnej zgody, atomowym zapisem zdarzenia i regułą `likely_automatic`, satisfies **AC-20**, **AC-21**, **AC-22**
-16. Rozszerzenie widoku Maile o kliknięcia, otwarcia i udział maili śledzonych, satisfies **AC-10**
-17. Cron retencji `email-events-retention` i wpis w `vercel.json`, satisfies **AC-23**
-18. Aktualizacja polityki prywatności o dobrowolne śledzenie maili i sposób wycofania zgody, satisfies **AC-17**
+11. [x] Migracja: `user_consent`, `email_event`, enumy, częściowy indeks unikalny aktywnej zgody, satisfies **AC-15**
+12. [x] Pole zgody w formularzu rejestracji producenta (niezaznaczone, osobne od regulaminu, teksty w czterech językach) i zapis w `user_consent` z wersją tekstu, satisfies **AC-18**
+13. [x] Przełącznik zgody w ustawieniach panelu producenta (udziel, wycofaj, stan; skoordynować z redesignem ustawień w spec 0074), satisfies **AC-19**
+14. [x] Wariant śledzony w `sendNotificationEmail()`: sprawdzenie zgody, pikselka, przepisanie linków, `tracked = true`, satisfies **AC-13**, **AC-20**
+15. [x] Trasy `/api/email/o/[id]` i `/api/email/c/[id]` z podpisem HMAC, listą dozwolonych hostów, sprawdzeniem aktywnej zgody, atomowym zapisem zdarzenia i regułą `likely_automatic`, satisfies **AC-20**, **AC-21**, **AC-22**
+16. [x] Rozszerzenie widoku Maile o kliknięcia, otwarcia i udział maili śledzonych, satisfies **AC-10**
+17. [x] Cron retencji `email-events-retention` i wpis w `vercel.json`, satisfies **AC-23**
+18. [x] Aktualizacja polityki prywatności o dobrowolne śledzenie maili i sposób wycofania zgody, satisfies **AC-17**
 
 Przed wejściem etapów 1 i 3 na produkcję: opinia prawnika (patrz Follow-up).
 

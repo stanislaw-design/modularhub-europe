@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageviewAttribution } from "@/components/analytics/PageviewAttribution";
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -52,6 +54,9 @@ export default async function ModularProjectPage({ params }: { params: Promise<P
   return (
     <>
       <ModularProjectStructuredData kind="article" locale={locale} project={project} />
+      <Suspense fallback={null}>
+        <PageviewAttribution pageType="modularproject" />
+      </Suspense>
       <ModularProjectArticle project={project} locale={locale} />
     </>
   );

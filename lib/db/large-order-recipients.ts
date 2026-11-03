@@ -8,6 +8,8 @@ export type LargeOrderKind = "request" | "product";
 
 export interface LargeOrderProducerRecipient {
   producerId: string;
+  // Spec 0079 AC-13, AC-15: dziennik maili identyfikuje odbiorcę po id użytkownika, nie po adresie.
+  userId: string;
   email: string;
   // Język maili z konta producenta (spec 0077 AC-30), pobierany razem z adresem.
   locale: CommunicationLocale;
@@ -20,12 +22,12 @@ export async function getProducerUserEmails(producerIds: string[]): Promise<Larg
   if (producerIds.length === 0) return [];
   const [owners, members] = await Promise.all([
     db
-      .select({ producerId: producer.id, email: users.email, locale: producer.communicationLocale })
+      .select({ producerId: producer.id, userId: users.id, email: users.email, locale: producer.communicationLocale })
       .from(producer)
       .innerJoin(users, eq(users.id, producer.userId))
       .where(inArray(producer.id, producerIds)),
     db
-      .select({ producerId: producerMember.producerId, email: users.email, locale: producer.communicationLocale })
+      .select({ producerId: producerMember.producerId, userId: users.id, email: users.email, locale: producer.communicationLocale })
       .from(producerMember)
       .innerJoin(users, eq(users.id, producerMember.userId))
       .innerJoin(producer, eq(producer.id, producerMember.producerId))
@@ -38,7 +40,7 @@ export async function getProducerUserEmails(producerIds: string[]): Promise<Larg
     const key = `${row.producerId}:${row.email.toLowerCase()}`;
     if (seen.has(key)) continue;
     seen.add(key);
-    result.push({ producerId: row.producerId, email: row.email, locale: normalizeCommunicationLocale(row.locale) });
+    result.push({ producerId: row.producerId, userId: row.userId, email: row.email, locale: normalizeCommunicationLocale(row.locale) });
   }
   return result;
 }

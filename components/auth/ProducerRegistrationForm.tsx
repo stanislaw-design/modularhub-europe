@@ -4,7 +4,7 @@ import { Building2, MapPin } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
 import Link from "next/link";
-import { Button, Card, Heading, Input, Label, Select, Stack, Text } from "@/components/ui";
+import { Button, Card, Checkbox, Heading, Input, Label, Select, Stack, Text } from "@/components/ui";
 import type { Country, CountryCode } from "@/lib/data/types";
 import { PRODUCER_PRODUCTION_SCALES, type ProducerProductionScale } from "@/lib/producer-production-scale";
 import { registerProducer, type RegistrationActionState } from "@/lib/auth-registration";
@@ -33,6 +33,8 @@ export function ProducerRegistrationForm({ locale, callbackUrl, countries }: Pro
   const [state, formAction, isPending] = useActionState(registerProducer, initialState);
   const [countryCode, setCountryCode] = useState<CountryCode | null>(null);
   const [productionScale, setProductionScale] = useState<ProducerProductionScale | null>(null);
+  const consentT = useTranslations("ProducerEmailTrackingConsent");
+  const [emailTracking, setEmailTracking] = useState(false);
 
   if (state.status === "sent") {
     return (
@@ -126,6 +128,31 @@ export function ProducerRegistrationForm({ locale, callbackUrl, countries }: Pro
               </div>
             </Stack>
           </div>
+
+          {/* Spec 0079 AC-18: zgoda dobrowolna, niezaznaczona domyślnie, osobna od regulaminu. */}
+          <label
+            htmlFor="producer-reg-email-tracking"
+            className={`flex cursor-pointer items-start gap-brand-2 rounded-v5-card border p-brand-3 transition-colors ${
+              emailTracking ? "border-brand-v5-amber bg-brand-v5-amber/5" : "border-brand-v5-line hover:border-brand-v5-muted"
+            }`}
+          >
+            <Checkbox
+              id="producer-reg-email-tracking"
+              name="emailTrackingConsent"
+              surface="v5"
+              checked={emailTracking}
+              onChange={(event) => setEmailTracking(event.target.checked)}
+              className="mt-0.5"
+            />
+            <Stack gap={1}>
+              <Text as="span" surface="v5" className="font-medium">
+                {consentT("label")}
+              </Text>
+              <Text tone="muted" surface="v5">
+                {consentT("description")}
+              </Text>
+            </Stack>
+          </label>
 
           {state.status === "error" && (
             <p className="font-sans text-body text-status-blocked" role="alert">

@@ -8,6 +8,7 @@ import { resolveAsyncTree } from "@/test/resolve-async-tree";
 vi.mock("@/lib/favorite-actions", () => ({ toggleFavorite: vi.fn() }));
 
 const authMock = vi.hoisted(() => vi.fn<() => Promise<Session | null>>());
+vi.mock("@/components/analytics/PageviewAttribution", () => ({ PageviewAttribution: () => null }));
 vi.mock("@/auth", () => ({ auth: authMock }));
 
 class RedirectSignal extends Error {}

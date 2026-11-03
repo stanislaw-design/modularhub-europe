@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import type { ReactNode } from "react";
+import { InternalSectionTabs } from "@/components/internal/InternalSectionTabs";
 import { InternalSidebar } from "@/components/internal/InternalSidebar";
 import { SessionHint } from "@/components/SessionHint";
 import { SkipLink } from "@/components/SkipLink";
@@ -41,7 +42,10 @@ export default async function InternalLayout({
         <InternalSidebar locale={locale} />
         <main id="main-content" className="min-w-0 flex-1">
           <Container className="py-brand-6">
-            <Stack gap={4}>{children}</Stack>
+            <Stack gap={4}>
+              <InternalSectionTabs locale={locale} />
+              {children}
+            </Stack>
           </Container>
         </main>
       </div>

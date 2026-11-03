@@ -61,6 +61,8 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/notifications/large-order-produc
     expect(sendMock).toHaveBeenCalledTimes(1);
     const mail = sendMock.mock.calls[0][0];
     expect(mail).toMatchObject({ to: activeEmail, emailType: "large_order_producer_request_closed", entityId: requestId });
+    // Spec 0079 AC-13: dziennik maili dostaje producenta i id użytkownika, nie adres.
+    expect(mail.tracking).toEqual({ producerId: activeProducerId, recipientUserId: activeUserId });
     const body = `${mail.subject} ${mail.html} ${mail.text}`;
     expect(body).not.toContain("Sekretny Inwestor");
     expect(body).not.toContain(investorEmail);
@@ -73,6 +75,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/notifications/large-order-produc
     expect(sendMock).toHaveBeenCalledTimes(1);
     const mail = sendMock.mock.calls[0][0];
     expect(mail).toMatchObject({ to: rejectedEmail, emailType: "large_order_producer_not_selected", entityId: requestId });
+    expect(mail.tracking).toEqual({ producerId: rejectedProducerId, recipientUserId: rejectedUserId });
     const body = `${mail.subject} ${mail.html} ${mail.text}`;
     expect(body).not.toContain("LOP Active");
     expect(body).not.toMatch(/2\s?000|1\s?000/);

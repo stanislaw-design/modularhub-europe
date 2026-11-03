@@ -8,6 +8,7 @@ import { db } from "@/lib/db/client";
 import { isAdminInviteExpired } from "@/lib/admin-invite";
 import { pendingRegistration, producer, users } from "@/lib/db/schema";
 import { PRODUCER_PRODUCTION_SCALES } from "@/lib/producer-production-scale";
+import { EMAIL_TRACKING_CONSENT_VERSION } from "@/lib/analytics/user-consent";
 import type { PendingRegistrationPayload } from "@/lib/auth-shared";
 
 export interface RegistrationActionState {
@@ -171,6 +172,8 @@ export async function registerProducer(
     nip,
     countryCode,
     productionScale: productionScale as PendingRegistrationPayload["productionScale"],
+    // Spec 0079 AC-18: zgoda jest dobrowolna, brak zaznaczenia nic nie blokuje.
+    ...(formData.get("emailTrackingConsent") === "on" ? { emailTrackingConsentVersion: EMAIL_TRACKING_CONSENT_VERSION } : {}),
   };
   const written = await db
     .insert(pendingRegistration)

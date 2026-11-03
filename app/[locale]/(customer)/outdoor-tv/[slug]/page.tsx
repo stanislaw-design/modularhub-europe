@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageviewAttribution } from "@/components/analytics/PageviewAttribution";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { notFound, permanentRedirect, redirect } from "next/navigation";
@@ -197,6 +199,9 @@ export default async function OutdoorTvPage({
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <Suspense fallback={null}>
+        <PageviewAttribution pageType="outdoor_tv" producerId={project.producerId} productId={project.id} family={project.family} />
+      </Suspense>
       <GalleryLightboxProvider images={lightboxImages}>
         <div className="-mt-brand-5 flex flex-col gap-brand-6 pb-24 lg:mt-0 lg:pb-0">
           <div className="grid grid-cols-1 items-stretch gap-brand-4 lg:grid-cols-12">

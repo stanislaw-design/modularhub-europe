@@ -20,6 +20,18 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
         <Text surface="v5">{t("purpose")}</Text>
         <Text surface="v5">{t("noMarketing")}</Text>
         <Text surface="v5">{t("deletion")}</Text>
+        <Heading level="h2" surface="v5">
+          {t("trafficHeading")}
+        </Heading>
+        <Text surface="v5">{t("trafficText")}</Text>
+        <Heading level="h2" surface="v5">
+          {t("emailLogHeading")}
+        </Heading>
+        <Text surface="v5">{t("emailLogText")}</Text>
+        <Heading level="h2" surface="v5">
+          {t("emailTrackingHeading")}
+        </Heading>
+        <Text surface="v5">{t("emailTrackingText")}</Text>
         {contactEmail && (
           <Text surface="v5">
             {t("contact")}{" "}

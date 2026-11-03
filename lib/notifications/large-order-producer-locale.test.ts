@@ -152,6 +152,8 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/notifications/large-order-produc
       });
       const mail = sendMock.mock.calls.at(-1)![0];
       expect(mail.text, item.locale).toContain(`/${item.locale}/producer/panel/product-inquiries/${item.inquiryId}`);
+      // Spec 0079 AC-13: wołający bez id użytkownika daje wpis dziennika z recipientUserId null.
+      expect(mail.tracking).toEqual({ producerId: item.producerId, recipientUserId: null });
       subjects.add(mail.subject);
     }
     expect(subjects.size).toBe(COMMUNICATION_LOCALES.length);

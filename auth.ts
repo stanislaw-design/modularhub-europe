@@ -115,6 +115,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         ]);
       }
 
+      // Spec 0079 AC-18: zgoda z formularza rejestracji zapisuje się dopiero teraz, gdy istnieje
+      // user_id. Nie jest warunkiem konta, więc błąd zapisu idzie do Sentry i nie przerywa logowania.
+      if (pending.role === "producer" && payload.emailTrackingConsentVersion) {
+        try {
+          const { grantEmailTrackingConsent } = await import("@/lib/analytics/user-consent");
+          await grantEmailTrackingConsent(createdUser.id, payload.emailTrackingConsentVersion);
+        } catch (error) {
+          const { captureError } = await import("@/lib/observability");
+          captureError(error, { path: "auth:createUser:email-tracking-consent", userId: createdUser.id });
+        }
+      }
+
       await db.delete(pendingRegistration).where(eq(pendingRegistration.email, email));
 
       return {

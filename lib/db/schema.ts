@@ -2596,3 +2596,79 @@ export const producerGroupMember = pgTable(
   },
   (table) => [primaryKey({ columns: [table.groupId, table.producerId] }), index("producer_group_member_producer_idx").on(table.producerId)],
 );
+
+// Spec 0079 etap 2 (AC-10, AC-13, AC-14, AC-15): dziennik maili do producentów, jeden wiersz
+// na jednego odbiorcę. Id powstaje przed wysyłką (trafia do tagu Resend `message_id`).
+// Celowo nie ma tu adresu e mail odbiorcy (AC-15), odbiorca to tylko `recipient_user_id`.
+// Kolumny `tracked`, `first_*`, `*_count` czekają na etap 3 (pikselka i przekierowanie), dziś
+// wypełnia je tylko wysyłka (`tracked = false`) i webhook Resend (`delivered/bounced/complained`).
+export const emailMessage = pgTable(
+  "email_message",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    resendEmailId: text("resend_email_id").unique(),
+    emailType: text("email_type").notNull(),
+    entityId: text("entity_id").notNull(),
+    producerId: uuid("producer_id")
+      .notNull()
+      .references(() => producer.id),
+    recipientUserId: text("recipient_user_id").references(() => users.id, { onDelete: "set null" }),
+    tracked: boolean("tracked").notNull().default(false),
+    sentAt: timestamp("sent_at", { withTimezone: true }).defaultNow().notNull(),
+    deliveredAt: timestamp("delivered_at", { withTimezone: true }),
+    bouncedAt: timestamp("bounced_at", { withTimezone: true }),
+    complainedAt: timestamp("complained_at", { withTimezone: true }),
+    firstOpenedAt: timestamp("first_opened_at", { withTimezone: true }),
+    firstClickedAt: timestamp("first_clicked_at", { withTimezone: true }),
+    openCount: integer("open_count").notNull().default(0),
+    clickCount: integer("click_count").notNull().default(0),
+  },
+  (table) => [
+    index("email_message_producer_sent_idx").on(table.producerId, table.sentAt),
+    index("email_message_type_sent_idx").on(table.emailType, table.sentAt),
+  ],
+);
+
+// Spec 0079 etap 3 (AC-15, AC-18, AC-19, AC-20): historia zgód użytkowników. Jedna aktywna zgoda
+// danego rodzaju na użytkownika (częściowy indeks unikalny), wycofanie ustawia `withdrawn_at`
+// i nie kasuje wiersza, ponowna zgoda to nowy wiersz. Bez adresu e mail (AC-15).
+export const userConsentKindEnum = pgEnum("user_consent_kind", ["producer_email_tracking"]);
+
+export const userConsent = pgTable(
+  "user_consent",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id),
+    kind: userConsentKindEnum("kind").notNull(),
+    textVersion: text("text_version").notNull(),
+    grantedAt: timestamp("granted_at", { withTimezone: true }).defaultNow().notNull(),
+    withdrawnAt: timestamp("withdrawn_at", { withTimezone: true }),
+  },
+  (table) => [
+    index("user_consent_user_kind_idx").on(table.userId, table.kind),
+    uniqueIndex("user_consent_one_active_per_kind")
+      .on(table.userId, table.kind)
+      .where(sql`${table.withdrawnAt} IS NULL`),
+  ],
+);
+
+// Spec 0079 etap 3 (AC-20, AC-21, AC-22, AC-23): surowe otwarcia i kliknięcia maili w wariancie
+// śledzonym. Czyszczone po 13 miesiącach (cron), sumy zostają w `email_message`. Bez adresu e mail.
+export const emailEventKindEnum = pgEnum("email_event_kind", ["opened", "clicked"]);
+
+export const emailEvent = pgTable(
+  "email_event",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    messageId: uuid("message_id")
+      .notNull()
+      .references(() => emailMessage.id, { onDelete: "cascade" }),
+    kind: emailEventKindEnum("kind").notNull(),
+    occurredAt: timestamp("occurred_at", { withTimezone: true }).defaultNow().notNull(),
+    targetUrl: text("target_url"),
+    likelyAutomatic: boolean("likely_automatic").notNull().default(false),
+  },
+  (table) => [index("email_event_message_kind_idx").on(table.messageId, table.kind)],
+);

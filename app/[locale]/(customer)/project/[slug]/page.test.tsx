@@ -28,6 +28,7 @@ vi.mock("@/components/klient/ProjectGalleryTabs", () => ({
 }));
 
 const authMock = vi.hoisted(() => vi.fn<() => Promise<Session | null>>());
+vi.mock("@/components/analytics/PageviewAttribution", () => ({ PageviewAttribution: () => null }));
 vi.mock("@/auth", () => ({ auth: authMock }));
 
 class RedirectSignal extends Error {}
