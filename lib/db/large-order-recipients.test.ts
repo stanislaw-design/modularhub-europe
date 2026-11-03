@@ -41,6 +41,8 @@ describe.skipIf(!process.env.DATABASE_URL)("getProducerUserEmails: owner plus me
 
     expect(result.map((row) => row.email).sort()).toEqual([email(ownerId), email(memberId)].sort());
     expect(result.every((row) => row.producerId === producerId)).toBe(true);
+    // Spec 0079 AC-13, AC-15: odbiorca w dzienniku maili to id użytkownika, każdy ma własne.
+    expect(result.map((row) => row.userId).sort()).toEqual([ownerId, memberId].sort());
   });
 
   it("returns a producer without members through the owner and keeps producers apart", async () => {

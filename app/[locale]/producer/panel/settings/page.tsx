@@ -3,9 +3,12 @@ import Link from "next/link";
 import { Card, Heading, Stack, Text } from "@/components/ui";
 import { ProducerCertificationsSection } from "@/components/producent/ProducerCertificationsSection";
 import { CommunicationLocaleForm } from "@/components/producent/CommunicationLocaleForm";
+import { EmailTrackingConsentForm } from "@/components/producent/EmailTrackingConsentForm";
 import { ProducerCompanyForm } from "@/components/producent/ProducerCompanyForm";
 import { getProducerCertifications, getProducerIdForUser, getProducerProfile } from "@/lib/db/queries";
 import { requirePanelProducerSession } from "@/lib/panel-session";
+import { getEmailTrackingConsentState } from "@/lib/analytics/user-consent";
+import { setProducerEmailTrackingConsent } from "@/lib/producer-email-tracking-actions";
 import { setProducerCommunicationLocale } from "@/lib/producer-communication-locale-actions";
 
 // @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
@@ -23,13 +26,15 @@ export default async function ProducerSettingsPage({
 }) {
   const { locale } = await params;
   const selfHref = `/${locale}/producer/panel/settings`;
-  const [session, t] = await Promise.all([
+  const [session, t, consentT] = await Promise.all([
     requirePanelProducerSession(locale, selfHref),
     getTranslations("ProducerSettingsPage"),
+    getTranslations("ProducerEmailTrackingConsent"),
   ]);
 
   const producerId = await getProducerIdForUser(session.user.id);
   const profile = producerId ? await getProducerProfile(producerId) : null;
+  const emailTrackingConsent = await getEmailTrackingConsentState(session.user.id);
   const certifications = producerId ? await getProducerCertifications(producerId) : [];
 
   if (!profile) {
@@ -58,6 +63,22 @@ export default async function ProducerSettingsPage({
           saveError: t("saveError"),
         }}
       />
+      {/* Spec 0079 AC-19: zgoda per użytkownik (nie per firma), dobrowolna. */}
+      <EmailTrackingConsentForm
+        initialActive={emailTrackingConsent.active}
+        onSave={setProducerEmailTrackingConsent}
+        labels={{
+          heading: t("emailTrackingHeading"),
+          description: consentT("description"),
+          statusOn: t("emailTrackingStatusOn"),
+          statusOff: t("emailTrackingStatusOff"),
+          grant: t("emailTrackingGrant"),
+          withdraw: t("emailTrackingWithdraw"),
+          saved: t("emailTrackingSaved"),
+          saveError: t("emailTrackingSaveError"),
+        }}
+      />
+
       <Card padding="lg">
         <Stack gap={3}>
           <Stack gap={1}>

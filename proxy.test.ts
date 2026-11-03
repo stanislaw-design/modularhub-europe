@@ -14,7 +14,7 @@ vi.mock("next-intl/middleware", () => ({
   default: () => intlMiddlewareMock,
 }));
 
-import { proxy } from "./proxy";
+import { config, proxy } from "./proxy";
 
 beforeEach(() => {
   intlMiddlewareMock.mockClear();
@@ -213,5 +213,19 @@ describe("proxy (spec 0028)", () => {
 
     expect(intlMiddlewareMock).toHaveBeenCalledWith(req);
     expect(response.headers.get("x-intl-middleware")).toBe("reached");
+  });
+});
+
+// Spec 0079 AC-4: /ingest (PostHog) nigdy nie przechodzi przez proxy.ts.
+describe("proxy matcher", () => {
+  const pattern = new RegExp(`^${config.matcher[0]}$`);
+
+  it("excludes /ingest paths", () => {
+    expect(pattern.test("/ingest/e/")).toBe(false);
+    expect(pattern.test("/ingest/static/array.js")).toBe(false);
+  });
+
+  it("still matches normal pages", () => {
+    expect(pattern.test("/pl/sauna")).toBe(true);
   });
 });

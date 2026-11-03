@@ -82,6 +82,7 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 66 | Projekt własny ModularHub w ModularProjects | Slice 12 | in progress |
 | 67 | Koszty hostingu Vercel: Cache Components i ochrona przed botami | Utwardzenie | in progress |
 | 68 | Analityka ruchu i maili w panelu admina | Slice 10 | in progress |
+| 69 | Rozmowy z kontrahentami: notatnik, zadania i dziennik w panelu admina | Slice 10 | in progress |
 
 ## Foundations
 
@@ -623,10 +624,22 @@ Dziś kafelek ruchu na dashboardzie pokazuje zero, bo przeglądarka nic nie wysy
 - [x] Zaprojektuj (spec): [0079](../specs/0079-analityka-ruchu-i-maili/index.md)
 - [ ] Zbuduj: `/develop analityka ruchu i maili w panelu admina`
   - [ ] Etap 1, ruch: tracker ładowany po zgodzie, baner zgody, `/ingest`, atrybucja do producenta, widoki Ruch, Strony, Producenci, polityka prywatności, satisfies AC-1 do AC-9, AC-11, AC-12, AC-17 (przed produkcją opinia prawnika o banerze i polityce prywatności)
-  - [ ] Etap 2, dziennik maili do producentów: migracja `email_message`, dziennik i tag w `sendNotificationEmail()`, webhook Resend, widok Maile (dostarczalność), satisfies AC-10, AC-13 do AC-16
-  - [ ] Etap 3, otwarcia i kliknięcia za zgodą: tabele `user_consent` i `email_event`, pole zgody w rejestracji producenta, przełącznik w ustawieniach, wariant śledzony maila, pikselka i przekierowanie, retencja, satisfies AC-17 do AC-23 (przed produkcją opinia prawnika o tekście zgody)
+  - [x] Etap 2, dziennik maili do producentów: migracja `email_message`, dziennik i tag w `sendNotificationEmail()`, webhook Resend, widok Maile (dostarczalność), satisfies AC-10, AC-13 do AC-16
+  - [x] Etap 3, otwarcia i kliknięcia za zgodą: tabele `user_consent` i `email_event`, pole zgody w rejestracji producenta, przełącznik w ustawieniach, wariant śledzony maila, pikselka i przekierowanie, retencja, satisfies AC-17 do AC-23 (przed produkcją opinia prawnika o tekście zgody)
 - [ ] Zweryfikuj: `/check verify analityka ruchu i maili w panelu admina`
 - [ ] Testuj: `/test analityka ruchu i maili w panelu admina`
+
+### 69. Rozmowy z kontrahentami: notatnik, zadania i dziennik w panelu admina · full · in progress
+Wewnętrzny notatnik dla dwóch administratorów (Stanisław i Artur): firma (producent, dostawca, klient, partner), osoby kontaktowe, równoległe sprawy, dziennik rozmów z załącznikami i zadania z terminami, w tym zadania po stronie zewnętrznej ("czekamy na producenta"). Status sprawy wylicza się z zadań. Notatnik nie dubluje przepływów platformy (zapytania, oferty, duże zamówienia, case), tylko opcjonalnie linkuje do ich rekordów. Rano przychodzi jeden wspólny mail z zadaniami na dziś. Model jest od razu przygotowany pod późniejszego bota (WhatsApp lub Telegram), którego ten krok nie buduje. Funkcja dodana ze [spec 0080](../specs/0080-notatnik-rozmow-z-kontrahentami/index.md).
+**Done when:** obaj administratorzy w `/internal/conversations` widzą na ekranie "Na dziś" zaległe zadania i to, na kogo czekamy, prowadzą firmy, osoby, sprawy i dziennik z plikami PDF i zdjęciami, szybki wpis zapisuje firmę, sprawę, wpis i zadania naraz, a rano przychodzi jeden mail z zadaniami na dziś, bez zmian w istniejących przepływach platformy.
+- [x] Zaprojektuj (spec): [0080](../specs/0080-notatnik-rozmow-z-kontrahentami/index.md)
+- [ ] Zbuduj: `/develop notatnik rozmów z kontrahentami`
+  - [ ] Dane i warstwa domenowa: migracja siedmiu tabel `crm_*`, `lib/conversations/` (zapisy z autorem jako parametrem, status wyliczany, szablony spraw), satisfies AC-4, AC-6, AC-9 do AC-11, AC-13, AC-21
+  - [ ] Ekrany i wprowadzanie: pozycja "Rozmowy" w menu, Na dziś, lista i karta firmy, karta sprawy, zamykanie, szybki wpis, satisfies AC-1, AC-2, AC-4, AC-5, AC-8, AC-12, AC-15 do AC-17, AC-22
+  - [ ] Załączniki i powiązania: wgrywanie do prywatnego R2 z CORS i pobieranie, link do rekordów platformy, połączenie firmy z producentem, satisfies AC-3, AC-7, AC-14, AC-18
+  - [ ] Dzienny mail i dane startowe: cron, wspólny mail, import obecnych producentów jako firm (dev, SQL na produkcję), satisfies AC-19, AC-20
+- [ ] Zweryfikuj: `/check verify notatnik rozmów z kontrahentami`
+- [ ] Testuj: `/test notatnik rozmów z kontrahentami`
 
 ## Slice 11: weryfikacja firmy
 

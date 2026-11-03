@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageviewAttribution } from "@/components/analytics/PageviewAttribution";
 import type { Metadata } from "next";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -237,6 +239,9 @@ export default async function SaunaPage({
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <Suspense fallback={null}>
+        <PageviewAttribution pageType="sauna" producerId={project.producerId} productId={project.id} family={project.family} />
+      </Suspense>
       <GalleryLightboxProvider images={lightboxImages}>
         {/* Ten sam układ hero co /project/[slug]: od lg galeria do krawędzi
             ekranu po lewej, panel zakupowy przyklejony po prawej przez całą

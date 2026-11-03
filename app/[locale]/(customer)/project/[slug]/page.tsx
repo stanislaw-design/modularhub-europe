@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageviewAttribution } from "@/components/analytics/PageviewAttribution";
 import { Award, ShieldCheck, Truck } from "lucide-react";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
@@ -407,6 +409,9 @@ export default async function ProjektPage({
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <Suspense fallback={null}>
+        <PageviewAttribution pageType="project" producerId={project.producerId} productId={project.id} family={project.family} />
+      </Suspense>
       {/* pb-24 rezerwuje miejsce pod sticky pasek CTA na mobile (fixed, więc nie
           zajmuje miejsca w layoucie samodzielnie) — zdejmowane na lg, gdzie pasek
           się nie renderuje i CTA żyje tylko w treści strony. -mt-brand-5 na

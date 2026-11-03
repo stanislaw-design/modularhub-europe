@@ -105,6 +105,8 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/notifications/large-order-produc
     expect(calls).toHaveLength(1);
     const mail = calls[0][0];
     expect(mail).toMatchObject({ emailType: "large_order_producer_new_request", entityId: requestId, distinctId: matching.producerId });
+    // Spec 0079 AC-13: odbiorca w dzienniku maili to id użytkownika.
+    expect(mail.tracking).toEqual({ producerId: matching.producerId, recipientUserId: matching.userId });
     expect(mail.subject).toBe("Nowe zapytanie ModularProjects (12 domów, PL)");
     expect(mail.text).toContain(`https://hub.example.test/pl/producer/panel/board/${requestId}`);
     expect(mail.text).toContain("dom");

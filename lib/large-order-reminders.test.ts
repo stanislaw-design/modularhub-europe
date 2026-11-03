@@ -175,6 +175,8 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/large-order-reminders: real DB (
     const forThreeDays = reminderMock.mock.calls.filter((call) => ours(call) && call[0].id === requestIds.threeDays);
     expect(forThreeDays).toHaveLength(1);
     expect(forThreeDays[0][0]).toMatchObject({ kind: "request", producerId: plain.producerId, threshold: "3d" });
+    // Spec 0079 AC-13: przypomnienie niesie id użytkownika odbiorcy dla dziennika maili.
+    expect(forThreeDays[0][0].recipientUserId).toEqual(expect.any(String));
     expect(first.remindersClaimed).toBeGreaterThanOrEqual(1);
     expect(second.errors).toBe(0);
 

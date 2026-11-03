@@ -112,6 +112,10 @@ describe.skipIf(!process.env.DATABASE_URL)("large-order connection emails: real 
     expect(toProducer.text).toContain("Anna Investor");
     expect(toProducer.text).toContain(investorEmail);
     expect(toProducer.text).toContain("+49123456789");
+    // Spec 0079 AC-13: każdy odbiorca z firmy producenta ma własny wpis dziennika (id użytkownika).
+    expect(producerCalls.map((call) => call.tracking).sort((a, b) => a.recipientUserId.localeCompare(b.recipientUserId))).toEqual(
+      [producerUserId, memberUserId].sort().map((recipientUserId) => ({ producerId, recipientUserId })),
+    );
 
     expect(toTeam.to).toBe("ops@example.test");
     expect(toTeam.text).toContain("LCN Producer");

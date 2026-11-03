@@ -70,6 +70,8 @@ async function sendContent(input: {
   emailType: NotificationEmailType;
   entityId: string;
   distinctId: string;
+  // Spec 0079 AC-13: tylko mail do producenta (large_order_producer_connected).
+  tracking?: { producerId: string; recipientUserId: string | null };
 }): Promise<void> {
   await sendNotificationEmail({
     to: input.to,
@@ -79,6 +81,7 @@ async function sendContent(input: {
     emailType: input.emailType,
     entityId: input.entityId,
     distinctId: input.distinctId,
+    ...(input.tracking ? { tracking: input.tracking } : {}),
   });
 }
 
@@ -154,6 +157,7 @@ export async function notifyOfConnection(input: { kind: Kind; id: string }): Pro
           emailType: "large_order_producer_connected",
           entityId: input.id,
           distinctId: winner.producerId,
+          tracking: { producerId: winner.producerId, recipientUserId: recipient.userId },
         });
       }
     }

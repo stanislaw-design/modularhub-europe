@@ -17,4 +17,7 @@ export interface PendingRegistrationPayload {
   // Producer only.
   countryCode?: CountryCode;
   productionScale?: ProducerProductionScale;
+  // Producer only, spec 0079 AC-18: wersja tekstu zgody na pomiar otwarć i kliknięć w mailach,
+  // ustawiona tylko gdy pole w formularzu było zaznaczone. createUser zapisuje z niej user_consent.
+  emailTrackingConsentVersion?: string;
 }

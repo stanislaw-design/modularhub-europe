@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageviewAttribution } from "@/components/analytics/PageviewAttribution";
 import { ArrowLeft, BadgeCheck } from "lucide-react";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
@@ -68,6 +70,9 @@ export default async function ProducerDetailPage({ params }: { params: Promise<P
 
   return (
     <div className="full-bleed px-[3%] py-brand-6">
+      <Suspense fallback={null}>
+        <PageviewAttribution pageType="producer" producerId={id} />
+      </Suspense>
       <div className="mx-auto flex max-w-[2000px] flex-col gap-brand-5">
         <Link
           href={`/${locale}/producers`}

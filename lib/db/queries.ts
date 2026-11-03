@@ -2792,3 +2792,19 @@ export async function getProducersForPlatformProject(): Promise<PlatformProjectP
     .where(isNull(producer.deletedAt))
     .orderBy(asc(producer.name));
 }
+
+// Spec 0079 AC-9: nazwy producentów do rankingu ruchu (id pochodzi z PostHog).
+export async function getProducerNamesByIds(ids: string[]): Promise<Map<string, string>> {
+  const valid = ids.filter((id) => /^[0-9a-f-]{36}$/i.test(id));
+  if (valid.length === 0) return new Map();
+  const rows = await db.select({ id: producer.id, name: producer.name }).from(producer).where(inArray(producer.id, valid));
+  return new Map(rows.map((row) => [row.id, row.name]));
+}
+
+// Spec 0079 AC-9: nazwy produktów w szczególe producenta (id pochodzi z PostHog).
+export async function getProductNamesByIds(ids: string[]): Promise<Map<string, string>> {
+  const valid = ids.filter((id) => /^[0-9a-f-]{36}$/i.test(id));
+  if (valid.length === 0) return new Map();
+  const rows = await db.select({ id: product.id, name: product.name }).from(product).where(inArray(product.id, valid));
+  return new Map(rows.map((row) => [row.id, row.name ?? row.id]));
+}

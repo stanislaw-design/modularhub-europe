@@ -45,6 +45,17 @@ const nextConfig: NextConfig = {
     },
     proxyClientMaxBodySize: "24mb",
   },
+  // Spec 0079 AC-4: zdarzenia posthog-js idą przez naszą domenę (`/ingest`),
+  // żeby blokery reklam nie ucinały całego ruchu. To dwa przepisania, nie
+  // funkcja; `/ingest` jest poza matcherem proxy.ts. Ścieżki typu `/ingest/e/`
+  // mają ukośnik na końcu, który Next inaczej by usunął przekierowaniem.
+  skipTrailingSlashRedirect: true,
+  async rewrites() {
+    return [
+      { source: "/ingest/static/:path*", destination: "https://eu-assets.i.posthog.com/static/:path*" },
+      { source: "/ingest/:path*", destination: "https://eu.i.posthog.com/:path*" },
+    ];
+  },
   images: {
     remotePatterns: [
       {

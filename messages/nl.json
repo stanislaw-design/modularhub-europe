@@ -2534,7 +2534,13 @@
     "purpose": "Wij verwerken de gegevens uit het aanvraagformulier (naam, e mail, telefoon, perceeladres, bericht) uitsluitend om uw aanvraag te behandelen en u daarover te contacteren.",
     "noMarketing": "Wij gebruiken deze gegevens niet voor marketing en delen ze met niemand, behalve met de producenten naar wie u de aanvraag zelf laat doorsturen.",
     "deletion": "U kunt vragen om uw gegevens te verwijderen. Dergelijke verzoeken behandelen we handmatig.",
-    "contact": "Contact over uw gegevens:"
+    "contact": "Contact over uw gegevens:",
+    "trafficHeading": "Verkeersmeting",
+    "trafficText": "Met uw toestemming (de banner op de site) meten we het verkeer: welke pagina's u bekijkt en hoe lang. We gebruiken PostHog (servers in de EU) en de gebeurtenissen lopen via ons eigen domein. Zonder toestemming wordt er in uw browser niets geladen of opgeslagen, behalve de keuze zelf. U kunt uw toestemming op elk moment wijzigen of intrekken via de link \"Privacyinstellingen\" in de voettekst.",
+    "emailLogHeading": "Logboek van e-mails aan producenten",
+    "emailLogText": "Voor de e-mails over aanvragen die we naar producenten sturen houden we een logboek bij: het type e-mail, de producent, het verzendtijdstip en de informatie van de verzendservice (Resend) of de e-mail is bezorgd, gebounced of als spam gemeld. In het logboek slaan we het e-mailadres en de inhoud van het bericht niet op.",
+    "emailTrackingHeading": "Openingen en klikken in e-mails meten (vrijwillig)",
+    "emailTrackingText": "Als een gebruiker van een producentenaccount hiervoor afzonderlijk toestemming geeft (een veld bij het aanmaken van het account of een schakelaar in de bedrijfsinstellingen), bevatten e-mails van ModularHub Europe aan die persoon een onzichtbare afbeelding en links die via onze server lopen. We slaan dan het tijdstip van een opening en een klik op, plus het adres van de aangeklikte link, niet de inhoud van e-mails. Deze meetgegevens verwijderen we na 13 maanden. Toestemming is vrijwillig, staat los van de voorwaarden en is niet nodig om de site te gebruiken. U kunt haar op elk moment intrekken in de bedrijfsinstellingen in het producentenpaneel, waarna de meting stopt. E-mails zonder uw toestemming bevatten geen afbeelding en geen meetomleidingen."
   },
   "ContactPage": {
     "metaTitle": "Contact | ModularHub Europe",
@@ -2914,7 +2920,12 @@
       "producer": "Aanmelden als fabrikant",
       "investor": "Aanmelden als investeerder",
       "client": "Aanmelden als particuliere klant"
-    }
+    },
+    "privacySettings": "Privacyinstellingen"
+  },
+  "ProducerEmailTrackingConsent": {
+    "label": "Ik ga akkoord met het meten van openingen en klikken in e-mails van ModularHub Europe die naar mijn adres worden gestuurd (vrijwillig)",
+    "description": "Als u akkoord gaat, bevatten e-mails over aanvragen en offertes van ModularHub een onzichtbare afbeelding en links die via onze server lopen. Zo zien we of een e-mail is geopend en een link is aangeklikt, en kunnen we u beter bereiken. We slaan alleen op dat en wanneer er is geopend of geklikt, niet de inhoud van e-mails. Toestemming is vrijwillig, is niet nodig om een account aan te maken of de site te gebruiken en staat los van de voorwaarden. U kunt haar op elk moment intrekken in de bedrijfsinstellingen."
   },
   "ProducerSettingsPage": {
     "heading": "Bedrijfsinstellingen",
@@ -2930,7 +2941,14 @@
     "saveError": "De bedrijfsgegevens konden niet worden opgeslagen.",
     "communicationHeading": "Communicatietaal",
     "communicationLocaleLabel": "Taal van e-mails over aanvragen en offertes",
-    "communicationHint": "In deze taal sturen we e-mails over grote bestellingen, herinneringen en de uitkomst van de keuze. De taal van het paneel verandert hierdoor niet."
+    "communicationHint": "In deze taal sturen we e-mails over grote bestellingen, herinneringen en de uitkomst van de keuze. De taal van het paneel verandert hierdoor niet.",
+    "emailTrackingHeading": "Openingen en klikken in e-mails meten",
+    "emailTrackingStatusOn": "Toestemming is gegeven.",
+    "emailTrackingStatusOff": "Toestemming is niet gegeven.",
+    "emailTrackingGrant": "Ik ga akkoord",
+    "emailTrackingWithdraw": "Toestemming intrekken",
+    "emailTrackingSaved": "Opgeslagen.",
+    "emailTrackingSaveError": "Toestemming kon niet worden opgeslagen. Probeer het opnieuw."
   },
   "ProducerBoardTabs": {
     "ariaLabel": "ModularProjects",
@@ -3071,5 +3089,15 @@
     "modelViewLabel": "Modelweergave",
     "modelUnsupported": "Deze browser kan geen 3D-modellen tonen. Foto's en visualisaties staan in de galerij hieronder.",
     "modelLoading": "3D-model laden"
+  },
+  "ConsentBanner": {
+    "title": "Mogen wij het verkeer op deze site meten?",
+    "text": "Als u akkoord gaat, registreren we bezoekstatistieken (welke pagina's u bekijkt en hoe lang). Zonder uw toestemming wordt niets geladen of opgeslagen. U kunt uw keuze op elk moment wijzigen.",
+    "privacyLink": "Privacybeleid",
+    "accept": "Accepteren",
+    "decline": "Weigeren",
+    "close": "Sluiten",
+    "currentGranted": "Nu: meting staat aan.",
+    "currentDenied": "Nu: meting staat uit."
   }
 }
