@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { closeThreadAction, createThreadAction, reopenThreadAction, updateThreadAction } from "@/app/[locale]/internal/conversations/actions";
 import type { LinkKind } from "@/lib/conversations/constants";
+import { PlatformLinkPicker, type PickedPlatformRecord } from "./PlatformLinkPicker";
 import { ErrorLine, fieldClass, labelClass, labelTextClass, primaryButtonClass, secondaryButtonClass, useRunAction } from "./shared";
 
 interface ThreadCreateFormProps {
@@ -19,6 +20,7 @@ interface ThreadCreateFormProps {
 export function ThreadCreateForm({ locale, partnerId, admins, defaultOwnerId, templates }: ThreadCreateFormProps) {
   const router = useRouter();
   const { run, isPending, error } = useRunAction();
+  const [link, setLink] = useState<PickedPlatformRecord | null>(null);
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -29,7 +31,7 @@ export function ThreadCreateForm({ locale, partnerId, admins, defaultOwnerId, te
           title: String(data.get("title") ?? ""),
           ownerUserId: String(data.get("ownerUserId") ?? ""),
           templateKey: String(data.get("templateKey") ?? "") || null,
-          link: null,
+          link: link ? { kind: link.kind, id: link.id } : null,
         }),
       (result) => {
         if ("id" in result) router.push(`/${locale}/internal/conversations/threads/${result.id}`);
@@ -66,6 +68,7 @@ export function ThreadCreateForm({ locale, partnerId, admins, defaultOwnerId, te
           </select>
         </label>
       </div>
+      <PlatformLinkPicker value={link} onChange={setLink} disabled={isPending} />
       <ErrorLine error={error} />
       <div>
         <button type="submit" disabled={isPending} className={primaryButtonClass}>
@@ -81,13 +84,18 @@ interface ThreadEditFormProps {
   title: string;
   ownerUserId: string;
   admins: { id: string; name: string }[];
-  /** Obecne powiązanie z rekordem platformy, zachowane bez zmian (wybór dojdzie z zadaniem 11). */
+  /** Obecne powiązanie z rekordem platformy. */
   link: { kind: LinkKind; id: string } | null;
+  /** Nazwa powiązanego rekordu do pokazania wyboru; bez niej widać sam identyfikator. */
+  linkLabel?: string | null;
 }
 
-// Edycja tytułu i właściciela sprawy.
-export function ThreadEditForm({ threadId, title, ownerUserId, admins, link }: ThreadEditFormProps) {
+// Edycja tytułu, właściciela i powiązania sprawy z rekordem platformy.
+export function ThreadEditForm({ threadId, title, ownerUserId, admins, link: initialLink, linkLabel }: ThreadEditFormProps) {
   const { run, isPending, error } = useRunAction();
+  const [link, setLink] = useState<PickedPlatformRecord | null>(
+    initialLink ? { kind: initialLink.kind, id: initialLink.id, label: linkLabel ?? initialLink.id } : null,
+  );
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -96,7 +104,7 @@ export function ThreadEditForm({ threadId, title, ownerUserId, admins, link }: T
       updateThreadAction(threadId, {
         title: String(data.get("title") ?? ""),
         ownerUserId: String(data.get("ownerUserId") ?? ""),
-        link,
+        link: link ? { kind: link.kind, id: link.id } : null,
       }),
     );
   }
@@ -119,6 +127,7 @@ export function ThreadEditForm({ threadId, title, ownerUserId, admins, link }: T
           </select>
         </label>
       </div>
+      <PlatformLinkPicker value={link} onChange={setLink} disabled={isPending} />
       <ErrorLine error={error} />
       <div>
         <button type="submit" disabled={isPending} className={primaryButtonClass}>

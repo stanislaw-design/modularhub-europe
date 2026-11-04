@@ -2896,6 +2896,16 @@
     "noOffersNote": "There are no offers. Close the request with the reason \"no offers\" or extend the deadline.",
     "cta": "Open the request in the panel"
   },
+  "ConversationsDigestEmail": {
+    "subject": "Conversations: overdue and due today tasks ({count})",
+    "intro": "Tasks from the conversation notebook that are overdue or due today, grouped by the person responsible.",
+    "overdue": "Overdue",
+    "today": "Due today",
+    "waitingThem": "waiting on them",
+    "dueOn": "due",
+    "noDueDate": "Tasks without a due date: {count}",
+    "cta": "Open Upcoming"
+  },
   "HomePage": {
     "metaTitle": "ModularHub Europe | Modular homes from verified manufacturers",
     "metaDescription": "Compare proven modular homes from across Europe: verified manufacturers, transparent pricing and a regulatory compliance check for your chosen country."

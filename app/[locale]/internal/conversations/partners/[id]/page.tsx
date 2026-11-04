@@ -3,17 +3,21 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { FilterGroup, FilterLink } from "@/components/internal/FilterChips";
 import { ContactsSection } from "@/components/internal/conversations/ContactsSection";
+import { PlatformLinkBadge } from "@/components/internal/conversations/PlatformLinkBadge";
 import { EntryForm } from "@/components/internal/conversations/EntryForm";
 import { EntryList } from "@/components/internal/conversations/EntryList";
 import { PartnerArchiveControl } from "@/components/internal/conversations/PartnerArchiveControl";
 import { dateToWarsawLocal } from "@/lib/conversations/time";
 import { formatDateTime, formatDueDate } from "@/components/internal/conversations/format";
+import { PartnerProducerSection } from "@/components/internal/conversations/PartnerProducerSection";
 import { PartnerForm } from "@/components/internal/conversations/PartnerForm";
 import { TaskStatusPill, ThreadStatusPill } from "@/components/internal/conversations/shared";
 import { TaskForm, TaskRowActions } from "@/components/internal/conversations/TaskControls";
 import { ThreadCreateForm } from "@/components/internal/conversations/ThreadControls";
 import { Heading, Text } from "@/components/ui";
 import { ENTRY_CHANNEL_LABELS, ENTRY_DIRECTION_LABELS, PARTNER_KIND_LABELS } from "@/lib/conversations/constants";
+import { resolvePlatformLinks } from "@/lib/conversations/platform-links";
+import { listAttachmentsForEntries } from "@/lib/conversations/attachments";
 import { getPartnerCard, getUserLabels, listActiveAdmins, listCountries } from "@/lib/conversations/queries";
 import { CASE_TEMPLATES } from "@/lib/conversations/templates";
 
@@ -60,6 +64,12 @@ export default async function ConversationsPartnerPage({
     return label ? (label.active ? label.name : `${label.name} (nieaktywny administrator)`) : "nieznany";
   };
 
+  // Załączniki czytane niezależnie: ich awaria nie psuje reszty ekranu (AC-3).
+const { attachments, attachmentsUnavailable } = await listAttachmentsForEntries(card.entries.map((entry) => entry.id))
+    .then((attachments) => ({ attachments, attachmentsUnavailable: false }))
+    .catch(() => ({ attachments: new Map<string, { id: string; filename: string; sizeBytes: number }[]>(), attachmentsUnavailable: true }));
+
+  const resolvedLinks = await resolvePlatformLinks(card.tasks.map((task) => ({ kind: task.linkKind, id: task.linkId })));
   const showAllThreads = threadsParam === "all";
   const threads = showAllThreads ? card.threads : card.threads.filter((thread) => thread.status !== "closed");
   const openThreads = card.threads.filter((thread) => thread.status !== "closed");
@@ -90,13 +100,6 @@ export default async function ConversationsPartnerPage({
             </>
           ) : null}
         </p>
-        {card.producer && (
-          <p className="text-data text-brand-technical-graphite">
-            {card.producer.available
-              ? `Konto producenta: NIP ${card.producer.nip}, weryfikacja: ${card.producer.verificationStatus}`
-              : "Konto producenta niedostępne"}
-          </p>
-        )}
       </header>
 
       <details className="rounded-data border border-brand-steel/60 p-brand-3">
@@ -118,6 +121,17 @@ export default async function ConversationsPartnerPage({
         </div>
       </details>
       {partner.notes && <p className="whitespace-pre-wrap text-body">{partner.notes}</p>}
+
+      <section aria-labelledby="producer-account" className="flex flex-col gap-brand-3">
+        <Heading level="h3">
+          <span id="producer-account">Konto producenta</span>
+        </Heading>
+        <PartnerProducerSection
+          locale={locale}
+          partnerId={partner.id}
+          producer={partner.producerId && card.producer ? { id: partner.producerId, ...card.producer } : null}
+        />
+      </section>
 
       <section aria-labelledby="contacts" className="flex flex-col gap-brand-3">
         <Heading level="h3">
@@ -186,8 +200,12 @@ export default async function ConversationsPartnerPage({
                     {task.dueDate ? ` · termin ${formatDueDate(task.dueDate)}` : ""}
                     {task.threadTitle ? ` · ${task.threadTitle}` : ""}
                   </p>
-                  <div className="mt-brand-1">
+                  <div className="mt-brand-1 flex flex-wrap items-center gap-brand-2">
                     <TaskStatusPill status={task.status} />
+                    {(() => {
+                      const taskLink = task.linkKind && task.linkId ? resolvedLinks.get(`${task.linkKind}:${task.linkId}`) : undefined;
+                      return taskLink ? <PlatformLinkBadge locale={locale} link={taskLink} /> : null;
+                    })()}
                   </div>
                 </div>
                 <TaskRowActions
@@ -238,6 +256,8 @@ export default async function ConversationsPartnerPage({
           <Text tone="muted">Brak wpisów.</Text>
         ) : (
           <EntryList
+            locale={locale}
+            attachmentsUnavailable={attachmentsUnavailable}
             partnerId={partner.id}
             contacts={contactChoices}
             threads={card.threads.map((thread) => ({ id: thread.id, title: thread.title }))}
@@ -258,6 +278,7 @@ export default async function ConversationsPartnerPage({
               occurredAtLocal: dateToWarsawLocal(entry.occurredAt),
               direction: entry.direction,
               channel: entry.channel,
+              attachments: attachments.get(entry.id) ?? [],
             }))}
           />
         )}

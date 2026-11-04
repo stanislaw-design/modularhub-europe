@@ -2896,6 +2896,16 @@
     "noOffersNote": "Es gibt kein Angebot. Schließen Sie die Anfrage mit dem Grund „keine Angebote“ oder verlängern Sie die Frist.",
     "cta": "Anfrage im Panel öffnen"
   },
+  "ConversationsDigestEmail": {
+    "subject": "Gespräche: überfällige und heute fällige Aufgaben ({count})",
+    "intro": "Aufgaben aus dem Gesprächsnotizbuch, die überfällig oder heute fällig sind, nach verantwortlicher Person gruppiert.",
+    "overdue": "Überfällig",
+    "today": "Heute fällig",
+    "waitingThem": "wir warten auf sie",
+    "dueOn": "fällig",
+    "noDueDate": "Aufgaben ohne Termin: {count}",
+    "cta": "Anstehendes öffnen"
+  },
   "HomePage": {
     "metaTitle": "ModularHub Europe | Modulhäuser von geprüften Herstellern",
     "metaDescription": "Vergleichen Sie bewährte Modulhäuser aus ganz Europa: geprüfte Hersteller, transparente Preise und eine Prüfung der Konformität mit den Vorschriften im gewählten Land."

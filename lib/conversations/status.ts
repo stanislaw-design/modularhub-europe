@@ -40,7 +40,7 @@ export interface TodayTaskLike {
 }
 
 /** Pierwsza pasująca sekcja ekranu "Najbliższe" (AC-15), albo null, gdy zadanie nie pasuje do żadnej. */
-export function classifyTodayTask(task: TodayTaskLike, today: string): TodaySection | null {
+export function classifyTodayTask(task: TodayTaskLike): TodaySection | null {
   if (task.assigneeKind === "user" && task.dueDate !== null) return "toDo";
   if (task.assigneeKind === "external" && task.dueDate !== null) return "waitingThem";
   if (task.dueDate === null) return "noDueDate";

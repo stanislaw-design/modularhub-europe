@@ -1,6 +1,7 @@
 "use client";
 
-import { type FormEvent, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { type FormEvent, useRef, useState } from "react";
 import { createEntryAction, updateEntryAction } from "@/app/[locale]/internal/conversations/actions";
 import {
   ENTRY_CHANNEL_LABELS,
@@ -10,6 +11,7 @@ import {
   type EntryChannel,
   type EntryDirection,
 } from "@/lib/conversations/constants";
+import { ATTACHMENT_ACCEPT, checkFilesBeforeUpload, formatFileSize, uploadEntryAttachments } from "./upload-attachments";
 import {
   ErrorLine,
   fieldClass,
@@ -37,12 +39,17 @@ interface EntryFormProps {
     channel: EntryChannel;
     body: string;
   };
+  /** Ile aktywnych plików ma już edytowany wpis (limit pięciu na wpis). */
+  attachmentCount?: number;
   onDone?: () => void;
 }
 
 // Wpis w dzienniku (AC-13). Autor i źródło ustawia serwer, a pusta data oznacza "teraz".
-export function EntryForm({ partnerId, contacts, fixedThreadId, threads = [], entry, onDone }: EntryFormProps) {
-  const { run, isPending, error } = useRunAction();
+export function EntryForm({ partnerId, contacts, fixedThreadId, threads = [], entry, attachmentCount = 0, onDone }: EntryFormProps) {
+  const router = useRouter();
+  const { run, isPending, error, setError } = useRunAction();
+  const [files, setFiles] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -56,13 +63,37 @@ export function EntryForm({ partnerId, contacts, fixedThreadId, threads = [], en
       channel: String(data.get("channel")) as EntryChannel,
       body: String(data.get("body") ?? ""),
     };
+    const fileError = checkFilesBeforeUpload(files, attachmentCount);
+    if (fileError) {
+      setError(fileError);
+      return;
+    }
+    const pending = files;
     run(
-      () => (entry ? updateEntryAction(entry.id, input) : createEntryAction(partnerId, input)),
+      async () => {
+        const saved = entry ? await updateEntryAction(entry.id, input) : await createEntryAction(partnerId, input);
+        if (!saved.ok || pending.length === 0) return saved;
+        const createdId = (saved as { id?: unknown }).id;
+        const entryId = entry ? entry.id : typeof createdId === "string" ? createdId : null;
+        if (!entryId) return saved;
+        const failure = await uploadEntryAttachments(entryId, pending);
+        if (!failure) return saved;
+        // Wpis jest już zapisany, więc formularz się czyści, a plik trzeba dodać ponownie przy edycji wpisu.
+        reset();
+        router.refresh();
+        return { ok: false as const, error: `Wpis zapisano, ale nie wszystkie pliki zostały dodane. ${failure} Dodaj brakujące pliki przez „Edytuj”.` };
+      },
       () => {
-        if (!entry) formRef.current?.reset();
+        reset();
         onDone?.();
       },
     );
+  }
+
+  function reset() {
+    if (!entry) formRef.current?.reset();
+    setFiles([]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
   return (
@@ -140,10 +171,34 @@ export function EntryForm({ partnerId, contacts, fixedThreadId, threads = [], en
           className={textareaClass}
         />
       </label>
+      <div className={labelClass}>
+        <label htmlFor={`entry-files-${entry?.id ?? "new"}`} className={labelTextClass}>
+          Pliki (PDF, JPEG, PNG, WebP, do 20 MB każdy, najwyżej 5 na wpis)
+        </label>
+        <input
+          ref={fileInputRef}
+          id={`entry-files-${entry?.id ?? "new"}`}
+          type="file"
+          multiple
+          accept={ATTACHMENT_ACCEPT}
+          disabled={isPending}
+          onChange={(event) => setFiles(Array.from(event.target.files ?? []))}
+          className="focus-ring text-body"
+        />
+        {files.length > 0 && (
+          <ul className="text-data text-brand-technical-graphite">
+            {files.map((file) => (
+              <li key={`${file.name}-${file.size}`}>
+                {file.name} ({formatFileSize(file.size)})
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
       <ErrorLine error={error} />
       <div className="flex gap-brand-2">
         <button type="submit" disabled={isPending} className={primaryButtonClass}>
-          {isPending ? "Zapisuję…" : entry ? "Zapisz wpis" : "Dodaj wpis"}
+          {isPending ? (files.length ? "Wysyłam pliki…" : "Zapisuję…") : entry ? "Zapisz wpis" : "Dodaj wpis"}
         </button>
         {onDone && (
           <button type="button" onClick={onDone} className={secondaryButtonClass}>

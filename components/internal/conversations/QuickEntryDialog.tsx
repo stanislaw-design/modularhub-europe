@@ -3,7 +3,7 @@
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
 import { Plus, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useMemo, useState } from "react";
+import { type FormEvent, useState } from "react";
 import { createQuickEntryAction, findSimilarPartnersAction } from "@/app/[locale]/internal/conversations/actions";
 import {
   ENTRY_CHANNEL_LABELS,
@@ -16,6 +16,7 @@ import {
   type EntryDirection,
   type PartnerKind,
 } from "@/lib/conversations/constants";
+import { PartnerPicker } from "./PartnerPicker";
 import {
   ErrorLine,
   fieldClass,
@@ -47,26 +48,23 @@ export function QuickEntryDialog({ locale, currentUserId, admins, partners, thre
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const { run, isPending, error, setError } = useRunAction();
-  const [partnerChoice, setPartnerChoice] = useState<string>(NEW);
+  // Domyślnie istniejąca firma (częstszy przypadek); bez żadnej firmy na liście od razu nowa.
+  const [partnerMode, setPartnerMode] = useState<"existing" | "new">(partners.length ? "existing" : "new");
+  const [partnerChoice, setPartnerChoice] = useState<string>("");
   const [threadChoice, setThreadChoice] = useState<string>(NONE);
-  const [filter, setFilter] = useState("");
   const [taskKeys, setTaskKeys] = useState<number[]>([]);
   const [nextKey, setNextKey] = useState(0);
   const [similar, setSimilar] = useState<{ id: string; name: string; archived: boolean }[]>([]);
   const [checking, setChecking] = useState(false);
 
-  const visiblePartners = useMemo(() => {
-    const needle = filter.trim().toLowerCase();
-    return needle ? partners.filter((partner) => partner.name.toLowerCase().includes(needle) || partner.id === partnerChoice) : partners;
-  }, [filter, partners, partnerChoice]);
   const partnerThreads = threads.filter((thread) => thread.partnerId === partnerChoice);
   const partnerContacts = contacts.filter((contact) => contact.partnerId === partnerChoice);
-  const isNewPartner = partnerChoice === NEW;
+  const isNewPartner = partnerMode === "new";
 
   function reset() {
-    setPartnerChoice(NEW);
+    setPartnerMode(partners.length ? "existing" : "new");
+    setPartnerChoice("");
     setThreadChoice(NONE);
-    setFilter("");
     setTaskKeys([]);
     setSimilar([]);
     setError(null);
@@ -76,6 +74,11 @@ export function QuickEntryDialog({ locale, currentUserId, admins, partners, thre
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const text = (name: string) => String(data.get(name) ?? "");
+
+    if (!isNewPartner && !partnerChoice) {
+      setError("Wybierz firmę albo przełącz na „Nowa firma”.");
+      return;
+    }
 
     const newPartnerName = text("partnerName");
     if (isNewPartner && !similar.length) {
@@ -143,34 +146,50 @@ export function QuickEntryDialog({ locale, currentUserId, admins, partners, thre
         <DialogBackdrop className="fixed inset-0 bg-black/40" />
         <div className="fixed inset-0 flex items-start justify-center overflow-y-auto p-brand-3">
           <DialogPanel className="my-brand-4 w-full max-w-3xl rounded-data bg-brand-warm-white p-brand-4 text-brand-foundation-navy">
-            <DialogTitle className="text-h3 font-semibold">Szybki wpis</DialogTitle>
-            <form onSubmit={onSubmit} className="mt-brand-3 flex flex-col gap-brand-4" aria-label="Szybki wpis">
-              <fieldset className="flex flex-col gap-brand-3">
-                <legend className="mb-brand-1 text-label font-medium uppercase tracking-[0.08em] text-brand-technical-graphite">Firma</legend>
-                <label className={labelClass}>
-                  <span className={labelTextClass}>Szukaj na liście</span>
-                  <input value={filter} onChange={(event) => setFilter(event.target.value)} disabled={busy} className={fieldClass} />
-                </label>
-                <label className={labelClass}>
-                  <span className={labelTextClass}>Firma</span>
-                  <select
+            <form onSubmit={onSubmit} className="flex flex-col gap-brand-4" aria-label="Szybki wpis">
+              <div className="flex flex-wrap items-center justify-between gap-brand-3">
+                <DialogTitle className="text-h3 font-semibold">Szybki wpis</DialogTitle>
+                <div role="radiogroup" aria-label="Rodzaj firmy" className="inline-flex rounded-data border border-brand-steel p-brand-1">
+                  {(
+                    [
+                      ["existing", "Istniejąca firma"],
+                      ["new", "Nowa firma"],
+                    ] as const
+                  ).map(([mode, label]) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      role="radio"
+                      aria-checked={partnerMode === mode}
+                      disabled={busy || (mode === "existing" && partners.length === 0)}
+                      onClick={() => {
+                        setPartnerMode(mode);
+                        setThreadChoice(NONE);
+                        setSimilar([]);
+                        setError(null);
+                      }}
+                      className={`focus-ring h-9 rounded-data px-brand-3 text-body font-medium disabled:opacity-50 ${
+                        partnerMode === mode ? "bg-brand-foundation-navy text-brand-warm-white" : "text-brand-foundation-navy hover:bg-brand-steel/30"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <fieldset aria-label="Firma" className="flex flex-col gap-brand-3">
+                {!isNewPartner && (
+                  <PartnerPicker
                     value={partnerChoice}
-                    onChange={(event) => {
-                      setPartnerChoice(event.target.value);
+                    onChange={(id) => {
+                      setPartnerChoice(id);
                       setThreadChoice(NONE);
-                      setSimilar([]);
+                      setError(null);
                     }}
+                    partners={partners}
                     disabled={busy}
-                    className={fieldClass}
-                  >
-                    <option value={NEW}>Nowa firma</option>
-                    {visiblePartners.map((partner) => (
-                      <option key={partner.id} value={partner.id}>
-                        {partner.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                  />
+                )}
                 {isNewPartner && (
                   <div className="grid gap-brand-3 sm:grid-cols-2">
                     <label className={labelClass}>

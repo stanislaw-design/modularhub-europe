@@ -21,14 +21,14 @@ describe("computeThreadStatus (AC-11)", () => {
 describe("classifyTodayTask (AC-15)", () => {
   const today = "2026-11-03";
   it("do wykonania to zadania administratorów z terminem: zaległe, dzisiejsze i przyszłe", () => {
-    expect(classifyTodayTask({ assigneeKind: "user", dueDate: "2026-11-01" }, today)).toBe("toDo");
-    expect(classifyTodayTask({ assigneeKind: "user", dueDate: today }, today)).toBe("toDo");
-    expect(classifyTodayTask({ assigneeKind: "user", dueDate: "2026-11-09" }, today)).toBe("toDo");
-    expect(classifyTodayTask({ assigneeKind: "external", dueDate: "2026-11-01" }, today)).toBe("waitingThem");
+    expect(classifyTodayTask({ assigneeKind: "user", dueDate: "2026-11-01" })).toBe("toDo");
+    expect(classifyTodayTask({ assigneeKind: "user", dueDate: today })).toBe("toDo");
+    expect(classifyTodayTask({ assigneeKind: "user", dueDate: "2026-11-09" })).toBe("toDo");
+    expect(classifyTodayTask({ assigneeKind: "external", dueDate: "2026-11-01" })).toBe("waitingThem");
   });
   it("bez terminu trafia do ostatniej sekcji, oba rodzaje", () => {
-    expect(classifyTodayTask({ assigneeKind: "user", dueDate: null }, today)).toBe("noDueDate");
-    expect(classifyTodayTask({ assigneeKind: "external", dueDate: null }, today)).toBe("noDueDate");
+    expect(classifyTodayTask({ assigneeKind: "user", dueDate: null })).toBe("noDueDate");
+    expect(classifyTodayTask({ assigneeKind: "external", dueDate: null })).toBe("noDueDate");
   });
 });
 

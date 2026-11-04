@@ -72,6 +72,13 @@ export const LINK_KIND_LABELS: Record<LinkKind, string> = {
   product: "Produkt",
 };
 
+export const PRODUCER_VERIFICATION_LABELS: Record<string, string> = {
+  not_submitted: "Weryfikacja nie wysłana",
+  pending: "Weryfikacja w toku",
+  approved: "Zweryfikowany",
+  rejected: "Odrzucony",
+};
+
 export const THREAD_STATUSES = ["closed", "waiting_us", "waiting_them", "open"] as const;
 export type ThreadStatus = (typeof THREAD_STATUSES)[number];
 export const THREAD_STATUS_LABELS: Record<ThreadStatus, string> = {

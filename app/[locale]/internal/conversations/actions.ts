@@ -2,6 +2,11 @@
 
 import { auth } from "@/auth";
 import {
+  confirmEntryAttachment as confirmEntryAttachmentDomain,
+  deleteEntryAttachment as deleteEntryAttachmentDomain,
+  requestEntryAttachmentUpload as requestEntryAttachmentUploadDomain,
+} from "@/lib/conversations/attachments";
+import {
   archivePartner as archivePartnerDomain,
   closeThread as closeThreadDomain,
   createContact as createContactDomain,
@@ -13,6 +18,8 @@ import {
   deleteContact as deleteContactDomain,
   findSimilarPartners as findSimilarPartnersDomain,
   isActiveAdmin,
+  linkPartnerProducer as linkPartnerProducerDomain,
+  unlinkPartnerProducer as unlinkPartnerProducerDomain,
   reopenThread as reopenThreadDomain,
   restorePartner as restorePartnerDomain,
   setTaskStatus as setTaskStatusDomain,
@@ -26,8 +33,11 @@ import {
   type Result,
   type SimilarPartner,
 } from "@/lib/conversations/mutations";
+import { isLinkKind, searchPlatformRecords, type PlatformRecordOption } from "@/lib/conversations/platform-links";
+import { suggestProducersForPartner, type ProducerSuggestion } from "@/lib/conversations/queries";
 import type { TaskStatus } from "@/lib/conversations/constants";
 import type {
+  AttachmentDeclaration,
   CloseThreadDecisions,
   ContactInput,
   EntryInput,
@@ -142,4 +152,40 @@ export async function setTaskStatusAction(taskId: string, status: TaskStatus) {
 
 export async function createQuickEntryAction(input: QuickEntryInput) {
   return run("createQuickEntry", (actor) => createQuickEntryDomain(actor, input));
+}
+
+export async function requestEntryAttachmentUploadAction(entryId: string, declaration: AttachmentDeclaration) {
+  return run("requestEntryAttachmentUpload", (actor) => requestEntryAttachmentUploadDomain(actor, entryId, declaration));
+}
+
+export async function confirmEntryAttachmentAction(entryId: string, key: string, declaration: AttachmentDeclaration) {
+  return run("confirmEntryAttachment", (actor) => confirmEntryAttachmentDomain(actor, entryId, key, declaration));
+}
+
+export async function deleteEntryAttachmentAction(attachmentId: string) {
+  return run("deleteEntryAttachment", (actor) => deleteEntryAttachmentDomain(actor, attachmentId));
+}
+
+// Wyszukiwanie rekordu platformy do podlinkowania (AC-18). Tylko odczyt.
+export async function searchPlatformRecordsAction(kind: string, query: string): Promise<Result<{ options: PlatformRecordOption[] }>> {
+  return run("searchPlatformRecords", async (): Promise<Result<{ options: PlatformRecordOption[] }>> => {
+    const requested = String(kind);
+    if (!isLinkKind(requested)) return { ok: false, error: "Nieznany rodzaj rekordu" };
+    return { ok: true, options: await searchPlatformRecords(requested, String(query ?? "")) };
+  });
+}
+
+export async function suggestProducersAction(partnerId: string, query: string): Promise<Result<{ suggestions: ProducerSuggestion[] }>> {
+  return run("suggestProducers", async () => ({
+    ok: true as const,
+    suggestions: await suggestProducersForPartner(String(partnerId), String(query ?? "")),
+  }));
+}
+
+export async function linkPartnerProducerAction(partnerId: string, producerId: string) {
+  return run("linkPartnerProducer", (actor) => linkPartnerProducerDomain(actor, partnerId, producerId));
+}
+
+export async function unlinkPartnerProducerAction(partnerId: string) {
+  return run("unlinkPartnerProducer", (actor) => unlinkPartnerProducerDomain(actor, partnerId));
 }

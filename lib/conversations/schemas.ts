@@ -1,6 +1,8 @@
 import { z } from "zod";
 import {
   ASSIGNEE_KINDS,
+  ATTACHMENT_MAX_BYTES,
+  ATTACHMENT_MIME_TYPES,
   CONTACT_CHANNELS,
   CONTACT_LANGUAGES,
   ENTRY_CHANNELS,
@@ -53,7 +55,7 @@ export const partnerInputSchema = z.object({
     .transform((tags) => [...new Set(tags)]),
   notes: optionalText(5000),
 });
-export type PartnerInput = z.infer<typeof partnerInputSchema>;
+export type PartnerInput = z.input<typeof partnerInputSchema>;
 
 export const contactInputSchema = z.object({
   name: requiredText(200, "Podaj imię i nazwisko"),
@@ -64,7 +66,7 @@ export const contactInputSchema = z.object({
   language: z.enum(CONTACT_LANGUAGES).optional().nullable().transform((v) => v ?? null),
   note: optionalText(2000),
 });
-export type ContactInput = z.infer<typeof contactInputSchema>;
+export type ContactInput = z.input<typeof contactInputSchema>;
 
 export const threadInputSchema = z.object({
   title: requiredText(200, "Podaj tytuł sprawy"),
@@ -72,7 +74,7 @@ export const threadInputSchema = z.object({
   templateKey: optionalText(60),
   link: linkSchema,
 });
-export type ThreadInput = z.infer<typeof threadInputSchema>;
+export type ThreadInput = z.input<typeof threadInputSchema>;
 
 export const entryInputSchema = z.object({
   threadId: uuidSchema.optional().nullable().transform((v) => v ?? null),
@@ -89,7 +91,7 @@ export const entryInputSchema = z.object({
   channel: z.enum(ENTRY_CHANNELS),
   body: requiredText(10000, "Wpisz treść"),
 });
-export type EntryInput = z.infer<typeof entryInputSchema>;
+export type EntryInput = z.input<typeof entryInputSchema>;
 
 export const taskAssigneeSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal(ASSIGNEE_KINDS[0]), userId: requiredText(100, "Wybierz osobę") }),
@@ -108,7 +110,7 @@ export const taskInputSchema = z.object({
   threadId: uuidSchema.optional().nullable().transform((v) => v ?? null),
   link: linkSchema,
 });
-export type TaskInput = z.infer<typeof taskInputSchema>;
+export type TaskInput = z.input<typeof taskInputSchema>;
 
 export const taskStatusSchema = z.enum(TASK_STATUSES);
 
@@ -139,3 +141,16 @@ export const quickEntrySchema = z.object({
   tasks: z.array(taskInputSchema.omit({ threadId: true })).max(10).default([]),
 });
 export type QuickEntryInput = z.input<typeof quickEntrySchema>;
+
+// Załączniki wpisu (AC-14): deklaracja z przeglądarki. Rozmiar i typ są sprawdzane jeszcze raz po
+// wgraniu (rozmiar z HEAD, typ po bajtach pliku), więc to tylko pierwsza, tania bramka.
+export const attachmentDeclarationSchema = z.object({
+  filename: requiredText(255, "Podaj nazwę pliku"),
+  mimeType: z.enum(ATTACHMENT_MIME_TYPES, { message: "Dozwolone są pliki PDF, JPEG, PNG i WebP" }),
+  sizeBytes: z
+    .number()
+    .int()
+    .positive("Plik jest pusty")
+    .max(ATTACHMENT_MAX_BYTES, "Plik jest większy niż 20 MB"),
+});
+export type AttachmentDeclaration = z.infer<typeof attachmentDeclarationSchema>;

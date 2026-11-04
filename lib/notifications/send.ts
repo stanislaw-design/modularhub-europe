@@ -38,10 +38,12 @@ export type NotificationEmailType =
   | "large_order_team_new_quote"
   | "large_order_client_summary_published"
   | "large_order_producer_reminder"
-  | "large_order_team_deadline";
+  | "large_order_team_deadline"
+  | "crm_daily_digest";
 
 export interface SendNotificationEmailInput {
-  to: string;
+  // Jeden adres albo lista (wspólny mail dzienny do wszystkich administratorów, spec 0080 AC-19).
+  to: string | string[];
   subject: string;
   html?: string;
   text?: string;
@@ -170,7 +172,7 @@ export async function sendNotificationEmail(input: SendNotificationEmailInput): 
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         from: fromAddress(),
-        to: [input.to],
+        to: Array.isArray(input.to) ? input.to : [input.to],
         subject: input.subject,
         ...(input.replyTo ? { reply_to: input.replyTo } : {}),
         ...(prepared.html ? { html: prepared.html } : {}),

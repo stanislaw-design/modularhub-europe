@@ -2,6 +2,7 @@ import { and, asc, eq, isNull } from "drizzle-orm";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { PlatformLinkBadge } from "@/components/internal/conversations/PlatformLinkBadge";
 import { EntryForm } from "@/components/internal/conversations/EntryForm";
 import { formatDateTime, formatDueDate } from "@/components/internal/conversations/format";
 import { TaskStatusPill, ThreadStatusPill } from "@/components/internal/conversations/shared";
@@ -10,7 +11,9 @@ import { EntryList } from "@/components/internal/conversations/EntryList";
 import { CloseThreadControl, ThreadEditForm } from "@/components/internal/conversations/ThreadControls";
 import { dateToWarsawLocal } from "@/lib/conversations/time";
 import { Heading, Text } from "@/components/ui";
-import { ENTRY_CHANNEL_LABELS, ENTRY_DIRECTION_LABELS, LINK_KIND_LABELS, type LinkKind } from "@/lib/conversations/constants";
+import { ENTRY_CHANNEL_LABELS, ENTRY_DIRECTION_LABELS, type LinkKind } from "@/lib/conversations/constants";
+import { listAttachmentsForEntries } from "@/lib/conversations/attachments";
+import { isLinkKind, resolvePlatformLinks } from "@/lib/conversations/platform-links";
 import { getThreadCard, getUserLabels, listActiveAdmins } from "@/lib/conversations/queries";
 import { getCaseTemplate } from "@/lib/conversations/templates";
 import { db } from "@/lib/db/client";
@@ -59,6 +62,19 @@ export default async function ConversationsThreadPage({ params }: { params: Prom
     return label ? (label.active ? label.name : `${label.name} (nieaktywny administrator)`) : "nieznany";
   };
 
+  // Załączniki czytane niezależnie: ich awaria nie psuje reszty ekranu (AC-3).
+const { attachments, attachmentsUnavailable } = await listAttachmentsForEntries(entries.map((entry) => entry.id))
+    .then((attachments) => ({ attachments, attachmentsUnavailable: false }))
+    .catch(() => ({ attachments: new Map<string, { id: string; filename: string; sizeBytes: number }[]>(), attachmentsUnavailable: true }));
+
+  // Linki sprawy i zadań czytane niezależnie od reszty ekranu; awaria jednego daje "rekord niedostępny" (AC-3).
+  const resolvedLinks = await resolvePlatformLinks([
+    { kind: thread.linkKind, id: thread.linkId },
+    ...tasks.map((task) => ({ kind: task.linkKind, id: task.linkId })),
+  ]);
+  const linkOf = (kind: string | null, id: string | null) => (kind && id ? resolvedLinks.get(`${kind}:${id}`) : undefined);
+  const threadLink = linkOf(thread.linkKind, thread.linkId);
+
   const closed = thread.status === "closed";
   const adminChoices = admins.map((admin) => ({ id: admin.id, name: admin.name }));
   const openTasks = tasks.filter((task) => task.status === "open");
@@ -78,7 +94,7 @@ export default async function ConversationsThreadPage({ params }: { params: Prom
           <ThreadStatusPill status={thread.status} />
           <span>Właściciel: {labelOf(thread.ownerUserId)}</span>
           {template && <span>Szablon: {template.name}</span>}
-          {thread.linkKind && <span>Powiązanie: {LINK_KIND_LABELS[thread.linkKind as LinkKind] ?? thread.linkKind}</span>}
+          {threadLink && <PlatformLinkBadge locale={locale} link={threadLink} />}
         </div>
         <details className="mt-brand-2 rounded-data border border-brand-steel/60 p-brand-3">
           <summary className="focus-ring cursor-pointer text-body font-medium">Edytuj sprawę</summary>
@@ -88,7 +104,8 @@ export default async function ConversationsThreadPage({ params }: { params: Prom
               title={thread.title}
               ownerUserId={thread.ownerUserId}
               admins={adminChoices}
-              link={thread.linkKind && thread.linkId ? { kind: thread.linkKind as LinkKind, id: thread.linkId } : null}
+              link={thread.linkKind && thread.linkId && isLinkKind(thread.linkKind) ? { kind: thread.linkKind as LinkKind, id: thread.linkId } : null}
+              linkLabel={threadLink?.available ? threadLink.label : null}
             />
           </div>
         </details>
@@ -112,8 +129,12 @@ export default async function ConversationsThreadPage({ params }: { params: Prom
                       : `Strona zewnętrzna${task.externalContactName ? `: ${task.externalContactName}` : ""}`}
                     {task.dueDate ? ` · termin ${formatDueDate(task.dueDate)}` : ""}
                   </p>
-                  <div className="mt-brand-1">
+                  <div className="mt-brand-1 flex flex-wrap items-center gap-brand-2">
                     <TaskStatusPill status={task.status} />
+                    {(() => {
+                      const taskLink = linkOf(task.linkKind, task.linkId);
+                      return taskLink ? <PlatformLinkBadge locale={locale} link={taskLink} /> : null;
+                    })()}
                   </div>
                 </div>
                 <TaskRowActions
@@ -154,6 +175,8 @@ export default async function ConversationsThreadPage({ params }: { params: Prom
           <Text tone="muted">Brak wpisów.</Text>
         ) : (
           <EntryList
+            locale={locale}
+            attachmentsUnavailable={attachmentsUnavailable}
             partnerId={thread.partnerId}
             contacts={contacts}
             fixedThreadId={thread.id}
@@ -173,6 +196,7 @@ export default async function ConversationsThreadPage({ params }: { params: Prom
               occurredAtLocal: dateToWarsawLocal(entry.occurredAt),
               direction: entry.direction,
               channel: entry.channel,
+              attachments: attachments.get(entry.id) ?? [],
             }))}
           />
         )}

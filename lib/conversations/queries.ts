@@ -3,7 +3,7 @@ import { and, asc, desc, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm
 import { db } from "@/lib/db/client";
 import { country, crmContact, crmEntry, crmPartner, crmTask, crmThread, producer, users } from "@/lib/db/schema";
 import { PARTNERS_PAGE_SIZE, type PartnerKind, type ThreadStatus } from "./constants";
-import { classifyTodayTask, computeThreadStatus, taskOwnerUserId, type TodaySection } from "./status";
+import { classifyTodayTask, computeThreadStatus, partnerNamesSimilar, taskOwnerUserId, type TodaySection } from "./status";
 
 // Odczyty notatnika rozmów (spec 0080). Status sprawy jest zawsze wyliczany tutaj z zadań,
 // nigdy czytany z kolumny. Brama roli jest w stronach i akcjach, nie tu.
@@ -243,7 +243,7 @@ export interface PartnerCard {
     producerId: string | null;
     archivedAt: Date | null;
   };
-  producer: { available: true; nip: string; verificationStatus: string } | { available: false } | null;
+  producer: { available: true; name: string; nip: string; verificationStatus: string } | { available: false } | null;
   contacts: (typeof crmContact.$inferSelect)[];
   threads: ThreadRow[];
   entries: EntryRow[];
@@ -304,12 +304,12 @@ export async function getPartnerCard(partnerId: string, entryThreadFilter?: stri
 async function readProducerInfo(producerId: string): Promise<PartnerCard["producer"]> {
   try {
     const [row] = await db
-      .select({ nip: producer.nip, verificationStatus: producer.verificationStatus, deletedAt: producer.deletedAt })
+      .select({ name: producer.name, nip: producer.nip, verificationStatus: producer.verificationStatus, deletedAt: producer.deletedAt })
       .from(producer)
       .where(eq(producer.id, producerId))
       .limit(1);
     if (!row || row.deletedAt) return { available: false };
-    return { available: true, nip: row.nip, verificationStatus: row.verificationStatus };
+    return { available: true, name: row.name, nip: row.nip, verificationStatus: row.verificationStatus };
   } catch {
     return { available: false };
   }
@@ -397,7 +397,7 @@ export async function getTodayView(viewerUserId: string, scope: "mine" | "all"):
   const view: TodayView = { toDo: [], waitingThem: [], noDueDate: [] };
   for (const task of tasks) {
     if (scope === "mine" && task.ownerUserId !== viewerUserId) continue;
-    const section = classifyTodayTask(task, today);
+    const section = classifyTodayTask(task);
     if (section) view[section].push(task);
   }
   return { today, view };
@@ -435,4 +435,100 @@ export async function getQuickEntryOptions(): Promise<QuickEntryOptions> {
       .orderBy(asc(crmContact.name)),
   ]);
   return { partners, threads, contacts };
+}
+
+// ---------------------------------------------------------------------------
+// Podpowiedzi producentów do połączenia z firmą (AC-7)
+// ---------------------------------------------------------------------------
+
+export type ProducerSuggestionReason = "email" | "name" | "search";
+
+export interface ProducerSuggestion {
+  id: string;
+  name: string;
+  nip: string;
+  countryCode: string;
+  verificationStatus: string;
+  reason: ProducerSuggestionReason;
+  /** Firma, z którą producent jest już połączony (także zarchiwizowana); wtedy nie da się go wybrać. */
+  linkedPartnerId: string | null;
+  linkedPartnerName: string | null;
+  linkedPartnerArchived: boolean;
+}
+
+const SUGGESTION_LIMIT = 12;
+
+/** Wzorzec ILIKE "zawiera" z zabezpieczonymi znakami specjalnymi. */
+function escapeLike(value: string): string {
+  return "%" + value.replace(/[%_\\]/g, (char) => "\\" + char) + "%";
+}
+
+/**
+ * Producenci do wyboru: najpierw ci, których konto ma mail jednej z osób kontaktowych firmy, potem
+ * o nazwie podobnej do nazwy firmy (ta sama reguła co ostrzeżenie o duplikatach), na końcu trafienia
+ * wpisanej nazwy (od 2 znaków). Wyszukiwanie po nazwie działa także bez podpowiedzi.
+ */
+export async function suggestProducersForPartner(partnerId: string, rawQuery: string): Promise<ProducerSuggestion[]> {
+  const q = rawQuery.trim().slice(0, 100);
+  const [partner] = await db.select({ name: crmPartner.name }).from(crmPartner).where(eq(crmPartner.id, partnerId)).limit(1);
+  if (!partner) return [];
+
+  const contactEmails = (
+    await db
+      .select({ email: crmContact.email })
+      .from(crmContact)
+      .where(and(eq(crmContact.partnerId, partnerId), isNull(crmContact.deletedAt)))
+  ).flatMap((row) => (row.email ? [row.email.trim().toLowerCase()] : []));
+
+  const base = {
+    id: producer.id,
+    name: producer.name,
+    nip: producer.nip,
+    countryCode: producer.countryCode,
+    verificationStatus: producer.verificationStatus,
+    linkedPartnerId: crmPartner.id,
+    linkedPartnerName: crmPartner.name,
+    linkedPartnerArchivedAt: crmPartner.archivedAt,
+  };
+  const select = () =>
+    db
+      .select(base)
+      .from(producer)
+      .leftJoin(crmPartner, eq(crmPartner.producerId, producer.id))
+      .innerJoin(users, eq(users.id, producer.userId));
+
+  const [byEmail, allProducers, byQuery] = await Promise.all([
+    contactEmails.length
+      ? select().where(and(isNull(producer.deletedAt), inArray(sql`lower(${users.email})`, contactEmails)))
+      : Promise.resolve([]),
+    select().where(isNull(producer.deletedAt)),
+    q.length >= 2
+      ? select()
+          .where(and(isNull(producer.deletedAt), ilike(producer.name, escapeLike(q))))
+          .orderBy(asc(producer.name))
+          .limit(SUGGESTION_LIMIT)
+      : Promise.resolve([]),
+  ]);
+
+  const result = new Map<string, ProducerSuggestion>();
+  const add = (rows: (typeof byEmail), reason: ProducerSuggestionReason) => {
+    for (const row of rows) {
+      if (result.has(row.id)) continue;
+      result.set(row.id, {
+        id: row.id,
+        name: row.name,
+        nip: row.nip,
+        countryCode: row.countryCode,
+        verificationStatus: row.verificationStatus,
+        reason,
+        linkedPartnerId: row.linkedPartnerId,
+        linkedPartnerName: row.linkedPartnerName,
+        linkedPartnerArchived: row.linkedPartnerArchivedAt !== null,
+      });
+    }
+  };
+  add(byEmail, "email");
+  add(allProducers.filter((row) => partnerNamesSimilar(row.name, partner.name)), "name");
+  add(byQuery, "search");
+  return [...result.values()].slice(0, SUGGESTION_LIMIT);
 }
