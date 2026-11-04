@@ -88,11 +88,40 @@ describe("InternalAnalyticsPage: access", () => {
   });
 });
 
+describe("InternalAnalyticsPage: Odwiedziny view (AC-7)", () => {
+  it("shows named tiles with the change against the previous period", async () => {
+    const point = (day: string, visitors: number) => ({ day, visitors, pageviews: visitors * 2 });
+    posthogMocks.getTrafficSummary.mockResolvedValue({
+      ok: true,
+      data: {
+        visitors: 118,
+        sessions: 150,
+        pageviews: 400,
+        avgSessionSeconds: 90,
+        previous: { visitors: 100, sessions: 200, pageviews: 400, avgSessionSeconds: 90 },
+        daily: [point("2026-11-01", 3)],
+        previousDaily: [point("2026-10-02", 2)],
+      },
+    });
+
+    await renderPage({ view: "traffic", range: "30" });
+
+    expect(screen.getByRole("heading", { level: 1, name: "Odwiedziny" })).toBeInTheDocument();
+    expect(screen.getByText("Unikalni odwiedzający")).toBeInTheDocument();
+    expect(screen.getByText("Czas jednej wizyty")).toBeInTheDocument();
+    expect(screen.getByText(/\+18%/)).toBeInTheDocument();
+    expect(screen.getByText(/-25%/)).toBeInTheDocument();
+    expect(screen.getAllByText("vs poprzednie 30 dni").length).toBeGreaterThan(0);
+    expect(screen.getByRole("button", { name: "Obejrzane strony" })).toHaveAttribute("aria-pressed", "false");
+  });
+});
+
 describe("InternalAnalyticsPage: Maile view (AC-10, AC-11)", () => {
   it("shows the Maile tab, the totals and the per type and per producer tables", async () => {
     await renderPage({ view: "emails", range: "7" });
 
-    expect(screen.getByRole("link", { name: "Maile" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("heading", { level: 1, name: "Maile" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "7 dni" })).toHaveAttribute("aria-current", "true");
     expect(screen.getByText("Nowe zapytanie")).toBeInTheDocument();
     const producerLink = screen.getByRole("link", { name: "Producent Testowy" });
     expect(producerLink).toHaveAttribute("href", `/pl/internal/analytics?view=producers&range=7&producer=${PRODUCER_ID}`);
@@ -147,7 +176,6 @@ describe("InternalAnalyticsPage: producer detail (AC-9)", () => {
     expect(emailStatsMocks.getEmailStatsByType).toHaveBeenCalledWith(90, PRODUCER_ID);
     expect(screen.getByText("Producent Testowy")).toBeInTheDocument();
     expect(screen.getByText("Domek Testowy")).toBeInTheDocument();
-    expect(screen.getByText("2026-11-01")).toBeInTheDocument();
     expect(screen.getByText("Nowe zapytanie")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Wróć do rankingu producentów/ })).toHaveAttribute(
       "href",

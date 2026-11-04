@@ -11,6 +11,7 @@ import {
   check,
   customType,
   date,
+  foreignKey,
   index,
   integer,
   jsonb,
@@ -2672,3 +2673,243 @@ export const emailEvent = pgTable(
   },
   (table) => [index("email_event_message_kind_idx").on(table.messageId, table.kind)],
 );
+
+// ---------------------------------------------------------------------------
+// Spec 0080: notatnik rozmów z kontrahentami (panel admina, /internal/conversations).
+// Firma to `partner` (przedrostek `crm_`), żeby nie mylić jej z organizacją z innych miejsc.
+// Ograniczenia typu CHECK na tekście zamiast enumów Postgresa (enumu nie da się cofnąć).
+// Status sprawy nie jest zapisany, wylicza go `lib/conversations/queries.ts` z zadań.
+// ---------------------------------------------------------------------------
+
+const crmLinkConsistent = <T extends { linkKind: unknown; linkId: unknown }>(table: T) =>
+  sql`(${table.linkKind} IS NULL AND ${table.linkId} IS NULL) OR (${table.linkKind} IS NOT NULL AND ${table.linkId} IS NOT NULL)`;
+
+const crmLinkKindValid = <T extends { linkKind: unknown }>(table: T) =>
+  sql`${table.linkKind} IS NULL OR ${table.linkKind} IN ('producer', 'project_request', 'bulk_product_inquiry', 'case', 'product')`;
+
+export const crmPartner = pgTable(
+  "crm_partner",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: text("name").notNull(),
+    kind: text("kind").notNull(),
+    website: text("website"),
+    countryCode: text("country_code").references(() => country.code),
+    tags: text("tags").array().notNull().default(sql`'{}'::text[]`),
+    notes: text("notes"),
+    producerId: uuid("producer_id").references(() => producer.id),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+  },
+  (table) => [
+    check(
+      "crm_partner_kind_valid",
+      sql`${table.kind} IN ('producent', 'dostawca', 'klient', 'partner', 'inny')`,
+    ),
+    // Archiwizacja nie zwalnia producenta, więc przywrócenie nie zderzy się z inną firmą.
+    uniqueIndex("crm_partner_one_per_producer")
+      .on(table.producerId)
+      .where(sql`${table.producerId} IS NOT NULL`),
+    index("crm_partner_lower_name_idx").on(sql`lower(${table.name})`),
+  ],
+);
+
+export const crmContact = pgTable(
+  "crm_contact",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    partnerId: uuid("partner_id")
+      .notNull()
+      .references(() => crmPartner.id),
+    name: text("name").notNull(),
+    role: text("role"),
+    phone: text("phone"),
+    email: text("email"),
+    preferredChannel: text("preferred_channel"),
+    language: text("language"),
+    note: text("note"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  },
+  (table) => [
+    unique("crm_contact_id_partner_unique").on(table.id, table.partnerId),
+    index("crm_contact_partner_idx").on(table.partnerId),
+    check(
+      "crm_contact_channel_valid",
+      sql`${table.preferredChannel} IS NULL OR ${table.preferredChannel} IN ('phone', 'whatsapp', 'email')`,
+    ),
+    check(
+      "crm_contact_language_valid",
+      sql`${table.language} IS NULL OR ${table.language} IN ('pl', 'en', 'de', 'nl')`,
+    ),
+  ],
+);
+
+export const crmThread = pgTable(
+  "crm_thread",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    partnerId: uuid("partner_id")
+      .notNull()
+      .references(() => crmPartner.id),
+    title: text("title").notNull(),
+    ownerUserId: text("owner_user_id")
+      .notNull()
+      .references(() => users.id),
+    templateKey: text("template_key"),
+    closedAt: timestamp("closed_at", { withTimezone: true }),
+    closedBy: text("closed_by").references(() => users.id),
+    linkKind: text("link_kind"),
+    linkId: text("link_id"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    unique("crm_thread_id_partner_unique").on(table.id, table.partnerId),
+    index("crm_thread_partner_idx").on(table.partnerId),
+    check("crm_thread_link_consistent", crmLinkConsistent(table)),
+    check("crm_thread_link_kind_valid", crmLinkKindValid(table)),
+    check(
+      "crm_thread_closed_consistent",
+      sql`(${table.closedAt} IS NULL AND ${table.closedBy} IS NULL) OR (${table.closedAt} IS NOT NULL AND ${table.closedBy} IS NOT NULL)`,
+    ),
+  ],
+);
+
+export const crmEntry = pgTable(
+  "crm_entry",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    // Zwykły FK jest konieczny: klucze złożone niżej są pomijane, gdy pierwsza kolumna jest pusta.
+    partnerId: uuid("partner_id")
+      .notNull()
+      .references(() => crmPartner.id),
+    threadId: uuid("thread_id"),
+    contactId: uuid("contact_id"),
+    authorUserId: text("author_user_id")
+      .notNull()
+      .references(() => users.id),
+    occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull(),
+    direction: text("direction").notNull(),
+    channel: text("channel").notNull(),
+    body: text("body").notNull(),
+    source: text("source").notNull().default("web"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    editedAt: timestamp("edited_at", { withTimezone: true }),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  },
+  (table) => [
+    foreignKey({
+      name: "crm_entry_thread_partner_fk",
+      columns: [table.threadId, table.partnerId],
+      foreignColumns: [crmThread.id, crmThread.partnerId],
+    }),
+    foreignKey({
+      name: "crm_entry_contact_partner_fk",
+      columns: [table.contactId, table.partnerId],
+      foreignColumns: [crmContact.id, crmContact.partnerId],
+    }),
+    index("crm_entry_partner_occurred_idx").on(table.partnerId, sql`${table.occurredAt} DESC`),
+    index("crm_entry_thread_occurred_idx").on(table.threadId, table.occurredAt),
+    check("crm_entry_direction_valid", sql`${table.direction} IN ('outbound', 'inbound', 'internal')`),
+    check(
+      "crm_entry_channel_valid",
+      sql`${table.channel} IN ('phone', 'whatsapp', 'email', 'meeting', 'platform', 'other')`,
+    ),
+    check("crm_entry_source_valid", sql`${table.source} IN ('web', 'bot')`),
+  ],
+);
+
+export const crmEntryAttachment = pgTable(
+  "crm_entry_attachment",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    entryId: uuid("entry_id")
+      .notNull()
+      .references(() => crmEntry.id),
+    r2Key: text("r2_key").notNull(),
+    filename: text("filename").notNull(),
+    mimeType: text("mime_type").notNull(),
+    sizeBytes: integer("size_bytes").notNull(),
+    uploadedBy: text("uploaded_by")
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  },
+  (table) => [
+    index("crm_entry_attachment_entry_idx").on(table.entryId),
+    check("crm_entry_attachment_size_valid", sql`${table.sizeBytes} > 0 AND ${table.sizeBytes} <= 20971520`),
+    check(
+      "crm_entry_attachment_mime_valid",
+      sql`${table.mimeType} IN ('application/pdf', 'image/jpeg', 'image/png', 'image/webp')`,
+    ),
+  ],
+);
+
+export const crmTask = pgTable(
+  "crm_task",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    partnerId: uuid("partner_id")
+      .notNull()
+      .references(() => crmPartner.id),
+    threadId: uuid("thread_id"),
+    title: text("title").notNull(),
+    note: text("note"),
+    dueDate: date("due_date"),
+    assigneeKind: text("assignee_kind").notNull(),
+    assigneeUserId: text("assignee_user_id").references(() => users.id),
+    externalContactId: uuid("external_contact_id"),
+    status: text("status").notNull().default("open"),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    completedBy: text("completed_by").references(() => users.id),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => users.id),
+    linkKind: text("link_kind"),
+    linkId: text("link_id"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    foreignKey({
+      name: "crm_task_thread_partner_fk",
+      columns: [table.threadId, table.partnerId],
+      foreignColumns: [crmThread.id, crmThread.partnerId],
+    }),
+    foreignKey({
+      name: "crm_task_contact_partner_fk",
+      columns: [table.externalContactId, table.partnerId],
+      foreignColumns: [crmContact.id, crmContact.partnerId],
+    }),
+    index("crm_task_partner_idx").on(table.partnerId),
+    index("crm_task_thread_idx").on(table.threadId),
+    index("crm_task_open_due_idx")
+      .on(table.dueDate)
+      .where(sql`${table.status} = 'open'`),
+    check("crm_task_status_valid", sql`${table.status} IN ('open', 'done', 'cancelled')`),
+    check(
+      "crm_task_assignee_consistent",
+      sql`(${table.assigneeKind} = 'user' AND ${table.assigneeUserId} IS NOT NULL AND ${table.externalContactId} IS NULL) OR (${table.assigneeKind} = 'external' AND ${table.assigneeUserId} IS NULL)`,
+    ),
+    check("crm_task_link_consistent", crmLinkConsistent(table)),
+    check("crm_task_link_kind_valid", crmLinkKindValid(table)),
+  ],
+);
+
+// Dziennik dziennych maili: wiersz na dzień (Europe/Warsaw) zajmuje się przed wysyłką
+// (wzór claimNotification, spec 0070) i znika po nieudanej wysyłce, żeby dzień nie był "zużyty".
+export const crmDigestLog = pgTable("crm_digest_log", {
+  digestDate: date("digest_date")
+    .primaryKey()
+    .default(sql`(now() AT TIME ZONE 'Europe/Warsaw')::date`),
+  claimedAt: timestamp("claimed_at", { withTimezone: true }).defaultNow().notNull(),
+  sentAt: timestamp("sent_at", { withTimezone: true }),
+  recipientCount: integer("recipient_count"),
+});

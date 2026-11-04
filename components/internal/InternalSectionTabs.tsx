@@ -13,7 +13,7 @@ interface InternalSectionTabsProps {
 export function InternalSectionTabs({ locale }: InternalSectionTabsProps) {
   const pathname = usePathname();
   const current = resolveCurrent(pathname, locale);
-  if (!current || current.section.tabs.length < 2) return null;
+  if (!current || current.section.sidebarItems || current.section.tabs.length < 2) return null;
 
   return (
     <nav aria-label={current.section.label} className="flex flex-wrap gap-x-brand-1 border-b border-brand-steel">

@@ -2896,6 +2896,16 @@
     "noOffersNote": "Er is geen offerte. Sluit de aanvraag met de reden „geen offertes” of verleng de termijn.",
     "cta": "Aanvraag openen in het paneel"
   },
+  "ConversationsDigestEmail": {
+    "subject": "Gesprekken: achterstallige taken en taken voor vandaag ({count})",
+    "intro": "Taken uit het gesprekkenboek die achterstallig zijn of vandaag aan de beurt zijn, gegroepeerd per verantwoordelijke.",
+    "overdue": "Achterstallig",
+    "today": "Vandaag",
+    "waitingThem": "wij wachten op hen",
+    "dueOn": "deadline",
+    "noDueDate": "Taken zonder deadline: {count}",
+    "cta": "Eerstvolgende openen"
+  },
   "HomePage": {
     "metaTitle": "ModularHub Europe | Modulaire woningen van geverifieerde fabrikanten",
     "metaDescription": "Vergelijk beproefde modulaire woningen uit heel Europa: geverifieerde fabrikanten, transparante prijzen en een controle op naleving van de regelgeving in het gekozen land."

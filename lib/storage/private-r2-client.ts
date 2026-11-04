@@ -1,4 +1,4 @@
-import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 // Prywatny kubełek Cloudflare R2, spec 0063 Build plan #4: drugi, osobny
@@ -68,13 +68,56 @@ function sanitizeFilenameForHeader(filename: string): string {
 // czytelną nazwą zamiast losowego r2Key w pasku adresu przeglądarki;
 // ResponseCacheControl: private, no-store, żeby pośrednicy/przeglądarka nie
 // trzymali pliku w pamięci podręcznej po wygaśnięciu TTL.
-export async function buildSignedDownloadUrl(key: string, ttlSeconds: number, filename: string): Promise<string> {
+//
+// Opcjonalny `contentType` (spec 0080): wymusza zapisany typ MIME w odpowiedzi, żeby przeglądarka
+// nie zgadywała typu pliku wgranego przez administratora.
+export async function buildSignedDownloadUrl(
+  key: string,
+  ttlSeconds: number,
+  filename: string,
+  contentType?: string,
+): Promise<string> {
   const client = getPrivateR2Client();
   const command = new GetObjectCommand({
     Bucket: getPrivateBucketName(),
     Key: key,
     ResponseContentDisposition: `attachment; filename="${sanitizeFilenameForHeader(filename)}"`,
     ResponseCacheControl: "private, no-store",
+    ...(contentType ? { ResponseContentType: contentType } : {}),
   });
   return getSignedUrl(client, command, { expiresIn: ttlSeconds });
+}
+
+// Podpisany adres do zapisu (PUT) prosto z przeglądarki (spec 0080 AC-14): plik omija funkcję
+// serwerową, więc nie obowiązuje go limit ciała żądania Vercela (około 4,5 MB). Wymaga reguły
+// CORS na prywatnym kubełku. Typ treści wchodzi w podpis, więc przeglądarka musi wysłać dokładnie
+// ten sam nagłówek Content-Type.
+export async function buildSignedUploadUrl(key: string, ttlSeconds: number, contentType: string): Promise<string> {
+  const client = getPrivateR2Client();
+  const command = new PutObjectCommand({ Bucket: getPrivateBucketName(), Key: key, ContentType: contentType });
+  return getSignedUrl(client, command, { expiresIn: ttlSeconds });
+}
+
+// Rozmiar obiektu bez pobierania go; `null`, gdy obiektu nie ma.
+export async function headPrivateObjectSize(key: string): Promise<number | null> {
+  const client = getPrivateR2Client();
+  try {
+    const result = await client.send(new HeadObjectCommand({ Bucket: getPrivateBucketName(), Key: key }));
+    return result.ContentLength ?? 0;
+  } catch (error) {
+    const name = (error as { name?: string }).name;
+    const status = (error as { $metadata?: { httpStatusCode?: number } }).$metadata?.httpStatusCode;
+    if (name === "NotFound" || name === "NoSuchKey" || status === 404) return null;
+    throw error;
+  }
+}
+
+// Zakresowy odczyt pierwszych bajtów obiektu (sprawdzenie sygnatury pliku bez pobierania całości).
+export async function readPrivateObjectHead(key: string, byteCount: number): Promise<Uint8Array> {
+  const client = getPrivateR2Client();
+  const result = await client.send(
+    new GetObjectCommand({ Bucket: getPrivateBucketName(), Key: key, Range: `bytes=0-${Math.max(0, byteCount - 1)}` }),
+  );
+  if (!result.Body) return new Uint8Array();
+  return result.Body.transformToByteArray();
 }

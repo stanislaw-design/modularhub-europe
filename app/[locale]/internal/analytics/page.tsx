@@ -1,15 +1,19 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { BarList } from "@/components/internal/analytics/BarList";
+import { PageRankings } from "@/components/internal/analytics/PageRankings";
+import { ProducerRanking } from "@/components/internal/analytics/ProducerRanking";
+import { StatTile, computeDelta } from "@/components/internal/analytics/StatTile";
+import { TrafficTrendChart } from "@/components/internal/analytics/TrafficTrendChart";
 import { EmailsView, ProducerDetailView } from "@/components/internal/AnalyticsEmailViews";
-import { Card, DataText, Heading, Stack, Text } from "@/components/ui";
+import { Card, Heading, Stack, Text } from "@/components/ui";
 import { getProducerNamesByIds } from "@/lib/db/queries";
 import {
   getPagesReport,
   getProducerTraffic,
   getTrafficSummary,
   type AnalyticsRange,
-  type PageCount,
 } from "@/lib/observability/posthog-metrics";
 
 // @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
@@ -19,7 +23,7 @@ export const instant = false;
 
 const RANGES: AnalyticsRange[] = [7, 30, 90];
 const VIEWS = [
-  { key: "traffic", label: "Ruch" },
+  { key: "traffic", label: "Odwiedziny" },
   { key: "pages", label: "Strony" },
   { key: "producers", label: "Producenci" },
   { key: "emails", label: "Maile" },
@@ -50,29 +54,18 @@ function Unavailable() {
   );
 }
 
-function PageTable({ title, rows }: { title: string; rows: PageCount[] }) {
-  return (
-    <Card>
-      <Stack gap={2}>
-        <Text as="span" variant="label" tone="muted">
-          {title}
-        </Text>
-        {rows.length === 0 ? (
-          <Text tone="muted">Brak danych.</Text>
-        ) : (
-          <ul className="flex flex-col gap-1">
-            {rows.map((row) => (
-              <li key={row.path} className="flex items-baseline justify-between gap-brand-2 border-b border-brand-steel/50 pb-1">
-                <span className="break-all">{row.path || "(brak)"}</span>
-                <DataText as="span">{row.count}</DataText>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Stack>
-    </Card>
-  );
-}
+// Etykiety wartości `page_type` ze zdarzenia $pageview (spec 0079). Nieznana wartość
+// zostaje surowa, żeby nowy typ strony nie znikał z rankingu.
+const PAGE_TYPE_LABELS: Record<string, string> = {
+  home: "Strona główna",
+  results: "Wyniki wyszukiwania",
+  project: "Strony domów",
+  sauna: "Strony saun",
+  outdoor_tv: "Strony outdoor TV",
+  modularproject: "Strony projektów modułowych",
+  producer: "Strony producentów",
+  other: "Pozostałe strony",
+};
 
 const pillClass = (active: boolean) =>
   `focus-ring rounded-marketing border px-brand-2 py-1 text-body ${active ? "border-brand-passage-blue bg-brand-passage-blue/10 font-semibold" : "border-brand-steel"}`;
@@ -107,37 +100,25 @@ export default async function InternalAnalyticsPage({
 
   return (
     <>
-      <Heading level="h1">Analityka</Heading>
-      <Text as="p" tone="muted">
+      <div className="flex flex-wrap items-end justify-between gap-brand-2">
+        <Heading level="h1">{VIEWS.find((item) => item.key === view)?.label}</Heading>
+        <nav aria-label="Zakres dni" className="flex flex-wrap items-center gap-brand-1">
+          {RANGES.map((value) => (
+            <Link
+              key={value}
+              href={href(view, value)}
+              aria-current={value === range ? "true" : undefined}
+              className={pillClass(value === range)}
+            >
+              {value} dni
+            </Link>
+          ))}
+        </nav>
+      </div>
+      <Text as="p" tone="muted" className="hidden md:block">
         Liczby obejmują tylko odwiedzających, którzy kliknęli „Akceptuję” w banerze zgody, więc są niższe niż prawdziwy ruch.
         Służą do trendów i porównań, nie do bezwzględnej liczby gości.
       </Text>
-
-      <nav aria-label="Widoki analityki" className="flex flex-wrap items-center gap-brand-2">
-        {VIEWS.map((item) => (
-          <Link
-            key={item.key}
-            href={href(item.key, range)}
-            aria-current={item.key === view ? "page" : undefined}
-            className={pillClass(item.key === view)}
-          >
-            {item.label}
-          </Link>
-        ))}
-        <span className="mx-brand-1 text-brand-technical-graphite" aria-hidden="true">
-          |
-        </span>
-        {RANGES.map((value) => (
-          <Link
-            key={value}
-            href={href(view, value)}
-            aria-current={value === range ? "true" : undefined}
-            className={pillClass(value === range)}
-          >
-            {value} dni
-          </Link>
-        ))}
-      </nav>
 
       {view === "traffic" && <TrafficView range={range} />}
       {view === "pages" && <PagesView range={range} />}
@@ -155,52 +136,48 @@ export default async function InternalAnalyticsPage({
 async function TrafficView({ range }: { range: AnalyticsRange }) {
   const result = await getTrafficSummary(range);
   if (!result.ok) return <Unavailable />;
-  const { visitors, sessions, avgSessionSeconds, daily } = result.data;
-  const maxViews = Math.max(1, ...daily.map((point) => point.pageviews));
+  const { daily, previousDaily, previous } = result.data;
+  const comparedTo = `poprzednie ${range} dni`;
   const tiles = [
-    { label: "Goście", value: String(visitors) },
-    { label: "Sesje", value: String(sessions) },
-    { label: "Średni czas sesji", value: formatDuration(avgSessionSeconds) },
+    {
+      label: "Unikalni odwiedzający",
+      value: String(result.data.visitors),
+      delta: computeDelta(result.data.visitors, previous.visitors),
+      hint: "Ile różnych osób weszło na portal.",
+    },
+    {
+      label: "Wizyty",
+      value: String(result.data.sessions),
+      delta: computeDelta(result.data.sessions, previous.sessions),
+      hint: "Ile razy ktoś wszedł na portal. Jedna osoba może wejść kilka razy.",
+    },
+    {
+      label: "Obejrzane strony",
+      value: String(result.data.pageviews),
+      delta: computeDelta(result.data.pageviews, previous.pageviews),
+      hint: "Łączna liczba otwartych stron.",
+    },
+    {
+      label: "Czas jednej wizyty",
+      value: formatDuration(result.data.avgSessionSeconds),
+      delta: computeDelta(result.data.avgSessionSeconds, previous.avgSessionSeconds),
+      hint: "Średnio tyle osoba spędza na portalu podczas jednej wizyty.",
+    },
   ];
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-brand-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-brand-4 sm:grid-cols-2 xl:grid-cols-4">
         {tiles.map((tile) => (
-          <Card key={tile.label}>
-            <Text as="span" variant="label" tone="muted">
-              {tile.label}
-            </Text>
-            <DataText as="p" className="text-h2">
-              {tile.value}
-            </DataText>
-          </Card>
+          <StatTile key={tile.label} {...tile} comparedTo={comparedTo} />
         ))}
       </div>
       <Card>
         <Stack gap={2}>
           <Text as="span" variant="label" tone="muted">
-            Trend dzienny (wyświetlenia stron i goście)
+            Ilu ludzi odwiedza portal dzień po dniu?
           </Text>
-          {daily.length === 0 ? (
-            <Text tone="muted">Brak danych w tym okresie.</Text>
-          ) : (
-            <ul className="flex flex-col gap-1">
-              {daily.map((point) => (
-                <li key={point.day} className="grid grid-cols-[6rem_1fr_9rem] items-center gap-brand-2 text-data">
-                  <span>{point.day}</span>
-                  <span
-                    className="h-3 rounded-data bg-brand-passage-blue"
-                    style={{ width: `${Math.max(2, (point.pageviews / maxViews) * 100)}%` }}
-                    aria-hidden="true"
-                  />
-                  <span className="text-right">
-                    {point.pageviews} wyśw. / {point.visitors} gości
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
+          <TrafficTrendChart daily={daily} previousDaily={previousDaily} rangeDays={range} />
         </Stack>
       </Card>
     </>
@@ -210,11 +187,41 @@ async function TrafficView({ range }: { range: AnalyticsRange }) {
 async function PagesView({ range }: { range: AnalyticsRange }) {
   const result = await getPagesReport(range);
   if (!result.ok) return <Unavailable />;
+  const { top, entry, exit, types } = result.data;
+  const typesTotal = types.reduce((sum, row) => sum + row.count, 0);
+
   return (
-    <div className="grid grid-cols-1 gap-brand-4 lg:grid-cols-3">
-      <PageTable title="Najczęściej odwiedzane" rows={result.data.top} />
-      <PageTable title="Strony wejścia" rows={result.data.entry} />
-      <PageTable title="Strony wyjścia" rows={result.data.exit} />
+    <div className="grid grid-cols-1 gap-brand-4 lg:grid-cols-5">
+      <div className="lg:col-span-3">
+        <Card>
+          <Stack gap={2}>
+            <Text as="span" variant="label" tone="muted">
+              Ranking stron
+            </Text>
+            <PageRankings top={top} entry={entry} exit={exit} />
+          </Stack>
+        </Card>
+      </div>
+      <div className="lg:col-span-2">
+        <Card>
+          <Stack gap={2}>
+            <Text as="span" variant="label" tone="muted">
+              Czego szukają odwiedzający?
+            </Text>
+            <Text as="p" tone="muted">
+              Wyświetlenia stron według rodzaju strony.
+            </Text>
+            <BarList
+              rows={types.map((row) => ({
+                key: row.path || "(brak)",
+                label: PAGE_TYPE_LABELS[row.path] ?? (row.path || "Bez rodzaju"),
+                value: row.count,
+                detail: typesTotal > 0 ? `${Math.round((row.count / typesTotal) * 100)}% wyświetleń` : undefined,
+              }))}
+            />
+          </Stack>
+        </Card>
+      </div>
     </div>
   );
 }
@@ -232,36 +239,13 @@ async function ProducersView({ range, producerHref }: { range: AnalyticsRange; p
         <Text as="span" variant="label" tone="muted">
           Ranking producentów po wyświetleniach
         </Text>
-        {rows.length === 0 ? (
-          <Text tone="muted">Brak danych w tym okresie.</Text>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-body">
-              <thead>
-                <tr className="border-b border-brand-steel text-data text-brand-technical-graphite">
-                  <th className="py-1 pr-brand-2 font-medium">Producent</th>
-                  <th className="py-1 pr-brand-2 text-right font-medium">Wyśw. produktów</th>
-                  <th className="py-1 pr-brand-2 text-right font-medium">Wyśw. strony producenta</th>
-                  <th className="py-1 text-right font-medium">Goście</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => (
-                  <tr key={row.producerId} className="border-b border-brand-steel/50">
-                    <td className="py-1 pr-brand-2">
-                      <Link href={producerHref(row.producerId)} className="underline">
-                        {names.get(row.producerId) ?? row.producerId}
-                      </Link>
-                    </td>
-                    <td className="py-1 pr-brand-2 text-right">{row.productViews}</td>
-                    <td className="py-1 pr-brand-2 text-right">{row.producerPageViews}</td>
-                    <td className="py-1 text-right">{row.visitors}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <ProducerRanking
+          rows={rows.map((row) => ({
+            ...row,
+            name: names.get(row.producerId) ?? row.producerId,
+            href: producerHref(row.producerId),
+          }))}
+        />
       </Stack>
     </Card>
   );

@@ -2904,6 +2904,16 @@
     "noOffersNote": "Nie ma żadnej oferty. Zamknij zapytanie z powodem „brak ofert” albo przedłuż termin.",
     "cta": "Otwórz zapytanie w panelu"
   },
+  "ConversationsDigestEmail": {
+    "subject": "Rozmowy: zadania zaległe i na dziś ({count})",
+    "intro": "Zadania z notatnika rozmów, które są zaległe albo przypadają na dziś. Podział według osoby odpowiedzialnej.",
+    "overdue": "Zaległe",
+    "today": "Na dziś",
+    "waitingThem": "czekamy na nich",
+    "dueOn": "termin",
+    "noDueDate": "Zadania bez terminu: {count}",
+    "cta": "Otwórz Najbliższe"
+  },
   "HomePage": {
     "metaTitle": "ModularHub Europe | Domy modułowe od zweryfikowanych producentów",
     "metaDescription": "Porównaj sprawdzone domy modułowe z całej Europy: zweryfikowani producenci, przejrzyste ceny i sprawdzenie zgodności z przepisami w wybranym kraju."

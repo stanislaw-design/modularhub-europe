@@ -631,11 +631,11 @@ Dziś kafelek ruchu na dashboardzie pokazuje zero, bo przeglądarka nic nie wysy
 
 ### 69. Rozmowy z kontrahentami: notatnik, zadania i dziennik w panelu admina · full · in progress
 Wewnętrzny notatnik dla dwóch administratorów (Stanisław i Artur): firma (producent, dostawca, klient, partner), osoby kontaktowe, równoległe sprawy, dziennik rozmów z załącznikami i zadania z terminami, w tym zadania po stronie zewnętrznej ("czekamy na producenta"). Status sprawy wylicza się z zadań. Notatnik nie dubluje przepływów platformy (zapytania, oferty, duże zamówienia, case), tylko opcjonalnie linkuje do ich rekordów. Rano przychodzi jeden wspólny mail z zadaniami na dziś. Model jest od razu przygotowany pod późniejszego bota (WhatsApp lub Telegram), którego ten krok nie buduje. Funkcja dodana ze [spec 0080](../specs/0080-notatnik-rozmow-z-kontrahentami/index.md).
-**Done when:** obaj administratorzy w `/internal/conversations` widzą na ekranie "Na dziś" zaległe zadania i to, na kogo czekamy, prowadzą firmy, osoby, sprawy i dziennik z plikami PDF i zdjęciami, szybki wpis zapisuje firmę, sprawę, wpis i zadania naraz, a rano przychodzi jeden mail z zadaniami na dziś, bez zmian w istniejących przepływach platformy.
+**Done when:** obaj administratorzy w `/internal/conversations` widzą na ekranie "Najbliższe" zaległe zadania i to, na kogo czekamy, prowadzą firmy, osoby, sprawy i dziennik z plikami PDF i zdjęciami, szybki wpis zapisuje firmę, sprawę, wpis i zadania naraz, a rano przychodzi jeden mail z zadaniami na dziś, bez zmian w istniejących przepływach platformy.
 - [x] Zaprojektuj (spec): [0080](../specs/0080-notatnik-rozmow-z-kontrahentami/index.md)
 - [ ] Zbuduj: `/develop notatnik rozmów z kontrahentami`
-  - [ ] Dane i warstwa domenowa: migracja siedmiu tabel `crm_*`, `lib/conversations/` (zapisy z autorem jako parametrem, status wyliczany, szablony spraw), satisfies AC-4, AC-6, AC-9 do AC-11, AC-13, AC-21
-  - [ ] Ekrany i wprowadzanie: pozycja "Rozmowy" w menu, Na dziś, lista i karta firmy, karta sprawy, zamykanie, szybki wpis, satisfies AC-1, AC-2, AC-4, AC-5, AC-8, AC-12, AC-15 do AC-17, AC-22
+  - [x] Dane i warstwa domenowa: migracja siedmiu tabel `crm_*`, `lib/conversations/` (zapisy z autorem jako parametrem, status wyliczany, szablony spraw), satisfies AC-4, AC-6, AC-9 do AC-11, AC-13, AC-21
+  - [ ] Ekrany i wprowadzanie: pozycja "Rozmowy" w menu, Najbliższe, lista i karta firmy, karta sprawy, zamykanie, szybki wpis, satisfies AC-1, AC-2, AC-4, AC-5, AC-8, AC-12, AC-15 do AC-17, AC-22
   - [ ] Załączniki i powiązania: wgrywanie do prywatnego R2 z CORS i pobieranie, link do rekordów platformy, połączenie firmy z producentem, satisfies AC-3, AC-7, AC-14, AC-18
   - [ ] Dzienny mail i dane startowe: cron, wspólny mail, import obecnych producentów jako firm (dev, SQL na produkcję), satisfies AC-19, AC-20
 - [ ] Zweryfikuj: `/check verify notatnik rozmów z kontrahentami`

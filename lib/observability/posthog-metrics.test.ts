@@ -35,25 +35,27 @@ describe("getProducerTrafficDetail", () => {
       "properties.product_id as pid": [["prod-1", 6], ["prod-2", 3]],
     });
     vi.stubGlobal("fetch", fetchMock);
+    vi.useFakeTimers({ toFake: ["Date"], now: new Date("2026-11-03T12:00:00Z") });
 
     const result = await getProducerTrafficDetail(PRODUCER_ID, 30);
+    vi.useRealTimers();
 
-    expect(result).toEqual({
-      ok: true,
-      data: {
-        producerPageViews: 4,
-        productViews: 9,
-        visitors: 7,
-        daily: [
-          { day: "2026-11-01", visitors: 3, pageviews: 5 },
-          { day: "2026-11-02", visitors: 4, pageviews: 8 },
-        ],
-        products: [
-          { productId: "prod-1", views: 6 },
-          { productId: "prod-2", views: 3 },
-        ],
-      },
+    expect(result.ok && { ...result.data, daily: result.data.daily.slice(-3) }).toEqual({
+      producerPageViews: 4,
+      productViews: 9,
+      visitors: 7,
+      // Dni bez ruchu są uzupełnione zerami: dokładnie 30 punktów, ostatni to dziś.
+      daily: [
+        { day: "2026-11-01", visitors: 3, pageviews: 5 },
+        { day: "2026-11-02", visitors: 4, pageviews: 8 },
+        { day: "2026-11-03", visitors: 0, pageviews: 0 },
+      ],
+      products: [
+        { productId: "prod-1", views: 6 },
+        { productId: "prod-2", views: 3 },
+      ],
     });
+    expect(result.ok && result.data.daily).toHaveLength(30);
     for (const call of fetchMock.mock.calls) {
       const query = JSON.parse(call[1].body as string).query.query as string;
       expect(query).toContain(`properties.producer_id = '${PRODUCER_ID}'`);
