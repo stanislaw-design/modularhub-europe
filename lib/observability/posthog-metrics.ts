@@ -87,35 +87,85 @@ async function safeQuery<T>(path: string, query: string, map: (rows: unknown[][]
 const since = (days: AnalyticsRange) => `timestamp >= now() - interval ${days} day`;
 const num = (value: unknown) => (typeof value === "number" ? value : Number(value) || 0);
 
-export interface TrafficSummary {
+// Okno bezpośrednio przed bieżącym (te same `days` dni, przesunięte wstecz), do delt "vs poprzedni okres".
+const previousWindow = (days: AnalyticsRange) =>
+  `timestamp >= now() - interval ${days * 2} day and timestamp < now() - interval ${days} day`;
+
+export interface TrafficTotals {
   visitors: number;
   sessions: number;
+  pageviews: number;
   avgSessionSeconds: number;
-  daily: Array<{ day: string; visitors: number; pageviews: number }>;
 }
 
+export interface DailyTraffic {
+  day: string;
+  visitors: number;
+  pageviews: number;
+}
+
+export interface TrafficSummary extends TrafficTotals {
+  previous: TrafficTotals;
+  /** Dokładnie `days` punktów, dni bez ruchu uzupełnione zerami. */
+  daily: DailyTraffic[];
+  /** Dokładnie `days` punktów, na tym samym indeksie co `daily` (dzień k okresu poprzedniego). */
+  previousDaily: DailyTraffic[];
+}
+
+// PostHog pomija dni bez zdarzeń; oś czasu wykresu nie może przez to kłamać.
+function fillDays(rows: DailyTraffic[], days: number, offsetDays: number): DailyTraffic[] {
+  const byDay = new Map(rows.map((row) => [row.day, row]));
+  const today = new Date();
+  return Array.from({ length: days }, (_, index) => {
+    const date = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
+    date.setUTCDate(date.getUTCDate() - (days - 1 - index) - offsetDays);
+    const day = date.toISOString().slice(0, 10);
+    return byDay.get(day) ?? { day, visitors: 0, pageviews: 0 };
+  });
+}
+
+const toDaily = (rows: unknown[][]): DailyTraffic[] =>
+  rows.map((row) => ({ day: String(row[0]).slice(0, 10), visitors: num(row[1]), pageviews: num(row[2]) }));
+
 export async function getTrafficSummary(days: AnalyticsRange): Promise<QueryResult<TrafficSummary>> {
-  const [totals, sessions, daily] = await Promise.all([
+  const totalsQuery = (path: string, window: string) =>
     safeQuery(
-      "getTrafficSummary.totals",
-      `select uniq(distinct_id), uniq(properties.$session_id) from events where event = '$pageview' and ${since(days)}`,
-      (rows) => ({ visitors: num(rows[0]?.[0]), sessions: num(rows[0]?.[1]) }),
-    ),
+      path,
+      `select uniq(distinct_id), uniq(properties.$session_id), count() from events where event = '$pageview' and ${window}`,
+      (rows) => ({ visitors: num(rows[0]?.[0]), sessions: num(rows[0]?.[1]), pageviews: num(rows[0]?.[2]) }),
+    );
+  const durationQuery = (path: string, window: string) =>
+    safeQuery(path, `select avg($session_duration) from sessions where ${window}`, (rows) => num(rows[0]?.[0]));
+  const dailyQuery = (path: string, window: string) =>
     safeQuery(
-      "getTrafficSummary.duration",
-      `select avg($session_duration) from sessions where $start_timestamp >= now() - interval ${days} day`,
-      (rows) => num(rows[0]?.[0]),
+      path,
+      `select toDate(timestamp) as day, uniq(distinct_id), count() from events where event = '$pageview' and ${window} group by day order by day`,
+      toDaily,
+    );
+
+  const [totals, previousTotals, duration, previousDuration, daily, previousDaily] = await Promise.all([
+    totalsQuery("getTrafficSummary.totals", since(days)),
+    totalsQuery("getTrafficSummary.previousTotals", previousWindow(days)),
+    durationQuery("getTrafficSummary.duration", `$start_timestamp >= now() - interval ${days} day`),
+    durationQuery(
+      "getTrafficSummary.previousDuration",
+      `$start_timestamp >= now() - interval ${days * 2} day and $start_timestamp < now() - interval ${days} day`,
     ),
-    safeQuery(
-      "getTrafficSummary.daily",
-      `select toDate(timestamp) as day, uniq(distinct_id), count() from events where event = '$pageview' and ${since(days)} group by day order by day`,
-      (rows) => rows.map((row) => ({ day: String(row[0]).slice(0, 10), visitors: num(row[1]), pageviews: num(row[2]) })),
-    ),
+    dailyQuery("getTrafficSummary.daily", since(days)),
+    dailyQuery("getTrafficSummary.previousDaily", previousWindow(days)),
   ]);
-  if (!totals.ok || !sessions.ok || !daily.ok) return { ok: false };
+  if (!totals.ok || !previousTotals.ok || !duration.ok || !previousDuration.ok || !daily.ok || !previousDaily.ok) {
+    return { ok: false };
+  }
   return {
     ok: true,
-    data: { ...totals.data, avgSessionSeconds: sessions.data, daily: daily.data },
+    data: {
+      ...totals.data,
+      avgSessionSeconds: duration.data,
+      previous: { ...previousTotals.data, avgSessionSeconds: previousDuration.data },
+      daily: fillDays(daily.data, days, 0),
+      previousDaily: fillDays(previousDaily.data, days, days),
+    },
   };
 }
 
@@ -130,12 +180,14 @@ export interface PagesReport {
   top: PageCount[];
   entry: PageCount[];
   exit: PageCount[];
+  /** Wyświetlenia według `page_type` (home, sauna, project, ...), malejąco. */
+  types: PageCount[];
 }
 
 export async function getPagesReport(days: AnalyticsRange): Promise<QueryResult<PagesReport>> {
   const bySession = (agg: "argMin" | "argMax") =>
     `select p, count() from (select ${agg}(properties.page_path, timestamp) as p from events where event = '$pageview' and ${since(days)} group by properties.$session_id) group by p order by count() desc limit 15`;
-  const [top, entry, exit] = await Promise.all([
+  const [top, entry, exit, types] = await Promise.all([
     safeQuery(
       "getPagesReport.top",
       `select properties.page_path as p, count() from events where event = '$pageview' and ${since(days)} group by p order by count() desc limit 15`,
@@ -143,9 +195,14 @@ export async function getPagesReport(days: AnalyticsRange): Promise<QueryResult<
     ),
     safeQuery("getPagesReport.entry", bySession("argMin"), toPageCounts),
     safeQuery("getPagesReport.exit", bySession("argMax"), toPageCounts),
+    safeQuery(
+      "getPagesReport.types",
+      `select properties.page_type as t, count() from events where event = '$pageview' and ${since(days)} group by t order by count() desc`,
+      toPageCounts,
+    ),
   ]);
-  if (!top.ok || !entry.ok || !exit.ok) return { ok: false };
-  return { ok: true, data: { top: top.data, entry: entry.data, exit: exit.data } };
+  if (!top.ok || !entry.ok || !exit.ok || !types.ok) return { ok: false };
+  return { ok: true, data: { top: top.data, entry: entry.data, exit: exit.data, types: types.data } };
 }
 
 export interface ProducerTrafficRow {
@@ -196,7 +253,7 @@ export async function getProducerTrafficDetail(
     safeQuery(
       "getProducerTrafficDetail.daily",
       `select toDate(timestamp) as day, uniq(distinct_id), count() from events where ${forProducer} group by day order by day`,
-      (rows) => rows.map((row) => ({ day: String(row[0]).slice(0, 10), visitors: num(row[1]), pageviews: num(row[2]) })),
+      toDaily,
     ),
     safeQuery(
       "getProducerTrafficDetail.products",
@@ -205,5 +262,5 @@ export async function getProducerTrafficDetail(
     ),
   ]);
   if (!totals.ok || !daily.ok || !products.ok) return { ok: false };
-  return { ok: true, data: { ...totals.data, daily: daily.data, products: products.data } };
+  return { ok: true, data: { ...totals.data, daily: fillDays(daily.data, days, 0), products: products.data } };
 }

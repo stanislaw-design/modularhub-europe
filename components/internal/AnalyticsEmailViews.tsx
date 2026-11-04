@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { BarList } from "@/components/internal/analytics/BarList";
+import { StatTile } from "@/components/internal/analytics/StatTile";
+import { TrafficTrendChart } from "@/components/internal/analytics/TrafficTrendChart";
 import { Card, DataText, Stack, Text } from "@/components/ui";
 import {
   getEmailStatsByProducer,
@@ -6,6 +9,7 @@ import {
   getEmailStatsTotals,
   type EmailStatsRange,
   type EmailStatsRow,
+  type EmailStatsTotals,
 } from "@/lib/analytics/email-stats";
 import { getProducerNamesByIds, getProductNamesByIds } from "@/lib/db/queries";
 import { getProducerTrafficDetail } from "@/lib/observability/posthog-metrics";
@@ -94,8 +98,87 @@ function StatsTable({
   );
 }
 
-const NOTE =
-  "Jeden wiersz to jeden odbiorca (producent z kilkoma użytkownikami daje kilka). „Dostarczone”, „Odbite” i „Skargi” przychodzą z webhooka Resend, więc tuż po wysyłce mogą być jeszcze zerem. „Śledzone” to maile wysłane do odbiorców, którzy dobrowolnie zgodzili się na pomiar. Kliknięcia i otwarcia dotyczą tylko ich, więc to próbka, nie całość. Otwarcia bywają zawyżone (skanery, ochrona prywatności w poczcie), dlatego główną miarą są kliknięcia; obie liczby pomijają ruch wyglądający na automat.";
+const pct = (part: number, whole: number) => (whole === 0 ? 0 : Math.round((part / whole) * 100));
+
+// Kafelki i dwa wykresy odpowiadające na dwa pytania: czy maile docierają (Resend)
+// i czy producenci reagują (tylko maile śledzone, za zgodą odbiorcy).
+function EmailSummary({ totals }: { totals: EmailStatsTotals }) {
+  const problems = totals.bounced + totals.complained;
+  return (
+    <>
+      <div className="grid grid-cols-1 gap-brand-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatTile
+          label="Wysłane maile"
+          value={String(totals.sent)}
+          hint={`Do producentów, w ${totals.uniqueRequests} unikalnych zapytaniach. Jeden odbiorca to jeden mail.`}
+        />
+        <StatTile
+          label="Dostarczone"
+          value={String(totals.delivered)}
+          hint={`${pct(totals.delivered, totals.sent)}% wysłanych trafiło do skrzynki odbiorcy.`}
+        />
+        <StatTile
+          label="Odbite i skargi"
+          value={String(problems)}
+          emphasis={problems > 0 ? "danger" : undefined}
+          hint={`Odbite: ${totals.bounced}, skargi: ${totals.complained}. Zero to dobry wynik.`}
+        />
+        <StatTile
+          label="Maile śledzone"
+          value={`${pct(totals.trackedSent, totals.sent)}%`}
+          hint={`${totals.trackedSent} z ${totals.sent}: odbiorcy, którzy zgodzili się na pomiar otwarć i kliknięć.`}
+        />
+      </div>
+      <div className="grid grid-cols-1 gap-brand-4 lg:grid-cols-2">
+        <Card>
+          <Stack gap={2}>
+            <Text as="span" variant="label" tone="muted">
+              Czy maile docierają?
+            </Text>
+            <BarList
+              max={totals.sent}
+              emptyText="Brak wysłanych maili w tym okresie."
+              rows={
+                totals.sent === 0
+                  ? []
+                  : [
+                      { key: "sent", label: "Wysłane", value: totals.sent },
+                      { key: "delivered", label: "Dostarczone", value: totals.delivered, detail: `${pct(totals.delivered, totals.sent)}% wysłanych` },
+                      { key: "bounced", label: "Odbite", value: totals.bounced, tone: "danger", detail: `${pct(totals.bounced, totals.sent)}% wysłanych` },
+                      { key: "complained", label: "Skargi", value: totals.complained, tone: "danger", detail: `${pct(totals.complained, totals.sent)}% wysłanych` },
+                    ]
+              }
+            />
+          </Stack>
+        </Card>
+        <Card>
+          <Stack gap={2}>
+            <Text as="span" variant="label" tone="muted">
+              Czy producenci reagują?
+            </Text>
+            <Text as="p" tone="muted">
+              „Śledzone” to maile wysłane do odbiorców, którzy dobrowolnie zgodzili się na pomiar. Kliknięcia i otwarcia dotyczą tylko
+              ich, więc to próbka, nie całość.
+            </Text>
+            <BarList
+              max={totals.trackedSent}
+              rows={[
+                { key: "tracked", label: "Maile śledzone", value: totals.trackedSent, tone: "muted" },
+                { key: "clicked", label: "Z kliknięciem w link", value: totals.uniqueClicks, detail: `${pct(totals.uniqueClicks, totals.trackedSent)}% śledzonych (główna miara)` },
+                { key: "opened", label: "Z otwarciem (ludzkim)", value: totals.humanOpens, detail: `${pct(totals.humanOpens, totals.trackedSent)}% śledzonych (bywa zawyżone)` },
+              ]}
+            />
+            {totals.trackedSent === 0 && (
+              <Text as="p" tone="muted">
+                W tym okresie żaden odbiorca ze zgodą na pomiar nie dostał maila, więc nie ma jeszcze kliknięć ani otwarć.
+              </Text>
+            )}
+          </Stack>
+        </Card>
+      </div>
+    </>
+  );
+}
 
 export async function EmailsView({ range, producerHref }: { range: EmailStatsRange; producerHref: (producerId: string) => string }) {
   const [totals, byType, byProducer] = await Promise.all([
@@ -110,32 +193,15 @@ export async function EmailsView({ range, producerHref }: { range: EmailStatsRan
 
   return (
     <>
-      <Text as="p" tone="muted">
-        {NOTE}
-      </Text>
-      {totals.ok && (
-        <div className="grid grid-cols-2 gap-brand-4 sm:grid-cols-4 lg:grid-cols-8">
-          {[
-            { label: "Wysłane", value: totals.data.sent },
-            { label: "Unikalne zapytania", value: totals.data.uniqueRequests },
-            { label: "Dostarczone", value: totals.data.delivered },
-            { label: "Odbite", value: totals.data.bounced },
-            { label: "Skargi", value: totals.data.complained },
-            { label: "Śledzone", value: trackedShare(totals.data) },
-            { label: "Unikalne kliknięcia", value: totals.data.uniqueClicks },
-            { label: "Otwarcia (ludzkie)", value: totals.data.humanOpens },
-          ].map((tile) => (
-            <Card key={tile.label}>
-              <Text as="span" variant="label" tone="muted">
-                {tile.label}
-              </Text>
-              <DataText as="p" className="text-h2">
-                {tile.value}
-              </DataText>
-            </Card>
-          ))}
-        </div>
-      )}
+      {totals.ok && <EmailSummary totals={totals.data} />}
+      <details className="rounded-card border border-brand-steel p-brand-2 text-body">
+        <summary className="focus-ring cursor-pointer rounded-data font-medium">Jak czytać te liczby?</summary>
+        <p className="mt-brand-1 text-brand-technical-graphite">
+          „Dostarczone”, „Odbite” i „Skargi” przychodzą z webhooka Resend, więc tuż po wysyłce mogą być jeszcze zerem. Otwarcia bywają
+          zawyżone (skanery, ochrona prywatności w poczcie), dlatego główną miarą są kliknięcia; obie liczby pomijają ruch wyglądający
+          na automat. Poniższe tabele pokazują te same liczby w rozbiciu na typ maila i producenta.
+        </p>
+      </details>
       {byType.ok ? (
         <StatsTable title="Według typu maila" keyLabel="Typ maila" rows={byType.data} renderKey={(key) => TYPE_LABELS[key] ?? key} />
       ) : (
@@ -177,7 +243,6 @@ export async function ProducerDetailView({
   const productNames = traffic.ok
     ? await getProductNamesByIds(traffic.data.products.map((item) => item.productId)).catch(() => new Map<string, string>())
     : new Map<string, string>();
-  const maxViews = traffic.ok ? Math.max(1, ...traffic.data.daily.map((point) => point.pageviews)) : 1;
 
   return (
     <>
@@ -194,45 +259,28 @@ export async function ProducerDetailView({
       {traffic.ok ? (
         <>
           <div className="grid grid-cols-1 gap-brand-4 sm:grid-cols-3">
-            {[
-              { label: "Wyśw. produktów", value: traffic.data.productViews },
-              { label: "Wyśw. strony producenta", value: traffic.data.producerPageViews },
-              { label: "Goście", value: traffic.data.visitors },
-            ].map((tile) => (
-              <Card key={tile.label}>
-                <Text as="span" variant="label" tone="muted">
-                  {tile.label}
-                </Text>
-                <DataText as="p" className="text-h2">
-                  {tile.value}
-                </DataText>
-              </Card>
-            ))}
+            <StatTile
+              label="Wyświetlenia produktów"
+              value={String(traffic.data.productViews)}
+              hint="Ile razy otwarto strony produktów tego producenta."
+            />
+            <StatTile
+              label="Wyświetlenia strony producenta"
+              value={String(traffic.data.producerPageViews)}
+              hint="Ile razy otwarto jego stronę firmową."
+            />
+            <StatTile
+              label="Unikalni odwiedzający"
+              value={String(traffic.data.visitors)}
+              hint="Ile różnych osób obejrzało jego produkty lub stronę."
+            />
           </div>
           <Card>
             <Stack gap={2}>
               <Text as="span" variant="label" tone="muted">
-                Trend dzienny
+                Ilu ludzi ogląda tego producenta dzień po dniu?
               </Text>
-              {traffic.data.daily.length === 0 ? (
-                <Text tone="muted">Brak danych w tym okresie.</Text>
-              ) : (
-                <ul className="flex flex-col gap-1">
-                  {traffic.data.daily.map((point) => (
-                    <li key={point.day} className="grid grid-cols-[6rem_1fr_9rem] items-center gap-brand-2 text-data">
-                      <span>{point.day}</span>
-                      <span
-                        className="h-3 rounded-data bg-brand-passage-blue"
-                        style={{ width: `${Math.max(2, (point.pageviews / maxViews) * 100)}%` }}
-                        aria-hidden="true"
-                      />
-                      <span className="text-right">
-                        {point.pageviews} wyśw. / {point.visitors} gości
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <TrafficTrendChart daily={traffic.data.daily} rangeDays={range} />
             </Stack>
           </Card>
           <Card>
@@ -240,18 +288,13 @@ export async function ProducerDetailView({
               <Text as="span" variant="label" tone="muted">
                 Produkty po wyświetleniach
               </Text>
-              {traffic.data.products.length === 0 ? (
-                <Text tone="muted">Brak danych w tym okresie.</Text>
-              ) : (
-                <ul className="flex flex-col gap-1">
-                  {traffic.data.products.map((item) => (
-                    <li key={item.productId} className="flex items-baseline justify-between gap-brand-2 border-b border-brand-steel/50 pb-1">
-                      <span>{productNames.get(item.productId) ?? item.productId}</span>
-                      <DataText as="span">{item.views}</DataText>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <BarList
+                rows={traffic.data.products.map((item) => ({
+                  key: item.productId,
+                  label: productNames.get(item.productId) ?? item.productId,
+                  value: item.views,
+                }))}
+              />
             </Stack>
           </Card>
         </>
@@ -259,13 +302,7 @@ export async function ProducerDetailView({
         <Unavailable source="PostHog" />
       )}
 
-      {emailTotals.ok && (
-        <Text as="p" tone="muted">
-          Maile w tym okresie: wysłane {emailTotals.data.sent}, dostarczone {emailTotals.data.delivered}, odbite{" "}
-          {emailTotals.data.bounced}, skargi {emailTotals.data.complained}, śledzone {trackedShare(emailTotals.data)}, unikalne kliknięcia{" "}
-          {emailTotals.data.uniqueClicks}, otwarcia (ludzkie) {emailTotals.data.humanOpens}.
-        </Text>
-      )}
+      {emailTotals.ok && <EmailSummary totals={emailTotals.data} />}
       {emailsByType.ok ? (
         <StatsTable title="Maile do tego producenta" keyLabel="Typ maila" rows={emailsByType.data} renderKey={(key) => TYPE_LABELS[key] ?? key} />
       ) : (

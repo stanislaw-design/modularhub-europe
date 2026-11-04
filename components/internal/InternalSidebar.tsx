@@ -1,17 +1,64 @@
 "use client";
 
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
-import { ChevronsLeft, ChevronsRight, House, LogOut, Menu, X } from "lucide-react";
+import { ChevronDown, ChevronsLeft, ChevronsRight, House, LogOut, Menu, X } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { ThemeToggle } from "@/components/ui";
 import { signOutAction } from "@/lib/auth-session-actions";
-import { INTERNAL_NAV, internalHref, resolveCurrent } from "./internal-nav";
+import { INTERNAL_NAV, internalHref, resolveCurrent, type InternalNavSection } from "./internal-nav";
 
 interface InternalSidebarProps {
   locale: string;
+}
+
+// Pozycje rozwijane pod aktywną sekcją. Czyta ?view= i ?range=, więc siedzi w
+// własnym <Suspense> (useSearchParams przy cacheComponents). Wybrany zakres dni
+// przechodzi między widokami, bo to filtr, a nie nawigacja.
+function SidebarSubItems({
+  section,
+  locale,
+  onNavigate,
+}: {
+  section: InternalNavSection;
+  locale: string;
+  onNavigate?: () => void;
+}) {
+  const searchParams = useSearchParams();
+  const items = section.sidebarItems ?? [];
+  const activeView = items.find((item) => item.view === searchParams.get("view"))?.view ?? items[0]?.view;
+  const range = searchParams.get("range");
+  const currentTabKey = resolveCurrent(usePathname(), locale)?.tab.key;
+  const base = internalHref(locale, section.tabs[0].paths[0]);
+
+  return (
+    <ul className="flex flex-col pb-1">
+      {items.map((item) => {
+        const isActive = item.path ? item.key === currentTabKey : item.view === activeView;
+        const href = item.path
+          ? internalHref(locale, item.path)
+          : `${base}?view=${item.view}${range ? `&range=${encodeURIComponent(range)}` : ""}`;
+        return (
+          <li key={item.key}>
+            <Link
+              href={href}
+              onClick={onNavigate}
+              aria-current={isActive ? "page" : undefined}
+              className={`focus-ring flex items-center border-l-2 py-1.5 pl-[calc(var(--spacing-brand-3)+1.5rem)] pr-brand-3 text-body transition-colors ${
+                isActive
+                  ? "border-brand-passage-blue font-semibold text-brand-foundation-navy"
+                  : "border-transparent text-brand-technical-graphite hover:text-brand-foundation-navy"
+              }`}
+            >
+              {item.label}
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
 }
 
 const LABEL_FADE = "transition-opacity duration-200 ease-out motion-reduce:transition-none";
@@ -31,7 +78,7 @@ export function InternalSidebar({ locale }: InternalSidebarProps) {
   // więc stan przeżywa nawigację.
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  // Siedem pozycji menu z internal-nav.ts; wejście w sekcję prowadzi do jej
+  // Pozycje menu z internal-nav.ts; wejście w sekcję prowadzi do jej
   // pierwszej podzakładki, a podświetla ją każdy ekran należący do sekcji.
   const currentKey = resolveCurrent(pathname, locale)?.section.key;
 
@@ -42,23 +89,36 @@ export function InternalSidebar({ locale }: InternalSidebarProps) {
         const isCurrent = item.key === currentKey;
         const Icon = item.icon;
         return (
-          <Link
-            key={item.key}
-            href={href}
-            onClick={onNavigate}
-            aria-current={isCurrent ? "page" : undefined}
-            title={collapsed ? item.label : undefined}
-            className={`focus-ring relative flex items-center gap-2 px-brand-3 py-brand-2 text-body font-medium transition-colors ${
-              isCurrent
-                ? "bg-brand-passage-blue/10 text-brand-foundation-navy"
-                : "text-brand-technical-graphite hover:bg-brand-steel/30 hover:text-brand-foundation-navy"
-            }`}
-          >
-            <Icon className="size-4 shrink-0" aria-hidden="true" />
-            <span className={`overflow-hidden whitespace-nowrap ${LABEL_FADE} ${collapsed ? "opacity-0" : "opacity-100"}`}>
-              {item.label}
-            </span>
-          </Link>
+          <div key={item.key}>
+            <Link
+              href={href}
+              onClick={onNavigate}
+              aria-current={isCurrent && !item.sidebarItems ? "page" : undefined}
+              aria-expanded={item.sidebarItems && !collapsed ? isCurrent : undefined}
+              title={collapsed ? item.label : undefined}
+              className={`focus-ring relative flex items-center gap-2 px-brand-3 py-brand-2 text-body font-medium transition-colors ${
+                isCurrent
+                  ? "bg-brand-passage-blue/10 text-brand-foundation-navy"
+                  : "text-brand-technical-graphite hover:bg-brand-steel/30 hover:text-brand-foundation-navy"
+              }`}
+            >
+              <Icon className="size-4 shrink-0" aria-hidden="true" />
+              <span className={`flex-1 overflow-hidden whitespace-nowrap ${LABEL_FADE} ${collapsed ? "opacity-0" : "opacity-100"}`}>
+                {item.label}
+              </span>
+              {item.sidebarItems && !collapsed && (
+                <ChevronDown
+                  className={`size-4 shrink-0 transition-transform motion-reduce:transition-none ${isCurrent ? "rotate-180" : ""}`}
+                  aria-hidden="true"
+                />
+              )}
+            </Link>
+            {item.sidebarItems && isCurrent && !collapsed && (
+              <Suspense fallback={null}>
+                <SidebarSubItems section={item} locale={locale} onNavigate={onNavigate} />
+              </Suspense>
+            )}
+          </div>
         );
       })}
     </nav>
