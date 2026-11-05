@@ -1,7 +1,7 @@
 import { cacheLife, cacheTag } from "next/cache";
 import { getProducerById, getProducerPhotoUrl, getProducers } from "@/lib/data/producers";
 import { productTag, producerTag } from "@/lib/cache-tags";
-import { getProductOptionGroups } from "@/lib/db/queries";
+import { getInteriorStylesForProduct, getProducerContentItems, getProductOptionGroups } from "@/lib/db/queries";
 import {
   getEligibilityByCountry,
   getFeaturedProjectByFamily,
@@ -121,6 +121,22 @@ export async function getProductOptionGroupsCached(productId: string, locale: Lo
   cacheLife("public");
   cacheTag("products", productTag(productId));
   return getProductOptionGroups(productId, locale);
+}
+
+export async function getInteriorStylesForProductCached(productId: string, locale: Locale = "pl") {
+  "use cache";
+  cacheLife("public");
+  cacheTag("products", productTag(productId));
+  return getInteriorStylesForProduct(productId, locale);
+}
+
+export async function getProducerContentItemsCached(
+  ...args: Parameters<typeof getProducerContentItems>
+) {
+  "use cache";
+  cacheLife("public");
+  cacheTag("products", "producers");
+  return getProducerContentItems(...args);
 }
 
 export async function getProductComplianceAssessmentsCached(productId: string, locale: Locale = "pl") {

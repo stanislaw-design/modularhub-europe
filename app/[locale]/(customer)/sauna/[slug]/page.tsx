@@ -353,6 +353,8 @@ export default async function SaunaPage({
                 ariaLabel={t("optionsAriaLabel")}
                 includedLabel={t("optionIncluded")}
                 priceOnRequestLabel={t("optionPriceOnRequest")}
+                showMoreLabel={t.raw("optionsShowMore") as string}
+                showLessLabel={t.raw("optionsShowLess") as string}
               />
             </div>
           )}

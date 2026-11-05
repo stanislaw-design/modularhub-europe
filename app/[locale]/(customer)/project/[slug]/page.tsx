@@ -16,6 +16,8 @@ import { ProjectDocumentsAndFaq } from "@/components/klient/ProjectDocumentsAndF
 import { ProjectGalleryTabs, type GalleryTabKey } from "@/components/klient/ProjectGalleryTabs";
 import { GalleryLightboxProvider } from "@/components/klient/ProjectGalleryLightbox";
 import { ProjectLogistics } from "@/components/klient/ProjectLogistics";
+import { ProducerCollaborationSteps, ProducerCommercialUses } from "@/components/klient/ProducerContentSections";
+import { ProjectInteriorStyles } from "@/components/klient/ProjectInteriorStyles";
 import { ProjectOptionsConfigurator } from "@/components/klient/ProjectOptionsConfigurator";
 import { ProjectRoomLayout } from "@/components/klient/ProjectRoomLayout";
 import { ProjectSectionNav } from "@/components/klient/ProjectSectionNav";
@@ -35,7 +37,9 @@ import {
 import { resolveProjectLayout, selectFloorPlans } from "@/lib/data/project-layout";
 import {
   getEligibilityByCountryCached,
+  getInteriorStylesForProductCached,
   getProducerByIdCached,
+  getProducerContentItemsCached,
   getProducerVolumeProfileCached,
   getProductComplianceAssessmentsCached,
   getProductEnvelopeParametersCached,
@@ -174,7 +178,7 @@ export default async function ProjektPage({
 
   const { countryCode } = parseResultsSearchParams(rawSearchParams);
 
-  const [countries, producer, eligibilityRows, volumeProfile, optionGroups, complianceAssessments, optionLayouts, envelopeParameters] =
+  const [countries, producer, eligibilityRows, volumeProfile, optionGroups, complianceAssessments, optionLayouts, envelopeParameters, interiorStyles, collaborationSteps, commercialUses] =
     await Promise.all([
       getCountries(),
       getProducerByIdCached(project.producerId, locale as Locale),
@@ -191,6 +195,10 @@ export default async function ProjektPage({
       ENVELOPE_SECTION_ENABLED && supportsEnvelopeParameters(project)
         ? getProductEnvelopeParametersCached(project.id)
         : Promise.resolve([]),
+      // Spec 0081: stylistyki wnętrz i treść producenta; pusta lista = sekcji nie ma (AC-10, AC-11).
+      getInteriorStylesForProductCached(project.id, locale as Locale),
+      getProducerContentItemsCached(project.producerId, "collaboration_step", locale as Locale),
+      getProducerContentItemsCached(project.producerId, "commercial_use", locale as Locale),
     ]);
 
   // Spec 0078: stan konta (serce ulubionych, dane do formularza) dochodzi z
@@ -265,6 +273,14 @@ export default async function ProjektPage({
   function hrefForGalleryTab(tab: GalleryTabKey): string {
     return `/${locale}/project/${slug}${buildQueryHref(rawSearchParams, { zakladka: tab === "wizualizacje" ? undefined : tab })}`;
   }
+  // Spec 0081 AC-8: `stylistyka` niesie jedno id; nieznane lub nieprzypisane do produktu jest ignorowane bez błędu,
+  // a bez parametru podgląd pokazuje pierwszą stylistykę, ale nic nie jest uznane za wybór klienta.
+  const styleParam = firstParam(rawSearchParams.stylistyka);
+  const chosenStyle = interiorStyles.find((style) => style.id === styleParam) ?? null;
+  const activeStyleId = chosenStyle?.id ?? interiorStyles[0]?.id ?? "";
+  function hrefForStyle(styleId: string): string {
+    return `/${locale}/project/${slug}${buildQueryHref(rawSearchParams, { stylistyka: chosenStyle?.id === styleId ? undefined : styleId })}#wnetrze`;
+  }
   function hrefForOption(groupId: string, optionId: string): string {
     return `/${locale}/project/${slug}${buildQueryHref(rawSearchParams, {
       opcje: toggleProductOption(optionGroups, resolvedOptions, groupId, optionId),
@@ -321,7 +337,10 @@ export default async function ProjektPage({
   // więc nie odróżniałby, który wariant klient faktycznie skonfigurował —
   // ten sam powód co komentarz w ProjectVariantPicker.tsx.
   const variantQuery = selectedVariant ? `&wariant=${selectedVariant.id}` : "";
-  const zapytanieHref = `/${locale}/inquiry?projects=${project.id}${query}${variantQuery}`;
+  // Spec 0081 AC-12: link "zapytanie" niesie też opcje i stylistykę, żeby producent dostał pełną konfigurację.
+  const optionsQuery = selectedOptionIds.length > 0 ? `&opcje=${selectedOptionIds.join(",")}` : "";
+  const styleQuery = chosenStyle ? `&stylistyka=${chosenStyle.id}` : "";
+  const zapytanieHref = `/${locale}/inquiry?projects=${project.id}${query}${variantQuery}${optionsQuery}${styleQuery}`;
   const shortlistHref = `/${locale}/results?projects=${project.id}${query}`;
 
   // Spec 0059 AC-3, AC-4: cena = cena bazowa WYBRANEGO wariantu + suma
@@ -609,12 +628,15 @@ export default async function ProjektPage({
         <ProjectSectionNav
           items={[
             { id: "opcje", label: t("sectionNav.opcje"), disabled: !hasOptionsSection },
+            ...(interiorStyles.length > 0 ? [{ id: "wnetrze", label: t("sectionNav.wnetrze") }] : []),
             { id: "uklad", label: t("sectionNav.uklad"), disabled: !hasUkladSection },
             { id: "cena", label: t("sectionNav.cena"), disabled: !hasCenaSection },
             { id: "dzialka", label: t("sectionNav.dzialka"), disabled: !hasDzialkaSection },
             { id: "harmonogram", label: t("sectionNav.harmonogram"), disabled: !hasHarmonogramSection },
             { id: "komfort", label: t("sectionNav.komfort") },
             { id: "producent", label: t("sectionNav.producent") },
+            ...(commercialUses.length > 0 ? [{ id: "zastosowania", label: t("sectionNav.zastosowania") }] : []),
+            ...(collaborationSteps.length > 0 ? [{ id: "wspolpraca", label: t("sectionNav.wspolpraca") }] : []),
             { id: "dokumenty", label: t("sectionNav.dokumenty"), disabled: !hasDokumentySection },
             { id: "podobne", label: t("sectionNav.podobne"), disabled: true },
           ]}
@@ -640,6 +662,34 @@ export default async function ProjektPage({
               ariaLabel={t("optionsAriaLabel")}
               includedLabel={t("optionIncluded")}
               priceOnRequestLabel={t("optionPriceOnRequest")}
+              showMoreLabel={t.raw("optionsShowMore") as string}
+              showLessLabel={t.raw("optionsShowLess") as string}
+            />
+          </div>
+        )}
+
+        {interiorStyles.length > 0 && (
+          <div id="wnetrze" className="scroll-mt-20 lg:scroll-mt-36">
+            <ProjectInteriorStyles
+              styles={interiorStyles}
+              activeStyleId={activeStyleId}
+              chosenStyleId={chosenStyle?.id ?? null}
+              hrefFor={hrefForStyle}
+              heading={t("interiorStyles.heading")}
+              intro={t("interiorStyles.intro")}
+              previewNote={t("interiorStyles.previewNote")}
+              chosenLabel={t("interiorStyles.chosenLabel")}
+              materialsHeading={t("interiorStyles.materialsHeading")}
+              ariaLabel={t("interiorStyles.ariaLabel")}
+              zoneLabels={{
+                walls_ceilings: t("interiorStyles.zones.walls_ceilings"),
+                flooring: t("interiorStyles.zones.flooring"),
+                built_in_furniture: t("interiorStyles.zones.built_in_furniture"),
+                bathroom: t("interiorStyles.zones.bathroom"),
+                kitchen: t("interiorStyles.zones.kitchen"),
+                beds_textiles: t("interiorStyles.zones.beds_textiles"),
+              }}
+              imageLabels={[t("interiorStyles.images.kitchen"), t("interiorStyles.images.bedroom"), t("interiorStyles.images.bathroom")]}
             />
           </div>
         )}
@@ -708,6 +758,20 @@ export default async function ProjektPage({
               selectedVariantId={selectedVariant?.id}
               structuralWarrantyYears={project.structuralWarrantyYears}
             />
+          </div>
+        )}
+
+        {commercialUses.length > 0 && (
+          <div id="zastosowania" className="scroll-mt-20 lg:scroll-mt-36">
+            <ProducerCommercialUses items={commercialUses} heading={t("commercialUsesHeading")}>
+              <BulkProductInquiryModal productId={project.id} countries={countries} />
+            </ProducerCommercialUses>
+          </div>
+        )}
+
+        {collaborationSteps.length > 0 && (
+          <div id="wspolpraca" className="scroll-mt-20 lg:scroll-mt-36">
+            <ProducerCollaborationSteps items={collaborationSteps} heading={t("collaborationHeading")} />
           </div>
         )}
 

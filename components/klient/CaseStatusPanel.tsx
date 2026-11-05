@@ -2,6 +2,10 @@ import { useTranslations } from "next-intl";
 import { Heading, Stack, Text } from "@/components/ui";
 import type { CaseView } from "@/lib/cases/queries";
 
+function formatConfigPrice(cents: number, currency: string): string {
+  return new Intl.NumberFormat("pl-PL", { style: "currency", currency, maximumFractionDigits: 0 }).format(cents / 100);
+}
+
 // Etap, kto ma następny ruch i oczekiwany czas pierwszej odpowiedzi (spec 0048
 // AC-5), dane zapytania i stały komunikat o prowizji w stopce (AC-29).
 // Etykiety są w katalogu tłumaczeń, nie w komponencie.
@@ -61,6 +65,42 @@ export function CaseStatusPanel({ view, dateLabel }: { view: CaseView; dateLabel
           </>
         )}
       </dl>
+      {view.configurations.map(({ productName, snapshot }) => (
+        <section key={snapshot.capturedAt + productName} className="flex max-w-xl flex-col gap-brand-1 rounded-v5-card border border-brand-v5-line p-brand-3">
+          <Heading level="h2" surface="v5" className="text-h4">
+            {t("configurationHeading", { product: productName })}
+          </Heading>
+          <ul className="flex flex-col gap-1">
+            {snapshot.variantLabel && (
+              <li>
+                <Text as="span" tone="muted" surface="v5">{t("configurationVariant")}: </Text>
+                {snapshot.variantLabel}
+              </li>
+            )}
+            {snapshot.options.map((option) => (
+              <li key={option.optionId}>
+                <Text as="span" tone="muted" surface="v5">{option.groupName}: </Text>
+                {option.label}
+                {" "}
+                <Text as="span" tone="muted" surface="v5">
+                  ({option.priceOnRequest || option.priceCents === null ? t("configurationPriceOnRequest") : `+${formatConfigPrice(option.priceCents, snapshot.currency)}`})
+                </Text>
+              </li>
+            ))}
+            {snapshot.style && (
+              <li>
+                <Text as="span" tone="muted" surface="v5">{t("configurationStyle")}: </Text>
+                {snapshot.style.name}
+              </li>
+            )}
+          </ul>
+          {snapshot.totalPriceCents !== null && (
+            <Text as="p" surface="v5" className="font-semibold">
+              {t(snapshot.totalIsFrom ? "configurationTotalFrom" : "configurationTotal", { total: formatConfigPrice(snapshot.totalPriceCents, snapshot.currency) })}
+            </Text>
+          )}
+        </section>
+      ))}
       {view.stage === "nowe" && (
         <Text tone="muted" surface="v5">
           {t("firstReplyExpectation")}

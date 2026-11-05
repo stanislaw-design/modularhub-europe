@@ -37,6 +37,8 @@ interface InquiryFlowProps {
   initialCountryCode: CountryCode | null;
   // Spec 0066: niezalogowany odwiedzający wysyła zapytanie jako gość.
   isGuest?: boolean;
+  // Spec 0081 AC-12: wybór z strony produktu (wariant, opcje, stylistyka), tylko identyfikatory z adresu.
+  configuration?: { variantId?: string; optionIds?: string[]; styleId?: string };
 }
 
 const HOW_IT_WORKS_STEPS: { icon: LucideIcon; key: string }[] = [
@@ -71,6 +73,7 @@ export function InquiryFlow({
   countries,
   initialCountryCode,
   isGuest = false,
+  configuration,
 }: InquiryFlowProps) {
   const t = useTranslations("InquiryFlow");
   const locale = useLocale();
@@ -114,6 +117,7 @@ export function InquiryFlow({
     startTransition(async () => {
       const result = await submitAdvisoryInquiry({
         projectIds: projects.map((project) => project.id),
+        ...(configuration && projects.length === 1 ? { configuration } : {}),
         plot: { street, postalCode, city, countryCode },
         message: message.trim() || undefined,
         ...intendedUseInput(intendedUse),

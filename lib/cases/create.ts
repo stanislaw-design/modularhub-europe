@@ -5,6 +5,7 @@ import { getPgErrorCode } from "@/lib/db/pg-error";
 import { channel, inquiry, inquiryItem, message } from "@/lib/db/schema";
 import { microOffsetTimestamp, type Clock } from "./clock";
 import { START_CARDS } from "./start-cards";
+import type { ConfigurationSnapshot } from "@/lib/configuration-snapshot";
 
 export interface CreateAdvisoryCaseInput {
   // null = sprawa gościa (spec 0066): bez konta, tylko migawka kontaktu.
@@ -23,6 +24,8 @@ export interface CreateAdvisoryCaseInput {
   // Spec 0075 AC-6, AC-7: planowane użytkowanie, opcjonalne.
   intendedUse?: "year_round" | "seasonal";
   intendedUseMonths?: number;
+  // Spec 0081 AC-12: migawka konfiguracji, tylko dla zapytania z jednego produktu (zbudowana na serwerze).
+  configurationSnapshot?: ConfigurationSnapshot | null;
 }
 
 // Ten sam klucz idempotencji użyty z innym e mailem albo innym klientem
@@ -112,7 +115,13 @@ export async function createAdvisoryCase(
         lastClientActivityAt: now,
         ...intendedUseColumns(input),
       }),
-      db.insert(inquiryItem).values(input.projectIds.map((productId) => ({ inquiryId, productId }))),
+      db.insert(inquiryItem).values(
+        input.projectIds.map((productId) => ({
+          inquiryId,
+          productId,
+          configurationSnapshot: input.projectIds.length === 1 ? (input.configurationSnapshot ?? null) : null,
+        })),
+      ),
       db.insert(channel).values({ id: channelId, inquiryId, kind: "klient_doradca" }),
       db.insert(message).values([
         {

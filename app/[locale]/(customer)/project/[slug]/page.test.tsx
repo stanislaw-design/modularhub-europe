@@ -83,6 +83,9 @@ vi.mock("@/lib/db/queries", () => ({
   getClientIdForUser: (...args: unknown[]) => getClientIdForUserMock(...args),
   getFavoritedProductIds: (...args: unknown[]) => getFavoritedProductIdsMock(...args),
   getProductOptionGroups: (...args: unknown[]) => getProductOptionGroupsMock(...args),
+  // Spec 0081: stylistyki i treść producenta, w tych testach brak (strona jak dla innych producentów).
+  getInteriorStylesForProduct: async () => [],
+  getProducerContentItems: async () => [],
 }));
 
 import ProjektPage, { generateMetadata } from "./page";
