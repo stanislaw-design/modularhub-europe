@@ -1386,9 +1386,145 @@ export const inquiryItem = pgTable(
     productId: uuid("product_id")
       .notNull()
       .references(() => product.id),
+    // Migawka konfiguracji z strony produktu (spec 0081): wariant, opcje, stylistyka i suma, budowana
+    // na serwerze z identyfikatorów (lib/configuration-snapshot.ts), nigdy z tekstu od klienta.
+    configurationSnapshot: jsonb("configuration_snapshot"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [primaryKey({ columns: [table.inquiryId, table.productId] })],
+);
+
+// ---------------------------------------------------------------------------
+// Stylistyki wnętrz i treść producenta (spec 0081). Katalog producenta przypisywany do produktów,
+// ten sam wzorzec co grupy opcji (spec 0059): zapisują tu tylko skrypty importu, żadna ścieżka
+// aplikacji. Że stylistyka i produkt mają tego samego producenta, pilnuje skrypt, nie baza.
+// ---------------------------------------------------------------------------
+
+export const producerInteriorStyle = pgTable(
+  "producer_interior_style",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    producerId: uuid("producer_id")
+      .notNull()
+      .references(() => producer.id),
+    name: text("name").notNull(),
+    description: text("description"),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  },
+  (table) => [index("producer_interior_style_producer_id_idx").on(table.producerId)],
+);
+
+export const producerInteriorStyleTranslation = pgTable(
+  "producer_interior_style_translation",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    styleId: uuid("style_id")
+      .notNull()
+      .references(() => producerInteriorStyle.id),
+    locale: productTranslationLocaleEnum("locale").notNull(),
+    name: text("name").notNull(),
+    description: text("description"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex("producer_interior_style_translation_style_locale_idx").on(table.styleId, table.locale)],
+);
+
+export const producerInteriorStyleImage = pgTable(
+  "producer_interior_style_image",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    styleId: uuid("style_id")
+      .notNull()
+      .references(() => producerInteriorStyle.id),
+    url: text("url").notNull(),
+    alt: text("alt"),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index("producer_interior_style_image_style_id_idx").on(table.styleId)],
+);
+
+export const producerInteriorStyleMaterial = pgTable(
+  "producer_interior_style_material",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    styleId: uuid("style_id")
+      .notNull()
+      .references(() => producerInteriorStyle.id),
+    zone: text("zone").notNull(),
+    // Nazwa własna materiału (np. "Sonoma Oak PD 3000 WP"), bez tłumaczenia.
+    name: text("name").notNull(),
+    code: text("code"),
+    swatchUrl: text("swatch_url"),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    check(
+      "producer_interior_style_material_zone",
+      sql`${table.zone} IN ('walls_ceilings', 'flooring', 'built_in_furniture', 'bathroom', 'kitchen', 'beds_textiles')`,
+    ),
+    index("producer_interior_style_material_style_id_idx").on(table.styleId),
+  ],
+);
+
+export const productInteriorStyleAssignment = pgTable(
+  "product_interior_style_assignment",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => product.id),
+    styleId: uuid("style_id")
+      .notNull()
+      .references(() => producerInteriorStyle.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    unique("product_interior_style_assignment_product_style_unique").on(table.productId, table.styleId),
+    index("product_interior_style_assignment_product_id_idx").on(table.productId),
+  ],
+);
+
+export const producerContentItem = pgTable(
+  "producer_content_item",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    producerId: uuid("producer_id")
+      .notNull()
+      .references(() => producer.id),
+    kind: text("kind").notNull(),
+    title: text("title").notNull(),
+    body: text("body"),
+    sortOrder: integer("sort_order").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  },
+  (table) => [
+    check("producer_content_item_kind", sql`${table.kind} IN ('collaboration_step', 'commercial_use')`),
+    index("producer_content_item_producer_kind_idx").on(table.producerId, table.kind),
+  ],
+);
+
+export const producerContentItemTranslation = pgTable(
+  "producer_content_item_translation",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    itemId: uuid("item_id")
+      .notNull()
+      .references(() => producerContentItem.id),
+    locale: productTranslationLocaleEnum("locale").notNull(),
+    title: text("title").notNull(),
+    body: text("body"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex("producer_content_item_translation_item_locale_idx").on(table.itemId, table.locale)],
 );
 
 // ---------------------------------------------------------------------------

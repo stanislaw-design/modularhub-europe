@@ -1080,8 +1080,36 @@
       "komfort": "Komfort und Technik",
       "producent": "Referenzen und Hersteller",
       "dokumenty": "Dokumente und Fragen",
-      "podobne": "Ähnliche Häuser"
-    }
+      "podobne": "Ähnliche Häuser",
+      "wnetrze": "Innenausstattung",
+      "wspolpraca": "Zusammenarbeit",
+      "zastosowania": "Gewerbliche Nutzung"
+    },
+    "interiorStyles": {
+      "heading": "Innenausstattung",
+      "intro": "Wählen Sie einen Innenstil. Die Wahl ändert den Preis nicht und wird Ihrer Anfrage hinzugefügt.",
+      "previewNote": "Dies ist eine Vorschau. Klicken Sie auf einen Stil, um ihn Ihrer Anfrage hinzuzufügen.",
+      "chosenLabel": "Ausgewählt",
+      "materialsHeading": "Materialien",
+      "ariaLabel": "Innenstile",
+      "zones": {
+        "walls_ceilings": "Wände und Decken",
+        "flooring": "Boden",
+        "built_in_furniture": "Einbaumöbel",
+        "bathroom": "Badezimmer",
+        "kitchen": "Küche",
+        "beds_textiles": "Betten und Textilien"
+      },
+      "images": {
+        "kitchen": "Küche",
+        "bedroom": "Schlafzimmer",
+        "bathroom": "Badezimmer"
+      }
+    },
+    "collaborationHeading": "So arbeiten wir zusammen",
+    "commercialUsesHeading": "Gewerbliche Nutzung",
+    "optionsShowMore": "Weitere Optionen anzeigen ({count})",
+    "optionsShowLess": "Weniger Optionen anzeigen"
   },
   "OutdoorTvPage": {
     "price": "Preis",
@@ -1400,7 +1428,9 @@
       "dzialka": "Grundstück und Anlieferung",
       "partner": "Partner",
       "dokumenty": "Dokumente und Fragen"
-    }
+    },
+    "optionsShowMore": "Weitere Optionen anzeigen ({count})",
+    "optionsShowLess": "Weniger Optionen anzeigen"
   },
   "SaunaCategoryPage": {
     "metaTitle": "Saunen | ModularHub Europe",
@@ -2317,7 +2347,13 @@
       "client": "Kunde",
       "advisor": "Berater",
       "producer": "Hersteller"
-    }
+    },
+    "configurationHeading": "Konfiguration: {product}",
+    "configurationVariant": "Variante",
+    "configurationStyle": "Innenstil",
+    "configurationPriceOnRequest": "Preis auf Anfrage",
+    "configurationTotal": "Summe: {total}",
+    "configurationTotalFrom": "Summe ab: {total}"
   },
   "CaseEmail": {
     "newCaseSubject": "Neuer Fall bei ModularHub",

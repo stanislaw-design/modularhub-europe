@@ -146,6 +146,57 @@ async function collectItems(): Promise<TranslationCheckItem[]> {
     });
   }
 
+  // 3b. Stylistyki wnętrz przypisane do opublikowanych produktów (spec 0081 AC-3). Nazwy materiałów to nazwy własne.
+  const styles = await query(sql`
+    select distinct s.id, s.name, s.description, pr.name as producer_name
+    from product_interior_style_assignment a
+    join product p on p.id = a.product_id
+    join producer_interior_style s on s.id = a.style_id and s.deleted_at is null
+    join producer pr on pr.id = s.producer_id
+    where ${PUBLISHED}`);
+  const styleTranslations = new Map<string, Record<string, Partial<Record<CheckedLocale, string | null>>>>();
+  for (const row of await query(sql`select style_id, locale::text as locale, name, description from producer_interior_style_translation`)) {
+    const entry = styleTranslations.get(row.style_id!) ?? {};
+    for (const field of ["name", "description"]) (entry[field] ??= {})[row.locale as CheckedLocale] = row[field];
+    styleTranslations.set(row.style_id!, entry);
+  }
+  for (const row of styles) {
+    for (const field of ["name", "description"]) {
+      items.push({
+        entity: "producer_interior_style",
+        field,
+        ref: `${row.producer_name} / ${row.name}`,
+        source: row[field],
+        translations: styleTranslations.get(row.id!)?.[field] ?? {},
+      });
+    }
+  }
+
+  // 3c. Treść producenta (kroki współpracy, zastosowania komercyjne) producentów z opublikowanymi produktami (spec 0081 AC-3).
+  const contentItems = await query(sql`
+    select distinct c.id, c.kind, c.title, c.body, pr.name as producer_name
+    from producer_content_item c
+    join producer pr on pr.id = c.producer_id
+    join product p on p.producer_id = pr.id
+    where c.deleted_at is null and ${PUBLISHED}`);
+  const contentTranslations = new Map<string, Record<string, Partial<Record<CheckedLocale, string | null>>>>();
+  for (const row of await query(sql`select item_id, locale::text as locale, title, body from producer_content_item_translation`)) {
+    const entry = contentTranslations.get(row.item_id!) ?? {};
+    for (const field of ["title", "body"]) (entry[field] ??= {})[row.locale as CheckedLocale] = row[field];
+    contentTranslations.set(row.item_id!, entry);
+  }
+  for (const row of contentItems) {
+    for (const field of ["title", "body"]) {
+      items.push({
+        entity: "producer_content_item",
+        field,
+        ref: `${row.producer_name} / ${row.kind} / ${row.title}`,
+        source: row[field],
+        translations: contentTranslations.get(row.id!)?.[field] ?? {},
+      });
+    }
+  }
+
   // 4. Pola produktu w product_translation (nowe z tego speca oraz opis i
   // foundation_options, które istniały wcześniej).
   const productFields = [

@@ -1073,8 +1073,36 @@
       "komfort": "Comfort en techniek",
       "producent": "Opgeleverde projecten en producent",
       "dokumenty": "Documenten en vragen",
-      "podobne": "Vergelijkbare woningen"
-    }
+      "podobne": "Vergelijkbare woningen",
+      "wnetrze": "Interieurafwerking",
+      "wspolpraca": "Samenwerking",
+      "zastosowania": "Commercieel gebruik"
+    },
+    "interiorStyles": {
+      "heading": "Interieurafwerking",
+      "intro": "Kies een interieurstijl. Uw keuze verandert de prijs niet en wordt aan uw aanvraag toegevoegd.",
+      "previewNote": "Dit is een voorbeeld. Klik op een stijl om die aan uw aanvraag toe te voegen.",
+      "chosenLabel": "Gekozen",
+      "materialsHeading": "Materialen",
+      "ariaLabel": "Interieurstijlen",
+      "zones": {
+        "walls_ceilings": "Wanden en plafonds",
+        "flooring": "Vloer",
+        "built_in_furniture": "Inbouwmeubilair",
+        "bathroom": "Badkamer",
+        "kitchen": "Keuken",
+        "beds_textiles": "Bedden en textiel"
+      },
+      "images": {
+        "kitchen": "Keuken",
+        "bedroom": "Slaapkamer",
+        "bathroom": "Badkamer"
+      }
+    },
+    "collaborationHeading": "Zo werken we samen",
+    "commercialUsesHeading": "Commercieel gebruik",
+    "optionsShowMore": "Meer opties tonen ({count})",
+    "optionsShowLess": "Minder opties tonen"
   },
   "OutdoorTvPage": {
     "price": "Prijs",
@@ -1393,7 +1421,9 @@
       "dzialka": "Perceel en levering",
       "partner": "Partner",
       "dokumenty": "Documenten en vragen"
-    }
+    },
+    "optionsShowMore": "Meer opties tonen ({count})",
+    "optionsShowLess": "Minder opties tonen"
   },
   "SaunaCategoryPage": {
     "metaTitle": "Sauna's | ModularHub Europe",
@@ -2317,7 +2347,13 @@
       "client": "Klant",
       "advisor": "Adviseur",
       "producer": "Fabrikant"
-    }
+    },
+    "configurationHeading": "Configuratie: {product}",
+    "configurationVariant": "Variant",
+    "configurationStyle": "Interieurstijl",
+    "configurationPriceOnRequest": "prijs op aanvraag",
+    "configurationTotal": "Totaal: {total}",
+    "configurationTotalFrom": "Totaal vanaf: {total}"
   },
   "CaseEmail": {
     "newCaseSubject": "Nieuw dossier bij ModularHub",

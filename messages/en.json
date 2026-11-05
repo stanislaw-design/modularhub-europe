@@ -1073,8 +1073,36 @@
       "komfort": "Comfort and technology",
       "producent": "Completed projects and producer",
       "dokumenty": "Documents and questions",
-      "podobne": "Similar houses"
-    }
+      "podobne": "Similar houses",
+      "wnetrze": "Interior finish",
+      "wspolpraca": "How we work together",
+      "zastosowania": "Commercial uses"
+    },
+    "interiorStyles": {
+      "heading": "Interior finish",
+      "intro": "Choose an interior style. Your choice does not change the price and is added to your inquiry.",
+      "previewNote": "This is a preview. Click a style to add it to your inquiry.",
+      "chosenLabel": "Selected",
+      "materialsHeading": "Materials",
+      "ariaLabel": "Interior styles",
+      "zones": {
+        "walls_ceilings": "Walls and ceilings",
+        "flooring": "Flooring",
+        "built_in_furniture": "Built-in furniture",
+        "bathroom": "Bathroom",
+        "kitchen": "Kitchen",
+        "beds_textiles": "Beds and textiles"
+      },
+      "images": {
+        "kitchen": "Kitchen",
+        "bedroom": "Bedroom",
+        "bathroom": "Bathroom"
+      }
+    },
+    "collaborationHeading": "How we work together",
+    "commercialUsesHeading": "Commercial uses",
+    "optionsShowMore": "Show more options ({count})",
+    "optionsShowLess": "Show fewer options"
   },
   "OutdoorTvPage": {
     "price": "Price",
@@ -1393,7 +1421,9 @@
       "dzialka": "Plot and delivery",
       "partner": "Partner",
       "dokumenty": "Documents and questions"
-    }
+    },
+    "optionsShowMore": "Show more options ({count})",
+    "optionsShowLess": "Show fewer options"
   },
   "SaunaCategoryPage": {
     "metaTitle": "Saunas | ModularHub Europe",
@@ -2317,7 +2347,13 @@
       "client": "Client",
       "advisor": "Advisor",
       "producer": "Manufacturer"
-    }
+    },
+    "configurationHeading": "Configuration: {product}",
+    "configurationVariant": "Variant",
+    "configurationStyle": "Interior style",
+    "configurationPriceOnRequest": "price on request",
+    "configurationTotal": "Total: {total}",
+    "configurationTotalFrom": "Total from: {total}"
   },
   "CaseEmail": {
     "newCaseSubject": "New case in ModularHub",

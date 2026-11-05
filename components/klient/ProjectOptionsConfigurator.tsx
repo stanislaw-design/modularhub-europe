@@ -17,6 +17,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { Heading } from "@/components/ui";
+import { MoreOptionGroups } from "./MoreOptionGroups";
 import type { ProductOptionGroup, ProductOptionGroupOption } from "@/lib/db/queries";
 
 interface ProjectOptionsConfiguratorProps {
@@ -27,7 +28,13 @@ interface ProjectOptionsConfiguratorProps {
   ariaLabel: string;
   includedLabel: string;
   priceOnRequestLabel: string;
+  // Przy więcej niż dwóch grupach dwie pierwsze są widoczne, a reszta pojawia się po jednym kliknięciu; `{count}` to
+  // liczba ukrytych grup. Bez tych tekstów wszystkie grupy są widoczne.
+  showMoreLabel?: string;
+  showLessLabel?: string;
 }
+
+const VISIBLE_GROUPS = 2;
 
 const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0 });
 
@@ -100,17 +107,16 @@ export function ProjectOptionsConfigurator({
   ariaLabel,
   includedLabel,
   priceOnRequestLabel,
+  showMoreLabel,
+  showLessLabel,
 }: ProjectOptionsConfiguratorProps) {
   if (groups.length === 0) return null;
   const selectedIdSet = new Set(selectedOptionIds);
 
-  return (
-    <div className="flex flex-col gap-brand-4">
-      <Heading level="h2" surface="v5" className="text-h3">
-        {heading}
-      </Heading>
-      <div aria-label={ariaLabel} className="flex flex-col gap-brand-5">
-        {groups.map((group) => {
+  // Przy więcej niż dwóch grupach tylko dwie pierwsze są widoczne, resztę odsłania jeden przycisk.
+  const collapseRest = groups.length > VISIBLE_GROUPS && Boolean(showMoreLabel) && Boolean(showLessLabel);
+
+  const groupNodes = groups.map((group) => {
           const isSingle = group.selectionType === "single";
           const GroupIcon = getGroupIcon(group.sourceName);
           // Grupa dwuopcyjna bez żadnego zdjęcia (np. "Tak"/"Nie" sterowania WiFi,
@@ -256,7 +262,31 @@ export function ProjectOptionsConfigurator({
               </div>
             </div>
           );
-        })}
+        });
+
+  return (
+    <div className="flex flex-col gap-brand-4">
+      <Heading level="h2" surface="v5" className="text-h3">
+        {heading}
+      </Heading>
+      <div aria-label={ariaLabel} className="flex flex-col gap-brand-5">
+        {collapseRest ? (
+          <>
+            {groupNodes.slice(0, VISIBLE_GROUPS)}
+            <MoreOptionGroups
+              count={groups.length - VISIBLE_GROUPS}
+              hasSelection={groups
+                .slice(VISIBLE_GROUPS)
+                .some((group) => group.options.some((option) => selectedIdSet.has(option.id) && !option.isDefault))}
+              showMoreLabel={showMoreLabel as string}
+              showLessLabel={showLessLabel as string}
+            >
+              {groupNodes.slice(VISIBLE_GROUPS)}
+            </MoreOptionGroups>
+          </>
+        ) : (
+          groupNodes
+        )}
       </div>
     </div>
   );

@@ -1088,8 +1088,36 @@
       "komfort": "Komfort i technologia",
       "producent": "Realizacje i producent",
       "dokumenty": "Dokumenty i pytania",
-      "podobne": "Podobne domy"
-    }
+      "podobne": "Podobne domy",
+      "wnetrze": "Wykończenie wnętrza",
+      "wspolpraca": "Sposób współpracy",
+      "zastosowania": "Zastosowania komercyjne"
+    },
+    "interiorStyles": {
+      "heading": "Wykończenie wnętrza",
+      "intro": "Wybierz stylistykę wnętrza. Wybór nie zmienia ceny, trafia do Twojego zapytania.",
+      "previewNote": "To podgląd. Kliknij stylistykę, żeby dodać ją do zapytania.",
+      "chosenLabel": "Wybrana",
+      "materialsHeading": "Materiały",
+      "ariaLabel": "Stylistyki wnętrza",
+      "zones": {
+        "walls_ceilings": "Ściany i sufity",
+        "flooring": "Podłoga",
+        "built_in_furniture": "Meble na wymiar",
+        "bathroom": "Łazienka",
+        "kitchen": "Kuchnia",
+        "beds_textiles": "Łóżka i tekstylia"
+      },
+      "images": {
+        "kitchen": "Kuchnia",
+        "bedroom": "Sypialnia",
+        "bathroom": "Łazienka"
+      }
+    },
+    "collaborationHeading": "Sposób współpracy",
+    "commercialUsesHeading": "Zastosowania komercyjne",
+    "optionsShowMore": "Pokaż więcej opcji ({count})",
+    "optionsShowLess": "Pokaż mniej opcji"
   },
   "OutdoorTvPage": {
     "price": "Cena",
@@ -1408,7 +1436,9 @@
       "dzialka": "Działka i dostawa",
       "partner": "Partner",
       "dokumenty": "Dokumenty i pytania"
-    }
+    },
+    "optionsShowMore": "Pokaż więcej opcji ({count})",
+    "optionsShowLess": "Pokaż mniej opcji"
   },
   "SaunaCategoryPage": {
     "metaTitle": "Sauny | ModularHub Europe",
@@ -2325,7 +2355,13 @@
       "client": "Klient",
       "advisor": "Doradca",
       "producer": "Producent"
-    }
+    },
+    "configurationHeading": "Konfiguracja: {product}",
+    "configurationVariant": "Wariant",
+    "configurationStyle": "Stylistyka wnętrza",
+    "configurationPriceOnRequest": "cena na zapytanie",
+    "configurationTotal": "Suma: {total}",
+    "configurationTotalFrom": "Suma od: {total}"
   },
   "CaseEmail": {
     "newCaseSubject": "Nowa sprawa w ModularHub",

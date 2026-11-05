@@ -23,6 +23,7 @@ import { requireCaseAccess } from "@/lib/cases/access";
 import { getCaseActor } from "@/lib/cases/actor";
 import { answerCard as answerCardData, assessReadiness as assessReadinessData, upsertCaseField as upsertCaseFieldData } from "@/lib/cases/cards";
 import { systemClock } from "@/lib/cases/clock";
+import { buildConfigurationSnapshot } from "@/lib/configuration-snapshot";
 import { createAdvisoryCase, findExistingAdvisoryCase, IdempotencyConflictError } from "@/lib/cases/create";
 import { isGuestRateLimited, pinGuestCaseToExistingClient } from "@/lib/cases/guest";
 import { sendGuestCaseLink } from "@/lib/cases/guest-link";
@@ -103,6 +104,12 @@ export async function submitAdvisoryInquiry(input: SubmitAdvisoryInquiryInput): 
       return { ok: false, error: "rate_limited" };
     }
 
+    // Spec 0081 AC-12: migawka tylko przy jednym produkcie, z identyfikatorów, nazwy i ceny z bazy.
+    const configurationSnapshot =
+      projectIds.length === 1 && data.configuration
+        ? await buildConfigurationSnapshot(projectIds[0], data.configuration.variantId, data.configuration.optionIds, data.configuration.styleId)
+        : null;
+
     const t = await getTranslations({ locale: data.locale, namespace: "CaseSystem" });
     const result = await createAdvisoryCase(
       {
@@ -117,6 +124,7 @@ export async function submitAdvisoryInquiry(input: SubmitAdvisoryInquiryInput): 
         contactEmailVerifiedAt: isGuest ? null : systemClock.now(),
         intendedUse: data.intendedUse,
         intendedUseMonths: data.intendedUseMonths,
+        configurationSnapshot,
       },
       systemClock,
     );

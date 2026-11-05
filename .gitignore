@@ -90,3 +90,6 @@ __pycache__/
 
 # Tymczasowe scenariusze /check verify
 /e2e/zz-verify-*.spec.ts
+
+# Materialy klienta Letniskowo (poufne, nie do repozytorium)
+/_docs/letniskowo/

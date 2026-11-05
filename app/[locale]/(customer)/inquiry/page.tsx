@@ -63,6 +63,18 @@ export default async function ZapytaniePage({
       ? (rawCountry as CountryCode)
       : null;
 
+  // Spec 0081 AC-12: wariant, opcje i stylistyka z adresu przechodzą dalej tylko przy jednym produkcie; serwer
+  // zbuduje z nich migawkę i pominie id, które nie pasują do produktu.
+  const firstParam = (value: string | string[] | undefined) => (typeof value === "string" ? value : undefined);
+  const configuration =
+    selectedProjects.length === 1
+      ? {
+          variantId: firstParam(rawSearchParams.wariant),
+          optionIds: firstParam(rawSearchParams.opcje)?.split(",").filter(Boolean),
+          styleId: firstParam(rawSearchParams.stylistyka),
+        }
+      : undefined;
+
   return (
     <InquiryFlow
       projects={selectedProjects}
@@ -70,6 +82,7 @@ export default async function ZapytaniePage({
       countries={countries}
       initialCountryCode={initialCountryCode}
       isGuest={!session}
+      configuration={configuration}
     />
   );
 }

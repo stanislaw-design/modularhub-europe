@@ -5,6 +5,15 @@ import { producerDeliversToRequestCountrySql, producerMatchesProjectRequestSql }
 import { buildPublicUrl } from "@/lib/storage/r2-client";
 import type { Locale } from "@/lib/i18n/routing";
 import { resolveTranslatedText } from "@/lib/i18n/resolve-translated-text";
+import {
+  producerContentItem,
+  producerContentItemTranslation,
+  producerInteriorStyle,
+  producerInteriorStyleImage,
+  producerInteriorStyleMaterial,
+  producerInteriorStyleTranslation,
+  productInteriorStyleAssignment,
+} from "./schema";
 import { COMPLIANCE_ONLY_COUNTRY_CODES } from "@/lib/product-envelope-parameters";
 import { storedLogisticsSchema, type StoredLogistics } from "@/lib/project-quote-specs";
 import { toPlatformQuoteVariant, type PlatformQuoteVariant } from "@/lib/platform-quote-variants";
@@ -624,6 +633,108 @@ export async function getProductOptionGroups(
         priceNote: resolveTranslatedText(row.priceNote ?? "", optionPriceNotes.get(row.id)) || null,
       })),
   }));
+}
+
+// Stylistyki wnętrz przypisane do produktu (spec 0081 AC-8, AC-9). Pusta lista, gdy brak przypisań. Usunięte miękko
+// stylistyki pominięte, obrazy i materiały wg sort_order; dla en/de/nl tłumaczenie nazwy i opisu po id z fallbackiem
+// na polski, dla pl żadnej tabeli tłumaczeń nie dotykamy. Nazwy materiałów to nazwy własne, bez tłumaczenia.
+export interface InteriorStyleMaterial {
+  id: string;
+  zone: string;
+  name: string;
+  code: string | null;
+  swatchUrl: string | null;
+}
+
+export interface InteriorStyle {
+  id: string;
+  name: string;
+  // Polska nazwa źródłowa, dla migawki zapytania.
+  sourceName: string;
+  description: string | null;
+  images: { id: string; url: string; alt: string | null }[];
+  materials: InteriorStyleMaterial[];
+}
+
+export async function getInteriorStylesForProduct(productId: string, locale: Locale = "pl"): Promise<InteriorStyle[]> {
+  const styleRows = await db
+    .select({ id: producerInteriorStyle.id, name: producerInteriorStyle.name, description: producerInteriorStyle.description })
+    .from(productInteriorStyleAssignment)
+    .innerJoin(producerInteriorStyle, eq(productInteriorStyleAssignment.styleId, producerInteriorStyle.id))
+    .where(and(eq(productInteriorStyleAssignment.productId, productId), isNull(producerInteriorStyle.deletedAt)))
+    .orderBy(asc(producerInteriorStyle.sortOrder), asc(producerInteriorStyle.name));
+  if (styleRows.length === 0) return [];
+
+  const styleIds = styleRows.map((row) => row.id);
+  const [imageRows, materialRows, translationRows] = await Promise.all([
+    db.select().from(producerInteriorStyleImage).where(inArray(producerInteriorStyleImage.styleId, styleIds)).orderBy(asc(producerInteriorStyleImage.sortOrder)),
+    db.select().from(producerInteriorStyleMaterial).where(inArray(producerInteriorStyleMaterial.styleId, styleIds)).orderBy(asc(producerInteriorStyleMaterial.sortOrder)),
+    locale === "pl"
+      ? Promise.resolve([] as { styleId: string; name: string; description: string | null }[])
+      : db
+          .select({ styleId: producerInteriorStyleTranslation.styleId, name: producerInteriorStyleTranslation.name, description: producerInteriorStyleTranslation.description })
+          .from(producerInteriorStyleTranslation)
+          .where(and(inArray(producerInteriorStyleTranslation.styleId, styleIds), eq(producerInteriorStyleTranslation.locale, locale))),
+  ]);
+  const translations = new Map(translationRows.map((row) => [row.styleId, row]));
+
+  return styleRows.map((style) => {
+    const translated = translations.get(style.id);
+    return {
+      id: style.id,
+      name: resolveTranslatedText(style.name, translated?.name),
+      sourceName: style.name,
+      description: resolveTranslatedText(style.description, translated?.description) || null,
+      images: imageRows.filter((row) => row.styleId === style.id).map((row) => ({ id: row.id, url: row.url, alt: row.alt })),
+      materials: materialRows
+        .filter((row) => row.styleId === style.id)
+        .map((row) => ({ id: row.id, zone: row.zone, name: row.name, code: row.code, swatchUrl: row.swatchUrl })),
+    };
+  });
+}
+
+// Treść producenta (spec 0081 AC-11): "Sposób współpracy" i zastosowania komercyjne. Pusta lista, gdy producent nie
+// ma treści tego rodzaju, wtedy sekcja się nie renderuje. Fallback do polskiego tekstu źródłowego per pole.
+export type ProducerContentKind = "collaboration_step" | "commercial_use";
+
+export interface ProducerContentItem {
+  id: string;
+  title: string;
+  body: string | null;
+}
+
+export async function getProducerContentItems(
+  producerId: string,
+  kind: ProducerContentKind,
+  locale: Locale = "pl",
+): Promise<ProducerContentItem[]> {
+  const rows = await db
+    .select({ id: producerContentItem.id, title: producerContentItem.title, body: producerContentItem.body })
+    .from(producerContentItem)
+    .where(and(eq(producerContentItem.producerId, producerId), eq(producerContentItem.kind, kind), isNull(producerContentItem.deletedAt)))
+    .orderBy(asc(producerContentItem.sortOrder));
+  if (rows.length === 0) return [];
+  const translations =
+    locale === "pl"
+      ? []
+      : await db
+          .select({ itemId: producerContentItemTranslation.itemId, title: producerContentItemTranslation.title, body: producerContentItemTranslation.body })
+          .from(producerContentItemTranslation)
+          .where(
+            and(
+              inArray(producerContentItemTranslation.itemId, rows.map((row) => row.id)),
+              eq(producerContentItemTranslation.locale, locale),
+            ),
+          );
+  const byItem = new Map(translations.map((row) => [row.itemId, row]));
+  return rows.map((row) => {
+    const translated = byItem.get(row.id);
+    return {
+      id: row.id,
+      title: resolveTranslatedText(row.title, translated?.title),
+      body: resolveTranslatedText(row.body, translated?.body) || null,
+    };
+  });
 }
 
 export interface ProductFamilyCount {

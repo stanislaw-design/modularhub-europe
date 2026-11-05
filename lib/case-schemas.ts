@@ -32,6 +32,15 @@ export const submitAdvisoryInquirySchema = z
   contact: guestContactSchema.optional(),
   // Ukryte pole pułapka (spec 0066 AC-5): człowiek go nie widzi i nie wypełnia.
   website: z.string().max(200).optional(),
+  // Spec 0081 AC-12: wybór z strony produktu (tylko identyfikatory, łagodna walidacja: złe id są pomijane
+  // przy budowie migawki, nie odrzucają zapytania). Migawka powstaje wyłącznie dla zapytania z jednego produktu.
+  configuration: z
+    .object({
+      variantId: z.string().max(64).optional(),
+      optionIds: z.array(z.string().max(64)).max(100).optional(),
+      styleId: z.string().max(64).optional(),
+    })
+    .optional(),
   // Spec 0075 AC-7: planowane użytkowanie, opcjonalne.
   ...intendedUseShape,
 })

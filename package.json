@@ -25,6 +25,7 @@
     "export:domwood-prod": "tsx --env-file=.env.local scripts/export-domwood-prod-sql.ts",
     "import:producers-as-partners": "tsx --env-file=.env.local scripts/import-producers-as-partners.ts",
     "import:wencel": "tsx --env-file=.env.local scripts/import-wencel-catalog.ts",
+    "import:letniskowo": "tsx --env-file=.env.local scripts/import-letniskowo-catalog.ts",
     "import:moduhome": "tsx --env-file=.env.local scripts/import-moduhome-catalog.ts",
     "import:miragevision-tv": "tsx --env-file=.env.local scripts/import-miragevision-tv.ts",
     "import:miragevision-lift": "tsx --env-file=.env.local scripts/import-miragevision-lift.ts",

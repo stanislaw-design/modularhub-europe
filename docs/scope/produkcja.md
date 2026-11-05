@@ -83,6 +83,7 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 67 | Koszty hostingu Vercel: Cache Components i ochrona przed botami | Utwardzenie | in progress |
 | 68 | Analityka ruchu i maili w panelu admina | Slice 10 | in progress |
 | 69 | Rozmowy z kontrahentami: notatnik, zadania i dziennik w panelu admina | Slice 10 | in progress |
+| 70 | Letniskowo: katalog 17 modeli, opcje płatne, stylistyki wnętrz i sekcje klienta | Slice 2 | in progress |
 
 ## Foundations
 
@@ -640,6 +641,19 @@ Wewnętrzny notatnik dla dwóch administratorów (Stanisław i Artur): firma (pr
   - [ ] Dzienny mail i dane startowe: cron, wspólny mail, import obecnych producentów jako firm (dev, SQL na produkcję), satisfies AC-19, AC-20
 - [ ] Zweryfikuj: `/check verify notatnik rozmów z kontrahentami`
 - [ ] Testuj: `/test notatnik rozmów z kontrahentami`
+
+### 70. Letniskowo: katalog 17 modeli, opcje płatne, stylistyki wnętrz i sekcje klienta · full · in progress
+Ważny klient (producent domów mobilnych z Białegostoku). Import 17 modeli z cenami z oferty i około 77 opcjami płatnymi z cennika, a na stronie produktu trzy nowe elementy: wybór stylistyki wnętrza (pięć wzorników z próbnikami materiałów), sekcja "Sposób współpracy" i sekcja zastosowań komercyjnych z przyciskiem zapytania hurtowego. Wybrane opcje i stylistyka trafiają do zapytania jako migawka konfiguracji, czego dziś brakuje także opcjom ze specu 0059. Galeria realizacji, opis firmy i filtr linii są poza zakresem. Funkcja dodana ze [spec 0081](../specs/0081-letniskowo-katalog-i-sekcje-klienta/index.md).
+**Done when:** na dev strona producenta Letniskowo pokazuje 17 modeli z cenami, rzutami i zdjęciami, konfigurator liczy opcje wg linii i klasy rozmiaru modelu, klient wybiera stylistykę i widzi próbniki, sekcje współpracy i zastosowań renderują się w czterech językach, a zapytanie z jednego produktu niesie migawkę konfiguracji widoczną dla administratora, producenta i klienta, bez regresji na innych produktach.
+- [x] Zaprojektuj (spec): [0081](../specs/0081-letniskowo-katalog-i-sekcje-klienta/index.md)
+- [x] Zbuduj: `/develop letniskowo katalog i sekcje klienta`
+  - [x] Schemat i cienka nitka: migracja siedmiu tabel i kolumny migawki na gałęzi Neon i dev, skrypt `import:letniskowo` z producentem i modelem Bali od końca do końca, satisfies AC-1, AC-2, AC-4, AC-14
+  - [x] Pełny katalog i opcje: 17 modeli z kart (dane techniczne, zdjęcia, rzuty, R2), tłumaczenia, katalog opcji wg klas rozmiaru i macierzy standardu, certyfikaty ISO, satisfies AC-1 do AC-7, AC-13
+  - [x] Stylistyki wnętrz: wycinanie i wgranie kafelków WebP, import stylistyk, sekcja "Wykończenie wnętrza" z parametrem `stylistyka`, satisfies AC-8 do AC-10
+  - [x] Sekcje producenta: treść współpracy i zastosowań, komponenty, przycisk zapytania hurtowego, satisfies AC-11
+  - [x] Konfiguracja w zapytaniu i domknięcie: migawka na serwerze, widoki zapytania, `check:translations`, testy, plik SQL promocji na produkcję (niewykonany), satisfies AC-3, AC-12, AC-14, AC-15 (widok migawki dla producenta czeka na ekran producenta nowego przepływu)
+- [ ] Zweryfikuj: `/check verify letniskowo katalog i sekcje klienta`
+- [ ] Testuj: `/test letniskowo katalog i sekcje klienta`
 
 ## Slice 11: weryfikacja firmy
 

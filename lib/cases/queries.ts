@@ -1,5 +1,6 @@
 import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import type { CaseMessageDto } from "@/lib/case-schemas";
+import type { ConfigurationSnapshot } from "@/lib/configuration-snapshot";
 import { db } from "@/lib/db/client";
 import { channel, inquiry, inquiryItem, product, users } from "@/lib/db/schema";
 import { requireCaseAccess, type CaseActor } from "./access";
@@ -30,6 +31,8 @@ export interface CaseView {
   stage: CaseStage;
   waitingOn: CaseWaitingOn | null;
   productNames: string[];
+  // Spec 0081 AC-12: migawka konfiguracji z zapytania z jednego produktu (puste, gdy jej nie ma).
+  configurations: { productName: string; snapshot: ConfigurationSnapshot }[];
   receivedAt: Date;
   plot: { street: string | null; postalCode: string | null; city: string | null; countryCode: string };
   clientMessage: string | null;
@@ -212,7 +215,7 @@ export async function getCaseView(actor: CaseActor, inquiryId: string): Promise<
 
   const [productRows, messages, caseFields] = await Promise.all([
     db
-      .select({ name: product.name })
+      .select({ name: product.name, configurationSnapshot: inquiryItem.configurationSnapshot })
       .from(inquiryItem)
       .innerJoin(product, eq(product.id, inquiryItem.productId))
       .where(eq(inquiryItem.inquiryId, inquiryId)),
@@ -225,6 +228,11 @@ export async function getCaseView(actor: CaseActor, inquiryId: string): Promise<
     stage: row.stage,
     waitingOn: row.waitingOn,
     productNames: productRows.flatMap((item) => (item.name ? [item.name] : [])),
+    configurations: productRows.flatMap((item) =>
+      item.name && item.configurationSnapshot
+        ? [{ productName: item.name, snapshot: item.configurationSnapshot as ConfigurationSnapshot }]
+        : [],
+    ),
     receivedAt: row.receivedAt,
     plot: { street: row.street, postalCode: row.postalCode, city: row.city, countryCode: row.countryCode },
     clientMessage: row.clientMessage,
