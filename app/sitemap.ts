@@ -17,7 +17,7 @@ async function getCachedSitemapProducts() {
   return getSitemapProducts();
 }
 
-const PUBLIC_PATHS = ["", "/results", "/producers", "/verified-manufacturers", "/sauna", "/project-request", "/contact", "/modularprojects"];
+const PUBLIC_PATHS = ["", "/results", "/producers", "/verified-manufacturers", "/sauna", "/project-request", "/contact", "/modularprojects", "/commercial-displays"];
 
 function localizedEntry(
   base: string,
