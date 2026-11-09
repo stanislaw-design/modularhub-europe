@@ -5,25 +5,19 @@ import {
 } from "./verified-manufacturers-filters";
 
 describe("parseVerifiedManufacturersSearchParams", () => {
-  it("reads a valid country and a valid size range (AC-19, AC-20, AC-21)", () => {
-    const filter = parseVerifiedManufacturersSearchParams({ country: "DE", sizeMin: "50", sizeMax: "100" });
-    expect(filter).toEqual({ countryCode: "DE", sizeMin: 50, sizeMax: 100, q: undefined });
+  it("reads a valid size range (AC-19, AC-20, AC-21)", () => {
+    const filter = parseVerifiedManufacturersSearchParams({ sizeMin: "50", sizeMax: "100" });
+    expect(filter).toEqual({ sizeMin: 50, sizeMax: 100, q: undefined });
   });
 
   it("returns an empty filter when no params are present", () => {
     const filter = parseVerifiedManufacturersSearchParams({});
-    expect(filter).toEqual({ countryCode: undefined, sizeMin: undefined, sizeMax: undefined, q: undefined });
+    expect(filter).toEqual({ sizeMin: undefined, sizeMax: undefined, q: undefined });
   });
 
-  it.each(["FR", "US", "gb", ""])("ignores an invalid country %j instead of erroring", (country) => {
-    const filter = parseVerifiedManufacturersSearchParams({ country, sizeMin: "50" });
-    expect(filter.countryCode).toBeUndefined();
-    expect(filter.sizeMin).toBe(50);
-  });
-
-  it("ignores a country given as an array (repeated query param)", () => {
-    const filter = parseVerifiedManufacturersSearchParams({ country: ["PL", "DE"] });
-    expect(filter.countryCode).toBeUndefined();
+  it("ignores the country param, it is not a filter here (spec 0082 AC-9)", () => {
+    const filter = parseVerifiedManufacturersSearchParams({ country: "DE", sizeMin: "50" });
+    expect(filter).toEqual({ sizeMin: 50, sizeMax: undefined, q: undefined });
   });
 
   it.each(["75", "abc", "", "-50"])("ignores an invalid sizeMin %j while leaving sizeMax alone", (sizeMin) => {
@@ -56,8 +50,8 @@ describe("buildVerifiedManufacturersHref", () => {
   });
 
   it("serializes every field present on the filter (AC-19)", () => {
-    expect(buildVerifiedManufacturersHref("pl", { countryCode: "DE", sizeMin: 50, sizeMax: 100, q: "Budman" })).toBe(
-      "/pl/verified-manufacturers?country=DE&sizeMin=50&sizeMax=100&q=Budman"
+    expect(buildVerifiedManufacturersHref("pl", { sizeMin: 50, sizeMax: 100, q: "Budman" })).toBe(
+      "/pl/verified-manufacturers?sizeMin=50&sizeMax=100&q=Budman"
     );
   });
 });

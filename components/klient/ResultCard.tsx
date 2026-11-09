@@ -2,10 +2,10 @@ import { Clock3, ImageOff, MapPin, Ruler } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
-import { Card, Checkbox, DataText, Heading, StatusPill, Text } from "@/components/ui";
+import { Card, Checkbox, DataText, Heading, Text } from "@/components/ui";
 import { FavoriteButton } from "./FavoriteButton";
 import { getDefaultProjectVariant, getInPriceCostLineItemLabels, getProjectPriceDisplay } from "@/lib/data/project-variants";
-import type { CountryCode, EligibilityStatus, Project } from "@/lib/data/types";
+import type { CountryCode, Project } from "@/lib/data/types";
 import { resolveProductHref } from "@/lib/product-family-groups";
 
 interface ResultCardProps {
@@ -13,7 +13,6 @@ interface ResultCardProps {
   countryName: string;
   /** Do budowy linku do /project/[id] (spec 0020 AC-2). */
   locale: string;
-  eligibilityStatus?: EligibilityStatus;
   selected?: boolean;
   selectionDisabled?: boolean;
   onToggleSelect?: () => void;
@@ -44,7 +43,6 @@ export function ResultCard({
   project,
   countryName,
   locale,
-  eligibilityStatus,
   selected,
   selectionDisabled,
   onToggleSelect,
@@ -144,9 +142,6 @@ export function ResultCard({
         )}
       </div>
       <div className="flex flex-1 flex-col gap-brand-2 p-brand-3">
-        {eligibilityStatus === "conditional" && (
-          <StatusPill status="conditional">{t("needsMoreDocuments")}</StatusPill>
-        )}
         <div className="flex flex-col gap-1">
           <Heading level="h3" surface="v5" className="text-body-l">
             {project.name}

@@ -1,17 +1,15 @@
 import type {
   ContainerSubcategory,
   CountryCode,
-  EligibilityStatus,
-  ProductFamily,
   Project,
   SpaSubcategory,
 } from "./data/types";
+import { isMarketCountryCode } from "./countries";
 import { parseOutdoorTvSearchParams, type OutdoorTvMounting, type OutdoorTvPurpose } from "./outdoor-tv-filters";
-import { resolveFamilies, type FamilyFilterValue } from "./product-family-groups";
+import type { FamilyFilterValue } from "./product-family-groups";
 import { ENERGY_CLASSES, HEAT_SOURCES, VENTILATION_TYPES, type EnergyClass, type HeatSource, type VentilationType } from "./product-technical-specs";
 import { SIZE_THRESHOLDS, type SizeThreshold } from "./size-thresholds";
 
-const VALID_COUNTRY_CODES: readonly CountryCode[] = ["PL", "DE", "NL"];
 // Trzy prawdziwe rodziny plus sentinel grupy "wiecej-niz-dom" (spec 0035 AC-2).
 const VALID_FAMILY_FILTER_VALUES: readonly FamilyFilterValue[] = [
   "dom",
@@ -48,8 +46,7 @@ export interface ResultsFilter {
   // Domyślnie "dom" (spec 0023 AC-4): niepodany lub nieprawidłowy parametr URL
   // pada łagodnie na dom, ten sam wzorzec co country/sizeMin/sizeMax. Poza
   // trzema prawdziwymi rodzinami dopuszcza sentinel grupy "wiecej-niz-dom"
-  // (spec 0035 AC-2), rozwiązywany przez FAMILY_GROUPS w getProjects()/
-  // matchesResultsFilter.
+  // (spec 0035 AC-2), rozwiązywany przez FAMILY_GROUPS w getProjects().
   family: FamilyFilterValue;
   // Poniższe cztery są znaczące tylko dla family "dom" (spec 0026 Key invariants);
   // parseResultsSearchParams je zawsze parsuje niezależnie od family — o tym, czy
@@ -96,9 +93,7 @@ export function parseResultsSearchParams(
 ): ResultsFilter {
   const rawCountry = searchParams.country;
   const countryCode =
-    typeof rawCountry === "string" && VALID_COUNTRY_CODES.includes(rawCountry as CountryCode)
-      ? (rawCountry as CountryCode)
-      : undefined;
+    typeof rawCountry === "string" && isMarketCountryCode(rawCountry) ? rawCountry : undefined;
 
   let sizeMin = parseSizeValue(searchParams.sizeMin);
   let sizeMax = parseSizeValue(searchParams.sizeMax);
@@ -199,27 +194,6 @@ export function toggleFilterValue<K extends "heatSource" | "ventilation" | "ener
 // jednoelementową tablicę. Używane przez getProjects() do budowy WHERE ... IN (...).
 export function resolveHeatSourceValues(value: HeatSourceFilterValue): HeatSource[] {
   return value === "pompa-ciepla" ? ["pompa-ciepla-powietrze-woda", "pompa-ciepla-grunt-woda"] : [value];
-}
-
-// Ta sama reguła filtra co w getProjects() (lib/data/projects.ts), wyodrębniona żeby
-// lokalne produkty producenta doklejone po stronie przeglądarki (spec 0016, AC-11)
-// przechodziły dokładnie ten sam test co lista serwerowa, bez duplikowania logiki.
-// Ogranicza się do family/country/size (spec 0023 zakres) — nowe filtry atrybutów,
-// ceny, podkategorii i wyszukiwania (spec 0026) nie sięgają tej ścieżki podglądu
-// lokalnego, poza zakresem build planu tej funkcji. filter.family rozwiązywany
-// przez FAMILY_GROUPS (spec 0035), więc "wiecej-niz-dom" dopasowuje zarówno
-// spa-modulowe, jak i kontenery-modulowe, tak samo jak getProjects().
-export function matchesResultsFilter(
-  floorAreaM2: number,
-  eligibilityStatus: EligibilityStatus | undefined,
-  filter: ResultsFilter,
-  family: ProductFamily = "dom"
-): boolean {
-  if (!resolveFamilies(filter.family).includes(family)) return false;
-  if (filter.countryCode && (eligibilityStatus === undefined || eligibilityStatus === "blocked")) return false;
-  if (filter.sizeMin !== undefined && floorAreaM2 < filter.sizeMin) return false;
-  if (filter.sizeMax !== undefined && floorAreaM2 > filter.sizeMax) return false;
-  return true;
 }
 
 // Spec 0050 AC-37: wycena indywidualna nigdy nie zniekształca sortowania po

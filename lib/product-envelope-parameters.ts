@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MARKET_COUNTRY_CODES, type CountryCode } from "./countries";
 
 // Spec 0075 AC-1, AC-2: parametry izolacji przegród produktu. Wartości enumów
 // są te same co w lib/db/schema.ts (envelopeElementEnum i pozostałe).
@@ -90,13 +91,10 @@ export function supportsEnvelopeParameters(product: {
   );
 }
 
-// Spec 0075 AC-8: kraje, dla których administrator wpisuje ocenę zgodności.
-// Globalny CountryCode (lib/data/types.ts) zostaje PL, DE, NL: BE, IT i FR
-// nie są krajami dostawy.
-export const COMPLIANCE_COUNTRY_CODES = ["PL", "DE", "NL", "BE", "IT", "FR"] as const;
-// Kraje obecne w słowniku tylko dla ocen zgodności, nie jako kraje dostawy.
-export const COMPLIANCE_ONLY_COUNTRY_CODES = ["BE", "IT", "FR"] as const;
-export type ComplianceCountryCode = (typeof COMPLIANCE_COUNTRY_CODES)[number];
+// Kraje, dla których administrator wpisuje ocenę zgodności: ta sama lista rynku
+// co wszędzie (spec 0082 AC-1, zastępuje AC-8 ze spec 0075).
+export const COMPLIANCE_COUNTRY_CODES = MARKET_COUNTRY_CODES;
+export type ComplianceCountryCode = CountryCode;
 
 // Przepisy do wyboru na kraj; `rule` w bazie zostaje wolnym tekstem, więc
 // dotychczasowe wartości (np. "bbl") działają dalej, a "inny" to wolny tekst.

@@ -176,7 +176,7 @@
     "countryOfProduction": "Country of production: {country}",
     "modelsAndSize": "{models} models · {min}–{max} m²",
     "modelsOnly": "{models} models",
-    "delivery": "Delivers to:",
+    "delivery": "Declares delivery to:",
     "showroomVisitAvailable": "In-person visits available",
     "showroomVisitUnavailable": "In-person visits not available",
     "showroomVisitUnknown": "In-person visits to be determined with the producer",
@@ -184,14 +184,16 @@
     "country": {
       "PL": "Poland",
       "DE": "Germany",
-      "NL": "Netherlands"
+      "NL": "Netherlands",
+      "BE": "Belgium",
+      "IT": "Italy",
+      "FR": "France"
     }
   },
   "ResultCard": {
     "viewDetails": "View details for {name}",
     "selectForInquiry": "Select {name} for the inquiry",
     "selectionLimitReached": "You can select up to 3 projects",
-    "needsMoreDocuments": "Needs additional documents",
     "summary": "{area} · {rooms} · {storeys}",
     "areaValue": "{area} m² usable",
     "areaUnknown": "usable floor area to be determined",
@@ -251,20 +253,13 @@
       "many": "products"
     }
   },
-  "CountryLocative": {
-    "PL": "in Poland",
-    "DE": "in Germany",
-    "NL": "in the Netherlands"
-  },
   "CategoryHeading": {
     "breadcrumbAriaLabel": "Breadcrumb",
     "breadcrumbHome": "Home",
     "modelCount": "{count, plural, one {# model} other {# models}}"
   },
   "ResultsHeader": {
-    "eligibleLine": "Legally allowed {country}",
-    "eligibleSuffix": " allowed {country}",
-    "hint": "Choose a country in the filters to see which {familyFew} are legally allowed there.",
+    "hint": "Narrow the list by size, price and other criteria.",
     "hintOutdoorTv": "Narrow the list by mounting type and intended use."
   },
   "EmptyResults": {
@@ -878,7 +873,7 @@
     "subheading": "Create an account, sign in with an email link, and manage your product catalog and client inquiries in one place.",
     "whyHeading": "Why ModularHub Europe",
     "benefitRegistrationTitle": "One registration, every country",
-    "benefitRegistrationDescription": "Select your delivery countries once — we check project eligibility for each of them.",
+    "benefitRegistrationDescription": "Select your delivery countries once, as a declaration visible to customers.",
     "benefitInquiriesTitle": "Inquiries with ready context",
     "benefitInquiriesDescription": "Clients send inquiries straight away with the chosen project and their contact details.",
     "benefitStatusTitle": "Fulfillment status in one place",
@@ -1031,12 +1026,6 @@
     "commercialTermsHeading": "Commercial terms",
     "priceIncludesHeading": "Price includes",
     "priceExcludesHeading": "Price excludes",
-    "legalComplianceHeading": "Legal compliance in {country}",
-    "status": {
-      "approved": "Compliant",
-      "conditional": "Requires additional documents",
-      "blocked": "Not available in this country"
-    },
     "producerHeading": "Completed projects and producer",
     "bulkInquiryHeading": "Need a larger quantity?",
     "bulkInquiryBody": "This producer is volume-verified. Ask about this model in a larger quantity.",
@@ -1142,13 +1131,13 @@
     "heading": "Frequently asked questions",
     "subheading": "Didn't find your answer? Write to us through the contact form.",
     "howQuestion": "How exactly does ModularHub work?",
-    "howAnswer": "You search for houses available in your country, compare up to three projects, check legal compliance through the Compliance Engine™, and then send one inquiry to your chosen producers instead of writing to each one separately.",
+    "howAnswer": "You search for homes, compare up to three projects, and then send one inquiry to selected producers instead of writing to each separately. You get a preliminary compliance assessment in your summary offer.",
     "costQuestion": "Is using the platform paid?",
     "costAnswer": "Browsing offers, comparing, and sending inquiries are free. The only paid item is the optional plot analysis report for a specific project.",
     "priceQuestion": "Why is the price a range, not a single amount?",
     "priceAnswer": "The final price depends on the finishing standard, transport to your location, and the scope of assembly. The range shows the real span before you receive a binding offer from the producer.",
-    "complianceQuestion": "What does the Compliance Engine™ check?",
-    "complianceAnswer": "The construction, insulation, ventilation, and required documentation of a given house against the building regulations of the country it's going to — before you send an inquiry to the producer.",
+    "complianceQuestion": "When do I get the compliance assessment of a project?",
+    "complianceAnswer": "You receive a preliminary assessment of the project against the rules of your building country in your summary offer, after talking to our team. It is indicative and is not legal advice.",
     "producersQuestion": "How do you know the producers are vetted?",
     "producersAnswer": "Every producer on the platform goes through ModularHub verification, shown as a badge on their card, before their projects appear in search results.",
     "timeQuestion": "How long does it take to receive offers?",
@@ -1321,7 +1310,10 @@
     "country": {
       "PL": "Poland",
       "DE": "Germany",
-      "NL": "Netherlands"
+      "NL": "Netherlands",
+      "BE": "Belgium",
+      "IT": "Italy",
+      "FR": "France"
     },
     "countryOfProduction": "Country of production: {country}",
     "warrantyLabel": "Structural warranty",
@@ -1475,9 +1467,6 @@
     "sortPriceDesc": "Price: descending",
     "sortSizeAsc": "Floor area: ascending",
     "sortSizeDesc": "Floor area: descending",
-    "countryLabel": "Country",
-    "countryPlaceholder": "Choose a country",
-    "countryAriaLabel": "Target country",
     "sizeMinLabel": "Floor area from",
     "sizeMaxLabel": "Floor area to",
     "anyPlaceholder": "Any",
@@ -1521,8 +1510,8 @@
     "categoryHome": "Houses",
     "categoryMore": "More than a house",
     "categoryAriaLabel": "Product category",
-    "whereLabel": "Where?",
-    "wherePlaceholder": "Country, region, or city",
+    "whereLabel": "Where are you building?",
+    "wherePlaceholder": "Any country",
     "whereAriaLabel": "Target country",
     "budgetLabel": "Budget",
     "budgetAriaLabel": "Budget",
@@ -1545,7 +1534,7 @@
     "countryDe": "Germany",
     "countryNl": "Netherlands",
     "quote1": "I sent an inquiry to three producers in one evening instead of writing to each one separately. Replies came in two days.",
-    "quote2": "Checking compliance with German regulations before sending the inquiry saved me weeks of correspondence with a lawyer.",
+    "quote2": "One inquiry to several producers instead of writing to each separately saved me weeks of correspondence.",
     "quote3": "I liked that I immediately saw the broken-down price — house, transport, assembly — instead of one mysterious total.",
     "quote4": "Comparing three projects side by side showed me I was overpaying for square meters I didn't need.",
     "quote5": "The platform is independent from the producers, so I felt like it was advising me, not selling to me."
@@ -1566,11 +1555,11 @@
     "heading": "How ModularHub works",
     "subheading": "Five steps from your first search to receiving the keys.",
     "stage1Title": "Search",
-    "stage1Description": "Choose a country and floor area in the search bar, browse matching houses.",
+    "stage1Description": "Choose a floor area in the search and browse the matching homes. You give the building country in the inquiry.",
     "stage2Title": "Compare",
     "stage2Description": "Set up to three projects side by side: price, floor area, standard.",
-    "stage3Title": "Check compliance",
-    "stage3Description": "The Compliance Engine™ checks the house against your country's regulations.",
+    "stage3Title": "Learn about compliance",
+    "stage3Description": "You get a preliminary compliance assessment of the project in your summary offer.",
     "stage4Title": "Ask for offers",
     "stage4Description": "Send one inquiry to your chosen producers at once.",
     "stage5Title": "Receive the house",
@@ -1696,35 +1685,18 @@
     "subheading": "Compare vetted modular houses from all over Europe."
   },
   "ComplianceEngineShowcase": {
-    "headingBefore": "We check",
-    "headingUnderline": "legal compliance",
-    "headingAfter": "before you have to",
-    "intro": "We compare every house against the local building regulations of the target country — construction, insulation, ventilation, and required documentation — before you send an inquiry to the producer.",
-    "disclaimer": "The result is a preliminary, orientational check — it is not legal advice. We keep the Compliance Engine™'s data and logic up to date to reflect a country's building regulations as closely as possible, but final compliance is confirmed by the relevant authority and the chosen producer.",
-    "exampleLocation": "Location: Venlo, Netherlands",
-    "complianceSuffix": "compliant",
-    "checklistConstruction": "Construction",
-    "checklistInsulation": "Insulation",
-    "checklistVentilation": "Ventilation",
-    "checklistDocumentation": "Documentation",
-    "checklistPermit": "Local permit",
-    "statusOk": "Met",
-    "statusWarning": "Needs attention",
-    "checkHouse": "Check a house",
-    "exampleBadge": "Illustrative example",
-    "coverageLabel": "Coverage",
-    "coverage": "Poland · Germany · Netherlands",
-    "detailConstruction": "Structural capacity and class",
-    "detailInsulation": "Thermal performance of the envelope",
-    "detailVentilation": "Airtightness and air exchange",
-    "detailDocumentation": "Full document set for the authority",
-    "detailPermit": "To be confirmed by the local authority",
-    "step1Title": "You choose the build country",
-    "step1Text": "Rules depend on the location, not the producer.",
-    "step2Title": "We check the house against the rules",
-    "step2Text": "Structure, insulation, ventilation and documents.",
-    "step3Title": "You get a result with a gap list",
-    "step3Text": "You see what is fine and what needs attention."
+    "headingBefore": "A preliminary",
+    "headingUnderline": "compliance assessment",
+    "headingAfter": "in your summary offer",
+    "intro": "Once we have collected the manufacturers' offers, you receive a summary offer with a preliminary assessment of how the project fits the rules of your building country.",
+    "disclaimer": "The assessment is preliminary and indicative, and is not legal advice. The competent authority and the chosen manufacturer confirm the final compliance of the project.",
+    "checkHouse": "Browse projects",
+    "step1Title": "You choose projects",
+    "step1Text": "You compare models and send one inquiry.",
+    "step2Title": "We collect manufacturer offers",
+    "step2Text": "We agree the building country and requirements with you.",
+    "step3Title": "You receive a summary offer",
+    "step3Text": "It includes a preliminary compliance assessment of the project."
   },
   "CompareHomesTeaser": {
     "heading": "Compare houses side by side",
@@ -1973,7 +1945,7 @@
     "filterClear": "Clear filters",
     "emptyFiltered": "No requests match the selected filters.",
     "heading": "ModularProjects",
-    "intro": "ModularProjects requests that match your profile: delivery country, product families and capacity. Submit a quote on any of them.",
+    "intro": "ModularProjects inquiries matched to your profile: product families and capacity. Submit a quote on any of them.",
     "notApprovedHeading": "ModularProjects is only available to volume-verified producers",
     "notApprovedDescription": "Fill in your production capacity profile so an administrator can verify you.",
     "completeProfileLink": "Complete your capacity profile",
@@ -2161,7 +2133,7 @@
   },
   "ProjectRequestFlow": {
     "heading": "Submit a large project to ModularProjects",
-    "intro": "ModularProjects is one request for a project of 3 or more modular homes — it will reach verified producers ready for volume in your chosen country.",
+    "intro": "ModularProjects is a single inquiry for a project of 3 or more modular homes. It goes to verified, volume ready producers.",
     "sentHeading": "Request sent",
     "backToHome": "Back to homepage",
     "sectionAboutHeading": "About the project",
@@ -2215,7 +2187,7 @@
   "ProjectRequestConfirmationCard": {
     "statusLabel": "Sent",
     "heading": "Request sent",
-    "message": "Matched, verified producers in your country have been notified about your project.",
+    "message": "Matched, verified producers have been notified about your project.",
     "emailNote": "Responses (quotes) will arrive by email at {email}."
   },
   "VerifiedManufacturersPage": {
@@ -2227,17 +2199,14 @@
     "verifiedBadge": "Verified volume capacity",
     "capacityLabel": "{units} homes/month",
     "certificationsLabel": "Certifications: {list}",
-    "deliveryLabel": "Delivery: {list}",
+    "deliveryLabel": "Declares delivery to: {list}",
     "emptyStateHeading": "No producer is volume-verified today",
-    "emptyStateBody": "Submit a request for your large project — we'll notify you once a verified producer appears in your country.",
+    "emptyStateBody": "Send an inquiry for a large project and we will notify you when a verified producer appears.",
     "noMatchHeading": "No projects match the selected filters",
     "noMatchBody": "No volume-verified producer has a project matching the selected filters. Clear the filters, or submit a request for your project directly.",
     "clearFiltersLabel": "Clear filters"
   },
   "VerifiedManufacturersFilterBar": {
-    "countryLabel": "Delivery country",
-    "countryPlaceholder": "Choose a country",
-    "countryAriaLabel": "Delivery country",
     "sizeMinLabel": "Floor area from",
     "sizeMaxLabel": "Floor area to",
     "anyPlaceholder": "Any",
@@ -2596,7 +2565,7 @@
   },
   "ProducerPanelCapacityPage": {
     "heading": "Production capacity profile",
-    "intro": "Complete your profile so an administrator can verify you. Verified producers see ModularProjects requests that match their delivery countries, product families and capacity.",
+    "intro": "Complete your profile so the administrator can verify you. Verified producers see the ModularProjects inquiries that match their product families and capacity. Delivery countries are an informational declaration.",
     "noProducer": "No producer account found.",
     "status": {
       "not_submitted": "Status: profile not yet submitted for verification.",
@@ -2605,7 +2574,7 @@
       "rejected": "Status: profile rejected. Correct the details and submit again."
     },
     "deliveryCountriesHeading": "Delivery countries",
-    "deliveryCountriesHelp": "Requests from countries you do not select here will not reach you.",
+    "deliveryCountriesHelp": "Delivery countries are your informational declaration. They do not decide which inquiries you see.",
     "unitsPerMonth": "Production capacity: how many houses you produce per month",
     "productionLines": "Production lines",
     "maxModuleSizeM2": "Maximum module size (m²)",
@@ -2944,7 +2913,7 @@
   },
   "HomePage": {
     "metaTitle": "ModularHub Europe | Modular homes from verified manufacturers",
-    "metaDescription": "Compare proven modular homes from across Europe: verified manufacturers, transparent pricing and a regulatory compliance check for your chosen country."
+    "metaDescription": "Compare proven modular homes from across Europe: verified producers, transparent prices and one inquiry to many producers."
   },
   "ErrorPage": {
     "heading": "Something went wrong",
@@ -2956,7 +2925,7 @@
     "ctaHeading": "Planning to order several homes at once?",
     "ctaText": "Describe your project once and verified manufacturers reply with offers you can compare in one place.",
     "ctaButton": "Ask ModularProjects",
-    "about": "Buy modular homes from verified manufacturers, checked against the building rules of your country.",
+    "about": "Buy modular homes from verified producers with a single inquiry to many of them.",
     "markets": "Manufacturers from Poland, builds in Poland, Germany and the Netherlands",
     "navLabel": "Footer navigation",
     "rights": "© {year} ModularHub Europe. All rights reserved.",
@@ -3145,5 +3114,10 @@
     "close": "Close",
     "currentGranted": "Currently: measurement is on.",
     "currentDenied": "Currently: measurement is off."
+  },
+  "NotFoundPage": {
+    "heading": "Page not found",
+    "body": "The address may have changed or the page is no longer available.",
+    "homeLink": "Back to the home page"
   }
 }

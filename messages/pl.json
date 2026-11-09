@@ -184,7 +184,7 @@
     "countryOfProduction": "Kraj produkcji: {country}",
     "modelsAndSize": "{models} modeli · {min}–{max} m²",
     "modelsOnly": "{models} modeli",
-    "delivery": "Dostawa:",
+    "delivery": "Deklaruje dostawy do:",
     "showroomVisitAvailable": "Możliwe odwiedziny osobiste",
     "showroomVisitUnavailable": "Bez możliwości odwiedzin osobistych",
     "showroomVisitUnknown": "Odwiedziny osobiste do ustalenia z producentem",
@@ -192,14 +192,16 @@
     "country": {
       "PL": "Polska",
       "DE": "Niemcy",
-      "NL": "Holandia"
+      "NL": "Holandia",
+      "BE": "Belgia",
+      "IT": "Włochy",
+      "FR": "Francja"
     }
   },
   "ResultCard": {
     "viewDetails": "Zobacz szczegóły projektu {name}",
     "selectForInquiry": "Zaznacz {name} do zapytania",
     "selectionLimitReached": "Można zaznaczyć maksymalnie 3 projekty",
-    "needsMoreDocuments": "Wymaga dodatkowych dokumentów",
     "summary": "{area} · {rooms} · {storeys}",
     "areaValue": "{area} m² użytkowe",
     "areaUnknown": "metraż do ustalenia",
@@ -259,20 +261,13 @@
       "many": "produktów"
     }
   },
-  "CountryLocative": {
-    "PL": "w Polsce",
-    "DE": "w Niemczech",
-    "NL": "w Holandii"
-  },
   "CategoryHeading": {
     "breadcrumbAriaLabel": "Ścieżka nawigacji",
     "breadcrumbHome": "Strona główna",
     "modelCount": "{count, plural, one {# model} few {# modele} many {# modeli} other {# modeli}}"
   },
   "ResultsHeader": {
-    "eligibleLine": "Dopuszczone prawnie {country}",
-    "eligibleSuffix": " dopuszczonych {country}",
-    "hint": "Wybierz kraj w filtrach, żeby zobaczyć, które {familyFew} są tam dopuszczone prawnie.",
+    "hint": "Zawęź listę według metrażu, ceny i innych kryteriów.",
     "hintOutdoorTv": "Zawęź listę według sposobu montażu i przeznaczenia."
   },
   "EmptyResults": {
@@ -886,7 +881,7 @@
     "subheading": "Załóż konto, zaloguj się linkiem mailowym i zarządzaj swoim katalogiem produktów oraz zapytaniami klientów w jednym miejscu.",
     "whyHeading": "Dlaczego ModularHub Europe",
     "benefitRegistrationTitle": "Jedna rejestracja, wszystkie kraje",
-    "benefitRegistrationDescription": "Zaznacz kraje dostawy raz — dopuszczalność projektów sprawdzamy dla każdego z nich.",
+    "benefitRegistrationDescription": "Zaznacz kraje dostawy raz — jako deklarację widoczną dla klientów.",
     "benefitInquiriesTitle": "Zapytania z gotowym kontekstem",
     "benefitInquiriesDescription": "Klienci wysyłają zapytania od razu z wybranym projektem i danymi kontaktowymi.",
     "benefitStatusTitle": "Status realizacji w jednym miejscu",
@@ -1046,12 +1041,6 @@
     "commercialTermsHeading": "Warunki komercyjne",
     "priceIncludesHeading": "Cena zawiera",
     "priceExcludesHeading": "Cena nie zawiera",
-    "legalComplianceHeading": "Zgodność prawna w {country}",
-    "status": {
-      "approved": "Zgodny z przepisami",
-      "conditional": "Wymaga dodatkowych dokumentów",
-      "blocked": "Niedostępny w tym kraju"
-    },
     "producerHeading": "Realizacje i producent",
     "bulkInquiryHeading": "Potrzebujesz większej ilości?",
     "bulkInquiryBody": "Ten producent jest zweryfikowany wolumenowo. Zapytaj o ten model w większej ilości sztuk.",
@@ -1157,13 +1146,13 @@
     "heading": "Najczęstsze pytania",
     "subheading": "Nie znalazłeś odpowiedzi? Napisz do nas przez formularz kontaktowy.",
     "howQuestion": "Jak dokładnie działa ModularHub?",
-    "howAnswer": "Wyszukujesz domy dostępne w Twoim kraju, porównujesz do trzech projektów, sprawdzasz zgodność z prawem przez Compliance Engine™, a następnie wysyłasz jedno zapytanie do wybranych producentów zamiast pisać do każdego osobno.",
+    "howAnswer": "Wyszukujesz domy, porównujesz do trzech projektów, a następnie wysyłasz jedno zapytanie do wybranych producentów zamiast pisać do każdego osobno. Wstępną ocenę zgodności z przepisami dostajesz w ofercie podsumowującej.",
     "costQuestion": "Czy korzystanie z platformy jest płatne?",
     "costAnswer": "Przeglądanie ofert, porównywanie i wysyłanie zapytań są bezpłatne. Płatny jest wyłącznie opcjonalny raport analizy działki pod konkretny projekt.",
     "priceQuestion": "Dlaczego cena to widełki, a nie jedna kwota?",
     "priceAnswer": "Ostateczna cena zależy od standardu wykończenia, transportu do Twojej lokalizacji i zakresu montażu. Widełki pokazują realny zakres, zanim otrzymasz wiążącą ofertę od producenta.",
-    "complianceQuestion": "Co sprawdza Compliance Engine™?",
-    "complianceAnswer": "Konstrukcję, izolację, wentylację i wymaganą dokumentację danego domu w zestawieniu z przepisami budowlanymi kraju, do którego ma trafić — zanim wyślesz zapytanie do producenta.",
+    "complianceQuestion": "Kiedy dostanę ocenę zgodności projektu?",
+    "complianceAnswer": "Wstępną ocenę zgodności projektu z przepisami kraju budowy dostajesz w ofercie podsumowującej, po rozmowie z naszym zespołem. Jest orientacyjna i nie stanowi porady prawnej.",
     "producersQuestion": "Skąd wiadomo, że producenci są sprawdzeni?",
     "producersAnswer": "Każdy producent na platformie przechodzi weryfikację ModularHub, widoczną jako odznaka na jego karcie, zanim jego projekty pojawią się w wynikach wyszukiwania.",
     "timeQuestion": "Ile czasu zajmuje otrzymanie ofert?",
@@ -1336,7 +1325,10 @@
     "country": {
       "PL": "Polska",
       "DE": "Niemcy",
-      "NL": "Holandia"
+      "NL": "Holandia",
+      "BE": "Belgia",
+      "IT": "Włochy",
+      "FR": "Francja"
     },
     "countryOfProduction": "Kraj produkcji: {country}",
     "warrantyLabel": "Gwarancja konstrukcyjna",
@@ -1490,9 +1482,6 @@
     "sortPriceDesc": "Cena: malejąco",
     "sortSizeAsc": "Metraż: rosnąco",
     "sortSizeDesc": "Metraż: malejąco",
-    "countryLabel": "Kraj",
-    "countryPlaceholder": "Wybierz kraj",
-    "countryAriaLabel": "Kraj docelowy",
     "sizeMinLabel": "Metraż od",
     "sizeMaxLabel": "Metraż do",
     "anyPlaceholder": "Dowolny",
@@ -1536,8 +1525,8 @@
     "categoryHome": "Domy",
     "categoryMore": "Więcej niż dom",
     "categoryAriaLabel": "Kategoria produktu",
-    "whereLabel": "Gdzie?",
-    "wherePlaceholder": "Kraj, region lub miasto",
+    "whereLabel": "Gdzie budujesz?",
+    "wherePlaceholder": "Dowolny kraj",
     "whereAriaLabel": "Kraj docelowy",
     "budgetLabel": "Budżet",
     "budgetAriaLabel": "Budżet",
@@ -1560,7 +1549,7 @@
     "countryDe": "Niemcy",
     "countryNl": "Holandia",
     "quote1": "Zapytanie do trzech producentów wysłałam w jeden wieczór, zamiast pisać do każdego osobno. Odpowiedzi przyszły w dwa dni.",
-    "quote2": "Sprawdzenie zgodności z niemieckimi przepisami przed wysłaniem zapytania oszczędziło mi tygodni korespondencji z prawnikiem.",
+    "quote2": "Jedno zapytanie do kilku producentów zamiast pisania do każdego osobno oszczędziło mi tygodni korespondencji.",
     "quote3": "Podobało mi się, że od razu widziałam rozbitą cenę — dom, transport, montaż — a nie jeden tajemniczy zakres.",
     "quote4": "Porównanie trzech projektów obok siebie pokazało mi, że dopłacałem za metry, których nie potrzebowałem.",
     "quote5": "Platforma niezależna od producentów, więc czułam, że doradzają mi, a nie sprzedają."
@@ -1581,11 +1570,11 @@
     "heading": "Jak działa ModularHub",
     "subheading": "Pięć kroków od pierwszego wyszukiwania do odbioru kluczy.",
     "stage1Title": "Szukaj",
-    "stage1Description": "Wybierz kraj i metraż w wyszukiwarce, przejrzyj dopasowane domy.",
+    "stage1Description": "Wybierz metraż w wyszukiwarce, przejrzyj dopasowane domy. Kraj budowy podasz w zapytaniu.",
     "stage2Title": "Porównaj",
     "stage2Description": "Zestaw do trzech projektów obok siebie: cena, metraż, standard.",
-    "stage3Title": "Sprawdź zgodność",
-    "stage3Description": "Compliance Engine™ sprawdza dom pod kątem prawa Twojego kraju.",
+    "stage3Title": "Poznaj zgodność",
+    "stage3Description": "Wstępną ocenę zgodności projektu dostajesz w ofercie podsumowującej.",
     "stage4Title": "Zapytaj o oferty",
     "stage4Description": "Wyślij jedno zapytanie do wybranych producentów naraz.",
     "stage5Title": "Odbierz dom",
@@ -1711,35 +1700,18 @@
     "subheading": "Porównaj sprawdzone domy modułowe z całej Europy."
   },
   "ComplianceEngineShowcase": {
-    "headingBefore": "Sprawdzamy",
-    "headingUnderline": "zgodność z prawem",
-    "headingAfter": "zanim Ty to zrobisz",
-    "intro": "Każdy dom porównujemy z lokalnymi przepisami budowlanymi kraju docelowego — konstrukcją, izolacją, wentylacją i wymaganą dokumentacją — zanim wyślesz zapytanie do producenta.",
-    "disclaimer": "Wynik to wstępna, orientacyjna weryfikacja — nie stanowi porady prawnej. Dane i logikę Compliance Engine™ na bieżąco aktualizujemy, by jak najwierniej odzwierciedlały przepisy budowlane danego kraju, jednak ostateczną zgodność projektu potwierdza właściwy urząd i wybrany producent.",
-    "exampleLocation": "Lokalizacja: Venlo, Holandia",
-    "complianceSuffix": "zgodności",
-    "checklistConstruction": "Konstrukcja",
-    "checklistInsulation": "Izolacja",
-    "checklistVentilation": "Wentylacja",
-    "checklistDocumentation": "Dokumentacja",
-    "checklistPermit": "Lokalne pozwolenie",
-    "statusOk": "Spełnione",
-    "statusWarning": "Wymaga uwagi",
-    "checkHouse": "Sprawdź dom",
-    "exampleBadge": "Przykład ilustracyjny",
-    "coverageLabel": "Zakres",
-    "coverage": "Polska · Niemcy · Holandia",
-    "detailConstruction": "Nośność i klasa konstrukcji",
-    "detailInsulation": "Izolacyjność cieplna przegród",
-    "detailVentilation": "Szczelność i wymiana powietrza",
-    "detailDocumentation": "Komplet dokumentów dla urzędu",
-    "detailPermit": "Do potwierdzenia przez lokalny urząd",
-    "step1Title": "Wybierasz kraj budowy",
-    "step1Text": "Przepisy zależą od miejsca, nie od producenta.",
-    "step2Title": "Porównujemy dom z przepisami",
-    "step2Text": "Konstrukcja, izolacja, wentylacja i dokumenty.",
-    "step3Title": "Dostajesz wynik z listą braków",
-    "step3Text": "Wiesz, co jest w porządku, a co wymaga uwagi."
+    "headingBefore": "Wstępna ocena",
+    "headingUnderline": "zgodności z przepisami",
+    "headingAfter": "w ofercie podsumowującej",
+    "intro": "Gdy zbierzemy oferty producentów, dostajesz ofertę podsumowującą z wstępną oceną zgodności projektu z przepisami kraju budowy.",
+    "disclaimer": "Ocena jest wstępna i orientacyjna, nie stanowi porady prawnej. Ostateczną zgodność projektu potwierdza właściwy urząd i wybrany producent.",
+    "checkHouse": "Przeglądaj projekty",
+    "step1Title": "Wybierasz projekty",
+    "step1Text": "Porównujesz modele i wysyłasz jedno zapytanie.",
+    "step2Title": "Zbieramy oferty producentów",
+    "step2Text": "Ustalamy z Tobą kraj budowy i wymagania.",
+    "step3Title": "Dostajesz ofertę podsumowującą",
+    "step3Text": "Zawiera wstępną ocenę zgodności projektu."
   },
   "CompareHomesTeaser": {
     "heading": "Porównaj domy obok siebie",
@@ -1988,7 +1960,7 @@
     "filterClear": "Wyczyść filtry",
     "emptyFiltered": "Brak zapytań pasujących do wybranych filtrów.",
     "heading": "ModularProjects",
-    "intro": "Zapytania ModularProjects dopasowane do Twojego profilu: kraju dostawy, rodzin produktów i mocy. Złóż wycenę na dowolne z nich.",
+    "intro": "Zapytania ModularProjects dopasowane do Twojego profilu: rodzin produktów i mocy. Złóż wycenę na dowolne z nich.",
     "notApprovedHeading": "ModularProjects jest dostępne tylko dla zweryfikowanych wolumenowo producentów",
     "notApprovedDescription": "Uzupełnij swój profil zdolności produkcyjnej, żeby administrator mógł Cię zweryfikować.",
     "completeProfileLink": "Uzupełnij profil zdolności",
@@ -2169,7 +2141,7 @@
   },
   "ProjectRequestFlow": {
     "heading": "Zgłoś duży projekt w ModularProjects",
-    "intro": "ModularProjects to jedno zapytanie o projekt obejmujący 3 i więcej domów modułowych — trafi ono do zweryfikowanych, gotowych na wolumen producentów w wybranym kraju.",
+    "intro": "ModularProjects to jedno zapytanie o projekt obejmujący 3 i więcej domów modułowych — trafi ono do zweryfikowanych, gotowych na wolumen producentów.",
     "sentHeading": "Zapytanie wysłane",
     "backToHome": "Wróć do strony głównej",
     "sectionAboutHeading": "O projekcie",
@@ -2223,7 +2195,7 @@
   "ProjectRequestConfirmationCard": {
     "statusLabel": "Wysłano",
     "heading": "Zapytanie wysłane",
-    "message": "Dopasowani, zweryfikowani producenci w Twoim kraju zostali powiadomieni o Twoim projekcie.",
+    "message": "Dopasowani, zweryfikowani producenci zostali powiadomieni o Twoim projekcie.",
     "emailNote": "Odpowiedzi (wyceny) przyjdą e mailem na adres {email}."
   },
   "VerifiedManufacturersPage": {
@@ -2235,17 +2207,14 @@
     "verifiedBadge": "Zweryfikowana zdolność wolumenowa",
     "capacityLabel": "{units} domów/mies.",
     "certificationsLabel": "Certyfikaty: {list}",
-    "deliveryLabel": "Dostawa: {list}",
+    "deliveryLabel": "Deklaruje dostawy do: {list}",
     "emptyStateHeading": "Żaden producent nie jest dziś zweryfikowany wolumenowo",
-    "emptyStateBody": "Wyślij zapytanie o duży projekt — powiadomimy Cię, gdy pojawi się zweryfikowany producent w Twoim kraju.",
+    "emptyStateBody": "Wyślij zapytanie o duży projekt — powiadomimy Cię, gdy pojawi się zweryfikowany producent.",
     "noMatchHeading": "Brak projektów dla wybranych filtrów",
     "noMatchBody": "Żaden zweryfikowany wolumenowo producent nie ma projektu pasującego do wybranych filtrów. Wyczyść filtry albo wyślij zapytanie o swój projekt bezpośrednio.",
     "clearFiltersLabel": "Wyczyść filtry"
   },
   "VerifiedManufacturersFilterBar": {
-    "countryLabel": "Kraj dostawy",
-    "countryPlaceholder": "Wybierz kraj",
-    "countryAriaLabel": "Kraj dostawy",
     "sizeMinLabel": "Metraż od",
     "sizeMaxLabel": "Metraż do",
     "anyPlaceholder": "Dowolny",
@@ -2604,7 +2573,7 @@
   },
   "ProducerPanelCapacityPage": {
     "heading": "Profil zdolności produkcyjnej",
-    "intro": "Uzupełnij profil, żeby administrator mógł Cię zweryfikować. Zweryfikowani producenci widzą zapytania ModularProjects, które pasują do ich krajów dostawy, rodzin produktów i mocy.",
+    "intro": "Uzupełnij profil, żeby administrator mógł Cię zweryfikować. Zweryfikowani producenci widzą zapytania ModularProjects, które pasują do ich rodzin produktów i mocy. Kraje dostawy są deklaracją informacyjną.",
     "noProducer": "Nie znaleziono konta producenta.",
     "status": {
       "not_submitted": "Status: profil jeszcze nie wysłany do weryfikacji.",
@@ -2613,7 +2582,7 @@
       "rejected": "Status: profil odrzucony. Popraw dane i wyślij ponownie."
     },
     "deliveryCountriesHeading": "Kraje dostawy",
-    "deliveryCountriesHelp": "Zapytania z krajów, których tu nie zaznaczysz, nie trafią do Ciebie.",
+    "deliveryCountriesHelp": "Kraje dostawy to Twoja deklaracja informacyjna. Nie decydują o tym, jakie zapytania zobaczysz.",
     "unitsPerMonth": "Moc przerobowa: ile domów miesięcznie produkujesz",
     "productionLines": "Linie produkcyjne",
     "maxModuleSizeM2": "Maksymalny rozmiar modułu (m²)",
@@ -2952,7 +2921,7 @@
   },
   "HomePage": {
     "metaTitle": "ModularHub Europe | Domy modułowe od zweryfikowanych producentów",
-    "metaDescription": "Porównaj sprawdzone domy modułowe z całej Europy: zweryfikowani producenci, przejrzyste ceny i sprawdzenie zgodności z przepisami w wybranym kraju."
+    "metaDescription": "Porównaj sprawdzone domy modułowe z całej Europy: zweryfikowani producenci, przejrzyste ceny i jedno zapytanie do wielu producentów."
   },
   "ErrorPage": {
     "heading": "Coś poszło nie tak",
@@ -2964,7 +2933,7 @@
     "ctaHeading": "Planujesz zamówić kilka domów naraz?",
     "ctaText": "Opisz projekt raz, a zweryfikowani producenci odpowiedzą ofertami, które porównasz w jednym miejscu.",
     "ctaButton": "Zapytaj w ModularProjects",
-    "about": "Kupuj domy modułowe od zweryfikowanych producentów, z weryfikacją wymogów kraju budowy.",
+    "about": "Kupuj domy modułowe od zweryfikowanych producentów, jednym zapytaniem do wielu z nich.",
     "markets": "Producenci z Polski, budowy w Polsce, Niemczech i Holandii",
     "navLabel": "Nawigacja w stopce",
     "rights": "© {year} ModularHub Europe. Wszelkie prawa zastrzeżone.",
@@ -3153,5 +3122,10 @@
     "close": "Zamknij",
     "currentGranted": "Obecnie: pomiar włączony.",
     "currentDenied": "Obecnie: pomiar wyłączony."
+  },
+  "NotFoundPage": {
+    "heading": "Nie ma takiej strony",
+    "body": "Adres mógł się zmienić albo strona nie jest już dostępna.",
+    "homeLink": "Wróć na stronę główną"
   }
 }

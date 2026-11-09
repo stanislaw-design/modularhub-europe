@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { PlotDossierPanel } from "@/components/klient/PlotDossierPanel";
 import type { Project } from "@/lib/data/types";
 import { getProjectById, getPublishedProductIds } from "@/lib/data/projects";
@@ -9,6 +9,10 @@ import { parseInquiryProjectIds } from "@/lib/inquiry";
 // Remove this opt-out after verifying the segment passes validation without it.
 // See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
 export const instant = false;
+
+// Spec 0082 AC-6: analiza działki jest wyłączona (dane z pliku przykładowego), adres zwraca 404.
+// Kod strony i komponentów zostaje do czasu prawdziwej analizy.
+const PLOT_PAGE_ENABLED: boolean = false;
 
 function buildResultsHref(
   locale: string,
@@ -30,6 +34,7 @@ export default async function DzialkaPage({
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  if (!PLOT_PAGE_ENABLED) notFound();
   const [{ locale }, rawSearchParams] = await Promise.all([params, searchParams]);
   const resultsHref = buildResultsHref(locale, rawSearchParams);
 

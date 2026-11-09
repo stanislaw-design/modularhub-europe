@@ -7,8 +7,8 @@ test.describe("/pl/inquiry", () => {
     await page.goto("/pl/results?country=DE&sizeMin=50&sizeMax=100");
 
     const cards = page.locator("article");
-    await cards.nth(0).getByRole("checkbox").check();
-    await cards.nth(1).getByRole("checkbox").check();
+    await cards.nth(0).getByRole("checkbox", { name: /^Zaznacz/ }).check();
+    await cards.nth(1).getByRole("checkbox", { name: /^Zaznacz/ }).check();
 
     await expect(page.getByText("Zaznaczono: 2/3")).toBeVisible();
     await expect(page).toHaveURL(/country=DE&sizeMin=50&sizeMax=100$/);
@@ -63,6 +63,18 @@ test.describe("/pl/inquiry", () => {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Zapytanie o wybrane domy");
     await expect(page.getByText("Modulor Family 90")).toBeVisible();
     await expect(page.getByText("Baltyk Loft 120")).toBeVisible();
+  });
+
+  test("offers the six market countries in the country field (spec 0082 AC-10)", async ({ page }) => {
+    await page.goto("/pl/results");
+    await page.locator("article").first().getByRole("checkbox", { name: /^Zaznacz/ }).check();
+    await page.getByRole("button", { name: "Wyślij zapytanie" }).click();
+    await expect(page).toHaveURL(/\/pl\/inquiry\?projects=/);
+
+    await page.getByRole("button", { name: /^Wybierz/ }).click();
+    for (const name of ["Polska", "Niemcy", "Holandia", "Belgia", "Włochy", "Francja"]) {
+      await expect(page.getByRole("option", { name })).toBeVisible();
+    }
   });
 
   test("redirects to bare results when projects is missing entirely (AC-5)", async ({ page }) => {

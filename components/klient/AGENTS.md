@@ -13,7 +13,7 @@ Feature specific, presentational and interactive components for the customer (kl
 
 ## Screens this area serves
 
-- `dzialka/` — plot analysis and dossier: `PlotDossierPanel`, `PlotAnalysisRow`
+- `dzialka/` — plot analysis and dossier: `PlotDossierPanel`, `PlotAnalysisRow` (the `/plot` page returns 404 since spec 0082, components kept)
 - `oferta/` — binding offer: `BindingOfferView`
 - `realizacja/` — fulfillment status axis: consumes `components/ui/StageTimeline` directly, no dedicated klient component of its own
 - `wyniki/` — results list: `ResultsHeader`, `ResultCard`, `ResultsFilterBar`, `ResultsSelection`, `ShortlistActionBar`, `CategoryFilterBar`, `SubcategoryFilterBar`, `EmptyResults`

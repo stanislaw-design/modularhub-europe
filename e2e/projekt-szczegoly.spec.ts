@@ -51,18 +51,23 @@ test.describe("/pl/project/[id]", () => {
   test("returns Next.js's standard 404 for an unknown project id (AC-6)", async ({ page }) => {
     const response = await page.goto("/pl/project/nieistniejace-id");
     expect(response?.status()).toBe(404);
-    await expect(page.getByText("404")).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Nie ma takiej strony" })).toBeVisible();
   });
 
-  test("shows the legal compliance panel only with a known ?country= and hides it otherwise (AC-7)", async ({
+  // Spec 0082 AC-5: klient nie widzi żadnej oceny zgodności, z krajem w adresie ani bez.
+  test("never shows a compliance panel or status, with or without ?country= (spec 0082 AC-5)", async ({
     page,
   }) => {
-    await page.goto("/pl/project/prj-modulor-family-90?country=DE");
-    await expect(page.getByRole("heading", { name: "Zgodność prawna w Niemcy" })).toBeVisible();
-    await expect(page.getByText("Wymaga dodatkowych dokumentów")).toBeVisible();
-
-    await page.goto("/pl/project/prj-modulor-family-90");
-    await expect(page.getByText(/Zgodność prawna w/)).toHaveCount(0);
+    // Prawdziwy produkt z katalogu: pierwszy link karty na liście wyników.
+    await page.goto("/pl/results");
+    const productPath = new URL((await page.locator("article a[href*='/project/']").first().getAttribute("href")) ?? "", page.url()).pathname;
+    for (const url of [`${productPath}?country=DE`, `${productPath}?country=BE`, productPath]) {
+      await page.goto(url);
+      await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+      await expect(page.getByText(/Zgodność prawna w/)).toHaveCount(0);
+      await expect(page.getByText("Wymaga dodatkowych dokumentów")).toHaveCount(0);
+      await expect(page.getByText(/Dopuszczone prawnie/)).toHaveCount(0);
+    }
   });
 
   test("gives two different projects distinct metadata, canonical and JSON-LD (AC-9)", async ({ page }) => {

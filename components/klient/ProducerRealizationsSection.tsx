@@ -4,8 +4,9 @@ import Image from "next/image";
 import { DataText, Heading, Text } from "@/components/ui";
 import { SafetyIcon } from "@/components/klient/ProjectSpecIcons";
 import type { CountryCode, Producer, ProjectDocument } from "@/lib/data/types";
+import { COUNTRY_FLAGS } from "@/lib/countries";
 
-const countryFlag: Record<CountryCode, string> = { PL: "🇵🇱", DE: "🇩🇪", NL: "🇳🇱" };
+const countryFlag = COUNTRY_FLAGS;
 
 interface ProducerRealizationsSectionProps {
   producer: Producer;
@@ -50,11 +51,7 @@ export async function ProducerRealizationsSection({
   structuralWarrantyYears,
 }: ProducerRealizationsSectionProps) {
   const t = await getTranslations("ProducerRealizationsSection");
-  const countryLabel: Record<CountryCode, string> = {
-    PL: t("country.PL"),
-    DE: t("country.DE"),
-    NL: t("country.NL"),
-  };
+  const countryLabel = (code: CountryCode) => t(`country.${code}`);
   const realizationDocs = realizationDocsFor(documents, selectedVariantId);
 
   return (
@@ -81,7 +78,7 @@ export async function ProducerRealizationsSection({
             <span
               className="text-body-l"
               role="img"
-              aria-label={t("countryOfProduction", { country: countryLabel[producer.countryCode] })}
+              aria-label={t("countryOfProduction", { country: countryLabel(producer.countryCode) })}
             >
               {countryFlag[producer.countryCode]}
             </span>

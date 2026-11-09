@@ -4,12 +4,11 @@ import { Award, ShieldCheck, Truck } from "lucide-react";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { notFound, permanentRedirect, redirect } from "next/navigation";
-import { Button, Card, DataText, Heading, StatusPill, Text } from "@/components/ui";
+import { Button, Card, DataText, Heading, Text } from "@/components/ui";
 import { BulkProductInquiryModal } from "@/components/klient/BulkProductInquiryModal";
 import { FavoriteButton } from "@/components/klient/FavoriteButton";
 import { ProducerRealizationsSection } from "@/components/klient/ProducerRealizationsSection";
 import { ProjectCertifications } from "@/components/klient/ProjectCertifications";
-import { ProjectComplianceAssessments } from "@/components/klient/ProjectComplianceAssessments";
 import { ProjectCostComparisonTable } from "@/components/klient/ProjectCostComparisonTable";
 import { ProjectEnvelopeParameters } from "@/components/klient/ProjectEnvelopeParameters";
 import { ProjectDocumentsAndFaq } from "@/components/klient/ProjectDocumentsAndFaq";
@@ -36,18 +35,16 @@ import {
 } from "@/lib/data/project-variants";
 import { resolveProjectLayout, selectFloorPlans } from "@/lib/data/project-layout";
 import {
-  getEligibilityByCountryCached,
   getInteriorStylesForProductCached,
   getProducerByIdCached,
   getProducerContentItemsCached,
   getProducerVolumeProfileCached,
-  getProductComplianceAssessmentsCached,
   getProductEnvelopeParametersCached,
   getProductOptionGroupsCached,
   getProductOptionLayoutsCached,
   getProjectBySlugOrIdCached,
 } from "@/lib/data/public-cache";
-import type { CompletionStandard, EligibilityByCountry } from "@/lib/data/types";
+import type { CompletionStandard } from "@/lib/data/types";
 import { ENVELOPE_SECTION_ENABLED, supportsEnvelopeParameters } from "@/lib/product-envelope-parameters";
 import { routing, type Locale } from "@/lib/i18n/routing";
 import { resolveProductHref } from "@/lib/product-family-groups";
@@ -178,16 +175,12 @@ export default async function ProjektPage({
 
   const { countryCode } = parseResultsSearchParams(rawSearchParams);
 
-  const [countries, producer, eligibilityRows, volumeProfile, optionGroups, complianceAssessments, optionLayouts, envelopeParameters, interiorStyles, collaborationSteps, commercialUses] =
+  const [countries, producer, volumeProfile, optionGroups, optionLayouts, envelopeParameters, interiorStyles, collaborationSteps, commercialUses] =
     await Promise.all([
       getCountries(),
       getProducerByIdCached(project.producerId, locale as Locale),
-      countryCode
-        ? getEligibilityByCountryCached(countryCode, locale as Locale)
-        : Promise.resolve<EligibilityByCountry[]>([]),
       getProducerVolumeProfileCached(project.producerId, locale as Locale),
       getProductOptionGroupsCached(project.id, locale as Locale),
-      getProductComplianceAssessmentsCached(project.id, locale as Locale),
       // Wersje układu wnętrz (spec 0069): pusta mapa dla produktu bez opcji
       // niosących układ, wtedy strona wygląda jak przed tą zmianą.
       getProductOptionLayoutsCached(project.id, locale as Locale),
@@ -206,10 +199,6 @@ export default async function ProjektPage({
 
   const countryNameByCode = new Map(countries.map((country) => [country.code, country.name]));
   const countryName = countryNameByCode.get(project.countryOfProduction) ?? project.countryOfProduction;
-  const targetCountryName = countryCode
-    ? (countryNameByCode.get(countryCode) ?? countryCode)
-    : undefined;
-  const eligibility = eligibilityRows.find((row) => row.projectId === project.id);
   const altSubject = await getProductAltSubject(project);
   const galleryExtraImages = project.galleryImageUrls?.filter((url) => url.length > 0) ?? [];
   // Ta sama kolejność co okładka (index 0) + miniatury (index 1+) w
@@ -781,26 +770,12 @@ export default async function ProjektPage({
           </div>
         )}
 
-        {countryCode && eligibility && (
-          <div className="flex flex-col gap-brand-2">
-            <Heading level="h2" surface="v5" className="text-h3">
-              {t("legalComplianceHeading", { country: targetCountryName ?? countryCode })}
-            </Heading>
-            <StatusPill status={eligibility.status}>{t(`status.${eligibility.status}`)}</StatusPill>
-            <Text tone="muted" surface="v5">
-              {eligibility.reason}
-            </Text>
-          </div>
-        )}
-
         <ProjectEnvelopeParameters
           parameters={envelopeParameters}
           foundationStatus={project.foundationStatus}
           floorAreaM2={project.floorAreaM2}
           locale={locale}
         />
-
-        <ProjectComplianceAssessments assessments={complianceAssessments} locale={locale} />
 
         {volumeProfile && (
           <div className="flex flex-col gap-brand-2 rounded-v5-card border border-brand-v5-amber-strong/30 bg-brand-v5-amber/5 p-brand-4">

@@ -68,18 +68,10 @@ describe("ResultCard", () => {
     expect(screen.queryByText("Montaż")).not.toBeInTheDocument();
   });
 
-  it("shows the conditional badge only when eligibilityStatus is conditional (AC-7)", () => {
-    render(<ResultCard project={project} countryName="Polska" locale="pl" eligibilityStatus="conditional" />);
-    expect(screen.getByText("Wymaga dodatkowych dokumentów")).toBeInTheDocument();
+  it("never shows a compliance badge (spec 0082 AC-5)", () => {
+    render(<ResultCard project={project} countryName="Polska" locale="pl" />);
+    expect(screen.queryByText("Wymaga dodatkowych dokumentów")).not.toBeInTheDocument();
   });
-
-  it.each([undefined, "approved", "blocked"] as const)(
-    "hides the conditional badge when eligibilityStatus is %s (AC-7)",
-    (status) => {
-      render(<ResultCard project={project} countryName="Polska" locale="pl" eligibilityStatus={status} />);
-      expect(screen.queryByText("Wymaga dodatkowych dokumentów")).not.toBeInTheDocument();
-    }
-  );
 
   it("renders no selection checkbox when onToggleSelect is not provided (AC-1)", () => {
     render(<ResultCard project={project} countryName="Polska" locale="pl" />);

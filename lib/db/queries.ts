@@ -1,5 +1,5 @@
 import { normalizeCommunicationLocale, type CommunicationLocale } from "@/lib/producer-communication-locale";
-import { and, asc, desc, eq, ilike, inArray, isNotNull, isNull, notInArray, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, isNotNull, isNull, or, sql } from "drizzle-orm";
 import { db } from "./client";
 import { producerDeliversToRequestCountrySql, producerMatchesProjectRequestSql } from "./project-request-matching";
 import { buildPublicUrl } from "@/lib/storage/r2-client";
@@ -14,7 +14,7 @@ import {
   producerInteriorStyleTranslation,
   productInteriorStyleAssignment,
 } from "./schema";
-import { COMPLIANCE_ONLY_COUNTRY_CODES } from "@/lib/product-envelope-parameters";
+import { MARKET_COUNTRY_CODES } from "@/lib/countries";
 import { storedLogisticsSchema, type StoredLogistics } from "@/lib/project-quote-specs";
 import { toPlatformQuoteVariant, type PlatformQuoteVariant } from "@/lib/platform-quote-variants";
 import {
@@ -2801,13 +2801,13 @@ export interface CountryOption {
 }
 
 // Lista krajów do wyboru krajów dostawy (spec 0070 AC-5), z tabeli country.
-export async function getAllCountries(): Promise<CountryOption[]> {
-  // Spec 0075 AC-8: BE, IT i FR są w słowniku tylko dla ocen zgodności, nie jako
-  // kraje dostawy, więc wybierajki krajów dostawy ich nie pokazują.
+export async function getAllCountries(keepCodes: readonly string[] = []): Promise<CountryOption[]> {
+  // Spec 0082 AC-11: sześć krajów z listy rynku. Kraj spoza listy (np. US u MirageVision)
+  // nie jest oferowany do nowego wyboru, ale `keepCodes` (już zapisany wybór) zostaje na liście.
   return db
     .select({ code: country.code, name: country.name })
     .from(country)
-    .where(notInArray(country.code, [...COMPLIANCE_ONLY_COUNTRY_CODES]))
+    .where(inArray(country.code, [...MARKET_COUNTRY_CODES, ...keepCodes]))
     .orderBy(asc(country.name));
 }
 

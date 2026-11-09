@@ -176,7 +176,7 @@
     "countryOfProduction": "Productieland: {country}",
     "modelsAndSize": "{models} modellen · {min}–{max} m²",
     "modelsOnly": "{models} modellen",
-    "delivery": "Levert aan:",
+    "delivery": "Verklaart levering aan:",
     "showroomVisitAvailable": "Bezoek op locatie mogelijk",
     "showroomVisitUnavailable": "Geen bezoek op locatie mogelijk",
     "showroomVisitUnknown": "Bezoek op locatie nog te bepalen met de producent",
@@ -184,14 +184,16 @@
     "country": {
       "PL": "Polen",
       "DE": "Duitsland",
-      "NL": "Nederland"
+      "NL": "Nederland",
+      "BE": "België",
+      "IT": "Italië",
+      "FR": "Frankrijk"
     }
   },
   "ResultCard": {
     "viewDetails": "Bekijk details voor {name}",
     "selectForInquiry": "Selecteer {name} voor de aanvraag",
     "selectionLimitReached": "U kunt maximaal 3 projecten selecteren",
-    "needsMoreDocuments": "Vereist aanvullende documenten",
     "summary": "{area} · {rooms} · {storeys}",
     "areaValue": "{area} m² bruikbaar",
     "areaUnknown": "bruikbare oppervlakte nog te bepalen",
@@ -251,20 +253,13 @@
       "many": "producten"
     }
   },
-  "CountryLocative": {
-    "PL": "in Polen",
-    "DE": "in Duitsland",
-    "NL": "in Nederland"
-  },
   "CategoryHeading": {
     "breadcrumbAriaLabel": "Kruimelpad",
     "breadcrumbHome": "Home",
     "modelCount": "{count, plural, one {# model} other {# modellen}}"
   },
   "ResultsHeader": {
-    "eligibleLine": "Wettelijk toegestaan {country}",
-    "eligibleSuffix": " toegestaan {country}",
-    "hint": "Kies een land in de filters om te zien welke {familyFew} daar wettelijk zijn toegestaan.",
+    "hint": "Verfijn de lijst op oppervlakte, prijs en andere criteria.",
     "hintOutdoorTv": "Beperk de lijst op montagewijze en gebruik."
   },
   "EmptyResults": {
@@ -878,7 +873,7 @@
     "subheading": "Maak een account aan, log in met een e-maillink en beheer uw productcatalogus en klantaanvragen op één plek.",
     "whyHeading": "Waarom ModularHub Europe",
     "benefitRegistrationTitle": "Eén registratie, alle landen",
-    "benefitRegistrationDescription": "Selecteer uw leverlanden één keer — wij controleren de projectgeschiktheid voor elk land.",
+    "benefitRegistrationDescription": "Selecteer uw leverlanden één keer, als opgave die klanten zien.",
     "benefitInquiriesTitle": "Aanvragen met kant en klare context",
     "benefitInquiriesDescription": "Klanten sturen aanvragen direct met het gekozen project en hun contactgegevens.",
     "benefitStatusTitle": "Uitvoeringsstatus op één plek",
@@ -1031,12 +1026,6 @@
     "commercialTermsHeading": "Commerciële voorwaarden",
     "priceIncludesHeading": "Prijs inclusief",
     "priceExcludesHeading": "Prijs exclusief",
-    "legalComplianceHeading": "Wettelijke conformiteit in {country}",
-    "status": {
-      "approved": "Conform de regelgeving",
-      "conditional": "Vereist aanvullende documenten",
-      "blocked": "Niet beschikbaar in dit land"
-    },
     "producerHeading": "Opgeleverde projecten en producent",
     "bulkInquiryHeading": "Grotere hoeveelheid nodig?",
     "bulkInquiryBody": "Deze producent is volume-geverifieerd. Vraag naar dit model in een grotere hoeveelheid.",
@@ -1142,13 +1131,13 @@
     "heading": "Veelgestelde vragen",
     "subheading": "Geen antwoord gevonden? Neem contact met ons op via het contactformulier.",
     "howQuestion": "Hoe werkt ModularHub precies?",
-    "howAnswer": "U zoekt woningen die beschikbaar zijn in uw land, vergelijkt tot drie projecten, controleert de wettelijke conformiteit via de Compliance Engine™ en stuurt vervolgens één aanvraag naar de gekozen producenten in plaats van elk apart te schrijven.",
+    "howAnswer": "U zoekt woningen, vergelijkt tot drie projecten en stuurt daarna één aanvraag naar geselecteerde producenten in plaats van ieder apart te schrijven. Een voorlopige conformiteitsbeoordeling ontvangt u in uw samenvattende offerte.",
     "costQuestion": "Is het gebruik van het platform betaald?",
     "costAnswer": "Aanbiedingen bekijken, vergelijken en aanvragen versturen zijn gratis. Alleen het optionele perceelanalyserapport voor een specifiek project is betaald.",
     "priceQuestion": "Waarom is de prijs een bandbreedte en geen vast bedrag?",
     "priceAnswer": "De uiteindelijke prijs hangt af van het afwerkingsniveau, het transport naar uw locatie en de omvang van de montage. De bandbreedte toont de werkelijke marge voordat u een bindend aanbod van de producent ontvangt.",
-    "complianceQuestion": "Wat controleert de Compliance Engine™?",
-    "complianceAnswer": "De constructie, isolatie, ventilatie en vereiste documentatie van een woning tegenover de bouwvoorschriften van het land waar deze naartoe gaat — voordat u een aanvraag naar de producent stuurt.",
+    "complianceQuestion": "Wanneer ontvang ik de conformiteitsbeoordeling van een project?",
+    "complianceAnswer": "Een voorlopige beoordeling van het project aan de hand van de regels van uw bouwland ontvangt u in uw samenvattende offerte, na een gesprek met ons team. Ze is indicatief en geen juridisch advies.",
     "producersQuestion": "Hoe weet u dat de producenten gecontroleerd zijn?",
     "producersAnswer": "Elke producent op het platform doorloopt de ModularHub-verificatie, zichtbaar als badge op hun kaart, voordat hun projecten in de zoekresultaten verschijnen.",
     "timeQuestion": "Hoe lang duurt het voordat u aanbiedingen ontvangt?",
@@ -1321,7 +1310,10 @@
     "country": {
       "PL": "Polen",
       "DE": "Duitsland",
-      "NL": "Nederland"
+      "NL": "Nederland",
+      "BE": "België",
+      "IT": "Italië",
+      "FR": "Frankrijk"
     },
     "countryOfProduction": "Productieland: {country}",
     "warrantyLabel": "Constructiegarantie",
@@ -1475,9 +1467,6 @@
     "sortPriceDesc": "Prijs: aflopend",
     "sortSizeAsc": "Oppervlakte: oplopend",
     "sortSizeDesc": "Oppervlakte: aflopend",
-    "countryLabel": "Land",
-    "countryPlaceholder": "Kies een land",
-    "countryAriaLabel": "Doelland",
     "sizeMinLabel": "Oppervlakte vanaf",
     "sizeMaxLabel": "Oppervlakte tot",
     "anyPlaceholder": "Elke",
@@ -1521,8 +1510,8 @@
     "categoryHome": "Woningen",
     "categoryMore": "Meer dan een woning",
     "categoryAriaLabel": "Productcategorie",
-    "whereLabel": "Waar?",
-    "wherePlaceholder": "Land, regio of stad",
+    "whereLabel": "Waar bouwt u?",
+    "wherePlaceholder": "Elk land",
     "whereAriaLabel": "Doelland",
     "budgetLabel": "Budget",
     "budgetAriaLabel": "Budget",
@@ -1545,7 +1534,7 @@
     "countryDe": "Duitsland",
     "countryNl": "Nederland",
     "quote1": "Ik stuurde in één avond een aanvraag naar drie producenten, in plaats van elk apart te schrijven. De antwoorden kwamen binnen twee dagen.",
-    "quote2": "Het controleren van de conformiteit met de Duitse voorschriften vóór het versturen van de aanvraag bespaarde me weken correspondentie met een advocaat.",
+    "quote2": "Eén aanvraag naar meerdere producenten in plaats van elk apart schrijven bespaarde me weken aan correspondentie.",
     "quote3": "Ik vond het fijn dat ik meteen de uitgesplitste prijs zag — woning, transport, montage — in plaats van één mysterieus totaalbedrag.",
     "quote4": "Door drie projecten naast elkaar te vergelijken zag ik dat ik te veel betaalde voor vierkante meters die ik niet nodig had.",
     "quote5": "Het platform is onafhankelijk van de producenten, dus ik voelde dat het me adviseerde in plaats van iets verkocht."
@@ -1566,11 +1555,11 @@
     "heading": "Zo werkt ModularHub",
     "subheading": "Vijf stappen van uw eerste zoekopdracht tot de sleuteloverdracht.",
     "stage1Title": "Zoeken",
-    "stage1Description": "Kies een land en oppervlakte in de zoekbalk, bekijk passende woningen.",
+    "stage1Description": "Kies een oppervlakte in de zoekfunctie en bekijk de passende woningen. Het bouwland geeft u op in de aanvraag.",
     "stage2Title": "Vergelijken",
     "stage2Description": "Zet tot drie projecten naast elkaar: prijs, oppervlakte, niveau.",
-    "stage3Title": "Conformiteit controleren",
-    "stage3Description": "De Compliance Engine™ controleert de woning aan de wetgeving van uw land.",
+    "stage3Title": "Conformiteit ontdekken",
+    "stage3Description": "Een voorlopige conformiteitsbeoordeling van het project ontvangt u in uw samenvattende offerte.",
     "stage4Title": "Aanbiedingen aanvragen",
     "stage4Description": "Stuur in één keer een aanvraag naar de gekozen producenten.",
     "stage5Title": "Woning ontvangen",
@@ -1696,35 +1685,18 @@
     "subheading": "Vergelijk gecontroleerde modulaire woningen uit heel Europa."
   },
   "ComplianceEngineShowcase": {
-    "headingBefore": "Wij controleren",
-    "headingUnderline": "de wettelijke conformiteit",
-    "headingAfter": "voordat u dat hoeft te doen",
-    "intro": "Wij vergelijken elke woning met de lokale bouwvoorschriften van het doelland — constructie, isolatie, ventilatie en vereiste documentatie — voordat u een aanvraag naar de producent stuurt.",
-    "disclaimer": "Het resultaat is een voorlopige, indicatieve controle — het vormt geen juridisch advies. We houden de gegevens en logica van de Compliance Engine™ voortdurend up-to-date om de bouwvoorschriften van een land zo nauwkeurig mogelijk weer te geven, maar de definitieve conformiteit wordt bevestigd door de bevoegde instantie en de gekozen producent.",
-    "exampleLocation": "Locatie: Venlo, Nederland",
-    "complianceSuffix": "conform",
-    "checklistConstruction": "Constructie",
-    "checklistInsulation": "Isolatie",
-    "checklistVentilation": "Ventilatie",
-    "checklistDocumentation": "Documentatie",
-    "checklistPermit": "Lokale vergunning",
-    "statusOk": "Voldaan",
-    "statusWarning": "Vereist aandacht",
-    "checkHouse": "Woning controleren",
-    "exampleBadge": "Illustratief voorbeeld",
-    "coverageLabel": "Dekking",
-    "coverage": "Polen · Duitsland · Nederland",
-    "detailConstruction": "Draagkracht en constructieklasse",
-    "detailInsulation": "Thermische prestaties van de schil",
-    "detailVentilation": "Luchtdichtheid en luchtverversing",
-    "detailDocumentation": "Volledige documenten voor de overheid",
-    "detailPermit": "Te bevestigen door de lokale overheid",
-    "step1Title": "U kiest het bouwland",
-    "step1Text": "De regels hangen af van de locatie, niet van de producent.",
-    "step2Title": "Wij toetsen het huis aan de regels",
-    "step2Text": "Constructie, isolatie, ventilatie en documenten.",
-    "step3Title": "U krijgt een resultaat met lijst van tekorten",
-    "step3Text": "U ziet wat in orde is en wat aandacht vraagt."
+    "headingBefore": "Een voorlopige",
+    "headingUnderline": "conformiteitsbeoordeling",
+    "headingAfter": "in uw samenvattende offerte",
+    "intro": "Zodra we de offertes van de fabrikanten hebben verzameld, ontvangt u een samenvattende offerte met een voorlopige beoordeling van hoe het project past bij de regels van uw bouwland.",
+    "disclaimer": "De beoordeling is voorlopig en indicatief en vormt geen juridisch advies. De uiteindelijke conformiteit van het project wordt bevestigd door de bevoegde instantie en de gekozen fabrikant.",
+    "checkHouse": "Bekijk projecten",
+    "step1Title": "U kiest projecten",
+    "step1Text": "U vergelijkt modellen en stuurt één aanvraag.",
+    "step2Title": "Wij verzamelen offertes van fabrikanten",
+    "step2Text": "We stemmen het bouwland en de eisen met u af.",
+    "step3Title": "U ontvangt een samenvattende offerte",
+    "step3Text": "Deze bevat een voorlopige conformiteitsbeoordeling van het project."
   },
   "CompareHomesTeaser": {
     "heading": "Vergelijk woningen naast elkaar",
@@ -1973,7 +1945,7 @@
     "filterClear": "Filters wissen",
     "emptyFiltered": "Geen aanvragen komen overeen met de gekozen filters.",
     "heading": "ModularProjects",
-    "intro": "ModularProjects-aanvragen die bij uw profiel passen: leverland, productfamilies en capaciteit. Dien op elke aanvraag een offerte in.",
+    "intro": "ModularProjects aanvragen die passen bij uw profiel: productfamilies en capaciteit. Dien een offerte in voor elke aanvraag.",
     "notApprovedHeading": "ModularProjects is alleen beschikbaar voor volumegeverifieerde producenten",
     "notApprovedDescription": "Vul je productiecapaciteitsprofiel in zodat een beheerder je kan verifiëren.",
     "completeProfileLink": "Vul je capaciteitsprofiel aan",
@@ -2161,7 +2133,7 @@
   },
   "ProjectRequestFlow": {
     "heading": "Dien een groot project in bij ModularProjects",
-    "intro": "ModularProjects is één aanvraag voor een project van 3 of meer modulaire woningen — deze bereikt geverifieerde producenten die klaar zijn voor volume in het gekozen land.",
+    "intro": "ModularProjects is één aanvraag voor een project met 3 of meer modulaire woningen. Ze gaat naar geverifieerde producenten die volume aankunnen.",
     "sentHeading": "Aanvraag verzonden",
     "backToHome": "Terug naar de startpagina",
     "sectionAboutHeading": "Over het project",
@@ -2215,7 +2187,7 @@
   "ProjectRequestConfirmationCard": {
     "statusLabel": "Verzonden",
     "heading": "Aanvraag verzonden",
-    "message": "Gematchte, geverifieerde producenten in uw land zijn op de hoogte gebracht van uw project.",
+    "message": "Passende, geverifieerde producenten zijn op de hoogte gebracht van uw project.",
     "emailNote": "Reacties (offertes) komen per e mail binnen op {email}."
   },
   "VerifiedManufacturersPage": {
@@ -2227,17 +2199,14 @@
     "verifiedBadge": "Geverifieerde volumecapaciteit",
     "capacityLabel": "{units} woningen/maand",
     "certificationsLabel": "Certificaten: {list}",
-    "deliveryLabel": "Levering: {list}",
+    "deliveryLabel": "Verklaart levering aan: {list}",
     "emptyStateHeading": "Vandaag is geen enkele producent volume-geverifieerd",
-    "emptyStateBody": "Dien een aanvraag in voor uw grote project — we laten het u weten zodra een geverifieerde producent in uw land verschijnt.",
+    "emptyStateBody": "Stuur een aanvraag voor een groot project en we laten het u weten zodra er een geverifieerde producent beschikbaar is.",
     "noMatchHeading": "Geen projecten voor de gekozen filters",
     "noMatchBody": "Geen enkele volume-geverifieerde producent heeft een project dat past bij de gekozen filters. Wis de filters, of dien direct een aanvraag in voor uw project.",
     "clearFiltersLabel": "Filters wissen"
   },
   "VerifiedManufacturersFilterBar": {
-    "countryLabel": "Leveringsland",
-    "countryPlaceholder": "Kies een land",
-    "countryAriaLabel": "Leveringsland",
     "sizeMinLabel": "Oppervlakte vanaf",
     "sizeMaxLabel": "Oppervlakte tot",
     "anyPlaceholder": "Elke",
@@ -2596,7 +2565,7 @@
   },
   "ProducerPanelCapacityPage": {
     "heading": "Productiecapaciteitsprofiel",
-    "intro": "Vul uw profiel aan zodat een beheerder u kan verifiëren. Geverifieerde producenten zien ModularProjects-aanvragen die passen bij hun leverlanden, productfamilies en capaciteit.",
+    "intro": "Vul uw profiel aan zodat de beheerder u kan verifiëren. Geverifieerde producenten zien de ModularProjects aanvragen die passen bij hun productfamilies en capaciteit. Leverlanden zijn een informatieve opgave.",
     "noProducer": "Geen producentenaccount gevonden.",
     "status": {
       "not_submitted": "Status: profiel nog niet ingediend ter verificatie.",
@@ -2605,7 +2574,7 @@
       "rejected": "Status: profiel afgewezen. Pas de gegevens aan en dien opnieuw in."
     },
     "deliveryCountriesHeading": "Leverlanden",
-    "deliveryCountriesHelp": "Aanvragen uit landen die u hier niet selecteert, bereiken u niet.",
+    "deliveryCountriesHelp": "Leverlanden zijn uw informatieve opgave. Ze bepalen niet welke aanvragen u ziet.",
     "unitsPerMonth": "Productiecapaciteit: hoeveel huizen u per maand produceert",
     "productionLines": "Productielijnen",
     "maxModuleSizeM2": "Maximale modulegrootte (m²)",
@@ -2944,7 +2913,7 @@
   },
   "HomePage": {
     "metaTitle": "ModularHub Europe | Modulaire woningen van geverifieerde fabrikanten",
-    "metaDescription": "Vergelijk beproefde modulaire woningen uit heel Europa: geverifieerde fabrikanten, transparante prijzen en een controle op naleving van de regelgeving in het gekozen land."
+    "metaDescription": "Vergelijk beproefde modulaire woningen uit heel Europa: geverifieerde producenten, transparante prijzen en één aanvraag naar veel producenten."
   },
   "ErrorPage": {
     "heading": "Er is iets misgegaan",
@@ -2956,7 +2925,7 @@
     "ctaHeading": "Wilt u meerdere huizen tegelijk bestellen?",
     "ctaText": "Beschrijf uw project één keer en geverifieerde fabrikanten reageren met offertes die u op één plek vergelijkt.",
     "ctaButton": "Vraag aan via ModularProjects",
-    "about": "Koop modulaire huizen van geverifieerde fabrikanten, getoetst aan de bouwregels van uw land.",
+    "about": "Koop modulaire woningen van geverifieerde producenten met één aanvraag naar veel van hen.",
     "markets": "Fabrikanten uit Polen, bouwlocaties in Polen, Duitsland en Nederland",
     "navLabel": "Navigatie in de voettekst",
     "rights": "© {year} ModularHub Europe. Alle rechten voorbehouden.",
@@ -3145,5 +3114,10 @@
     "close": "Sluiten",
     "currentGranted": "Nu: meting staat aan.",
     "currentDenied": "Nu: meting staat uit."
+  },
+  "NotFoundPage": {
+    "heading": "Pagina niet gevonden",
+    "body": "Het adres is mogelijk gewijzigd of de pagina is niet meer beschikbaar.",
+    "homeLink": "Terug naar de startpagina"
   }
 }

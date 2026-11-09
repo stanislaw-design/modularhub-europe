@@ -92,6 +92,16 @@ describe.skipIf(!process.env.DATABASE_URL)("large orders admin queries", () => {
   it("lists countries for the delivery country pickers", async () => {
     const countries = await getAllCountries();
 
-    expect(countries.map((item) => item.code)).toEqual(expect.arrayContaining(["PL", "DE", "NL"]));
+    // Spec 0082 AC-11: dokładnie sześć krajów rynku, także BE, IT, FR, bez krajów spoza listy.
+    expect(countries.map((item) => item.code).sort()).toEqual(["BE", "DE", "FR", "IT", "NL", "PL"]);
+  });
+
+  it("keeps an already saved country outside the six on the list (spec 0082 AC-11)", async () => {
+    const countries = await getAllCountries(["US"]);
+
+    const codes = countries.map((item) => item.code);
+    expect(codes).toEqual(expect.arrayContaining(["PL", "DE", "NL", "BE", "IT", "FR"]));
+    // US jest w tabeli country tylko tam, gdzie istnieje (dev może go nie mieć).
+    expect(codes.filter((code) => !["PL", "DE", "NL", "BE", "IT", "FR", "US"].includes(code))).toEqual([]);
   });
 });

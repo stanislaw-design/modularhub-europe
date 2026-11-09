@@ -340,14 +340,6 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: reads from the da
     expect(projects.map((p) => p.id)).not.toContain(publishedDomId);
   });
 
-  it("hides a product blocked for a country and keeps an approved one", async () => {
-    const forDe = await getProjects({ countryCode: "DE" });
-    const forNl = await getProjects({ countryCode: "NL" });
-
-    expect(forDe.map((p) => p.id)).toContain(publishedDomId);
-    expect(forNl.map((p) => p.id)).not.toContain(publishedDomId);
-  });
-
   it("filters floorAreaM2 on a closed interval", async () => {
     const inRange = await getProjects({ sizeMin: 70, sizeMax: 90 });
     const outOfRange = await getProjects({ sizeMin: 200 });
@@ -454,8 +446,8 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: reads from the da
       expect(await idsOf({ mounting: ["w-szafie-z-winda"], purpose: ["cien"] })).toEqual([]);
     });
 
-    it("ignores country, size and price for outdoor-tv so dead URL params never hide products (AC-5)", async () => {
-      const ids = await idsOf({ countryCode: "DE", sizeMin: 200, sizeMax: 300, priceMin: 100000, priceMax: 150000 });
+    it("ignores size and price for outdoor-tv so dead URL params never hide products (AC-5)", async () => {
+      const ids = await idsOf({ sizeMin: 200, sizeMax: 300, priceMin: 100000, priceMax: 150000 });
       expect(ids).toHaveLength(3);
     });
 
@@ -930,15 +922,6 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/data/projects: verified volume m
   });
 
   describe("getVerifiedVolumeManufacturerProjects with filter (spec 0038 AC-19 to AC-23)", () => {
-    it("narrows the producer list by delivery country before querying products (AC-20)", async () => {
-      const results = await getVerifiedVolumeManufacturerProjects("pl", { countryCode: "DE" });
-
-      expect(results.some((item) => item.producerId === secondApprovedProducerId)).toBe(true);
-      // approvedProducerId delivers only to PL/NL, not DE, so it disappears
-      // entirely even though it has published products (AC-20).
-      expect(results.some((item) => item.producerId === approvedProducerId)).toBe(false);
-    });
-
     it("filters a producer's projects by floor area without dropping the producer (AC-21)", async () => {
       const results = await getVerifiedVolumeManufacturerProjects("pl", { sizeMin: 100 });
       const match = results.find((item) => item.producerId === approvedProducerId);

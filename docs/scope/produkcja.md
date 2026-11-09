@@ -84,6 +84,10 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 68 | Analityka ruchu i maili w panelu admina | Slice 10 | in progress |
 | 69 | Rozmowy z kontrahentami: notatnik, zadania i dziennik w panelu admina | Slice 10 | in progress |
 | 70 | Letniskowo: katalog 17 modeli, opcje płatne, stylistyki wnętrz i sekcje klienta | Slice 2 | in progress |
+| 71 | Kraj jako informacja zamiast filtra prawnego, bez ocen zgodności dla klienta | Slice 2 | done |
+| 72 | Widoczność przetargu dla wszystkich zweryfikowanych wolumenowo producentów | Slice 12 | planned |
+| 73 | Wstępna ocena zgodności w ofercie podsumowującej | Slice 3 | planned |
+| 74 | Przegląd danych zgodności projekt po projekcie | Slice 2 | planned |
 
 ## Foundations
 
@@ -654,6 +658,31 @@ Ważny klient (producent domów mobilnych z Białegostoku). Import 17 modeli z c
   - [x] Konfiguracja w zapytaniu i domknięcie: migawka na serwerze, widoki zapytania, `check:translations`, testy, plik SQL promocji na produkcję (niewykonany), satisfies AC-3, AC-12, AC-14, AC-15 (widok migawki dla producenta czeka na ekran producenta nowego przepływu)
 - [ ] Zweryfikuj: `/check verify letniskowo katalog i sekcje klienta`
 - [ ] Testuj: `/test letniskowo katalog i sekcje klienta`
+
+### 71. Kraj jako informacja zamiast filtra prawnego, bez ocen zgodności dla klienta · full · done
+Dziś kraj w wyszukiwarce brzmi jak werdykt prawny, a dane zgodności w bazie to w większości szablon (77 domów z identycznymi zdaniami o DIN i BENG). Funkcja robi z kraju wymaganą informację o miejscu budowy z jednej listy sześciu krajów (PL, DE, NL, BE, IT, FR), przestaje filtrować wyniki po kraju, ukrywa oceny zgodności przed klientem (tabele, panel admina i logika zostają), przepisuje teksty obiecujące automatyczną weryfikację i zwraca 404 dla `/plot`. Wstępna ocena zgodności w ofercie podsumowującej to osobny, późniejszy etap. Powstało z `/architect`, decyzja właściciela z 2026-11-05.
+**Done when:** wyniki mają tę samą liczbę pozycji dla każdego `country`, klient nigdzie nie widzi statusu ani powodu zgodności, kraj w zapytaniu jest wymagany i ma sześć opcji w czterech językach, producent wybiera te same sześć krajów, strona główna nie obiecuje automatycznego werdyktu, `/plot` zwraca 404, a `tsc` i `check:translations` są czyste.
+- [x] Zaprojektuj (spec): [0082](../specs/0082-kraj-jako-informacja-bez-ocen-zgodnosci/index.md)
+- [x] Zbuduj: `/develop kraj jako informacja bez ocen zgodności`
+  - [x] Część A, ukrycie ocen i koniec filtra (bez zmiany typu krajów, wchodzi osobno): wyniki i strona produktu, `/plot` 404, teksty strony głównej i producenta, `SearchCard` i pasek filtrów, strona producentów, satisfies AC-3 do AC-9, AC-11 (teksty), AC-12
+  - [x] Część B, sześć krajów z jednego miejsca: moduł `lib/countries.ts`, tłumaczenia, zamiana literałów, formularze zapytań i walidacja serwera, panel producenta, testy, satisfies AC-1, AC-2, AC-10, AC-11, AC-13, AC-14
+- [x] Zweryfikuj: `/check verify kraj jako informacja bez ocen zgodności`
+- [x] Testuj: `/test kraj jako informacja bez ocen zgodności`
+
+### 72. Widoczność przetargu dla wszystkich zweryfikowanych wolumenowo producentów · full · planned · needs a decision
+Dziś zapytanie o duże zamówienie widzą tylko producenci dopasowani po rodzinie produktu, standardzie wykończenia i mocy (spec 0070, AC-10). Decyzja właściciela z 2026-11-05: widzą je wszyscy producenci zweryfikowani wolumenowo, a mail dostają tylko dopasowani. Widzieć znaczy móc złożyć ofertę, a pliki inwestora może pobrać każdy, kto może złożyć ofertę. Wymaga rozdzielenia funkcji `producerMatchesProjectRequestSql` na dwie role (kto widzi, kto dostaje mail, liczniki, alert o zerze dopasowanych) i testów dostępu do plików. From spec 0082.
+**Done when:** producent z zatwierdzonym profilem wolumenowym widzi i może wycenić zapytanie niezależnie od rodziny, standardu i mocy, mail i liczniki nadal opierają się na dopasowaniu, a test dostępu potwierdza, że producent niezweryfikowany, zablokowany lub wykluczony nie widzi zapytania ani plików.
+- [ ] Zaprojektuj (spec): `/architect widoczność przetargu dla wszystkich zweryfikowanych wolumenowo producentów` · needs a decision
+
+### 73. Wstępna ocena zgodności w ofercie podsumowującej · full · planned · needs a decision
+Po ukryciu ocen zgodności przed klientem (funkcja 71) wstępną ocenę zgodności klient dostaje w ofercie podsumowującej, przygotowanej przez zespół ModularHub. Do ustalenia: forma (pole w ofercie, osobna sekcja), kto wypełnia, jak korzysta z istniejących ocen w panelu admina i jak jest zastrzeżona. From spec 0082.
+**Done when:** oferta podsumowująca dla klienta zawiera wstępną ocenę zgodności dla kraju budowy z zastrzeżeniem, przygotowaną przez zespół, a strona główna nie obiecuje nic ponad to.
+- [ ] Zaprojektuj (spec): `/architect wstępna ocena zgodności w ofercie podsumowującej` · needs a decision
+
+### 74. Przegląd danych zgodności projekt po projekcie · medium · planned
+Dane zgodności w bazie to w dużej części szablon: Steel House (26), Castor (20), Perfect Cube (18) i Budman (13) mają identyczne zdania „zgodne z DIN” i „spełnia BENG” ze statusem `approved` dla DE i NL. Razem z właścicielem przeglądamy projekty, poprawiamy lub usuwamy wiersze i uzupełniamy braki (sauny, kontenery, telewizory), z wzorem z produktów Cocomodule. Lista wątpliwości jest w pamięci projektu (audyt katalogu z 2026-11-05). From spec 0082.
+**Done when:** żaden wiersz dopuszczeń nie zawiera zdania, które nie wynika z konkretnego produktu, a wszystkie projekty z listy audytu mają zdecydowany status (poprawione, usunięte lub świadomie zostawione).
+- [ ] Przegląd: sesja z właścicielem, projekt po projekcie
 
 ## Slice 11: weryfikacja firmy
 

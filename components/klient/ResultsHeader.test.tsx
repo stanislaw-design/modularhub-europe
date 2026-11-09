@@ -17,20 +17,10 @@ describe("ResultsHeader", () => {
     expect(within(nav).getByText("Domy")).toHaveAttribute("aria-current", "page");
   });
 
-  it("states the country below the heading, not in it, when countryCode is present (spec 0004)", () => {
-    render(<ResultsHeader locale="pl" count={12} family="dom" countryCode="DE" />);
-    expect(screen.getByRole("heading", { level: 1 })).not.toHaveTextContent("Niemczech");
-    expect(screen.getByText("Dopuszczone prawnie w Niemczech")).toBeInTheDocument();
-  });
-
-  it("shows the hint when countryCode is absent and no country line", () => {
+  it("shows the neutral hint and says nothing about law or country (spec 0082 AC-8)", () => {
     render(<ResultsHeader locale="pl" count={6} family="dom" />);
-    expect(screen.getByText(/wybierz kraj/i)).toBeInTheDocument();
-    expect(screen.queryByText(/^dopuszczone prawnie/i)).not.toBeInTheDocument();
-  });
-
-  it("does not show the hint when countryCode is present", () => {
-    render(<ResultsHeader locale="pl" count={6} family="dom" countryCode="PL" />);
+    expect(screen.getByText(/zawęź listę/i)).toBeInTheDocument();
+    expect(screen.queryByText(/dopuszczone prawnie/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/wybierz kraj/i)).not.toBeInTheDocument();
   });
 
@@ -47,19 +37,7 @@ describe("ResultsHeader", () => {
       expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(title);
     });
 
-    it("uses the spa-modulowe noun in the hint, not 'domy'", () => {
-      render(<ResultsHeader locale="pl" count={1} family="spa-modulowe" />);
-      expect(screen.getByText(/wybierz kraj/i)).toHaveTextContent("spa modułowe");
-      expect(screen.getByText(/wybierz kraj/i)).not.toHaveTextContent("domy");
-    });
-
-    it("uses the kontenery-modulowe noun in the hint, not 'domy'", () => {
-      render(<ResultsHeader locale="pl" count={1} family="kontenery-modulowe" />);
-      expect(screen.getByText(/wybierz kraj/i)).toHaveTextContent("kontenery modułowe");
-      expect(screen.getByText(/wybierz kraj/i)).not.toHaveTextContent("domy");
-    });
-
-    it("shows the outdoor TV hint instead of the country hint", () => {
+    it("shows the outdoor TV hint instead of the default hint", () => {
       render(<ResultsHeader locale="pl" count={2} family="outdoor-tv" />);
       expect(screen.getByText(/sposobu montażu/i)).toBeInTheDocument();
     });
