@@ -11,6 +11,7 @@ import { getProjectsForRequestCached } from "@/lib/data/public-cache";
 import type { Locale } from "@/lib/i18n/routing";
 import { sortOutdoorTvResults } from "@/lib/outdoor-tv-filters";
 import { parseResultsSearchParams, sortResults } from "@/lib/results-filters";
+import { RouteWidthMarker } from "@/components/RouteWidthMarker";
 
 interface ResultsPageProps {
   params: Promise<{ locale: string }>;
@@ -22,7 +23,7 @@ interface ResultsPageProps {
 // ulubionych ustala w przeglądarce AccountProvider, nie serwer.
 export default function WynikiPage(props: ResultsPageProps) {
   return (
-    <Suspense fallback={<div className="results-shell results-wide min-h-[60vh]" aria-busy="true" />}>
+    <Suspense fallback={<div className="results-shell min-h-[60vh]" aria-busy="true"><RouteWidthMarker name="results-wide" /></div>}>
       <WynikiResults {...props} />
     </Suspense>
   );
@@ -93,7 +94,8 @@ async function WynikiResults({ params, searchParams }: ResultsPageProps) {
   );
 
   return (
-    <div className="results-shell results-wide grid gap-x-brand-5 gap-y-brand-5 lg:px-brand-4 lg:pt-brand-4 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
+    <div className="results-shell grid gap-x-brand-5 gap-y-brand-5 lg:px-brand-4 lg:pt-brand-4 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
+      <RouteWidthMarker name="results-wide" />
       {/* Od `lg` pasek wyszukiwania jest lewym, przyklejonym panelem
           (kolumna 1); niżej zostaje poziomym rzędem nad treścią. Rodzina i
           kategorie wraz z nagłówkiem i siatką żyją w kolumnie 2, jak dotąd. */}

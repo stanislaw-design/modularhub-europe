@@ -49,6 +49,7 @@ import { ENVELOPE_SECTION_ENABLED, supportsEnvelopeParameters } from "@/lib/prod
 import { routing, type Locale } from "@/lib/i18n/routing";
 import { resolveProductHref } from "@/lib/product-family-groups";
 import { parseResultsSearchParams } from "@/lib/results-filters";
+import { RouteWidthMarker } from "@/components/RouteWidthMarker";
 
 // Spec 0078: strona szczegółów czyta searchParams (wariant, opcje, kraj) w całej treści,
 // więc nie jest w pełni statyczna. Dane są z "use cache", sesja nie jest czytana na serwerze.
@@ -432,7 +433,8 @@ export default async function ProjektPage({
           pływającego paska). Panel zajmuje oba wiersze siatki, więc sticky
           działa do końca sekcji. Na mobile kolejność DOM (galeria, panel,
           sekcje) daje ten sam układ co dotąd. */}
-      <div className="project-wide -mt-brand-5 pb-24 lg:mt-0 lg:grid lg:grid-cols-[minmax(0,1fr)_30rem] lg:pb-0 2xl:grid-cols-[minmax(0,1fr)_34rem]">
+      <div className="-mt-brand-5 pb-24 lg:mt-0 lg:grid lg:grid-cols-[minmax(0,1fr)_30rem] lg:pb-0 2xl:grid-cols-[minmax(0,1fr)_34rem]">
+        <RouteWidthMarker name="project-wide" />
         <div className="lg:col-start-1 lg:row-start-1">
           <ProjectGalleryTabs
               projectName={project.name}
