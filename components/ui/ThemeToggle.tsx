@@ -2,6 +2,7 @@
 
 import { Moon, Sun } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useSyncExternalStore } from "react";
 import { useTheme } from "./ThemeProvider";
 
 interface ThemeToggleProps {
@@ -10,13 +11,19 @@ interface ThemeToggleProps {
   withLabel?: boolean;
 }
 
+const subscribeNever = () => () => {};
+
 // Icon shows the mode currently displayed (sun while light, moon while
 // dark); aria-label still describes the action a click performs, so it stays
 // the opposite of the icon (spec 0043 AC-1, AC-2, AC-5, AC-9).
 export function ThemeToggle({ className = "", withLabel = false }: ThemeToggleProps) {
   const t = useTranslations("Theme");
-  const { theme, setTheme } = useTheme();
-  const isDark = theme === "dark";
+  const { theme, serverTheme, setTheme } = useTheme();
+  // A Suspense boundary (SiteHeader's) can hydrate after the provider already
+  // switched to the client-detected theme; until this component's own hydration
+  // is done it renders what the server did, or React reports a mismatch (#418).
+  const hydrated = useSyncExternalStore(subscribeNever, () => true, () => false);
+  const isDark = (hydrated ? theme : serverTheme) === "dark";
   const label = isDark ? t("toggleToLight") : t("toggleToDark");
   const Icon = isDark ? Moon : Sun;
 
