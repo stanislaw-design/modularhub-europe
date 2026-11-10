@@ -1560,7 +1560,7 @@ export async function getVerifiedVolumeManufacturerProjects(
 
   if (approvedProducers.length === 0) return [];
 
-  let producerIds = approvedProducers.map((row) => row.producerId);
+  const producerIds = approvedProducers.map((row) => row.producerId);
 
   if (producerIds.length === 0) return [];
 
