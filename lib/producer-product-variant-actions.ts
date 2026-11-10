@@ -1,7 +1,7 @@
 "use server";
 
 import { invalidateProduct } from "@/lib/cache-tags";
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, isNull, ne, sql } from "drizzle-orm";
 import { after } from "next/server";
 import type { CompletionStandard, CostLineItemStatus, TimelineStageKey } from "@/lib/data/types";
 import { db } from "@/lib/db/client";
@@ -293,9 +293,15 @@ export async function updateVariant(variantId: string, fields: UpdateVariantFiel
   }
 }
 
-// AC-3: pojedyncze zapytanie UPDATE z porównaniem w SET, nigdy dwa osobne
-// UPDATE (nawet w db.batch) — lib/db/AGENTS.md: trigger product_variant_price_sync
-// czytałby chwilowy stan zero-wariantów-domyślnych między dwoma zapytaniami.
+// AC-3: po zmianie dokładnie jeden aktywny wariant domyślny. Dwa kroki w jednej transakcji
+// (db.batch): najpierw zdjęcie flagi ze starego domyślnego, potem ustawienie na nowym. Jeden
+// UPDATE z "is_default = (id = nowy)" nie działa, bo częściowy indeks unikalny
+// product_variant_one_default_per_product sprawdza wiersze pojedynczo i gdy Postgres zmieni
+// najpierw nowy wiersz, produkt chwilę ma dwa domyślne ("duplicate key", losowo, zależnie od
+// kolejności wierszy). Stan pośredni (zero domyślnych) widzi tylko ta transakcja; trigger
+// product_variant_price_sync przelicza cenę produktu po każdym kroku, więc po drugim jest
+// poprawna. Zdjęcie flagi dzieje się tylko wtedy, gdy docelowy wariant istnieje i jest
+// aktywny, żeby nie zostawić produktu bez domyślnego wariantu.
 export async function setDefaultVariant(variantId: string): Promise<ActionResult> {
   const actor = await requireProducerActor();
   if (!actor) return { ok: false, error: DENIED_ERROR };
@@ -304,10 +310,26 @@ export async function setDefaultVariant(variantId: string): Promise<ActionResult
   if (ownership.status === "denied") return { ok: false, error: DENIED_ERROR };
 
   try {
-    await db
-      .update(productVariant)
-      .set({ isDefault: sql<boolean>`${productVariant.id} = ${variantId}`, updatedAt: new Date() })
-      .where(and(eq(productVariant.productId, ownership.productId!), isNull(productVariant.deletedAt)));
+    const productId = ownership.productId!;
+    const now = new Date();
+    await db.batch([
+      db
+        .update(productVariant)
+        .set({ isDefault: false, updatedAt: now })
+        .where(
+          and(
+            eq(productVariant.productId, productId),
+            eq(productVariant.isDefault, true),
+            isNull(productVariant.deletedAt),
+            ne(productVariant.id, variantId),
+            sql`EXISTS (SELECT 1 FROM product_variant t WHERE t.id = ${variantId} AND t.product_id = ${productId} AND t.deleted_at IS NULL)`,
+          ),
+        ),
+      db
+        .update(productVariant)
+        .set({ isDefault: true, updatedAt: now })
+        .where(and(eq(productVariant.id, variantId), eq(productVariant.productId, productId), isNull(productVariant.deletedAt))),
+    ]);
     invalidateProduct();
     return { ok: true };
   } catch (error) {

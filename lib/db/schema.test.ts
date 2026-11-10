@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, ne, sql } from "drizzle-orm";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { db } from "./client";
 import {
@@ -693,7 +693,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: product_variant price
     expect(row?.priceMinCents).toBe(500000);
   });
 
-  it("keeps product price in sync after switching the default variant with a single UPDATE", async () => {
+  it("keeps product price in sync after switching the default variant (clear old, set new, one transaction)", async () => {
     await db.insert(productVariant).values({
       productId,
       completionStandard: "surowy-zamkniety",
@@ -705,9 +705,16 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/schema: product_variant price
       .values({ productId, completionStandard: "pod-klucz", priceMinCents: 900000, isDefault: false })
       .returning({ id: productVariant.id });
 
-    // The spec's key invariant: switching the default is always one UPDATE,
-    // never two (which would open a window with no default variant).
-    await db.execute(sql`UPDATE product_variant SET is_default = (id = ${second.id}) WHERE product_id = ${productId}`);
+    // Switching the default is two steps in one transaction (db.batch): a single
+    // "is_default = (id = new)" UPDATE trips product_variant_one_default_per_product
+    // whenever Postgres updates the new row first, so it passes or fails by row order.
+    await db.batch([
+      db
+        .update(productVariant)
+        .set({ isDefault: false })
+        .where(and(eq(productVariant.productId, productId), ne(productVariant.id, second.id))),
+      db.update(productVariant).set({ isDefault: true }).where(eq(productVariant.id, second.id)),
+    ]);
 
     const [row] = await db.select().from(product).where(eq(product.id, productId));
     expect(row?.priceMinCents).toBe(900000);

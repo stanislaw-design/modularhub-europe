@@ -232,6 +232,39 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/producer-product-variant-actions
       expect(defaults[0].id).toBe(second.variantId);
     });
 
+    // Regresja: jeden UPDATE "is_default = (id = nowy)" padał losowo z "duplicate key" na
+    // product_variant_one_default_per_product, zależnie od kolejności wierszy. Każda zmiana
+    // przestawia fizyczne położenie wierszy, więc wiele przełączeń pod rząd wyłapuje błąd.
+    it("keeps exactly one default over many switches between three variants", async () => {
+      authMock.mockResolvedValue(sessionAs(producerUserId, "producer"));
+      const variantIds = [
+        (await createVariant(productId, "surowy-zamkniety")).variantId!,
+        (await createVariant(productId, "deweloperski")).variantId!,
+        (await createVariant(productId, "pod-klucz")).variantId!,
+      ];
+
+      for (let round = 0; round < 12; round++) {
+        const target = variantIds[(round * 2 + 1) % variantIds.length];
+        expect((await setDefaultVariant(target)).ok).toBe(true);
+        const rows = await db.select().from(productVariant).where(eq(productVariant.productId, productId));
+        const defaults = rows.filter((row) => row.isDefault && row.deletedAt === null);
+        expect(defaults.map((row) => row.id)).toEqual([target]);
+      }
+    });
+
+    it("keeps the current default when the target variant is already deleted", async () => {
+      authMock.mockResolvedValue(sessionAs(producerUserId, "producer"));
+      const first = (await createVariant(productId, "surowy-zamkniety")).variantId!;
+      const second = (await createVariant(productId, "deweloperski")).variantId!;
+      await db.update(productVariant).set({ deletedAt: new Date(), isDefault: false }).where(eq(productVariant.id, second));
+
+      const result = await setDefaultVariant(second);
+
+      expect(result.ok).toBe(false);
+      const rows = await db.select().from(productVariant).where(eq(productVariant.productId, productId));
+      expect(rows.filter((row) => row.isDefault && row.deletedAt === null).map((row) => row.id)).toEqual([first]);
+    });
+
     it("rejects setting another producer's variant as default", async () => {
       authMock.mockResolvedValue(sessionAs(otherProducerUserId, "producer"));
       const created = await createVariant(otherProductId, "deweloperski");
