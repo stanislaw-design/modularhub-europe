@@ -3049,3 +3049,47 @@ export const crmDigestLog = pgTable("crm_digest_log", {
   sentAt: timestamp("sent_at", { withTimezone: true }),
   recipientCount: integer("recipient_count"),
 });
+
+// ---------------------------------------------------------------------------
+// Zapytania o ekrany komercyjne ze strony /commercial-displays (spec 0083).
+// Prosty zapis zgłoszenia zainteresowania bez konta i bez sprawy doradczej:
+// dane kontaktowe, zastosowanie, czego dotyczy i opis. Zespół dostaje mail,
+// a wiersz zostaje w bazie jako źródło prawdy. Wartości useCase/interests/status
+// pilnują CHECK-i (lista w lib/commercial-display-inquiry-specs.ts).
+// ---------------------------------------------------------------------------
+export const commercialDisplayInquiry = pgTable(
+  "commercial_display_inquiry",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    contactName: text("contact_name").notNull(),
+    company: text("company"),
+    // Zawsze po normalizacji (małe litery, bez spacji): po nim liczymy limit zgłoszeń na dobę.
+    contactEmail: text("contact_email").notNull(),
+    contactPhone: text("contact_phone"),
+    countryCode: text("country_code")
+      .notNull()
+      .references(() => country.code),
+    useCase: text("use_case").notNull(),
+    interests: text("interests").array().notNull(),
+    screenCount: integer("screen_count"),
+    message: text("message").notNull(),
+    // Język strony, z której przyszło zgłoszenie (do odpowiedzi w tym samym języku).
+    contactLocale: text("contact_locale").notNull().default("pl"),
+    status: text("status").notNull().default("new"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    check(
+      "commercial_display_inquiry_use_case",
+      sql`${table.useCase} IN ('hotel', 'restaurant', 'pool-spa', 'residential', 'retail', 'other')`,
+    ),
+    check("commercial_display_inquiry_status", sql`${table.status} IN ('new', 'contacted', 'closed')`),
+    check("commercial_display_inquiry_interests", sql`array_length(${table.interests}, 1) >= 1`),
+    check(
+      "commercial_display_inquiry_screen_count",
+      sql`${table.screenCount} IS NULL OR ${table.screenCount} >= 1`,
+    ),
+    index("commercial_display_inquiry_email_created_idx").on(table.contactEmail, table.createdAt),
+  ],
+);

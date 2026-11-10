@@ -1,14 +1,17 @@
 import { render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { resolveAsyncTree } from "@/test/resolve-async-tree";
+
+// Strona nie dotyka bazy ani poczty: kraje i akcja zapisu są podstawione na granicy.
+vi.mock("@/lib/data/countries", () => ({
+  getCountries: vi.fn().mockResolvedValue([
+    { code: "PL", name: "Polska" },
+    { code: "DE", name: "Niemcy" },
+  ]),
+}));
+vi.mock("@/lib/commercial-display-inquiry-actions", () => ({ submitCommercialDisplayInquiry: vi.fn() }));
+
 import CommercialDisplaysPage, { generateMetadata } from "./page";
-
-const ORIGINAL_EMAIL = process.env.SUPPORT_REPLY_TO_EMAIL;
-
-afterEach(() => {
-  if (ORIGINAL_EMAIL === undefined) delete process.env.SUPPORT_REPLY_TO_EMAIL;
-  else process.env.SUPPORT_REPLY_TO_EMAIL = ORIGINAL_EMAIL;
-});
 
 async function renderPage(locale = "pl") {
   const element = await CommercialDisplaysPage({ params: Promise.resolve({ locale }) });
@@ -76,22 +79,20 @@ describe("CommercialDisplaysPage", () => {
     }
   });
 
-  it("points the inquiry buttons at a prefilled mailto when the support email is set", async () => {
-    process.env.SUPPORT_REPLY_TO_EMAIL = "info@example.com";
+  it("points the quote buttons at the inquiry form on the same page", async () => {
     await renderPage();
 
-    const href = screen.getByRole("link", { name: "Zapytaj o wycenę" }).getAttribute("href") ?? "";
-    expect(href.startsWith("mailto:info@example.com?subject=")).toBe(true);
-    expect(decodeURIComponent(href)).toContain("Zapytanie: ekrany zewnętrzne dla firm");
-    expect(screen.getByRole("link", { name: "Napisz do nas" })).toHaveAttribute("href", href);
+    expect(screen.getByRole("link", { name: /Zapytaj o wycenę/ })).toHaveAttribute("href", "#zapytanie");
+    const section = document.getElementById("zapytanie");
+    expect(section).not.toBeNull();
+    expect(section?.querySelector("form")).not.toBeNull();
+    expect(screen.getByRole("heading", { level: 2, name: "Powiedz nam, gdzie ma stanąć ekran" })).toBeInTheDocument();
   });
 
-  it("falls back to the contact page when no support email is configured", async () => {
-    delete process.env.SUPPORT_REPLY_TO_EMAIL;
+  it("does not use a mailto link for the inquiry any more", async () => {
     await renderPage();
 
-    expect(screen.getByRole("link", { name: "Zapytaj o wycenę" })).toHaveAttribute("href", "/pl/contact");
-    expect(screen.getByRole("link", { name: "Przejdź do kontaktu" })).toHaveAttribute("href", "/pl/contact");
+    expect(document.querySelector('a[href^="mailto:"]')).toBeNull();
   });
 
   it("links to the garden TV catalog", async () => {

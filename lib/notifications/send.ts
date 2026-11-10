@@ -39,7 +39,8 @@ export type NotificationEmailType =
   | "large_order_client_summary_published"
   | "large_order_producer_reminder"
   | "large_order_team_deadline"
-  | "crm_daily_digest";
+  | "crm_daily_digest"
+  | "commercial_display_team_new_inquiry";
 
 export interface SendNotificationEmailInput {
   // Jeden adres albo lista (wspólny mail dzienny do wszystkich administratorów, spec 0080 AC-19).

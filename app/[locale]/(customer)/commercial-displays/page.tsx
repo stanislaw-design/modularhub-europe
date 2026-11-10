@@ -7,7 +7,7 @@ import {
   Building2,
   Droplets,
   Hotel,
-  Mail,
+  ClipboardList,
   Monitor,
   MonitorSmartphone,
   ShieldCheck,
@@ -19,7 +19,10 @@ import {
   Waves,
   type LucideIcon,
 } from "lucide-react";
+import { CommercialDisplayInquiryForm } from "@/components/klient/CommercialDisplayInquiryForm";
 import { Container, Heading, Text } from "@/components/ui";
+import { getCountries } from "@/lib/data/countries";
+import type { Locale } from "@/lib/i18n/routing";
 import { routing } from "@/lib/i18n/routing";
 
 type PageParams = { locale: string };
@@ -90,19 +93,16 @@ function IconBadge({ icon: Icon, tone = "night" }: { icon: LucideIcon; tone?: "n
   );
 }
 
-// Statyczna strona sprzedażowa bez formularza: nic nie jest zapisywane. Zapytanie to mail na
-// SUPPORT_REPLY_TO_EMAIL z gotowym tematem (jak na /contact); bez zmiennej przycisk prowadzi do /contact.
+// Strona sprzedażowa z formularzem zapytania (spec 0083): przyciski "Zapytaj o wycenę" przewijają do
+// sekcji #zapytanie, a zgłoszenie zapisuje akcja submitCommercialDisplayInquiry.
 // v5-night i v5-paper zostają stałe w obu motywach (spec 0043), więc pasy ze zdjęciami wyglądają tak samo
 // w jasnym i ciemnym motywie.
 export default async function CommercialDisplaysPage({ params }: { params: Promise<PageParams> }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "CommercialDisplaysPage" });
 
-  const contactEmail = process.env.SUPPORT_REPLY_TO_EMAIL;
-  const inquiryHref = contactEmail
-    ? `mailto:${contactEmail}?subject=${encodeURIComponent(t("emailSubject"))}`
-    : `/${locale}/contact`;
-  const inquiryLabel = contactEmail ? t("ctaEmail") : t("ctaContactFallback");
+  const countries = await getCountries(locale as Locale);
+  const inquiryHref = "#zapytanie";
   const gardenTvHref = `/${locale}/results?family=outdoor-tv`;
 
   const stats = [
@@ -226,7 +226,7 @@ export default async function CommercialDisplaysPage({ params }: { params: Promi
                 href={inquiryHref}
                 className="focus-ring inline-flex h-12 items-center gap-brand-1 rounded-v5-pill bg-brand-v5-amber px-brand-4 text-body-l font-semibold text-brand-v5-amber-foreground hover:bg-brand-v5-amber-strong"
               >
-                <Mail className="size-5" aria-hidden="true" />
+                <ClipboardList className="size-5" aria-hidden="true" />
                 {t("ctaPrimary")}
               </a>
               <Link
@@ -460,27 +460,34 @@ export default async function CommercialDisplaysPage({ params }: { params: Promi
         </ol>
       </Container>
 
-      {/* Zamknięcie: zaproszenie do zapytania na tle zdjęcia */}
-      <section className="full-bleed relative isolate overflow-hidden bg-brand-v5-night py-brand-7 text-brand-v5-paper">
+      {/* Zapytanie: formularz na tle zdjęcia. Cel przycisków "Zapytaj o wycenę". */}
+      <section
+        id="zapytanie"
+        className="full-bleed relative isolate scroll-mt-16 overflow-hidden bg-brand-v5-night py-brand-7 text-brand-v5-paper"
+      >
         <Image src={`${IMG}/home-cinema.webp`} alt="" fill sizes="100vw" className="-z-20 object-cover" />
-        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-r from-black/90 via-black/70 to-black/40" />
-        <Container className="flex flex-col items-start gap-brand-3">
-          <h2 className="max-w-3xl font-display text-h2 font-semibold text-balance">{t("ctaHeading")}</h2>
-          <p className="max-w-2xl text-body-l text-brand-v5-paper/80">{t("ctaBody")}</p>
-          <div className="mt-brand-1 flex flex-wrap items-center gap-brand-3">
-            <a
-              href={inquiryHref}
-              className="focus-ring inline-flex h-12 items-center gap-brand-1 rounded-v5-pill bg-brand-v5-amber px-brand-4 text-body-l font-semibold text-brand-v5-amber-foreground hover:bg-brand-v5-amber-strong"
-            >
-              <Mail className="size-5" aria-hidden="true" />
-              {inquiryLabel}
-            </a>
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-r from-black/90 via-black/75 to-black/55" />
+        <Container className="grid grid-cols-1 items-start gap-brand-5 lg:grid-cols-12">
+          <div className="flex flex-col items-start gap-brand-3 lg:col-span-5">
+            <h2 className="font-display text-h2 font-semibold text-balance">{t("ctaHeading")}</h2>
+            <p className="text-body-l text-brand-v5-paper/80">{t("ctaBody")}</p>
+            <ul className="flex list-none flex-col gap-brand-1 text-body text-brand-v5-paper/90">
+              {[t("ctaPoint1"), t("ctaPoint2"), t("ctaPoint3")].map((point) => (
+                <li key={point} className="flex items-center gap-brand-2">
+                  <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-brand-v5-amber" />
+                  {point}
+                </li>
+              ))}
+            </ul>
             <Link
               href={gardenTvHref}
-              className="focus-ring rounded-data text-body font-medium text-brand-v5-paper underline underline-offset-4"
+              className="focus-ring mt-brand-1 rounded-data text-body font-medium text-brand-v5-paper underline underline-offset-4"
             >
               {t("ctaCatalog")}
             </Link>
+          </div>
+          <div className="lg:col-span-7">
+            <CommercialDisplayInquiryForm locale={locale} countries={countries} />
           </div>
         </Container>
       </section>

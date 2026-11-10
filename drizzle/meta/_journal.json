@@ -498,6 +498,13 @@
       "when": 1793818690906,
       "tag": "0070_freezing_gunslinger",
       "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "7",
+      "when": 1794301787432,
+      "tag": "0071_yummy_doctor_faustus",
+      "breakpoints": true
     }
   ]
 }
