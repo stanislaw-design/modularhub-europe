@@ -23,6 +23,7 @@ import { notifyTeamOfClientCancelledRequest, notifyTeamOfNewLargeOrder } from "@
 import { stageClientRegistration } from "@/lib/stage-client-registration";
 import { linkRequestsToClientOnLogin } from "@/lib/project-quote-actions";
 import { auth } from "@/auth";
+import { MARKET_COUNTRY_CODES } from "@/lib/countries";
 import { getClientIdForUser } from "@/lib/db/queries";
 import { captureError, trackEvent } from "@/lib/observability";
 import { createUploadToken } from "@/lib/inquiry-attachment-token";
@@ -89,7 +90,7 @@ const submitProjectRequestSchema = z
     contactEmail: z.email("Podaj prawidłowy adres e mail."),
     contactPhone: z.string().trim().min(1).optional(),
     locale: contactLocaleSchema,
-    countryCode: z.string().min(1, "Wybierz kraj."),
+    countryCode: z.enum(MARKET_COUNTRY_CODES, "Wybierz kraj z listy."),
     locationDetail: z.string().trim().min(1).optional(),
     projectType: z.enum(PROJECT_TYPES),
     families: projectRequestFamiliesSchema,
@@ -217,7 +218,7 @@ const submitBulkProductInquirySchema = z
     contactPhone: z.string().trim().min(1).optional(),
     locale: contactLocaleSchema,
     unitCount: z.number().int().min(3, "Minimalna liczba domów to 3."),
-    deliveryCountryCode: z.string().min(1, "Wybierz kraj dostawy."),
+    deliveryCountryCode: z.enum(MARKET_COUNTRY_CODES, "Wybierz kraj dostawy z listy."),
     startWindowFrom: dateStringSchema.optional(),
     startWindowTo: dateStringSchema.optional(),
     deliveryWindowFrom: dateStringSchema.optional(),

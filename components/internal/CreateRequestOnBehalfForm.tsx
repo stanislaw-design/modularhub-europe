@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, useState, useTransition } from "react";
 import { InquiryAttachmentsAfterSubmit } from "@/components/inquiry-attachments/InquiryAttachmentsAfterSubmit";
 import { createRequestOnBehalf, type CreateRequestOnBehalfInput } from "@/lib/project-request-actions";
+import type { CountryCode } from "@/lib/countries";
 import { COMPLETION_STANDARDS } from "@/lib/producer-capacity-profile-specs";
 import { PRODUCT_FAMILIES, type ProductFamily } from "@/lib/product-technical-specs";
 import { PROJECT_TYPES } from "@/lib/project-request-specs";
@@ -105,7 +106,8 @@ export function CreateRequestOnBehalfForm({ locale, countries, products }: Creat
       input = {
         ...common,
         kind: "request",
-        countryCode: optional(form.get("countryCode")) ?? "",
+        // Pusta wartość serwer odrzuca czytelnym błędem (spec 0082 AC-10).
+        countryCode: (optional(form.get("countryCode")) ?? "") as CountryCode,
         locationDetail: optional(form.get("locationDetail")),
         projectType: (optional(form.get("projectType")) ?? "") as (typeof PROJECT_TYPES)[number],
         families,
@@ -119,7 +121,7 @@ export function CreateRequestOnBehalfForm({ locale, countries, products }: Creat
         ...common,
         kind: "product",
         productId: optional(form.get("productId")) ?? "",
-        deliveryCountryCode: optional(form.get("countryCode")) ?? "",
+        deliveryCountryCode: (optional(form.get("countryCode")) ?? "") as CountryCode,
         note: optional(form.get("note")),
       };
     }

@@ -47,8 +47,8 @@ describe("sitemap (spec 0073 AC-13)", () => {
     getSitemapProductsMock.mockRejectedValue(new Error("db down"));
     const entries = await sitemap();
 
-    // 8 stałych stron i 1 wpis ModularProjects, każde w czterech językach.
-    expect(entries.length).toBe(9 * 4);
+    // 9 stałych stron i 1 wpis ModularProjects, każde w czterech językach.
+    expect(entries.length).toBe(10 * 4);
     expect(entries.some((e) => e.url.includes("/project/"))).toBe(false);
     expect(captureErrorMock).toHaveBeenCalledWith(expect.any(Error), { area: "sitemap", section: "products" });
   });

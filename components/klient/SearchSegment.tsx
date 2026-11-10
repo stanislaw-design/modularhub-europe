@@ -2,6 +2,7 @@
 
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from "@headlessui/react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useRef } from "react";
 
 export interface SegmentOption {
   value: string;
@@ -31,10 +32,27 @@ export function SearchSegment({
   const prefersReducedMotion = useReducedMotion();
   const isV5 = surface === "v5";
 
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  // The hero clips its children (overflow-hidden), so a tall list would be cut
+  // off. Cap the list to the room left inside the nearest clipping ancestor and
+  // let the rest scroll.
+  const fitToClippingAncestor = (list: HTMLElement | null) => {
+    const wrapper = wrapperRef.current;
+    if (!list || !wrapper) return;
+    let clip: HTMLElement | null = wrapper.parentElement;
+    while (clip && !/(hidden|clip|auto|scroll)/.test(getComputedStyle(clip).overflowY)) {
+      clip = clip.parentElement;
+    }
+    if (!clip) return;
+    const room = clip.getBoundingClientRect().bottom - wrapper.getBoundingClientRect().bottom - 16;
+    list.style.maxHeight = `${Math.max(96, Math.min(240, room))}px`;
+  };
+
   return (
     <Listbox value={value as string} onChange={onChange}>
       {({ open }) => (
-        <div className="relative flex-1">
+        <div ref={wrapperRef} className="relative flex-1">
           <ListboxButton
             aria-label={ariaLabel}
             className="focus-ring flex w-full flex-col items-start gap-0.5 px-brand-3 py-brand-2 text-left"
@@ -80,6 +98,7 @@ export function SearchSegment({
                 <ListboxOptions
                   modal={false}
                   static
+                  ref={fitToClippingAncestor}
                   className={
                     isV5
                       ? "max-h-60 overflow-auto py-1 focus:outline-none [scrollbar-color:var(--color-brand-v5-muted)_transparent] [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-brand-v5-muted/30 [&::-webkit-scrollbar-thumb:hover]:bg-brand-v5-muted/50 [&::-webkit-scrollbar-track]:bg-transparent"

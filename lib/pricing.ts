@@ -13,6 +13,9 @@ const MOCK_ASSEMBLY_PRICE_EUR_BY_COUNTRY: Record<CountryCode, number> = {
   PL: 1800,
   DE: 2600,
   NL: 2900,
+  BE: 2700,
+  IT: 2400,
+  FR: 2800,
 };
 
 export function getMockAssemblyPriceEur(countryCode: CountryCode): number {

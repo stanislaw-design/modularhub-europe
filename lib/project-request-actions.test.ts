@@ -97,6 +97,23 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-request-actions: real DB
       expect(result.ok).toBe(false);
     });
 
+    it("rejects a country outside the six market countries, writes nothing (spec 0082 AC-10)", async () => {
+      const email = `pra-us-${crypto.randomUUID()}@example.test`;
+      const result = await submitProjectRequest({
+        contactName: "Wrong Country",
+        contactEmail: email,
+        countryCode: "US" as unknown as "PL",
+        projectType: "resort",
+        families: ["dom"],
+        unitCount: 12,
+      });
+
+      expect(result.ok).toBe(false);
+      expect(result.error).toMatch(/kraj/i);
+      const rows = await db.select().from(projectRequest).where(eq(projectRequest.contactEmail, email));
+      expect(rows).toHaveLength(0);
+    });
+
     it("rejects unitCount below 3", async () => {
       const result = await submitProjectRequest({
         contactName: "Too Few",
@@ -261,6 +278,19 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-request-actions: real DB
       expect(rows).toHaveLength(0);
     });
 
+    it("rejects a delivery country outside the six market countries (spec 0082 AC-10)", async () => {
+      const result = await submitBulkProductInquiry({
+        productId: publishedProductId,
+        contactName: "Wrong Country",
+        contactEmail: `pra-bulk-us-${crypto.randomUUID()}@example.test`,
+        unitCount: 15,
+        deliveryCountryCode: "US" as unknown as "PL",
+      });
+
+      expect(result.ok).toBe(false);
+      expect(result.error).toMatch(/kraj/i);
+    });
+
     it("rejects a request for a non-existent product", async () => {
       const result = await submitBulkProductInquiry({
         productId: crypto.randomUUID(),
@@ -412,7 +442,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-request-actions: real DB
       } as Session;
     }
 
-    const base = { contactName: "Signed In", countryCode: "PL", projectType: "resort" as const, families: ["dom" as const], unitCount: 12 };
+    const base = { contactName: "Signed In", countryCode: "PL" as const, projectType: "resort" as const, families: ["dom" as const], unitCount: 12 };
 
     it("links a project request to the client when the email matches the session", async () => {
       authMock.mockResolvedValue(clientSession());
@@ -601,7 +631,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-request-actions: real DB
       const email = `pra-cancel-limit-${crypto.randomUUID()}@example.test`;
       const ids: string[] = [];
       for (let index = 0; index < 3; index += 1) ids.push(await insertRequest({ contactEmail: email, unitCount: 10 + index }));
-      const input = { contactName: "X", contactEmail: email, countryCode: "PL", projectType: "resort" as const, families: ["dom" as const], unitCount: 14 };
+      const input = { contactName: "X", contactEmail: email, countryCode: "PL" as const, projectType: "resort" as const, families: ["dom" as const], unitCount: 14 };
       const blocked = await submitProjectRequest(input);
       expect(blocked.errorCode).toBe("email_limit");
 

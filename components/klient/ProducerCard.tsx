@@ -3,8 +3,9 @@ import { getTranslations } from "next-intl/server";
 import Image from "next/image";
 import { Text } from "@/components/ui";
 import type { CountryCode, Producer } from "@/lib/data/types";
+import { COUNTRY_FLAGS } from "@/lib/countries";
 
-const countryFlag: Record<CountryCode, string> = { PL: "🇵🇱", DE: "🇩🇪", NL: "🇳🇱" };
+const countryFlag = COUNTRY_FLAGS;
 
 interface ProducerCardProps {
   producer: Producer;
@@ -26,11 +27,7 @@ export async function ProducerCard({
   showSizeRange = true,
 }: ProducerCardProps) {
   const t = await getTranslations("ProducerCard");
-  const countryLabel: Record<CountryCode, string> = {
-    PL: t("country.PL"),
-    DE: t("country.DE"),
-    NL: t("country.NL"),
-  };
+  const countryLabel = (code: CountryCode) => t(`country.${code}`);
   return (
     <article className="flex flex-col overflow-hidden rounded-v5-card border border-brand-v5-line bg-brand-v5-surface">
       <div className="relative aspect-[16/9] overflow-hidden">
@@ -54,7 +51,7 @@ export async function ProducerCard({
           <span
             className="shrink-0 text-h3"
             role="img"
-            aria-label={t("countryOfProduction", { country: countryLabel[producer.countryCode] })}
+            aria-label={t("countryOfProduction", { country: countryLabel(producer.countryCode) })}
           >
             {countryFlag[producer.countryCode]}
           </span>
@@ -77,7 +74,7 @@ export async function ProducerCard({
           </Text>
           <ul className="flex items-center gap-1">
             {producer.deliveryCountries.map((code) => (
-              <li key={code} className="text-body-l" role="img" aria-label={countryLabel[code]}>
+              <li key={code} className="text-body-l" role="img" aria-label={countryLabel(code)}>
                 {countryFlag[code]}
               </li>
             ))}

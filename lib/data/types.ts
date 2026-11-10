@@ -2,7 +2,8 @@ import type { ClientRequirementRow, ClientRequirementTranslationRow } from "../p
 import type { FaqRow, FaqTranslationRow } from "../product-faq";
 import type { FloorLevel, RoomLayoutRow, RoomLayoutTranslationRow } from "../product-room-layout";
 
-export type CountryCode = "PL" | "DE" | "NL";
+export type { CountryCode } from "../countries";
+import type { CountryCode } from "../countries";
 
 export interface Country {
   code: CountryCode;
@@ -388,8 +389,7 @@ export interface ProducerCertification {
 }
 
 export interface ProductComplianceAssessment {
-  // Spec 0075 AC-8: ocena zgodności przyjmuje też BE, IT i FR, których nie ma w CountryCode.
-  countryCode: CountryCode | "BE" | "IT" | "FR";
+  countryCode: CountryCode;
   rule: string;
   status: EligibilityStatus;
   reason: string;

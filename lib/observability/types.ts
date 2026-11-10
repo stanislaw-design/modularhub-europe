@@ -31,6 +31,7 @@ export type EventName =
   | "platform_selection_finished"
   | "platform_quote_variant_withdrawn"
   | "bulk_product_inquiry_submitted"
+  | "commercial_display_inquiry_submitted"
   | "request_cancelled_by_client"
   | "request_closed_by_staff"
   | "request_reopened"

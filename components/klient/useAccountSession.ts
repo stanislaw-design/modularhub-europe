@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useSyncExternalStore } from "react";
 import { clearSessionHint, hasSessionHint } from "@/lib/session-hint";
 
 export interface AccountSession {
@@ -78,14 +78,30 @@ export function useAccountSessionState(): AccountState {
   return state;
 }
 
+const subscribeNever = () => () => {};
+
+// `false` tylko w renderze hydracji tego komponentu. Granica Suspense (np. nagłówek
+// w layoucie) bywa hydratowana później niż `AccountProvider` zdąży zmienić stan w
+// efekcie, więc konsument nie może ufać stanowi z kontekstu, dopóki sam nie
+// zakończy hydracji: serwer wyrenderował `unknown`, a inna wartość to błąd #418.
+function useHydrated(): boolean {
+  return useSyncExternalStore(subscribeNever, () => true, () => false);
+}
+
+const UNKNOWN: AccountContextValue = { account: { status: "unknown" }, favoriteIds: null };
+
 /** Stan konta z najbliższego `AccountProvider`; poza nim (panele, testy) konto jest anonimowe. */
 export function useAccountSession(): AccountState {
-  return (useContext(AccountContext) ?? ANONYMOUS).account;
+  const context = useContext(AccountContext);
+  const hydrated = useHydrated();
+  return (context ? (hydrated ? context : UNKNOWN) : ANONYMOUS).account;
 }
 
 /** Ulubione klienta z `AccountProvider` albo `null`, gdy jeszcze nieznane. */
 export function useFavoriteIds(): ReadonlySet<string> | null {
-  return (useContext(AccountContext) ?? ANONYMOUS).favoriteIds;
+  const context = useContext(AccountContext);
+  const hydrated = useHydrated();
+  return (context ? (hydrated ? context : UNKNOWN) : ANONYMOUS).favoriteIds;
 }
 
 export interface ContactPrefill {

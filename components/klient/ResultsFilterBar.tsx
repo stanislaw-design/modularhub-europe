@@ -6,14 +6,12 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
-import type { Country, CountryCode } from "@/lib/data/types";
 import { buildResultsHref, SORT_OPTIONS, type ResultsFilter, type SortOption } from "@/lib/results-filters";
 import { SIZE_THRESHOLDS, type SizeThreshold } from "@/lib/size-thresholds";
 import { SearchSegment, type SegmentOption } from "./SearchSegment";
 
 interface ResultsFilterBarProps {
   locale: string;
-  countries: Country[];
   filter: ResultsFilter;
   /** FamilyTabs/CategoryFilterBar/SubcategoryFilterBar (server components,
    * page.tsx composes them in) — rendered only inside the mobile bottom
@@ -33,10 +31,9 @@ const sizeOptions: SegmentOption[] = SIZE_THRESHOLDS.map((threshold) => ({
 // country/metraż poniżej: lokalny stan, nawigacja dopiero po kliknięciu "Szukaj"
 // (albo Enter w polu tekstowym), nigdy filtr atrybutów/podkategorii/ceny —
 // te przychodzą przez `filter` i zostają nietknięte (chipy je ustawiają osobno).
-export function ResultsFilterBar({ locale, countries, filter, mobileFilters, sidebarFilters }: ResultsFilterBarProps) {
+export function ResultsFilterBar({ locale, filter, mobileFilters, sidebarFilters }: ResultsFilterBarProps) {
   const t = useTranslations("ResultsFilterBar");
   const router = useRouter();
-  const [country, setCountry] = useState<CountryCode | null>(filter.countryCode ?? null);
   const [min, setMin] = useState<number | null>(filter.sizeMin ?? null);
   const [max, setMax] = useState<number | null>(filter.sizeMax ?? null);
   const [sort, setSort] = useState<SortOption | null>(filter.sort ?? null);
@@ -66,9 +63,8 @@ export function ResultsFilterBar({ locale, countries, filter, mobileFilters, sid
     "size-desc": t("sortSizeDesc"),
   };
   const sortOptions: SegmentOption[] = SORT_OPTIONS.map((value) => ({ value, label: sortLabels[value] }));
-  const countryOptions: SegmentOption[] = countries.map((c) => ({ value: c.code, label: c.name }));
   const sizeMaxOptions = sizeOptions.filter((option) => min === null || Number(option.value) >= min);
-  const activeFilterCount = [country, min, max, sort, q.trim() || null].filter((value) => value !== null).length;
+  const activeFilterCount = [min, max, sort, q.trim() || null].filter((value) => value !== null).length;
 
   function handleMinChange(value: string) {
     const next = Number(value);
@@ -80,7 +76,6 @@ export function ResultsFilterBar({ locale, countries, filter, mobileFilters, sid
     const trimmedQ = q.trim();
     const merged: ResultsFilter = {
       ...filter,
-      countryCode: country ?? undefined,
       sizeMin: min === null ? undefined : (min as SizeThreshold),
       sizeMax: max === null ? undefined : (max as SizeThreshold),
       sort: sort ?? undefined,
@@ -96,7 +91,7 @@ export function ResultsFilterBar({ locale, countries, filter, mobileFilters, sid
           anything needed to search right away. Below `sm` this row is 5 full
           width stacked fields, well over half a phone screen tall, so it
           only lives in the bottom sheet there (see the Dialog below). Shares
-          this component's own `country`/`min`/`max`/`sort`/`q` state with
+          this component's own `min`/`max`/`sort`/`q` state with
           that sheet, so the two never drift out of sync. */}
       <div className="hidden sm:block lg:sticky lg:top-24 lg:col-start-1 lg:row-start-1 lg:flex lg:flex-col lg:gap-brand-4">
       {sidebarFilters && <div className="hidden flex-col gap-brand-3 lg:flex">{sidebarFilters}</div>}
@@ -104,15 +99,6 @@ export function ResultsFilterBar({ locale, countries, filter, mobileFilters, sid
         ref={inlineBarRef}
         className="hidden w-full flex-col divide-y divide-brand-v5-line rounded-[2.5rem] border border-brand-v5-line bg-brand-v5-surface shadow-sm sm:flex sm:flex-row sm:items-stretch sm:divide-x sm:divide-y-0 lg:flex-col lg:divide-x-0 lg:divide-y lg:rounded-v5-card"
       >
-        <SearchSegment
-          label={t("countryLabel")}
-          value={country}
-          onChange={(value) => setCountry(value as CountryCode)}
-          options={countryOptions}
-          placeholder={t("countryPlaceholder")}
-          ariaLabel={t("countryAriaLabel")}
-          surface="v5"
-        />
         <SearchSegment
           label={t("sizeMinLabel")}
           value={min === null ? null : String(min)}
@@ -227,15 +213,6 @@ export function ResultsFilterBar({ locale, countries, filter, mobileFilters, sid
             </div>
             <div className="flex flex-col gap-brand-3">{mobileFilters}</div>
             <div className="flex flex-col divide-y divide-brand-v5-line rounded-v5-card border border-brand-v5-line">
-              <SearchSegment
-                label={t("countryLabel")}
-                value={country}
-                onChange={(value) => setCountry(value as CountryCode)}
-                options={countryOptions}
-                placeholder={t("countryPlaceholder")}
-                ariaLabel={t("countryAriaLabel")}
-                surface="v5"
-              />
               <SearchSegment
                 label={t("sizeMinLabel")}
                 value={min === null ? null : String(min)}

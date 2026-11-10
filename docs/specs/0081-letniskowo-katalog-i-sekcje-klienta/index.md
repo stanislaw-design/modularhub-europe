@@ -1,7 +1,7 @@
 # 0081. Letniskowo: katalog 17 modeli, opcje płatne, stylistyki wnętrz i sekcje klienta
 
 **Date**: 2026-11-04
-**Status**: In Progress
+**Status**: Accepted
 
 ## Summary
 
@@ -174,10 +174,11 @@ Reasoning and options: see [rationale.md](rationale.md).
 - [ ] Prawdziwe konto producenta (e mail, NIP, dane do panelu) do uzupełnienia, gdy klient je poda. Konto techniczne zostaje do tego czasu.
 - [ ] Migawka konfiguracji w zapytaniu hurtowym (`BulkProductInquiryModal`) i ewentualnie strukturalna tabela wyborów zamiast jsonb (osobna decyzja).
 - [ ] Filtr po linii (Comfort, Premium, Vario) na stronie producenta, jeśli lista 17 modeli okaże się niewygodna.
-- [ ] Przed promocją na produkcję sprawdzić poświadczenia produkcyjnego R2 (wcześniej blokowały wgranie zdjęć Perfect Cube).
+- [x] Przed promocją na produkcję sprawdzić poświadczenia produkcyjnego R2: niepotrzebne, dev i prod używają tego samego kubełka, więc pliki były już na miejscu i wystarczyły odnośniki w SQL (95 adresów sprawdzonych, wszystkie 200).
 - [x] `origin/main` miał nowy commit względem `spec-0080-rozmowy`, budowa idzie na gałęzi `spec-0081-letniskowo` z `origin/main`.
 - [ ] Producent nie widzi jeszcze migawki (AC-12): w nowym przepływie spraw nie ma dziś żadnego ekranu producenta (`lib/case-producer-queries.ts` jest świadomie wąskim modułem bez UI, krok 9 specu 0048). Migawka jest zapisana w `inquiry_item.configuration_snapshot`; dodać ją do widoku producenta razem z tym krokiem. Widzą ją administrator i klient (`CaseStatusPanel`).
 - [ ] Ośmiu zastosowań komercyjnych jest dokładnie osiem, jak w specu, ale oferta podaje tylko ich nazwy; dwa dodatkowe teksty opisowe (kroki współpracy) są sformułowane wprost z jednego zdania oferty, do przeglądu przez klienta.
-- [ ] NIP Letniskowo jest wartością roboczą `CATALOG-LETNISKOWO` na dev; prawdziwy z rejestru potwierdza Stanisław przed produkcją (AC-1).
+- [x] NIP Letniskowo: na produkcji wpisany prawdziwy `5423465217` (podany przez Stanisława 2026-11-05, AC-1). Na dev zostaje wartość robocza `CATALOG-LETNISKOWO`.
+- [x] Promocja na produkcję 2026-11-05: PR #6 zmergowany, migracja 0070 wdrożona przez workflow, pliki `drizzle/_promote_letniskowo_to_prod/00` do `04` wgrane ręcznie skryptem `scripts/run-sql-file.ts`, cache odświeżony (`npm run revalidate`), produkty widoczne w sitemapie. Szczegóły sprawdzenia w [verify.md](verify.md).
 - [ ] Gałąź Neon `tmp-migration-0070-letniskowo` (`br-lively-breeze-b2fng85r`) do usunięcia po zgodzie.
 - [ ] Pozycje do klienta (AC-15) są oznaczone komentarzami w `scripts/data/letniskowo-options.ts` i `letniskowo-catalog.ts` (deLux, Nicea, Sky Light, Bremen 18 cm, nazwy w cenniku, "+1" i "+2", Recuperation 3 i 4); na stronie są pokazane tak jak w cenniku.

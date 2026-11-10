@@ -1,7 +1,11 @@
 name: CI
 
 on:
+  # Push tylko na main, bo każdy push gałęzi z otwartym PR-em uruchamiał CI dwa razy naraz
+  # (push i pull_request) na tej samej bazie deweloperskiej, a testy bazy porównują liczby
+  # z wspólnych tabel, więc dwa równoległe przebiegi nawzajem psuły sobie wyniki.
   push:
+    branches: [main]
   pull_request:
     branches: [main]
 

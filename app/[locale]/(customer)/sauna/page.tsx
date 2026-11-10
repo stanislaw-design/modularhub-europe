@@ -12,6 +12,7 @@ import { routing, type Locale } from "@/lib/i18n/routing";
 import { resolveProductHref } from "@/lib/product-family-groups";
 import { sortResults } from "@/lib/results-filters";
 import { buildSaunaHref, hasActiveSaunaFilter, parseSaunaSearchParams } from "@/lib/sauna-filters";
+import { RouteWidthMarker } from "@/components/RouteWidthMarker";
 
 type PageParams = { locale: string };
 type PageSearchParams = { [key: string]: string | string[] | undefined };
@@ -55,7 +56,7 @@ interface SaunaCategoryPageProps {
 // Spec 0078: statyczny szkielet, lista saun (zależna od searchParams) za Suspense.
 export default function SaunaCategoryPage(props: SaunaCategoryPageProps) {
   return (
-    <Suspense fallback={<div className="results-shell results-wide min-h-[60vh]" aria-busy="true" />}>
+    <Suspense fallback={<div className="results-shell min-h-[60vh]" aria-busy="true"><RouteWidthMarker name="results-wide" /></div>}>
       <SaunaCategoryContent {...props} />
     </Suspense>
   );
@@ -105,7 +106,8 @@ async function SaunaCategoryContent({ params, searchParams }: SaunaCategoryPageP
       {jsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />}
       {/* Jak /results: od `lg` filtry w lewym panelu, wyniki dostają resztę
           szerokości (`.results-wide` zdejmuje limit kontenera, globals.css). */}
-      <div className="results-shell results-wide grid gap-x-brand-5 gap-y-brand-5 lg:px-brand-4 lg:pt-brand-4 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
+      <div className="results-shell grid gap-x-brand-5 gap-y-brand-5 lg:px-brand-4 lg:pt-brand-4 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
+      <RouteWidthMarker name="results-wide" />
         <SaunaFilterBar
           locale={locale}
           filter={filter}

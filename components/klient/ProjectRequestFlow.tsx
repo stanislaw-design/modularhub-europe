@@ -1,5 +1,6 @@
 "use client";
 
+import { useCountryHint } from "@/components/klient/useCountryHint";
 import { Building2, CheckCircle2, Mail, SlidersHorizontal, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -80,6 +81,7 @@ export function ProjectRequestFlow({ locale, countries, prefill: prefillProp }: 
   const [phase, setPhase] = useState<"form" | "sent">("form");
   const [step, setStep] = useState<WizardStep>(prefill?.name && prefill.email ? 1 : 0);
   const [countryCode, setCountryCode] = useState<CountryCode | null>(null);
+  useCountryHint(setCountryCode);
   const [projectType, setProjectType] = useState<ProjectType | null>(null);
   const [families, setFamilies] = useState<ProductFamily[]>([]);
   const [locationDetail, setLocationDetail] = useState("");

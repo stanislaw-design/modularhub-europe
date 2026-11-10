@@ -72,6 +72,56 @@ window.matchMedia ??= ((query: string) => ({
   dispatchEvent: () => false,
 })) as unknown as typeof window.matchMedia;
 
+// Node 25+ ma własny globalny localStorage/sessionStorage, który bez --localstorage-file
+// nie działa i przesłania wersję z jsdom (window.localStorage === undefined). CI bierze
+// node lts/* (dziś 26), więc analytics-client.lifecycle.test.ts padał tam, a lokalnie
+// na Node 22 nie. Gdy magazyn jest bezużyteczny, podstawiamy prostą wersję w pamięci.
+// Proxy zamiast zwykłego obiektu, bo prawdziwy Storage pokazuje klucze jako własne
+// właściwości (Object.keys(localStorage), storage.klucz), z czego korzysta kod analityki.
+function createMemoryStorage(): Storage {
+  const data = new Map<string, string>();
+  const api: Record<string, unknown> = {
+    clear: () => data.clear(),
+    getItem: (key: string) => (data.has(key) ? (data.get(key) as string) : null),
+    key: (index: number) => [...data.keys()][index] ?? null,
+    removeItem: (key: string) => {
+      data.delete(key);
+    },
+    setItem: (key: string, value: string) => {
+      data.set(key, String(value));
+    },
+  };
+  return new Proxy({} as Storage, {
+    get(_target, prop) {
+      if (prop === "length") return data.size;
+      if (typeof prop !== "string") return undefined;
+      if (prop in api) return api[prop];
+      return data.has(prop) ? data.get(prop) : undefined;
+    },
+    set(_target, prop, value) {
+      if (typeof prop === "string") data.set(prop, String(value));
+      return true;
+    },
+    deleteProperty(_target, prop) {
+      if (typeof prop === "string") data.delete(prop);
+      return true;
+    },
+    has: (_target, prop) => typeof prop === "string" && (prop === "length" || prop in api || data.has(prop)),
+    ownKeys: () => [...data.keys()],
+    getOwnPropertyDescriptor: (_target, prop) =>
+      typeof prop === "string" && data.has(prop)
+        ? { value: data.get(prop), writable: true, enumerable: true, configurable: true }
+        : undefined,
+  });
+}
+for (const name of ["localStorage", "sessionStorage"] as const) {
+  if (typeof window[name]?.clear !== "function") {
+    const storage = createMemoryStorage();
+    Object.defineProperty(window, name, { value: storage, configurable: true, writable: true });
+    Object.defineProperty(globalThis, name, { value: storage, configurable: true, writable: true });
+  }
+}
+
 afterEach(() => {
   cleanup();
 });

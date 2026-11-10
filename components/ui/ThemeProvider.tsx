@@ -16,6 +16,8 @@ interface ThemeContextValue {
   /** The effective theme this render should paint with (explicit choice, else detected system preference). */
   theme: Theme;
   setTheme: (theme: Theme) => void;
+  /** What the server rendered for `theme`: the explicit choice it knew, else "light". Hydration-safe fallback for markup that shows `theme`. */
+  serverTheme: Theme;
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -104,7 +106,7 @@ export function ThemeProvider({ initialTheme, themeFromCookieScript = false, sco
   }
 
   return (
-    <ThemeContext.Provider value={{ theme: explicitTheme ?? systemTheme, setTheme }}>
+    <ThemeContext.Provider value={{ theme: explicitTheme ?? systemTheme, setTheme, serverTheme: initialTheme ?? getServerSystemTheme() }}>
       <div className={`contents ${scopeClassName} ${explicitTheme ?? ""}`} suppressHydrationWarning={themeFromCookieScript}>
         {themeFromCookieScript && <script dangerouslySetInnerHTML={{ __html: THEME_COOKIE_SCRIPT }} />}
         {children}

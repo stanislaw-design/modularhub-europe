@@ -996,7 +996,13 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: project request boar
         const all = await getOpenProjectRequestsForBoard({ producerId, page: 1 });
         const mine = await getOpenProjectRequestsForBoard({ producerId, page: 1, filters: { onlyDeliveryCountries: true } });
         expect(mine.items.find((item) => item.id === openRequestId)).toBeUndefined();
-        expect(mine.hiddenByDeliveryCount).toBe(all.totalCount);
+        // Baza jest wspólna z testami biegnącymi równolegle, więc między dwoma zapytaniami może
+        // przybyć otwarte zapytanie z innego pliku: równość liczb była losowa (166 zamiast 165).
+        // Producent bez krajów dostawy nie widzi żadnego, a ukrytych jest co najmniej tyle,
+        // ile było otwartych przy pierwszym zliczeniu.
+        expect(mine.items).toHaveLength(0);
+        expect(mine.hiddenByDeliveryCount).toBeGreaterThanOrEqual(all.totalCount);
+        expect(mine.hiddenByDeliveryCount).toBeGreaterThanOrEqual(1);
         expect(all.hiddenByDeliveryCount).toBe(0);
       } finally {
         await db.insert(producerDeliveryCountry).values({ producerId, countryCode: "PL" });

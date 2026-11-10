@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { InquiryFlow } from "@/components/klient/InquiryFlow";
-import type { CountryCode, Project } from "@/lib/data/types";
+import type { Project } from "@/lib/data/types";
+import { isMarketCountryCode } from "@/lib/countries";
 import { getCountries } from "@/lib/data/countries";
 import { getProjectById, getPublishedProductIds } from "@/lib/data/projects";
 import type { Locale } from "@/lib/i18n/routing";
@@ -11,8 +12,6 @@ import { parseInquiryProjectIds } from "@/lib/inquiry";
 // Remove this opt-out after verifying the segment passes validation without it.
 // See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
 export const instant = false;
-
-const VALID_COUNTRY_CODES: readonly CountryCode[] = ["PL", "DE", "NL"];
 
 function buildResultsHref(
   locale: string,
@@ -59,9 +58,7 @@ export default async function ZapytaniePage({
 
   const rawCountry = rawSearchParams.country;
   const initialCountryCode =
-    typeof rawCountry === "string" && VALID_COUNTRY_CODES.includes(rawCountry as CountryCode)
-      ? (rawCountry as CountryCode)
-      : null;
+    typeof rawCountry === "string" && isMarketCountryCode(rawCountry) ? rawCountry : null;
 
   // Spec 0081 AC-12: wariant, opcje i stylistyka z adresu przechodzą dalej tylko przy jednym produkcie; serwer
   // zbuduje z nich migawkę i pominie id, które nie pasują do produktu.

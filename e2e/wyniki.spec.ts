@@ -6,58 +6,48 @@ test.describe("/pl/results", () => {
   // getProjects()/sortResults() (the same functions the page calls) on 2026-09-05; a
   // future catalog change means only these literals need a refresh, not the assertions'
   // shape.
-  test("shows all 24 projects, unnamed country, and the choose-country hint when no params are given (AC-1, AC-3, AC-9)", async ({
+  test("shows a hint that says nothing about law or country when no params are given (AC-1, AC-3, spec 0082 AC-8)", async ({
     page,
   }) => {
     await page.goto("/pl/results");
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("24 domy");
-    await expect(page.getByText(/wybierz kraj w filtrach/i)).toBeVisible();
-    await expect(page.locator("article")).toHaveCount(24);
+    await expect(page.getByText(/zawęź listę według metrażu/i)).toBeVisible();
+    await expect(page.getByText(/wybierz kraj w filtrach|dopuszczone prawnie/i)).toHaveCount(0);
+    expect(await page.locator("article").count()).toBeGreaterThan(0);
   });
 
-  test("filters by country and size range, showing the DE/50-100 matches sorted featured-first then by price (AC-1, AC-2, AC-4, AC-7, AC-12)", async ({
+  // Spec 0082 AC-3, AC-5: kraj w adresie to tylko podpowiedź, nie zawęża wyników i nie pokazuje ocen.
+  test("country in the URL never changes the list and shows no compliance text (spec 0082 AC-3, AC-5)", async ({
     page,
   }) => {
-    await page.goto("/pl/results?country=DE&sizeMin=50&sizeMax=100");
+    await page.goto("/pl/results");
+    const withoutCountry = await page.locator("article h3").allTextContents();
+    expect(withoutCountry.length).toBeGreaterThan(0);
 
-    await expect(page.getByText("Dopuszczone prawnie w Niemczech")).toBeVisible();
-
-    const cardNames = await page.locator("article h3").allTextContents();
-    // Featured project first (Cocomodule CH-72), then every non-featured match by
-    // ascending priceMin (default sort, spec 0026 Decision).
-    expect(cardNames).toEqual([
-      "Cocomodule CH-72",
-      "Mary antresola",
-      "Dom Pani Darii",
-      "KA220 SZ",
-      "Malutki DR-S",
-      "Modulor Compact 56",
-      "Cocomodule CH-90",
-      "Modulor Family 90",
-      "Karpaty Ridge 72",
-    ]);
-
-    // Cocomodule CH-90, Modulor Family 90 and Karpaty Ridge 72 are "conditional" in DE
-    // and must show the badge.
-    const badgedCards = page.locator("article", { has: page.getByText("Wymaga dodatkowych dokumentów") });
-    await expect(badgedCards).toHaveCount(3);
+    for (const country of ["DE", "BE", "XX"]) {
+      await page.goto(`/pl/results?country=${country}`);
+      expect(await page.locator("article h3").allTextContents()).toEqual(withoutCountry);
+      await expect(page.getByText(/dopuszczone prawnie/i)).toHaveCount(0);
+      await expect(page.getByText("Wymaga dodatkowych dokumentów")).toHaveCount(0);
+    }
   });
 
   test("ignores an invalid country while still applying a valid sizeMin (AC-5, AC-6)", async ({ page }) => {
-    await page.goto("/pl/results?country=FR&sizeMin=50");
-    // FR is invalid so no country filter applies; sizeMin=50 drops the six houses under 50 m²
-    // (including Baltyk Studio 38, 38 m²).
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("18 domów");
+    await page.goto("/pl/results?sizeMin=50");
+    const expected = await page.getByRole("heading", { level: 1 }).textContent();
+    await page.goto("/pl/results?country=XX&sizeMin=50");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(expected ?? "");
     await expect(page.getByText("Baltyk Studio 38")).toHaveCount(0);
   });
 
   test("drops both size values when the range is reversed, showing all projects (AC-6)", async ({ page }) => {
+    await page.goto("/pl/results");
+    const all = await page.getByRole("heading", { level: 1 }).textContent();
     await page.goto("/pl/results?sizeMin=150&sizeMax=50");
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("24 domy");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(all ?? "");
   });
 
   test("shows the empty state with a clear-filters action when nothing matches (AC-10)", async ({ page }) => {
-    await page.goto("/pl/results?country=NL&sizeMin=200");
+    await page.goto("/pl/results?sizeMin=200&priceMax=50000");
     await expect(page.locator("article")).toHaveCount(0);
     await expect(page.getByRole("heading", { name: /brak domów/i })).toBeVisible();
     const clearLink = page.getByRole("link", { name: /wyczyść filtry/i });
@@ -65,14 +55,14 @@ test.describe("/pl/results", () => {
     await expect(clearLink).toHaveAttribute("href", "/pl/results");
   });
 
-  test("updates the URL and results when the filter bar is used (AC-11)", async ({ page }) => {
-    await page.goto("/pl/results");
-    await page.getByRole("button", { name: "Kraj docelowy" }).click();
-    await page.getByRole("option", { name: "Niemcy" }).click();
-    await page.getByRole("button", { name: "Szukaj" }).click();
+  test("the filter bar has no country field and keeps the country from the URL when another filter changes (spec 0082 AC-8)", async ({
+    page,
+  }) => {
+    await page.goto("/pl/results?country=DE");
+    await expect(page.getByRole("button", { name: "Kraj docelowy" })).toHaveCount(0);
 
+    await page.getByRole("button", { name: "Szukaj" }).click();
     await expect(page).toHaveURL(/country=DE/);
-    await expect(page.getByText("Dopuszczone prawnie w Niemczech")).toBeVisible();
   });
 
   // Rebuilt as real, connected chips (spec 0026 AC-7): the "fully disabled" placeholder
@@ -130,7 +120,6 @@ test.describe("/pl/results", () => {
   }) => {
     await page.goto("/pl");
 
-    await page.getByRole("button", { name: "W czym mogę pomóc?" }).click();
     await page.getByRole("button", { name: "Kraj docelowy" }).click();
     await page.getByRole("option", { name: "Niemcy" }).click();
     await page.getByRole("button", { name: "Powierzchnia" }).click();
@@ -149,14 +138,13 @@ test.describe("/pl/results", () => {
   }) => {
     await page.goto("/pl");
 
-    await page.getByRole("button", { name: "W czym mogę pomóc?" }).click();
     await page.getByRole("button", { name: "Kraj docelowy" }).click();
-    await page.getByRole("option", { name: "Polska" }).click();
+    await page.getByRole("option", { name: "Belgia" }).click();
     await page.getByRole("button", { name: "Szukaj domów" }).click();
 
     await expect(page).toHaveURL(/\/pl\/results\?/);
     const url = new URL(page.url());
-    expect(url.searchParams.get("country")).toBe("PL");
+    expect(url.searchParams.get("country")).toBe("BE");
     expect(url.searchParams.has("sizeMin")).toBe(false);
     expect(url.searchParams.has("sizeMax")).toBe(false);
   });

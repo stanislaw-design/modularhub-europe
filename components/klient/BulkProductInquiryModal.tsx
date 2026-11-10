@@ -1,5 +1,6 @@
 "use client";
 
+import { useCountryHint } from "@/components/klient/useCountryHint";
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
@@ -49,6 +50,7 @@ export function BulkProductInquiryModal({ productId, countries, prefill: prefill
   }, [accountName, accountEmail, accountPhone]);
   const [unitCount, setUnitCount] = useState("");
   const [deliveryCountryCode, setDeliveryCountryCode] = useState<CountryCode | null>(null);
+  useCountryHint(setDeliveryCountryCode);
   const [note, setNote] = useState("");
   const [intendedUse, setIntendedUse] = useState<IntendedUseValue>(EMPTY_INTENDED_USE);
   const [error, setError] = useState<string | null>(null);

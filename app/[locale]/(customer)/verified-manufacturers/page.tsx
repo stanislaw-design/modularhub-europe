@@ -59,7 +59,7 @@ export default async function VerifiedManufacturersPage({
   const [{ locale }, rawSearchParams] = await Promise.all([params, searchParams]);
   const filter = parseVerifiedManufacturersSearchParams(rawSearchParams);
   const hasActiveFilter =
-    filter.countryCode !== undefined || filter.sizeMin !== undefined || filter.sizeMax !== undefined || filter.q !== undefined;
+    filter.sizeMin !== undefined || filter.sizeMax !== undefined || filter.q !== undefined;
 
   const [manufacturers, countries, t] = await Promise.all([
     getVerifiedVolumeManufacturerProjects(locale as Locale, filter),
@@ -115,7 +115,7 @@ export default async function VerifiedManufacturersPage({
             przewijania. */}
         <aside className="flex w-full shrink-0 flex-col gap-brand-4 lg:sticky lg:top-brand-7 lg:w-64">
           {hasAnyVerifiedManufacturer && (
-            <VerifiedManufacturersFilterBar locale={locale} countries={countries} filter={filter} />
+            <VerifiedManufacturersFilterBar locale={locale} filter={filter} />
           )}
           <div className="flex flex-col gap-brand-2 rounded-v5-card border border-brand-v5-line bg-brand-v5-surface p-brand-4">
             <Heading level="h2" surface="v5" className="text-h3">

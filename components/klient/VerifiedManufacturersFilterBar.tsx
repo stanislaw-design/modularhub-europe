@@ -4,14 +4,12 @@ import { Search } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import type { Country, CountryCode } from "@/lib/data/types";
 import { SIZE_THRESHOLDS, type SizeThreshold } from "@/lib/size-thresholds";
 import { buildVerifiedManufacturersHref, type VerifiedManufacturersFilter } from "@/lib/verified-manufacturers-filters";
 import { SearchSegment, type SegmentOption } from "./SearchSegment";
 
 interface VerifiedManufacturersFilterBarProps {
   locale: string;
-  countries: Country[];
   filter: VerifiedManufacturersFilter;
 }
 
@@ -27,15 +25,13 @@ const sizeOptions: SegmentOption[] = SIZE_THRESHOLDS.map((threshold) => ({
 // bocznej kolumnie strony (VerifiedManufacturersPage ustawia ją jako
 // `sticky`, więc pasek zostaje widoczny podczas przewijania listy kart).
 // Ten sam wzorzec nawigacji: lokalny stan aż do kliknięcia "Szukaj" albo Enter.
-export function VerifiedManufacturersFilterBar({ locale, countries, filter }: VerifiedManufacturersFilterBarProps) {
+export function VerifiedManufacturersFilterBar({ locale, filter }: VerifiedManufacturersFilterBarProps) {
   const t = useTranslations("VerifiedManufacturersFilterBar");
   const router = useRouter();
-  const [country, setCountry] = useState<CountryCode | null>(filter.countryCode ?? null);
   const [min, setMin] = useState<number | null>(filter.sizeMin ?? null);
   const [max, setMax] = useState<number | null>(filter.sizeMax ?? null);
   const [q, setQ] = useState(filter.q ?? "");
 
-  const countryOptions: SegmentOption[] = countries.map((c) => ({ value: c.code, label: c.name }));
   const sizeMaxOptions = sizeOptions.filter((option) => min === null || Number(option.value) >= min);
 
   function handleMinChange(value: string) {
@@ -47,7 +43,6 @@ export function VerifiedManufacturersFilterBar({ locale, countries, filter }: Ve
   function handleSearch() {
     const trimmedQ = q.trim();
     const next: VerifiedManufacturersFilter = {
-      countryCode: country ?? undefined,
       sizeMin: min === null ? undefined : (min as SizeThreshold),
       sizeMax: max === null ? undefined : (max as SizeThreshold),
       q: trimmedQ.length > 0 ? trimmedQ : undefined,
@@ -57,15 +52,6 @@ export function VerifiedManufacturersFilterBar({ locale, countries, filter }: Ve
 
   return (
     <div className="flex w-full flex-col divide-y divide-brand-v5-line rounded-v5-card border border-brand-v5-line bg-brand-v5-surface shadow-sm">
-      <SearchSegment
-        label={t("countryLabel")}
-        value={country}
-        onChange={(value) => setCountry(value as CountryCode)}
-        options={countryOptions}
-        placeholder={t("countryPlaceholder")}
-        ariaLabel={t("countryAriaLabel")}
-        surface="v5"
-      />
       <SearchSegment
         label={t("sizeMinLabel")}
         value={min === null ? null : String(min)}

@@ -13,11 +13,14 @@ describe("getMockAssemblyPriceEur", () => {
     const pl = getMockAssemblyPriceEur("PL");
     const de = getMockAssemblyPriceEur("DE");
     const nl = getMockAssemblyPriceEur("NL");
+    const be = getMockAssemblyPriceEur("BE");
+    const it = getMockAssemblyPriceEur("IT");
+    const fr = getMockAssemblyPriceEur("FR");
 
     expect(pl).toBe(1800);
     expect(de).toBe(2600);
     expect(nl).toBe(2900);
-    expect(new Set([pl, de, nl]).size).toBe(3);
+    expect(new Set([pl, de, nl, be, it, fr]).size).toBe(6);
   });
 
   it("returns the same value on repeated calls for the same country", () => {

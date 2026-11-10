@@ -3,9 +3,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { DataText, Heading, StatusPill, Text } from "@/components/ui";
 import type { CountryCode, Project } from "@/lib/data/types";
+import { COUNTRY_FLAGS } from "@/lib/countries";
 import { getProductAltSubject } from "@/lib/product-alt";
 
-const countryFlag: Record<CountryCode, string> = { PL: "🇵🇱", DE: "🇩🇪", NL: "🇳🇱" };
+const countryFlag = COUNTRY_FLAGS;
 const priceFormatter = new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0 });
 
 interface VerifiedManufacturerProjectCardProps {

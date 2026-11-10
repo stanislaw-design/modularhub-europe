@@ -410,7 +410,6 @@ interface GetProjectsFilters {
   // (spec 0028 Decision); domyślnie "pl", więc wywołujący, które nie znają jeszcze
   // aktywnego locale, zachowują dzisiejsze zachowanie bez zmian.
   locale?: Locale;
-  countryCode?: CountryCode;
   sizeMin?: number;
   sizeMax?: number;
   // Domyślnie "dom" (spec 0023 AC-4), tak samo jak getProjects() dawniej
@@ -974,13 +973,7 @@ function mapRowToProject(
 // z project-variants.ts, patrz komentarz tam.
 export { getDefaultProjectVariant } from "./project-variants";
 
-// countryCode filter: a project surfaces for every country except where its
-// eligibility row is explicitly "blocked" ("approved" and "conditional" both
-// count as usable, per brand-guidelines-v3.md section 12, which treats a
-// conditional status as a valid, displayable outcome, not a hidden one). A
-// missing row no longer hides a project (it did under spec 0004's Decision,
-// Option 1): most imported catalogs have no rows for DE/NL, which emptied the
-// results for those countries.
+// Spec 0082: kraj nie zawęża wyników (nie ma filtra countryCode), dane zgodności są szablonem.
 // family defaults to "dom" (spec 0023 AC-4): this feeds house search/results
 // (/wyniki, Popularne domy, Porównaj domy) by default, with a URL switch to
 // the other two families.
@@ -991,7 +984,6 @@ export { getDefaultProjectVariant } from "./project-variants";
 export async function getProjects(filters?: GetProjectsFilters): Promise<Project[]> {
   const {
     locale = "pl",
-    countryCode,
     sizeMin,
     sizeMax,
     family = "dom",
@@ -1122,20 +1114,6 @@ export async function getProjects(filters?: GetProjectsFilters): Promise<Project
       .innerJoin(producer, eq(product.producerId, producer.id))
       .where(and(...conditions));
     projects = rows.map((row) => mapRowToProject(row.product, row.producerName));
-  }
-
-  if (countryCode && !isOutdoorTv) {
-    const blockedRows = await db
-      .select({ productId: productCountryEligibility.productId })
-      .from(productCountryEligibility)
-      .where(
-        and(
-          eq(productCountryEligibility.countryCode, countryCode),
-          eq(productCountryEligibility.status, "blocked")
-        )
-      );
-    const blockedIds = new Set(blockedRows.map((row) => row.productId));
-    projects = projects.filter((project) => !blockedIds.has(project.id));
   }
 
   const projectIds = projects.map((project) => project.id);
@@ -1552,14 +1530,11 @@ async function loadDeliveryCountriesByProducer(producerIds: string[]): Promise<M
 }
 
 // Rozszerzenie paskiem wyszukiwania (spec 0038 AC-19 do AC-23, aktualizacja
-// 2026-09-14): kraj dostawy zawęża listę PRODUCENTÓW (nie tylko ich
-// projektów) przed zapytaniem o produkty, bo producent bez wiersza
-// producerDeliveryCountry dla tego kraju ma zniknąć ze strony całkowicie,
-// nawet jeśli ma opublikowane produkty (AC-20). Metraż i słowo kluczowe
+// 2026-09-14). Spec 0082 AC-9: kraj dostawy już nie zawęża listy, to deklaracja
+// producenta. Metraż i słowo kluczowe
 // zawężają samo zapytanie o produkty, tymi samymi warunkami co getProjects()
 // (AC-21, AC-22).
 export interface VerifiedVolumeManufacturerFilter {
-  countryCode?: CountryCode;
   sizeMin?: number;
   sizeMax?: number;
   q?: string;
@@ -1585,21 +1560,7 @@ export async function getVerifiedVolumeManufacturerProjects(
 
   if (approvedProducers.length === 0) return [];
 
-  let producerIds = approvedProducers.map((row) => row.producerId);
-
-  if (filter?.countryCode) {
-    const deliveryRows = await db
-      .select({ producerId: producerDeliveryCountry.producerId })
-      .from(producerDeliveryCountry)
-      .where(
-        and(
-          inArray(producerDeliveryCountry.producerId, producerIds),
-          eq(producerDeliveryCountry.countryCode, filter.countryCode),
-        ),
-      );
-    const deliveringIds = new Set(deliveryRows.map((row) => row.producerId));
-    producerIds = producerIds.filter((id) => deliveringIds.has(id));
-  }
+  const producerIds = approvedProducers.map((row) => row.producerId);
 
   if (producerIds.length === 0) return [];
 

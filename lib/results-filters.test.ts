@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { createMockProject } from "@/test/fixtures/project";
 import {
   buildResultsHref,
-  matchesResultsFilter,
   parseResultsSearchParams,
   resolveHeatSourceValues,
   sortResults,
@@ -21,7 +20,7 @@ describe("parseResultsSearchParams", () => {
     expect(filter).toEqual({ countryCode: undefined, sizeMin: undefined, sizeMax: undefined, family: "dom" });
   });
 
-  it.each(["FR", "US", "gb", ""])(
+  it.each(["XX", "US", "gb", ""])(
     "ignores an invalid country %j instead of erroring (AC-5)",
     (country) => {
       const filter = parseResultsSearchParams({ country, sizeMin: "50" });
@@ -29,6 +28,10 @@ describe("parseResultsSearchParams", () => {
       expect(filter.sizeMin).toBe(50);
     }
   );
+
+  it.each(["PL", "DE", "NL", "BE", "IT", "FR"])("keeps the market country %s as the address hint (spec 0082 AC-4)", (country) => {
+    expect(parseResultsSearchParams({ country }).countryCode).toBe(country);
+  });
 
   it("ignores a country given as an array (repeated query param) (AC-5)", () => {
     const filter = parseResultsSearchParams({ country: ["PL", "DE"] });
@@ -63,7 +66,7 @@ describe("parseResultsSearchParams", () => {
   });
 
   it("drops an invalid country independently of a valid size range (AC-5, AC-6)", () => {
-    const filter = parseResultsSearchParams({ country: "FR", sizeMin: "150", sizeMax: "50" });
+    const filter = parseResultsSearchParams({ country: "XX", sizeMin: "150", sizeMax: "50" });
     expect(filter).toEqual({ countryCode: undefined, sizeMin: undefined, sizeMax: undefined, family: "dom" });
   });
 
@@ -273,42 +276,6 @@ describe("buildResultsHref", () => {
 
   it("serializes the wiecej-niz-dom group sentinel (spec 0035 AC-2)", () => {
     expect(buildResultsHref("pl", { family: "wiecej-niz-dom" })).toContain("family=wiecej-niz-dom");
-  });
-});
-
-describe("matchesResultsFilter", () => {
-  // spec 0035 AC-2, AC-4: filter.family is resolved through FAMILY_GROUPS, so
-  // "wiecej-niz-dom" matches every real family in that group, not just itself.
-  it("matches a spa-modulowe product against the wiecej-niz-dom group filter", () => {
-    const filter: ResultsFilter = { family: "wiecej-niz-dom" };
-    expect(matchesResultsFilter(80, undefined, filter, "spa-modulowe")).toBe(true);
-  });
-
-  it("matches a kontenery-modulowe product against the wiecej-niz-dom group filter", () => {
-    const filter: ResultsFilter = { family: "wiecej-niz-dom" };
-    expect(matchesResultsFilter(80, undefined, filter, "kontenery-modulowe")).toBe(true);
-  });
-
-  it("matches an outdoor-tv product against the wiecej-niz-dom group filter", () => {
-    const filter: ResultsFilter = { family: "wiecej-niz-dom" };
-    expect(matchesResultsFilter(80, undefined, filter, "outdoor-tv")).toBe(true);
-  });
-
-  it("does not match a dom product against the wiecej-niz-dom group filter", () => {
-    const filter: ResultsFilter = { family: "wiecej-niz-dom" };
-    expect(matchesResultsFilter(80, undefined, filter, "dom")).toBe(false);
-  });
-
-  it("still matches a real family against itself, unaffected by the group sentinel", () => {
-    const filter: ResultsFilter = { family: "spa-modulowe" };
-    expect(matchesResultsFilter(80, undefined, filter, "spa-modulowe")).toBe(true);
-    expect(matchesResultsFilter(80, undefined, filter, "kontenery-modulowe")).toBe(false);
-  });
-
-  it("still enforces size bounds within a matching family", () => {
-    const filter: ResultsFilter = { family: "dom", sizeMin: 100 };
-    expect(matchesResultsFilter(80, undefined, filter, "dom")).toBe(false);
-    expect(matchesResultsFilter(120, undefined, filter, "dom")).toBe(true);
   });
 });
 

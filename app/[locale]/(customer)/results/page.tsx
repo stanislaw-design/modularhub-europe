@@ -7,11 +7,11 @@ import { ResultsSelection } from "@/components/klient/ResultsSelection";
 import { SubcategoryFilterBar } from "@/components/klient/SubcategoryFilterBar";
 import { Stack } from "@/components/ui";
 import { getCountries } from "@/lib/data/countries";
-import { getEligibilityByCountryCached, getProjectsForRequestCached } from "@/lib/data/public-cache";
-import type { EligibilityByCountry } from "@/lib/data/types";
+import { getProjectsForRequestCached } from "@/lib/data/public-cache";
 import type { Locale } from "@/lib/i18n/routing";
 import { sortOutdoorTvResults } from "@/lib/outdoor-tv-filters";
 import { parseResultsSearchParams, sortResults } from "@/lib/results-filters";
+import { RouteWidthMarker } from "@/components/RouteWidthMarker";
 
 interface ResultsPageProps {
   params: Promise<{ locale: string }>;
@@ -23,7 +23,7 @@ interface ResultsPageProps {
 // ulubionych ustala w przeglądarce AccountProvider, nie serwer.
 export default function WynikiPage(props: ResultsPageProps) {
   return (
-    <Suspense fallback={<div className="results-shell results-wide min-h-[60vh]" aria-busy="true" />}>
+    <Suspense fallback={<div className="results-shell min-h-[60vh]" aria-busy="true"><RouteWidthMarker name="results-wide" /></div>}>
       <WynikiResults {...props} />
     </Suspense>
   );
@@ -50,12 +50,12 @@ async function WynikiResults({ params, searchParams }: ResultsPageProps) {
       }
     : parsedFilter;
 
-  const [countries, projects, eligibilityRows] = await Promise.all([
+  // Spec 0082: kraj z adresu to tylko podpowiedź dla formularza zapytania, nie
+  // trafia do zapytania ani do klucza cache (lista jest taka sama dla każdego kraju).
+  const { countryCode: _countryHint, ...queryFilter } = filter;
+  const [countries, projects] = await Promise.all([
     getCountries(),
-    getProjectsForRequestCached({ ...filter, locale: locale as Locale }),
-    filter.countryCode
-      ? getEligibilityByCountryCached(filter.countryCode)
-      : Promise.resolve<EligibilityByCountry[]>([]),
+    getProjectsForRequestCached({ ...queryFilter, locale: locale as Locale }),
   ]);
 
   const sortedProjects = isOutdoorTv
@@ -63,9 +63,6 @@ async function WynikiResults({ params, searchParams }: ResultsPageProps) {
     : sortResults(projects, filter.sort);
   const countryNameByCode = new Map(
     countries.map((country) => [country.code, country.name]),
-  );
-  const eligibilityByProjectId = new Map(
-    eligibilityRows.map((row) => [row.projectId, row.status]),
   );
 
   // Rodzina/kategoria/podkategoria (spec 0023, 0026) renderowane dwa razy:
@@ -97,14 +94,14 @@ async function WynikiResults({ params, searchParams }: ResultsPageProps) {
   );
 
   return (
-    <div className="results-shell results-wide grid gap-x-brand-5 gap-y-brand-5 lg:px-brand-4 lg:pt-brand-4 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
+    <div className="results-shell grid gap-x-brand-5 gap-y-brand-5 lg:px-brand-4 lg:pt-brand-4 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
+      <RouteWidthMarker name="results-wide" />
       {/* Od `lg` pasek wyszukiwania jest lewym, przyklejonym panelem
           (kolumna 1); niżej zostaje poziomym rzędem nad treścią. Rodzina i
           kategorie wraz z nagłówkiem i siatką żyją w kolumnie 2, jak dotąd. */}
       {!isOutdoorTv && (
         <ResultsFilterBar
           locale={locale}
-          countries={countries}
           filter={filter}
           mobileFilters={
             <>
@@ -146,7 +143,6 @@ async function WynikiResults({ params, searchParams }: ResultsPageProps) {
           countryName:
             countryNameByCode.get(project.countryOfProduction) ??
             project.countryOfProduction,
-          eligibilityStatus: eligibilityByProjectId.get(project.id),
         }))}
         />
       </Stack>

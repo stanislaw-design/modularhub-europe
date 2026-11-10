@@ -31,33 +31,22 @@ const countries: Country[] = [
 ];
 
 describe("SearchCard", () => {
-  it("pre-fills Gdzie from the active locale (pl -> Polska), so Szukaj is usable without picking a country first", () => {
+  // Spec 0082 AC-7: kraj jest opcjonalny, bez domyślnej wartości z języka.
+  it("leaves Gdzie unselected in every locale, and Szukaj works without a country (spec 0082 AC-7)", () => {
     render(<SearchCard locale="pl" countries={countries} />);
 
-    expect(screen.getByRole("button", { name: "Kraj docelowy" })).toHaveTextContent("Polska");
+    expect(screen.getByText("Gdzie budujesz?")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Kraj docelowy" })).toHaveTextContent("Dowolny kraj");
     expect(screen.getByRole("button", { name: /szukaj/i })).toBeEnabled();
   });
 
-  it("pre-fills Gdzie from a non-default locale too (de -> Niemcy)", () => {
-    render(<SearchCard locale="de" countries={countries} />);
-
-    expect(screen.getByRole("button", { name: "Kraj docelowy" })).toHaveTextContent("Niemcy");
-  });
-
-  it("leaves Gdzie unselected when the locale has no matching country (en)", () => {
-    render(<SearchCard locale="en" countries={countries} />);
-
-    expect(screen.getByRole("button", { name: "Kraj docelowy" })).toHaveTextContent("Kraj, region lub miasto");
-    expect(screen.getByRole("button", { name: /szukaj/i })).toBeDisabled();
-  });
-
-  it("navigates using the locale-prefilled country when Szukaj is clicked without touching Gdzie", async () => {
+  it("navigates to /results without a country param when Gdzie was not touched (spec 0082 AC-7)", async () => {
     const user = userEvent.setup();
     render(<SearchCard locale="pl" countries={countries} />);
 
     await user.click(screen.getByRole("button", { name: /szukaj/i }));
 
-    expect(push).toHaveBeenCalledWith("/pl/results?country=PL");
+    expect(push).toHaveBeenCalledWith("/pl/results");
   });
 
   // spec 0073 AC-2: Budżet naprawdę filtruje, zakresy zgodne z PRICE_THRESHOLDS.
@@ -70,7 +59,7 @@ describe("SearchCard", () => {
     await user.click(screen.getByRole("option", { name: "50K–100K €" }));
     await user.click(screen.getByRole("button", { name: /szukaj/i }));
 
-    expect(push).toHaveBeenCalledWith("/pl/results?country=PL&priceMin=50000&priceMax=100000");
+    expect(push).toHaveBeenCalledWith("/pl/results?priceMin=50000&priceMax=100000");
   });
 
   it("adds only priceMin for the open ended range and nothing for 'any' (spec 0073 AC-2)", async () => {
@@ -81,12 +70,12 @@ describe("SearchCard", () => {
     await user.click(screen.getByRole("button", { name: "Budżet" }));
     await user.click(screen.getByRole("option", { name: "powyżej 250K €" }));
     await user.click(screen.getByRole("button", { name: /szukaj/i }));
-    expect(push).toHaveBeenLastCalledWith("/pl/results?country=PL&priceMin=250000");
+    expect(push).toHaveBeenLastCalledWith("/pl/results?priceMin=250000");
 
     await user.click(screen.getByRole("button", { name: "Budżet" }));
     await user.click(screen.getByRole("option", { name: "Dowolny budżet" }));
     await user.click(screen.getByRole("button", { name: /szukaj/i }));
-    expect(push).toHaveBeenLastCalledWith("/pl/results?country=PL");
+    expect(push).toHaveBeenLastCalledWith("/pl/results");
   });
 
   it("renders exactly two family tabs, Domy and Więcej niż dom, not the old three (spec 0035 AC-1)", () => {

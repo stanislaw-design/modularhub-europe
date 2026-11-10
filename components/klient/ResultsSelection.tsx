@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { CountryCode, EligibilityStatus, Project } from "@/lib/data/types";
+import type { CountryCode, Project } from "@/lib/data/types";
 import type { CompareKind } from "@/lib/compare-rows";
 import type { FamilyFilterValue } from "@/lib/product-family-groups";
 import type { SizeThreshold } from "@/lib/size-thresholds";
@@ -18,7 +18,6 @@ const MAX_COMPARE = 3;
 export interface ResultItem {
   project: Project;
   countryName: string;
-  eligibilityStatus?: EligibilityStatus;
 }
 
 interface ResultsSelectionProps {
@@ -90,7 +89,7 @@ export function ResultsSelection({
 
   return (
     <Stack gap={5}>
-      {!hideHeader && <ResultsHeader locale={locale} count={items.length} family={family} countryCode={countryCode} />}
+      {!hideHeader && <ResultsHeader locale={locale} count={items.length} family={family} />}
       {showCompare && compareIds.length > 0 && (
         <CompareSelectionBar
           locale={locale}
@@ -106,7 +105,7 @@ export function ResultsSelection({
           when ShortlistActionBar stacks above it too (selection made). */}
       <div className={selectedIds.length > 0 ? "pb-48" : "pb-24"}>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,20rem),1fr))] gap-brand-4">
-          {items.map(({ project, countryName, eligibilityStatus }, index) => (
+          {items.map(({ project, countryName }, index) => (
             <ScrollReveal
               key={project.id}
               className="h-full"
@@ -116,7 +115,6 @@ export function ResultsSelection({
                 project={project}
                 countryName={countryName}
                 locale={locale}
-                eligibilityStatus={eligibilityStatus}
                 selected={selectedIds.includes(project.id)}
                 selectionDisabled={limitReached && !selectedIds.includes(project.id)}
                 onToggleSelect={() => toggle(project.id)}

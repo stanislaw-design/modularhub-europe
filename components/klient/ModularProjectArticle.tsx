@@ -7,6 +7,7 @@ import { ModularProjectModelLoader } from "./ModularProjectModelLoader";
 import { ModularProjectStatusBadge } from "./ModularProjectStatusBadge";
 import { Container } from "@/components/ui";
 import { MODULARPROJECT_GALLERY_GROUPS, type ResolvedModularProject } from "@/lib/data/modularprojects";
+import { RouteWidthMarker } from "@/components/RouteWidthMarker";
 
 const eyebrow = "text-label uppercase tracking-[0.08em]";
 
@@ -19,7 +20,8 @@ export async function ModularProjectArticle({ project, locale }: { project: Reso
   })).filter(({ images }) => images.length > 0);
 
   return (
-    <article className="modularproject-wide">
+    <article>
+      <RouteWidthMarker name="modularproject-wide" />
       <section className="bg-brand-v5-night text-brand-v5-paper">
         <Container className="grid gap-brand-5 py-brand-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:items-center">
           <div className="flex flex-col items-start gap-brand-3">

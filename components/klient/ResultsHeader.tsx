@@ -1,14 +1,12 @@
 import { useTranslations } from "next-intl";
 import { Text } from "@/components/ui";
 import { CategoryHeading } from "./CategoryHeading";
-import type { CountryCode } from "@/lib/data/types";
 import type { FamilyFilterValue } from "@/lib/product-family-groups";
 
 interface ResultsHeaderProps {
   locale: string;
   count: number;
   family: FamilyFilterValue;
-  countryCode?: CountryCode;
 }
 
 export function familyCountBucket(count: number): "one" | "few" | "many" {
@@ -32,22 +30,15 @@ const FAMILY_TITLE_KEY = {
   "outdoor-tv": "outdoorTv",
 } as const satisfies Record<FamilyFilterValue, string>;
 
-export function ResultsHeader({ locale, count, family, countryCode }: ResultsHeaderProps) {
+export function ResultsHeader({ locale, count, family }: ResultsHeaderProps) {
   const t = useTranslations("ResultsHeader");
-  const tCountry = useTranslations("CountryLocative");
-  const tFamily = useTranslations("ProductFamilyNoun");
   const tTabs = useTranslations("FamilyTabs");
-  const familyFew = tFamily(`${family}.few`);
 
   return (
     <div className="flex flex-col gap-brand-1">
       <CategoryHeading locale={locale} title={tTabs(FAMILY_TITLE_KEY[family])} count={count} />
       <Text tone="muted" surface="v5">
-        {countryCode
-          ? t("eligibleLine", { country: tCountry(countryCode) })
-          : family === "outdoor-tv"
-            ? t("hintOutdoorTv")
-            : t("hint", { familyFew })}
+        {family === "outdoor-tv" ? t("hintOutdoorTv") : t("hint")}
       </Text>
     </div>
   );

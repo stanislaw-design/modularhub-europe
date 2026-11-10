@@ -7,6 +7,7 @@ import { signIn } from "@/auth";
 import { db } from "@/lib/db/client";
 import { isAdminInviteExpired } from "@/lib/admin-invite";
 import { pendingRegistration, producer, users } from "@/lib/db/schema";
+import { MARKET_COUNTRY_CODES } from "@/lib/countries";
 import { PRODUCER_PRODUCTION_SCALES } from "@/lib/producer-production-scale";
 import { EMAIL_TRACKING_CONSENT_VERSION } from "@/lib/analytics/user-consent";
 import type { PendingRegistrationPayload } from "@/lib/auth-shared";
@@ -54,7 +55,7 @@ const producerSchema = z.object({
   email: z.email("Podaj prawidłowy adres e mail."),
   phone: z.string().trim().min(5, "Podaj numer telefonu."),
   nip: z.string().trim().min(1, "Podaj NIP."),
-  countryCode: z.enum(["PL", "DE", "NL"], "Wybierz kraj."),
+  countryCode: z.enum(MARKET_COUNTRY_CODES, "Wybierz kraj."),
   productionScale: z.enum(productionScaleValues, "Wybierz skalę produkcji."),
   callbackUrl: z.string().min(1),
 });

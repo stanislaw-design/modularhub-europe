@@ -3,10 +3,8 @@ import { getProducerById, getProducerPhotoUrl, getProducers } from "@/lib/data/p
 import { productTag, producerTag } from "@/lib/cache-tags";
 import { getInteriorStylesForProduct, getProducerContentItems, getProductOptionGroups } from "@/lib/db/queries";
 import {
-  getEligibilityByCountry,
   getFeaturedProjectByFamily,
   getProducerVolumeProfile,
-  getProductComplianceAssessments,
   getProductEnvelopeParameters,
   getProductOptionLayouts,
   getProjectById,
@@ -139,13 +137,6 @@ export async function getProducerContentItemsCached(
   return getProducerContentItems(...args);
 }
 
-export async function getProductComplianceAssessmentsCached(productId: string, locale: Locale = "pl") {
-  "use cache";
-  cacheLife("public");
-  cacheTag("products", productTag(productId));
-  return getProductComplianceAssessments(productId, locale);
-}
-
 export async function getProductOptionLayoutsCached(productId: string, locale: Locale = "pl") {
   "use cache";
   cacheLife("public");
@@ -188,13 +179,4 @@ export async function getProducerByIdCached(id: string, locale: Locale = "pl") {
   cacheLife("public");
   cacheTag("producers", `producer:${id}`);
   return getProducerById(id, locale);
-}
-
-export async function getEligibilityByCountryCached(
-  ...args: Parameters<typeof getEligibilityByCountry>
-) {
-  "use cache: remote";
-  cacheLife("public");
-  cacheTag("products");
-  return getEligibilityByCountry(...args);
 }

@@ -63,14 +63,9 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
   const router = useRouter();
   const prefersReducedMotion = useReducedMotion();
   const [activeCategory, setActiveCategory] = useState<FamilyFilterValue>("dom");
-  // Pre-fill Gdzie from the active locale (pl -> PL, de -> DE, nl -> NL) so the
-  // most likely target country is already picked and Szukaj is usable right
-  // away — one less required step. "en" has no matching country code, so it
-  // falls back to unselected same as before. Only a default, not a lock: the
-  // visitor can still change it via the same SearchSegment as any other field.
-  const [country, setCountry] = useState<CountryCode | null>(
-    () => (countries.find((c) => c.code === locale.toUpperCase())?.code as CountryCode | undefined) ?? null,
-  );
+  // Spec 0082 AC-7: kraj jest opcjonalny ("Gdzie budujesz?"), bez domyślnej wartości
+  // z języka. Wybrany trafia do adresu jako podpowiedź dla formularza zapytania.
+  const [country, setCountry] = useState<CountryCode | null>(null);
   const [budgetRangeValue, setBudgetRangeValue] = useState<string | null>(null);
   const [sizeRangeValue, setSizeRangeValue] = useState<string | null>(null);
 
@@ -116,8 +111,8 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
   );
 
   function handleSearch() {
-    if (!country) return;
-    const params = new URLSearchParams({ country });
+    const params = new URLSearchParams();
+    if (country) params.set("country", country);
     if (activeCategory !== "dom") params.set("family", activeCategory);
     const range = SIZE_RANGE_OPTIONS.find((option) => option.value === sizeRangeValue);
     if (range?.sizeMin !== undefined) params.set("sizeMin", String(range.sizeMin));
@@ -125,7 +120,8 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
     const budget = BUDGET_RANGES.find((option) => option.value === budgetRangeValue);
     if (budget?.priceMin !== undefined) params.set("priceMin", String(budget.priceMin));
     if (budget?.priceMax !== undefined) params.set("priceMax", String(budget.priceMax));
-    router.push(`/${locale}/results?${params.toString()}`);
+    const query = params.toString();
+    router.push(`/${locale}/results${query ? `?${query}` : ""}`);
   }
 
   return (
@@ -221,11 +217,13 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
           ) : (
             <motion.div
               key="dom"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
+              // overflow: hidden tylko na czas animacji wysokości; po jej końcu
+              // visible, inaczej lista rozwijana pola (Gdzie, Budżet) jest
+              // przycinana do wysokości wiersza.
+              initial={{ height: 0, opacity: 0, overflow: "hidden" }}
+              animate={{ height: "auto", opacity: 1, transitionEnd: { overflow: "visible" } }}
+              exit={{ height: 0, opacity: 0, overflow: "hidden" }}
               transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="overflow-hidden"
             >
               <div className="flex flex-col divide-y divide-brand-v5-line rounded-v5-card sm:flex-row sm:items-stretch sm:divide-x sm:divide-y-0">
                 <SearchSegment
@@ -256,8 +254,7 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
                   <button
                     type="button"
                     onClick={handleSearch}
-                    disabled={!country}
-                    className="focus-ring flex w-full items-center justify-center gap-brand-1 rounded-v5-pill bg-brand-v5-amber px-brand-4 py-brand-2 text-body font-semibold text-brand-v5-amber-foreground transition-opacity hover:bg-brand-v5-amber-strong disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
+                    className="focus-ring flex w-full items-center justify-center gap-brand-1 rounded-v5-pill bg-brand-v5-amber px-brand-4 py-brand-2 text-body font-semibold text-brand-v5-amber-foreground transition-opacity hover:bg-brand-v5-amber-strong sm:w-auto"
                   >
                     <Search className="size-4" aria-hidden="true" />
                     {t("searchButton")}

@@ -6,6 +6,7 @@ import { ModularProjectStructuredData } from "@/components/klient/ModularProject
 import { Heading, Text } from "@/components/ui";
 import { getModularProjects } from "@/lib/data/modularprojects";
 import { routing } from "@/lib/i18n/routing";
+import { RouteWidthMarker } from "@/components/RouteWidthMarker";
 
 type PageParams = { locale: string };
 
@@ -40,7 +41,8 @@ export default async function ModularProjectsPage({ params }: { params: Promise<
   const projects = await getModularProjects(locale);
 
   return (
-    <div className="modularprojects-wide py-brand-6">
+    <div className="py-brand-6">
+      <RouteWidthMarker name="modularprojects-wide" />
       <ModularProjectStructuredData
         kind="collection"
         locale={locale}

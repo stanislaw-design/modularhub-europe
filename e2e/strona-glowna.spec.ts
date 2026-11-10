@@ -47,6 +47,20 @@ for (const { locale, messages, country } of LOCALES) {
       await expect(page).toHaveURL(new RegExp(`/${locale}/results\?.*priceMax=100000`));
     });
 
+    test("wyszukiwarka: kraj jest opcjonalny i ma sześć opcji, szukanie działa bez kraju (spec 0082 AC-7)", async ({
+      page,
+    }) => {
+      await page.goto(`/${locale}`);
+
+      await page.getByRole("button", { name: messages.SearchCard.whereAriaLabel }).click();
+      await expect(page.getByRole("option")).toHaveCount(6 + (await page.getByRole("option", { name: messages.SearchCard.wherePlaceholder }).count()));
+      await page.keyboard.press("Escape");
+
+      await page.getByRole("button", { name: messages.SearchCard.searchButton }).click();
+      await expect(page).toHaveURL(new RegExp(`/${locale}/results`));
+      expect(new URL(page.url()).searchParams.has("country")).toBe(false);
+    });
+
     test("żadna sekcja nie zostaje z pustym nagłówkiem (AC-9)", async ({ page }) => {
       await page.goto(`/${locale}`);
 

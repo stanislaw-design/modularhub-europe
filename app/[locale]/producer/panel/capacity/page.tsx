@@ -31,7 +31,8 @@ export default async function ProducerPanelCapacityPage({ params }: { params: Pr
     );
   }
 
-  const [profile, countries] = await Promise.all([getProducerCapacityProfileForPanel(producerId), getAllCountries()]);
+  const profile = await getProducerCapacityProfileForPanel(producerId);
+  const countries = await getAllCountries(profile.deliveryCountryCodes);
 
   return (
     <Stack gap={5}>
