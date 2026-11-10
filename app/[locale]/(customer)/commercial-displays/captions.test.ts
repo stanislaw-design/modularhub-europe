@@ -12,7 +12,8 @@ interface Cue {
 }
 
 function parseVtt(lang: string): Cue[] {
-  const raw = readFileSync(path.join(CAPTIONS_DIR, `commercial-showcase.${lang}.vtt`), "utf8");
+  // Windows z autocrlf daje po checkoucie CRLF; WebVTT dopuszcza oba końce linii.
+  const raw = readFileSync(path.join(CAPTIONS_DIR, `commercial-showcase.${lang}.vtt`), "utf8").replace(/\r\n/g, "\n");
   expect(raw.startsWith("WEBVTT\n")).toBe(true);
   return raw
     .split(/\n\n+/)
