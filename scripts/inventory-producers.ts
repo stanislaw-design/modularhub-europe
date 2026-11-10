@@ -104,7 +104,7 @@ function producerIssues(r: Row): string[] {
 function productIssues(r: Row): string[] {
   const out: string[] = [];
   const published = r.status === "published";
-  if (!r.name) out.push("brak nazwy");
+  if (!r.product) out.push("brak nazwy");
   if (published && (r.price_min_cents === null || Number(r.price_min_cents) <= 0)) {
     out.push(Number(r.variants_on_request) > 0 ? "cena na zapytanie (brak ceny bazowej)" : "brak ceny bazowej");
   }
