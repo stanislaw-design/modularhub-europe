@@ -298,6 +298,7 @@ export default async function SaunaPage({
                   hrefFor={hrefForVariant}
                   standardLabel={standardLabel}
                   ariaLabel={t("variantPickerAriaLabel")}
+                  display="select"
                 />
 
                 <Card padding="lg" surface="v5" className="flex flex-col gap-brand-3 border-brand-v5-amber-strong/30">

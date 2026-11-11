@@ -8,6 +8,9 @@ interface ProjectVariantPickerProps {
   hrefFor: (variantId: string) => string;
   standardLabel: Record<CompletionStandard, string>;
   ariaLabel: string;
+  // "pills" (domyślnie): rząd pigułek na desktopie, lista na mobile. "select": zawsze rozwijana lista, także na
+  // desktopie; dla produktów z wieloma rozmiarami (sauny), gdzie rząd pigułek nie mieści się w szerokości kolumny.
+  display?: "pills" | "select";
 }
 
 // Serwerowy przełącznik wariantów (spec 0042 AC-1): rząd linków
@@ -39,6 +42,7 @@ export function ProjectVariantPicker({
   hrefFor,
   standardLabel,
   ariaLabel,
+  display = "pills",
 }: ProjectVariantPickerProps) {
   if (variants.length === 0) return null;
 
@@ -55,7 +59,7 @@ export function ProjectVariantPicker({
     <>
       {/* Mobile: rozwijana lista zamiast rzędu pigułek — ten sam rząd przy
           dłuższych etykietach standardu wychodził poza szerokość ekranu. */}
-      <div className="lg:hidden">
+      <div className={display === "select" ? undefined : "lg:hidden"}>
         <ProjectVariantSelect
           options={selectOptions}
           selectedValue={selectedVariant?.id ?? selectOptions[0].value}
@@ -63,6 +67,7 @@ export function ProjectVariantPicker({
         />
       </div>
 
+      {display === "pills" && (
       <nav aria-label={ariaLabel} className="hidden flex-nowrap items-center gap-brand-1 lg:flex">
         {variants.map((variant) => {
           const active = variant.id === selectedVariantId;
@@ -97,6 +102,7 @@ export function ProjectVariantPicker({
           );
         })}
       </nav>
+      )}
     </>
   );
 }

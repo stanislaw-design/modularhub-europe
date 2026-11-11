@@ -49,6 +49,24 @@ describe("ProjectVariantPicker", () => {
     expect(currentTab.tagName).not.toBe("A");
   });
 
+  it('display="select" renders only the dropdown, with no pill navigation on any breakpoint', () => {
+    render(
+      <ProjectVariantPicker
+        variants={[
+          makeVariant({ id: "v1", completionStandard: "katalogowy", variantLabel: "SO-R1 · 150 × 150 cm", isDefault: true }),
+          makeVariant({ id: "v2", completionStandard: "katalogowy", variantLabel: "SO-R2 · 200 × 200 cm" }),
+        ]}
+        selectedVariantId="v1"
+        hrefFor={(variantId) => `?wariant=${variantId}`}
+        standardLabel={standardLabel}
+        ariaLabel="Rozmiar"
+        display="select"
+      />,
+    );
+    expect(screen.queryByRole("navigation")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Rozmiar" })).toHaveTextContent("SO-R1 · 150 × 150 cm");
+  });
+
   it("renders nothing with zero variants", () => {
     const { container } = render(
       <ProjectVariantPicker

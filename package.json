@@ -22,6 +22,8 @@
     "import:logbar": "tsx --env-file=.env.local scripts/import-logbar-catalog.ts",
     "import:mkb": "tsx --env-file=.env.local scripts/import-mkb-catalog.ts",
     "import:domwood": "tsx --env-file=.env.local scripts/import-domwood-catalog.ts",
+    "import:lifepolska": "tsx --env-file=.env.local scripts/import-lifepolska-catalog.ts",
+    "export:lifepolska-prod": "tsx --env-file=.env.local scripts/export-lifepolska-prod-sql.ts",
     "export:domwood-prod": "tsx --env-file=.env.local scripts/export-domwood-prod-sql.ts",
     "import:producers-as-partners": "tsx --env-file=.env.local scripts/import-producers-as-partners.ts",
     "import:wencel": "tsx --env-file=.env.local scripts/import-wencel-catalog.ts",
