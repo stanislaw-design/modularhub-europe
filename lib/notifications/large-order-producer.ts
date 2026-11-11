@@ -281,7 +281,9 @@ export async function sendDeadlineReminderToProducer(input: {
 // Treść: tytuł, zamawiający (ModularHub), kraj, liczba sztuk, termin i link. Bez danych klienta,
 // bo go nie ma. Język z konta producenta (część C). Best
 // effort: błąd wysyłki trafia do Sentry i nie cofa założenia projektu.
-export async function notifyProducersOfNewPlatformProject(input: { id: string }): Promise<void> {
+// `onlyProducerId`: producent dodany do istniejącego projektu później (admin, wyjątek include),
+// dostaje ten sam mail co wskazani przy założeniu projektu, reszta odbiorców nie dostaje go drugi raz.
+export async function notifyProducersOfNewPlatformProject(input: { id: string; onlyProducerId?: string }): Promise<void> {
   try {
     const [row] = await db
       .select({
@@ -293,7 +295,10 @@ export async function notifyProducersOfNewPlatformProject(input: { id: string })
       .from(projectRequest)
       .where(eq(projectRequest.id, input.id));
     if (!row) return;
-    const recipients = await getProducerRecipientsForLargeOrder("request", input.id);
+    const allRecipients = await getProducerRecipientsForLargeOrder("request", input.id);
+    const recipients = input.onlyProducerId
+      ? allRecipients.filter((recipient) => recipient.producerId === input.onlyProducerId)
+      : allRecipients;
     if (recipients.length === 0) return;
 
     const title = row.title ?? "";
