@@ -10,6 +10,7 @@ import { withAdminActor } from "@/lib/db/with-admin-actor";
 import { closeLargeOrder } from "@/lib/large-order-close";
 import { connectSelection } from "@/lib/large-order-connection";
 import { notifyClientOfPublishedSummary } from "@/lib/notifications/large-order-client";
+import { notifyProducersOfNewPlatformProject } from "@/lib/notifications/large-order-producer";
 import { captureError, trackEvent } from "@/lib/observability";
 import { stageClientRegistration } from "@/lib/stage-client-registration";
 
@@ -43,7 +44,25 @@ export async function setProducerOverride(
   }
   const adminId = session.user.id;
 
+  // Mail "nowy projekt" po dodaniu producenta do istniejącego projektu własnego: tylko przy
+  // przejściu na `include` z innego stanu niż `include` (ponowne kliknięcie nie wysyła drugi raz).
+  let notifyAdded = false;
   try {
+    if (parsed.data.mode === "include") {
+      const [[request], [existing]] = await Promise.all([
+        db.select({ isPlatformOwned: projectRequest.isPlatformOwned }).from(projectRequest).where(eq(projectRequest.id, parsed.data.projectRequestId)),
+        db
+          .select({ mode: projectRequestProducerOverride.mode })
+          .from(projectRequestProducerOverride)
+          .where(
+            and(
+              eq(projectRequestProducerOverride.projectRequestId, parsed.data.projectRequestId),
+              eq(projectRequestProducerOverride.producerId, parsed.data.producerId),
+            ),
+          ),
+      ]);
+      notifyAdded = Boolean(request?.isPlatformOwned) && existing?.mode !== "include";
+    }
     if (parsed.data.mode === "none") {
       await withAdminActor(adminId, [
         db
@@ -75,6 +94,9 @@ export async function setProducerOverride(
     if (getPgErrorCode(error) === "23503") return { ok: false, error: "Nie znaleziono zapytania albo producenta." };
     captureError(error, { path: "setProducerOverride", userId: adminId });
     return { ok: false, error: "Nie udało się zapisać wyjątku. Spróbuj ponownie." };
+  }
+  if (notifyAdded) {
+    await notifyProducersOfNewPlatformProject({ id: parsed.data.projectRequestId, onlyProducerId: parsed.data.producerId });
   }
   return { ok: true };
 }
