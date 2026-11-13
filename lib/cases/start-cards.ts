@@ -7,6 +7,8 @@
 // i zdanie konsekwencji żyją wyłącznie w katalogu tłumaczeń pod kluczem
 // "CaseCards.<key>.options.<value>", nigdy w tym pliku ani w bazie.
 
+import type { ProductFamily } from "@/lib/data/types";
+
 export const NIE_WIEM = "nie_wiem" as const;
 
 export interface StartCardOption {
@@ -17,6 +19,9 @@ export interface StartCardOption {
 export interface StartCardDefinition {
   readonly key: string;
   readonly layer: 1 | 2;
+  // Spec 0084: rodziny produktu, których dotyczy pytanie. Karta i pytanie w
+  // formularzu istnieją tylko dla rodzin z tej listy.
+  readonly families: readonly ProductFamily[];
   readonly options: readonly StartCardOption[];
 }
 
@@ -27,6 +32,7 @@ export const START_CARDS: readonly StartCardDefinition[] = [
   {
     key: "zakres_uslug",
     layer: 1,
+    families: ["dom"],
     options: [
       { value: "sam_dom", icon: "House" },
       { value: "dom_i_transport", icon: "Truck" },
@@ -37,6 +43,7 @@ export const START_CARDS: readonly StartCardDefinition[] = [
   {
     key: "budzet",
     layer: 1,
+    families: ["dom"],
     options: [
       { value: "do_150k", icon: "Coins" },
       { value: "150_do_250k", icon: "Wallet" },
@@ -47,6 +54,7 @@ export const START_CARDS: readonly StartCardDefinition[] = [
   {
     key: "termin",
     layer: 1,
+    families: ["dom", "spa-modulowe", "kontenery-modulowe", "outdoor-tv"],
     options: [
       { value: "jak_najszybciej", icon: "Zap" },
       { value: "do_6_miesiecy", icon: "CalendarClock" },
@@ -57,6 +65,7 @@ export const START_CARDS: readonly StartCardDefinition[] = [
   {
     key: "gotowosc_dzialki",
     layer: 1,
+    families: ["dom"],
     options: [
       { value: "dzialka_i_pozwolenie", icon: "CheckCircle2" },
       { value: "dzialka_bez_pozwolenia", icon: "FileClock" },
@@ -67,6 +76,7 @@ export const START_CARDS: readonly StartCardDefinition[] = [
   {
     key: "ogrzewanie",
     layer: 2,
+    families: ["dom"],
     options: [
       { value: "pompa_ciepla", icon: "Thermometer" },
       { value: "gaz", icon: "Fuel" },
@@ -77,10 +87,62 @@ export const START_CARDS: readonly StartCardDefinition[] = [
   {
     key: "standard_wykonczenia",
     layer: 2,
+    families: ["dom"],
     options: [
       { value: "surowy_zamkniety", icon: "Hammer" },
       { value: "deweloperski", icon: "PaintRoller" },
       { value: "pod_klucz", icon: "KeyRound" },
+    ],
+  },
+  {
+    key: "miejsce_ustawienia",
+    layer: 1,
+    families: ["spa-modulowe"],
+    options: [
+      { value: "ogrod", icon: "Trees" },
+      { value: "taras", icon: "LayoutGrid" },
+      { value: "wnetrze_budynku", icon: "Building2" },
+      { value: "inne", icon: "MapPin" },
+    ],
+  },
+  {
+    key: "zasilanie_400v",
+    layer: 1,
+    families: ["spa-modulowe"],
+    options: [
+      { value: "jest_przylacze", icon: "PlugZap" },
+      { value: "do_wykonania", icon: "Wrench" },
+      { value: "niepotrzebne", icon: "CircleSlash" },
+    ],
+  },
+  {
+    key: "przylacza",
+    layer: 1,
+    families: ["kontenery-modulowe"],
+    options: [
+      { value: "wszystkie", icon: "CheckCircle2" },
+      { value: "czesc", icon: "ListChecks" },
+      { value: "brak", icon: "CircleSlash" },
+    ],
+  },
+  {
+    key: "liczba_sztuk",
+    layer: 1,
+    families: ["kontenery-modulowe", "outdoor-tv"],
+    options: [
+      { value: "jeden", icon: "Package" },
+      { value: "od_2_do_5", icon: "Boxes" },
+      { value: "od_6", icon: "Warehouse" },
+    ],
+  },
+  {
+    key: "miejsce_montazu_tv",
+    layer: 1,
+    families: ["outdoor-tv"],
+    options: [
+      { value: "wewnatrz", icon: "House" },
+      { value: "na_zewnatrz_pod_dachem", icon: "Umbrella" },
+      { value: "na_zewnatrz_odkryte", icon: "Sun" },
     ],
   },
 ] as const;
@@ -98,4 +160,24 @@ export function getStartCard(key: string): StartCardDefinition | undefined {
 export function startCardValues(key: string): readonly string[] {
   const card = getStartCard(key);
   return card ? [...card.options.map((option) => option.value), NIE_WIEM] : [];
+}
+
+// Spec 0084: pytania dla rodziny zadaje doradca przez karty po wysłaniu
+// zapytania (nie formularz). Dom dostaje wszystkie sześć dzisiejszych kart
+// (warstwa 1, potem 2, kolejność katalogu), pozostałe rodziny trzy karty.
+const FAMILY_CARD_KEYS: Readonly<Record<Exclude<ProductFamily, "dom">, readonly string[]>> = {
+  "spa-modulowe": ["miejsce_ustawienia", "zasilanie_400v", "termin"],
+  "kontenery-modulowe": ["przylacza", "liczba_sztuk", "termin"],
+  "outdoor-tv": ["miejsce_montazu_tv", "liczba_sztuk", "termin"],
+};
+
+// Spec 0084 AC-5: zestaw kart po wysłaniu. Dom dostaje wszystkie sześć
+// dzisiejszych kart (warstwa 1, potem 2, kolejność katalogu), pozostałe rodziny
+// tylko klucze ze swojego formularza.
+export function familyCardKeys(family: ProductFamily): string[] {
+  if (family === "dom") {
+    const home = START_CARDS.filter((card) => card.families.includes("dom"));
+    return [...home.filter((card) => card.layer === 1), ...home.filter((card) => card.layer === 2)].map((card) => card.key);
+  }
+  return [...FAMILY_CARD_KEYS[family]];
 }

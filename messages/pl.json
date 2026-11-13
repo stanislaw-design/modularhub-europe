@@ -1655,7 +1655,17 @@
     "confirmBody": "Sprawdź skrzynkę, wysłaliśmy link do Twojej sprawy. Jedno kliknięcie w mailu otworzy ją i założy Twoje konto. Doradca ModularHub odezwie się też mailem.",
     "linkSendError": "Zapytanie zapisaliśmy, ale nie udało się wysłać linku do Twojej sprawy. Spróbuj ponownie.",
     "resendPrompt": "Nie dostałeś maila?",
-    "resendLabel": "Wyślij ponownie"
+    "resendLabel": "Wyślij ponownie",
+    "selectedProductsLabel": "{count, plural, one {Wybrany produkt} few {Wybrane produkty} many {Wybrane produkty} other {Wybrane produkty}}",
+    "sectionAddressHeadingOther": "Miejsce montażu lub dostawy",
+    "countryLabelOther": "Kraj dostawy",
+    "configurationHeading": "Wybrana konfiguracja",
+    "configurationVariant": "Wariant",
+    "configurationStyle": "Stylistyka",
+    "configurationTotal": "Razem",
+    "configurationFrom": "od {price}",
+    "configurationPriceOnRequest": "na zapytanie",
+    "advisorQuestionsNote": "Po wysłaniu doradca zada Ci kilka krótkich pytań o produkt."
   },
   "ProfileForm": {
     "nameLabel": "Imię i nazwisko",
@@ -2430,7 +2440,7 @@
       }
     },
     "termin": {
-      "question": "Kiedy chciałbyś się wprowadzić?",
+      "question": "Na kiedy planujesz realizację?",
       "options": {
         "jak_najszybciej": {
           "label": "Jak najszybciej",
@@ -2506,6 +2516,95 @@
         "pod_klucz": {
           "label": "Pod klucz",
           "consequence": "Dom gotowy do wprowadzenia się, najwyższa cena od producenta."
+        }
+      }
+    },
+    "miejsce_ustawienia": {
+      "question": "Gdzie ma stanąć produkt?",
+      "options": {
+        "ogrod": {
+          "label": "W ogrodzie",
+          "consequence": "Na zewnątrz, na gruncie lub utwardzonym podłożu."
+        },
+        "taras": {
+          "label": "Na tarasie",
+          "consequence": "Doradca sprawdzi z Tobą nośność i wymiary tarasu."
+        },
+        "wnetrze_budynku": {
+          "label": "Wewnątrz budynku",
+          "consequence": "Doradca dopyta o wentylację i dojście do pomieszczenia."
+        },
+        "inne": {
+          "label": "Inne miejsce",
+          "consequence": "Doradca dopyta o szczegóły w rozmowie."
+        }
+      }
+    },
+    "zasilanie_400v": {
+      "question": "Czy w miejscu ustawienia jest zasilanie 400 V?",
+      "options": {
+        "jest_przylacze": {
+          "label": "Jest przyłącze 400 V",
+          "consequence": "Doradca uwzględni to przy doborze pieca i wycenie."
+        },
+        "do_wykonania": {
+          "label": "Przyłącze trzeba wykonać",
+          "consequence": "Doradca dopyta, kto je wykona i jaki jest jego koszt."
+        },
+        "niepotrzebne": {
+          "label": "Nie potrzebuję (piec na drewno)",
+          "consequence": "Doradca dobierze ogrzewanie niewymagające zasilania 400 V."
+        }
+      }
+    },
+    "przylacza": {
+      "question": "Czy w miejscu dostawy są przyłącza?",
+      "options": {
+        "wszystkie": {
+          "label": "Wszystkie przyłącza są dostępne",
+          "consequence": "Prąd, woda i kanalizacja są na miejscu."
+        },
+        "czesc": {
+          "label": "Część przyłączy",
+          "consequence": "Doradca dopyta, których brakuje."
+        },
+        "brak": {
+          "label": "Brak przyłączy",
+          "consequence": "Doradca omówi z Tobą opcje bez przyłączy."
+        }
+      }
+    },
+    "liczba_sztuk": {
+      "question": "Ile sztuk chcesz zamówić?",
+      "options": {
+        "jeden": {
+          "label": "Jedną sztukę",
+          "consequence": "Zwykłe zapytanie o pojedynczy produkt."
+        },
+        "od_2_do_5": {
+          "label": "Od 2 do 5 sztuk",
+          "consequence": "Doradca zapyta o warunki dla kilku sztuk."
+        },
+        "od_6": {
+          "label": "6 sztuk lub więcej",
+          "consequence": "To zamówienie hurtowe, doradca omówi je osobno."
+        }
+      }
+    },
+    "miejsce_montazu_tv": {
+      "question": "Gdzie ma być zamontowany telewizor?",
+      "options": {
+        "wewnatrz": {
+          "label": "Wewnątrz",
+          "consequence": "Doradca dobierze model do warunków wewnątrz budynku."
+        },
+        "na_zewnatrz_pod_dachem": {
+          "label": "Na zewnątrz, pod dachem",
+          "consequence": "Osłona przed deszczem, ale nie przed zmianami temperatury."
+        },
+        "na_zewnatrz_odkryte": {
+          "label": "Na zewnątrz, bez dachu",
+          "consequence": "Pełna ekspozycja na pogodę, doradca dobierze odpowiednią odporność."
         }
       }
     }

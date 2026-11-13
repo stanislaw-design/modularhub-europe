@@ -28,7 +28,9 @@ import {
 import { EMPTY_INTENDED_USE, IntendedUseField, intendedUseInput, type IntendedUseValue } from "@/components/klient/IntendedUseField";
 import { submitAdvisoryInquiry } from "@/lib/case-actions";
 import { resendGuestCaseLink } from "@/lib/guest-case-actions";
-import type { Country, CountryCode, Project } from "@/lib/data/types";
+import { InquiryConfigurationSummary } from "@/components/klient/InquiryConfigurationSummary";
+import type { ConfigurationSnapshot } from "@/lib/configuration-snapshot";
+import type { Country, CountryCode, Project, ProductFamily } from "@/lib/data/types";
 
 interface InquiryFlowProps {
   projects: Project[];
@@ -39,6 +41,10 @@ interface InquiryFlowProps {
   isGuest?: boolean;
   // Spec 0081 AC-12: wybór z strony produktu (wariant, opcje, stylistyka), tylko identyfikatory z adresu.
   configuration?: { variantId?: string; optionIds?: string[]; styleId?: string };
+  // Spec 0084 AC-1, AC-2: rodzina zapytania liczona na stronie serwerowej (brak = dom, jak dotąd).
+  family?: ProductFamily;
+  // Spec 0084 AC-8: gotowe podsumowanie wybranej konfiguracji (tylko do odczytu).
+  configurationSummary?: ConfigurationSnapshot | null;
 }
 
 const HOW_IT_WORKS_STEPS: { icon: LucideIcon; key: string }[] = [
@@ -74,6 +80,8 @@ export function InquiryFlow({
   initialCountryCode,
   isGuest = false,
   configuration,
+  family = "dom",
+  configurationSummary = null,
 }: InquiryFlowProps) {
   const t = useTranslations("InquiryFlow");
   const locale = useLocale();
@@ -85,6 +93,7 @@ export function InquiryFlow({
     initialCountryCode,
   );
   const [message, setMessage] = useState("");
+  const isHome = family === "dom";
   const [intendedUse, setIntendedUse] = useState<IntendedUseValue>(EMPTY_INTENDED_USE);
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
@@ -120,7 +129,7 @@ export function InquiryFlow({
         ...(configuration && projects.length === 1 ? { configuration } : {}),
         plot: { street, postalCode, city, countryCode },
         message: message.trim() || undefined,
-        ...intendedUseInput(intendedUse),
+        ...(isHome ? intendedUseInput(intendedUse) : {}),
         idempotencyKey,
         locale,
         ...(isGuest
@@ -258,7 +267,7 @@ export function InquiryFlow({
             <div className="grid grid-cols-1 gap-brand-5 sm:grid-cols-[1fr_1.3fr] sm:gap-brand-6 xl:gap-brand-8">
               <Stack gap={3}>
                 <SectionHeading icon={Home}>
-                  {t("selectedHomesLabel")}
+                  {isHome ? t("selectedHomesLabel") : t("selectedProductsLabel", { count: projects.length })}
                 </SectionHeading>
                 <ul className="flex flex-col gap-brand-3">
                   {projects.map((project) => (
@@ -271,14 +280,19 @@ export function InquiryFlow({
                         surface="v5"
                         className="truncate text-data"
                       >
-                        {t("homeMeta", {
-                          producer: project.producerName,
-                          area: project.floorAreaM2 !== null ? `${project.floorAreaM2} m²` : t("areaUnknown"),
-                        })}
+                        {isHome
+                          ? t("homeMeta", {
+                              producer: project.producerName,
+                              area: project.floorAreaM2 !== null ? `${project.floorAreaM2} m²` : t("areaUnknown"),
+                            })
+                          : project.producerName}
                       </Text>
                     </li>
                   ))}
                 </ul>
+                {configurationSummary && projects.length === 1 ? (
+                  <InquiryConfigurationSummary snapshot={configurationSummary} />
+                ) : null}
                 <Stack gap={1}>
                   <Label htmlFor="inquiry-message" surface="v5">
                     {t("messageLabel")}
@@ -293,7 +307,43 @@ export function InquiryFlow({
                     onChange={(event) => setMessage(event.target.value)}
                   />
                 </Stack>
-                <IntendedUseField idPrefix="inquiry" value={intendedUse} onChange={setIntendedUse} />
+                {isHome ? <IntendedUseField idPrefix="inquiry" value={intendedUse} onChange={setIntendedUse} /> : null}
+                <Stack direction="row" gap={2} className="flex-wrap">
+                  <Button
+                    type="submit"
+                    disabled={!canSubmit}
+                    surface="v5"
+                    size="lg"
+                    className="w-fit"
+                  >
+                    {isPending
+                      ? t("sendingLabel")
+                      : error
+                        ? t("retrySendLabel")
+                        : t("sendLabel")}
+                  </Button>
+                  <Button
+                    as="a"
+                    href={resultsHref}
+                    variant="secondary"
+                    surface="v5"
+                    size="lg"
+                    className="w-fit"
+                  >
+                    {t("backToResults")}
+                  </Button>
+                </Stack>
+                <Text tone="muted" surface="v5" className="text-data">
+                  {t("advisorQuestionsNote")}
+                </Text>
+                {isGuest && (
+                  <Text tone="muted" surface="v5" className="text-data">
+                    {t("privacyNote")}{" "}
+                    <Link href={`/${locale}/privacy`} className="focus-ring underline">
+                      {t("privacyLinkLabel")}
+                    </Link>
+                  </Text>
+                )}
               </Stack>
 
               <Stack
@@ -301,7 +351,7 @@ export function InquiryFlow({
                 className="sm:border-l sm:border-brand-v5-line sm:pl-brand-5"
               >
                 <SectionHeading icon={MapPin}>
-                  {t("sectionAddressHeading")}
+                  {isHome ? t("sectionAddressHeading") : t("sectionAddressHeadingOther")}
                 </SectionHeading>
                 <Stack gap={1}>
                   <Label htmlFor="inquiry-street" required surface="v5">
@@ -352,7 +402,7 @@ export function InquiryFlow({
                 </div>
                 <Stack gap={1}>
                   <Label id="inquiry-country-label" required surface="v5">
-                    {t("countryLabel")}
+                    {isHome ? t("countryLabel") : t("countryLabelOther")}
                   </Label>
                   <Select
                     value={countryCode}
@@ -436,39 +486,6 @@ export function InquiryFlow({
                   {error}
                 </p>
               )}
-              {isGuest && (
-                <Text tone="muted" surface="v5" className="text-data">
-                  {t("privacyNote")}{" "}
-                  <Link href={`/${locale}/privacy`} className="focus-ring underline">
-                    {t("privacyLinkLabel")}
-                  </Link>
-                </Text>
-              )}
-              <Stack direction="row" gap={2} className="flex-wrap">
-                <Button
-                  type="submit"
-                  disabled={!canSubmit}
-                  surface="v5"
-                  size="lg"
-                  className="w-fit"
-                >
-                  {isPending
-                    ? t("sendingLabel")
-                    : error
-                      ? t("retrySendLabel")
-                      : t("sendLabel")}
-                </Button>
-                <Button
-                  as="a"
-                  href={resultsHref}
-                  variant="secondary"
-                  surface="v5"
-                  size="lg"
-                  className="w-fit"
-                >
-                  {t("backToResults")}
-                </Button>
-              </Stack>
             </Stack>
           </form>
         </Card>

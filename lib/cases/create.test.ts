@@ -92,3 +92,75 @@ describe.skipIf(!process.env.DATABASE_URL)("createAdvisoryCase: kolejność kart
     expect(cardKeys).toEqual(["zakres_uslug", "budzet", "termin", "gotowosc_dzialki", "ogrzewanie", "standard_wykonczenia"]);
   });
 });
+
+// Spec 0084 AC-4 i AC-5: zestaw kart zależy od rodziny, a ponowne wysłanie z tym
+// samym kluczem nie dubluje kart także dla zestawu o innej liczbie kart niż sześć.
+describe.skipIf(!process.env.DATABASE_URL)("createAdvisoryCase: karty według rodziny (spec 0084)", () => {
+  const clientUserId = crypto.randomUUID();
+  const clientId = crypto.randomUUID();
+  const producerUserId = crypto.randomUUID();
+  const producerId = crypto.randomUUID();
+  const productId = crypto.randomUUID();
+  const idempotencyKey = `cr-fam-${crypto.randomUUID()}`;
+  let first: { inquiryId: string; channelId: string; created: boolean };
+
+  const baseInput = () => ({
+    clientId,
+    contact: { name: "Family Client", email: "cr-family@example.test", phone: "+48000000041" },
+    projectIds: [productId],
+    plot: { street: "Testowa 3", postalCode: "00-003", city: "Warszawa", countryCode: "PL" },
+    message: null,
+    idempotencyKey,
+    locale: "pl" as const,
+    systemNoticeBody: "Otrzymaliśmy Twoje zapytanie.",
+    family: "spa-modulowe" as const,
+  });
+
+  beforeAll(async () => {
+    await db.insert(users).values([
+      { id: clientUserId, email: `cr-fam-client-${clientUserId}@example.test`, phone: "+48000000041", role: "client" },
+      { id: producerUserId, email: `cr-fam-producer-${producerUserId}@example.test`, phone: "+48000000042", role: "producer" },
+    ]);
+    await db.insert(client).values({ id: clientId, userId: clientUserId });
+    await db.insert(producer).values({
+      id: producerId,
+      userId: producerUserId,
+      nip: `CF${producerId.slice(0, 8)}`,
+      name: "Family Producer",
+      countryCode: "PL",
+      technology: "szkielet-drewniany",
+    });
+    await db.insert(product).values({ id: productId, producerId, family: "spa-modulowe", status: "draft", name: "Family Sauna" });
+    first = await createAdvisoryCase(baseInput(), { now: () => new Date("2026-11-12T09:00:00.123Z") });
+  });
+
+  afterAll(async () => {
+    await db.delete(inquiryItem).where(eq(inquiryItem.productId, productId));
+    await db.delete(product).where(eq(product.id, productId));
+    await db.delete(producer).where(eq(producer.id, producerId));
+    await db.delete(users).where(eq(users.id, producerUserId));
+  });
+
+  async function cardKeys(channelId: string) {
+    const rows = await db
+      .select({ type: message.type, payload: message.payload })
+      .from(message)
+      .where(eq(message.channelId, channelId))
+      .orderBy(asc(message.createdAt), asc(message.id));
+    return { rows, keys: rows.slice(1).map((row) => (row.payload as { fieldKey: string }).fieldKey) };
+  }
+
+  it("sauna dostaje wiadomość systemową i trzy karty w kolejności", async () => {
+    const { rows, keys } = await cardKeys(first.channelId);
+    expect(rows).toHaveLength(4);
+    expect(rows[0].type).toBe("system_notice");
+    expect(keys).toEqual(["miejsce_ustawienia", "zasilanie_400v", "termin"]);
+  });
+
+  it("ponowne wysłanie z tym samym kluczem zwraca tę samą sprawę bez duplikatów kart", async () => {
+    const again = await createAdvisoryCase(baseInput(), { now: () => new Date("2026-11-12T09:05:00.000Z") });
+    expect(again.created).toBe(false);
+    expect(again.channelId).toBe(first.channelId);
+    expect((await cardKeys(first.channelId)).rows).toHaveLength(4);
+  });
+});

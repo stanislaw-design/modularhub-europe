@@ -2,6 +2,7 @@ import { and, eq, isNull } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { getInteriorStylesForProduct, getProductOptionGroups } from "@/lib/db/queries";
 import { product, productVariant } from "@/lib/db/schema";
+import type { Locale } from "@/lib/i18n/routing";
 
 // Migawka konfiguracji produktu w zapytaniu (spec 0081 AC-12). Powstaje wyłącznie na serwerze z identyfikatorów:
 // nazwy i ceny pochodzą z bazy, nigdy z tekstu od klienta. Nieznane, usunięte lub niepasujące do produktu
@@ -98,6 +99,8 @@ export async function buildConfigurationSnapshot(
   optionIds: string[] | null | undefined,
   styleId: string | null | undefined,
   now: Date = new Date(),
+  // Spec 0084 AC-8: język nazw grup, opcji i stylistyki. Domyślnie pl, jak dla migawki dla doradcy.
+  locale: Locale = "pl",
 ): Promise<ConfigurationSnapshot | null> {
   try {
     const [[productRow], variantRows, groups, styles] = await Promise.all([
@@ -106,8 +109,8 @@ export async function buildConfigurationSnapshot(
         .select()
         .from(productVariant)
         .where(and(eq(productVariant.productId, productId), isNull(productVariant.deletedAt))),
-      getProductOptionGroups(productId, "pl"),
-      getInteriorStylesForProduct(productId, "pl"),
+      getProductOptionGroups(productId, locale),
+      getInteriorStylesForProduct(productId, locale),
     ]);
     if (!productRow) return null;
     return composeConfigurationSnapshot(

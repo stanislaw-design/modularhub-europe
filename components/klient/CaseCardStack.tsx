@@ -2,10 +2,13 @@
 
 import {
   Banknote,
+  Boxes,
+  Building2,
   CalendarClock,
   CalendarDays,
   CalendarRange,
   CheckCircle2,
+  CircleSlash,
   ClipboardList,
   Coins,
   FileClock,
@@ -16,13 +19,20 @@ import {
   House,
   KeyRound,
   Layers,
+  LayoutGrid,
+  ListChecks,
   MapPin,
+  Package,
   PaintRoller,
   PiggyBank,
   PlugZap,
+  Sun,
   Thermometer,
+  Trees,
   Truck,
+  Umbrella,
   Wallet,
+  Warehouse,
   Wrench,
   Zap,
   type LucideIcon,
@@ -62,6 +72,16 @@ const ICONS: Record<string, LucideIcon> = {
   Hammer,
   PaintRoller,
   KeyRound,
+  Trees,
+  LayoutGrid,
+  Building2,
+  CircleSlash,
+  ListChecks,
+  Package,
+  Boxes,
+  Warehouse,
+  Umbrella,
+  Sun,
   HelpCircle,
 };
 
@@ -90,8 +110,16 @@ export function CaseCardStack({ inquiryId, cardMessages, caseFields, dismissed, 
   const [selected, setSelected] = useState<string | null>(null);
   const [sendError, setSendError] = useState(false);
 
-  const layer1Keys = START_CARDS.filter((card) => card.layer === 1).map((card) => card.key);
-  const layer2Keys = START_CARDS.filter((card) => card.layer === 2).map((card) => card.key);
+  // Spec 0084 AC-5: zestaw kart zależy od rodziny, więc klucze bierzemy z kart, które naprawdę istnieją w sprawie
+  // (w kolejności katalogu), a nie ze stałej listy sześciu.
+  const presentKeys = new Set(
+    cardMessages.flatMap((candidate) => {
+      const payload = candidate.payload as { fieldKey?: string } | null;
+      return payload && typeof payload === "object" && typeof payload.fieldKey === "string" ? [payload.fieldKey] : [];
+    }),
+  );
+  const layer1Keys = START_CARDS.filter((card) => card.layer === 1 && presentKeys.has(card.key)).map((card) => card.key);
+  const layer2Keys = START_CARDS.filter((card) => card.layer === 2 && presentKeys.has(card.key)).map((card) => card.key);
   const layer1Done = layer1Keys.every((key) => isCardFieldAnswered(caseFields[key]));
   const visibleKeys = layer1Done ? [...layer1Keys, ...layer2Keys] : layer1Keys;
   const activeKey = visibleKeys.find((key) => !isCardFieldAnswered(caseFields[key])) ?? null;

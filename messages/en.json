@@ -1640,7 +1640,17 @@
     "confirmBody": "Check your inbox, we sent a link to your case. One click in the email opens it and creates your account. A ModularHub advisor will also contact you by email.",
     "linkSendError": "We saved your request, but we could not send the link to your case. Please try again.",
     "resendPrompt": "Did not get the email?",
-    "resendLabel": "Send again"
+    "resendLabel": "Send again",
+    "selectedProductsLabel": "{count, plural, one {Selected product} other {Selected products}}",
+    "sectionAddressHeadingOther": "Installation or delivery address",
+    "countryLabelOther": "Delivery country",
+    "configurationHeading": "Selected configuration",
+    "configurationVariant": "Variant",
+    "configurationStyle": "Style",
+    "configurationTotal": "Total",
+    "configurationFrom": "from {price}",
+    "configurationPriceOnRequest": "on request",
+    "advisorQuestionsNote": "After you send this, your advisor will ask a few short questions about the product."
   },
   "ProfileForm": {
     "nameLabel": "Full name",
@@ -2422,7 +2432,7 @@
       }
     },
     "termin": {
-      "question": "When would you like to move in?",
+      "question": "When are you planning to go ahead?",
       "options": {
         "jak_najszybciej": {
           "label": "As soon as possible",
@@ -2498,6 +2508,95 @@
         "pod_klucz": {
           "label": "Turnkey",
           "consequence": "House ready to move into, the highest price from the manufacturer."
+        }
+      }
+    },
+    "miejsce_ustawienia": {
+      "question": "Where will the product be placed?",
+      "options": {
+        "ogrod": {
+          "label": "In the garden",
+          "consequence": "Outdoors, on the ground or a prepared surface."
+        },
+        "taras": {
+          "label": "On a terrace",
+          "consequence": "The advisor will check the terrace load capacity and size with you."
+        },
+        "wnetrze_budynku": {
+          "label": "Inside a building",
+          "consequence": "The advisor will ask about ventilation and access to the room."
+        },
+        "inne": {
+          "label": "Somewhere else",
+          "consequence": "The advisor will ask for details in the conversation."
+        }
+      }
+    },
+    "zasilanie_400v": {
+      "question": "Is there a 400 V power supply at the site?",
+      "options": {
+        "jest_przylacze": {
+          "label": "A 400 V connection is available",
+          "consequence": "The advisor will take this into account when choosing the heater and pricing."
+        },
+        "do_wykonania": {
+          "label": "The connection still has to be installed",
+          "consequence": "The advisor will ask who will install it and what it costs."
+        },
+        "niepotrzebne": {
+          "label": "Not needed (wood-fired heater)",
+          "consequence": "The advisor will choose heating that does not need 400 V."
+        }
+      }
+    },
+    "przylacza": {
+      "question": "Are utility connections available at the delivery site?",
+      "options": {
+        "wszystkie": {
+          "label": "All connections are available",
+          "consequence": "Power, water and sewage are on site."
+        },
+        "czesc": {
+          "label": "Some connections",
+          "consequence": "The advisor will ask which ones are missing."
+        },
+        "brak": {
+          "label": "No connections",
+          "consequence": "The advisor will go through options without connections with you."
+        }
+      }
+    },
+    "liczba_sztuk": {
+      "question": "How many units would you like to order?",
+      "options": {
+        "jeden": {
+          "label": "One unit",
+          "consequence": "A regular inquiry for a single product."
+        },
+        "od_2_do_5": {
+          "label": "2 to 5 units",
+          "consequence": "The advisor will ask about terms for several units."
+        },
+        "od_6": {
+          "label": "6 units or more",
+          "consequence": "This is a bulk order, the advisor will handle it separately."
+        }
+      }
+    },
+    "miejsce_montazu_tv": {
+      "question": "Where will the TV be installed?",
+      "options": {
+        "wewnatrz": {
+          "label": "Indoors",
+          "consequence": "The advisor will match the model to indoor conditions."
+        },
+        "na_zewnatrz_pod_dachem": {
+          "label": "Outdoors, under a roof",
+          "consequence": "Protected from rain, but not from temperature changes."
+        },
+        "na_zewnatrz_odkryte": {
+          "label": "Outdoors, uncovered",
+          "consequence": "Fully exposed to the weather, the advisor will choose suitable resistance."
         }
       }
     }

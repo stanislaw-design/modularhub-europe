@@ -1167,6 +1167,17 @@ export async function getPublishedProductIds(): Promise<Set<string>> {
   return new Set(rows.map((row) => row.id));
 }
 
+// Spec 0084 AC-2: rodzina zapytania liczona z bazy po identyfikatorach, nigdy z wartości od klienta.
+export async function getProductFamilies(ids: string[]): Promise<ProductFamily[]> {
+  if (ids.length === 0) return [];
+  const rows = await db.select({ id: product.id, family: product.family }).from(product).where(inArray(product.id, ids));
+  const byId = new Map(rows.map((row) => [row.id, row.family as ProductFamily]));
+  return ids.flatMap((id) => {
+    const family = byId.get(id);
+    return family ? [family] : [];
+  });
+}
+
 export interface SitemapProduct {
   id: string;
   slug: string | null;

@@ -3,7 +3,9 @@ import { Pool } from "@neondatabase/serverless";
 
 // Inwentaryzacja producentów i ich produktów, TYLKO ODCZYT (transakcja READ ONLY, same SELECT-y).
 // Adres bazy z SQL_TARGET_URL, celowo nie z .env.local (ten sam wzorzec co run-sql-file.ts),
-// żeby nie pomylić dev z prod. Wynik: podsumowanie w konsoli + CSV w tmp/inventory/.
+// żeby nie pomylić dev z prod. Tłumaczenia: brak = polski opis niepusty, a opis w danym języku pusty lub nieistniejący (jak oficjalny check:translations;
+// nazwy własne produktów spadają na polski i nie są luką). Pozostałe pola sprawdza `npm run check:translations`.
+// Wynik: podsumowanie w konsoli + CSV w tmp/inventory/.
 //
 // Użycie: SQL_TARGET_URL=<adres bazy> npx tsx scripts/inventory-producers.ts
 
@@ -61,12 +63,12 @@ SELECT
   (SELECT count(*)::int FROM document d WHERE d.product_id = p.id AND d.purpose = 'product_photo' AND d.deleted_at IS NULL AND d.is_cover) AS covers,
   (p.cover_image_url IS NOT NULL)     AS legacy_cover_url,
   (SELECT count(*)::int FROM product_option_group_assignment a WHERE a.product_id = p.id) AS option_groups,
-  EXISTS (SELECT 1 FROM product_translation t WHERE t.product_id = p.id AND t.locale = 'en'
-            AND coalesce(btrim(t.name), '') <> '' AND coalesce(btrim(t.description), '') <> '') AS tr_en,
-  EXISTS (SELECT 1 FROM product_translation t WHERE t.product_id = p.id AND t.locale = 'de'
-            AND coalesce(btrim(t.name), '') <> '' AND coalesce(btrim(t.description), '') <> '') AS tr_de,
-  EXISTS (SELECT 1 FROM product_translation t WHERE t.product_id = p.id AND t.locale = 'nl'
-            AND coalesce(btrim(t.name), '') <> '' AND coalesce(btrim(t.description), '') <> '') AS tr_nl
+  (coalesce(btrim(p.description), '') = '' OR EXISTS (SELECT 1 FROM product_translation t WHERE t.product_id = p.id AND t.locale = 'en'
+            AND coalesce(btrim(t.description), '') <> '')) AS tr_en,
+  (coalesce(btrim(p.description), '') = '' OR EXISTS (SELECT 1 FROM product_translation t WHERE t.product_id = p.id AND t.locale = 'de'
+            AND coalesce(btrim(t.description), '') <> '')) AS tr_de,
+  (coalesce(btrim(p.description), '') = '' OR EXISTS (SELECT 1 FROM product_translation t WHERE t.product_id = p.id AND t.locale = 'nl'
+            AND coalesce(btrim(t.description), '') <> '')) AS tr_nl
 FROM product p
 JOIN producer pr ON pr.id = p.producer_id
 WHERE p.deleted_at IS NULL AND pr.deleted_at IS NULL

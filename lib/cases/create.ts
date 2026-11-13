@@ -4,7 +4,8 @@ import { db } from "@/lib/db/client";
 import { getPgErrorCode } from "@/lib/db/pg-error";
 import { channel, inquiry, inquiryItem, message } from "@/lib/db/schema";
 import { microOffsetTimestamp, type Clock } from "./clock";
-import { START_CARDS } from "./start-cards";
+import type { ProductFamily } from "@/lib/data/types";
+import { familyCardKeys } from "./start-cards";
 import type { ConfigurationSnapshot } from "@/lib/configuration-snapshot";
 
 export interface CreateAdvisoryCaseInput {
@@ -26,6 +27,8 @@ export interface CreateAdvisoryCaseInput {
   intendedUseMonths?: number;
   // Spec 0081 AC-12: migawka konfiguracji, tylko dla zapytania z jednego produktu (zbudowana na serwerze).
   configurationSnapshot?: ConfigurationSnapshot | null;
+  // Spec 0084: rodzina zapytania (liczona na serwerze z bazy) wybiera zestaw kart. Brak rodziny = dom.
+  family?: ProductFamily;
 }
 
 // Ten sam klucz idempotencji użyty z innym e mailem albo innym klientem
@@ -81,15 +84,12 @@ export async function createAdvisoryCase(
   const channelId = crypto.randomUUID();
   const now = clock.now();
 
-  // Wiadomość systemowa i sześć kart startowych (AC-38) powstają w tej samej
-  // operacji, w jawnie rosnącej kolejności: systemowa, cztery karty warstwy
-  // pierwszej, dwie karty warstwy drugiej. defaultNow() nie gwarantuje
-  // kolejności w jednym db.batch, więc każdy wiersz dostaje jawny, rosnący o
-  // co najmniej mikrosekundę created_at (microOffsetTimestamp).
-  const orderedCardKeys = [
-    ...START_CARDS.filter((card) => card.layer === 1).map((card) => card.key),
-    ...START_CARDS.filter((card) => card.layer === 2).map((card) => card.key),
-  ];
+  // Wiadomość systemowa i karty startowe rodziny (AC-38, spec 0084) powstają
+  // w tej samej operacji, w jawnie rosnącej kolejności: systemowa, karty
+  // warstwy pierwszej, karty warstwy drugiej. defaultNow() nie
+  // gwarantuje kolejności w jednym db.batch, więc każdy wiersz dostaje jawny,
+  // rosnący o co najmniej mikrosekundę created_at (microOffsetTimestamp).
+  const orderedCardKeys = familyCardKeys(input.family ?? "dom");
   const cardTimestamps = [0, ...orderedCardKeys.map((_, index) => index + 1)].map((offset) =>
     microOffsetTimestamp(now, offset),
   );
