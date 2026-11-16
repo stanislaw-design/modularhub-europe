@@ -2098,7 +2098,19 @@
     "replaceFile": "Zastąp plik",
     "uploading": "Wgrywanie…",
     "hint": "PDF, maks. 20 MB.",
-    "uploadError": "Nie udało się wgrać pliku. Spróbuj ponownie."
+    "uploadError": "Nie udało się wgrać pliku. Spróbuj ponownie.",
+    "retry": "Spróbuj ponownie",
+    "errors": {
+      "no_access": "Nie masz dostępu do tej wyceny.",
+      "quote_inactive": "Ta wycena nie jest już aktywna. Odśwież stronę.",
+      "too_large": "Plik jest większy niż 20 MB.",
+      "invalid_type": "Dozwolone są tylko pliki PDF.",
+      "not_uploaded": "Plik nie dotarł do magazynu. Spróbuj ponownie.",
+      "expired": "Wgrywanie wygasło. Dodaj plik jeszcze raz.",
+      "file_rejected": "Ten plik nie został przyjęty. Sprawdź, czy to poprawny, niezaszyfrowany PDF.",
+      "generic": "Nie udało się zapisać pliku. Spróbuj ponownie.",
+      "upload_failed": "Nie udało się wysłać pliku. Sprawdź połączenie i spróbuj ponownie."
+    }
   },
   "ProducerPanelBoardQuotesPage": {
     "heading": "Moje wyceny",
@@ -2945,6 +2957,9 @@
       "closed": "Pliki tego zapytania nie mogą być już zmieniane.",
       "guest_daily_limit": "Wgrywanie plików jest chwilowo niedostępne. Spróbuj później albo napisz do nas.",
       "storage_failed": "Nie udało się wgrać pliku do magazynu. Spróbuj ponownie.",
+      "not_uploaded": "Plik nie dotarł do magazynu. Spróbuj ponownie.",
+      "expired": "Wgrywanie wygasło. Dodaj plik jeszcze raz.",
+      "upload_failed": "Nie udało się wysłać pliku. Sprawdź połączenie i spróbuj ponownie.",
       "not_found": "Nie znaleziono pliku.",
       "reason_required": "Podaj powód ukrycia pliku.",
       "generic": "Nie udało się zapisać pliku. Spróbuj ponownie."

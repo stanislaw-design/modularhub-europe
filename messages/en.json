@@ -2083,7 +2083,19 @@
     "replaceFile": "Replace file",
     "uploading": "Uploading…",
     "hint": "PDF, max. 20 MB.",
-    "uploadError": "Couldn't upload the file. Please try again."
+    "uploadError": "Couldn't upload the file. Please try again.",
+    "retry": "Try again",
+    "errors": {
+      "no_access": "You do not have access to this quote.",
+      "quote_inactive": "This quote is no longer active. Refresh the page.",
+      "too_large": "The file is larger than 20 MB.",
+      "invalid_type": "Only PDF files are allowed.",
+      "not_uploaded": "The file did not reach storage. Please try again.",
+      "expired": "The upload expired. Please add the file again.",
+      "file_rejected": "This file was not accepted. Check that it is a valid, unencrypted PDF.",
+      "generic": "The file could not be saved. Please try again.",
+      "upload_failed": "The file could not be sent. Check your connection and try again."
+    }
   },
   "ProducerPanelBoardQuotesPage": {
     "heading": "My quotes",
@@ -2937,6 +2949,9 @@
       "closed": "The files of this request can no longer be changed.",
       "guest_daily_limit": "Uploading files is temporarily unavailable. Try again later or write to us.",
       "storage_failed": "The file could not be uploaded to storage. Please try again.",
+      "not_uploaded": "The file did not reach storage. Please try again.",
+      "expired": "The upload expired. Please add the file again.",
+      "upload_failed": "The file could not be sent. Check your connection and try again.",
       "not_found": "File not found.",
       "reason_required": "Give a reason for hiding the file.",
       "generic": "The file could not be saved. Please try again."

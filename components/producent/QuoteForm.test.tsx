@@ -1,16 +1,16 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { submitProjectQuote, uploadProjectQuotePdf } from "@/lib/project-quote-actions";
+import { submitProjectQuote } from "@/lib/project-quote-actions";
+import { uploadQuotePdf } from "./upload-quote-pdf";
 import { QuoteForm } from "./QuoteForm";
 
-vi.mock("@/lib/project-quote-actions", () => ({
-  submitProjectQuote: vi.fn(),
-  uploadProjectQuotePdf: vi.fn(),
-}));
+vi.mock("@/lib/project-quote-actions", () => ({ submitProjectQuote: vi.fn() }));
+// Spec 0085: wgranie PDF idzie przez wspólny pomocnik (prośba, PUT do R2, potwierdzenie), tu granica.
+vi.mock("./upload-quote-pdf", () => ({ uploadQuotePdf: vi.fn() }));
 
 const mockedSubmitProjectQuote = vi.mocked(submitProjectQuote);
-const mockedUploadProjectQuotePdf = vi.mocked(uploadProjectQuotePdf);
+const mockedUploadProjectQuotePdf = vi.mocked(uploadQuotePdf);
 
 function quotePdfFile(name = "oferta.pdf") {
   return new File(["%PDF-1.7\n%%EOF"], name, { type: "application/pdf" });
@@ -221,7 +221,7 @@ describe("QuoteForm", () => {
   it("keeps the quote success and offers a retry step when the automatic PDF upload fails", async () => {
     const user = userEvent.setup();
     mockedSubmitProjectQuote.mockResolvedValue({ ok: true, quoteId: "quote-1" });
-    mockedUploadProjectQuotePdf.mockResolvedValue({ ok: false, error: "Plik PDF jest pusty albo większy niż 20 MB." });
+    mockedUploadProjectQuotePdf.mockResolvedValue({ ok: false, errorCode: "too_large" });
     render(<QuoteForm projectRequestId="req-1" isRevision={false} />);
 
     await fillRequired(user, "500000");

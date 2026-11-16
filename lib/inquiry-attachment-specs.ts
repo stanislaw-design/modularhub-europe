@@ -37,6 +37,9 @@ export type AttachmentErrorCode =
   | "closed"
   | "guest_daily_limit"
   | "storage_failed"
+  | "not_uploaded"
+  | "expired"
+  | "upload_failed"
   | "not_found"
   | "reason_required"
   | "generic";

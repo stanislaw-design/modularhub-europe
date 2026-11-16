@@ -19,7 +19,7 @@ vi.mock("next/navigation", async (importOriginal) => ({
 }));
 
 vi.mock("@/lib/inquiry-attachment-actions", () => ({
-  uploadInquiryAttachment: vi.fn(),
+  requestInquiryAttachmentUpload: vi.fn(), confirmInquiryAttachment: vi.fn(),
 }));
 
 const mockedSubmitProjectRequest = vi.mocked(submitProjectRequest);

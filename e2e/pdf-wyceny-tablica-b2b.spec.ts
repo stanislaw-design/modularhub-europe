@@ -128,14 +128,14 @@ test.describe("spec 0063: PDF wyceny over 1 MB through a real browser request (A
     // bucket (spec 0063 Build plan #1, a manual Cloudflare step) has been
     // provisioned yet in this environment:
     const filenameVisible = page.getByText("wycena-e2e.pdf");
-    const storageErrorVisible = page.getByRole("alert").filter({ hasText: "Nie udało się wgrać pliku do magazynu" });
+    const storageErrorVisible = page.getByRole("alert").filter({ hasText: /Nie udało się wysłać pliku|Nie udało się zapisać pliku/ });
     await expect(filenameVisible.or(storageErrorVisible)).toBeVisible({ timeout: 15_000 });
 
     if (await storageErrorVisible.isVisible()) {
       test.info().annotations.push({
         type: "known-gap",
         description:
-          "Private R2 bucket not provisioned yet (spec 0063 Build plan #1): the >1 MB request reached uploadProjectQuotePdf and failed only at the storage call, which proves AC-12's transport fix works. Full success assertion will hold once PRIVATE_R2_BUCKET_NAME is configured.",
+          "Private R2 bucket not provisioned yet (spec 0063 Build plan #1): since spec 0085 the PDF goes straight to R2, so this fails with a per file upload error until PRIVATE_R2_BUCKET_NAME is configured and the bucket has a CORS rule for this origin (spec 0085 AC-12).",
       });
     } else {
       await expect(filenameVisible).toBeVisible();

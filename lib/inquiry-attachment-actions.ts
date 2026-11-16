@@ -11,6 +11,9 @@ import { getClientIdForUser, getProducerIdForUser } from "@/lib/db/queries";
 import { bulkProductInquiry, inquiryAttachment, projectRequest } from "@/lib/db/schema";
 import { withAdminActor } from "@/lib/db/with-admin-actor";
 import {
+  ATTACHMENT_MAX_ACTIVE_BYTES,
+  ATTACHMENT_MAX_ACTIVE_FILES,
+  ATTACHMENT_MAX_FILE_BYTES,
   ATTACHMENT_URL_TTL_SECONDS,
   DEFAULT_GUEST_UPLOAD_DAILY_BYTES,
   extensionForMimeType,
@@ -21,8 +24,24 @@ import {
 import { verifyUploadToken } from "@/lib/inquiry-attachment-token";
 import { captureError, trackEvent } from "@/lib/observability";
 import { validateInquiryAttachment } from "@/lib/storage/inquiry-attachment-validation";
-import { buildSignedDownloadUrl, deletePrivateObject, uploadPrivateObject } from "@/lib/storage/private-r2-client";
-import { buildR2Key } from "@/lib/storage/r2-client";
+import {
+  createIntent,
+  discardIntentObject,
+  guestPendingBytes,
+  loadIntent,
+  pendingForTarget,
+  rejectIntent,
+  supersedeSameUpload,
+  UPLOAD_URL_TTL_SECONDS,
+} from "@/lib/storage/direct-upload";
+import {
+  buildSignedDownloadUrl,
+  buildSignedUploadUrl,
+  copyPrivateObject,
+  headPrivateObject,
+  PrivateObjectTooLargeError,
+  readPrivateObjectBytes,
+} from "@/lib/storage/private-r2-client";
 
 // Spec 0070 część D (AC-28 do AC-34): pliki inwestora dołączone do zapytania
 // (project_request i bulk_product_inquiry). Granicą bezpieczeństwa jest wyzwalacz
@@ -47,6 +66,9 @@ const ERROR_TEXT: Record<AttachmentErrorCode, string> = {
   limit_stored: "Zapytanie osiągnęło twardy limit liczby lub rozmiaru plików.",
   closed: "Pliki tego zapytania nie mogą być już zmieniane.",
   guest_daily_limit: "Wgrywanie plików jest chwilowo niedostępne. Spróbuj później albo napisz do nas.",
+  not_uploaded: "Plik nie dotarł do magazynu. Spróbuj ponownie.",
+  expired: "Wgrywanie wygasło. Dodaj plik jeszcze raz.",
+  upload_failed: "Nie udało się wysłać pliku. Sprawdź połączenie i spróbuj ponownie.",
   storage_failed: "Nie udało się wgrać pliku do magazynu. Spróbuj ponownie.",
   not_found: "Nie znaleziono pliku.",
   reason_required: "Podaj powód ukrycia pliku.",
@@ -126,14 +148,6 @@ async function resolveActor(
   return null;
 }
 
-// Zmiana pliku odświeża attachments_changed_at zapytania w tym samym zapisie
-// (AC-33), żeby znacznik "pliki zmieniono po złożeniu oferty" nie gubił zdarzeń.
-function touchParent(kind: InquiryKind, inquiryId: string) {
-  return kind === "request"
-    ? db.update(projectRequest).set({ attachmentsChangedAt: sql`now()` }).where(eq(projectRequest.id, inquiryId))
-    : db.update(bulkProductInquiry).set({ attachmentsChangedAt: sql`now()` }).where(eq(bulkProductInquiry.id, inquiryId));
-}
-
 function mapTriggerError(error: unknown): AttachmentErrorCode | null {
   const message = getPgErrorMessage(error) ?? "";
   if (message.includes("inquiry_attachment_closed")) return "closed";
@@ -165,17 +179,51 @@ export interface UploadInquiryAttachmentAuth {
   confirmedNoContactData?: boolean;
 }
 
-export async function uploadInquiryAttachment(
+export interface InquiryAttachmentDeclaration {
+  filename: string;
+  mimeType: string;
+  sizeBytes: number;
+}
+
+export interface RequestInquiryAttachmentUploadResult extends AttachmentActionResult {
+  intentId?: string;
+  uploadUrl?: string;
+  expiresAt?: string;
+}
+
+const ALLOWED_MIME_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/webp"] as const;
+
+const declarationSchema = z.object({
+  filename: z.string().min(1).max(500),
+  mimeType: z.string(),
+  sizeBytes: z.number().int(),
+});
+
+async function activeAttachmentTotals(kind: InquiryKind, inquiryId: string): Promise<{ count: number; bytes: number }> {
+  const link = kind === "request" ? inquiryAttachment.projectRequestId : inquiryAttachment.bulkProductInquiryId;
+  const [row] = await db
+    .select({
+      count: sql<number>`count(*)::int`,
+      bytes: sql<number>`COALESCE(sum(${inquiryAttachment.sizeBytes}), 0)::float8`,
+    })
+    .from(inquiryAttachment)
+    .where(and(eq(link, inquiryId), sql`${inquiryAttachment.deletedAt} IS NULL`));
+  return { count: row?.count ?? 0, bytes: Number(row?.bytes ?? 0) };
+}
+
+// Krok 1 (spec 0085 AC-2, AC-3): wydaje podpisany adres do zapisu pod kluczem tymczasowym. Sprawdza
+// to samo, co dawniej wgranie (uprawnienia, zgodę, stan zapytania, typ, rozmiar i limity), ale
+// limity liczy razem z wgraniami rozpoczętymi w ostatnich 15 minutach. Wiersza pliku jeszcze nie ma.
+export async function requestInquiryAttachmentUpload(
   kind: InquiryKind,
   inquiryId: string,
-  file: File,
+  declaration: InquiryAttachmentDeclaration,
   authInput: UploadInquiryAttachmentAuth = {},
-): Promise<AttachmentActionResult> {
+): Promise<RequestInquiryAttachmentUploadResult> {
   const parsedKind = kindSchema.safeParse(kind);
   const parsedId = idSchema.safeParse(inquiryId);
-  // Duck typing zamiast `instanceof File`: klasa File z dekodera akcji serwerowych nie musi
-  // być tą samą klasą co globalna (ten sam powód, dla którego uploadProjectQuotePdf jej nie sprawdza).
-  if (!parsedKind.success || !parsedId.success || typeof file?.arrayBuffer !== "function") return fail("no_access");
+  const parsedDeclaration = declarationSchema.safeParse(declaration);
+  if (!parsedKind.success || !parsedId.success || !parsedDeclaration.success) return fail("no_access");
 
   try {
     const parent = await loadParent(parsedKind.data, parsedId.data);
@@ -184,73 +232,187 @@ export async function uploadInquiryAttachment(
     const actor = await resolveActor(parsedKind.data, parsedId.data, parent, authInput.uploadToken);
     if (!actor) return fail("no_access");
 
-    // AC-32: klient i gość potwierdzają, że w plikach nie ma ich danych kontaktowych.
     if (actor.kind !== "staff" && authInput.confirmedNoContactData !== true) return fail("consent_required");
     if (actor.kind !== "staff" && isLockedForOwner(parent, new Date())) return fail("closed");
 
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const validation = validateInquiryAttachment(buffer);
-    if (!validation.ok) return fail(validation.errorCode, validation.error);
+    const { mimeType, sizeBytes } = parsedDeclaration.data;
+    if (!(ALLOWED_MIME_TYPES as readonly string[]).includes(mimeType)) return fail("invalid_type");
+    if (sizeBytes < 1) return fail("invalid_type", "Plik jest pusty.");
+    if (sizeBytes > ATTACHMENT_MAX_FILE_BYTES) return fail("too_large");
+
+    const filename = sanitizeAttachmentFilename(parsedDeclaration.data.filename);
+    const target = parsedKind.data === "request" ? { projectRequestId: parsedId.data } : { bulkProductInquiryId: parsedId.data };
+    const intentInput = {
+      purpose: "inquiry_attachment" as const,
+      target,
+      actorKind: actor.kind,
+      actorUserId: actor.kind === "guest" ? null : actor.userId,
+      mimeType,
+      declaredSizeBytes: sizeBytes,
+      filename,
+      consentConfirmed: actor.kind !== "staff",
+    };
+
+    // Ponowna prośba o ten sam plik nie zajmuje drugiego miejsca w limicie (AC-3).
+    await supersedeSameUpload(intentInput);
+
+    const [active, pending] = await Promise.all([
+      activeAttachmentTotals(parsedKind.data, parsedId.data),
+      pendingForTarget(target),
+    ]);
+    if (active.count + pending.count + 1 > ATTACHMENT_MAX_ACTIVE_FILES) return fail("limit_count");
+    if (active.bytes + pending.bytes + sizeBytes > ATTACHMENT_MAX_ACTIVE_BYTES) return fail("limit_size");
 
     if (actor.kind === "guest") {
-      if ((await guestBytesLast24h()) + buffer.byteLength > guestDailyLimitBytes()) {
+      const used = (await guestBytesLast24h()) + (await guestPendingBytes());
+      if (used + sizeBytes > guestDailyLimitBytes()) {
         captureError(new Error("Dzienny limit wgrywania plików przez gości został przekroczony."), {
-          path: "uploadInquiryAttachment:guestDailyLimit",
+          path: "requestInquiryAttachmentUpload:guestDailyLimit",
         });
         return fail("guest_daily_limit");
       }
     }
 
-    const attachmentId = randomUUID();
-    const r2Key = buildR2Key(`plik${extensionForMimeType(validation.mimeType)}`);
+    const intent = await createIntent(intentInput);
+    let uploadUrl: string;
     try {
-      await uploadPrivateObject(r2Key, buffer, validation.mimeType);
+      uploadUrl = await buildSignedUploadUrl(intent.r2Key, UPLOAD_URL_TTL_SECONDS, mimeType, sizeBytes);
     } catch (error) {
-      captureError(error, { path: "uploadInquiryAttachment:r2" });
+      captureError(error, { path: "requestInquiryAttachmentUpload:sign" });
+      await rejectIntent({ id: intent.id, r2Key: intent.r2Key });
+      return fail("storage_failed");
+    }
+    return {
+      ok: true,
+      intentId: intent.id,
+      uploadUrl,
+      expiresAt: new Date(Date.now() + UPLOAD_URL_TTL_SECONDS * 1000).toISOString(),
+    };
+  } catch (error) {
+    captureError(error, { path: "requestInquiryAttachmentUpload" });
+    return fail("generic");
+  }
+}
+
+// Krok 2 (spec 0085 AC-4 do AC-7, AC-14): potwierdza wgranie. Stała kolejność: uprawnienia i
+// powiązanie zamiaru, HEAD, zawartość i ETag, kopia na klucz ostateczny (If-Match na ETag
+// zwalidowanej wersji), a na końcu jedno polecenie SQL zużywa zamiar i wstawia wiersz pliku.
+export async function confirmInquiryAttachment(
+  intentId: string,
+  authInput: { uploadToken?: string } = {},
+): Promise<AttachmentActionResult> {
+  if (!idSchema.safeParse(intentId).success) return fail("no_access");
+
+  try {
+    const intent = await loadIntent(intentId);
+    if (!intent || intent.purpose !== "inquiry_attachment" || intent.consumedAt || intent.purgedAt) return fail("no_access");
+    const kind: InquiryKind = intent.projectRequestId ? "request" : "product";
+    const inquiryId = (intent.projectRequestId ?? intent.bulkProductInquiryId)!;
+
+    const parent = await loadParent(kind, inquiryId);
+    if (!parent) return fail("no_access");
+    const actor = await resolveActor(kind, inquiryId, parent, authInput.uploadToken);
+    if (!actor || actor.kind !== intent.actorKind) return fail("no_access");
+    if (actor.kind !== "guest" && actor.userId !== intent.actorUserId) return fail("no_access");
+    if (actor.kind !== "staff" && !intent.consentConfirmed) return fail("consent_required");
+    if (intent.expired) return fail("expired");
+
+    if (actor.kind !== "staff" && isLockedForOwner(parent, new Date())) {
+      await rejectIntent(intent);
+      return fail("closed");
+    }
+
+    // HEAD: brak obiektu to nie błąd, tylko "jeszcze nie wgrano", zamiar zostaje do ponowienia.
+    const head = await headPrivateObject(intent.r2Key);
+    if (!head) return fail("not_uploaded");
+    if (head.size !== intent.declaredSizeBytes || head.size > ATTACHMENT_MAX_FILE_BYTES) {
+      await rejectIntent(intent);
+      return fail("file_rejected");
+    }
+
+    // Twardy limit przy pobraniu: nie ufamy samemu HEAD (AC-4). Cały plik trafia do walidacji (AC-5).
+    let bytes: Buffer;
+    let etag: string | null;
+    try {
+      ({ bytes, etag } = await readPrivateObjectBytes(intent.r2Key, intent.declaredSizeBytes));
+    } catch (error) {
+      if (error instanceof PrivateObjectTooLargeError) {
+        await rejectIntent(intent);
+        return fail("file_rejected");
+      }
+      throw error;
+    }
+    if (bytes.byteLength !== intent.declaredSizeBytes) {
+      await rejectIntent(intent);
+      return fail("file_rejected");
+    }
+    const validation = validateInquiryAttachment(bytes);
+    if (!validation.ok || validation.mimeType !== intent.mimeType) {
+      await rejectIntent(intent);
+      return fail("file_rejected");
+    }
+
+    const finalKey = `inquiry-attachments/${randomUUID()}${extensionForMimeType(validation.mimeType)}`;
+    try {
+      await copyPrivateObject(intent.r2Key, finalKey, etag, validation.mimeType);
+    } catch (error) {
+      captureError(error, { path: "confirmInquiryAttachment:copy" });
       return fail("storage_failed");
     }
 
-    const insert = db.insert(inquiryAttachment).values({
-      id: attachmentId,
-      projectRequestId: parsedKind.data === "request" ? parsedId.data : null,
-      bulkProductInquiryId: parsedKind.data === "product" ? parsedId.data : null,
-      r2Key,
-      filename: sanitizeAttachmentFilename(file.name),
-      mimeType: validation.mimeType,
-      sizeBytes: buffer.byteLength,
-      uploadedByKind: actor.kind,
-      uploadedByUserId: actor.kind === "guest" ? null : actor.userId,
-    });
-    const touch = touchParent(parsedKind.data, parsedId.data);
+    const attachmentId = randomUUID();
+    const parentTable = kind === "request" ? "project_request" : "bulk_product_inquiry";
+    const statement = db.execute<{ id: string }>(sql`
+      WITH c AS (
+        UPDATE "upload_intent" SET "consumed_at" = now()
+        WHERE "id" = ${intent.id} AND "consumed_at" IS NULL AND "expires_at" > now()
+        RETURNING "id"
+      ),
+      ins AS (
+        INSERT INTO "inquiry_attachment" (
+          "id", "project_request_id", "bulk_product_inquiry_id", "r2_key", "filename", "mime_type",
+          "size_bytes", "uploaded_by_kind", "uploaded_by_user_id"
+        )
+        SELECT ${attachmentId}::uuid, ${intent.projectRequestId}::uuid, ${intent.bulkProductInquiryId}::uuid, ${finalKey},
+          ${intent.filename}, ${validation.mimeType}, ${bytes.byteLength}, ${actor.kind}, ${actor.kind === "guest" ? null : actor.userId}
+        FROM c
+        RETURNING "id"
+      ),
+      touch AS (
+        UPDATE ${sql.identifier(parentTable)} SET "attachments_changed_at" = now()
+        WHERE "id" = ${inquiryId} AND EXISTS (SELECT 1 FROM ins)
+        RETURNING "id"
+      )
+      SELECT "id" FROM ins
+    `);
 
+    let inserted: boolean;
     try {
-      if (actor.kind === "staff") {
-        await withAdminActor(actor.userId, [insert, touch]);
-      } else {
-        await db.batch([insert, touch]);
-      }
+      const result = actor.kind === "staff" ? (await withAdminActor(actor.userId, [statement]))[0] : await statement;
+      inserted = (result.rows?.length ?? 0) > 0;
     } catch (error) {
-      // Wiersz nie powstał, więc obiekt w R2 jest osierocony: sprzątamy go najlepszym
-      // wysiłkiem (AC-28), błąd sprzątania trafia do Sentry bez nazwy pliku.
-      try {
-        await deletePrivateObject(r2Key);
-      } catch (cleanupError) {
-        captureError(cleanupError, { path: "uploadInquiryAttachment:cleanup" });
-      }
+      // Wyzwalacz cofnął też zużycie zamiaru (AC-7): usuwamy kopię, zamiar zostaje do ponowienia.
+      await discardIntentObject({ r2Key: finalKey });
       const code = mapTriggerError(error);
       if (code) return fail(code);
-      captureError(error, { path: "uploadInquiryAttachment:insert" });
+      captureError(error, { path: "confirmInquiryAttachment:insert" });
       return fail("generic");
     }
+    if (!inserted) {
+      // Przegrany wyścig albo zamiar wygasł między sprawdzeniem a zapisem: kopia jest niepotrzebna.
+      await discardIntentObject({ r2Key: finalKey });
+      return fail("expired");
+    }
 
+    await discardIntentObject(intent);
     trackEvent(
       "inquiry_attachment_uploaded",
-      { kind: parsedKind.data, sizeBytes: buffer.byteLength, mimeType: validation.mimeType, uploadedBy: actor.kind },
-      actor.kind === "guest" ? parsedId.data : actor.userId,
+      { kind, sizeBytes: bytes.byteLength, mimeType: validation.mimeType, uploadedBy: actor.kind },
+      actor.kind === "guest" ? inquiryId : actor.userId,
     );
     return { ok: true, attachmentId };
   } catch (error) {
-    captureError(error, { path: "uploadInquiryAttachment" });
+    captureError(error, { path: "confirmInquiryAttachment" });
     return fail("generic");
   }
 }

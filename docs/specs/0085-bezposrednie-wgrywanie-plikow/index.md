@@ -1,7 +1,7 @@
 # 0085. Bezpośrednie wgrywanie plików do R2 (załączniki zapytań i PDF oferty)
 
 **Date**: 2026-11-13
-**Status**: Proposed
+**Status**: In Progress
 
 ## Summary
 
@@ -126,16 +126,16 @@ Pomocnicze moduły: `lib/storage/direct-upload.ts` (`server-only`: tworzenie, zu
 
 Podejście projektu to Tracer Bullet (cienki, prawdziwy wątek przez wszystkie warstwy, potem pogrubianie), więc najpierw dowód na jednym przypadku, potem reszta.
 
-1. Krok zero: sprawdź w panelu Cloudflare i dodaj regułę CORS na prywatnym buckecie dla domeny produkcyjnej, staging i localhost, satisfies **AC-12**
-2. Migracja i schemat Drizzle dla `upload_intent` (CHECK, indeksy, unikalny `r2_key`), test schematu, `db:generate` i sprawdzenie na gałęzi Neon, satisfies **AC-6**, **AC-9**
-3. Klient prywatnego R2: `buildSignedUploadUrl` z opcjonalną długością w podpisie (`signableHeaders`), `readPrivateObjectBytes` z limitem i ETag, `copyPrivateObject` z `If-Match`, testy jednostkowe oraz test `curl` na staging, czy R2 egzekwuje podpisaną długość (wynik wpisać do tej specyfikacji), satisfies **AC-4**, **AC-5**, **AC-6**
-4. `lib/storage/direct-upload.ts`: tworzenie zamiaru, atomowe zużycie, liczenie rozpoczętych wgrań, usunięcie obiektu i oznaczenie jako oczyszczony, satisfies **AC-2**, **AC-6**
-5. Cienki przekrój dla załączników zapytań: `requestInquiryAttachmentUpload` i `confirmInquiryAttachment` (uprawnienia z wiązaniem do wywołującego, token gościa, zgoda, limity z oknem 15 minut, klucz tymczasowy, walidacja, kopia na klucz ostateczny, zużycie zamiaru i zapis jednym poleceniem SQL), `direct-upload-client.ts` i podpięcie w `InquiryAttachmentUploader` dla jednego pliku; test 15 MB na staging jako gość i jako admin, satisfies **AC-1**, **AC-2**, **AC-3**, **AC-4**, **AC-5**, **AC-6**, **AC-7**, **AC-14**
-6. Pogrubienie uploaderów (zapytań oraz PDF oferty w `QuoteForm` i `ProjectQuotePdfUploadStep`): postęp, błędy per plik, ponowienie potwierdzenia do 2 razy, rozróżnienie `upload_failed`, tłumaczenia w czterech językach, zdarzenia i Sentry, satisfies **AC-11**, **AC-13**
-7. Zadanie czyszczące (wchodzi na produkcję razem z zadaniem 5, nie później, żeby sieroty się nie zbierały): funkcja sprzątająca z warunkowym zajęciem wiersza i cofnięciem przy błędzie, trasa `/api/cron/uploads-cleanup`, wpis w `vercel.json`, testy włącznie z 30 dniami od `deleted_at`, satisfies **AC-9**
-8. PDF oferty: `requestProjectQuotePdfUpload` i `confirmProjectQuotePdfUpload` z dotychczasową atomową podmianą w jednym `WITH`, kodami błędów i oczyszczoną nazwą pliku, przełączenie `QuoteForm` i `ProjectQuotePdfUploadStep`, test wyścigu, satisfies **AC-8**
-9. Testy: scenariusze jednostkowe i test Playwright (z `DATABASE_URL`, zgodnie z regułą z `AGENTS.md`), test na staging dla pliku powyżej 4,5 MB, satisfies **AC-1** do **AC-9**
-10. Usunięcie `uploadInquiryAttachment` i `uploadProjectQuotePdf` oraz ich testów w tym samym wydaniu co zadania 5 i 8, satisfies **AC-10**
+1. [ ] Krok zero: sprawdź w panelu Cloudflare i dodaj regułę CORS na prywatnym buckecie dla domeny produkcyjnej, staging i localhost, satisfies **AC-12**
+2. [x] Migracja i schemat Drizzle dla `upload_intent` (CHECK, indeksy, unikalny `r2_key`), test schematu, `db:generate` i sprawdzenie na gałęzi Neon, satisfies **AC-6**, **AC-9**
+3. [x] Klient prywatnego R2: `buildSignedUploadUrl` z opcjonalną długością w podpisie (`signableHeaders`), `readPrivateObjectBytes` z limitem i ETag, `copyPrivateObject` z `If-Match`, testy jednostkowe oraz test `curl` na staging, czy R2 egzekwuje podpisaną długość (wynik wpisać do tej specyfikacji), satisfies **AC-4**, **AC-5**, **AC-6**
+4. [x] `lib/storage/direct-upload.ts`: tworzenie zamiaru, atomowe zużycie, liczenie rozpoczętych wgrań, usunięcie obiektu i oznaczenie jako oczyszczony, satisfies **AC-2**, **AC-6**
+5. [x] Cienki przekrój dla załączników zapytań: `requestInquiryAttachmentUpload` i `confirmInquiryAttachment` (uprawnienia z wiązaniem do wywołującego, token gościa, zgoda, limity z oknem 15 minut, klucz tymczasowy, walidacja, kopia na klucz ostateczny, zużycie zamiaru i zapis jednym poleceniem SQL), `direct-upload-client.ts` i podpięcie w `InquiryAttachmentUploader` dla jednego pliku; test 15 MB na staging jako gość i jako admin, satisfies **AC-1**, **AC-2**, **AC-3**, **AC-4**, **AC-5**, **AC-6**, **AC-7**, **AC-14**
+6. [x] Pogrubienie uploaderów (zapytań oraz PDF oferty w `QuoteForm` i `ProjectQuotePdfUploadStep`): postęp, błędy per plik, ponowienie potwierdzenia do 2 razy, rozróżnienie `upload_failed`, tłumaczenia w czterech językach, zdarzenia i Sentry, satisfies **AC-11**, **AC-13**
+7. [x] Zadanie czyszczące (wchodzi na produkcję razem z zadaniem 5, nie później, żeby sieroty się nie zbierały): funkcja sprzątająca z warunkowym zajęciem wiersza i cofnięciem przy błędzie, trasa `/api/cron/uploads-cleanup`, wpis w `vercel.json`, testy włącznie z 30 dniami od `deleted_at`, satisfies **AC-9**
+8. [x] PDF oferty: `requestProjectQuotePdfUpload` i `confirmProjectQuotePdfUpload` z dotychczasową atomową podmianą w jednym `WITH`, kodami błędów i oczyszczoną nazwą pliku, przełączenie `QuoteForm` i `ProjectQuotePdfUploadStep`, test wyścigu, satisfies **AC-8**
+9. [ ] Testy: scenariusze jednostkowe i test Playwright (z `DATABASE_URL`, zgodnie z regułą z `AGENTS.md`), test na staging dla pliku powyżej 4,5 MB, satisfies **AC-1** do **AC-9**
+10. [x] Usunięcie `uploadInquiryAttachment` i `uploadProjectQuotePdf` oraz ich testów w tym samym wydaniu co zadania 5 i 8, satisfies **AC-10**
 
 ## Consequences
 
@@ -169,6 +169,7 @@ Podejście projektu to Tracer Bullet (cienki, prawdziwy wątek przez wszystkie w
 
 ## Follow-up
 
+- [ ] Odchylenie od AC-8 przy budowie: podmiana PDF oferty to dwa polecenia SQL w jednej transakcji (`db.batch`: miękkie usunięcie starego, potem `WITH` zużywające zamiar i wstawiające nowy), a nie jedno `WITH`, bo częściowy indeks unikalny "jeden aktywny PDF na ofertę" sprawdza się wiersz po wierszu i przy jednym poleceniu zależałby od kolejności zapisów. Gwarancje te same (warunek `active` i właściciel w samym SQL, jeden dokument na zamiar). Poprawić tekst AC-8 w `/architect`.
 - [ ] Zapisać wynik testu `curl` (zadanie 3): czy R2 odrzuca PUT o długości innej niż podpisana. Specyfikacja jest bezpieczna w obu przypadkach (kontrola HEAD, twardy limit przy pobraniu i klucz tymczasowy), ale wynik rozstrzyga, czy potrzebny jest krótszy czas ważności adresu.
 - [ ] Ta sama luka (ponowny PUT pod ten sam klucz po potwierdzeniu) jest w `lib/conversations/attachments.ts` (spec 0080). Naprawić tym samym wzorcem: klucz tymczasowy i kopia na klucz ostateczny.
 - [ ] Miękko usunięte PDF oferty (`document.deleted_at`) i stare wersje zastąpione przy podmianie nigdy nie znikają z R2. Dopisać do zadania czyszczącego albo osobnej specyfikacji.

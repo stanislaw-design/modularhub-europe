@@ -4,7 +4,7 @@ import { FileText, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { Button, Checkbox, Label, Stack, Text } from "@/components/ui";
-import { uploadInquiryAttachment } from "@/lib/inquiry-attachment-actions";
+import { confirmInquiryAttachment, requestInquiryAttachmentUpload } from "@/lib/inquiry-attachment-actions";
 import {
   ATTACHMENT_ACCEPT,
   ATTACHMENT_MAX_FILE_BYTES,
@@ -12,6 +12,7 @@ import {
   type AttachmentErrorCode,
   type InquiryKind,
 } from "@/lib/inquiry-attachment-specs";
+import { declaredMimeType, putFileToSignedUrl } from "@/lib/storage/direct-upload-client";
 import type { InquiryAttachmentLabels } from "./labels";
 
 interface InquiryAttachmentUploaderProps {
@@ -41,7 +42,13 @@ interface UploadItem {
   file: File;
   status: ItemStatus;
   errorCode?: AttachmentErrorCode;
+  // Postęp wysyłania do R2 w przedziale 0 do 1 (spec 0085 AC-11).
+  progress?: number;
 }
+
+// Potwierdzenie ponawiamy do 2 razy przy błędach, które mogą być chwilowe (spec 0085 AC-11).
+const CONFIRM_RETRY_CODES: AttachmentErrorCode[] = ["generic", "storage_failed", "not_uploaded"];
+const CONFIRM_MAX_RETRIES = 2;
 
 // AC-28, AC-29: każdy plik jest osobnym wywołaniem akcji, ze swoim paskiem postępu i
 // przyciskiem ponowienia. Błąd jednego pliku nie cofa zapytania ani pozostałych plików.
@@ -76,16 +83,38 @@ export function InquiryAttachmentUploader({
   }
 
   async function uploadOne(item: UploadItem) {
-    update(item.key, { status: "uploading", errorCode: undefined });
+    update(item.key, { status: "uploading", errorCode: undefined, progress: undefined });
     if (item.file.size > ATTACHMENT_MAX_FILE_BYTES) {
       update(item.key, { status: "error", errorCode: "too_large" });
       return;
     }
     try {
-      const result = await uploadInquiryAttachment(kind, inquiryId, item.file, {
-        uploadToken,
-        confirmedNoContactData: staff ? undefined : consent,
-      });
+      // Krok 1: serwer sprawdza uprawnienia i limity, wydaje podpisany adres (odmowa ma kod błędu).
+      const requested = await requestInquiryAttachmentUpload(
+        kind,
+        inquiryId,
+        { filename: item.file.name, mimeType: declaredMimeType(item.file), sizeBytes: item.file.size },
+        { uploadToken, confirmedNoContactData: staff ? undefined : consent },
+      );
+      if (!requested.ok || !requested.uploadUrl || !requested.intentId) {
+        update(item.key, { status: "error", errorCode: requested.errorCode ?? "generic" });
+        return;
+      }
+
+      // Krok 2: plik leci prosto do R2, z pominięciem funkcji serwerowej.
+      const put = await putFileToSignedUrl(requested.uploadUrl, item.file, declaredMimeType(item.file), (fraction) =>
+        update(item.key, { progress: fraction }),
+      );
+      if (!put.ok) {
+        update(item.key, { status: "error", errorCode: "upload_failed" });
+        return;
+      }
+
+      // Krok 3: potwierdzenie (serwer sprawdza rozmiar i zawartość, dopiero wtedy powstaje wiersz).
+      let result = await confirmInquiryAttachment(requested.intentId, { uploadToken });
+      for (let attempt = 0; !result.ok && attempt < CONFIRM_MAX_RETRIES && CONFIRM_RETRY_CODES.includes(result.errorCode ?? "generic"); attempt++) {
+        result = await confirmInquiryAttachment(requested.intentId, { uploadToken });
+      }
       if (result.ok) {
         update(item.key, { status: "done" });
         onUploaded?.();
@@ -196,7 +225,11 @@ export function InquiryAttachmentUploader({
                 <span className="shrink-0 text-data">{formatAttachmentSize(item.file.size)}</span>
               </div>
               {item.status === "uploading" && (
-                <progress className="h-1.5 w-full" aria-label={`${labels.statusUploading}: ${item.file.name}`} />
+                <progress
+                  className="h-1.5 w-full"
+                  aria-label={`${labels.statusUploading}: ${item.file.name}`}
+                  {...(item.progress !== undefined ? { value: Math.round(item.progress * 100), max: 100 } : {})}
+                />
               )}
               {item.status === "done" && <span className="text-data text-status-approved">{labels.statusDone}</span>}
               {item.status === "error" && (

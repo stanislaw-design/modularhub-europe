@@ -1,14 +1,13 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { uploadProjectQuotePdf } from "@/lib/project-quote-actions";
 import { ProjectQuotePdfUploadStep } from "./ProjectQuotePdfUploadStep";
+import { uploadQuotePdf } from "./upload-quote-pdf";
 
-vi.mock("@/lib/project-quote-actions", () => ({
-  uploadProjectQuotePdf: vi.fn(),
-}));
+// Spec 0085: krok używa wspólnego pomocnika (prośba, PUT do R2, potwierdzenie), który tu jest granicą.
+vi.mock("./upload-quote-pdf", () => ({ uploadQuotePdf: vi.fn() }));
 
-const mockedUploadProjectQuotePdf = vi.mocked(uploadProjectQuotePdf);
+const mockedUploadProjectQuotePdf = vi.mocked(uploadQuotePdf);
 
 function pdfFile(name = "wycena.pdf") {
   return new File(["%PDF-1.7 fake content"], name, { type: "application/pdf" });
@@ -45,7 +44,7 @@ describe("ProjectQuotePdfUploadStep", () => {
     await user.upload(screen.getByLabelText("PDF wyceny"), file);
 
     await waitFor(() => {
-      expect(mockedUploadProjectQuotePdf).toHaveBeenCalledWith("quote-1", file);
+      expect(mockedUploadProjectQuotePdf).toHaveBeenCalledWith("quote-1", file, expect.any(Function));
       expect(screen.getByText("nowa-oferta.pdf")).toBeInTheDocument();
     });
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
@@ -68,33 +67,51 @@ describe("ProjectQuotePdfUploadStep", () => {
   // server's readable error without pretending a file was attached.
   it("shows the server's error message and keeps no filename when the upload fails", async () => {
     const user = userEvent.setup();
-    mockedUploadProjectQuotePdf.mockResolvedValue({ ok: false, error: "Plik PDF jest pusty albo większy niż 20 MB." });
+    mockedUploadProjectQuotePdf.mockResolvedValue({ ok: false, errorCode: "too_large" });
     render(<ProjectQuotePdfUploadStep quoteId="quote-1" />);
 
     await user.upload(screen.getByLabelText("PDF wyceny"), pdfFile("za-duzy.pdf"));
 
     await waitFor(() => {
-      expect(screen.getByRole("alert")).toHaveTextContent("Plik PDF jest pusty albo większy niż 20 MB.");
+      expect(screen.getByRole("alert")).toHaveTextContent("Plik jest większy niż 20 MB.");
     });
     expect(screen.queryByText("za-duzy.pdf")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Wybierz plik" })).toBeInTheDocument();
   });
 
-  it("falls back to the generic upload error when the server gives none", async () => {
+  it("shows the generic error for an unexpected failure, and a retry button that sends the same file again", async () => {
     const user = userEvent.setup();
-    mockedUploadProjectQuotePdf.mockResolvedValue({ ok: false });
+    mockedUploadProjectQuotePdf.mockResolvedValueOnce({ ok: false, errorCode: "generic" });
     render(<ProjectQuotePdfUploadStep quoteId="quote-1" />);
 
     await user.upload(screen.getByLabelText("PDF wyceny"), pdfFile());
 
     await waitFor(() => {
-      expect(screen.getByRole("alert")).toHaveTextContent("Nie udało się wgrać pliku. Spróbuj ponownie.");
+      expect(screen.getByRole("alert")).toHaveTextContent("Nie udało się zapisać pliku. Spróbuj ponownie.");
+    });
+
+    mockedUploadProjectQuotePdf.mockResolvedValueOnce({ ok: true, documentId: "doc-r" });
+    await user.click(screen.getByRole("button", { name: "Spróbuj ponownie" }));
+    await waitFor(() => expect(mockedUploadProjectQuotePdf).toHaveBeenCalledTimes(2));
+    expect(mockedUploadProjectQuotePdf.mock.calls[1][1]).toBe(mockedUploadProjectQuotePdf.mock.calls[0][1]);
+    await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
+  });
+
+  it("tells the producer when the file could not be sent to storage", async () => {
+    const user = userEvent.setup();
+    mockedUploadProjectQuotePdf.mockResolvedValue({ ok: false, errorCode: "upload_failed" });
+    render(<ProjectQuotePdfUploadStep quoteId="quote-1" />);
+
+    await user.upload(screen.getByLabelText("PDF wyceny"), pdfFile());
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent("Nie udało się wysłać pliku.");
     });
   });
 
   it("clears a previous error once a retry upload succeeds", async () => {
     const user = userEvent.setup();
-    mockedUploadProjectQuotePdf.mockResolvedValueOnce({ ok: false, error: "Zawartość pliku nie ma prawidłowej sygnatury PDF." });
+    mockedUploadProjectQuotePdf.mockResolvedValueOnce({ ok: false, errorCode: "file_rejected" });
     render(<ProjectQuotePdfUploadStep quoteId="quote-1" />);
 
     await user.upload(screen.getByLabelText("PDF wyceny"), pdfFile("zle.pdf"));

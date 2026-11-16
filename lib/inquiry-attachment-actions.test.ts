@@ -5,18 +5,38 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 // @/lib/observability pulls in "server-only" and @/auth does not load under Vitest/jsdom,
 // so both are mocked at their boundary, like lib/project-request-actions.test.ts. The
 // private R2 bucket is mocked too: these tests hit the real dev database, never R2.
+vi.mock("server-only", () => ({}));
 const trackEventMock = vi.hoisted(() => vi.fn());
 const captureErrorMock = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/observability", () => ({ trackEvent: trackEventMock, captureError: captureErrorMock }));
 const authMock = vi.hoisted(() => vi.fn<() => Promise<Session | null>>());
 vi.mock("@/auth", () => ({ auth: authMock }));
-const uploadMock = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
-const deleteObjectMock = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
+// Spec 0085: R2 to pamięć w procesie. `store` trzyma obiekty pod kluczami, a podpisany adres do
+// zapisu niesie klucz w parametrze, żeby test mógł "wysłać" plik tak, jak zrobiłaby to przeglądarka.
+const store = vi.hoisted(() => new Map<string, Buffer>());
+const PrivateObjectTooLargeError = vi.hoisted(() => class PrivateObjectTooLargeError extends Error {});
+const deleteObjectMock = vi.hoisted(() => vi.fn(async (key: string) => void store.delete(key)));
 const signedUrlMock = vi.hoisted(() => vi.fn().mockResolvedValue("https://signed.example.test/file"));
+const signedUploadMock = vi.hoisted(() =>
+  vi.fn(async (key: string, _ttl: number, _type: string, _length?: number) => `https://signed.example.test/put?key=${key}`),
+);
+const copyMock = vi.hoisted(() =>
+  vi.fn(async (from: string, to: string) => {
+    store.set(to, store.get(from)!);
+  }),
+);
 vi.mock("@/lib/storage/private-r2-client", () => ({
-  uploadPrivateObject: uploadMock,
   deletePrivateObject: deleteObjectMock,
   buildSignedDownloadUrl: signedUrlMock,
+  buildSignedUploadUrl: signedUploadMock,
+  copyPrivateObject: copyMock,
+  headPrivateObject: vi.fn(async (key: string) => (store.has(key) ? { size: store.get(key)!.byteLength, etag: '"etag"' } : null)),
+  readPrivateObjectBytes: vi.fn(async (key: string, maxBytes: number) => {
+    const bytes = store.get(key)!;
+    if (bytes.byteLength > maxBytes) throw new PrivateObjectTooLargeError();
+    return { bytes, etag: '"etag"' };
+  }),
+  PrivateObjectTooLargeError,
 }));
 
 import { db } from "@/lib/db/client";
@@ -30,24 +50,65 @@ import {
   product,
   projectQuote,
   projectRequest,
+  uploadIntent,
   users,
 } from "@/lib/db/schema";
 import { getProjectRequestForBoardDetail } from "@/lib/db/queries";
 import { createUploadToken } from "@/lib/inquiry-attachment-token";
 import {
+  confirmInquiryAttachment,
   deleteInquiryAttachment,
   getInquiryAttachmentUrl,
   hideInquiryAttachment,
   listInquiryAttachments,
+  requestInquiryAttachmentUpload,
   unhideInquiryAttachment,
-  uploadInquiryAttachment,
+  type AttachmentActionResult,
+  type UploadInquiryAttachmentAuth,
 } from "./inquiry-attachment-actions";
+import type { InquiryKind } from "./inquiry-attachment-specs";
 
 const PNG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]);
 const PDF = Buffer.from("%PDF-1.7\n1 0 obj\n/Type /Page\nendobj\n%%EOF", "latin1");
 
-function makeFile(bytes: Buffer, name: string): File {
-  return new File([new Uint8Array(bytes)], name);
+interface TestFile {
+  bytes: Buffer;
+  name: string;
+  // Typ, który przeglądarka deklaruje serwerowi; domyślnie wnioskowany z bajtów.
+  declaredType?: string;
+}
+
+function makeFile(bytes: Buffer, name: string, declaredType?: string): TestFile {
+  return { bytes, name, declaredType };
+}
+
+function sniffType(bytes: Buffer): string {
+  if (bytes.subarray(0, 4).equals(PNG.subarray(0, 4))) return "image/png";
+  return "application/pdf";
+}
+
+function keyFromUploadUrl(url: string): string {
+  return new URL(url).searchParams.get("key")!;
+}
+
+// Zastępuje dawną akcję `uploadInquiryAttachment`: prośba, "wysłanie" pliku do pamięci udającej R2
+// (tak jak robi to przeglądarka) i potwierdzenie. Dzięki temu testy usuwania, widoczności i znacznika
+// zmian dalej tworzą pliki prawdziwą ścieżką spec 0085.
+async function uploadInquiryAttachment(
+  kind: InquiryKind,
+  inquiryId: string,
+  file: TestFile,
+  authInput: UploadInquiryAttachmentAuth = {},
+): Promise<AttachmentActionResult> {
+  const requested = await requestInquiryAttachmentUpload(
+    kind,
+    inquiryId,
+    { filename: file.name, mimeType: file.declaredType ?? sniffType(file.bytes), sizeBytes: file.bytes.byteLength },
+    authInput,
+  );
+  if (!requested.ok) return requested;
+  store.set(keyFromUploadUrl(requested.uploadUrl!), file.bytes);
+  return confirmInquiryAttachment(requested.intentId!, { uploadToken: authInput.uploadToken });
 }
 
 // Zestaw rusza równolegle na wspólnej bazie Neon, a w CI hooki sprzątające bywają wolniejsze niż 10 s.
@@ -105,6 +166,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/inquiry-attachment-actions: real
     for (const id of requestIds) {
       await db.update(projectRequest).set({ selectedQuoteId: null }).where(eq(projectRequest.id, id));
       await db.delete(inquiryAttachment).where(eq(inquiryAttachment.projectRequestId, id));
+      await db.delete(uploadIntent).where(eq(uploadIntent.projectRequestId, id));
       await db.delete(projectQuote).where(eq(projectQuote.projectRequestId, id));
       await db.delete(projectRequest).where(eq(projectRequest.id, id));
     }
@@ -119,8 +181,10 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/inquiry-attachment-actions: real
 
   beforeEach(() => {
     authMock.mockReset().mockResolvedValue(null);
-    uploadMock.mockClear().mockResolvedValue(undefined);
-    deleteObjectMock.mockClear().mockResolvedValue(undefined);
+    store.clear();
+    signedUploadMock.mockClear();
+    copyMock.mockClear();
+    deleteObjectMock.mockClear();
     signedUrlMock.mockClear();
     trackEventMock.mockClear();
     captureErrorMock.mockClear();
@@ -154,7 +218,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/inquiry-attachment-actions: real
       const result = await uploadInquiryAttachment("request", id, makeFile(PDF, "plan.pdf"), { confirmedNoContactData: true });
 
       expect(result).toMatchObject({ ok: false, errorCode: "no_access" });
-      expect(uploadMock).not.toHaveBeenCalled();
+      expect(signedUploadMock).not.toHaveBeenCalled();
     });
 
     it("rejects an expired token and a token for another inquiry", async () => {
@@ -206,8 +270,10 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/inquiry-attachment-actions: real
         uploadedByKind: "guest",
         uploadedByUserId: null,
       });
-      expect(row.r2Key).toMatch(/^[0-9a-f-]{36}\.png$/);
-      expect(uploadMock).toHaveBeenCalledWith(row.r2Key, expect.any(Buffer), "image/png");
+      expect(row.r2Key).toMatch(/^inquiry-attachments\/[0-9a-f-]{36}\.png$/);
+      // Plik jest pod kluczem ostatecznym, a klucz tymczasowy został sprzątnięty (AC-14).
+      expect(store.get(row.r2Key)).toEqual(PNG);
+      expect([...store.keys()].some((key) => key.startsWith("uploads/"))).toBe(false);
 
       const [parent] = await db.select({ changedAt: projectRequest.attachmentsChangedAt }).from(projectRequest).where(eq(projectRequest.id, id));
       expect(parent.changedAt).toBeInstanceOf(Date);
@@ -220,16 +286,111 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/inquiry-attachment-actions: real
       expect(JSON.stringify(trackEventMock.mock.calls)).not.toContain("Rzut");
     });
 
-    it("rejects a file with no allowed signature before touching R2", async () => {
+    it("rejects a file with no allowed signature at confirmation and removes the object", async () => {
       const id = await newRequest();
       const uploadToken = createUploadToken("request", id);
-      const result = await uploadInquiryAttachment("request", id, makeFile(Buffer.from("<script>alert(1)</script>"), "x.pdf"), {
-        uploadToken,
-        confirmedNoContactData: true,
-      });
+      const result = await uploadInquiryAttachment(
+        "request",
+        id,
+        makeFile(Buffer.from("<script>alert(1)</script>"), "x.pdf", "application/pdf"),
+        { uploadToken, confirmedNoContactData: true },
+      );
 
-      expect(result).toMatchObject({ ok: false, errorCode: "invalid_type" });
-      expect(uploadMock).not.toHaveBeenCalled();
+      expect(result).toMatchObject({ ok: false, errorCode: "file_rejected" });
+      expect(store.size).toBe(0);
+      expect(await db.select().from(inquiryAttachment).where(eq(inquiryAttachment.projectRequestId, id))).toHaveLength(0);
+    });
+
+    it("rejects an image declared as PDF, and a declared type outside the allow list", async () => {
+      const id = await newRequest();
+      const uploadToken = createUploadToken("request", id);
+      const auth = { uploadToken, confirmedNoContactData: true };
+
+      const mismatch = await uploadInquiryAttachment("request", id, makeFile(PNG, "a.pdf", "application/pdf"), auth);
+      expect(mismatch).toMatchObject({ ok: false, errorCode: "file_rejected" });
+
+      const badType = await uploadInquiryAttachment("request", id, makeFile(PDF, "a.exe", "application/x-msdownload"), auth);
+      expect(badType).toMatchObject({ ok: false, errorCode: "invalid_type" });
+    });
+
+    it("answers not_uploaded when confirmed before the file was sent, and keeps the intent for a retry", async () => {
+      const id = await newRequest();
+      const uploadToken = createUploadToken("request", id);
+      const requested = await requestInquiryAttachmentUpload(
+        "request",
+        id,
+        { filename: "plan.pdf", mimeType: "application/pdf", sizeBytes: PDF.byteLength },
+        { uploadToken, confirmedNoContactData: true },
+      );
+      expect(requested.ok).toBe(true);
+
+      const early = await confirmInquiryAttachment(requested.intentId!, { uploadToken });
+      expect(early).toMatchObject({ ok: false, errorCode: "not_uploaded" });
+
+      store.set(keyFromUploadUrl(requested.uploadUrl!), PDF);
+      const retry = await confirmInquiryAttachment(requested.intentId!, { uploadToken });
+      expect(retry.ok).toBe(true);
+    });
+
+    it("rejects a file whose size differs from the declaration and removes it", async () => {
+      const id = await newRequest();
+      const uploadToken = createUploadToken("request", id);
+      const requested = await requestInquiryAttachmentUpload(
+        "request",
+        id,
+        { filename: "plan.pdf", mimeType: "application/pdf", sizeBytes: PDF.byteLength },
+        { uploadToken, confirmedNoContactData: true },
+      );
+      store.set(keyFromUploadUrl(requested.uploadUrl!), Buffer.concat([PDF, Buffer.from("tail")]));
+
+      const result = await confirmInquiryAttachment(requested.intentId!, { uploadToken });
+
+      expect(result).toMatchObject({ ok: false, errorCode: "file_rejected" });
+      expect(store.size).toBe(0);
+    });
+
+    it("refuses a size above 20 MB and an empty file at request time", async () => {
+      const id = await newRequest();
+      const uploadToken = createUploadToken("request", id);
+      const auth = { uploadToken, confirmedNoContactData: true };
+
+      const huge = await requestInquiryAttachmentUpload("request", id, { filename: "a.pdf", mimeType: "application/pdf", sizeBytes: 21 * 1024 * 1024 }, auth);
+      expect(huge).toMatchObject({ ok: false, errorCode: "too_large" });
+      const empty = await requestInquiryAttachmentUpload("request", id, { filename: "a.pdf", mimeType: "application/pdf", sizeBytes: 0 }, auth);
+      expect(empty).toMatchObject({ ok: false, errorCode: "invalid_type" });
+    });
+
+    it("lets only the same caller confirm, and a second confirmation yields no second row", async () => {
+      const id = await newRequest();
+      authMock.mockResolvedValue(session(adminId, "admin"));
+      const requested = await requestInquiryAttachmentUpload("request", id, { filename: "plan.pdf", mimeType: "application/pdf", sizeBytes: PDF.byteLength }, {});
+      store.set(keyFromUploadUrl(requested.uploadUrl!), PDF);
+
+      // Gość z tokenem nie potwierdzi zamiaru admina.
+      authMock.mockResolvedValue(null);
+      const guest = await confirmInquiryAttachment(requested.intentId!, { uploadToken: createUploadToken("request", id) });
+      expect(guest).toMatchObject({ ok: false, errorCode: "no_access" });
+
+      authMock.mockResolvedValue(session(adminId, "admin"));
+      const first = await confirmInquiryAttachment(requested.intentId!);
+      expect(first.ok).toBe(true);
+      const second = await confirmInquiryAttachment(requested.intentId!);
+      expect(second).toMatchObject({ ok: false, errorCode: "no_access" });
+      expect(await db.select().from(inquiryAttachment).where(eq(inquiryAttachment.projectRequestId, id))).toHaveLength(1);
+    });
+
+    it("lets a repeated request for the same file replace the earlier one without taking a second slot", async () => {
+      const id = await newRequest();
+      authMock.mockResolvedValue(session(clientUserId, "client"));
+      const declaration = { filename: "plan.pdf", mimeType: "application/pdf", sizeBytes: PDF.byteLength };
+      const first = await requestInquiryAttachmentUpload("request", id, declaration, { confirmedNoContactData: true });
+      const second = await requestInquiryAttachmentUpload("request", id, declaration, { confirmedNoContactData: true });
+
+      expect(second.ok).toBe(true);
+      expect(second.intentId).not.toBe(first.intentId);
+      expect(deleteObjectMock).toHaveBeenCalledWith(keyFromUploadUrl(first.uploadUrl!));
+      store.set(keyFromUploadUrl(first.uploadUrl!), PDF);
+      expect(await confirmInquiryAttachment(first.intentId!)).toMatchObject({ ok: false, errorCode: "no_access" });
     });
 
     it("lets the owning client upload, and another client not", async () => {
@@ -257,21 +418,20 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/inquiry-attachment-actions: real
       expect(audit?.newValues).not.toHaveProperty("filename");
     });
 
-    it("rejects the eleventh file and removes the orphaned object from R2", async () => {
+    it("rejects the eleventh file before issuing an upload address", async () => {
       const id = await newRequest();
       authMock.mockResolvedValue(session(clientUserId, "client"));
       for (let index = 0; index < 10; index += 1) {
         const ok = await uploadInquiryAttachment("request", id, makeFile(PDF, `p${index}.pdf`), { confirmedNoContactData: true });
         expect(ok.ok).toBe(true);
       }
-      deleteObjectMock.mockClear();
-      uploadMock.mockClear();
+      signedUploadMock.mockClear();
 
       const result = await uploadInquiryAttachment("request", id, makeFile(PDF, "p11.pdf"), { confirmedNoContactData: true });
 
+      // Limit liczy też rozpoczęte wgrania i zatrzymuje prośbę, zanim powstanie adres do zapisu (AC-3).
       expect(result).toMatchObject({ ok: false, errorCode: "limit_count" });
-      expect(uploadMock).toHaveBeenCalledTimes(1);
-      expect(deleteObjectMock).toHaveBeenCalledWith(uploadMock.mock.calls[0][0]);
+      expect(signedUploadMock).not.toHaveBeenCalled();
     });
 
     it("blocks client and guest uploads once the summary is published, but not admin uploads", async () => {
@@ -280,17 +440,17 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/inquiry-attachment-actions: real
 
       const guest = await uploadInquiryAttachment("request", id, makeFile(PDF, "a.pdf"), { uploadToken, confirmedNoContactData: true });
       expect(guest).toMatchObject({ ok: false, errorCode: "closed" });
-      expect(uploadMock).not.toHaveBeenCalled();
+      expect(signedUploadMock).not.toHaveBeenCalled();
 
       authMock.mockResolvedValue(session(adminId, "admin"));
       const admin = await uploadInquiryAttachment("request", id, makeFile(PDF, "a.pdf"), {});
       expect(admin.ok).toBe(true);
     });
 
-    it("reports a storage failure without writing a row", async () => {
+    it("reports a signing failure without writing a row", async () => {
       const id = await newRequest();
       const uploadToken = createUploadToken("request", id);
-      uploadMock.mockRejectedValueOnce(new Error("r2 down"));
+      signedUploadMock.mockRejectedValueOnce(new Error("r2 down"));
 
       const result = await uploadInquiryAttachment("request", id, makeFile(PDF, "a.pdf"), { uploadToken, confirmedNoContactData: true });
 

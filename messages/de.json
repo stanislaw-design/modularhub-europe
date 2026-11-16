@@ -2090,7 +2090,19 @@
     "replaceFile": "Datei ersetzen",
     "uploading": "Wird hochgeladen…",
     "hint": "PDF, max. 20 MB.",
-    "uploadError": "Die Datei konnte nicht hochgeladen werden. Bitte versuche es erneut."
+    "uploadError": "Die Datei konnte nicht hochgeladen werden. Bitte versuche es erneut.",
+    "retry": "Erneut versuchen",
+    "errors": {
+      "no_access": "Sie haben keinen Zugriff auf dieses Angebot.",
+      "quote_inactive": "Dieses Angebot ist nicht mehr aktiv. Laden Sie die Seite neu.",
+      "too_large": "Die Datei ist größer als 20 MB.",
+      "invalid_type": "Es sind nur PDF-Dateien erlaubt.",
+      "not_uploaded": "Die Datei ist nicht im Speicher angekommen. Bitte versuchen Sie es erneut.",
+      "expired": "Der Upload ist abgelaufen. Bitte fügen Sie die Datei erneut hinzu.",
+      "file_rejected": "Diese Datei wurde nicht akzeptiert. Prüfen Sie, ob es ein gültiges, unverschlüsseltes PDF ist.",
+      "generic": "Die Datei konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
+      "upload_failed": "Die Datei konnte nicht gesendet werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut."
+    }
   },
   "ProducerPanelBoardQuotesPage": {
     "heading": "Meine Angebote",
@@ -2937,6 +2949,9 @@
       "closed": "Die Dateien dieser Anfrage können nicht mehr geändert werden.",
       "guest_daily_limit": "Das Hochladen von Dateien ist vorübergehend nicht verfügbar. Versuchen Sie es später erneut oder schreiben Sie uns.",
       "storage_failed": "Die Datei konnte nicht in den Speicher hochgeladen werden. Bitte versuchen Sie es erneut.",
+      "not_uploaded": "Die Datei ist nicht im Speicher angekommen. Bitte versuchen Sie es erneut.",
+      "expired": "Der Upload ist abgelaufen. Bitte fügen Sie die Datei erneut hinzu.",
+      "upload_failed": "Die Datei konnte nicht gesendet werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
       "not_found": "Datei nicht gefunden.",
       "reason_required": "Geben Sie einen Grund für das Ausblenden der Datei an.",
       "generic": "Die Datei konnte nicht gespeichert werden. Bitte versuchen Sie es erneut."

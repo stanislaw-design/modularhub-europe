@@ -1,4 +1,11 @@
-import { DeleteObjectCommand, GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import {
+  CopyObjectCommand,
+  DeleteObjectCommand,
+  GetObjectCommand,
+  HeadObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 // Prywatny kubełek Cloudflare R2, spec 0063 Build plan #4: drugi, osobny
@@ -88,14 +95,28 @@ export async function buildSignedDownloadUrl(
   return getSignedUrl(client, command, { expiresIn: ttlSeconds });
 }
 
-// Podpisany adres do zapisu (PUT) prosto z przeglądarki (spec 0080 AC-14): plik omija funkcję
+// Podpisany adres do zapisu (PUT) prosto z przeglądarki (spec 0080 AC-14, spec 0085): plik omija funkcję
 // serwerową, więc nie obowiązuje go limit ciała żądania Vercela (około 4,5 MB). Wymaga reguły
 // CORS na prywatnym kubełku. Typ treści wchodzi w podpis, więc przeglądarka musi wysłać dokładnie
-// ten sam nagłówek Content-Type.
-export async function buildSignedUploadUrl(key: string, ttlSeconds: number, contentType: string): Promise<string> {
+// ten sam nagłówek Content-Type. Opcjonalne `contentLength` (spec 0085 AC-4) wchodzi w podpis jako
+// nagłówek content-length; bez niego zachowanie jest takie jak dla spec 0080.
+export async function buildSignedUploadUrl(
+  key: string,
+  ttlSeconds: number,
+  contentType: string,
+  contentLength?: number,
+): Promise<string> {
   const client = getPrivateR2Client();
-  const command = new PutObjectCommand({ Bucket: getPrivateBucketName(), Key: key, ContentType: contentType });
-  return getSignedUrl(client, command, { expiresIn: ttlSeconds });
+  const command = new PutObjectCommand({
+    Bucket: getPrivateBucketName(),
+    Key: key,
+    ContentType: contentType,
+    ...(contentLength !== undefined ? { ContentLength: contentLength } : {}),
+  });
+  return getSignedUrl(client, command, {
+    expiresIn: ttlSeconds,
+    ...(contentLength !== undefined ? { signableHeaders: new Set(["content-type", "content-length"]) } : {}),
+  });
 }
 
 // Rozmiar obiektu bez pobierania go; `null`, gdy obiektu nie ma.
@@ -120,4 +141,69 @@ export async function readPrivateObjectHead(key: string, byteCount: number): Pro
   );
   if (!result.Body) return new Uint8Array();
   return result.Body.transformToByteArray();
+}
+
+// Rozmiar i ETag obiektu bez pobierania go (spec 0085 AC-4, AC-6); `null`, gdy obiektu nie ma.
+export async function headPrivateObject(key: string): Promise<{ size: number; etag: string | null } | null> {
+  const client = getPrivateR2Client();
+  try {
+    const result = await client.send(new HeadObjectCommand({ Bucket: getPrivateBucketName(), Key: key }));
+    return { size: result.ContentLength ?? 0, etag: result.ETag ?? null };
+  } catch (error) {
+    const name = (error as { name?: string }).name;
+    const status = (error as { $metadata?: { httpStatusCode?: number } }).$metadata?.httpStatusCode;
+    if (name === "NotFound" || name === "NoSuchKey" || status === 404) return null;
+    throw error;
+  }
+}
+
+export class PrivateObjectTooLargeError extends Error {
+  constructor() {
+    super("Obiekt przekracza dozwolony rozmiar.");
+    this.name = "PrivateObjectTooLargeError";
+  }
+}
+
+// Pełne pobranie obiektu z twardym limitem bajtów (spec 0085 AC-4, AC-5): nie ufa samemu HEAD, przerywa
+// czytanie, gdy strumień przekroczy `maxBytes`, i zwraca ETag odczytanej wersji (do `If-Match` przy kopii).
+export async function readPrivateObjectBytes(
+  key: string,
+  maxBytes: number,
+): Promise<{ bytes: Buffer; etag: string | null }> {
+  const client = getPrivateR2Client();
+  const result = await client.send(new GetObjectCommand({ Bucket: getPrivateBucketName(), Key: key }));
+  if (!result.Body) return { bytes: Buffer.alloc(0), etag: result.ETag ?? null };
+  const chunks: Buffer[] = [];
+  let total = 0;
+  for await (const chunk of result.Body as AsyncIterable<Uint8Array>) {
+    total += chunk.byteLength;
+    if (total > maxBytes) {
+      (result.Body as { destroy?: () => void }).destroy?.();
+      throw new PrivateObjectTooLargeError();
+    }
+    chunks.push(Buffer.from(chunk));
+  }
+  return { bytes: Buffer.concat(chunks, total), etag: result.ETag ?? null };
+}
+
+// Kopia obiektu na klucz ostateczny po stronie R2 (plik nie wraca przez funkcję), spec 0085 AC-6, AC-14.
+// `CopyObjectIfMatch` gwarantuje, że kopiujemy dokładnie tę wersję, którą zwalidowano.
+export async function copyPrivateObject(
+  fromKey: string,
+  toKey: string,
+  ifMatchEtag: string | null,
+  contentType: string,
+): Promise<void> {
+  const client = getPrivateR2Client();
+  const bucket = getPrivateBucketName();
+  await client.send(
+    new CopyObjectCommand({
+      Bucket: bucket,
+      Key: toKey,
+      CopySource: `${bucket}/${fromKey}`,
+      ContentType: contentType,
+      MetadataDirective: "REPLACE",
+      ...(ifMatchEtag ? { CopySourceIfMatch: ifMatchEtag } : {}),
+    }),
+  );
 }

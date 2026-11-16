@@ -2083,7 +2083,19 @@
     "replaceFile": "Bestand vervangen",
     "uploading": "Uploaden…",
     "hint": "PDF, max. 20 MB.",
-    "uploadError": "Het bestand kon niet worden geüpload. Probeer het opnieuw."
+    "uploadError": "Het bestand kon niet worden geüpload. Probeer het opnieuw.",
+    "retry": "Opnieuw proberen",
+    "errors": {
+      "no_access": "U heeft geen toegang tot deze offerte.",
+      "quote_inactive": "Deze offerte is niet meer actief. Ververs de pagina.",
+      "too_large": "Het bestand is groter dan 20 MB.",
+      "invalid_type": "Alleen pdf-bestanden zijn toegestaan.",
+      "not_uploaded": "Het bestand is niet in de opslag aangekomen. Probeer het opnieuw.",
+      "expired": "De upload is verlopen. Voeg het bestand opnieuw toe.",
+      "file_rejected": "Dit bestand is niet geaccepteerd. Controleer of het een geldige, niet-versleutelde pdf is.",
+      "generic": "Het bestand kon niet worden opgeslagen. Probeer het opnieuw.",
+      "upload_failed": "Het bestand kon niet worden verzonden. Controleer uw verbinding en probeer het opnieuw."
+    }
   },
   "ProducerPanelBoardQuotesPage": {
     "heading": "Mijn offertes",
@@ -2937,6 +2949,9 @@
       "closed": "De bestanden van deze aanvraag kunnen niet meer worden gewijzigd.",
       "guest_daily_limit": "Bestanden uploaden is tijdelijk niet beschikbaar. Probeer het later opnieuw of schrijf ons.",
       "storage_failed": "Het bestand kon niet naar de opslag worden geüpload. Probeer het opnieuw.",
+      "not_uploaded": "Het bestand is niet in de opslag aangekomen. Probeer het opnieuw.",
+      "expired": "De upload is verlopen. Voeg het bestand opnieuw toe.",
+      "upload_failed": "Het bestand kon niet worden verzonden. Controleer uw verbinding en probeer het opnieuw.",
       "not_found": "Bestand niet gevonden.",
       "reason_required": "Geef een reden op voor het verbergen van het bestand.",
       "generic": "Het bestand kon niet worden opgeslagen. Probeer het opnieuw."

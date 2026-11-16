@@ -791,8 +791,8 @@ Plik z przeglądarki leci prosto do prywatnego R2 podpisanym adresem, z pominię
 - [x] Zaprojektuj (spec): [0085](../specs/0085-bezposrednie-wgrywanie-plikow/index.md)
 - [ ] Zbuduj: `/develop bezpośrednie wgrywanie plików do R2`
   - [ ] Cienki przekrój dla załączników zapytań: reguła CORS, migracja `upload_intent`, klient prywatnego R2 (podpis, kopia, odczyt z limitem), `direct-upload.ts`, akcje prośby i potwierdzenia, uploader dla jednego pliku, test 15 MB na staging, satisfies AC-1 do AC-7, AC-12, AC-14
-  - [ ] Pogrubienie uploaderów: postęp, błędy per plik, ponowienia, tłumaczenia w czterech językach, zdarzenia i Sentry, satisfies AC-11, AC-13
-  - [ ] Zadanie czyszczące (wchodzi na produkcję razem z cienkim przekrojem): niepotwierdzone obiekty, klucze tymczasowe, pliki skasowane 30 dni temu, `vercel.json`, satisfies AC-9
+  - [x] Pogrubienie uploaderów: postęp, błędy per plik, ponowienia, tłumaczenia w czterech językach, zdarzenia i Sentry, satisfies AC-11, AC-13
+  - [x] Zadanie czyszczące (wchodzi na produkcję razem z cienkim przekrojem): niepotwierdzone obiekty, klucze tymczasowe, pliki skasowane 30 dni temu, `vercel.json`, satisfies AC-9
   - [ ] PDF oferty i domknięcie: para akcji z atomową podmianą, przełączenie `QuoteForm` i `ProjectQuotePdfUploadStep`, usunięcie starych akcji, testy end to end, satisfies AC-8, AC-10
 - [ ] Zweryfikuj: `/check verify bezpośrednie wgrywanie plików do R2`
 - [ ] Testuj: `/test bezpośrednie wgrywanie plików do R2`
