@@ -992,6 +992,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: project request boar
     // Spec 0074 AC-9: przełącznik "Tylko moje kraje dostawy" ukrywa i liczy ukryte.
     it("hides requests outside the delivery countries when asked and reports how many it hid", async () => {
       await db.delete(producerDeliveryCountry).where(eq(producerDeliveryCountry.producerId, producerId));
+      let hiddenWithoutCountries = 0;
       try {
         const all = await getOpenProjectRequestsForBoard({ producerId, page: 1 });
         const mine = await getOpenProjectRequestsForBoard({ producerId, page: 1, filters: { onlyDeliveryCountries: true } });
@@ -1004,12 +1005,16 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: project request boar
         expect(mine.hiddenByDeliveryCount).toBeGreaterThanOrEqual(all.totalCount);
         expect(mine.hiddenByDeliveryCount).toBeGreaterThanOrEqual(1);
         expect(all.hiddenByDeliveryCount).toBe(0);
+        hiddenWithoutCountries = mine.hiddenByDeliveryCount;
       } finally {
         await db.insert(producerDeliveryCountry).values({ producerId, countryCode: "PL" });
       }
       const mine = await getOpenProjectRequestsForBoard({ producerId, page: 1, filters: { onlyDeliveryCountries: true } });
       expect(mine.items.find((item) => item.id === openRequestId)).toBeDefined();
-      expect(mine.hiddenByDeliveryCount).toBe(0);
+      // Wspólna baza dev może mieć prawdziwe otwarte zapytania spoza PL (np. DE, NL), które
+      // producent testowy zawsze "ukrywa", więc nie oczekujemy zera. Z krajem PL ukrytych jest
+      // mniej niż bez żadnego kraju, bo zapytanie z fixture przestało być ukryte.
+      expect(mine.hiddenByDeliveryCount).toBeLessThan(hiddenWithoutCountries);
     });
 
     // Spec 0070 AC-10: producent bez dopasowania nie dostaje niczego z tablicy.
