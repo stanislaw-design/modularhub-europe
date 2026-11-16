@@ -10,7 +10,7 @@ vi.mock("next/navigation", async (importOriginal) => ({
   useRouter: () => ({ push: pushMock, refresh: vi.fn() }),
 }));
 vi.mock("@/lib/project-request-actions", () => ({ createRequestOnBehalf: vi.fn() }));
-vi.mock("@/lib/inquiry-attachment-actions", () => ({ uploadInquiryAttachment: vi.fn() }));
+vi.mock("@/lib/inquiry-attachment-actions", () => ({ requestInquiryAttachmentUpload: vi.fn(), confirmInquiryAttachment: vi.fn() }));
 const mockedCreate = vi.mocked(createRequestOnBehalf);
 
 const countries = [{ code: "DE", name: "Niemcy" }];

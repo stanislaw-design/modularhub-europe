@@ -1647,7 +1647,17 @@
     "confirmBody": "Prüfen Sie Ihr Postfach, wir haben einen Link zu Ihrem Fall gesendet. Ein Klick in der E Mail öffnet ihn und legt Ihr Konto an. Ein ModularHub Berater meldet sich außerdem per E Mail.",
     "linkSendError": "Wir haben Ihre Anfrage gespeichert, aber der Link zu Ihrem Fall konnte nicht gesendet werden. Bitte versuchen Sie es erneut.",
     "resendPrompt": "Keine E Mail erhalten?",
-    "resendLabel": "Erneut senden"
+    "resendLabel": "Erneut senden",
+    "selectedProductsLabel": "{count, plural, one {Ausgewähltes Produkt} other {Ausgewählte Produkte}}",
+    "sectionAddressHeadingOther": "Montage- oder Lieferort",
+    "countryLabelOther": "Lieferland",
+    "configurationHeading": "Gewählte Konfiguration",
+    "configurationVariant": "Variante",
+    "configurationStyle": "Stil",
+    "configurationTotal": "Gesamt",
+    "configurationFrom": "ab {price}",
+    "configurationPriceOnRequest": "auf Anfrage",
+    "advisorQuestionsNote": "Nach dem Absenden stellt Ihnen Ihr Berater einige kurze Fragen zum Produkt."
   },
   "ProfileForm": {
     "nameLabel": "Vollständiger Name",
@@ -2080,7 +2090,19 @@
     "replaceFile": "Datei ersetzen",
     "uploading": "Wird hochgeladen…",
     "hint": "PDF, max. 20 MB.",
-    "uploadError": "Die Datei konnte nicht hochgeladen werden. Bitte versuche es erneut."
+    "uploadError": "Die Datei konnte nicht hochgeladen werden. Bitte versuche es erneut.",
+    "retry": "Erneut versuchen",
+    "errors": {
+      "no_access": "Sie haben keinen Zugriff auf dieses Angebot.",
+      "quote_inactive": "Dieses Angebot ist nicht mehr aktiv. Laden Sie die Seite neu.",
+      "too_large": "Die Datei ist größer als 20 MB.",
+      "invalid_type": "Es sind nur PDF-Dateien erlaubt.",
+      "not_uploaded": "Die Datei ist nicht im Speicher angekommen. Bitte versuchen Sie es erneut.",
+      "expired": "Der Upload ist abgelaufen. Bitte fügen Sie die Datei erneut hinzu.",
+      "file_rejected": "Diese Datei wurde nicht akzeptiert. Prüfen Sie, ob es ein gültiges, unverschlüsseltes PDF ist.",
+      "generic": "Die Datei konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
+      "upload_failed": "Die Datei konnte nicht gesendet werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut."
+    }
   },
   "ProducerPanelBoardQuotesPage": {
     "heading": "Meine Angebote",
@@ -2422,7 +2444,7 @@
       }
     },
     "termin": {
-      "question": "Wann möchten Sie einziehen?",
+      "question": "Bis wann planen Sie die Umsetzung?",
       "options": {
         "jak_najszybciej": {
           "label": "So schnell wie möglich",
@@ -2498,6 +2520,95 @@
         "pod_klucz": {
           "label": "Schlüsselfertig",
           "consequence": "Haus bezugsfertig, der höchste Preis vom Hersteller."
+        }
+      }
+    },
+    "miejsce_ustawienia": {
+      "question": "Wo soll das Produkt stehen?",
+      "options": {
+        "ogrod": {
+          "label": "Im Garten",
+          "consequence": "Im Freien, auf dem Boden oder einem befestigten Untergrund."
+        },
+        "taras": {
+          "label": "Auf einer Terrasse",
+          "consequence": "Der Berater prüft mit Ihnen Tragfähigkeit und Maße der Terrasse."
+        },
+        "wnetrze_budynku": {
+          "label": "Im Gebäude",
+          "consequence": "Der Berater fragt nach Belüftung und Zugang zum Raum."
+        },
+        "inne": {
+          "label": "Anderer Ort",
+          "consequence": "Der Berater fragt im Gespräch nach Details."
+        }
+      }
+    },
+    "zasilanie_400v": {
+      "question": "Gibt es am Aufstellort einen 400-V-Anschluss?",
+      "options": {
+        "jest_przylacze": {
+          "label": "400-V-Anschluss vorhanden",
+          "consequence": "Der Berater berücksichtigt das bei der Wahl des Ofens und der Preisberechnung."
+        },
+        "do_wykonania": {
+          "label": "Anschluss muss noch gelegt werden",
+          "consequence": "Der Berater fragt, wer ihn legt und was er kostet."
+        },
+        "niepotrzebne": {
+          "label": "Nicht nötig (Holzofen)",
+          "consequence": "Der Berater wählt eine Heizung, die keinen 400-V-Anschluss braucht."
+        }
+      }
+    },
+    "przylacza": {
+      "question": "Gibt es am Lieferort Anschlüsse?",
+      "options": {
+        "wszystkie": {
+          "label": "Alle Anschlüsse vorhanden",
+          "consequence": "Strom, Wasser und Abwasser sind vor Ort."
+        },
+        "czesc": {
+          "label": "Teilweise vorhanden",
+          "consequence": "Der Berater fragt, welche fehlen."
+        },
+        "brak": {
+          "label": "Keine Anschlüsse",
+          "consequence": "Der Berater bespricht mit Ihnen Optionen ohne Anschlüsse."
+        }
+      }
+    },
+    "liczba_sztuk": {
+      "question": "Wie viele Stück möchten Sie bestellen?",
+      "options": {
+        "jeden": {
+          "label": "Ein Stück",
+          "consequence": "Eine normale Anfrage für ein einzelnes Produkt."
+        },
+        "od_2_do_5": {
+          "label": "2 bis 5 Stück",
+          "consequence": "Der Berater fragt nach den Bedingungen für mehrere Stück."
+        },
+        "od_6": {
+          "label": "6 Stück oder mehr",
+          "consequence": "Das ist eine Großbestellung, der Berater bespricht sie gesondert."
+        }
+      }
+    },
+    "miejsce_montazu_tv": {
+      "question": "Wo soll der Fernseher montiert werden?",
+      "options": {
+        "wewnatrz": {
+          "label": "Drinnen",
+          "consequence": "Der Berater wählt das Modell passend für Innenräume."
+        },
+        "na_zewnatrz_pod_dachem": {
+          "label": "Draußen, unter einem Dach",
+          "consequence": "Vor Regen geschützt, aber nicht vor Temperaturschwankungen."
+        },
+        "na_zewnatrz_odkryte": {
+          "label": "Draußen, ohne Dach",
+          "consequence": "Voll der Witterung ausgesetzt, der Berater wählt eine passende Widerstandsfähigkeit."
         }
       }
     }
@@ -2838,6 +2949,9 @@
       "closed": "Die Dateien dieser Anfrage können nicht mehr geändert werden.",
       "guest_daily_limit": "Das Hochladen von Dateien ist vorübergehend nicht verfügbar. Versuchen Sie es später erneut oder schreiben Sie uns.",
       "storage_failed": "Die Datei konnte nicht in den Speicher hochgeladen werden. Bitte versuchen Sie es erneut.",
+      "not_uploaded": "Die Datei ist nicht im Speicher angekommen. Bitte versuchen Sie es erneut.",
+      "expired": "Der Upload ist abgelaufen. Bitte fügen Sie die Datei erneut hinzu.",
+      "upload_failed": "Die Datei konnte nicht gesendet werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
       "not_found": "Datei nicht gefunden.",
       "reason_required": "Geben Sie einen Grund für das Ausblenden der Datei an.",
       "generic": "Die Datei konnte nicht gespeichert werden. Bitte versuchen Sie es erneut."

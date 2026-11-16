@@ -5,6 +5,8 @@ import type { Project } from "@/lib/data/types";
 import { isMarketCountryCode } from "@/lib/countries";
 import { getCountries } from "@/lib/data/countries";
 import { getProjectById, getPublishedProductIds } from "@/lib/data/projects";
+import { buildConfigurationSnapshot } from "@/lib/configuration-snapshot";
+import { resolveInquiryFamily } from "@/lib/inquiry-family";
 import type { Locale } from "@/lib/i18n/routing";
 import { parseInquiryProjectIds } from "@/lib/inquiry";
 
@@ -72,6 +74,15 @@ export default async function ZapytaniePage({
         }
       : undefined;
 
+  // Spec 0084 AC-2: ta sama reguła co na serwerze akcji, rodzina z bazy (Project.family).
+  const family = resolveInquiryFamily(selectedProjects.map((project) => project.family));
+
+  // Spec 0084 AC-8: podsumowanie tylko do odczytu, w języku strony, wyłącznie dla jednego produktu z wyborem.
+  const configurationSummary =
+    configuration && selectedProjects.length === 1
+      ? await buildConfigurationSnapshot(selectedProjects[0].id, configuration.variantId, configuration.optionIds, configuration.styleId, new Date(), locale as Locale)
+      : null;
+
   return (
     <InquiryFlow
       projects={selectedProjects}
@@ -80,6 +91,8 @@ export default async function ZapytaniePage({
       initialCountryCode={initialCountryCode}
       isGuest={!session}
       configuration={configuration}
+      family={family}
+      configurationSummary={configurationSummary}
     />
   );
 }

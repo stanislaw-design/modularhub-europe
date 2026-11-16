@@ -2,7 +2,8 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import pl from "@/messages/pl.json";
-import { uploadInquiryAttachment } from "@/lib/inquiry-attachment-actions";
+import { confirmInquiryAttachment, requestInquiryAttachmentUpload } from "@/lib/inquiry-attachment-actions";
+import { putFileToSignedUrl } from "@/lib/storage/direct-upload-client";
 import { buildInquiryAttachmentLabels } from "./labels";
 import { InquiryAttachmentUploader } from "./InquiryAttachmentUploader";
 
@@ -11,9 +12,20 @@ vi.mock("next/navigation", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/navigation")>()),
   useRouter: () => ({ refresh: refreshMock }),
 }));
-vi.mock("@/lib/inquiry-attachment-actions", () => ({ uploadInquiryAttachment: vi.fn() }));
+vi.mock("@/lib/inquiry-attachment-actions", () => ({
+  requestInquiryAttachmentUpload: vi.fn(),
+  confirmInquiryAttachment: vi.fn(),
+}));
+vi.mock("@/lib/storage/direct-upload-client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/storage/direct-upload-client")>()),
+  putFileToSignedUrl: vi.fn(),
+}));
 
-const mockedUpload = vi.mocked(uploadInquiryAttachment);
+// Spec 0085: trzy kroki na plik (prośba, PUT prosto do R2, potwierdzenie). `mockedUpload` to
+// potwierdzenie, bo to ono daje wynik widoczny dla użytkownika.
+const mockedRequest = vi.mocked(requestInquiryAttachmentUpload);
+const mockedPut = vi.mocked(putFileToSignedUrl);
+const mockedUpload = vi.mocked(confirmInquiryAttachment);
 const labels = buildInquiryAttachmentLabels((key) => (pl.InquiryAttachments as Record<string, unknown>)[key]);
 
 function pdf(name: string, size = 100): File {
@@ -27,6 +39,8 @@ function renderUploader(props: Partial<React.ComponentProps<typeof InquiryAttach
 }
 
 beforeEach(() => {
+  mockedRequest.mockReset().mockResolvedValue({ ok: true, intentId: "intent-1", uploadUrl: "https://r2.example.test/put", expiresAt: "x" });
+  mockedPut.mockReset().mockResolvedValue({ ok: true });
   mockedUpload.mockReset();
   refreshMock.mockReset();
 });
@@ -54,17 +68,21 @@ describe("InquiryAttachmentUploader", () => {
     fireEvent.change(screen.getByTestId("inquiry-attachment-input"), { target: { files: [pdf("rzut.pdf"), pdf("plan.pdf")] } });
 
     await waitFor(() => expect(mockedUpload).toHaveBeenCalledTimes(2));
-    expect(mockedUpload.mock.calls[0]).toEqual(["request", "req-1", expect.any(File), { uploadToken: "token-1", confirmedNoContactData: true }]);
-    expect((mockedUpload.mock.calls[0][2] as File).name).toBe("rzut.pdf");
-    expect((mockedUpload.mock.calls[1][2] as File).name).toBe("plan.pdf");
+    expect(mockedRequest.mock.calls[0]).toEqual([
+      "request",
+      "req-1",
+      { filename: "rzut.pdf", mimeType: "application/pdf", sizeBytes: 100 },
+      { uploadToken: "token-1", confirmedNoContactData: true },
+    ]);
+    expect(mockedRequest.mock.calls[1][2]).toMatchObject({ filename: "plan.pdf" });
+    expect(mockedPut).toHaveBeenCalledTimes(2);
+    expect(mockedUpload).toHaveBeenCalledWith("intent-1", { uploadToken: "token-1" });
     expect(await screen.findAllByText(labels.statusDone)).toHaveLength(2);
   });
 
   it("shows a per file error with retry; one failed file does not stop the others", async () => {
-    mockedUpload
-      .mockResolvedValueOnce({ ok: false, errorCode: "invalid_type", error: "x" })
-      .mockResolvedValueOnce({ ok: true, attachmentId: "b" })
-      .mockResolvedValueOnce({ ok: true, attachmentId: "c" });
+    mockedRequest.mockResolvedValueOnce({ ok: false, errorCode: "invalid_type", error: "x" });
+    mockedUpload.mockResolvedValue({ ok: true, attachmentId: "b" });
     const user = userEvent.setup();
     renderUploader();
 
@@ -75,12 +93,12 @@ describe("InquiryAttachmentUploader", () => {
     expect(await screen.findByText(labels.statusDone)).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: labels.retry }));
-    await waitFor(() => expect(mockedUpload).toHaveBeenCalledTimes(3));
+    await waitFor(() => expect(mockedRequest).toHaveBeenCalledTimes(3));
     expect(await screen.findAllByText(labels.statusDone)).toHaveLength(2);
   });
 
   it("tells a guest whose token stopped working to add files after signing in", async () => {
-    mockedUpload.mockResolvedValue({ ok: false, errorCode: "no_access", error: "x" });
+    mockedRequest.mockResolvedValue({ ok: false, errorCode: "no_access", error: "x" });
     const user = userEvent.setup();
     renderUploader();
 
@@ -98,7 +116,7 @@ describe("InquiryAttachmentUploader", () => {
     fireEvent.change(screen.getByTestId("inquiry-attachment-input"), { target: { files: [pdf("duzy.pdf", 21 * 1024 * 1024)] } });
 
     expect(await screen.findByRole("alert")).toHaveTextContent(labels.errors.too_large);
-    expect(mockedUpload).not.toHaveBeenCalled();
+    expect(mockedRequest).not.toHaveBeenCalled();
   });
 
   it("staff upload needs no confirmation box, sends no confirmation and refreshes the page", async () => {
@@ -109,8 +127,8 @@ describe("InquiryAttachmentUploader", () => {
     expect(screen.getByText(labels.staffWarning)).toBeInTheDocument();
     fireEvent.change(screen.getByTestId("inquiry-attachment-input"), { target: { files: [pdf("rzut.pdf")] } });
 
-    await waitFor(() => expect(mockedUpload).toHaveBeenCalledTimes(1));
-    expect(mockedUpload.mock.calls[0][3]).toEqual({ uploadToken: undefined, confirmedNoContactData: undefined });
+    await waitFor(() => expect(mockedRequest).toHaveBeenCalledTimes(1));
+    expect(mockedRequest.mock.calls[0][3]).toEqual({ uploadToken: undefined, confirmedNoContactData: undefined });
     await waitFor(() => expect(refreshMock).toHaveBeenCalled());
   });
 
@@ -123,5 +141,31 @@ describe("InquiryAttachmentUploader", () => {
 
     await waitFor(() => expect(onUploaded).toHaveBeenCalledTimes(1));
     within(document.body).getByText(labels.statusDone);
+  });
+
+  it("separates a failed upload to R2 from a refused address, and lets the file be retried", async () => {
+    mockedPut.mockResolvedValueOnce({ ok: false, reason: "upload_failed" });
+    mockedUpload.mockResolvedValue({ ok: true, attachmentId: "a" });
+    const user = userEvent.setup();
+    renderUploader({ staff: true });
+
+    fireEvent.change(screen.getByTestId("inquiry-attachment-input"), { target: { files: [pdf("rzut.pdf")] } });
+    expect(await screen.findByRole("alert")).toHaveTextContent(labels.errors.upload_failed);
+    expect(mockedUpload).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: labels.retry }));
+    expect(await screen.findByText(labels.statusDone)).toBeInTheDocument();
+  });
+
+  it("retries the confirmation up to twice on a transient error, then reports it", async () => {
+    mockedUpload
+      .mockResolvedValueOnce({ ok: false, errorCode: "generic", error: "x" })
+      .mockResolvedValueOnce({ ok: true, attachmentId: "a" });
+    renderUploader({ staff: true });
+
+    fireEvent.change(screen.getByTestId("inquiry-attachment-input"), { target: { files: [pdf("rzut.pdf")] } });
+    expect(await screen.findByText(labels.statusDone)).toBeInTheDocument();
+    expect(mockedUpload).toHaveBeenCalledTimes(2);
+    expect(mockedPut).toHaveBeenCalledTimes(1);
   });
 });

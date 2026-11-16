@@ -6,7 +6,8 @@ import { useTranslations } from "next-intl";
 import { ProjectQuotePdfUploadStep } from "@/components/producent/ProjectQuotePdfUploadStep";
 import { Button, Card, Heading, Input, Label, Radio, Stack, Text, Textarea } from "@/components/ui";
 import type { QuoteFormInitialValues } from "@/lib/platform-quote-variants";
-import { submitProjectQuote, uploadProjectQuotePdf } from "@/lib/project-quote-actions";
+import { submitProjectQuote } from "@/lib/project-quote-actions";
+import { uploadQuotePdf } from "./upload-quote-pdf";
 import {
   QUOTE_LOGISTICS_ITEMS,
   QUOTE_LOGISTICS_MODES,
@@ -152,9 +153,9 @@ export function QuoteForm({
       setQuoteId(result.quoteId ?? null);
 
       if (result.quoteId && file) {
-        const uploadResult = await uploadProjectQuotePdf(result.quoteId, file);
+        const uploadResult = await uploadQuotePdf(result.quoteId, file);
         if (!uploadResult.ok) {
-          setPdfError(uploadResult.error ?? tPdf("uploadError"));
+          setPdfError(tPdf(`errors.${uploadResult.errorCode}`));
         } else {
           setUploadedFilename(file.name);
         }

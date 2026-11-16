@@ -36,8 +36,23 @@ import {
   toStoredLogistics,
 } from "@/lib/project-quote-specs";
 import { validateDocumentPdf } from "@/lib/storage/document-pdf-validation";
-import { buildSignedDownloadUrl, uploadPrivateObject } from "@/lib/storage/private-r2-client";
-import { buildR2Key } from "@/lib/storage/r2-client";
+import { sanitizeAttachmentFilename } from "@/lib/inquiry-attachment-specs";
+import {
+  createIntent,
+  discardIntentObject,
+  loadIntent,
+  rejectIntent,
+  supersedeSameUpload,
+  UPLOAD_URL_TTL_SECONDS,
+} from "@/lib/storage/direct-upload";
+import {
+  buildSignedDownloadUrl,
+  buildSignedUploadUrl,
+  copyPrivateObject,
+  headPrivateObject,
+  PrivateObjectTooLargeError,
+  readPrivateObjectBytes,
+} from "@/lib/storage/private-r2-client";
 
 interface ActionResult {
   ok: boolean;
@@ -45,7 +60,7 @@ interface ActionResult {
 }
 
 // quoteId w wyniku (spec 0063 AC-1): pozwala QuoteForm wywołać
-// uploadProjectQuotePdf zaraz po udanym złożeniu, bez osobnego odczytu.
+// uploadQuotePdf (components/producent/upload-quote-pdf.ts) zaraz po udanym złożeniu, bez osobnego odczytu.
 interface SubmitProjectQuoteResult extends ActionResult {
   quoteId?: string;
 }
@@ -576,72 +591,203 @@ export interface UploadProjectQuotePdfResult extends ActionResult {
   documentId?: string;
 }
 
-// AC-13: sprawdzenie status = 'active' jest częścią tego samego db.batch co
-// zapis (WHERE EXISTS, ten sam wzorzec co EXISTS w connectSelection
-// wyżej), nie tylko wcześniejszym odczytem -- równoległa akceptacja tej samej
-// wyceny nie może zostawić okna na podmianę pliku na już zaakceptowanej
-// ofercie. Usunięcie starego wiersza jest warunkowane tym samym EXISTS, żeby
-// przegrany wyścig nie skasował istniejącego, już trwałego pliku zaakceptowanej
-// wyceny bez wstawienia nowego w jego miejsce.
-export async function uploadProjectQuotePdf(quoteId: string, file: File): Promise<UploadProjectQuotePdfResult> {
-  const session = await auth();
-  if (!session || session.user.role !== "producer") {
-    return { ok: false, error: "Musisz być zalogowany jako producent." };
-  }
-  const producerId = await getProducerIdForUser(session.user.id);
-  if (!producerId) {
-    return { ok: false, error: "Nie znaleziono konta producenta." };
-  }
+// Spec 0085 AC-8: PDF oferty wgrywany prosto do prywatnego R2 parą kroków, jak załączniki zapytań.
+// Kody błędów tłumaczy interfejs (cztery języki), polski tekst w `error` jest tylko zapasem.
+export type QuotePdfErrorCode =
+  | "no_access"
+  | "quote_inactive"
+  | "too_large"
+  | "invalid_type"
+  | "not_uploaded"
+  | "expired"
+  | "file_rejected"
+  | "generic";
 
+const QUOTE_PDF_ERROR_TEXT: Record<QuotePdfErrorCode, string> = {
+  no_access: "Nie masz dostępu do tej wyceny.",
+  quote_inactive: RACE_ERROR,
+  too_large: "Plik jest większy niż 20 MB.",
+  invalid_type: "Dozwolone są tylko pliki PDF.",
+  not_uploaded: "Plik nie dotarł do magazynu. Spróbuj ponownie.",
+  expired: "Wgrywanie wygasło. Dodaj plik jeszcze raz.",
+  file_rejected: "Ten plik nie został przyjęty.",
+  generic: "Nie udało się zapisać pliku. Spróbuj ponownie.",
+};
+
+function quotePdfFail(errorCode: QuotePdfErrorCode): { ok: false; error: string; errorCode: QuotePdfErrorCode } {
+  return { ok: false, error: QUOTE_PDF_ERROR_TEXT[errorCode], errorCode };
+}
+
+export interface RequestProjectQuotePdfUploadResult extends ActionResult {
+  errorCode?: QuotePdfErrorCode;
+  intentId?: string;
+  uploadUrl?: string;
+  expiresAt?: string;
+}
+
+async function loadOwnQuote(quoteId: string, userId: string) {
+  const producerId = await getProducerIdForUser(userId);
+  if (!producerId) return null;
   const [quoteRow] = await db
     .select({ producerId: projectQuote.producerId, status: projectQuote.status })
     .from(projectQuote)
     .where(eq(projectQuote.id, quoteId));
-  if (!quoteRow) return { ok: false, error: QUOTE_NOT_FOUND_ERROR };
-  if (quoteRow.producerId !== producerId) return { ok: false, error: "Nie masz dostępu do tej wyceny." };
-  if (quoteRow.status !== "active") return { ok: false, error: RACE_ERROR };
+  if (!quoteRow || quoteRow.producerId !== producerId) return null;
+  return { producerId, status: quoteRow.status };
+}
 
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const validation = validateDocumentPdf(buffer, MAX_QUOTE_PDF_BYTES);
-  if (!validation.ok) {
-    return { ok: false, error: validation.error ?? "Nieprawidłowy plik PDF." };
-  }
+// Krok 1: wydaje podpisany adres do zapisu (PUT, 15 minut) pod kluczem tymczasowym `uploads/<uuid>`.
+export async function requestProjectQuotePdfUpload(
+  quoteId: string,
+  declaration: { filename: string; sizeBytes: number },
+): Promise<RequestProjectQuotePdfUploadResult> {
+  const session = await auth();
+  if (!session || session.user.role !== "producer" || !z.uuid().safeParse(quoteId).success) return quotePdfFail("no_access");
 
-  const r2Key = buildR2Key(file.name);
   try {
-    await uploadPrivateObject(r2Key, buffer, "application/pdf");
-  } catch (error) {
-    captureError(error, { path: "uploadProjectQuotePdf", userId: session.user.id });
-    return { ok: false, error: "Nie udało się wgrać pliku do magazynu. Spróbuj ponownie." };
-  }
+    const quote = await loadOwnQuote(quoteId, session.user.id);
+    if (!quote) return quotePdfFail("no_access");
+    if (quote.status !== "active") return quotePdfFail("quote_inactive");
+    if (!Number.isInteger(declaration.sizeBytes) || declaration.sizeBytes < 1) return quotePdfFail("invalid_type");
+    if (declaration.sizeBytes > MAX_QUOTE_PDF_BYTES) return quotePdfFail("too_large");
 
-  const newDocumentId = randomUUID();
-  const activeQuoteCondition = sql`EXISTS (SELECT 1 FROM "project_quote" WHERE "id" = ${quoteId} AND "producer_id" = ${producerId} AND "status" = 'active')`;
-  try {
-    const batchResults = await db.batch([
-      db.execute(sql`
-        UPDATE "document" SET "deleted_at" = now()
-        WHERE "project_quote_id" = ${quoteId} AND "purpose" = 'project_quote_pdf' AND "deleted_at" IS NULL
-          AND ${activeQuoteCondition}
-      `),
-      db.execute(sql`
-        INSERT INTO "document" ("id", "r2_key", "filename", "mime_type", "size_bytes", "purpose", "owner_user_id", "project_quote_id", "created_at")
-        SELECT ${newDocumentId}, ${r2Key}, ${file.name}, 'application/pdf', ${buffer.byteLength}, 'project_quote_pdf', ${session.user.id}, ${quoteId}, now()
-        WHERE ${activeQuoteCondition}
-      `),
-    ]);
-
-    const insertResult = batchResults[1] as { rowCount: number | null };
-    if ((insertResult.rowCount ?? 0) === 0) {
-      return { ok: false, error: RACE_ERROR };
+    const intentInput = {
+      purpose: "project_quote_pdf" as const,
+      target: { projectQuoteId: quoteId },
+      actorKind: "producer" as const,
+      actorUserId: session.user.id,
+      mimeType: "application/pdf",
+      declaredSizeBytes: declaration.sizeBytes,
+      filename: sanitizeAttachmentFilename(String(declaration.filename ?? "")),
+      consentConfirmed: false,
+    };
+    await supersedeSameUpload(intentInput);
+    const intent = await createIntent(intentInput);
+    try {
+      const uploadUrl = await buildSignedUploadUrl(intent.r2Key, UPLOAD_URL_TTL_SECONDS, "application/pdf", declaration.sizeBytes);
+      return {
+        ok: true,
+        intentId: intent.id,
+        uploadUrl,
+        expiresAt: new Date(Date.now() + UPLOAD_URL_TTL_SECONDS * 1000).toISOString(),
+      };
+    } catch (error) {
+      captureError(error, { path: "requestProjectQuotePdfUpload:sign", userId: session.user.id });
+      await rejectIntent({ id: intent.id, r2Key: intent.r2Key });
+      return quotePdfFail("generic");
     }
   } catch (error) {
-    captureError(error, { path: "uploadProjectQuotePdf", userId: session.user.id });
-    return { ok: false, error: "Plik trafił do magazynu, ale zapis w bazie się nie powiódł. Spróbuj ponownie." };
+    captureError(error, { path: "requestProjectQuotePdfUpload", userId: session.user.id });
+    return quotePdfFail("generic");
   }
+}
 
-  trackEvent("project_quote_pdf_uploaded", { quoteId }, session.user.id);
-  return { ok: true, documentId: newDocumentId };
+// Krok 2: potwierdza wgranie. Sprawdza uprawnienia i powiązanie zamiaru, HEAD, zawartość (PDF w całości
+// przez `validateDocumentPdf`), kopiuje na klucz ostateczny i dopiero wtedy w jednej transakcji zużywa
+// zamiar, miękko usuwa stary dokument i wstawia nowy. Warunek "oferta aktywna i należy do producenta"
+// jest w samym SQL (spec 0063 AC-13), więc przegrany wyścig nie kasuje istniejącego pliku.
+export async function confirmProjectQuotePdfUpload(intentId: string): Promise<UploadProjectQuotePdfResult & { errorCode?: QuotePdfErrorCode }> {
+  const session = await auth();
+  if (!session || session.user.role !== "producer" || !z.uuid().safeParse(intentId).success) return quotePdfFail("no_access");
+
+  try {
+    const intent = await loadIntent(intentId);
+    if (
+      !intent ||
+      intent.purpose !== "project_quote_pdf" ||
+      !intent.projectQuoteId ||
+      intent.actorUserId !== session.user.id ||
+      intent.consumedAt ||
+      intent.purgedAt
+    ) {
+      return quotePdfFail("no_access");
+    }
+    const quoteId = intent.projectQuoteId;
+    const quote = await loadOwnQuote(quoteId, session.user.id);
+    if (!quote) return quotePdfFail("no_access");
+    if (intent.expired) return quotePdfFail("expired");
+    if (quote.status !== "active") {
+      await rejectIntent(intent);
+      return quotePdfFail("quote_inactive");
+    }
+
+    const head = await headPrivateObject(intent.r2Key);
+    if (!head) return quotePdfFail("not_uploaded");
+    if (head.size !== intent.declaredSizeBytes || head.size > MAX_QUOTE_PDF_BYTES) {
+      await rejectIntent(intent);
+      return quotePdfFail("file_rejected");
+    }
+
+    let bytes: Buffer;
+    let etag: string | null;
+    try {
+      ({ bytes, etag } = await readPrivateObjectBytes(intent.r2Key, intent.declaredSizeBytes));
+    } catch (error) {
+      if (error instanceof PrivateObjectTooLargeError) {
+        await rejectIntent(intent);
+        return quotePdfFail("file_rejected");
+      }
+      throw error;
+    }
+    if (bytes.byteLength !== intent.declaredSizeBytes || !validateDocumentPdf(bytes, MAX_QUOTE_PDF_BYTES).ok) {
+      await rejectIntent(intent);
+      return quotePdfFail("file_rejected");
+    }
+
+    const finalKey = `quote-pdfs/${randomUUID()}.pdf`;
+    try {
+      await copyPrivateObject(intent.r2Key, finalKey, etag, "application/pdf");
+    } catch (error) {
+      captureError(error, { path: "confirmProjectQuotePdfUpload:copy", userId: session.user.id });
+      return quotePdfFail("generic");
+    }
+
+    const newDocumentId = randomUUID();
+    const consumable = sql`EXISTS (
+      SELECT 1 FROM "upload_intent" WHERE "id" = ${intent.id} AND "consumed_at" IS NULL AND "expires_at" > now()
+    )`;
+    const activeQuote = sql`EXISTS (
+      SELECT 1 FROM "project_quote" WHERE "id" = ${quoteId} AND "producer_id" = ${quote.producerId} AND "status" = 'active'
+    )`;
+    try {
+      // Jedna transakcja: stary dokument znika tylko, gdy nowy faktycznie powstaje (te same warunki w obu
+      // krokach). Dwa kroki zamiast jednego `WITH`, bo częściowy indeks unikalny "jeden aktywny PDF na
+      // ofertę" sprawdza się wiersz po wierszu i przy jednym poleceniu zależałby od kolejności zapisów.
+      const results = await db.batch([
+        db.execute(sql`
+          UPDATE "document" SET "deleted_at" = now()
+          WHERE "project_quote_id" = ${quoteId} AND "purpose" = 'project_quote_pdf' AND "deleted_at" IS NULL
+            AND ${consumable} AND ${activeQuote}
+        `),
+        db.execute<{ id: string }>(sql`
+          WITH c AS (
+            UPDATE "upload_intent" SET "consumed_at" = now()
+            WHERE "id" = ${intent.id} AND "consumed_at" IS NULL AND "expires_at" > now() AND ${activeQuote}
+            RETURNING "id"
+          )
+          INSERT INTO "document" ("id", "r2_key", "filename", "mime_type", "size_bytes", "purpose", "owner_user_id", "project_quote_id", "created_at")
+          SELECT ${newDocumentId}, ${finalKey}, ${intent.filename}, 'application/pdf', ${bytes.byteLength}, 'project_quote_pdf', ${session.user.id}, ${quoteId}, now()
+          FROM c
+          RETURNING "id"
+        `),
+      ]);
+      if ((results[1].rows?.length ?? 0) === 0) {
+        await discardIntentObject({ r2Key: finalKey });
+        return quotePdfFail("quote_inactive");
+      }
+    } catch (error) {
+      await discardIntentObject({ r2Key: finalKey });
+      captureError(error, { path: "confirmProjectQuotePdfUpload", userId: session.user.id });
+      return quotePdfFail("generic");
+    }
+
+    await discardIntentObject(intent);
+    trackEvent("project_quote_pdf_uploaded", { quoteId }, session.user.id);
+    return { ok: true, documentId: newDocumentId };
+  } catch (error) {
+    captureError(error, { path: "confirmProjectQuotePdfUpload", userId: session.user.id });
+    return quotePdfFail("generic");
+  }
 }
 
 export interface GetProjectQuotePdfUrlResult extends ActionResult {

@@ -1640,7 +1640,17 @@
     "confirmBody": "Controleer uw inbox, we hebben een link naar uw dossier gestuurd. Eén klik in de e mail opent het en maakt uw account aan. Een ModularHub adviseur neemt ook per e mail contact met u op.",
     "linkSendError": "We hebben uw aanvraag opgeslagen, maar de link naar uw dossier kon niet worden verstuurd. Probeer het opnieuw.",
     "resendPrompt": "Geen e mail ontvangen?",
-    "resendLabel": "Opnieuw verzenden"
+    "resendLabel": "Opnieuw verzenden",
+    "selectedProductsLabel": "{count, plural, one {Gekozen product} other {Gekozen producten}}",
+    "sectionAddressHeadingOther": "Montage- of leveradres",
+    "countryLabelOther": "Leverland",
+    "configurationHeading": "Gekozen configuratie",
+    "configurationVariant": "Variant",
+    "configurationStyle": "Stijl",
+    "configurationTotal": "Totaal",
+    "configurationFrom": "vanaf {price}",
+    "configurationPriceOnRequest": "op aanvraag",
+    "advisorQuestionsNote": "Na het versturen stelt uw adviseur u enkele korte vragen over het product."
   },
   "ProfileForm": {
     "nameLabel": "Volledige naam",
@@ -2073,7 +2083,19 @@
     "replaceFile": "Bestand vervangen",
     "uploading": "Uploaden…",
     "hint": "PDF, max. 20 MB.",
-    "uploadError": "Het bestand kon niet worden geüpload. Probeer het opnieuw."
+    "uploadError": "Het bestand kon niet worden geüpload. Probeer het opnieuw.",
+    "retry": "Opnieuw proberen",
+    "errors": {
+      "no_access": "U heeft geen toegang tot deze offerte.",
+      "quote_inactive": "Deze offerte is niet meer actief. Ververs de pagina.",
+      "too_large": "Het bestand is groter dan 20 MB.",
+      "invalid_type": "Alleen pdf-bestanden zijn toegestaan.",
+      "not_uploaded": "Het bestand is niet in de opslag aangekomen. Probeer het opnieuw.",
+      "expired": "De upload is verlopen. Voeg het bestand opnieuw toe.",
+      "file_rejected": "Dit bestand is niet geaccepteerd. Controleer of het een geldige, niet-versleutelde pdf is.",
+      "generic": "Het bestand kon niet worden opgeslagen. Probeer het opnieuw.",
+      "upload_failed": "Het bestand kon niet worden verzonden. Controleer uw verbinding en probeer het opnieuw."
+    }
   },
   "ProducerPanelBoardQuotesPage": {
     "heading": "Mijn offertes",
@@ -2422,7 +2444,7 @@
       }
     },
     "termin": {
-      "question": "Wanneer wilt u erin trekken?",
+      "question": "Wanneer wilt u het project realiseren?",
       "options": {
         "jak_najszybciej": {
           "label": "Zo snel mogelijk",
@@ -2498,6 +2520,95 @@
         "pod_klucz": {
           "label": "Sleutelklaar",
           "consequence": "Huis klaar om in te trekken, de hoogste prijs van de fabrikant."
+        }
+      }
+    },
+    "miejsce_ustawienia": {
+      "question": "Waar komt het product te staan?",
+      "options": {
+        "ogrod": {
+          "label": "In de tuin",
+          "consequence": "Buiten, op de grond of een verharde ondergrond."
+        },
+        "taras": {
+          "label": "Op een terras",
+          "consequence": "De adviseur controleert samen met u het draagvermogen en de afmetingen van het terras."
+        },
+        "wnetrze_budynku": {
+          "label": "In een gebouw",
+          "consequence": "De adviseur vraagt naar ventilatie en toegang tot de ruimte."
+        },
+        "inne": {
+          "label": "Een andere plek",
+          "consequence": "De adviseur vraagt in het gesprek naar de details."
+        }
+      }
+    },
+    "zasilanie_400v": {
+      "question": "Is er op de plek een 400 V aansluiting?",
+      "options": {
+        "jest_przylacze": {
+          "label": "Er is een 400 V aansluiting",
+          "consequence": "De adviseur houdt hier rekening mee bij de keuze van de kachel en de prijsberekening."
+        },
+        "do_wykonania": {
+          "label": "De aansluiting moet nog worden aangelegd",
+          "consequence": "De adviseur vraagt wie de aansluiting aanlegt en wat die kost."
+        },
+        "niepotrzebne": {
+          "label": "Niet nodig (houtgestookte kachel)",
+          "consequence": "De adviseur kiest verwarming die geen 400 V nodig heeft."
+        }
+      }
+    },
+    "przylacza": {
+      "question": "Zijn er aansluitingen op de leverlocatie?",
+      "options": {
+        "wszystkie": {
+          "label": "Alle aansluitingen zijn aanwezig",
+          "consequence": "Stroom, water en riolering zijn ter plaatse."
+        },
+        "czesc": {
+          "label": "Een deel van de aansluitingen",
+          "consequence": "De adviseur vraagt welke ontbreken."
+        },
+        "brak": {
+          "label": "Geen aansluitingen",
+          "consequence": "De adviseur bespreekt de opties zonder aansluitingen met u."
+        }
+      }
+    },
+    "liczba_sztuk": {
+      "question": "Hoeveel stuks wilt u bestellen?",
+      "options": {
+        "jeden": {
+          "label": "Eén stuk",
+          "consequence": "Een gewone aanvraag voor één product."
+        },
+        "od_2_do_5": {
+          "label": "2 tot 5 stuks",
+          "consequence": "De adviseur vraagt naar de voorwaarden voor meerdere stuks."
+        },
+        "od_6": {
+          "label": "6 stuks of meer",
+          "consequence": "Dit is een grootbestelling, de adviseur behandelt die apart."
+        }
+      }
+    },
+    "miejsce_montazu_tv": {
+      "question": "Waar wordt de tv gemonteerd?",
+      "options": {
+        "wewnatrz": {
+          "label": "Binnen",
+          "consequence": "De adviseur kiest een model dat past bij binnenomstandigheden."
+        },
+        "na_zewnatrz_pod_dachem": {
+          "label": "Buiten, onder een dak",
+          "consequence": "Beschermd tegen regen, maar niet tegen temperatuurschommelingen."
+        },
+        "na_zewnatrz_odkryte": {
+          "label": "Buiten, zonder dak",
+          "consequence": "Volledig blootgesteld aan het weer, de adviseur kiest een passende weerstand."
         }
       }
     }
@@ -2838,6 +2949,9 @@
       "closed": "De bestanden van deze aanvraag kunnen niet meer worden gewijzigd.",
       "guest_daily_limit": "Bestanden uploaden is tijdelijk niet beschikbaar. Probeer het later opnieuw of schrijf ons.",
       "storage_failed": "Het bestand kon niet naar de opslag worden geüpload. Probeer het opnieuw.",
+      "not_uploaded": "Het bestand is niet in de opslag aangekomen. Probeer het opnieuw.",
+      "expired": "De upload is verlopen. Voeg het bestand opnieuw toe.",
+      "upload_failed": "Het bestand kon niet worden verzonden. Controleer uw verbinding en probeer het opnieuw.",
       "not_found": "Bestand niet gevonden.",
       "reason_required": "Geef een reden op voor het verbergen van het bestand.",
       "generic": "Het bestand kon niet worden opgeslagen. Probeer het opnieuw."

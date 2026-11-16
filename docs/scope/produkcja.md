@@ -88,6 +88,7 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 72 | Widoczność przetargu dla wszystkich zweryfikowanych wolumenowo producentów | Slice 12 | planned |
 | 73 | Wstępna ocena zgodności w ofercie podsumowującej | Slice 3 | planned |
 | 74 | Przegląd danych zgodności projekt po projekcie | Slice 2 | planned |
+| 75 | Bezpośrednie wgrywanie plików do R2 (załączniki zapytań i PDF oferty) | Slice 12 | in progress |
 
 ## Foundations
 
@@ -783,6 +784,18 @@ ModularHub sam jest zamawiającym: admin zakłada projekt (bez zgody klienta, B2
   - [ ] Konta admina (część D): audyt `pending_registration`, poprawki `auth.ts`, zaproszenie i odebranie dostępu, ochrona ostatniego admina, ekran `/internal/admins`, satisfies AC-34 do AC-42
 - [ ] Zweryfikuj: `/check verify projekt własny ModularHub w ModularProjects`
 - [ ] Testuj: `/test projekt własny ModularHub w ModularProjects`
+
+### 75. Bezpośrednie wgrywanie plików do R2 (załączniki zapytań i PDF oferty) · full · in progress
+Plik z przeglądarki leci prosto do prywatnego R2 podpisanym adresem, z pominięciem funkcji serwerowej, bo Vercel odrzuca żądania powyżej około 4,5 MB (PDF 5,6 MB kończył się błędem "Nie udało się zapisać pliku"). Serwer tylko wydaje adres i potwierdza plik: sprawdza rozmiar i zawartość, kopiuje obiekt z klucza tymczasowego na ostateczny i dopiero wtedy zapisuje wiersz. Nowa tabela `upload_intent` pilnuje jednorazowości, limitów gościa i sprzątania. Obejmuje załączniki zapytań (funkcja 60, część D) i PDF oferty producenta (funkcja 51) oraz zadanie czyszczące, które dziś nie istnieje.
+**Done when:** klient, gość z tokenem, admin i producent wgrywają plik do 20 MB (testowo 15 MB) na staging i na produkcji, ponowny zapis pod ten sam adres nie zmienia zapisanego pliku, niepotwierdzone obiekty znikają z R2 w około 2 godziny, a pliki skasowane dawno temu są usuwane po 30 dniach.
+- [x] Zaprojektuj (spec): [0085](../specs/0085-bezposrednie-wgrywanie-plikow/index.md)
+- [ ] Zbuduj: `/develop bezpośrednie wgrywanie plików do R2`
+  - [ ] Cienki przekrój dla załączników zapytań: reguła CORS, migracja `upload_intent`, klient prywatnego R2 (podpis, kopia, odczyt z limitem), `direct-upload.ts`, akcje prośby i potwierdzenia, uploader dla jednego pliku, test 15 MB na staging, satisfies AC-1 do AC-7, AC-12, AC-14
+  - [x] Pogrubienie uploaderów: postęp, błędy per plik, ponowienia, tłumaczenia w czterech językach, zdarzenia i Sentry, satisfies AC-11, AC-13
+  - [x] Zadanie czyszczące (wchodzi na produkcję razem z cienkim przekrojem): niepotwierdzone obiekty, klucze tymczasowe, pliki skasowane 30 dni temu, `vercel.json`, satisfies AC-9
+  - [ ] PDF oferty i domknięcie: para akcji z atomową podmianą, przełączenie `QuoteForm` i `ProjectQuotePdfUploadStep`, usunięcie starych akcji, testy end to end, satisfies AC-8, AC-10
+- [ ] Zweryfikuj: `/check verify bezpośrednie wgrywanie plików do R2`
+- [ ] Testuj: `/test bezpośrednie wgrywanie plików do R2`
 
 ## Utwardzenie przed startem
 

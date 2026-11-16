@@ -17,6 +17,16 @@ export default function robots(): MetadataRoute.Robots {
       // linków po udostępnieniu) zostaje dozwolony.
       { userAgent: "meta-externalagent", disallow: "/" },
       { userAgent: "meta-webindexer", disallow: "/" },
+      // Reflectionbot (Reflection AI, zbieranie danych pod modele) robił ok. 14 tys. żądań na dobę
+      // z rotujących adresów Google Cloud, połowę na jedną stronę produktu (2026-11-12).
+      { userAgent: "Reflectionbot", disallow: "/" },
+      // Crawlery narzędzi SEO (backlinki, audyty konkurencji): nie przynoszą klientów, a SE Ranking
+      // robił ok. 7 tys. żądań na dobę z jednego IP. Uprzejme boty słuchają robots.txt; SE Ranking
+      // dodatkowo blokuje reguła w firewallu.
+      { userAgent: "SERankingBacklinksBot", disallow: "/" },
+      { userAgent: "MJ12bot", disallow: "/" },
+      { userAgent: "SemrushBot", disallow: "/" },
+      { userAgent: "DotBot", disallow: "/" },
       {
         userAgent: "*",
         allow: "/",

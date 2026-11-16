@@ -50,7 +50,8 @@ const getCountriesMock = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/data/countries", () => ({ getCountries: getCountriesMock }));
 
 const getPublishedProductIdsMock = vi.hoisted(() => vi.fn());
-vi.mock("@/lib/data/projects", () => ({ getPublishedProductIds: getPublishedProductIdsMock }));
+const getProductFamiliesMock = vi.hoisted(() => vi.fn(async () => ["dom"]));
+vi.mock("@/lib/data/projects", () => ({ getPublishedProductIds: getPublishedProductIdsMock, getProductFamilies: getProductFamiliesMock }));
 
 const getClientIdForUserMock = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/db/queries", () => ({ getClientIdForUser: getClientIdForUserMock }));

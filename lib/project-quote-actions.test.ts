@@ -11,7 +11,11 @@ const authMock = vi.hoisted(() => vi.fn<() => Promise<Session | null>>());
 const signInMock = vi.hoisted(() => vi.fn());
 const trackEventMock = vi.hoisted(() => vi.fn());
 const captureErrorMock = vi.hoisted(() => vi.fn());
-const uploadPrivateObjectMock = vi.hoisted(() => vi.fn<() => Promise<void>>());
+// Spec 0085: prywatny R2 to pamięć w procesie; adres do zapisu niesie klucz, więc test "wysyła" plik
+// tak jak przeglądarka, a potwierdzenie czyta go z pamięci.
+const store = vi.hoisted(() => new Map<string, Buffer>());
+const PrivateObjectTooLargeError = vi.hoisted(() => class PrivateObjectTooLargeError extends Error {});
+const deleteObjectMock = vi.hoisted(() => vi.fn(async (key: string) => void store.delete(key)));
 const buildSignedDownloadUrlMock = vi.hoisted(() => vi.fn<() => Promise<string>>());
 const notifyOfConnectionMock = vi.hoisted(() => vi.fn<() => Promise<void>>());
 const notifyTeamOfPendingSelectionMock = vi.hoisted(() => vi.fn<() => Promise<void>>());
@@ -30,9 +34,21 @@ vi.mock("@/lib/notifications/large-order-producer", () => ({ notifyProducersOfOt
 // Prywatny R2 jest granicą I/O tak samo jak auth/observability wyżej (spec
 // 0063): testy uploadProjectQuotePdf/getProjectQuotePdfUrl sprawdzają realną
 // bazę (uprawnienia, status, atomowość), nie prawdziwe wgrywanie do R2.
+vi.mock("server-only", () => ({}));
 vi.mock("@/lib/storage/private-r2-client", () => ({
-  uploadPrivateObject: uploadPrivateObjectMock,
+  deletePrivateObject: deleteObjectMock,
   buildSignedDownloadUrl: buildSignedDownloadUrlMock,
+  buildSignedUploadUrl: vi.fn(async (key: string) => `https://signed.example.test/put?key=${key}`),
+  copyPrivateObject: vi.fn(async (from: string, to: string) => {
+    store.set(to, store.get(from)!);
+  }),
+  headPrivateObject: vi.fn(async (key: string) => (store.has(key) ? { size: store.get(key)!.byteLength, etag: '"etag"' } : null)),
+  readPrivateObjectBytes: vi.fn(async (key: string, maxBytes: number) => {
+    const bytes = store.get(key)!;
+    if (bytes.byteLength > maxBytes) throw new PrivateObjectTooLargeError();
+    return { bytes, etag: '"etag"' };
+  }),
+  PrivateObjectTooLargeError,
 }));
 
 import { and, desc, eq, inArray } from "drizzle-orm";
@@ -51,6 +67,7 @@ import {
   projectQuote,
   projectRequest,
   projectRequestProducerOverride,
+  uploadIntent,
   users,
 } from "@/lib/db/schema";
 import { connectSelection } from "./large-order-connection";
@@ -66,8 +83,19 @@ import {
   submitClientB2bDetails,
   submitProjectQuote,
   updateProducerCapacityProfile,
-  uploadProjectQuotePdf,
+  confirmProjectQuotePdfUpload,
+  requestProjectQuotePdfUpload,
 } from "./project-quote-actions";
+
+// Zastępuje dawną akcję `uploadProjectQuotePdf` (spec 0085): prośba, "wysłanie" pliku do pamięci udającej
+// R2 i potwierdzenie, więc testy podmiany i dostępu przechodzą prawdziwą parą kroków.
+async function uploadProjectQuotePdf(quoteId: string, file: File): Promise<{ ok: boolean; error?: string; errorCode?: string; documentId?: string }> {
+  const bytes = Buffer.from(await file.arrayBuffer());
+  const requested = await requestProjectQuotePdfUpload(quoteId, { filename: file.name, sizeBytes: bytes.byteLength });
+  if (!requested.ok) return requested;
+  store.set(new URL(requested.uploadUrl!).searchParams.get("key")!, bytes);
+  return confirmProjectQuotePdfUpload(requested.intentId!);
+}
 
 // Pola obowiązkowe formatu oferty (spec 0070 AC-11) dla testów, które sprawdzają coś innego.
 const QUOTE_BASE = {
@@ -182,6 +210,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
     await db.update(projectRequest).set({ selectedQuoteId: null, selectedAt: null }).where(eq(projectRequest.id, projectRequestId));
     await db.update(bulkProductInquiry).set({ selectedQuoteId: null, selectedAt: null }).where(eq(bulkProductInquiry.id, bulkInquiryId));
     await db.delete(document).where(inArray(document.ownerUserId, allUserIds));
+    await db.delete(uploadIntent).where(inArray(uploadIntent.actorUserId, allUserIds));
     await db.delete(projectQuote).where(inArray(projectQuote.producerId, allProducerIds));
     await db.delete(bulkProductInquiry).where(eq(bulkProductInquiry.id, bulkInquiryId));
     await db.delete(projectRequest).where(eq(projectRequest.id, projectRequestId));
@@ -206,8 +235,8 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
     captureErrorMock.mockClear();
     notifyOtherSelectedMock.mockClear();
     notifyTeamNewQuoteMock.mockClear();
-    uploadPrivateObjectMock.mockReset();
-    uploadPrivateObjectMock.mockResolvedValue(undefined);
+    store.clear();
+    deleteObjectMock.mockClear();
     buildSignedDownloadUrlMock.mockReset();
     buildSignedDownloadUrlMock.mockResolvedValue("https://private.example.test/signed-url");
 
@@ -220,6 +249,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
     // first: no ON DELETE CASCADE from document.project_quote_id, so deleting
     // the quote first would violate the FK.
     await db.delete(document).where(inArray(document.ownerUserId, allUserIds));
+    await db.delete(uploadIntent).where(inArray(uploadIntent.actorUserId, allUserIds));
     await db.delete(projectQuote).where(inArray(projectQuote.producerId, allProducerIds));
     await db.delete(projectRequestProducerOverride).where(eq(projectRequestProducerOverride.projectRequestId, projectRequestId));
     await db.update(product).set({ status: "published" }).where(inArray(product.id, [matchProduct1Id, matchProduct4Id]));
@@ -1057,7 +1087,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       const result = await uploadProjectQuotePdf(quoteId, validPdfFile());
 
       expect(result.ok).toBe(false);
-      expect(uploadPrivateObjectMock).not.toHaveBeenCalled();
+      expect(store.size).toBe(0);
     });
 
     it("rejects a client session", async () => {
@@ -1077,7 +1107,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       const result = await uploadProjectQuotePdf(quoteId, validPdfFile());
 
       expect(result.ok).toBe(false);
-      expect(uploadPrivateObjectMock).not.toHaveBeenCalled();
+      expect(store.size).toBe(0);
       expect(await findQuotePdfDocuments(quoteId)).toHaveLength(0);
     });
 
@@ -1090,7 +1120,7 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       const result = await uploadProjectQuotePdf(quoteId, validPdfFile());
 
       expect(result.ok).toBe(false);
-      expect(uploadPrivateObjectMock).not.toHaveBeenCalled();
+      expect(store.size).toBe(0);
     });
 
     // AC-4: validation runs before anything is sent to storage.
@@ -1101,9 +1131,8 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
 
       const result = await uploadProjectQuotePdf(quoteId, badFile);
 
-      expect(result.ok).toBe(false);
-      expect(result.error).toMatch(/sygnatury PDF/);
-      expect(uploadPrivateObjectMock).not.toHaveBeenCalled();
+      expect(result).toMatchObject({ ok: false, errorCode: "file_rejected" });
+      expect(store.size).toBe(0);
     });
 
     it("uploads a valid PDF and creates a document row owned by the uploading producer", async () => {
@@ -1114,7 +1143,8 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
 
       expect(result.ok).toBe(true);
       expect(result.documentId).toBeDefined();
-      expect(uploadPrivateObjectMock).toHaveBeenCalledTimes(1);
+      expect([...store.keys()].filter((key) => key.startsWith("quote-pdfs/"))).toHaveLength(1);
+      expect([...store.keys()].some((key) => key.startsWith("uploads/"))).toBe(false);
       const rows = await findQuotePdfDocuments(quoteId);
       expect(rows).toHaveLength(1);
       expect(rows[0]).toMatchObject({ filename: "oferta.pdf", mimeType: "application/pdf", ownerUserId: producer1UserId, deletedAt: null });
@@ -1154,6 +1184,56 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/project-quote-actions: real DB, 
       const rows = await findQuotePdfDocuments(quoteId);
       expect(rows).toHaveLength(1);
       expect(rows[0]).toMatchObject({ id: first.documentId, deletedAt: null });
+    });
+  });
+
+  describe("direct upload steps (spec 0085 AC-8)", () => {
+    async function insertQuote(producerId: string) {
+      const [inserted] = await db
+        .insert(projectQuote)
+        .values({ projectRequestId, producerId, totalPriceCents: 1000000, status: "active" })
+        .returning({ id: projectQuote.id });
+      return inserted.id;
+    }
+    const PDF_BYTES = Buffer.from("%PDF-1.7\n1 0 obj\nBT sample ET\nendobj\n%%EOF", "latin1");
+
+    it("refuses a size above 20 MB and a non producer at request time", async () => {
+      const quoteId = await insertQuote(producer1Id);
+      authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
+      expect(await requestProjectQuotePdfUpload(quoteId, { filename: "a.pdf", sizeBytes: 21 * 1024 * 1024 })).toMatchObject({ ok: false, errorCode: "too_large" });
+
+      authMock.mockResolvedValue(sessionAs(clientUserId, "client"));
+      expect(await requestProjectQuotePdfUpload(quoteId, { filename: "a.pdf", sizeBytes: 100 })).toMatchObject({ ok: false, errorCode: "no_access" });
+    });
+
+    it("answers not_uploaded before the file is sent, and only the same producer can confirm", async () => {
+      const quoteId = await insertQuote(producer1Id);
+      authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
+      const requested = await requestProjectQuotePdfUpload(quoteId, { filename: "oferta.pdf", sizeBytes: PDF_BYTES.byteLength });
+      expect(requested.ok).toBe(true);
+      expect(await confirmProjectQuotePdfUpload(requested.intentId!)).toMatchObject({ ok: false, errorCode: "not_uploaded" });
+
+      store.set(new URL(requested.uploadUrl!).searchParams.get("key")!, PDF_BYTES);
+      authMock.mockResolvedValue(sessionAs(producer3UserId, "producer"));
+      expect(await confirmProjectQuotePdfUpload(requested.intentId!)).toMatchObject({ ok: false, errorCode: "no_access" });
+
+      authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
+      const done = await confirmProjectQuotePdfUpload(requested.intentId!);
+      expect(done.ok).toBe(true);
+      // Drugie potwierdzenie tego samego zamiaru nie tworzy drugiego dokumentu.
+      expect(await confirmProjectQuotePdfUpload(requested.intentId!)).toMatchObject({ ok: false, errorCode: "no_access" });
+      const rows = await db.select().from(document).where(and(eq(document.projectQuoteId, quoteId), eq(document.purpose, "project_quote_pdf")));
+      expect(rows).toHaveLength(1);
+      expect(rows[0].r2Key).toMatch(/^quote-pdfs\/[0-9a-f-]{36}\.pdf$/);
+    });
+
+    it("sanitizes the stored filename", async () => {
+      const quoteId = await insertQuote(producer1Id);
+      authMock.mockResolvedValue(sessionAs(producer1UserId, "producer"));
+      const result = await uploadProjectQuotePdf(quoteId, validPdfFile('..\\..\\zła"nazwa.pdf'));
+      expect(result.ok).toBe(true);
+      const [row] = await db.select().from(document).where(and(eq(document.projectQuoteId, quoteId), eq(document.purpose, "project_quote_pdf")));
+      expect(row.filename).not.toMatch(/[\\/"]/);
     });
   });
 

@@ -2055,6 +2055,63 @@ export const inquiryAttachment = pgTable(
   ],
 );
 
+// Spec 0085: zamiar bezpośredniego wgrania pliku do prywatnego R2. Jedno miejsce prawdy o
+// rozpoczętych wgraniach (limity z oknem 15 minut, limit dzienny gościa, wyścig dwóch potwierdzeń,
+// sprzątanie obiektów tymczasowych `uploads/<uuid>`).
+export const uploadIntent = pgTable(
+  "upload_intent",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    purpose: text("purpose").notNull(),
+    projectRequestId: uuid("project_request_id").references(() => projectRequest.id),
+    bulkProductInquiryId: uuid("bulk_product_inquiry_id").references(() => bulkProductInquiry.id),
+    projectQuoteId: uuid("project_quote_id").references(() => projectQuote.id),
+    actorKind: text("actor_kind").notNull(),
+    actorUserId: text("actor_user_id").references(() => users.id),
+    r2Key: text("r2_key").notNull(),
+    mimeType: text("mime_type").notNull(),
+    declaredSizeBytes: integer("declared_size_bytes").notNull(),
+    filename: text("filename").notNull(),
+    consentConfirmed: boolean("consent_confirmed").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    consumedAt: timestamp("consumed_at", { withTimezone: true }),
+    purgedAt: timestamp("purged_at", { withTimezone: true }),
+  },
+  (table) => [
+    check("upload_intent_purpose", sql`${table.purpose} IN ('inquiry_attachment', 'project_quote_pdf')`),
+    check("upload_intent_actor_kind", sql`${table.actorKind} IN ('staff', 'client', 'guest', 'producer')`),
+    check("upload_intent_guest_has_no_user", sql`(${table.actorKind} = 'guest') = (${table.actorUserId} IS NULL)`),
+    check("upload_intent_size_range", sql`${table.declaredSizeBytes} BETWEEN 1 AND 20971520`),
+    check(
+      "upload_intent_target",
+      sql`(
+        ${table.purpose} = 'inquiry_attachment'
+        AND ((${table.projectRequestId} IS NOT NULL)::int + (${table.bulkProductInquiryId} IS NOT NULL)::int) = 1
+        AND ${table.projectQuoteId} IS NULL
+      ) OR (
+        ${table.purpose} = 'project_quote_pdf'
+        AND ${table.projectQuoteId} IS NOT NULL
+        AND ${table.projectRequestId} IS NULL
+        AND ${table.bulkProductInquiryId} IS NULL
+      )`,
+    ),
+    uniqueIndex("upload_intent_r2_key_idx").on(table.r2Key),
+    index("upload_intent_open_expires_idx")
+      .on(table.expiresAt)
+      .where(sql`${table.consumedAt} IS NULL AND ${table.purgedAt} IS NULL`),
+    index("upload_intent_project_request_idx")
+      .on(table.projectRequestId)
+      .where(sql`${table.projectRequestId} IS NOT NULL AND ${table.consumedAt} IS NULL AND ${table.purgedAt} IS NULL`),
+    index("upload_intent_bulk_inquiry_idx")
+      .on(table.bulkProductInquiryId)
+      .where(sql`${table.bulkProductInquiryId} IS NOT NULL AND ${table.consumedAt} IS NULL AND ${table.purgedAt} IS NULL`),
+    index("upload_intent_project_quote_idx")
+      .on(table.projectQuoteId)
+      .where(sql`${table.projectQuoteId} IS NOT NULL AND ${table.consumedAt} IS NULL AND ${table.purgedAt} IS NULL`),
+  ],
+);
+
 // Rozszerzenie producenta jeden do jednego (AC-6): brak osobnego id, PK = FK.
 export const producerCapacityProfile = pgTable("producer_capacity_profile", {
   producerId: uuid("producer_id")

@@ -10,6 +10,7 @@ const captureErrorMock = vi.hoisted(() => vi.fn());
 const notifyNewProjectMock = vi.hoisted(() => vi.fn<() => Promise<void>>());
 const sendSelectionDoneMock = vi.hoisted(() => vi.fn<() => Promise<boolean>>());
 const notifyTeamNewQuoteMock = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
+vi.mock("server-only", () => ({}));
 vi.mock("@/auth", () => ({ auth: authMock, signIn: vi.fn() }));
 vi.mock("@/lib/observability", () => ({ trackEvent: trackEventMock, captureError: captureErrorMock }));
 vi.mock("@/lib/notifications/large-order-producer", () => ({

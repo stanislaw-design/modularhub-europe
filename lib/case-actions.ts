@@ -31,7 +31,8 @@ import { postMessage, touchChannel } from "@/lib/cases/messaging";
 import { notifyAdvisorOfNewCase, notifyMessageRecipient } from "@/lib/cases/notify";
 import { notifyClientOfNewCase } from "@/lib/notifications/new-inquiry";
 import { getCountries } from "@/lib/data/countries";
-import { getPublishedProductIds } from "@/lib/data/projects";
+import { getProductFamilies, getPublishedProductIds } from "@/lib/data/projects";
+import { resolveInquiryFamily } from "@/lib/inquiry-family";
 import { db } from "@/lib/db/client";
 import { getClientIdForUser } from "@/lib/db/queries";
 import { inquiry } from "@/lib/db/schema";
@@ -110,6 +111,9 @@ export async function submitAdvisoryInquiry(input: SubmitAdvisoryInquiryInput): 
         ? await buildConfigurationSnapshot(projectIds[0], data.configuration.variantId, data.configuration.optionIds, data.configuration.styleId)
         : null;
 
+    // Spec 0084 AC-2: rodzina z bazy po identyfikatorach, nigdy z wartości od klienta; decyduje o zestawie kart.
+    const family = resolveInquiryFamily(await getProductFamilies(projectIds));
+
     const t = await getTranslations({ locale: data.locale, namespace: "CaseSystem" });
     const result = await createAdvisoryCase(
       {
@@ -125,6 +129,7 @@ export async function submitAdvisoryInquiry(input: SubmitAdvisoryInquiryInput): 
         intendedUse: data.intendedUse,
         intendedUseMonths: data.intendedUseMonths,
         configurationSnapshot,
+        family,
       },
       systemClock,
     );
