@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { Country, CountryCode, ProductFamily } from "@/lib/data/types";
-import { FAMILY_GROUPS, resolveFamilyGroup, type FamilyFilterValue } from "@/lib/product-family-groups";
+import { FAMILY_GROUPS, OUTDOOR_TV_PATH, resolveFamilyGroup, type FamilyFilterValue } from "@/lib/product-family-groups";
 import { PRICE_THRESHOLDS } from "@/lib/results-filters";
 import { SIZE_RANGE_OPTIONS } from "@/lib/size-thresholds";
 import { SearchSegment, type SegmentOption } from "./SearchSegment";
@@ -103,11 +103,13 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
   const moreCategoryLinks = FAMILY_GROUPS["wiecej-niz-dom"].map((family) =>
     family === "spa-modulowe"
       ? { key: "sauna", href: `/${locale}/sauna`, label: t("categoryLinkSpa") }
-      : {
-          key: family,
-          href: `/${locale}/results?family=${family}`,
-          label: categoryLinkLabels[family] ?? family,
-        },
+      : family === "outdoor-tv"
+        ? { key: family, href: `/${locale}${OUTDOOR_TV_PATH}`, label: t("categoryLinkOutdoorTv") }
+        : {
+            key: family,
+            href: `/${locale}/results?family=${family}`,
+            label: categoryLinkLabels[family] ?? family,
+          },
   );
 
   function handleSearch() {

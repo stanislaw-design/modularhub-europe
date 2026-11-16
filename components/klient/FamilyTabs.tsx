@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import type { CountryCode } from "@/lib/data/types";
-import { resolveFamilyGroup, type FamilyFilterValue, type ProductFamilyGroup } from "@/lib/product-family-groups";
+import { OUTDOOR_TV_PATH, resolveFamilyGroup, type FamilyFilterValue, type ProductFamilyGroup } from "@/lib/product-family-groups";
 import type { SizeThreshold } from "@/lib/size-thresholds";
 import { FamilyRefineSelect } from "./FamilyRefineSelect";
 
@@ -39,6 +39,8 @@ export async function FamilyTabs({ locale, family, countryCode, sizeMin, sizeMax
     // Sauny mają własną stronę kategorii (spec 0068) z własnymi filtrami, więc
     // wybór "Sauny" prowadzi tam, a nie na /results?family=spa-modulowe.
     if (value === "spa-modulowe") return `/${locale}/sauna`;
+    // Tymczasowo: Outdoor TV to tylko strona ekranów komercyjnych (OUTDOOR_TV_PATH).
+    if (value === "outdoor-tv") return `/${locale}${OUTDOOR_TV_PATH}`;
     const params = new URLSearchParams();
     if (value !== "dom") params.set("family", value);
     if (countryCode) params.set("country", countryCode);

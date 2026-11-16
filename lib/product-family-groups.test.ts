@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   FAMILY_GROUPS,
+  HIDDEN_RESULT_FAMILIES,
   resolveFamilies,
   resolveFamilyGroup,
   resolveProductHref,
@@ -23,7 +24,14 @@ describe("FAMILY_GROUPS", () => {
 
 describe("resolveFamilies", () => {
   it("expands the wiecej-niz-dom sentinel to every family in its group (AC-2, AC-4)", () => {
-    expect(resolveFamilies("wiecej-niz-dom")).toEqual(["spa-modulowe", "kontenery-modulowe", "outdoor-tv"]);
+    // outdoor-tv tymczasowo ukryte w wynikach (HIDDEN_RESULT_FAMILIES), strona to /commercial-displays.
+    expect(resolveFamilies("wiecej-niz-dom")).toEqual(["spa-modulowe", "kontenery-modulowe"]);
+  });
+
+  it("leaves every family in HIDDEN_RESULT_FAMILIES out of the combined view", () => {
+    for (const family of HIDDEN_RESULT_FAMILIES) {
+      expect(resolveFamilies("wiecej-niz-dom")).not.toContain(family);
+    }
   });
 
   it("returns dom unchanged, wrapped in a single-element array", () => {
@@ -45,7 +53,8 @@ describe("resolveFamilies", () => {
   it("returns a fresh array each call, so a caller mutating the result can't corrupt FAMILY_GROUPS", () => {
     const first = resolveFamilies("wiecej-niz-dom");
     first.push("dom" as never);
-    expect(resolveFamilies("wiecej-niz-dom")).toEqual(["spa-modulowe", "kontenery-modulowe", "outdoor-tv"]);
+    expect(resolveFamilies("wiecej-niz-dom")).toEqual(["spa-modulowe", "kontenery-modulowe"]);
+    expect(FAMILY_GROUPS["wiecej-niz-dom"]).toEqual(["spa-modulowe", "kontenery-modulowe", "outdoor-tv"]);
   });
 });
 

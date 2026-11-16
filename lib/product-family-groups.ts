@@ -15,6 +15,14 @@ export const FAMILY_GROUPS: Record<ProductFamilyGroup, ProductFamily[]> = {
   "wiecej-niz-dom": ["spa-modulowe", "kontenery-modulowe", "outdoor-tv"],
 };
 
+// Tymczasowo (2026-11-16, decyzja właściciela): Outdoor TV pokazujemy wyłącznie jako ofertę
+// komercyjną na /commercial-displays. Katalog prywatny (telewizory ogrodowe, szafki z podnośnikiem)
+// znika z wyników i nawigacji, a /results?family=outdoor-tv przekierowuje proxy.ts. Strony
+// pojedynczych produktów (/outdoor-tv/[slug]) dalej działają pod bezpośrednim linkiem. Powrót do
+// katalogu prywatnego: opróżnić HIDDEN_RESULT_FAMILIES i przywrócić linki z OUTDOOR_TV_PATH.
+export const OUTDOOR_TV_PATH = "/commercial-displays";
+export const HIDDEN_RESULT_FAMILIES: readonly ProductFamily[] = ["outdoor-tv"];
+
 // Wartość, jaką może przyjąć parametr URL/filtra `family`: dowolna prawdziwa
 // rodzina, albo sentinel grupy "wiecej-niz-dom" oznaczający widok łączony.
 export type FamilyFilterValue = ProductFamily | "wiecej-niz-dom";
@@ -40,7 +48,9 @@ export function resolveFamilies(value: FamilyFilterValue): ProductFamily[] {
   // Kopia, nie referencja (przedistniejący bug, ujawniony przy dodaniu trzeciej
   // rodziny do grupy): zwracanie FAMILY_GROUPS["wiecej-niz-dom"] wprost pozwalało
   // wywołującemu, który zmutuje wynik (np. push), trwale zepsuć współdzieloną mapę.
-  if (value === "wiecej-niz-dom") return [...FAMILY_GROUPS["wiecej-niz-dom"]];
+  if (value === "wiecej-niz-dom") {
+    return FAMILY_GROUPS["wiecej-niz-dom"].filter((family) => !HIDDEN_RESULT_FAMILIES.includes(family));
+  }
   return [value];
 }
 

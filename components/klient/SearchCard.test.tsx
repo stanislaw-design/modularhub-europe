@@ -144,10 +144,8 @@ describe("SearchCard", () => {
       "href",
       "/pl/results?family=kontenery-modulowe",
     );
-    expect(screen.getByRole("link", { name: "Outdoor TV" })).toHaveAttribute(
-      "href",
-      "/pl/results?family=outdoor-tv",
-    );
+    // Tymczasowo Outdoor TV to tylko strona ekranów komercyjnych (OUTDOOR_TV_PATH).
+    expect(screen.getByRole("link", { name: "Outdoor TV" })).toHaveAttribute("href", "/pl/commercial-displays");
   });
 
   it("renders the families in FAMILY_GROUPS['wiecej-niz-dom'] as links, not a list hardcoded separately in SearchCard, with the spa family shown as the one explicit Sauny exception (spec 0060 AC-4, spec 0068 AC-6)", async () => {
@@ -159,7 +157,11 @@ describe("SearchCard", () => {
     const links = await screen.findAllByRole("link");
     expect(links.map((link) => link.getAttribute("href"))).toEqual([
       ...FAMILY_GROUPS["wiecej-niz-dom"].map((family) =>
-        family === "spa-modulowe" ? "/pl/sauna" : `/pl/results?family=${family}`,
+        family === "spa-modulowe"
+          ? "/pl/sauna"
+          : family === "outdoor-tv"
+            ? "/pl/commercial-displays"
+            : `/pl/results?family=${family}`,
       ),
     ]);
   });
