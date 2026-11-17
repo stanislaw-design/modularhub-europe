@@ -8,7 +8,7 @@ import { z } from "zod";
 // zostaje poza publishedTechnicalSpecsSchemaByFamily/draftTechnicalSpecsSchemaByFamily
 // niżej do czasu ustalenia kształtu specyfikacji (patrz Exclude<> tam), ten sam
 // wzorzec co kontenery-modulowe.
-export const PRODUCT_FAMILIES = ["dom", "spa-modulowe", "kontenery-modulowe", "outdoor-tv"] as const;
+export const PRODUCT_FAMILIES = ["dom", "spa-modulowe", "kontenery-modulowe", "outdoor-tv", "outdoor-kitchen"] as const;
 export type ProductFamily = (typeof PRODUCT_FAMILIES)[number];
 
 // Podkategorie kontenera modułowego (spec 0039): pierwszy przypadek w tym
@@ -137,6 +137,57 @@ const saunaSpecsShape = {
   electricalRequirement: z.string(),
 };
 
+// Kuchnie ogrodowe (spec 0086 Feature design). Typ kuchni żyje tutaj, nie w kolumnie
+// podkategorii: "box" to zamykana kuchnia w obudowie, "modular" to otwarty zestaw szafek.
+// Wymiary jako liczby w cm (jeden format we wszystkich językach). Wyposażenie i typ są
+// enumami, etykiety pochodzą z messages/*.json; tekstowe pola tłumaczy product_translation.
+export const OUTDOOR_KITCHEN_TYPES = ["box", "modular"] as const;
+export type OutdoorKitchenType = (typeof OUTDOOR_KITCHEN_TYPES)[number];
+export const OUTDOOR_KITCHEN_EQUIPMENT_STATES = ["included", "extra", "none"] as const;
+export type OutdoorKitchenEquipmentState = (typeof OUTDOOR_KITCHEN_EQUIPMENT_STATES)[number];
+export const OUTDOOR_KITCHEN_EQUIPMENT_KEYS = ["grill", "sink", "fridge", "cabinets", "lighting"] as const;
+export type OutdoorKitchenEquipmentKey = (typeof OUTDOOR_KITCHEN_EQUIPMENT_KEYS)[number];
+
+const equipmentState = z.enum(OUTDOOR_KITCHEN_EQUIPMENT_STATES);
+const positiveCm = z.number().positive();
+
+export const outdoorKitchenSpecsShape = {
+  kitchenType: z.enum(OUTDOOR_KITCHEN_TYPES),
+  // width/height opcjonalne: katalog podaje dla zestawów Premium tylko długość.
+  externalDimensionsCm: z
+    .object({
+      length: positiveCm,
+      width: positiveCm.optional(),
+      height: positiveCm.optional(),
+    })
+    .strict(),
+  internalDimensionsCm: z.object({ length: positiveCm, width: positiveCm, height: positiveCm }).strict().optional(),
+  equipment: z
+    .object({
+      grill: equipmentState,
+      sink: equipmentState,
+      fridge: equipmentState,
+      cabinets: equipmentState,
+      lighting: equipmentState,
+    })
+    .strict(),
+  closable: z.boolean(),
+  bodyMaterial: z.string().min(1),
+  worktopMaterial: z.string().min(1).optional(),
+  standardFeatures: z.array(z.string().min(1)).min(1),
+  weightKg: z.number().positive().optional(),
+  foundationRequirement: z.string().min(1).optional(),
+  deliveryNote: z.string().min(1),
+};
+
+// Pola tekstowe tłumaczone przez product_translation.technical_specs (spec 0067, spec 0086).
+export const OUTDOOR_KITCHEN_TRANSLATED_FIELDS = [
+  "bodyMaterial",
+  "worktopMaterial",
+  "foundationRequirement",
+  "deliveryNote",
+] as const;
+
 // Kompletny kształt (wymagany od status = 'published'): każdy schemat jest
 // .strict() (odrzuca nieznane pola) i wymaga wszystkich swoich pól (spec 0022
 // AC-4, Feature design). "dom" ma jeden kształt na całą rodzinę;
@@ -144,11 +195,13 @@ const saunaSpecsShape = {
 // zależy od subcategory, nie samej family, spec 0039 AC-4 / spec 0061 AC-2).
 const publishedTechnicalSpecsSchemaByFamily = {
   dom: z.object(domSpecsShape).strict(),
+  "outdoor-kitchen": z.object(outdoorKitchenSpecsShape).strict(),
 } satisfies Record<Exclude<ProductFamily, "kontenery-modulowe" | "outdoor-tv" | "spa-modulowe">, z.ZodTypeAny>;
 
 // Kształt dopuszczalny podczas status = 'draft': te same pola, wszystkie opcjonalne.
 const draftTechnicalSpecsSchemaByFamily = {
   dom: publishedTechnicalSpecsSchemaByFamily.dom.partial(),
+  "outdoor-kitchen": publishedTechnicalSpecsSchemaByFamily["outdoor-kitchen"].partial(),
 } satisfies Record<Exclude<ProductFamily, "kontenery-modulowe" | "outdoor-tv" | "spa-modulowe">, z.ZodTypeAny>;
 
 // "jacuzzi"/"wellness-combo" zwracają niezmieniony spaModuloweSpecsShape (zero
@@ -254,16 +307,13 @@ export function getTechnicalSpecsSchema(
 }
 
 export type DomTechnicalSpecs = z.infer<typeof publishedTechnicalSpecsSchemaByFamily.dom>;
+export type OutdoorKitchenTechnicalSpecs = z.infer<(typeof publishedTechnicalSpecsSchemaByFamily)["outdoor-kitchen"]>;
 export type SaunaTechnicalSpecs = z.infer<(typeof publishedSpaSpecsSchemaBySubcategory)["sauna"]>;
-export type SpaModuloweTechnicalSpecs = z.infer<
-  (typeof publishedSpaSpecsSchemaBySubcategory)["jacuzzi"]
->;
+export type SpaModuloweTechnicalSpecs = z.infer<(typeof publishedSpaSpecsSchemaBySubcategory)["jacuzzi"]>;
 export type ContainerGastronomiczneTechnicalSpecs = z.infer<
   (typeof publishedContainerSpecsSchemaBySubcategory)["gastronomiczne"]
 >;
-export type ContainerUslugoweTechnicalSpecs = z.infer<
-  (typeof publishedContainerSpecsSchemaBySubcategory)["uslugowe"]
->;
+export type ContainerUslugoweTechnicalSpecs = z.infer<(typeof publishedContainerSpecsSchemaBySubcategory)["uslugowe"]>;
 export type ContainerMieszkalneTechnicalSpecs = z.infer<
   (typeof publishedContainerSpecsSchemaBySubcategory)["mieszkalne"]
 >;

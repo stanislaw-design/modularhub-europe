@@ -161,7 +161,10 @@ describe("SearchCard", () => {
           ? "/pl/sauna"
           : family === "outdoor-tv"
             ? "/pl/commercial-displays"
-            : `/pl/results?family=${family}`,
+            : // Spec 0086 AC-15: kuchnie mają własną stronę kategorii.
+              family === "outdoor-kitchen"
+              ? "/pl/outdoor-kitchen"
+              : `/pl/results?family=${family}`,
       ),
     ]);
   });

@@ -8,7 +8,7 @@ import { isAnalyticsEnabled } from "@/lib/observability/analytics-enabled";
 import { useAnalyticsConsent } from "./useAnalyticsConsent";
 
 interface PageviewAttributionProps {
-  pageType: Extract<PageType, "project" | "sauna" | "outdoor_tv" | "modularproject" | "producer">;
+  pageType: Extract<PageType, "project" | "sauna" | "outdoor_tv" | "outdoor_kitchen" | "modularproject" | "producer">;
   producerId?: string;
   productId?: string;
   family?: string;

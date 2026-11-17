@@ -7,6 +7,7 @@ import { z } from "zod";
 import { getAzureAiConfig } from "@/lib/ai/azure-config";
 import { createAzureOpenAiClient } from "@/lib/ai/openai";
 import type { CompletionStandard, CostLineItemStatus } from "@/lib/data/types";
+import { isProducerManagedFamily } from "@/lib/product-family-groups";
 import { db } from "@/lib/db/client";
 import { product } from "@/lib/db/schema";
 import { captureError } from "@/lib/observability/errors";
@@ -34,10 +35,11 @@ type OwnershipStatus = "ok" | "not_found" | "denied";
 // żyje wyłącznie w kreatorze producenta (AC-41), nie w panelu admina.
 async function resolveProductOwnership(actor: { producerId: string }, productId: string): Promise<OwnershipStatus> {
   const [row] = await db
-    .select({ producerId: product.producerId })
+    .select({ producerId: product.producerId, family: product.family })
     .from(product)
     .where(and(eq(product.id, productId), isNull(product.deletedAt)));
-  if (!row) return "not_found";
+  // Spec 0086 AC-19: produkt rodziny bez edycji producenta (kuchnie) wygląda jak nieistniejący.
+  if (!row || !isProducerManagedFamily(row.family)) return "not_found";
   return row.producerId === actor.producerId ? "ok" : "denied";
 }
 

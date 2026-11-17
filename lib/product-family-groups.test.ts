@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   FAMILY_GROUPS,
   HIDDEN_RESULT_FAMILIES,
+  isProducerManagedFamily,
   resolveFamilies,
   resolveFamilyGroup,
   resolveProductHref,
@@ -17,15 +18,15 @@ describe("FAMILY_GROUPS", () => {
     expect(FAMILY_GROUPS.dom).toEqual(["dom"]);
   });
 
-  it("maps wiecej-niz-dom to spa-modulowe, kontenery-modulowe and outdoor-tv, in that order", () => {
-    expect(FAMILY_GROUPS["wiecej-niz-dom"]).toEqual(["spa-modulowe", "kontenery-modulowe", "outdoor-tv"]);
+  it("maps wiecej-niz-dom to spa-modulowe, kontenery-modulowe, outdoor-tv and outdoor-kitchen, in that order", () => {
+    expect(FAMILY_GROUPS["wiecej-niz-dom"]).toEqual(["spa-modulowe", "kontenery-modulowe", "outdoor-tv", "outdoor-kitchen"]);
   });
 });
 
 describe("resolveFamilies", () => {
   it("expands the wiecej-niz-dom sentinel to every family in its group (AC-2, AC-4)", () => {
     // outdoor-tv tymczasowo ukryte w wynikach (HIDDEN_RESULT_FAMILIES), strona to /commercial-displays.
-    expect(resolveFamilies("wiecej-niz-dom")).toEqual(["spa-modulowe", "kontenery-modulowe"]);
+    expect(resolveFamilies("wiecej-niz-dom")).toEqual(["spa-modulowe", "kontenery-modulowe", "outdoor-kitchen"]);
   });
 
   it("leaves every family in HIDDEN_RESULT_FAMILIES out of the combined view", () => {
@@ -53,8 +54,8 @@ describe("resolveFamilies", () => {
   it("returns a fresh array each call, so a caller mutating the result can't corrupt FAMILY_GROUPS", () => {
     const first = resolveFamilies("wiecej-niz-dom");
     first.push("dom" as never);
-    expect(resolveFamilies("wiecej-niz-dom")).toEqual(["spa-modulowe", "kontenery-modulowe"]);
-    expect(FAMILY_GROUPS["wiecej-niz-dom"]).toEqual(["spa-modulowe", "kontenery-modulowe", "outdoor-tv"]);
+    expect(resolveFamilies("wiecej-niz-dom")).toEqual(["spa-modulowe", "kontenery-modulowe", "outdoor-kitchen"]);
+    expect(FAMILY_GROUPS["wiecej-niz-dom"]).toEqual(["spa-modulowe", "kontenery-modulowe", "outdoor-tv", "outdoor-kitchen"]);
   });
 });
 
@@ -143,5 +144,27 @@ describe("resolveProductHref", () => {
 
   it("carries the locale segment through unchanged", () => {
     expect(resolveProductHref("dom", "id", "en", "pomerania-40")).toBe("/en/project/pomerania-40");
+  });
+});
+
+// Spec 0086: kuchnie ogrodowe.
+describe("outdoor-kitchen family", () => {
+  it("routes kitchens to /outdoor-kitchen/[slug] (AC-6)", () => {
+    expect(resolveProductHref("outdoor-kitchen", "33333333-3333-3333-3333-333333333333", "de", "premium-360")).toBe(
+      "/de/outdoor-kitchen/premium-360",
+    );
+  });
+
+  it("is part of the Więcej niż dom group and its results view (AC-15)", () => {
+    expect(FAMILY_GROUPS["wiecej-niz-dom"]).toContain("outdoor-kitchen");
+    expect(resolveFamilies("wiecej-niz-dom")).toContain("outdoor-kitchen");
+    expect(resolveFamilyGroup("outdoor-kitchen")).toBe("wiecej-niz-dom");
+  });
+
+  it("is the only family producers cannot manage (AC-19)", () => {
+    expect(isProducerManagedFamily("outdoor-kitchen")).toBe(false);
+    for (const family of ["dom", "spa-modulowe", "kontenery-modulowe", "outdoor-tv"] as const) {
+      expect(isProducerManagedFamily(family)).toBe(true);
+    }
   });
 });

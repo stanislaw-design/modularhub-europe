@@ -99,3 +99,61 @@ export function formatTranslationGaps(gaps: TranslationGap[], limit = 20): strin
   }
   return lines.join("\n");
 }
+
+export interface OutdoorKitchenSpecsCheckInput {
+  // Czytelny opis produktu (nazwa).
+  ref: string;
+  // product.technical_specs (polskie źródło), surowy jsonb.
+  technicalSpecs: unknown;
+  // product_translation.technical_specs per język: { specs: { klucz: { value } }, standardFeatures: [] }.
+  translations: Partial<Record<CheckedLocale, unknown>>;
+}
+
+const OUTDOOR_KITCHEN_TEXT_FIELDS = ["bodyMaterial", "worktopMaterial", "foundationRequirement", "deliveryNote"] as const;
+
+function asRecord(value: unknown): Record<string, unknown> | undefined {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : undefined;
+}
+
+// Kuchnia ogrodowa (spec 0086 AC-3): tekstowe pola technicalSpecs i każda pozycja listy standardu.
+// Pozycja listy liczy się jako przetłumaczona tylko wtedy, gdy lista w danym języku ma tę samą długość
+// (inaczej strona pokazuje całą polską listę, patrz resolveOutdoorKitchenSpecs).
+export function outdoorKitchenSpecsTranslationItems(input: OutdoorKitchenSpecsCheckInput): TranslationCheckItem[] {
+  const source = asRecord(input.technicalSpecs) ?? {};
+  const translated = Object.fromEntries(
+    CHECKED_LOCALES.map((locale) => [locale, asRecord(input.translations[locale])]),
+  ) as Record<CheckedLocale, Record<string, unknown> | undefined>;
+  const items: TranslationCheckItem[] = [];
+  for (const field of OUTDOOR_KITCHEN_TEXT_FIELDS) {
+    const value = source[field];
+    items.push({
+      entity: "product.technical_specs",
+      field,
+      ref: input.ref,
+      source: typeof value === "string" ? value : undefined,
+      translations: Object.fromEntries(
+        CHECKED_LOCALES.map((locale) => {
+          const entry = asRecord(asRecord(translated[locale]?.specs)?.[field]);
+          return [locale, typeof entry?.value === "string" ? entry.value : undefined];
+        }),
+      ),
+    });
+  }
+  const features = Array.isArray(source.standardFeatures) ? source.standardFeatures : [];
+  features.forEach((feature, index) => {
+    items.push({
+      entity: "product.technical_specs",
+      field: `standardFeatures[${index}]`,
+      ref: input.ref,
+      source: typeof feature === "string" ? feature : undefined,
+      translations: Object.fromEntries(
+        CHECKED_LOCALES.map((locale) => {
+          const list = translated[locale]?.standardFeatures;
+          const value = Array.isArray(list) && list.length === features.length ? list[index] : undefined;
+          return [locale, typeof value === "string" ? value : undefined];
+        }),
+      ),
+    });
+  });
+  return items;
+}

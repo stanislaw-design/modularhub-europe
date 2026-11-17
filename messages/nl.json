@@ -16,7 +16,8 @@
         "houses": "Modulaire huizen",
         "saunas": "Sauna's",
         "outdoorTv": "Outdoor TV",
-        "containers": "Modulaire containers"
+        "containers": "Modulaire containers",
+        "outdoorKitchen": "Buitenkeukens"
       },
       "orders": {
         "largeOrder": "ModularProjects-aanvraag (vanaf 3 huizen)",
@@ -251,6 +252,11 @@
       "one": "product",
       "few": "producten",
       "many": "producten"
+    },
+    "outdoor-kitchen": {
+      "one": "buitenkeuken",
+      "few": "buitenkeukens",
+      "many": "buitenkeukens"
     }
   },
   "CategoryHeading": {
@@ -339,7 +345,8 @@
       "dom": "Huis",
       "spa-modulowe": "Modulaire spa",
       "kontenery-modulowe": "Modulaire containers",
-      "outdoor-tv": "Outdoor TV"
+      "outdoor-tv": "Outdoor TV",
+      "outdoor-kitchen": "Buitenkeukens"
     },
     "floorLevel": {
       "parter": "Begane grond",
@@ -1521,7 +1528,8 @@
     "categoryLinksAriaLabel": "Categorieën binnen Meer dan een woning",
     "categoryLinkSpa": "Sauna's",
     "categoryLinkContainers": "Modulaire containers",
-    "categoryLinkOutdoorTv": "Outdoor TV"
+    "categoryLinkOutdoorTv": "Outdoor TV",
+    "categoryLinkOutdoorKitchen": "Buitenkeukens"
   },
   "FloatingSearchButton": {
     "prompt": "Waar bent u vandaag naar op zoek?",
@@ -1597,7 +1605,8 @@
     "all": "Alles",
     "spa": "Sauna's",
     "containers": "Modulaire containers",
-    "outdoorTv": "Outdoor TV"
+    "outdoorTv": "Outdoor TV",
+    "outdoorKitchen": "Keukens"
   },
   "CategoryFilterBar": {
     "navAriaLabel": "Woningkenmerkfilters",
@@ -1919,7 +1928,9 @@
     "missingPrice": "Geen prijs",
     "missingTranslation": "Vertalingen ontbreken",
     "missingMore": "+{count} meer",
-    "completeButton": "Aanvullen"
+    "completeButton": "Aanvullen",
+    "managedByPlatform": "Beheerd door ModularHub",
+    "managedByPlatformHint": "Het ModularHub team beheert de gegevens en foto's. Laat het ons weten als er iets aangepast moet worden."
   },
   "ProducerPanelZapytaniaPage": {
     "heading": "Aanvragen",
@@ -2620,7 +2631,8 @@
       "sauna": "Tuinsauna",
       "spa": "Modulaire spa",
       "container": "Modulaire container",
-      "outdoorTv": "Buitentelevisie"
+      "outdoorTv": "Buitentelevisie",
+      "outdoorKitchen": "Buitenkeuken"
     }
   },
   "InquiryClaim": {
@@ -3354,5 +3366,96 @@
     "errorGeneric": "De aanvraag kon niet worden verstuurd. Probeer het zo meteen opnieuw.",
     "successHeading": "Bedankt, uw aanvraag is verstuurd",
     "successText": "Wij mailen u op {email} met een modelvoorstel en een offerte."
+  },
+  "OutdoorKitchenPage": {
+    "price": "Prijs",
+    "priceOnRequest": "Prijs op aanvraag",
+    "netVat": "netto",
+    "estimatedPackage": "Richtprijs",
+    "from": "vanaf",
+    "sendInquiry": "Aanvraag versturen",
+    "optionsHeading": "Extra opties",
+    "optionsAriaLabel": "Extra opties",
+    "optionIncluded": "inbegrepen",
+    "optionPriceOnRequest": "prijs op aanvraag",
+    "sectionNavAriaLabel": "Sectienavigatie",
+    "sectionNavScrollLeft": "Sectiebalk naar links scrollen",
+    "sectionNavScrollRight": "Sectiebalk naar rechts scrollen",
+    "optionsShowMore": "Meer opties tonen ({count})",
+    "optionsShowLess": "Minder opties tonen",
+    "vatDisclaimer": "+ btw volgens de regelgeving van het land van uitvoering · prijs al in de valuta van het aanbod",
+    "backToKitchens": "Terug naar alle keukens",
+    "sectionNav": {
+      "opcje": "Opties",
+      "cechy": "Kenmerken",
+      "specyfikacja": "Afmetingen en uitrusting",
+      "dostawa": "Levering en montage",
+      "partner": "Partner",
+      "dokumenty": "Documenten en vragen"
+    },
+    "onRequestOptionsNote": "De gekozen extra's prijzen we in de offerte, de prijs hierboven is zonder deze extra's."
+  },
+  "OutdoorKitchenSpecs": {
+    "heading": "Afmetingen en uitrusting",
+    "externalDimensions": "Buitenafmetingen (L × B × H)",
+    "internalDimensions": "Binnenafmetingen (L × B × H)",
+    "bodyMaterial": "Romp",
+    "worktopMaterial": "Werkblad",
+    "closable": "Afsluitbaar",
+    "yes": "ja",
+    "no": "nee",
+    "equipmentHeading": "Uitrusting",
+    "equipment": {
+      "grill": "Grill",
+      "sink": "Spoelbak",
+      "fridge": "Koelkast",
+      "cabinets": "Kasten",
+      "lighting": "Verlichting"
+    },
+    "equipmentState": {
+      "included": "inbegrepen",
+      "extra": "tegen meerprijs",
+      "none": "niet aanwezig"
+    },
+    "standardHeading": "Standaard inbegrepen",
+    "deliveryHeading": "Levering en montage",
+    "deliveryNote": "Levering",
+    "weight": "Gewicht",
+    "foundation": "Ondergrond"
+  },
+  "OutdoorKitchenCategoryPage": {
+    "metaTitle": "Buitenkeukens | ModularHub Europe",
+    "metaDescription": "Buitenkeukens in een afsluitbare behuizing en modulaire sets met apparatuur. Vergelijk afmetingen, uitrusting en prijs en stuur een aanvraag.",
+    "heading": "Buitenkeukens",
+    "intro": "Kant en klare keukens voor terras en tuin. Kies een afsluitbare keuken in een behuizing of een open modulaire set met apparatuur inbegrepen.",
+    "sections": {
+      "box": {
+        "heading": "Keukens in een behuizing",
+        "intro": "Een afsluitbare stalen box met vaste afmetingen, de uitrusting kiest u apart."
+      },
+      "modular": {
+        "heading": "Modulaire sets",
+        "intro": "Een open rij kasten met grill en spoelbak inbegrepen, in meerdere lengtes en kleuren."
+      }
+    },
+    "emptyHeading": "Buitenkeukens verschijnen hier binnenkort.",
+    "emptyLink": "Bekijk alle producten",
+    "filtersAriaLabel": "Filters voor buitenkeukens",
+    "typeLabel": "Soort keuken",
+    "typeOption": {
+      "box": "In een behuizing",
+      "modular": "Modulaire set"
+    },
+    "priceLabel": "Prijs vanaf",
+    "priceUpTo": "tot € {max}",
+    "priceRange": "€ {min} tot € {max}",
+    "priceFrom": "vanaf € {min}",
+    "sortLabel": "Sorteren",
+    "sortDefault": "Standaard",
+    "sortPriceAsc": "Prijs oplopend",
+    "sortPriceDesc": "Prijs aflopend",
+    "allOption": "Alle",
+    "clearFilters": "Filters wissen",
+    "noMatches": "Geen keuken past bij de gekozen filters."
   }
 }

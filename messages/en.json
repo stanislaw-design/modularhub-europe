@@ -16,7 +16,8 @@
         "houses": "Modular houses",
         "saunas": "Saunas",
         "outdoorTv": "Outdoor TV",
-        "containers": "Modular containers"
+        "containers": "Modular containers",
+        "outdoorKitchen": "Outdoor kitchens"
       },
       "orders": {
         "largeOrder": "ModularProjects request (from 3 houses)",
@@ -251,6 +252,11 @@
       "one": "product",
       "few": "products",
       "many": "products"
+    },
+    "outdoor-kitchen": {
+      "one": "outdoor kitchen",
+      "few": "outdoor kitchens",
+      "many": "outdoor kitchens"
     }
   },
   "CategoryHeading": {
@@ -339,7 +345,8 @@
       "dom": "House",
       "spa-modulowe": "Modular spa",
       "kontenery-modulowe": "Modular containers",
-      "outdoor-tv": "Outdoor TV"
+      "outdoor-tv": "Outdoor TV",
+      "outdoor-kitchen": "Outdoor kitchens"
     },
     "floorLevel": {
       "parter": "Ground floor",
@@ -1521,7 +1528,8 @@
     "categoryLinksAriaLabel": "Categories within More than a house",
     "categoryLinkSpa": "Saunas",
     "categoryLinkContainers": "Modular containers",
-    "categoryLinkOutdoorTv": "Outdoor TV"
+    "categoryLinkOutdoorTv": "Outdoor TV",
+    "categoryLinkOutdoorKitchen": "Outdoor kitchens"
   },
   "FloatingSearchButton": {
     "prompt": "What are you looking for today?",
@@ -1597,7 +1605,8 @@
     "all": "All",
     "spa": "Saunas",
     "containers": "Modular containers",
-    "outdoorTv": "Outdoor TV"
+    "outdoorTv": "Outdoor TV",
+    "outdoorKitchen": "Kitchens"
   },
   "CategoryFilterBar": {
     "navAriaLabel": "House attribute filters",
@@ -1919,7 +1928,9 @@
     "missingPrice": "No price",
     "missingTranslation": "Missing translations",
     "missingMore": "+{count} more",
-    "completeButton": "Complete"
+    "completeButton": "Complete",
+    "managedByPlatform": "Managed by ModularHub",
+    "managedByPlatformHint": "The ModularHub team updates the data and photos. Write to us if something needs changing."
   },
   "ProducerPanelZapytaniaPage": {
     "heading": "Inquiries",
@@ -2620,7 +2631,8 @@
       "sauna": "Garden sauna",
       "spa": "Modular spa",
       "container": "Modular container",
-      "outdoorTv": "Outdoor TV"
+      "outdoorTv": "Outdoor TV",
+      "outdoorKitchen": "Outdoor kitchen"
     }
   },
   "InquiryClaim": {
@@ -3354,5 +3366,96 @@
     "errorGeneric": "The inquiry could not be sent. Please try again in a moment.",
     "successHeading": "Thank you, your inquiry has been sent",
     "successText": "We will write to {email} with a model proposal and a quote."
+  },
+  "OutdoorKitchenPage": {
+    "price": "Price",
+    "priceOnRequest": "Custom quote",
+    "netVat": "net",
+    "estimatedPackage": "Estimated price",
+    "from": "from",
+    "sendInquiry": "Send inquiry",
+    "optionsHeading": "Additional options",
+    "optionsAriaLabel": "Additional options",
+    "optionIncluded": "included",
+    "optionPriceOnRequest": "price on request",
+    "sectionNavAriaLabel": "Section navigation",
+    "sectionNavScrollLeft": "Scroll section bar left",
+    "sectionNavScrollRight": "Scroll section bar right",
+    "optionsShowMore": "Show more options ({count})",
+    "optionsShowLess": "Show fewer options",
+    "vatDisclaimer": "+ VAT per the regulations of the country of execution · price already in the offer's currency",
+    "backToKitchens": "Back to all kitchens",
+    "sectionNav": {
+      "opcje": "Options",
+      "cechy": "Features",
+      "specyfikacja": "Dimensions and equipment",
+      "dostawa": "Delivery and installation",
+      "partner": "Partner",
+      "dokumenty": "Documents and questions"
+    },
+    "onRequestOptionsNote": "We will price the selected add ons in the offer; the price above does not include them."
+  },
+  "OutdoorKitchenSpecs": {
+    "heading": "Dimensions and equipment",
+    "externalDimensions": "External dimensions (L × W × H)",
+    "internalDimensions": "Internal dimensions (L × W × H)",
+    "bodyMaterial": "Body",
+    "worktopMaterial": "Worktop",
+    "closable": "Lockable",
+    "yes": "yes",
+    "no": "no",
+    "equipmentHeading": "Equipment",
+    "equipment": {
+      "grill": "Grill",
+      "sink": "Sink",
+      "fridge": "Fridge",
+      "cabinets": "Cabinets",
+      "lighting": "Lighting"
+    },
+    "equipmentState": {
+      "included": "included",
+      "extra": "at extra cost",
+      "none": "not available"
+    },
+    "standardHeading": "Included as standard",
+    "deliveryHeading": "Delivery and installation",
+    "deliveryNote": "Delivery",
+    "weight": "Weight",
+    "foundation": "Base"
+  },
+  "OutdoorKitchenCategoryPage": {
+    "metaTitle": "Outdoor kitchens | ModularHub Europe",
+    "metaDescription": "Outdoor kitchens in a lockable housing and modular sets with appliances. Compare dimensions, equipment and price, then send an inquiry.",
+    "heading": "Outdoor kitchens",
+    "intro": "Ready made kitchens for your terrace and garden. Choose a lockable kitchen in a housing or an open modular set with appliances included.",
+    "sections": {
+      "box": {
+        "heading": "Kitchens in a housing",
+        "intro": "A lockable steel box with fixed dimensions; you choose the equipment separately."
+      },
+      "modular": {
+        "heading": "Modular sets",
+        "intro": "An open run of cabinets with a grill and sink included, in several lengths and colours."
+      }
+    },
+    "emptyHeading": "Outdoor kitchens will appear here soon.",
+    "emptyLink": "See all products",
+    "filtersAriaLabel": "Outdoor kitchen filters",
+    "typeLabel": "Kitchen type",
+    "typeOption": {
+      "box": "In a housing",
+      "modular": "Modular set"
+    },
+    "priceLabel": "Price from",
+    "priceUpTo": "up to €{max}",
+    "priceRange": "€{min} to €{max}",
+    "priceFrom": "from €{min}",
+    "sortLabel": "Sort",
+    "sortDefault": "Default",
+    "sortPriceAsc": "Price ascending",
+    "sortPriceDesc": "Price descending",
+    "allOption": "All",
+    "clearFilters": "Clear filters",
+    "noMatches": "No kitchen matches the selected filters."
   }
 }

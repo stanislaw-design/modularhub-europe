@@ -15,6 +15,7 @@ export const READY_GROUP_LABEL: Record<ProductFamily, string> = {
   "spa-modulowe": "Spa modułowe (sauny, jacuzzi)",
   "kontenery-modulowe": "Kontenery modułowe",
   "outdoor-tv": "Outdoor TV",
+  "outdoor-kitchen": "Kuchnie ogrodowe",
 };
 
 export interface GroupProducer {

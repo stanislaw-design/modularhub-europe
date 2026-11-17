@@ -16,7 +16,8 @@
         "houses": "Domy modułowe",
         "saunas": "Sauny",
         "outdoorTv": "Outdoor TV",
-        "containers": "Kontenery modułowe"
+        "containers": "Kontenery modułowe",
+        "outdoorKitchen": "Kuchnie ogrodowe"
       },
       "orders": {
         "largeOrder": "Zapytanie ModularProjects (od 3 domów)",
@@ -259,6 +260,11 @@
       "one": "produkt",
       "few": "produkty",
       "many": "produktów"
+    },
+    "outdoor-kitchen": {
+      "one": "kuchnia ogrodowa",
+      "few": "kuchnie ogrodowe",
+      "many": "kuchni ogrodowych"
     }
   },
   "CategoryHeading": {
@@ -347,7 +353,8 @@
       "dom": "Dom",
       "spa-modulowe": "Spa modułowe",
       "kontenery-modulowe": "Kontenery modułowe",
-      "outdoor-tv": "Outdoor TV"
+      "outdoor-tv": "Outdoor TV",
+      "outdoor-kitchen": "Kuchnie ogrodowe"
     },
     "floorLevel": {
       "parter": "Parter",
@@ -1536,7 +1543,8 @@
     "categoryLinksAriaLabel": "Kategorie w grupie Więcej niż dom",
     "categoryLinkSpa": "Sauny",
     "categoryLinkContainers": "Kontenery",
-    "categoryLinkOutdoorTv": "Outdoor TV"
+    "categoryLinkOutdoorTv": "Outdoor TV",
+    "categoryLinkOutdoorKitchen": "Kuchnie ogrodowe"
   },
   "FloatingSearchButton": {
     "prompt": "Czego dziś szukasz?",
@@ -1612,7 +1620,8 @@
     "all": "Wszystko",
     "spa": "Sauny",
     "containers": "Kontenery",
-    "outdoorTv": "Outdoor TV"
+    "outdoorTv": "Outdoor TV",
+    "outdoorKitchen": "Kuchnie"
   },
   "CategoryFilterBar": {
     "navAriaLabel": "Filtry atrybutów domu",
@@ -1934,7 +1943,9 @@
     "missingPrice": "Brak ceny",
     "missingTranslation": "Brak tłumaczeń",
     "missingMore": "+{count} więcej",
-    "completeButton": "Uzupełnij"
+    "completeButton": "Uzupełnij",
+    "managedByPlatform": "Zarządza ModularHub",
+    "managedByPlatformHint": "Dane i zdjęcia zmienia zespół ModularHub. Napisz do nas, jeśli coś trzeba poprawić."
   },
   "ProducerPanelZapytaniaPage": {
     "heading": "Zapytania",
@@ -2628,7 +2639,8 @@
       "sauna": "Sauna ogrodowa",
       "spa": "Spa modułowe",
       "container": "Kontener modułowy",
-      "outdoorTv": "Telewizor zewnętrzny"
+      "outdoorTv": "Telewizor zewnętrzny",
+      "outdoorKitchen": "Kuchnia ogrodowa"
     }
   },
   "InquiryClaim": {
@@ -3362,5 +3374,96 @@
     "errorGeneric": "Nie udało się wysłać zapytania. Spróbuj ponownie za chwilę.",
     "successHeading": "Dziękujemy, zapytanie zostało wysłane",
     "successText": "Odezwiemy się na adres {email} z propozycją modelu i wyceną."
+  },
+  "OutdoorKitchenPage": {
+    "price": "Cena",
+    "priceOnRequest": "Wycena indywidualna",
+    "netVat": "netto",
+    "estimatedPackage": "Cena orientacyjna",
+    "from": "od",
+    "sendInquiry": "Wyślij zapytanie",
+    "optionsHeading": "Opcje dodatkowe",
+    "optionsAriaLabel": "Opcje dodatkowe",
+    "optionIncluded": "w cenie",
+    "optionPriceOnRequest": "cena na zapytanie",
+    "sectionNavAriaLabel": "Nawigacja po sekcjach strony",
+    "sectionNavScrollLeft": "Przewiń pasek sekcji w lewo",
+    "sectionNavScrollRight": "Przewiń pasek sekcji w prawo",
+    "optionsShowMore": "Pokaż więcej opcji ({count})",
+    "optionsShowLess": "Pokaż mniej opcji",
+    "vatDisclaimer": "+ VAT zgodnie z przepisami kraju realizacji · cena już w walucie oferty",
+    "backToKitchens": "Wróć do listy kuchni",
+    "sectionNav": {
+      "opcje": "Opcje",
+      "cechy": "Cechy",
+      "specyfikacja": "Wymiary i wyposażenie",
+      "dostawa": "Dostawa i montaż",
+      "partner": "Partner",
+      "dokumenty": "Dokumenty i pytania"
+    },
+    "onRequestOptionsNote": "Wybrane dodatki wycenimy w ofercie, cena powyżej ich nie obejmuje."
+  },
+  "OutdoorKitchenSpecs": {
+    "heading": "Wymiary i wyposażenie",
+    "externalDimensions": "Wymiary zewnętrzne (D × S × W)",
+    "internalDimensions": "Wymiary wewnętrzne (D × S × W)",
+    "bodyMaterial": "Korpus",
+    "worktopMaterial": "Blat",
+    "closable": "Zamykana",
+    "yes": "tak",
+    "no": "nie",
+    "equipmentHeading": "Wyposażenie",
+    "equipment": {
+      "grill": "Grill",
+      "sink": "Zlew",
+      "fridge": "Lodówka",
+      "cabinets": "Szafki",
+      "lighting": "Oświetlenie"
+    },
+    "equipmentState": {
+      "included": "w cenie",
+      "extra": "za dopłatą",
+      "none": "brak"
+    },
+    "standardHeading": "W standardzie",
+    "deliveryHeading": "Dostawa i montaż",
+    "deliveryNote": "Dostawa",
+    "weight": "Waga",
+    "foundation": "Podłoże"
+  },
+  "OutdoorKitchenCategoryPage": {
+    "metaTitle": "Kuchnie ogrodowe | ModularHub Europe",
+    "metaDescription": "Kuchnie ogrodowe w zamykanej obudowie i modułowe zestawy ze sprzętem. Porównaj wymiary, wyposażenie i cenę, a potem wyślij zapytanie.",
+    "heading": "Kuchnie ogrodowe",
+    "intro": "Gotowe kuchnie na taras i do ogrodu. Wybierz zamykaną kuchnię w obudowie albo otwarty zestaw modułowy ze sprzętem w cenie.",
+    "sections": {
+      "box": {
+        "heading": "Kuchnie w obudowie",
+        "intro": "Zamykana stalowa skrzynia o stałym wymiarze, wyposażenie dobierasz osobno."
+      },
+      "modular": {
+        "heading": "Zestawy modułowe",
+        "intro": "Otwarty ciąg szafek z grillem i zlewem w cenie, w kilku długościach i kolorach."
+      }
+    },
+    "emptyHeading": "Kuchnie ogrodowe pojawią się tu wkrótce.",
+    "emptyLink": "Zobacz wszystkie produkty",
+    "filtersAriaLabel": "Filtry kuchni ogrodowych",
+    "typeLabel": "Rodzaj kuchni",
+    "typeOption": {
+      "box": "W obudowie",
+      "modular": "Zestaw modułowy"
+    },
+    "priceLabel": "Cena od",
+    "priceUpTo": "do {max} €",
+    "priceRange": "{min} do {max} €",
+    "priceFrom": "od {min} €",
+    "sortLabel": "Sortuj",
+    "sortDefault": "Domyślnie",
+    "sortPriceAsc": "Cena rosnąco",
+    "sortPriceDesc": "Cena malejąco",
+    "allOption": "Wszystkie",
+    "clearFilters": "Wyczyść filtry",
+    "noMatches": "Żadna kuchnia nie pasuje do wybranych filtrów."
   }
 }

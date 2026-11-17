@@ -105,7 +105,10 @@ export function SearchCard({ locale, countries }: SearchCardProps) {
       ? { key: "sauna", href: `/${locale}/sauna`, label: t("categoryLinkSpa") }
       : family === "outdoor-tv"
         ? { key: family, href: `/${locale}${OUTDOOR_TV_PATH}`, label: t("categoryLinkOutdoorTv") }
-        : {
+        : // Spec 0086 AC-15: kuchnie mają własną stronę kategorii, jak sauny.
+          family === "outdoor-kitchen"
+          ? { key: family, href: `/${locale}/outdoor-kitchen`, label: t("categoryLinkOutdoorKitchen") }
+          : {
             key: family,
             href: `/${locale}/results?family=${family}`,
             label: categoryLinkLabels[family] ?? family,

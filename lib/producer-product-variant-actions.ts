@@ -4,6 +4,7 @@ import { invalidateProduct } from "@/lib/cache-tags";
 import { and, eq, isNull, ne, sql } from "drizzle-orm";
 import { after } from "next/server";
 import type { CompletionStandard, CostLineItemStatus, TimelineStageKey } from "@/lib/data/types";
+import { isProducerManagedFamily } from "@/lib/product-family-groups";
 import { db } from "@/lib/db/client";
 import { costLineItem, product, productTimelineStage, productVariant } from "@/lib/db/schema";
 import { captureError } from "@/lib/observability/errors";
@@ -28,10 +29,11 @@ type OwnershipStatus = "ok" | "not_found" | "denied";
 
 async function resolveProductOwnership(actor: { producerId: string }, productId: string): Promise<OwnershipStatus> {
   const [row] = await db
-    .select({ producerId: product.producerId })
+    .select({ producerId: product.producerId, family: product.family })
     .from(product)
     .where(and(eq(product.id, productId), isNull(product.deletedAt)));
-  if (!row) return "not_found";
+  // Spec 0086 AC-19: produkt rodziny bez edycji producenta (kuchnie) wygląda jak nieistniejący.
+  if (!row || !isProducerManagedFamily(row.family)) return "not_found";
   return row.producerId === actor.producerId ? "ok" : "denied";
 }
 
@@ -46,11 +48,11 @@ interface VariantOwnership {
 // przez variantId, timeline stage przez variantId).
 async function resolveVariantOwnership(actor: { producerId: string }, variantId: string): Promise<VariantOwnership> {
   const [row] = await db
-    .select({ productId: productVariant.productId, producerId: product.producerId })
+    .select({ productId: productVariant.productId, producerId: product.producerId, family: product.family })
     .from(productVariant)
     .innerJoin(product, eq(product.id, productVariant.productId))
     .where(and(eq(productVariant.id, variantId), isNull(productVariant.deletedAt), isNull(product.deletedAt)));
-  if (!row) return { status: "not_found" };
+  if (!row || !isProducerManagedFamily(row.family)) return { status: "not_found" };
   if (row.producerId !== actor.producerId) return { status: "denied" };
   return { status: "ok", productId: row.productId };
 }
@@ -64,12 +66,12 @@ async function resolveCostLineItemOwnership(
   itemId: string,
 ): Promise<OwnershipStatus> {
   const [row] = await db
-    .select({ producerId: product.producerId })
+    .select({ producerId: product.producerId, family: product.family })
     .from(costLineItem)
     .innerJoin(productVariant, eq(productVariant.id, costLineItem.productVariantId))
     .innerJoin(product, eq(product.id, productVariant.productId))
     .where(and(eq(costLineItem.id, itemId), isNull(productVariant.deletedAt), isNull(product.deletedAt)));
-  if (!row) return "not_found";
+  if (!row || !isProducerManagedFamily(row.family)) return "not_found";
   return row.producerId === actor.producerId ? "ok" : "denied";
 }
 

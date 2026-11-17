@@ -44,6 +44,7 @@ describe("FamilyTabs", () => {
       "Sauny",
       "Kontenery",
       "Outdoor TV",
+      "Kuchnie",
     ]);
   });
 

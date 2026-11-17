@@ -188,6 +188,7 @@ function mapRowToProducer(
     showroomVisitAvailable: row.showroomVisitAvailable,
     showroomVisitNote: row.showroomVisitNote ?? undefined,
     description: row.description ?? undefined,
+    isPlatformBrand: row.isPlatformBrand,
   };
 }
 
@@ -222,7 +223,8 @@ export async function getProducers(locale: Locale = "pl"): Promise<Producer[]> {
     await db
       .select()
       .from(producer)
-      .where(and(inArray(producer.id, producerIds), isNull(producer.deletedAt))),
+      // Spec 0086 AC-18: producent marki własnej ModularHub nie trafia na publiczne listy.
+      .where(and(inArray(producer.id, producerIds), isNull(producer.deletedAt), eq(producer.isPlatformBrand, false))),
     locale,
   );
 

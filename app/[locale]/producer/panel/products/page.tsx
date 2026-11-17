@@ -2,6 +2,7 @@ import { ProducerProductList } from "@/components/producent/ProducerProductList"
 import { getProducerIdForUser, getProductsForProducer } from "@/lib/db/queries";
 import { requirePanelProducerSession } from "@/lib/panel-session";
 import { getProductCompleteness } from "@/lib/producer-panel-summary";
+import { isProducerManagedFamily } from "@/lib/product-family-groups";
 
 // @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
 // Remove this opt-out after verifying the segment passes validation without it.
@@ -34,7 +35,9 @@ export default async function ProducerPanelProduktyPage({
       family: productRow.family,
       status: productRow.status,
       createdAt: productRow.createdAt,
-      missing: missingById.get(productRow.id) ?? [],
+      // Spec 0086 AC-19: produkt prowadzony przez ModularHub nie ma braków do uzupełnienia przez producenta.
+      managedByPlatform: !isProducerManagedFamily(productRow.family),
+      missing: isProducerManagedFamily(productRow.family) ? (missingById.get(productRow.id) ?? []) : [],
     }))
     // Braki na górze, w obrębie grupy najnowsze pierwsze.
     .sort((a, b) => {

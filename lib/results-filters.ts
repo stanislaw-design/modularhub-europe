@@ -16,6 +16,8 @@ const VALID_FAMILY_FILTER_VALUES: readonly FamilyFilterValue[] = [
   "spa-modulowe",
   "kontenery-modulowe",
   "outdoor-tv",
+  // Spec 0086 AC-15: /results?family=outdoor-kitchen.
+  "outdoor-kitchen",
   "wiecej-niz-dom",
 ];
 const DEFAULT_FAMILY: FamilyFilterValue = "dom";

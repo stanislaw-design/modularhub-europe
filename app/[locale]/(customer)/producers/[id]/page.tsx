@@ -29,7 +29,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale, id } = await params;
   const producer = await getProducerByIdCached(id, locale as Locale);
-  if (!producer || !producer.verified) return { robots: { index: false } };
+  if (!producer || !producer.verified || producer.isPlatformBrand) return { robots: { index: false } };
   const t = await getTranslations({ locale, namespace: "ProducerDetailPage" });
   const canonicalPath = `/${locale}/producers/${id}`;
   const languageAlternates = Object.fromEntries(
@@ -53,7 +53,8 @@ export async function generateMetadata({
 export default async function ProducerDetailPage({ params }: { params: Promise<PageParams> }) {
   const { locale, id } = await params;
   const producer = await getProducerByIdCached(id, locale as Locale);
-  if (!producer || !producer.verified) notFound();
+  // Spec 0086 AC-18: marka własna ModularHub nie ma publicznego profilu.
+  if (!producer || !producer.verified || producer.isPlatformBrand) notFound();
 
   const [t, countries, projectsByFamily] = await Promise.all([
     getTranslations({ locale, namespace: "ProducerDetailPage" }),

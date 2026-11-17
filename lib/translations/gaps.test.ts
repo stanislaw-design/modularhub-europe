@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { findTranslationGaps, formatTranslationGaps, layoutTranslationItems } from "./gaps";
+import {
+  findTranslationGaps,
+  formatTranslationGaps,
+  layoutTranslationItems,
+  outdoorKitchenSpecsTranslationItems,
+} from "./gaps";
 
 const full = { en: "a", de: "b", nl: "c" };
 
@@ -79,5 +84,42 @@ describe("layoutTranslationItems (spec 0069 AC-7)", () => {
   it("skips an empty description and tolerates a layout without rooms", () => {
     const items = layoutTranslationItems({ ref: "x", description: null, roomLayout: null, translations: {} });
     expect(findTranslationGaps(items)).toEqual([]);
+  });
+});
+
+// Spec 0086 AC-3: tekstowe pola kuchni ogrodowej.
+describe("outdoorKitchenSpecsTranslationItems", () => {
+  const technicalSpecs = {
+    kitchenType: "modular",
+    bodyMaterial: "Stal",
+    deliveryNote: "Dostawa złożona",
+    standardFeatures: ["Grill gazowy", "Zlew"],
+  };
+  const kitchenTranslation = (bodyMaterial: string) => ({
+    specs: { bodyMaterial: { value: bodyMaterial }, deliveryNote: { value: "Delivery" } },
+    standardFeatures: ["Gas grill", "Sink"],
+  });
+
+  it("reports no gap when every text field and list item is translated", () => {
+    const items = outdoorKitchenSpecsTranslationItems({
+      ref: "Compact 240",
+      technicalSpecs,
+      translations: { en: kitchenTranslation("Steel"), de: kitchenTranslation("Stahl"), nl: kitchenTranslation("Staal") },
+    });
+    expect(findTranslationGaps(items)).toEqual([]);
+  });
+
+  it("reports a missing field and a list of the wrong length", () => {
+    const items = outdoorKitchenSpecsTranslationItems({
+      ref: "Compact 240",
+      technicalSpecs,
+      translations: {
+        en: kitchenTranslation("Steel"),
+        de: { specs: { deliveryNote: { value: "Lieferung" } }, standardFeatures: ["Gasgrill"] },
+        nl: kitchenTranslation("Staal"),
+      },
+    });
+    const gaps = findTranslationGaps(items).map((gap) => `${gap.locale}:${gap.field}`);
+    expect(gaps).toEqual(["de:bodyMaterial", "de:standardFeatures[0]", "de:standardFeatures[1]"]);
   });
 });

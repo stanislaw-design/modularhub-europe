@@ -35,6 +35,7 @@ function buildColumns(locale: string): FooterColumn[] {
         { labelKey: "nav.catalog.houses", href: `/${locale}/results?family=dom` },
         { labelKey: "nav.catalog.saunas", href: `/${locale}/sauna` },
         { labelKey: "nav.catalog.outdoorTv", href: `/${locale}${OUTDOOR_TV_PATH}` },
+        { labelKey: "nav.catalog.outdoorKitchen", href: `/${locale}/outdoor-kitchen` },
         { labelKey: "nav.catalog.containers", href: `/${locale}/results?family=kontenery-modulowe` },
       ],
     },

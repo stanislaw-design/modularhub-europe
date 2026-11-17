@@ -71,6 +71,8 @@ export function ResultCard({
   // Sauny (spec 0061) nie mają metrażu/pokoi/kondygnacji ani pozycji
   // kosztowych "w cenie" w bazie — to samo rozumowanie co outdoor-tv niżej.
   const isSauna = project.spaSubcategory === "sauna";
+  // Kuchnie ogrodowe (spec 0086): tak samo bez metrażu, pokoi i pozycji "w cenie".
+  const isCatalogItem = isSauna || project.family === "outdoor-kitchen";
   // Dokument bez productVariantId dotyczy każdego wariantu (spec 0041 Feature
   // design); karta pyta tylko o istnienie choćby jednego rzutu w ogóle (spec
   // 0044 AC-3), bez zawężania do wybranego wariantu.
@@ -157,7 +159,7 @@ export function ResultCard({
             realnej treści; sauny tak samo, spec 0061) — ta sama zasada
             "sekcja bez treści znika w całości" co na stronie produktu,
             przeniesiona na kafelek wyników. */}
-        {project.family !== "outdoor-tv" && !isSauna && (
+        {project.family !== "outdoor-tv" && !isCatalogItem && (
           <>
             <Text surface="v5" className="font-medium">
               {t("summary", {
@@ -209,7 +211,10 @@ export function ResultCard({
               {/* Etykieta wariantu zawsze obok ceny z tego samego wariantu
                   (spec 0044 AC-1) — nigdy dwie różne wartości z dwóch źródeł. */}
               <Text variant="label" tone="muted" surface="v5">
-                {t("price")} · {priceDisplay.variant.variantLabel ?? standardLabel[priceDisplay.variant.completionStandard]}
+                {/* Kuchnia ma jeden wariant bez nazwy (spec 0086): sama "Cena", bez "· Wariant". */}
+                {project.family === "outdoor-kitchen" && !priceDisplay.variant.variantLabel
+                  ? t("price")
+                  : `${t("price")} · ${priceDisplay.variant.variantLabel ?? standardLabel[priceDisplay.variant.completionStandard]}`}
               </Text>
               <DataText as="p" surface="v5" className="mt-1 text-body-l font-semibold">
                 {t("priceFrom", { price: priceFormatter.format(priceDisplay.variant.priceMin) })}
@@ -219,7 +224,7 @@ export function ResultCard({
                 if (labels.length === 0) {
                   // Sauny nie mają pozycji kosztowych "w cenie" w bazie (spec
                   // 0061); "Zakres do potwierdzenia" nic by im nie dodawał.
-                  if (isSauna) return null;
+                  if (isCatalogItem) return null;
                   return (
                     <Text tone="muted" surface="v5" className="mt-1 text-data">
                       {t("costIncludedFallback")}

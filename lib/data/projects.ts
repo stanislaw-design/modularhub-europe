@@ -30,6 +30,7 @@ import { loadReferenceTranslator } from "./reference-text";
 import type { ProductOptionLayout } from "./project-layout";
 import { FLOOR_LEVELS, roomLayoutSchema, type FloorLevel } from "@/lib/product-room-layout";
 import type { EnergyClass, VentilationType } from "@/lib/product-technical-specs";
+import { resolveOutdoorKitchenSpecs, resolveTranslatedSpecValue } from "./translated-specs";
 import { captureError } from "@/lib/observability/errors";
 import type { OutdoorTvMounting, OutdoorTvPurpose } from "@/lib/outdoor-tv-filters";
 import { resolveFamilies, type FamilyFilterValue } from "@/lib/product-family-groups";
@@ -590,22 +591,6 @@ function resolveTranslatedFaq(base: ProjectFaqItem[], translated: unknown): Proj
   });
 }
 
-// Sauna (spec 0061) ma typowany odczyt technicalSpecs po angielskich kluczach
-// (claddingMaterial, ...), więc tłumaczenie bierze wartość z tego samego
-// kształtu `{ specs: { "<klucz>": { value } } }` co outdoor-tv wyżej, tylko
-// kluczem jest nazwa pola schematu, nie polski napis. Brak tłumaczenia albo
-// pusta wartość spada na polski tekst (ten sam fallback AC-6).
-function resolveTranslatedSpecValue(base: string | undefined, translated: unknown, key: string): string {
-  const specs =
-    translated && typeof translated === "object" ? (translated as { specs?: unknown }).specs : undefined;
-  const entry = specs && typeof specs === "object" ? (specs as Record<string, unknown>)[key] : undefined;
-  const value =
-    entry && typeof entry === "object" && typeof (entry as { value?: unknown }).value === "string"
-      ? (entry as { value: string }).value.trim()
-      : "";
-  return value || (base ?? "");
-}
-
 interface TranslatedTechnicalSpecs {
   rawTechnicalSpecs: Record<string, string>;
   technicalSpecsLabels?: Record<string, string>;
@@ -866,12 +851,18 @@ function mapRowToProject(
           ),
         }
       : undefined;
+  const outdoorKitchenTechnicalSpecs =
+    row.family === "outdoor-kitchen"
+      ? resolveOutdoorKitchenSpecs(row.technicalSpecs, translation?.technicalSpecs)
+      : undefined;
   // Wersja surowa, bez typowania pod "dom" (spec 0056 AC-3): dla rodziny bez
   // własnego schematu Zod (outdoor-tv) to jedyny sposób pokazania czegokolwiek
   // ze specyfikacji technicznej. Klucze wewnętrzne (podkreślnik, np.
   // _priceOnRequest) i wartości nietekstowe są pomijane — to pole nie zna
   // kształtu żadnej konkretnej rodziny, tylko wypisuje to, co jest.
-  const baseTechnicalSpecsEntries = Object.entries((row.technicalSpecs ?? {}) as Record<string, unknown>).filter(
+  // Kuchnia ma własny, typowany odczyt wyżej, więc generyczna tabela jej nie dotyczy.
+  const genericSpecsSource = row.family === "outdoor-kitchen" ? {} : (row.technicalSpecs ?? {});
+  const baseTechnicalSpecsEntries = Object.entries(genericSpecsSource as Record<string, unknown>).filter(
     (entry): entry is [string, string] =>
       !entry[0].startsWith("_") && typeof entry[1] === "string" && entry[1].length > 0,
   );
@@ -943,6 +934,7 @@ function mapRowToProject(
     fireResistance: specs.fireResistance ?? "",
     windResistance: specs.windResistance ?? "",
     saunaTechnicalSpecs,
+    outdoorKitchenTechnicalSpecs,
     variants: related?.variants ?? [],
     roomLayout: roomLayout && roomLayout.length > 0 ? roomLayout : undefined,
     documents: related?.documents ?? [],
@@ -1138,6 +1130,18 @@ export interface SaunaProducerOption {
 // Producenci z co najmniej jedną opublikowaną sauną, do chipów filtra na
 // /sauna (spec 0068 AC-9). Lista rośnie sama razem z katalogiem, bez zmiany
 // kodu. Pusta lista zamiast błędu, gdy nie ma żadnej sauny.
+// Kuchnie ogrodowe na /outdoor-kitchen (spec 0086 API surface): wszystkie opublikowane produkty
+// rodziny, z przetłumaczonymi danymi kuchni. Błąd bazy daje pustą listę (strona pokazuje pusty
+// stan, nigdy 404), zgłoszony do Sentry.
+export async function getOutdoorKitchens(locale: Locale = "pl"): Promise<Project[]> {
+  try {
+    return await getProjects({ family: "outdoor-kitchen", locale });
+  } catch (error) {
+    captureError(error, { area: "outdoor-kitchen", section: "category" });
+    return [];
+  }
+}
+
 export async function getSaunaProducerOptions(): Promise<SaunaProducerOption[]> {
   const rows = await db
     .select({ id: producer.id, name: producer.name, count: sql<number>`count(*)::int` })

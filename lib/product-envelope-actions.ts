@@ -2,6 +2,7 @@
 
 import { invalidateProduct } from "@/lib/cache-tags";
 import { and, eq } from "drizzle-orm";
+import { isProducerManagedFamily } from "@/lib/product-family-groups";
 import { db } from "@/lib/db/client";
 import { getPgErrorCode } from "@/lib/db/pg-error";
 import { product, productEnvelopeParameter } from "@/lib/db/schema";
@@ -50,6 +51,8 @@ export async function upsertProductEnvelopeParameter(
 
   const target = await loadEnvelopeProduct(input.productId);
   if (!target || target.producerId !== actor.producerId) return { ok: false, error: UNAUTHORIZED_ERROR };
+  // Spec 0086 AC-19: produkt rodziny bez edycji producenta (kuchnie) wygląda jak nieistniejący.
+  if (!isProducerManagedFamily(target.family)) return { ok: false, error: UNAUTHORIZED_ERROR };
   if (!supportsEnvelopeParameters(target)) return { ok: false, error: FAMILY_NOT_SUPPORTED_ERROR };
 
   const parsed = productEnvelopeParameterInputSchema.safeParse(input);
@@ -100,11 +103,13 @@ export async function deleteProductEnvelopeParameter(id: string, expectedVersion
 
   try {
     const [row] = await db
-      .select({ id: productEnvelopeParameter.id, producerId: product.producerId })
+      .select({ id: productEnvelopeParameter.id, producerId: product.producerId, family: product.family })
       .from(productEnvelopeParameter)
       .innerJoin(product, eq(product.id, productEnvelopeParameter.productId))
       .where(eq(productEnvelopeParameter.id, id));
-    if (!row || row.producerId !== actor.producerId) return { ok: false, error: NOT_FOUND_ERROR };
+    if (!row || row.producerId !== actor.producerId || !isProducerManagedFamily(row.family)) {
+      return { ok: false, error: NOT_FOUND_ERROR };
+    }
 
     const deleted = await db
       .delete(productEnvelopeParameter)
@@ -132,6 +137,7 @@ export async function setProductFoundationStatus(
 
   const target = await loadEnvelopeProduct(productId);
   if (!target || target.producerId !== actor.producerId) return { ok: false, error: UNAUTHORIZED_ERROR };
+  if (!isProducerManagedFamily(target.family)) return { ok: false, error: UNAUTHORIZED_ERROR };
   if (!supportsEnvelopeParameters(target)) return { ok: false, error: FAMILY_NOT_SUPPORTED_ERROR };
 
   try {

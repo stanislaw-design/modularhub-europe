@@ -33,6 +33,7 @@ export async function FamilyTabs({ locale, family, countryCode, sizeMin, sizeMax
     { value: "spa-modulowe", label: t("spa") },
     { value: "kontenery-modulowe", label: t("containers") },
     { value: "outdoor-tv", label: t("outdoorTv") },
+    { value: "outdoor-kitchen", label: t("outdoorKitchen") },
   ];
 
   function hrefFor(value: FamilyFilterValue): string {
@@ -41,6 +42,8 @@ export async function FamilyTabs({ locale, family, countryCode, sizeMin, sizeMax
     if (value === "spa-modulowe") return `/${locale}/sauna`;
     // Tymczasowo: Outdoor TV to tylko strona ekranów komercyjnych (OUTDOOR_TV_PATH).
     if (value === "outdoor-tv") return `/${locale}${OUTDOOR_TV_PATH}`;
+    // Kuchnie ogrodowe mają własną stronę kategorii (spec 0086 AC-15).
+    if (value === "outdoor-kitchen") return `/${locale}/outdoor-kitchen`;
     const params = new URLSearchParams();
     if (value !== "dom") params.set("family", value);
     if (countryCode) params.set("country", countryCode);

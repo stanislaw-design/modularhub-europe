@@ -13,6 +13,7 @@ export type PageType =
   | "project"
   | "sauna"
   | "outdoor_tv"
+  | "outdoor_kitchen"
   | "modularproject"
   | "producer"
   | "other";
@@ -32,6 +33,7 @@ export const ATTRIBUTED_PAGE_TYPES: ReadonlySet<PageType> = new Set([
   "project",
   "sauna",
   "outdoor_tv",
+  "outdoor_kitchen",
   "modularproject",
   "producer",
 ]);
@@ -40,6 +42,7 @@ const DETAIL_SEGMENT_TYPES: Record<string, PageType> = {
   project: "project",
   sauna: "sauna",
   "outdoor-tv": "outdoor_tv",
+  "outdoor-kitchen": "outdoor_kitchen",
   modularprojects: "modularproject",
   producers: "producer",
 };

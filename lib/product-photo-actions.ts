@@ -5,6 +5,7 @@ import { randomUUID } from "node:crypto";
 import { and, eq, isNull } from "drizzle-orm";
 import type { BatchItem, BatchResponse } from "drizzle-orm/batch";
 import { auth } from "@/auth";
+import { isProducerManagedFamily } from "@/lib/product-family-groups";
 import { db } from "@/lib/db/client";
 import { getProducerIdForUser } from "@/lib/db/queries";
 import { withAdminActor } from "@/lib/db/with-admin-actor";
@@ -47,9 +48,14 @@ type ProductOwnership = "ok" | "not_found" | "denied";
 // producer_photo/company_verification — spec 0032 Key invariants). Odróżnia
 // "nie istnieje" od "nie twoje", żeby wywołujący mógł pokazać właściwy komunikat.
 async function resolveProductOwnership(actor: PhotoActor, productId: string): Promise<ProductOwnership> {
-  const [row] = await db.select({ id: product.id, producerId: product.producerId }).from(product).where(eq(product.id, productId));
+  const [row] = await db
+    .select({ id: product.id, producerId: product.producerId, family: product.family })
+    .from(product)
+    .where(eq(product.id, productId));
   if (!row) return "not_found";
   if (actor.role === "admin") return "ok";
+  // Spec 0086 AC-19: produkt rodziny bez edycji producenta (kuchnie) wygląda jak nieistniejący.
+  if (!isProducerManagedFamily(row.family)) return "not_found";
   const producerId = await getProducerIdForUser(actor.userId);
   if (!producerId) return "denied";
   return row.producerId === producerId ? "ok" : "denied";

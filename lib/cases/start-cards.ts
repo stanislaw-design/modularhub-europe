@@ -54,7 +54,7 @@ export const START_CARDS: readonly StartCardDefinition[] = [
   {
     key: "termin",
     layer: 1,
-    families: ["dom", "spa-modulowe", "kontenery-modulowe", "outdoor-tv"],
+    families: ["dom", "spa-modulowe", "kontenery-modulowe", "outdoor-tv", "outdoor-kitchen"],
     options: [
       { value: "jak_najszybciej", icon: "Zap" },
       { value: "do_6_miesiecy", icon: "CalendarClock" },
@@ -97,7 +97,7 @@ export const START_CARDS: readonly StartCardDefinition[] = [
   {
     key: "miejsce_ustawienia",
     layer: 1,
-    families: ["spa-modulowe"],
+    families: ["spa-modulowe", "outdoor-kitchen"],
     options: [
       { value: "ogrod", icon: "Trees" },
       { value: "taras", icon: "LayoutGrid" },
@@ -128,7 +128,7 @@ export const START_CARDS: readonly StartCardDefinition[] = [
   {
     key: "liczba_sztuk",
     layer: 1,
-    families: ["kontenery-modulowe", "outdoor-tv"],
+    families: ["kontenery-modulowe", "outdoor-tv", "outdoor-kitchen"],
     options: [
       { value: "jeden", icon: "Package" },
       { value: "od_2_do_5", icon: "Boxes" },
@@ -169,6 +169,8 @@ const FAMILY_CARD_KEYS: Readonly<Record<Exclude<ProductFamily, "dom">, readonly 
   "spa-modulowe": ["miejsce_ustawienia", "zasilanie_400v", "termin"],
   "kontenery-modulowe": ["przylacza", "liczba_sztuk", "termin"],
   "outdoor-tv": ["miejsce_montazu_tv", "liczba_sztuk", "termin"],
+  // Spec 0086 AC-17: tylko istniejące karty, rodzina dopisana do ich listy families.
+  "outdoor-kitchen": ["miejsce_ustawienia", "liczba_sztuk", "termin"],
 };
 
 // Spec 0084 AC-5: zestaw kart po wysłaniu. Dom dostaje wszystkie sześć

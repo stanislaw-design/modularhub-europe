@@ -89,6 +89,7 @@ Start jest pilotem na Polsce. Pozostałe kraje z mocka silnika zgodności i wers
 | 73 | Wstępna ocena zgodności w ofercie podsumowującej | Slice 3 | planned |
 | 74 | Przegląd danych zgodności projekt po projekcie | Slice 2 | planned |
 | 75 | Bezpośrednie wgrywanie plików do R2 (załączniki zapytań i PDF oferty) | Slice 12 | in progress |
+| 76 | Kuchnie ogrodowe: nowa rodzina produktu do prezentacji | Slice 2 | in progress |
 
 ## Foundations
 
@@ -939,6 +940,19 @@ Strona produktu nie ma dziś żadnej liczby izolacyjności (tylko klasę energet
   - [ ] Testy i pilotaż danych 2 do 3 producentów, satisfies AC-15
 - [ ] Zweryfikuj: `/check verify parametry izolacji przegród, posadowienie i planowane użytkowanie`
 - [ ] Testuj: `/test parametry izolacji przegród, posadowienie i planowane użytkowanie`
+
+### 76. Kuchnie ogrodowe: nowa rodzina produktu do prezentacji · Slice 2 · in progress
+Nowa rodzina `outdoor-kitchen` z 10 modelami z katalogu dla inwestora: 4 kuchnie w obudowie od Wooden Dream House i 6 zestawów modułowych jako produkt ModularHub (bez nazwy dostawcy). Tylko do prezentacji: dane ze skryptu importu, bez edycji przez producenta, zapytanie przez istniejący formularz. Strona kategorii `/outdoor-kitchen` z dwiema sekcjami i strona produktu `/outdoor-kitchen/[slug]`. Powstało z `/architect`, from spec 0086.
+**Done when:** `/pl/outdoor-kitchen` (i en, de, nl) pokazuje dwie sekcje z 10 kuchniami, każda strona produktu ma galerię, cenę od, wymiary, wyposażenie, opcje i dostawę, ModularHub Europe nie pojawia się na liście producentów, WDH nie może edytować kuchni, `npm run check:translations` pokazuje zero braków, a pozostałe rodziny działają jak dotąd.
+- [x] Zaprojektuj (spec): [0086](../specs/0086-rodzina-kuchnie-ogrodowe/index.md)
+- [ ] Build it: `/develop kuchnie ogrodowe`
+  - [x] Etap 1, cienki wątek: migracja (wartość rodziny, `producer.is_platform_brand`), schemat `outdoorKitchenSpecsShape`, `resolveProductHref`, strona produktu i import jednego produktu (Sky Kitchen Prestige Set) na dev, satisfies AC-1, AC-6 do AC-11
+  - [x] Etap 2, dane: import wszystkich 10 produktów na dev z kontem i producentem ModularHub Europe, zdjęciami, opcjami i tłumaczeniami, test na brak nazwy dostawcy, satisfies AC-2 do AC-5
+  - [x] Etap 3, kategoria i nawigacja: strona `/outdoor-kitchen`, hero, menu, stopka, `/results`, sitemap, karty doradcy, ukrycie producenta marki, satisfies AC-12 do AC-18
+  - [x] Etap 4, panel producenta i regresja: blokada edycji na serwerze, oznaczenie na liście WDH, testy pozostałych rodzin, satisfies AC-19, AC-20
+  - [ ] Etap 5, produkcja (osobny, jawnie zlecony krok): plik `_promote_` z danymi, uruchomiony ręcznie po migracji, satisfies AC-2 na prod
+- [ ] Zweryfikuj: `/check verify kuchnie ogrodowe`
+- [ ] Testuj: `/test kuchnie ogrodowe`
 
 ## Deferred
 Poza zakresem tej epiki, świadomie odłożone.
