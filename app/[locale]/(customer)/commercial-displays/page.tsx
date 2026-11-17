@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import {
   ArrowRight,
@@ -14,7 +13,6 @@ import {
   Signpost,
   Sun,
   Thermometer,
-  Trees,
   UtensilsCrossed,
   Waves,
   type LucideIcon,
@@ -93,6 +91,7 @@ function IconBadge({ icon: Icon, tone = "night" }: { icon: LucideIcon; tone?: "n
   );
 }
 
+// Na razie jedyna strona Outdoor TV (OUTDOOR_TV_PATH, lib/product-family-groups.ts).
 // Strona sprzedażowa z formularzem zapytania (spec 0083): przyciski "Zapytaj o wycenę" przewijają do
 // sekcji #zapytanie, a zgłoszenie zapisuje akcja submitCommercialDisplayInquiry.
 // v5-night i v5-paper zostają stałe w obu motywach (spec 0043), więc pasy ze zdjęciami wyglądają tak samo
@@ -103,7 +102,6 @@ export default async function CommercialDisplaysPage({ params }: { params: Promi
 
   const countries = await getCountries(locale as Locale);
   const inquiryHref = "#zapytanie";
-  const gardenTvHref = `/${locale}/results?family=outdoor-tv`;
 
   const stats = [
     { icon: Sun, value: t("statBrightnessValue"), label: t("statBrightnessLabel") },
@@ -118,9 +116,9 @@ export default async function CommercialDisplaysPage({ params }: { params: Promi
       title: t("familyDisplaysTitle"),
       text: t("familyDisplaysText"),
       meta: t("familyDisplaysMeta"),
-      image: `${IMG}/showroom-displays.webp`,
+      image: `${IMG}/hotel-wall-displays.webp`,
       alt: t("familyDisplaysImageAlt"),
-      position: "object-center",
+      position: "object-[50%_40%]",
     },
     {
       icon: Signpost,
@@ -147,8 +145,8 @@ export default async function CommercialDisplaysPage({ params }: { params: Promi
       icon: Hotel,
       title: t("useHotelsTitle"),
       text: t("useHotelsText"),
-      image: `${IMG}/resort-garden.webp`,
-      position: "object-[50%_62%]",
+      image: `${IMG}/hotel-terrace-displays.webp`,
+      position: "object-[50%_38%]",
       span: "lg:col-span-7",
     },
     {
@@ -165,7 +163,7 @@ export default async function CommercialDisplaysPage({ params }: { params: Promi
       text: t("usePoolsText"),
       image: `${IMG}/pool-terrace-led-wall.webp`,
       position: "object-[50%_30%]",
-      span: "lg:col-span-4",
+      span: "lg:col-span-6",
     },
     {
       icon: Building2,
@@ -173,15 +171,7 @@ export default async function CommercialDisplaysPage({ params }: { params: Promi
       text: t("useResidentialText"),
       image: `${IMG}/rooftop-led-wall.webp`,
       position: "object-[50%_55%]",
-      span: "lg:col-span-4",
-    },
-    {
-      icon: Trees,
-      title: t("useGardensTitle"),
-      text: t("useGardensText"),
-      image: `${IMG}/fireplace-patio.webp`,
-      position: "object-center",
-      span: "lg:col-span-4",
+      span: "lg:col-span-6",
     },
   ];
 
@@ -229,13 +219,13 @@ export default async function CommercialDisplaysPage({ params }: { params: Promi
                 <ClipboardList className="size-5" aria-hidden="true" />
                 {t("ctaPrimary")}
               </a>
-              <Link
-                href={gardenTvHref}
+              <a
+                href="#rozwiazania"
                 className="focus-ring inline-flex h-12 items-center gap-brand-1 rounded-v5-pill border border-white/40 bg-black/25 px-brand-4 text-body-l font-medium text-brand-v5-paper backdrop-blur-sm hover:bg-black/45"
               >
                 {t("ctaSecondary")}
                 <ArrowRight className="size-5" aria-hidden="true" />
-              </Link>
+              </a>
             </div>
           </div>
           <ul aria-label={t("statsAriaLabel")} className="grid list-none grid-cols-2 gap-brand-2 lg:grid-cols-4">
@@ -292,44 +282,46 @@ export default async function CommercialDisplaysPage({ params }: { params: Promi
         </Container>
       </section>
 
-      {/* Trzy rodziny rozwiązań: wiersze ze zdjęciami na przemian */}
-      <Container className="flex flex-col gap-brand-6">
-        <div className="flex flex-col gap-1">
-          <Heading level="h2" surface="v5">
-            {t("familiesHeading")}
-          </Heading>
-          <Text surface="v5" tone="muted">
-            {t("familiesIntro")}
-          </Text>
-        </div>
-        {families.map((family, index) => (
-          <article key={family.title} className="grid grid-cols-1 items-center gap-brand-4 lg:grid-cols-12 lg:gap-brand-6">
-            <div
-              className={`relative aspect-[16/11] overflow-hidden rounded-v5-panel lg:col-span-7 ${
-                index % 2 === 1 ? "lg:order-2" : ""
-              }`}
-            >
-              <Image
-                src={family.image}
-                alt={family.alt}
-                fill
-                sizes="(min-width: 1024px) 58vw, 100vw"
-                className={`object-cover ${family.position}`}
-              />
-            </div>
-            <div className="flex flex-col items-start gap-brand-2 lg:col-span-5">
-              <IconBadge icon={family.icon} />
-              <Heading level="h3" surface="v5">
-                {family.title}
-              </Heading>
-              <Text surface="v5">{family.text}</Text>
-              <span className="mt-1 inline-flex rounded-v5-pill border border-brand-v5-line px-brand-3 py-1 text-data font-medium text-brand-v5-muted">
-                {family.meta}
-              </span>
-            </div>
-          </article>
-        ))}
-      </Container>
+      {/* Trzy rodziny rozwiązań: wiersze ze zdjęciami na przemian. Cel drugiego przycisku w hero. */}
+      <section id="rozwiazania" className="scroll-mt-16">
+        <Container className="flex flex-col gap-brand-6">
+          <div className="flex flex-col gap-1">
+            <Heading level="h2" surface="v5">
+              {t("familiesHeading")}
+            </Heading>
+            <Text surface="v5" tone="muted">
+              {t("familiesIntro")}
+            </Text>
+          </div>
+          {families.map((family, index) => (
+            <article key={family.title} className="grid grid-cols-1 items-center gap-brand-4 lg:grid-cols-12 lg:gap-brand-6">
+              <div
+                className={`relative aspect-[16/11] overflow-hidden rounded-v5-panel lg:col-span-7 ${
+                  index % 2 === 1 ? "lg:order-2" : ""
+                }`}
+              >
+                <Image
+                  src={family.image}
+                  alt={family.alt}
+                  fill
+                  sizes="(min-width: 1024px) 58vw, 100vw"
+                  className={`object-cover ${family.position}`}
+                />
+              </div>
+              <div className="flex flex-col items-start gap-brand-2 lg:col-span-5">
+                <IconBadge icon={family.icon} />
+                <Heading level="h3" surface="v5">
+                  {family.title}
+                </Heading>
+                <Text surface="v5">{family.text}</Text>
+                <span className="mt-1 inline-flex rounded-v5-pill border border-brand-v5-line px-brand-3 py-1 text-data font-medium text-brand-v5-muted">
+                  {family.meta}
+                </span>
+              </div>
+            </article>
+          ))}
+        </Container>
+      </section>
 
       {/* Zastosowania: mozaika zdjęć z podpisami */}
       <Container className="flex flex-col gap-brand-4">
@@ -479,12 +471,6 @@ export default async function CommercialDisplaysPage({ params }: { params: Promi
                 </li>
               ))}
             </ul>
-            <Link
-              href={gardenTvHref}
-              className="focus-ring mt-brand-1 rounded-data text-body font-medium text-brand-v5-paper underline underline-offset-4"
-            >
-              {t("ctaCatalog")}
-            </Link>
           </div>
           <div className="lg:col-span-7">
             <CommercialDisplayInquiryForm locale={locale} countries={countries} />

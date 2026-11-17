@@ -1,8 +1,9 @@
 "use client";
 
-import { Container, Flame, House, Tv, type LucideIcon } from "lucide-react";
+import { ChefHat, Container, Flame, House, Tv, type LucideIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
+import { OUTDOOR_TV_PATH } from "@/lib/product-family-groups";
 import { usePathname, useSearchParams } from "next/navigation";
 
 type Role = "client" | "producer" | "admin";
@@ -43,7 +44,16 @@ const GROUPS: MenuGroup[] = [
     items: [
       { key: "houses", labelKey: "nav.catalog.houses", path: "/results", family: "dom", icon: House },
       { key: "saunas", labelKey: "nav.catalog.saunas", path: "/sauna", prefix: true, icon: Flame },
-      { key: "outdoorTv", labelKey: "nav.catalog.outdoorTv", path: "/results", family: "outdoor-tv", icon: Tv },
+      // Tymczasowo tylko oferta komercyjna (OUTDOOR_TV_PATH, lib/product-family-groups.ts).
+      { key: "outdoorTv", labelKey: "nav.catalog.outdoorTv", path: OUTDOOR_TV_PATH, icon: Tv },
+      // Spec 0086 AC-15: aktywny także na stronach produktów /outdoor-kitchen/[slug].
+      {
+        key: "outdoorKitchen",
+        labelKey: "nav.catalog.outdoorKitchen",
+        path: "/outdoor-kitchen",
+        prefix: true,
+        icon: ChefHat,
+      },
       {
         key: "containers",
         labelKey: "nav.catalog.containers",

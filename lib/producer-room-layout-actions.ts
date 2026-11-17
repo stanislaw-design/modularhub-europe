@@ -7,6 +7,7 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { getAzureAiConfig } from "@/lib/ai/azure-config";
 import { createAzureOpenAiClient } from "@/lib/ai/openai";
+import { isProducerManagedFamily } from "@/lib/product-family-groups";
 import { db } from "@/lib/db/client";
 import { getProducerIdForUser } from "@/lib/db/queries";
 import { document, product } from "@/lib/db/schema";
@@ -43,9 +44,14 @@ type ProductOwnership = "ok" | "not_found" | "denied";
 // eksportowana stamtąd, więc duplikat tego samego, krótkiego wzorca zamiast
 // importu — patrz spec 0050 Kluczowe niezmienniki).
 async function resolveProductOwnership(actor: RoomLayoutActor, productId: string): Promise<ProductOwnership> {
-  const [row] = await db.select({ id: product.id, producerId: product.producerId }).from(product).where(eq(product.id, productId));
+  const [row] = await db
+    .select({ id: product.id, producerId: product.producerId, family: product.family })
+    .from(product)
+    .where(eq(product.id, productId));
   if (!row) return "not_found";
   if (actor.role === "admin") return "ok";
+  // Spec 0086 AC-19: produkt rodziny bez edycji producenta (kuchnie) wygląda jak nieistniejący.
+  if (!isProducerManagedFamily(row.family)) return "not_found";
   const producerId = await getProducerIdForUser(actor.userId);
   return producerId === row.producerId ? "ok" : "denied";
 }

@@ -16,7 +16,8 @@
         "houses": "Modulhäuser",
         "saunas": "Saunen",
         "outdoorTv": "Outdoor TV",
-        "containers": "Modulare Container"
+        "containers": "Modulare Container",
+        "outdoorKitchen": "Outdoorküchen"
       },
       "orders": {
         "largeOrder": "ModularProjects-Anfrage (ab 3 Häusern)",
@@ -251,6 +252,11 @@
       "one": "Produkt",
       "few": "Produkte",
       "many": "Produkte"
+    },
+    "outdoor-kitchen": {
+      "one": "Outdoorküche",
+      "few": "Outdoorküchen",
+      "many": "Outdoorküchen"
     }
   },
   "CategoryHeading": {
@@ -339,7 +345,8 @@
       "dom": "Haus",
       "spa-modulowe": "Modulares Spa",
       "kontenery-modulowe": "Modularcontainer",
-      "outdoor-tv": "Outdoor TV"
+      "outdoor-tv": "Outdoor TV",
+      "outdoor-kitchen": "Outdoorküchen"
     },
     "floorLevel": {
       "parter": "Erdgeschoss",
@@ -1528,7 +1535,8 @@
     "categoryLinksAriaLabel": "Kategorien innerhalb von Mehr als ein Haus",
     "categoryLinkSpa": "Saunen",
     "categoryLinkContainers": "Container",
-    "categoryLinkOutdoorTv": "Outdoor TV"
+    "categoryLinkOutdoorTv": "Outdoor TV",
+    "categoryLinkOutdoorKitchen": "Outdoorküchen"
   },
   "FloatingSearchButton": {
     "prompt": "Wonach suchen Sie heute?",
@@ -1604,7 +1612,8 @@
     "all": "Alle",
     "spa": "Saunen",
     "containers": "Container",
-    "outdoorTv": "Outdoor TV"
+    "outdoorTv": "Outdoor TV",
+    "outdoorKitchen": "Küchen"
   },
   "CategoryFilterBar": {
     "navAriaLabel": "Filter für Hausmerkmale",
@@ -1926,7 +1935,9 @@
     "missingPrice": "Kein Preis",
     "missingTranslation": "Übersetzungen fehlen",
     "missingMore": "+{count} weitere",
-    "completeButton": "Vervollständigen"
+    "completeButton": "Vervollständigen",
+    "managedByPlatform": "Verwaltet von ModularHub",
+    "managedByPlatformHint": "Daten und Fotos pflegt das ModularHub Team. Schreiben Sie uns, wenn etwas geändert werden muss."
   },
   "ProducerPanelZapytaniaPage": {
     "heading": "Anfragen",
@@ -2620,7 +2631,8 @@
       "sauna": "Gartensauna",
       "spa": "Modul-Spa",
       "container": "Modulcontainer",
-      "outdoorTv": "Outdoor-Fernseher"
+      "outdoorTv": "Outdoor-Fernseher",
+      "outdoorKitchen": "Outdoorküche"
     }
   },
   "InquiryClaim": {
@@ -3241,17 +3253,17 @@
     "heading": "Bildschirme, die draußen arbeiten: in Sonne, Regen und Frost",
     "lead": "Gewerbliche Displays, Werbepakete und große LED-Wände für Hotels, Restaurants, Pools und Wohnanlagen. Wir wählen Modell und Version für den europäischen Markt aus und erstellen jedes Angebot individuell.",
     "ctaPrimary": "Angebot anfragen",
-    "ctaSecondary": "Fernseher für den Garten",
+    "ctaSecondary": "Lösungen ansehen",
     "heroImageAlt": "Eine LED-Wand unter einer schwarzen Holzpergola im Garten, dahinter Berge und bewölkter Himmel",
     "statsAriaLabel": "Wichtigste Kennwerte",
-    "statBrightnessValue": "bis 3000+ Nits",
+    "statBrightnessValue": "4000 Nits",
     "statBrightnessLabel": "klares Bild in voller Sonne",
-    "statProtectionValue": "IP66",
+    "statProtectionValue": "IP65",
     "statProtectionLabel": "geschützt gegen Staub und Strahlwasser",
-    "statTempValue": "−20…50 °C",
+    "statTempValue": "−20…60 °C",
     "statTempLabel": "Betriebstemperaturbereich",
-    "statGlassValue": "IK10",
-    "statGlassLabel": "schlagfestes Glas",
+    "statGlassValue": "GOB-Beschichtung",
+    "statGlassLabel": "schlagfest",
     "familiesHeading": "Drei Lösungsfamilien",
     "familiesIntro": "Vom einzelnen Bildschirm am Eingang bis zur LED-Wand über die ganze Terrasse.",
     "familyDisplaysTitle": "Gewerbliche IP66-Displays",
@@ -3261,7 +3273,7 @@
     "familySignageText": "Display, Mast (einfach, doppelt oder dreifach), Mediaplayer und Fernverwaltung der Inhalte. Menütafel, Schild an der Straße oder Bildschirm am Eingang.",
     "familySignageMeta": "Stahlmast, Inhaltspläne von überall",
     "familyLedTitle": "LED-Wände",
-    "familyLedText": "Große Flächen draußen und drinnen: Filmabende am Pool, Werbung, Events. Außenmodule IP65, bis 4000 Nits, Pixelabstand von 1,25 bis 2,5 mm.",
+    "familyLedText": "Große Flächen draußen und drinnen: Filmabende am Pool, Werbung, Events. Außenmodule IP65, bis 4000 Nits, mit GOB-Beschichtung, die die LEDs vor Stößen schützt, Pixelabstand von 1,25 bis 2,5 mm.",
     "familyLedMeta": "108″–325″ in Standardmodulen, andere Größen auf Anfrage",
     "useCasesHeading": "Wo es funktioniert",
     "useCasesIntro": "Bildschirme, die Salz, Sonne, Regen und Gästebetrieb aushalten.",
@@ -3273,8 +3285,6 @@
     "usePoolsText": "Unterhaltung am Pool und Whirlpool, die den Wert des ganzen Projekts steigert.",
     "useResidentialTitle": "Apartmenthäuser und Wohnanlagen",
     "useResidentialText": "Innenhöfe, Dächer und Gemeinschaftsbereiche: Filmabende, Mitteilungen an Bewohner, Veranstaltungen.",
-    "useGardensTitle": "Gärten und Terrassen",
-    "useGardensText": "Private Projekte: Garten-Fernseher und Liftschränke finden Sie im Katalog.",
     "specsHeading": "Gewerbliche Displays: Größen und Kennwerte",
     "specsIntro": "Alle Modelle haben optisch verklebtes IK10-Glas mit Entspiegelung.",
     "specsCaption": "Größen und Kennwerte der gewerblichen IP66-Displays",
@@ -3306,12 +3316,11 @@
     "step3Text": "Ein individuelles Angebot mit Liefertermin. Die Preise hängen von Version und Umfang ab, deshalb nennen wir sie hier nicht.",
     "ctaHeading": "Sagen Sie uns, wo der Bildschirm stehen soll",
     "ctaBody": "Schreiben Sie ein paar Sätze zu Ort und Bedarf. Wir antworten mit einem Modellvorschlag und einem Angebot.",
-    "ctaCatalog": "Garten-Fernseher im Katalog",
     "videoHeading": "Sehen Sie es live",
     "videoText": "Ein kurzer Film einer Installation: eine MirageVision-LED-Wand im Freien, bei Tageslicht.",
     "videoAriaLabel": "Film mit einer MirageVision-LED-Wand im Freien",
     "videoFallback": "Ihr Browser kann dieses Video nicht abspielen.",
-    "familyDisplaysImageAlt": "Drei gewerbliche Displays in verschiedenen Größen auf weißen Sockeln vor einer Halle",
+    "familyDisplaysImageAlt": "Zwei Hochformat-Displays in bronzefarbenen Gehäusen an einer Hotel-Steinwand, mit Restaurantinformationen",
     "familySignageImageAlt": "Ein senkrechter Werbebildschirm auf einem Mast an einer verschneiten Straße",
     "familyLedImageAlt": "Eine LED-Wand in einem Heimkino mit Küstenmotiv",
     "videoCaptionsHint": "Der Sprecher spricht Englisch. Untertitel auf Polnisch, Englisch, Deutsch und Niederländisch schalten Sie im Player ein (CC-Symbol).",
@@ -3357,5 +3366,96 @@
     "errorGeneric": "Die Anfrage konnte nicht gesendet werden. Bitte versuchen Sie es gleich noch einmal.",
     "successHeading": "Danke, Ihre Anfrage wurde gesendet",
     "successText": "Wir melden uns unter {email} mit einem Modellvorschlag und einem Angebot."
+  },
+  "OutdoorKitchenPage": {
+    "price": "Preis",
+    "priceOnRequest": "Individuelles Angebot",
+    "netVat": "netto",
+    "estimatedPackage": "Richtpreis",
+    "from": "ab",
+    "sendInquiry": "Anfrage senden",
+    "optionsHeading": "Zusätzliche Optionen",
+    "optionsAriaLabel": "Zusätzliche Optionen",
+    "optionIncluded": "inklusive",
+    "optionPriceOnRequest": "Preis auf Anfrage",
+    "sectionNavAriaLabel": "Abschnittsnavigation",
+    "sectionNavScrollLeft": "Abschnittsleiste nach links scrollen",
+    "sectionNavScrollRight": "Abschnittsleiste nach rechts scrollen",
+    "optionsShowMore": "Weitere Optionen anzeigen ({count})",
+    "optionsShowLess": "Weniger Optionen anzeigen",
+    "vatDisclaimer": "+ MwSt. gemäß den Vorschriften des Baulandes · Preis bereits in der Angebotswährung",
+    "backToKitchens": "Zurück zu allen Küchen",
+    "sectionNav": {
+      "opcje": "Optionen",
+      "cechy": "Merkmale",
+      "specyfikacja": "Maße und Ausstattung",
+      "dostawa": "Lieferung und Montage",
+      "partner": "Partner",
+      "dokumenty": "Dokumente und Fragen"
+    },
+    "onRequestOptionsNote": "Die gewählten Extras kalkulieren wir im Angebot, der Preis oben enthält sie nicht."
+  },
+  "OutdoorKitchenSpecs": {
+    "heading": "Maße und Ausstattung",
+    "externalDimensions": "Außenmaße (L × B × H)",
+    "internalDimensions": "Innenmaße (L × B × H)",
+    "bodyMaterial": "Korpus",
+    "worktopMaterial": "Arbeitsplatte",
+    "closable": "Abschließbar",
+    "yes": "ja",
+    "no": "nein",
+    "equipmentHeading": "Ausstattung",
+    "equipment": {
+      "grill": "Grill",
+      "sink": "Spüle",
+      "fridge": "Kühlschrank",
+      "cabinets": "Schränke",
+      "lighting": "Beleuchtung"
+    },
+    "equipmentState": {
+      "included": "im Preis enthalten",
+      "extra": "gegen Aufpreis",
+      "none": "nicht vorhanden"
+    },
+    "standardHeading": "Serienmäßig",
+    "deliveryHeading": "Lieferung und Montage",
+    "deliveryNote": "Lieferung",
+    "weight": "Gewicht",
+    "foundation": "Untergrund"
+  },
+  "OutdoorKitchenCategoryPage": {
+    "metaTitle": "Outdoorküchen | ModularHub Europe",
+    "metaDescription": "Outdoorküchen im abschließbaren Gehäuse und modulare Sets mit Geräten. Vergleichen Sie Maße, Ausstattung und Preis und senden Sie eine Anfrage.",
+    "heading": "Outdoorküchen",
+    "intro": "Fertige Küchen für Terrasse und Garten. Wählen Sie eine abschließbare Küche im Gehäuse oder ein offenes Modulset mit Geräten im Preis.",
+    "sections": {
+      "box": {
+        "heading": "Küchen im Gehäuse",
+        "intro": "Eine abschließbare Stahlbox mit festen Maßen, die Ausstattung wählen Sie separat."
+      },
+      "modular": {
+        "heading": "Modulare Sets",
+        "intro": "Eine offene Schrankzeile mit Grill und Spüle im Preis, in mehreren Längen und Farben."
+      }
+    },
+    "emptyHeading": "Outdoorküchen erscheinen hier in Kürze.",
+    "emptyLink": "Alle Produkte ansehen",
+    "filtersAriaLabel": "Filter für Outdoorküchen",
+    "typeLabel": "Küchenart",
+    "typeOption": {
+      "box": "Im Gehäuse",
+      "modular": "Modulares Set"
+    },
+    "priceLabel": "Preis ab",
+    "priceUpTo": "bis {max} €",
+    "priceRange": "{min} bis {max} €",
+    "priceFrom": "ab {min} €",
+    "sortLabel": "Sortieren",
+    "sortDefault": "Standard",
+    "sortPriceAsc": "Preis aufsteigend",
+    "sortPriceDesc": "Preis absteigend",
+    "allOption": "Alle",
+    "clearFilters": "Filter zurücksetzen",
+    "noMatches": "Keine Küche passt zu den gewählten Filtern."
   }
 }

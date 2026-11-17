@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import type { Project } from "@/lib/data/types";
 
-export type ProductAltKind = "house" | "sauna" | "spa" | "container" | "outdoorTv";
+export type ProductAltKind = "house" | "sauna" | "spa" | "container" | "outdoorTv" | "outdoorKitchen";
 
 type AltProject = Pick<Project, "family" | "spaSubcategory" | "name" | "producerName">;
 
@@ -16,6 +16,8 @@ export function getProductAltKind(project: Pick<Project, "family" | "spaSubcateg
       return "container";
     case "outdoor-tv":
       return "outdoorTv";
+    case "outdoor-kitchen":
+      return "outdoorKitchen";
     default:
       return "house";
   }

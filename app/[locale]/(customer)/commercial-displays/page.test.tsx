@@ -68,7 +68,7 @@ describe("CommercialDisplaysPage", () => {
       screen.getByRole("img", { name: /Ściana LED pod czarną drewnianą pergolą/ }),
     ).toBeInTheDocument();
     // Mozaika zastosowań i tło zamknięcia są dekoracyjne: podpis obok zdjęcia niesie treść.
-    expect(document.querySelectorAll('img[alt=""]').length).toBeGreaterThanOrEqual(6);
+    expect(document.querySelectorAll('img[alt=""]').length).toBeGreaterThanOrEqual(5);
   });
 
   it("lists every display size in the table", async () => {
@@ -95,13 +95,25 @@ describe("CommercialDisplaysPage", () => {
     expect(document.querySelector('a[href^="mailto:"]')).toBeNull();
   });
 
-  it("links to the garden TV catalog", async () => {
+  // Na razie jedyna strona Outdoor TV: nic nie prowadzi do katalogu prywatnego (szafki z podnośnikiem
+  // i telewizory ogrodowe to oferta dla klientów prywatnych).
+  it("does not link to the residential outdoor TV catalog and points the second hero button at the solutions", async () => {
     await renderPage();
 
-    expect(screen.getByRole("link", { name: /Telewizory do ogrodu$/ })).toHaveAttribute(
-      "href",
-      "/pl/results?family=outdoor-tv",
-    );
+    expect(document.querySelector('a[href*="family=outdoor-tv"]')).toBeNull();
+    expect(screen.getByRole("link", { name: /Zobacz rozwiązania/ })).toHaveAttribute("href", "#rozwiazania");
+    expect(document.getElementById("rozwiazania")).not.toBeNull();
+    expect(document.body.textContent).not.toMatch(/podnośnik/);
+  });
+
+  it("shows the LED wall specs under the LED wall hero photo", async () => {
+    await renderPage();
+
+    const stats = screen.getByRole("list", { name: "Najważniejsze parametry" });
+    expect(stats.textContent).toContain("4000 nit");
+    expect(stats.textContent).toContain("IP65");
+    expect(stats.textContent).toContain("Powłoka GOB");
+    expect(stats.textContent).not.toContain("IP66");
   });
 
   it("does not show prices", async () => {

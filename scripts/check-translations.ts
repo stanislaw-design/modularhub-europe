@@ -17,6 +17,7 @@ import {
   findTranslationGaps,
   formatTranslationGaps,
   layoutTranslationItems,
+  outdoorKitchenSpecsTranslationItems,
   type CheckedLocale,
   type TranslationCheckItem,
 } from "@/lib/translations/gaps";
@@ -333,6 +334,29 @@ async function collectItems(): Promise<TranslationCheckItem[]> {
         description: row.description,
         roomLayout: row.room_layout ? JSON.parse(row.room_layout) : null,
         translations: layoutTranslations.get(row.id!) ?? {},
+      }),
+    );
+  }
+
+  // 8. Kuchnie ogrodowe (spec 0086 AC-3): tekstowe pola technicalSpecs i lista standardu.
+  const kitchens = await query(sql`
+    select p.id, p.name, p.technical_specs::text as technical_specs
+    from product p where p.family = 'outdoor-kitchen' and ${PUBLISHED}`);
+  const kitchenTranslations = new Map<string, Partial<Record<CheckedLocale, unknown>>>();
+  for (const row of await query(sql`
+    select t.product_id, t.locale::text as locale, t.technical_specs::text as technical_specs
+    from product_translation t join product p on p.id = t.product_id
+    where p.family = 'outdoor-kitchen'`)) {
+    const entry = kitchenTranslations.get(row.product_id!) ?? {};
+    entry[row.locale as CheckedLocale] = row.technical_specs ? JSON.parse(row.technical_specs) : null;
+    kitchenTranslations.set(row.product_id!, entry);
+  }
+  for (const row of kitchens) {
+    items.push(
+      ...outdoorKitchenSpecsTranslationItems({
+        ref: row.name ?? "",
+        technicalSpecs: row.technical_specs ? JSON.parse(row.technical_specs) : null,
+        translations: kitchenTranslations.get(row.id!) ?? {},
       }),
     );
   }

@@ -9,6 +9,7 @@ import {
   type ProductTranslationLocale,
 } from "@/lib/ai/product-translation";
 import type { CountryCode, ProjectDraft } from "@/lib/data/types";
+import { isProducerManagedFamily } from "@/lib/product-family-groups";
 import { db } from "@/lib/db/client";
 import { getPgErrorCode } from "@/lib/db/pg-error";
 import { document, product, productCountryEligibility, productTranslation, productVariant } from "@/lib/db/schema";
@@ -527,10 +528,11 @@ export async function updateProducerProduct(
   if (contentError) return { ok: false, error: contentError };
 
   const [existing] = await db
-    .select({ id: product.id, status: product.status, slug: product.slug })
+    .select({ id: product.id, status: product.status, slug: product.slug, family: product.family })
     .from(product)
     .where(and(eq(product.id, productId), eq(product.producerId, actor.producerId), isNull(product.deletedAt)));
-  if (!existing) return { ok: false, error: "Nie znaleziono produktu." };
+  // Spec 0086 AC-19: produkt rodziny bez edycji producenta (kuchnie) wygląda jak nieistniejący.
+  if (!existing || !isProducerManagedFamily(existing.family)) return { ok: false, error: "Nie znaleziono produktu." };
 
   let publishError: string | null = null;
   if (options.publish) {
@@ -588,10 +590,10 @@ export async function deleteProducerProduct(productId: string): Promise<ActionRe
   if (!actor) return { ok: false, error: DENIED_ERROR };
 
   const [existing] = await db
-    .select({ id: product.id })
+    .select({ id: product.id, family: product.family })
     .from(product)
     .where(and(eq(product.id, productId), eq(product.producerId, actor.producerId), isNull(product.deletedAt)));
-  if (!existing) return { ok: false, error: "Nie znaleziono produktu." };
+  if (!existing || !isProducerManagedFamily(existing.family)) return { ok: false, error: "Nie znaleziono produktu." };
 
   try {
     await db.update(product).set({ deletedAt: new Date() }).where(eq(product.id, productId));

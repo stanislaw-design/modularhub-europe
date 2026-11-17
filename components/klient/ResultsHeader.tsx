@@ -28,6 +28,7 @@ const FAMILY_TITLE_KEY = {
   "spa-modulowe": "spa",
   "kontenery-modulowe": "containers",
   "outdoor-tv": "outdoorTv",
+  "outdoor-kitchen": "outdoorKitchen",
 } as const satisfies Record<FamilyFilterValue, string>;
 
 export function ResultsHeader({ locale, count, family }: ResultsHeaderProps) {

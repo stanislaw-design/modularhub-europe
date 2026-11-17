@@ -107,6 +107,8 @@ export const productFamilyEnum = pgEnum("product_family", [
   "spa-modulowe",
   "kontenery-modulowe",
   "outdoor-tv",
+  // Kuchnie ogrodowe (spec 0086): rodzina tylko do prezentacji, dane wyłącznie ze skryptu importu.
+  "outdoor-kitchen",
 ]);
 
 // en/nl/de: polski zostaje na product.name/description samym, jako tekst
@@ -532,6 +534,9 @@ export const producer = pgTable("producer", {
   // Język maili o dużych zamówieniach do producenta (spec 0077 AC-29), niezależny od języka
   // interfejsu panelu. Domyślnie pl, więc istniejące konta nic nie zauważają (AC-33).
   communicationLocale: text("communication_locale").notNull().default("pl"),
+  // Producent marki własnej ModularHub (spec 0086 AC-4, AC-18): nie pojawia się na żadnej
+  // publicznej liście producentów, nie ma publicznego profilu ani sekcji partnera.
+  isPlatformBrand: boolean("is_platform_brand").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),

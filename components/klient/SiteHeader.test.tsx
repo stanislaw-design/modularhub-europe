@@ -87,7 +87,7 @@ describe("SiteHeader (spec 0030)", () => {
     const href = (name: string) => within(menu).getByRole("link", { name }).getAttribute("href");
     expect(href("Domy modułowe")).toBe("/pl/results?family=dom");
     expect(href("Sauny")).toBe("/pl/sauna");
-    expect(href("Outdoor TV")).toBe("/pl/results?family=outdoor-tv");
+    expect(href("Outdoor TV")).toBe("/pl/commercial-displays");
     expect(href("Kontenery modułowe")).toBe("/pl/results?family=kontenery-modulowe");
     expect(href("Zapytanie ModularProjects (od 3 domów)")).toBe("/pl/project-request");
     expect(href("Zweryfikowani producenci")).toBe("/pl/verified-manufacturers");
@@ -165,8 +165,8 @@ describe("SiteHeader (spec 0030)", () => {
     expect(within(menu).getByRole("link", { name: "Najczęstsze pytania" })).not.toHaveAttribute("aria-current");
     unmount();
 
-    nav.pathname = "/pl/results";
-    nav.search = "family=outdoor-tv";
+    nav.pathname = "/pl/commercial-displays";
+    nav.search = "";
     renderHeader({ locale: "pl", session: null });
     user = await openMenu();
     menu = screen.getByRole("navigation", { name: "Nawigacja" });

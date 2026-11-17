@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { ConsentSettingsLink } from "@/components/analytics/ConsentSettingsLink";
 import { Button } from "@/components/ui";
+import { OUTDOOR_TV_PATH } from "@/lib/product-family-groups";
 
 interface SiteFooterProps {
   locale: string;
@@ -33,7 +34,8 @@ function buildColumns(locale: string): FooterColumn[] {
       links: [
         { labelKey: "nav.catalog.houses", href: `/${locale}/results?family=dom` },
         { labelKey: "nav.catalog.saunas", href: `/${locale}/sauna` },
-        { labelKey: "nav.catalog.outdoorTv", href: `/${locale}/results?family=outdoor-tv` },
+        { labelKey: "nav.catalog.outdoorTv", href: `/${locale}${OUTDOOR_TV_PATH}` },
+        { labelKey: "nav.catalog.outdoorKitchen", href: `/${locale}/outdoor-kitchen` },
         { labelKey: "nav.catalog.containers", href: `/${locale}/results?family=kontenery-modulowe` },
       ],
     },

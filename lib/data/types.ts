@@ -4,6 +4,7 @@ import type { FloorLevel, RoomLayoutRow, RoomLayoutTranslationRow } from "../pro
 
 export type { CountryCode } from "../countries";
 import type { CountryCode } from "../countries";
+import type { OutdoorKitchenTechnicalSpecs } from "../product-technical-specs";
 
 export interface Country {
   code: CountryCode;
@@ -38,7 +39,8 @@ export type CompletionStandard = "surowy-zamkniety" | "deweloperski" | "pod-kluc
 // publishedTechnicalSpecsSchemaByFamily do czasu ustalenia realnego kształtu
 // technicalSpecs, tak jak dziś kontenery-modulowe (patrz Exclude<> w
 // lib/producer-project-draft.ts i lib/product-technical-specs.ts).
-export type ProductFamily = "dom" | "spa-modulowe" | "kontenery-modulowe" | "outdoor-tv";
+// "outdoor-kitchen" (spec 0086): kuchnie ogrodowe, tylko do prezentacji, bez kreatora producenta.
+export type ProductFamily = "dom" | "spa-modulowe" | "kontenery-modulowe" | "outdoor-tv" | "outdoor-kitchen";
 export type SpaSubcategory = "sauna" | "jacuzzi" | "wellness-combo";
 // Zastępuje dawny PergolaSubcategory (spec 0039): trzy zastosowania kontenera
 // modułowego, każde z własnym kształtem technicalSpecs (patrz
@@ -261,6 +263,10 @@ export interface Project {
    * niżej, ten wzorzec zostaje tylko dla rodzin bez własnego schematu, np.
    * outdoor-tv). Każde pole renderuje się niezależnie tylko gdy wypełnione
    * (ten sam wzorzec co pola domu wyżej); undefined dla każdy inny produkt. */
+  /** Kuchnia ogrodowa (spec 0086 AC-7): tylko family = "outdoor-kitchen" i tylko gdy
+   * technicalSpecs przechodzi outdoorKitchenSpecsShape; tekstowe pola już przetłumaczone
+   * (fallback na polski per pole). undefined dla każdego innego produktu. */
+  outdoorKitchenTechnicalSpecs?: OutdoorKitchenTechnicalSpecs;
   saunaTechnicalSpecs?: {
     claddingMaterial: string;
     interiorWoodType: string;
@@ -368,6 +374,9 @@ export interface Producer {
   /** Generyczny opis producenta (spec 0056 AC-9), dowolny producent; puste
    * lub brak → sekcja "o partnerze"/opis się nie renderuje. */
   description?: string;
+  /** Producent marki własnej ModularHub (spec 0086 AC-10, AC-18): bez publicznego profilu,
+   * bez sekcji partnera, pomijany na listach producentów. */
+  isPlatformBrand?: boolean;
 }
 
 export type EligibilityStatus = "approved" | "conditional" | "blocked";

@@ -229,3 +229,28 @@ describe("proxy matcher", () => {
     expect(pattern.test("/pl/sauna")).toBe(true);
   });
 });
+
+// Tymczasowo jedyną stroną Outdoor TV są ekrany komercyjne (OUTDOOR_TV_PATH, lib/product-family-groups.ts).
+describe("outdoor TV results redirect", () => {
+  it("sends /results?family=outdoor-tv to the commercial displays page in the same locale, dropping the query", () => {
+    const response = proxy(request("/de/results?family=outdoor-tv&sort=price-asc"));
+
+    expect(response.status).toBe(307);
+    const location = new URL(response.headers.get("location")!);
+    expect(location.pathname).toBe("/de/commercial-displays");
+    expect(location.search).toBe("");
+    expect(intlMiddlewareMock).not.toHaveBeenCalled();
+  });
+
+  it("leaves results for other families alone", () => {
+    proxy(request("/pl/results?family=kontenery-modulowe"));
+
+    expect(intlMiddlewareMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not redirect single outdoor TV product pages, which stay reachable by direct link", () => {
+    proxy(request("/pl/outdoor-tv/premium-lift-szafka-z-podnosnikiem-tv-ogrodowego"));
+
+    expect(intlMiddlewareMock).toHaveBeenCalledTimes(1);
+  });
+});

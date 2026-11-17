@@ -17,6 +17,7 @@ import {
 } from "@/lib/db/queries";
 import { supportsEnvelopeParameters } from "@/lib/product-envelope-parameters";
 import { requirePanelProducerSession } from "@/lib/panel-session";
+import { isProducerManagedFamily } from "@/lib/product-family-groups";
 import { alignClientRequirementsTranslation, alignFaqTranslation, alignRoomLayoutTranslation } from "@/lib/producer-project-draft";
 import { clientRequirementsSchema, clientRequirementTranslationSchema } from "@/lib/product-client-requirements";
 import { faqSchema, faqTranslationSchema } from "@/lib/product-faq";
@@ -123,7 +124,8 @@ export default async function ProducerPanelEdytujProduktPage({
 
   const producerId = await getProducerIdForUser(session.user.id);
   const productRow = producerId ? await getProducerProductForEdit(producerId, id) : null;
-  if (!productRow) {
+  // Spec 0086 AC-19: produktem rodziny bez edycji producenta (kuchnie) zarządza ModularHub.
+  if (!productRow || !isProducerManagedFamily(productRow.family)) {
     redirect(`/${locale}/producer/panel/products`);
   }
 

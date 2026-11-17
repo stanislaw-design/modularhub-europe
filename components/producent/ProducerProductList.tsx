@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Button, Card, Heading, Stack, Text } from "@/components/ui";
+import type { ProductFamily } from "@/lib/data/types";
 import { deleteProducerProduct } from "@/lib/producer-product-actions";
 import { DeleteProductDialog } from "./DeleteProductDialog";
 
@@ -12,7 +13,9 @@ export type ProducerProductMissing = "draft" | "photo" | "price" | "translation"
 export interface ProducerProductListItem {
   id: string;
   name: string;
-  family: "dom" | "spa-modulowe" | "kontenery-modulowe" | "outdoor-tv";
+  family: ProductFamily;
+  /** Spec 0086 AC-19: produkt widoczny na liście, ale bez akcji edycji i usuwania. */
+  managedByPlatform?: boolean;
   status: "draft" | "published";
   createdAt: Date;
   // Braki według AC-10 (spec 0074), w kolejności: szkic, zdjęcie, cena, tłumaczenie. Pusta lista = kompletny.
@@ -128,7 +131,9 @@ export function ProducerProductList({ locale, products }: ProducerProductListPro
                       {statusLabel(productItem.status)}
                     </Text>
                     <td className="p-brand-2">
-                      {firstMissing ? (
+                      {productItem.managedByPlatform ? (
+                        <Text tone="muted">{t("managedByPlatform")}</Text>
+                      ) : firstMissing ? (
                         <>
                           <Text className="font-medium text-status-conditional">{t(MISSING_KEY[firstMissing])}</Text>
                           {productItem.missing.length > 1 && (
@@ -145,25 +150,26 @@ export function ProducerProductList({ locale, products }: ProducerProductListPro
                       {dateFormatter.format(productItem.createdAt)}
                     </Text>
                     <td className="p-brand-2">
-                      <div className="flex flex-wrap gap-brand-2">
-                        <Button
-                          as="a"
-                          href={editHref}
-                          variant={firstMissing ? "primary" : "secondary"}
-                          size="md"
-                        >
-                          {firstMissing ? t("completeButton") : t("editButton")}
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="md"
-                          disabled={isPending}
-                          onClick={() => setDeleteTarget(productItem)}
-                        >
-                          {t("deleteButton")}
-                        </Button>
-                      </div>
+                      {productItem.managedByPlatform ? (
+                        <Text tone="muted" className="text-label">
+                          {t("managedByPlatformHint")}
+                        </Text>
+                      ) : (
+                        <div className="flex flex-wrap gap-brand-2">
+                          <Button as="a" href={editHref} variant={firstMissing ? "primary" : "secondary"} size="md">
+                            {firstMissing ? t("completeButton") : t("editButton")}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="md"
+                            disabled={isPending}
+                            onClick={() => setDeleteTarget(productItem)}
+                          >
+                            {t("deleteButton")}
+                          </Button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 );

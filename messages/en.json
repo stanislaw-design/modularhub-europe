@@ -16,7 +16,8 @@
         "houses": "Modular houses",
         "saunas": "Saunas",
         "outdoorTv": "Outdoor TV",
-        "containers": "Modular containers"
+        "containers": "Modular containers",
+        "outdoorKitchen": "Outdoor kitchens"
       },
       "orders": {
         "largeOrder": "ModularProjects request (from 3 houses)",
@@ -251,6 +252,11 @@
       "one": "product",
       "few": "products",
       "many": "products"
+    },
+    "outdoor-kitchen": {
+      "one": "outdoor kitchen",
+      "few": "outdoor kitchens",
+      "many": "outdoor kitchens"
     }
   },
   "CategoryHeading": {
@@ -339,7 +345,8 @@
       "dom": "House",
       "spa-modulowe": "Modular spa",
       "kontenery-modulowe": "Modular containers",
-      "outdoor-tv": "Outdoor TV"
+      "outdoor-tv": "Outdoor TV",
+      "outdoor-kitchen": "Outdoor kitchens"
     },
     "floorLevel": {
       "parter": "Ground floor",
@@ -1521,7 +1528,8 @@
     "categoryLinksAriaLabel": "Categories within More than a house",
     "categoryLinkSpa": "Saunas",
     "categoryLinkContainers": "Modular containers",
-    "categoryLinkOutdoorTv": "Outdoor TV"
+    "categoryLinkOutdoorTv": "Outdoor TV",
+    "categoryLinkOutdoorKitchen": "Outdoor kitchens"
   },
   "FloatingSearchButton": {
     "prompt": "What are you looking for today?",
@@ -1597,7 +1605,8 @@
     "all": "All",
     "spa": "Saunas",
     "containers": "Modular containers",
-    "outdoorTv": "Outdoor TV"
+    "outdoorTv": "Outdoor TV",
+    "outdoorKitchen": "Kitchens"
   },
   "CategoryFilterBar": {
     "navAriaLabel": "House attribute filters",
@@ -1919,7 +1928,9 @@
     "missingPrice": "No price",
     "missingTranslation": "Missing translations",
     "missingMore": "+{count} more",
-    "completeButton": "Complete"
+    "completeButton": "Complete",
+    "managedByPlatform": "Managed by ModularHub",
+    "managedByPlatformHint": "The ModularHub team updates the data and photos. Write to us if something needs changing."
   },
   "ProducerPanelZapytaniaPage": {
     "heading": "Inquiries",
@@ -2620,7 +2631,8 @@
       "sauna": "Garden sauna",
       "spa": "Modular spa",
       "container": "Modular container",
-      "outdoorTv": "Outdoor TV"
+      "outdoorTv": "Outdoor TV",
+      "outdoorKitchen": "Outdoor kitchen"
     }
   },
   "InquiryClaim": {
@@ -3241,17 +3253,17 @@
     "heading": "Screens built to work outdoors: in sun, rain and frost",
     "lead": "Commercial displays, advertising packages and large LED walls for hotels, restaurants, pools and residential developments. We match the model and the version to the European market, and quote every project individually.",
     "ctaPrimary": "Request a quote",
-    "ctaSecondary": "Garden TVs",
+    "ctaSecondary": "See the solutions",
     "heroImageAlt": "An LED wall under a black timber pergola in a garden, with mountains and a cloudy sky behind",
     "statsAriaLabel": "Key specifications",
-    "statBrightnessValue": "up to 3000+ nits",
+    "statBrightnessValue": "4000 nits",
     "statBrightnessLabel": "a clear picture in full sun",
-    "statProtectionValue": "IP66",
+    "statProtectionValue": "IP65",
     "statProtectionLabel": "protected against dust and water jets",
-    "statTempValue": "−20…50 °C",
+    "statTempValue": "−20…60 °C",
     "statTempLabel": "operating temperature range",
-    "statGlassValue": "IK10",
-    "statGlassLabel": "impact-resistant glass",
+    "statGlassValue": "GOB coating",
+    "statGlassLabel": "impact resistance",
     "familiesHeading": "Three solution families",
     "familiesIntro": "From a single screen at the entrance to an LED wall across a whole terrace.",
     "familyDisplaysTitle": "IP66 commercial displays",
@@ -3261,7 +3273,7 @@
     "familySignageText": "Display, pole (single, dual or triple), media player and remote content management. A menu board, a roadside sign or a screen at the entrance.",
     "familySignageMeta": "Steel pole, content schedules from anywhere",
     "familyLedTitle": "LED walls",
-    "familyLedText": "Large surfaces outdoors and indoors: poolside movie nights, advertising, events. Outdoor IP65 modules, up to 4000 nits, pixel pitch from 1.25 to 2.5 mm.",
+    "familyLedText": "Large surfaces outdoors and indoors: poolside movie nights, advertising, events. Outdoor IP65 modules, up to 4000 nits, with a GOB coating that protects the LEDs against impact, pixel pitch from 1.25 to 2.5 mm.",
     "familyLedMeta": "108″–325″ in standard modules, other sizes on request",
     "useCasesHeading": "Where it works",
     "useCasesIntro": "Screens that withstand salt, sun, rain and guest traffic.",
@@ -3273,8 +3285,6 @@
     "usePoolsText": "Entertainment by the pool and hot tub that raises the value of the whole project.",
     "useResidentialTitle": "Apartment buildings and developments",
     "useResidentialText": "Courtyards, rooftops and shared areas: movie nights, resident notices, events.",
-    "useGardensTitle": "Gardens and terraces",
-    "useGardensText": "Private projects: garden TVs and lift cabinets are in the catalog.",
     "specsHeading": "Commercial displays: sizes and specifications",
     "specsIntro": "Every model has optically bonded IK10 glass with an anti-reflective coating.",
     "specsCaption": "Sizes and specifications of IP66 commercial displays",
@@ -3306,12 +3316,11 @@
     "step3Text": "An individual quote with a delivery date. Prices depend on version and scale, which is why we do not list them here.",
     "ctaHeading": "Tell us where the screen will go",
     "ctaBody": "Write a few sentences about the place and your needs. We will reply with a model proposal and a quote.",
-    "ctaCatalog": "Garden TVs in the catalog",
     "videoHeading": "See it in person",
     "videoText": "A short film of an installation: a MirageVision LED wall outdoors, in daylight.",
     "videoAriaLabel": "A film showing a MirageVision LED wall outdoors",
     "videoFallback": "Your browser cannot play this video.",
-    "familyDisplaysImageAlt": "Three commercial displays of different sizes on white pedestals in front of a warehouse",
+    "familyDisplaysImageAlt": "Two portrait displays in bronze housings on a hotel stone wall, showing restaurant information",
     "familySignageImageAlt": "A vertical advertising screen on a pole by a snowy street",
     "familyLedImageAlt": "An LED wall in a home cinema showing a coastline",
     "videoCaptionsHint": "The narration is in English. Subtitles in Polish, English, German and Dutch are available in the player (CC icon).",
@@ -3357,5 +3366,96 @@
     "errorGeneric": "The inquiry could not be sent. Please try again in a moment.",
     "successHeading": "Thank you, your inquiry has been sent",
     "successText": "We will write to {email} with a model proposal and a quote."
+  },
+  "OutdoorKitchenPage": {
+    "price": "Price",
+    "priceOnRequest": "Custom quote",
+    "netVat": "net",
+    "estimatedPackage": "Estimated price",
+    "from": "from",
+    "sendInquiry": "Send inquiry",
+    "optionsHeading": "Additional options",
+    "optionsAriaLabel": "Additional options",
+    "optionIncluded": "included",
+    "optionPriceOnRequest": "price on request",
+    "sectionNavAriaLabel": "Section navigation",
+    "sectionNavScrollLeft": "Scroll section bar left",
+    "sectionNavScrollRight": "Scroll section bar right",
+    "optionsShowMore": "Show more options ({count})",
+    "optionsShowLess": "Show fewer options",
+    "vatDisclaimer": "+ VAT per the regulations of the country of execution · price already in the offer's currency",
+    "backToKitchens": "Back to all kitchens",
+    "sectionNav": {
+      "opcje": "Options",
+      "cechy": "Features",
+      "specyfikacja": "Dimensions and equipment",
+      "dostawa": "Delivery and installation",
+      "partner": "Partner",
+      "dokumenty": "Documents and questions"
+    },
+    "onRequestOptionsNote": "We will price the selected add ons in the offer; the price above does not include them."
+  },
+  "OutdoorKitchenSpecs": {
+    "heading": "Dimensions and equipment",
+    "externalDimensions": "External dimensions (L × W × H)",
+    "internalDimensions": "Internal dimensions (L × W × H)",
+    "bodyMaterial": "Body",
+    "worktopMaterial": "Worktop",
+    "closable": "Lockable",
+    "yes": "yes",
+    "no": "no",
+    "equipmentHeading": "Equipment",
+    "equipment": {
+      "grill": "Grill",
+      "sink": "Sink",
+      "fridge": "Fridge",
+      "cabinets": "Cabinets",
+      "lighting": "Lighting"
+    },
+    "equipmentState": {
+      "included": "included",
+      "extra": "at extra cost",
+      "none": "not available"
+    },
+    "standardHeading": "Included as standard",
+    "deliveryHeading": "Delivery and installation",
+    "deliveryNote": "Delivery",
+    "weight": "Weight",
+    "foundation": "Base"
+  },
+  "OutdoorKitchenCategoryPage": {
+    "metaTitle": "Outdoor kitchens | ModularHub Europe",
+    "metaDescription": "Outdoor kitchens in a lockable housing and modular sets with appliances. Compare dimensions, equipment and price, then send an inquiry.",
+    "heading": "Outdoor kitchens",
+    "intro": "Ready made kitchens for your terrace and garden. Choose a lockable kitchen in a housing or an open modular set with appliances included.",
+    "sections": {
+      "box": {
+        "heading": "Kitchens in a housing",
+        "intro": "A lockable steel box with fixed dimensions; you choose the equipment separately."
+      },
+      "modular": {
+        "heading": "Modular sets",
+        "intro": "An open run of cabinets with a grill and sink included, in several lengths and colours."
+      }
+    },
+    "emptyHeading": "Outdoor kitchens will appear here soon.",
+    "emptyLink": "See all products",
+    "filtersAriaLabel": "Outdoor kitchen filters",
+    "typeLabel": "Kitchen type",
+    "typeOption": {
+      "box": "In a housing",
+      "modular": "Modular set"
+    },
+    "priceLabel": "Price from",
+    "priceUpTo": "up to €{max}",
+    "priceRange": "€{min} to €{max}",
+    "priceFrom": "from €{min}",
+    "sortLabel": "Sort",
+    "sortDefault": "Default",
+    "sortPriceAsc": "Price ascending",
+    "sortPriceDesc": "Price descending",
+    "allOption": "All",
+    "clearFilters": "Clear filters",
+    "noMatches": "No kitchen matches the selected filters."
   }
 }

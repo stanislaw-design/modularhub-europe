@@ -4,6 +4,7 @@ import { productTag, producerTag } from "@/lib/cache-tags";
 import { getInteriorStylesForProduct, getProducerContentItems, getProductOptionGroups } from "@/lib/db/queries";
 import {
   getFeaturedProjectByFamily,
+  getOutdoorKitchens,
   getProducerVolumeProfile,
   getProductEnvelopeParameters,
   getProductOptionLayouts,
@@ -70,6 +71,14 @@ export async function getProjectsForRequestCached(filters?: GetProjectsFilters) 
   cacheLife("public");
   cacheTag("products");
   return getProjects(normalizeProjectFilters(filters));
+}
+
+// Strona /outdoor-kitchen jest statyczna (parametry adresu ignorowane, spec 0086 AC-14).
+export async function getOutdoorKitchensCached(locale: Locale = "pl") {
+  "use cache";
+  cacheLife("public");
+  cacheTag("products");
+  return getOutdoorKitchens(locale);
 }
 
 export async function getProjectByIdCached(id: string, locale: Locale = "pl") {

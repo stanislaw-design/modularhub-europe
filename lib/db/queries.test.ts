@@ -207,11 +207,12 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/db/queries: getProductFamilyCoun
     expect(containerMieszkalneAfter).toBe(containerMieszkalneBefore + 1);
   });
 
-  it("keeps every one of the four families represented, zero-filled when a family has no rows", async () => {
+  // Spec 0086 dopisała piątą rodzinę (outdoor-kitchen); test z definicji wymienia każdą wartość enumu.
+  it("keeps every family represented, zero-filled when a family has no rows", async () => {
     const results = await getProductFamilyCounts();
     const families = new Set(results.map((row) => row.family));
 
-    expect(families).toEqual(new Set(["dom", "spa-modulowe", "kontenery-modulowe", "outdoor-tv"]));
+    expect(families).toEqual(new Set(["dom", "spa-modulowe", "kontenery-modulowe", "outdoor-tv", "outdoor-kitchen"]));
   });
 });
 

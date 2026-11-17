@@ -1,3 +1,4 @@
+import type { ProductFamily } from "@/lib/data/types";
 import { eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { product, productEnvelopeParameter } from "@/lib/db/schema";
@@ -17,7 +18,7 @@ export const UNIQUE_VIOLATION = "23505";
 export interface EnvelopeProductRef {
   id: string;
   producerId: string;
-  family: string;
+  family: ProductFamily;
   containerSubcategory: string | null;
 }
 

@@ -9,6 +9,8 @@ describe("pageTypeFromPath", () => {
     ["/sauna/kora-relax-550", "sauna"],
     ["/project/x", "project"],
     ["/outdoor-tv/x", "outdoor_tv"],
+    ["/outdoor-kitchen", "other"],
+    ["/outdoor-kitchen/compact-240", "outdoor_kitchen"],
     ["/modularprojects/x", "modularproject"],
     ["/producers/abc", "producer"],
     ["/contact", "other"],

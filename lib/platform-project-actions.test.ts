@@ -150,7 +150,9 @@ describe.skipIf(!process.env.DATABASE_URL)("lib/platform-project-actions: real D
   });
 
   const baseProject: Omit<Parameters<typeof createPlatformProject>[0], "producerIds"> = {
-    title: "Osiedle testowe ModularHub",
+    // Tytuł unikalny dla przebiegu: asercje "nic nie zapisano" szukają po tytule, więc wiersz po
+    // przerwanym wcześniej przebiegu (bez afterEach/afterAll) nie może ich zepsuć.
+    title: `Osiedle testowe ModularHub ${adminId.slice(0, 8)}`,
     countryCode: "PL",
     projectType: "resort",
     families: ["dom"],

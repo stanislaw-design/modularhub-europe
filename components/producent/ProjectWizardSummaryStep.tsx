@@ -55,6 +55,7 @@ function subcategoryLabel(draft: ProjectDraft, tOptions: Translate, empty: strin
     // outdoor-tv (partnerstwo reseller MirageVision): brak pojęcia podkategorii,
     // nieosiągalne przez UI (kreator nie oferuje tej rodziny).
     case "outdoor-tv":
+    case "outdoor-kitchen":
       return empty;
     case null:
       return empty;

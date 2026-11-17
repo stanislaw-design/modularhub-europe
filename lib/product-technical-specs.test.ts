@@ -375,3 +375,50 @@ describe("getTechnicalSpecsSchema: kontenery-modulowe / mieszkalne", () => {
     expect(result.success).toBe(false);
   });
 });
+
+// Spec 0086 AC-1: kuchnie ogrodowe.
+describe("getTechnicalSpecsSchema: outdoor-kitchen", () => {
+  const box = {
+    kitchenType: "box" as const,
+    externalDimensionsCm: { length: 340, width: 90, height: 240 },
+    internalDimensionsCm: { length: 300, width: 80, height: 220 },
+    equipment: { grill: "extra", sink: "extra", fridge: "extra", cabinets: "extra", lighting: "included" },
+    closable: true,
+    bodyMaterial: "Stal",
+    standardFeatures: ["Oświetlenie LED"],
+    weightKg: 600,
+    foundationRequirement: "Płyta betonowa 15 cm",
+    deliveryNote: "Dostawa w całości",
+  };
+
+  it("accepts a complete box kitchen when published", () => {
+    expect(getTechnicalSpecsSchema("outdoor-kitchen", "published").safeParse(box).success).toBe(true);
+  });
+
+  it("accepts a modular kitchen with only the external length", () => {
+    const modular = {
+      ...box,
+      kitchenType: "modular" as const,
+      externalDimensionsCm: { length: 300 },
+      internalDimensionsCm: undefined,
+      closable: false,
+      worktopMaterial: "HPL 12 mm",
+    };
+    expect(getTechnicalSpecsSchema("outdoor-kitchen", "published").safeParse(modular).success).toBe(true);
+  });
+
+  it("rejects an unknown kitchen type, unknown equipment state, empty feature list or extra key", () => {
+    const schema = getTechnicalSpecsSchema("outdoor-kitchen", "published");
+    expect(schema.safeParse({ ...box, kitchenType: "island" }).success).toBe(false);
+    expect(schema.safeParse({ ...box, equipment: { ...box.equipment, grill: "yes" } }).success).toBe(false);
+    expect(schema.safeParse({ ...box, standardFeatures: [] }).success).toBe(false);
+    expect(schema.safeParse({ ...box, color: "red" }).success).toBe(false);
+  });
+
+  it("rejects a published kitchen missing deliveryNote but accepts it as a draft", () => {
+    const partial: Partial<typeof box> = { ...box };
+    delete partial.deliveryNote;
+    expect(getTechnicalSpecsSchema("outdoor-kitchen", "published").safeParse(partial).success).toBe(false);
+    expect(getTechnicalSpecsSchema("outdoor-kitchen", "draft").safeParse(partial).success).toBe(true);
+  });
+});

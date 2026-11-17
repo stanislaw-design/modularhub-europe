@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import createMiddleware from "next-intl/middleware";
 import { routing } from "./lib/i18n/routing";
+import { OUTDOOR_TV_PATH } from "./lib/product-family-groups";
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -121,6 +122,15 @@ export function proxy(request: NextRequest) {
   if (first && routing.locales.includes(first as (typeof routing.locales)[number]) && rest.length > 0) {
     const oldRouteRedirect = redirectOldRoute(request, first, rest.join("/"));
     if (oldRouteRedirect) return oldRouteRedirect;
+
+    // Lista wyników Outdoor TV jest tymczasowo ukryta (OUTDOOR_TV_PATH w lib/product-family-groups.ts):
+    // stare linki trafiają na stronę ekranów komercyjnych. 307, bo to decyzja na teraz, nie na stałe.
+    if (rest.length === 1 && rest[0] === "results" && request.nextUrl.searchParams.get("family") === "outdoor-tv") {
+      const url = request.nextUrl.clone();
+      url.pathname = `/${first}${OUTDOOR_TV_PATH}`;
+      url.search = "";
+      return NextResponse.redirect(url, 307);
+    }
   }
 
   // Panel administratora (app/[locale]/internal/...) zostaje wyłącznie po

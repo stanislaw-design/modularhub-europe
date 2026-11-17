@@ -12,8 +12,16 @@ export type ProductFamilyGroup = "dom" | "wiecej-niz-dom";
 // lib/results-filters.ts każdym z osobna.
 export const FAMILY_GROUPS: Record<ProductFamilyGroup, ProductFamily[]> = {
   dom: ["dom"],
-  "wiecej-niz-dom": ["spa-modulowe", "kontenery-modulowe", "outdoor-tv"],
+  "wiecej-niz-dom": ["spa-modulowe", "kontenery-modulowe", "outdoor-tv", "outdoor-kitchen"],
 };
+
+// Tymczasowo (2026-11-16, decyzja właściciela): Outdoor TV pokazujemy wyłącznie jako ofertę
+// komercyjną na /commercial-displays. Katalog prywatny (telewizory ogrodowe, szafki z podnośnikiem)
+// znika z wyników i nawigacji, a /results?family=outdoor-tv przekierowuje proxy.ts. Strony
+// pojedynczych produktów (/outdoor-tv/[slug]) dalej działają pod bezpośrednim linkiem. Powrót do
+// katalogu prywatnego: opróżnić HIDDEN_RESULT_FAMILIES i przywrócić linki z OUTDOOR_TV_PATH.
+export const OUTDOOR_TV_PATH = "/commercial-displays";
+export const HIDDEN_RESULT_FAMILIES: readonly ProductFamily[] = ["outdoor-tv"];
 
 // Wartość, jaką może przyjąć parametr URL/filtra `family`: dowolna prawdziwa
 // rodzina, albo sentinel grupy "wiecej-niz-dom" oznaczający widok łączony.
@@ -21,8 +29,8 @@ export type FamilyFilterValue = ProductFamily | "wiecej-niz-dom";
 
 const GROUP_BY_FAMILY = new Map<ProductFamily, ProductFamilyGroup>(
   (Object.entries(FAMILY_GROUPS) as [ProductFamilyGroup, ProductFamily[]][]).flatMap(([group, families]) =>
-    families.map((family) => [family, group] as const)
-  )
+    families.map((family) => [family, group] as const),
+  ),
 );
 
 // Do której grupy należy dana wartość filtra, do podświetlania zakładek
@@ -40,7 +48,9 @@ export function resolveFamilies(value: FamilyFilterValue): ProductFamily[] {
   // Kopia, nie referencja (przedistniejący bug, ujawniony przy dodaniu trzeciej
   // rodziny do grupy): zwracanie FAMILY_GROUPS["wiecej-niz-dom"] wprost pozwalało
   // wywołującemu, który zmutuje wynik (np. push), trwale zepsuć współdzieloną mapę.
-  if (value === "wiecej-niz-dom") return [...FAMILY_GROUPS["wiecej-niz-dom"]];
+  if (value === "wiecej-niz-dom") {
+    return FAMILY_GROUPS["wiecej-niz-dom"].filter((family) => !HIDDEN_RESULT_FAMILIES.includes(family));
+  }
   return [value];
 }
 
@@ -69,11 +79,20 @@ export function resolveProductHref(
   slug?: string | null,
   spaSubcategory?: SpaSubcategory | null,
 ): string {
-  const segment =
-    family === "outdoor-tv"
-      ? "outdoor-tv"
-      : family === "spa-modulowe" && spaSubcategory === "sauna"
-        ? "sauna"
-        : "project";
-  return `/${locale}/${segment}/${slug ?? id}`;
+  return `/${locale}/${productSegment(family, spaSubcategory)}/${slug ?? id}`;
+}
+
+function productSegment(family: ProductFamily, spaSubcategory?: SpaSubcategory | null): string {
+  if (family === "outdoor-tv") return "outdoor-tv";
+  // Kuchnie ogrodowe (spec 0086): własna strona katalogowa /outdoor-kitchen/[slug].
+  if (family === "outdoor-kitchen") return "outdoor-kitchen";
+  if (family === "spa-modulowe" && spaSubcategory === "sauna") return "sauna";
+  return "project";
+}
+
+// Czy producent sam zarządza produktami tej rodziny w panelu (spec 0086 AC-19). Kuchnie
+// ogrodowe są tylko do prezentacji: dane wgrywa skrypt importu, a każda akcja serwera
+// zmieniająca produkt producenta odmawia dla tej rodziny.
+export function isProducerManagedFamily(family: ProductFamily): boolean {
+  return family !== "outdoor-kitchen";
 }

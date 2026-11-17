@@ -257,7 +257,8 @@ export interface TechnicalFieldConfig {
 // nie samej family — patrz CONTAINER_TECHNICAL_FIELDS_BY_SUBCATEGORY i
 // getTechnicalFieldsFor niżej.
 export const TECHNICAL_FIELDS_BY_FAMILY: Record<
-  Exclude<ProductFamily, "kontenery-modulowe" | "outdoor-tv">,
+  // outdoor-kitchen (spec 0086 AC-19): dane tylko ze skryptu importu, kreator jej nie oferuje.
+  Exclude<ProductFamily, "kontenery-modulowe" | "outdoor-tv" | "outdoor-kitchen">,
   TechnicalFieldConfig[]
 > = {
   // wallBuildUp/insulation/windowClass/fireResistance/windResistance usunięte
@@ -465,7 +466,7 @@ export function getTechnicalFieldsFor(
   }
   // outdoor-tv (partnerstwo reseller MirageVision): brak jeszcze zdefiniowanych pól
   // technicznych, kreator producenta nie oferuje tej rodziny do wyboru.
-  if (family === "outdoor-tv") return [];
+  if (family === "outdoor-tv" || family === "outdoor-kitchen") return [];
   return TECHNICAL_FIELDS_BY_FAMILY[family].map((field) => ({
     ...field,
     label: t(`technicalFields.${family}.${field.key}.label`),
@@ -556,6 +557,7 @@ function isSubcategoryComplete(draft: ProjectDraft): boolean {
     // outdoor-tv (partnerstwo reseller MirageVision): brak pojęcia podkategorii,
     // wektor nieosiągalny przez UI (kreator nie oferuje tej rodziny).
     case "outdoor-tv":
+    case "outdoor-kitchen":
       return true;
     case null:
       return false;
@@ -572,7 +574,7 @@ function getStructuralTechnicalFields(draft: ProjectDraft): TechnicalFieldConfig
       ? []
       : CONTAINER_TECHNICAL_FIELDS_BY_SUBCATEGORY[draft.containerSubcategory];
   }
-  if (draft.family === "outdoor-tv") return [];
+  if (draft.family === "outdoor-tv" || draft.family === "outdoor-kitchen") return [];
   return draft.family === null ? [] : TECHNICAL_FIELDS_BY_FAMILY[draft.family];
 }
 

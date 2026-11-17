@@ -40,6 +40,7 @@ const FAMILY_LABEL: Record<ProductFamily, string> = {
   "spa-modulowe": "Spa modułowe",
   "kontenery-modulowe": "Kontenery modułowe",
   "outdoor-tv": "Outdoor TV",
+  "outdoor-kitchen": "Kuchnie ogrodowe",
 };
 
 const COMPLETION_LABEL: Record<(typeof COMPLETION_STANDARDS)[number], string> = {
