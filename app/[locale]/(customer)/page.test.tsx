@@ -12,6 +12,7 @@ vi.mock("@/components/klient/FeaturedProjectShowcase", () => ({ FeaturedProjectS
 vi.mock("@/components/klient/ComplianceEngineShowcase", () => ({ ComplianceEngineShowcase: () => null }));
 vi.mock("@/components/klient/HowItWorksExplainer", () => ({ HowItWorksExplainer: () => null }));
 vi.mock("@/components/klient/ClosingCta", () => ({ ClosingCta: () => null }));
+vi.mock("@/components/klient/ProducerInvite", () => ({ ProducerInvite: () => null }));
 vi.mock("@/components/klient/Faq", () => ({ Faq: () => <div data-testid="faq" /> }));
 vi.mock("@/components/klient/FloatingSearchButton", () => ({ FloatingSearchButton: () => null }));
 vi.mock("@/components/klient/HomeStructuredData", () => ({ HomeStructuredData: () => null }));

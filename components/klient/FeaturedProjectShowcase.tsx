@@ -2,15 +2,22 @@ import { ArrowRight } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { FeaturedProjectGallery } from "./FeaturedProjectGallery";
+import { ModularProjectCard } from "./ModularProjectCard";
 import { Heading, ScrollReveal, Text } from "@/components/ui";
-import { getFeaturedModularProject } from "@/lib/data/modularprojects";
+import { getFeaturedModularProject, getLatestNonFeaturedModularProjects } from "@/lib/data/modularprojects";
+
+// Ile mniejszych kart (najnowsze wpisy poza wyróżnionym) stoi pod dużym wpisem.
+const MORE_PROJECTS_COUNT = 2;
 
 // Realizacja pokazowa na stronie głównej (zastąpiła kafle B2B z BulkOrdersShowcase).
 // Dane czyta z wpisu wyróżnionego ModularProjects (spec 0076 AC-9, wcześniej spec 0073 AC-3).
 export async function FeaturedProjectShowcase({ locale }: { locale: string }) {
   const t = await getTranslations({ locale, namespace: "FeaturedProjectShowcase" });
   const tStatus = await getTranslations({ locale, namespace: "ModularProjectsPage.status" });
-  const project = await getFeaturedModularProject(locale);
+  const [project, moreProjects] = await Promise.all([
+    getFeaturedModularProject(locale),
+    getLatestNonFeaturedModularProjects(locale, MORE_PROJECTS_COUNT),
+  ]);
   if (!project) return null;
 
   return (
@@ -84,6 +91,15 @@ export async function FeaturedProjectShowcase({ locale }: { locale: string }) {
             </dl>
           </div>
         </div>
+        {moreProjects.length > 0 ? (
+          <ul aria-label={t("moreProjectsLabel")} className="mt-brand-3 grid grid-cols-1 gap-brand-3 md:grid-cols-2">
+            {moreProjects.map((more) => (
+              <li key={more.slug}>
+                <ModularProjectCard project={more} locale={locale} />
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </ScrollReveal>
     </section>
   );

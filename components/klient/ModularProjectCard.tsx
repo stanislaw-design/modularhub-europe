@@ -59,7 +59,7 @@ export async function ModularProjectCard({
             ))}
           </dl>
           <span className="mt-auto inline-flex items-center gap-2 font-semibold text-brand-v5-ink">
-            {t("viewProject")}
+            {project.status === "planned" ? t("viewOpenProject") : t("viewProject")}
             <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
           </span>
         </div>
@@ -101,6 +101,12 @@ export async function ModularProjectCard({
             </div>
           ))}
         </dl>
+        {project.status === "planned" ? (
+          <span className="mt-brand-1 inline-flex w-fit items-center gap-2 rounded-v5-pill bg-brand-v5-amber px-brand-3 py-1.5 text-data font-semibold text-brand-v5-amber-foreground transition-colors group-hover:bg-brand-v5-amber-strong">
+            {t("viewOpenProject")}
+            <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+          </span>
+        ) : null}
       </div>
     </Link>
   );

@@ -96,7 +96,8 @@ const GROUPS: MenuGroup[] = [
     titleKey: "nav.groups.producers",
     audience: ["anonymous", "client"],
     muted: true,
-    items: [{ key: "join", labelKey: "nav.producers.join", path: "/producer/registration" }],
+    // Strona dla producentów, nie sam formularz: najpierw powód, potem rejestracja.
+    items: [{ key: "join", labelKey: "nav.producers.join", path: "/producer" }],
   },
   {
     key: "producerPanel",

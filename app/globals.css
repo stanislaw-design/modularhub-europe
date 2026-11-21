@@ -425,6 +425,16 @@ main:has(.modularproject-wide) > .route-container {
   padding-bottom: 0;
 }
 
+/* Strona dla producentów (/producer): to samo co wyżej. Sekcje sięgają krawędzi
+   ekranu, a każda ma boczny odstęp jak SiteHeader (px-4 sm:px-6 lg:px-10), więc
+   tekst stoi w jednej linii z logo. Znacznik `.producer-wide` stawia sama strona. */
+main:has(.producer-wide) > .route-container {
+  max-width: none;
+  padding-inline: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
 /* Dark mode (spec 0043, extended by spec 0046 to a second scope, and by spec
    0055 to a third): scoped to .theme-klient (customer flow,
    app/[locale]/(customer)/layout.tsx), .theme-producer (protected producer

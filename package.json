@@ -33,6 +33,7 @@
     "import:miragevision-lift": "tsx --env-file=.env.local scripts/import-miragevision-lift.ts",
     "upload:miragevision-lift-photos": "tsx --env-file=.env.local scripts/upload-miragevision-lift-photos.ts",
     "import:cocomodule": "tsx --env-file=.env.local scripts/import-cocomodule-catalog.ts",
+    "import:kunert": "tsx --env-file=.env.local scripts/import-kunert-catalog.ts",
     "import:outdoor-kitchens": "tsx --env-file=.env.local scripts/import-outdoor-kitchens-catalog.ts"
   },
   "dependencies": {

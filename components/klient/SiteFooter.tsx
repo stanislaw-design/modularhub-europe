@@ -84,7 +84,7 @@ export async function SiteFooter({ locale, contactEmail }: SiteFooterProps) {
   // Inwestor to klient z weryfikacją firmy (B2B): osobnej roli konta nie ma,
   // więc zakłada zwykłe konto klienta i od razu trafia do weryfikacji firmy.
   const joinLinks = [
-    { key: "producer", href: `/${locale}/registration?role=producer` },
+    { key: "producer", href: `/${locale}/producer` },
     {
       key: "investor",
       href: `/${locale}/registration?role=client&callbackUrl=${encodeURIComponent(`/${locale}/panel/verification`)}`,

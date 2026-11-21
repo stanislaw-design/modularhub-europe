@@ -70,6 +70,7 @@ export default async function ModularProjectsPage({ params }: { params: Promise<
               lead: project.lead,
               status: project.status,
               publishedAt: project.publishedAt,
+              featured: project.featured,
               card: <ModularProjectCard project={project} locale={locale} />,
               featuredCard: <ModularProjectCard project={project} locale={locale} variant="featured" />,
             }))}

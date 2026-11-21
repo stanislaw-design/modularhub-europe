@@ -1,10 +1,16 @@
 import { cocoleisure } from "./entries/cocoleisure";
+import { resortHolandia23Domki } from "./entries/resort-holandia-23-domki";
+import { resortNiemcy28Domkow } from "./entries/resort-niemcy-28-domkow";
 import type { ModularProjectEntry, ModularProjectLocale, ResolvedModularProject } from "./types";
 
 export * from "./types";
 
 // Nowa realizacja: plik w entries/, wpis tutaj i zdjęcia w public/images/modularprojects/<slug>/ (spec 0076 AC-8).
-export const MODULARPROJECT_ENTRIES: readonly ModularProjectEntry[] = [cocoleisure];
+export const MODULARPROJECT_ENTRIES: readonly ModularProjectEntry[] = [
+  cocoleisure,
+  resortNiemcy28Domkow,
+  resortHolandia23Domki,
+];
 
 export const MODULARPROJECT_IMAGE_ROOT = "/images/modularprojects";
 
@@ -49,4 +55,13 @@ export async function getModularProjectBySlug(slug: string, locale: string): Pro
 export async function getFeaturedModularProject(locale: string): Promise<ResolvedModularProject | null> {
   const entry = MODULARPROJECT_ENTRIES.find((item) => item.featured);
   return entry ? resolveEntry(entry, toLocale(locale)) : null;
+}
+
+// Najnowsze wpisy poza wyróżnionym: mniejsze karty pod wpisem wyróżnionym na stronie głównej.
+export async function getLatestNonFeaturedModularProjects(
+  locale: string,
+  limit: number,
+): Promise<ResolvedModularProject[]> {
+  const all = await getModularProjects(locale);
+  return all.filter((project) => !project.featured).slice(0, limit);
 }
