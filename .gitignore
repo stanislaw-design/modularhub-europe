@@ -61,23 +61,12 @@ __pycache__/
 # Ciasteczko obejscia ochrony Vercel dla e2e na stagingu
 /e2e/.auth/
 
-# Materialy MirageVision (89 MB, poufne cenniki resellerskie), nie do repozytorium
-/_docs/mirageVision/
-
 # Materialy zrodlowe do importow i wygenerowane widoki, nie do repozytorium
-/_docs/logbar/
-/_docs/comox/
-/_docs/CocoLeisure_*.pdf
 /output/architectural-views/
 
 # Jednorazowe skrypty czyszczace prod
 /drizzle/_wipe_project_requests.sql
 /scripts/wipe-project-requests.mjs
-
-# Materialy zrodlowe producentow (duze pliki, nie do repozytorium)
-/_docs/przemyslawwencel/
-/_docs/saunyidomki/
-/_docs/FrameDEV Katalog nowy.pdf
 
 # Jednorazowe SQL z danymi osobowymi (prawdziwy e mail, telefon, NIP producenta), repozytorium jest publiczne
 /drizzle/_reassign_*
@@ -91,10 +80,5 @@ __pycache__/
 # Tymczasowe scenariusze /check verify
 /e2e/zz-verify-*.spec.ts
 
-# Materialy klienta Letniskowo (poufne, nie do repozytorium)
-/_docs/letniskowo/
-/_docs/lifepolska/
-/_docs/resort-delek/
-/_docs/zapytanie-domki-49/
-/_docs/kuchnie-ogrodowe-dla-inwestora/
-/_docs/zapytanie l-house/
+# Wszystko w _docs (materialy klientow i producentow, poufne, repozytorium jest publiczne)
+/_docs/*
