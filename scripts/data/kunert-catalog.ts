@@ -5,6 +5,7 @@
 // każdy model dostaje orientacyjną cenę "od" = 1100 EUR × powierzchnia użytkowa. Do podmiany, gdy przyjdzie cennik.
 // Każdy tekst widoczny dla klienta ma cztery wersje językowe (pl jest źródłem, en/de/nl idą do tabel tłumaczeń, spec 0067).
 import { createHash } from "node:crypto";
+import { MARKET_COUNTRY_CODES, type CountryCode } from "../../lib/countries";
 
 export interface L10n {
   pl: string;
@@ -19,7 +20,8 @@ export const PRODUCER_ID = "e0030000-0000-4000-8000-000000000111";
 export const TECHNICAL_ACCOUNT_EMAIL = "catalog-import+kunert@modularhub.invalid";
 export const PRICE_EUR_PER_M2 = 1100;
 // Kraje dostaw z listy rynków platformy, które producent obsługuje (formularz i wersje językowe kunertmobilehomes.eu).
-export const DELIVERY_COUNTRIES = ["PL", "DE", "NL", "BE", "FR"] as const;
+// Pochodna z lib/countries.ts (spec 0082: lista rynków żyje tylko tam), bez Włoch.
+export const DELIVERY_COUNTRIES: readonly CountryCode[] = MARKET_COUNTRY_CODES.filter((code) => code !== "IT");
 
 export const detUuid = (key: string): string => {
   const h = createHash("sha1").update(`kunert:${key}`).digest("hex");
