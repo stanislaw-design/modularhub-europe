@@ -11,6 +11,8 @@ export interface ModularProjectsBrowserItem {
   status: ModularProjectStatus;
   /** data ISO dodania wpisu */
   publishedAt: string;
+  /** wpis wyróżniony dostaje dużą kartę na górze listy */
+  featured: boolean;
   /** karta wyrenderowana po stronie serwera */
   card: ReactNode;
   /** ta sama realizacja jako duży wpis na górze listy */
@@ -52,9 +54,9 @@ export function ModularProjectsBrowser({ items, locale }: { items: ModularProjec
   }, [items, locale, query, status, from, to, sort]);
 
   const dirty = query !== "" || status !== "all" || from !== "" || to !== "" || sort !== "newest";
-  // Bez filtrów najnowsza (przy sortowaniu "najnowsze") dostaje duży wpis, reszta idzie do siatki.
-  const showFeatured = !dirty && visible.length > 0;
-  const gridItems = showFeatured ? visible.slice(1) : visible;
+  // Bez filtrów wpis wyróżniony (a gdy go brak, najnowszy) dostaje duży wpis, reszta idzie do siatki.
+  const featuredItem = dirty ? null : (visible.find((item) => item.featured) ?? visible[0] ?? null);
+  const gridItems = featuredItem ? visible.filter((item) => item !== featuredItem) : visible;
   const reset = () => {
     setQuery("");
     setStatus("all");
@@ -136,7 +138,7 @@ export function ModularProjectsBrowser({ items, locale }: { items: ModularProjec
         <p className="text-body text-brand-v5-ink">{t("filters.noResults")}</p>
       ) : (
         <>
-          {showFeatured ? <div>{visible[0].featuredCard}</div> : null}
+          {featuredItem ? <div>{featuredItem.featuredCard}</div> : null}
           {gridItems.length > 0 ? (
             <ul
               aria-label={t("listLabel")}

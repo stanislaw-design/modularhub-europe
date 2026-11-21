@@ -20,6 +20,34 @@ describe("ModularProjectArticle (spec 0076 AC-7, AC-12)", () => {
     expect(screen.getByRole("link", { name: /Realizuj takie projekty/ })).toHaveAttribute("href", "/pl/producer/registration");
     expect(screen.getByRole("link", { name: /Wszystkie realizacje/ })).toHaveAttribute("href", "/pl/modularprojects");
   });
+
+  it("turns an internal link in the text into a link with the language prefix", async () => {
+    const project = await getModularProjectBySlug("resort-niemcy-28-domkow", "de");
+    render(await resolveAsyncTree(await ModularProjectArticle({ project: project!, locale: "de" })));
+
+    expect(screen.getByRole("link", { name: "CocoLeisure" })).toHaveAttribute("href", "/de/modularprojects/cocoleisure");
+    expect(screen.queryByText(/\]\(/)).not.toBeInTheDocument();
+  });
+
+  it("asks producers for an offer on an open request (status planned)", async () => {
+    const project = await getModularProjectBySlug("resort-holandia-23-domki", "pl");
+    render(await resolveAsyncTree(await ModularProjectArticle({ project: project!, locale: "pl" })));
+
+    const quoteLinks = screen.getAllByRole("link", { name: /Wyceń ten projekt/ });
+    expect(quoteLinks).toHaveLength(3);
+    for (const link of quoteLinks) expect(link).toHaveAttribute("href", "/pl/producer/registration");
+    expect(screen.getAllByRole("link", { name: /tablicy zapytań/ })[0]).toHaveAttribute("href", "/pl/producer/panel/board");
+    expect(screen.getByRole("heading", { level: 2, name: "Złóż ofertę na ten projekt" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "Chcesz wycenić ten projekt?" })).toBeInTheDocument();
+  });
+
+  it("keeps the producer band away from entries that are not open requests", async () => {
+    const project = await getModularProjectBySlug("cocoleisure", "pl");
+    render(await resolveAsyncTree(await ModularProjectArticle({ project: project!, locale: "pl" })));
+
+    expect(screen.queryByRole("link", { name: /Wyceń ten projekt/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Złóż ofertę na ten projekt" })).not.toBeInTheDocument();
+  });
 });
 
 describe("ModularProjectCard (spec 0076 AC-6)", () => {

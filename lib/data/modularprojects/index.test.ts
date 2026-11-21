@@ -3,6 +3,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   getFeaturedModularProject,
+  getLatestNonFeaturedModularProjects,
   getModularProjectBySlug,
   getModularProjects,
   MODULARPROJECT_ENTRIES,
@@ -74,7 +75,27 @@ describe("wpisy ModularProjects (spec 0076)", () => {
     const list = await getModularProjects("en");
     const dates = list.map((item) => item.publishedAt);
     expect(dates).toEqual([...dates].sort().reverse());
-    expect(list[0].title).toBe("CocoLeisure – 49 modern holiday cabins");
+    expect(list.map((item) => item.title)).toContain("CocoLeisure – 49 modern holiday cabins");
+  });
+
+  it("returns the newest entries other than the featured one, up to the limit", async () => {
+    const more = await getLatestNonFeaturedModularProjects("pl", 2);
+    expect(more).toHaveLength(2);
+    expect(more.every((item) => !item.featured)).toBe(true);
+    expect(more.map((item) => item.slug)).toEqual(["resort-niemcy-28-domkow", "resort-holandia-23-domki"]);
+  });
+
+  it("only links inside the text to existing ModularProjects entries", () => {
+    const slugs = new Set(MODULARPROJECT_ENTRIES.map((entry) => entry.slug));
+    for (const entry of MODULARPROJECT_ENTRIES) {
+      for (const section of entry.sections) {
+        for (const locale of LOCALES) {
+          for (const match of section.body[locale].matchAll(/\]\(\/modularprojects\/([a-z0-9-]+)\)/g)) {
+            expect(slugs.has(match[1]), `${entry.slug}/${locale} -> ${match[1]}`).toBe(true);
+          }
+        }
+      }
+    }
   });
 
   it("finds an entry by slug and returns null for an unknown one", async () => {

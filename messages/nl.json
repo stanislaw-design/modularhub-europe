@@ -2158,7 +2158,8 @@
     "galleryLabel": "Projectgalerij",
     "showImage": "Afbeelding tonen",
     "allProjectsCta": "Bekijk alle projecten",
-    "readProjectCta": "Bekijk het project"
+    "readProjectCta": "Bekijk het project",
+    "moreProjectsLabel": "Andere ModularProjects-projecten"
   },
   "ProjectRequestPage": {
     "metaTitle": "ModularProjects: dien een groot project in (vanaf 3 woningen) | ModularHub Europe",
@@ -3203,7 +3204,8 @@
       "reset": "Filters wissen",
       "count": "Resultaten: {shown} van {total}",
       "noResults": "Geen projecten komen overeen met de filters.",
-      "addedOn": "Toegevoegd op {date}"
+      "addedOn": "Toegevoegd op {date}",
+      "viewOpenProject": "Bekijken en offreren"
     },
     "status": {
       "planned": "Gepland",
@@ -3229,7 +3231,26 @@
     "modelFrame": "Draagconstructie",
     "modelViewLabel": "Modelweergave",
     "modelUnsupported": "Deze browser kan geen 3D-modellen tonen. Foto's en visualisaties staan in de galerij hieronder.",
-    "modelLoading": "3D-model laden"
+    "modelLoading": "3D-model laden",
+    "open": {
+      "heroCta": "Offreer dit project",
+      "boardLink": "Al fabrikant op het platform? Ga naar het aanvragenbord",
+      "bandEyebrow": "Voor fabrikanten",
+      "bandHeading": "Dien een offerte in voor dit project",
+      "bandLead": "De aanvraag staat klaar op het platform. Aansluiten is gratis en een indicatieve offerte volstaat om te beginnen.",
+      "stepsLabel": "Zo dient u een offerte in",
+      "step1Title": "Registreer uw bedrijf",
+      "step1Text": "Een paar minuten, kosteloos.",
+      "step2Title": "Vul uw capaciteitsprofiel in",
+      "step2Text": "Productiecapaciteit, technologie en leverlanden.",
+      "step3Title": "Offreer op het aanvragenbord",
+      "step3Text": "Een prijsbandbreedte is ruim voldoende.",
+      "perksLabel": "Waarom het de moeite waard is",
+      "perk1": "Een serie identieke huizen, één vergelijking van offertes",
+      "perk2": "Indicatieve offerte, voor geen van beide partijen bindend",
+      "perk3": "Duidelijke selectiecriteria en terugkoppeling van de uitkomst aan iedereen",
+      "ctaHeading": "Wilt u dit project offreren?"
+    }
   },
   "ConsentBanner": {
     "title": "Mogen wij het verkeer op deze site meten?",

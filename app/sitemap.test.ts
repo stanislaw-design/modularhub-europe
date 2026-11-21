@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import sitemap from "./sitemap";
+import { MODULARPROJECT_ENTRIES } from "@/lib/data/modularprojects";
 
 const getSitemapProductsMock = vi.fn();
 vi.mock("@/lib/data/projects", () => ({ getSitemapProducts: () => getSitemapProductsMock() }));
@@ -47,8 +48,8 @@ describe("sitemap (spec 0073 AC-13)", () => {
     getSitemapProductsMock.mockRejectedValue(new Error("db down"));
     const entries = await sitemap();
 
-    // 10 stałych stron (z /outdoor-kitchen, spec 0086) i 1 wpis ModularProjects, każde w czterech językach.
-    expect(entries.length).toBe(11 * 4);
+    // 10 stałych stron (z /outdoor-kitchen, spec 0086) i każdy wpis ModularProjects, każde w czterech językach.
+    expect(entries.length).toBe((10 + MODULARPROJECT_ENTRIES.length) * 4);
     expect(entries.some((e) => e.url.includes("/project/"))).toBe(false);
     expect(captureErrorMock).toHaveBeenCalledWith(expect.any(Error), { area: "sitemap", section: "products" });
   });

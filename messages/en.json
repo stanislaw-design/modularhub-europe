@@ -2158,7 +2158,8 @@
     "galleryLabel": "Project gallery",
     "showImage": "Show image",
     "allProjectsCta": "See all projects",
-    "readProjectCta": "View the project"
+    "readProjectCta": "View the project",
+    "moreProjectsLabel": "Other ModularProjects projects"
   },
   "ProjectRequestPage": {
     "metaTitle": "ModularProjects: submit a large project (from 3 homes) | ModularHub Europe",
@@ -3203,7 +3204,8 @@
       "reset": "Clear filters",
       "count": "Results: {shown} of {total}",
       "noResults": "No projects match the filters.",
-      "addedOn": "Added {date}"
+      "addedOn": "Added {date}",
+      "viewOpenProject": "View and quote"
     },
     "status": {
       "planned": "Planned",
@@ -3229,7 +3231,26 @@
     "modelFrame": "Structural frame",
     "modelViewLabel": "Model view",
     "modelUnsupported": "This browser cannot show 3D models. Photos and renderings are in the gallery below.",
-    "modelLoading": "Loading 3D model"
+    "modelLoading": "Loading 3D model",
+    "open": {
+      "heroCta": "Quote this project",
+      "boardLink": "Already a manufacturer on the platform? Go to the request board",
+      "bandEyebrow": "For manufacturers",
+      "bandHeading": "Submit an offer for this project",
+      "bandLead": "The request is waiting on the platform. Joining is free, and an indicative quote is enough to start.",
+      "stepsLabel": "How to submit an offer",
+      "step1Title": "Register your company",
+      "step1Text": "A few minutes, no fees.",
+      "step2Title": "Complete your capacity profile",
+      "step2Text": "Production capacity, technology and delivery countries.",
+      "step3Title": "Quote on the request board",
+      "step3Text": "A price range is perfectly fine.",
+      "perksLabel": "Why it is worth it",
+      "perk1": "A series of identical houses, one comparison of offers",
+      "perk2": "Indicative quote, no commitment on either side",
+      "perk3": "Clear selection criteria and the outcome shared with everyone",
+      "ctaHeading": "Want to quote this project?"
+    }
   },
   "ConsentBanner": {
     "title": "May we measure traffic on this site?",

@@ -2158,7 +2158,8 @@
     "galleryLabel": "Projektgalerie",
     "showImage": "Bild anzeigen",
     "allProjectsCta": "Alle Projekte ansehen",
-    "readProjectCta": "Projekt ansehen"
+    "readProjectCta": "Projekt ansehen",
+    "moreProjectsLabel": "Weitere ModularProjects-Projekte"
   },
   "ProjectRequestPage": {
     "metaTitle": "ModularProjects: großes Projekt einreichen (ab 3 Häusern) | ModularHub Europe",
@@ -3203,7 +3204,8 @@
       "reset": "Filter zurücksetzen",
       "count": "Ergebnisse: {shown} von {total}",
       "noResults": "Keine Projekte entsprechen den Filtern.",
-      "addedOn": "Hinzugefügt am {date}"
+      "addedOn": "Hinzugefügt am {date}",
+      "viewOpenProject": "Ansehen und anbieten"
     },
     "status": {
       "planned": "Geplant",
@@ -3229,7 +3231,26 @@
     "modelFrame": "Tragwerk",
     "modelViewLabel": "Modellansicht",
     "modelUnsupported": "Dieser Browser kann keine 3D-Modelle anzeigen. Fotos und Visualisierungen finden Sie in der Galerie unten.",
-    "modelLoading": "3D-Modell wird geladen"
+    "modelLoading": "3D-Modell wird geladen",
+    "open": {
+      "heroCta": "Dieses Projekt anbieten",
+      "boardLink": "Schon als Hersteller registriert? Zur Anfragenübersicht",
+      "bandEyebrow": "Für Hersteller",
+      "bandHeading": "Geben Sie ein Angebot für dieses Projekt ab",
+      "bandLead": "Die Anfrage liegt auf der Plattform bereit. Die Teilnahme ist kostenlos, für den Start genügt ein Richtangebot.",
+      "stepsLabel": "So geben Sie ein Angebot ab",
+      "step1Title": "Firma registrieren",
+      "step1Text": "Ein paar Minuten, kostenlos.",
+      "step2Title": "Kapazitätsprofil ausfüllen",
+      "step2Text": "Produktionskapazität, Technologie und Lieferländer.",
+      "step3Title": "In der Anfragenübersicht anbieten",
+      "step3Text": "Eine Preisspanne reicht völlig aus.",
+      "perksLabel": "Warum es sich lohnt",
+      "perk1": "Eine Serie identischer Häuser, ein Angebotsvergleich",
+      "perk2": "Richtangebot, für keine Seite verbindlich",
+      "perk3": "Klare Auswahlkriterien und Rückmeldung zum Ergebnis an alle",
+      "ctaHeading": "Möchten Sie dieses Projekt anbieten?"
+    }
   },
   "ConsentBanner": {
     "title": "Dürfen wir den Datenverkehr auf dieser Website messen?",

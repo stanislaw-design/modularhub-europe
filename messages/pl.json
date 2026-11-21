@@ -2166,7 +2166,8 @@
     "galleryLabel": "Galeria projektu",
     "showImage": "Pokaż zdjęcie",
     "allProjectsCta": "Zobacz wszystkie realizacje",
-    "readProjectCta": "Zobacz realizację"
+    "readProjectCta": "Zobacz realizację",
+    "moreProjectsLabel": "Inne projekty ModularProjects"
   },
   "ProjectRequestPage": {
     "metaTitle": "ModularProjects: zgłoś duży projekt (od 3 domów) | ModularHub Europe",
@@ -3211,7 +3212,8 @@
       "reset": "Wyczyść filtry",
       "count": "Wyniki: {shown} z {total}",
       "noResults": "Brak realizacji pasujących do filtrów.",
-      "addedOn": "Dodano {date}"
+      "addedOn": "Dodano {date}",
+      "viewOpenProject": "Zobacz i wyceń"
     },
     "status": {
       "planned": "Planowana",
@@ -3237,7 +3239,26 @@
     "modelFrame": "Szkielet konstrukcji",
     "modelViewLabel": "Widok modelu",
     "modelUnsupported": "Ta przeglądarka nie pokazuje modeli 3D. Zdjęcia i wizualizacje są w galerii poniżej.",
-    "modelLoading": "Ładowanie modelu 3D"
+    "modelLoading": "Ładowanie modelu 3D",
+    "open": {
+      "heroCta": "Wyceń ten projekt",
+      "boardLink": "Masz konto producenta? Przejdź do tablicy zapytań",
+      "bandEyebrow": "Dla producentów",
+      "bandHeading": "Złóż ofertę na ten projekt",
+      "bandLead": "Zapytanie czeka na platformie. Dołączenie jest bezpłatne, a na start wystarczy wycena orientacyjna.",
+      "stepsLabel": "Jak złożyć ofertę",
+      "step1Title": "Zarejestruj firmę",
+      "step1Text": "Kilka minut, bez opłat.",
+      "step2Title": "Uzupełnij profil zdolności",
+      "step2Text": "Moce produkcyjne, technologia i kraje dostaw.",
+      "step3Title": "Wyceń na tablicy zapytań",
+      "step3Text": "Widełki cenowe w pełni wystarczą.",
+      "perksLabel": "Dlaczego warto",
+      "perk1": "Seria identycznych domów, jedno zestawienie ofert",
+      "perk2": "Wycena orientacyjna, bez zobowiązań po żadnej ze stron",
+      "perk3": "Jasne kryteria wyboru i informacja o wyniku dla każdego",
+      "ctaHeading": "Chcesz wycenić ten projekt?"
+    }
   },
   "ConsentBanner": {
     "title": "Czy możemy mierzyć ruch na portalu?",
