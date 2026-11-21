@@ -94,7 +94,7 @@ describe("SiteHeader (spec 0030)", () => {
     expect(href("Jak to działa")).toBe("/pl#jak-to-dziala");
     expect(href("Najczęstsze pytania")).toBe("/pl#faq");
     expect(href("Kontakt")).toBe("/pl/contact");
-    expect(href("Dołącz jako producent")).toBe("/pl/producer/registration");
+    expect(href("Dołącz jako producent")).toBe("/pl/producer");
     expect(within(menu).getByRole("link", { name: "Dołącz jako producent" }).className).toContain(
       "text-brand-v5-muted"
     );

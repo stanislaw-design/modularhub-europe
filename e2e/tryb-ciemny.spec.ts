@@ -89,7 +89,11 @@ test.describe("Tryb ciemny flow klienta (spec 0043)", () => {
     await expect.poll(() => backgroundOf(panel)).toBe(DARK_SURFACE_BG);
   });
 
-  test("flow producenta pozostaje jasny nawet gdy system preferuje ciemny i cookie motywu jest ustawione na dark (AC-11)", async ({
+  // Do 2026-11-21 /pl/producer należał do flow producenta i był tu sprawdzany
+  // jako zawsze jasny (AC-11). Strona dla producentów przeszła do publicznej
+  // części (grupa (customer), ten sam nagłówek i stopka), więc teraz podąża
+  // za motywem jak reszta strony; AC-11 dotyczy już tylko panelu producenta.
+  test("strona dla producentów /pl/producer podąża za ciemnym motywem jak reszta publicznej strony", async ({
     page,
     context,
   }) => {
@@ -98,8 +102,6 @@ test.describe("Tryb ciemny flow klienta (spec 0043)", () => {
     await context.addCookies([{ name: "theme", value: "dark", url: page.url() }]);
     await page.reload();
 
-    expect(await mainBackground(page)).toBe(LIGHT_BG);
-    await expect(page.getByRole("button", { name: "Przełącz na jasny motyw" })).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "Przełącz na ciemny motyw" })).toHaveCount(0);
+    expect(await mainBackground(page)).toBe(DARK_BG);
   });
 });

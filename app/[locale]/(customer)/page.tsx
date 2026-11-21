@@ -11,6 +11,7 @@ import { Hero } from "@/components/klient/Hero";
 import { HomeStructuredData } from "@/components/klient/HomeStructuredData";
 import { HowItWorksExplainer } from "@/components/klient/HowItWorksExplainer";
 import { PopularHomes } from "@/components/klient/PopularHomes";
+import { ProducerInvite } from "@/components/klient/ProducerInvite";
 import { ProducerShowcase } from "@/components/klient/ProducerShowcase";
 import { SearchCard } from "@/components/klient/SearchCard";
 import { Testimonials } from "@/components/klient/Testimonials";
@@ -95,6 +96,7 @@ export default async function KlientHomePage({
       <HowItWorksExplainer locale={locale} />
       <CompareHomesTeaser locale={locale} projects={projects} />
       <ProducerShowcase producers={producers} locale={locale} />
+      <ProducerInvite locale={locale} />
       <ClosingCta />
       {HOME_SECTIONS.testimonials ? <Testimonials /> : null}
       <Faq />
