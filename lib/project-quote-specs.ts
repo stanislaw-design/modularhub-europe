@@ -48,9 +48,9 @@ export type StoredLogistics = z.infer<typeof storedLogisticsSchema>;
 const logisticsItemInputSchema = z
   .object({
     mode: z.enum(QUOTE_LOGISTICS_MODES),
-    amountEur: z.number().min(0).optional(),
-    maxAmountEur: z.number().min(0).optional(),
-    note: z.string().trim().max(MAX_NOTE_LENGTH).optional(),
+    amountEur: z.number("Kwota logistyki musi być liczbą w euro.").min(0, "Kwota logistyki nie może być ujemna.").optional(),
+    maxAmountEur: z.number("Kwota logistyki musi być liczbą w euro.").min(0, "Kwota logistyki nie może być ujemna.").optional(),
+    note: z.string().trim().max(MAX_NOTE_LENGTH, `Uwagi do pozycji logistyki mogą mieć najwyżej ${MAX_NOTE_LENGTH} znaków.`).optional(),
   })
   .superRefine((item, ctx) => {
     if (item.mode === "tbd") return;
@@ -101,7 +101,7 @@ const optionalText = (max: number) =>
   z
     .string()
     .trim()
-    .max(max)
+    .max(max, `To pole może mieć najwyżej ${max} znaków.`)
     .optional()
     .transform((value) => (value ? value : undefined));
 
@@ -116,16 +116,16 @@ export function isDeliveryWindowOrdered(data: { deliveryWindowFrom?: string; del
 // łączna, zakres w cenie, ważność oferty. Reszta opcjonalna.
 export const projectQuoteFieldsShape = {
   priceTaxMode: z.enum(QUOTE_PRICE_TAX_MODES),
-  vatRatePercent: z.number().min(0).max(100).optional(),
-  totalPriceEur: z.number().positive("Podaj cenę łączną."),
-  unitPriceEur: z.number().positive().optional(),
-  scopeIncluded: z.string().trim().min(1, "Opisz, co jest w cenie.").max(MAX_TEXT_LENGTH),
+  vatRatePercent: z.number("Stawka VAT musi być liczbą.").min(0, "Stawka VAT musi być od 0 do 100.").max(100, "Stawka VAT musi być od 0 do 100.").optional(),
+  totalPriceEur: z.number("Podaj cenę łączną w euro, same cyfry.").positive("Podaj cenę łączną."),
+  unitPriceEur: z.number("Cena za sztukę musi być kwotą w euro, same cyfry.").positive("Cena za sztukę musi być większa od zera.").optional(),
+  scopeIncluded: z.string().trim().min(1, "Opisz, co jest w cenie.").max(MAX_TEXT_LENGTH, `Opis tego, co jest w cenie, może mieć najwyżej ${MAX_TEXT_LENGTH} znaków.`),
   scopeExcluded: optionalText(MAX_TEXT_LENGTH),
   logistics: quoteLogisticsInputSchema.optional(),
   paymentPlan: optionalText(MAX_TEXT_LENGTH),
   validUntil: dateString.refine((value) => value > todayDateString(), "Ważność oferty musi być datą w przyszłości."),
   warrantyNote: optionalText(MAX_NOTE_LENGTH),
-  proposedLeadTimeWeeks: z.number().int().positive().optional(),
+  proposedLeadTimeWeeks: z.number("Czas realizacji musi być liczbą tygodni.").int("Czas realizacji podaj w pełnych tygodniach.").positive("Czas realizacji musi być dłuższy niż zero tygodni.").optional(),
   deliveryWindowFrom: dateString.optional(),
   deliveryWindowTo: dateString.optional(),
   notes: z.string().trim().min(1).optional(),

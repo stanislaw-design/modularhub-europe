@@ -104,10 +104,10 @@ describe("QuoteForm", () => {
     await user.type(screen.getByLabelText(/Cena za sztukę/), "100000");
     await user.type(screen.getByLabelText(/Co jest poza ceną/), "Fundament");
     await user.click(screen.getByLabelText("Transport: Kwota"));
-    await user.type(screen.getByLabelText("Kwota (€)"), "15000");
+    await user.type(screen.getByLabelText("Kwota (EUR)"), "15000");
     await user.click(screen.getByLabelText("Montaż: Widełki"));
-    await user.type(screen.getByLabelText("Od (€)"), "20000");
-    await user.type(screen.getByLabelText("Do (€)"), "30000");
+    await user.type(screen.getByLabelText("Od (EUR)"), "20000");
+    await user.type(screen.getByLabelText("Do (EUR)"), "30000");
     await user.type(screen.getByLabelText(/czas realizacji/), "16");
     await user.type(screen.getByLabelText(/Plan płatności/), "30/60/10");
     await user.type(screen.getByLabelText(/Gwarancja/), "10 lat");
@@ -316,7 +316,69 @@ describe("QuoteForm variants (spec 0077 AC-11, AC-44)", () => {
       />,
     );
     expect(screen.getByLabelText(/Nazwa wariantu/)).toHaveValue("Stan surowy");
-    expect(screen.getByLabelText(/Cena całkowita/)).toHaveValue(700000);
+    expect(screen.getByLabelText(/Cena całkowita/)).toHaveValue("700000");
     expect(screen.getByRole("button", { name: /Wyślij/ })).toBeEnabled();
+  });
+});
+
+// Zgłoszenie producenta (2026-11-19): "DO 1.202.900" w cenie łącznej pole liczbowe
+// po cichu zerowało, przycisk był szary i nikt nie mówił dlaczego.
+describe("QuoteForm validation feedback", () => {
+  it("lists every missing required field above the disabled submit button", () => {
+    render(<QuoteForm projectRequestId="req-1" isRevision={false} />);
+
+    const missing = screen.getByRole("region", { name: "Aby wysłać ofertę, uzupełnij:" });
+    expect(missing).toHaveTextContent("Cena całkowita (EUR): to pole jest wymagane");
+    expect(missing).toHaveTextContent("Co jest w cenie: to pole jest wymagane");
+    expect(missing).toHaveTextContent("Oferta ważna do: to pole jest wymagane");
+    expect(screen.getByRole("button", { name: "Wyślij wycenę" })).toBeDisabled();
+  });
+
+  it("marks a price with words in it red and explains it, instead of silently dropping it", async () => {
+    const user = userEvent.setup();
+    render(<QuoteForm projectRequestId="req-1" isRevision={false} />);
+
+    const total = screen.getByLabelText(/Cena całkowita/);
+    await user.type(total, "DO 1.202.900");
+
+    expect(total).toHaveAttribute("aria-invalid", "true");
+    expect(total).toHaveAccessibleDescription(/wpisz samą kwotę w euro/);
+    expect(screen.getByRole("region", { name: /Aby wysłać ofertę/ })).toHaveTextContent(
+      "Cena całkowita (EUR): wpisz samą kwotę w euro",
+    );
+  });
+
+  it("accepts a price with thousands dots and sends it as a number", async () => {
+    const user = userEvent.setup();
+    mockedSubmitProjectQuote.mockResolvedValue({ ok: true });
+    render(<QuoteForm projectRequestId="req-1" isRevision={false} />);
+
+    await fillRequired(user, "1.202.900");
+    await user.type(screen.getByLabelText(/Cena za sztukę/), "61 250");
+    expect(screen.getByText(/Odczytano: 1\s202\s900 EUR/)).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: /Aby wysłać ofertę/ })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Wyślij wycenę" }));
+
+    await waitFor(() => expect(mockedSubmitProjectQuote).toHaveBeenCalledTimes(1));
+    expect(mockedSubmitProjectQuote.mock.calls[0]![0]).toMatchObject({ totalPriceEur: 1202900, unitPriceEur: 61250 });
+  });
+
+  it("shows an empty required field red only after leaving it", async () => {
+    const user = userEvent.setup();
+    render(<QuoteForm projectRequestId="req-1" isRevision={false} />);
+
+    const scope = screen.getByLabelText(/Co jest w cenie/);
+    expect(scope).not.toHaveAttribute("aria-invalid");
+    await user.click(scope);
+    await user.tab();
+    expect(scope).toHaveAttribute("aria-invalid", "true");
+  });
+
+  it("moves focus to the field when its entry in the missing list is clicked", async () => {
+    const user = userEvent.setup();
+    render(<QuoteForm projectRequestId="req-1" isRevision={false} />);
+
+    await user.click(screen.getByRole("button", { name: /Oferta ważna do: to pole jest wymagane/ }));
+    expect(screen.getByLabelText(/Oferta ważna do/)).toHaveFocus();
   });
 });

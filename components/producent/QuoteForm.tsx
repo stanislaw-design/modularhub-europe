@@ -1,12 +1,20 @@
 "use client";
 
-import { type ChangeEvent, useRef, useState, useTransition } from "react";
+import { type ChangeEvent, type ComponentProps, type ReactNode, useMemo, useRef, useState, useTransition } from "react";
 import { Upload } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { ProjectQuotePdfUploadStep } from "@/components/producent/ProjectQuotePdfUploadStep";
 import { Button, Card, Heading, Input, Label, Radio, Stack, Text, Textarea } from "@/components/ui";
 import type { QuoteFormInitialValues } from "@/lib/platform-quote-variants";
 import { submitProjectQuote } from "@/lib/project-quote-actions";
+import {
+  parseEuroAmount,
+  parsePlainNumber,
+  QUOTE_FORM_FIELD_ORDER,
+  type QuoteFormErrorCode,
+  type QuoteFormFieldKey,
+  validateQuoteDraft,
+} from "@/lib/quote-form-validation";
 import { uploadQuotePdf } from "./upload-quote-pdf";
 import {
   QUOTE_LOGISTICS_ITEMS,
@@ -39,8 +47,34 @@ interface LogisticsDraft {
 
 const EMPTY_LOGISTICS: LogisticsDraft = { mode: "tbd", amountEur: "", maxAmountEur: "", note: "" };
 
-function optionalNumber(value: string): number | undefined {
-  return value.trim() ? Number(value) : undefined;
+// Pole formularza (id elementu w DOM) dla każdego klucza walidacji: lista braków
+// przewija do niego i ustawia w nim kursor.
+function fieldElementId(key: QuoteFormFieldKey): string {
+  if (key.startsWith("logistics.")) {
+    const [, item, part] = key.split(".");
+    return `quote-logistics-${item}-${part}`;
+  }
+  const ids: Record<string, string> = {
+    variantLabel: "quote-variant-label",
+    totalPrice: "quote-total-price",
+    unitPrice: "quote-unit-price",
+    vatRate: "quote-vat-rate",
+    scopeIncluded: "quote-scope-included",
+    validUntil: "quote-valid-until",
+    leadTime: "quote-lead-time",
+    deliveryWindowTo: "quote-delivery-to",
+  };
+  return ids[key]!;
+}
+
+function amountValue(raw: string): number | undefined {
+  const parsed = parseEuroAmount(raw);
+  return parsed.ok ? parsed.value : undefined;
+}
+
+function plainNumberValue(raw: string): number | undefined {
+  const parsed = parsePlainNumber(raw);
+  return parsed.ok ? parsed.value : undefined;
 }
 
 function optionalText(value: string): string | undefined {
@@ -50,8 +84,8 @@ function optionalText(value: string): string | undefined {
 function toLogisticsInput(draft: LogisticsDraft): QuoteLogisticsItemInput {
   return {
     mode: draft.mode,
-    amountEur: draft.mode === "tbd" ? undefined : optionalNumber(draft.amountEur),
-    maxAmountEur: draft.mode === "range" ? optionalNumber(draft.maxAmountEur) : undefined,
+    amountEur: draft.mode === "tbd" ? undefined : amountValue(draft.amountEur),
+    maxAmountEur: draft.mode === "range" ? amountValue(draft.maxAmountEur) : undefined,
     note: optionalText(draft.note),
   };
 }
@@ -61,6 +95,12 @@ function toLogisticsInput(draft: LogisticsDraft): QuoteLogisticsItemInput {
 // tryb ceny, cena łączna, zakres w cenie, ważność oferty. Każda pozycja
 // logistyki ma tryb: kwota, widełki albo "do późniejszej wyceny" (nieznany koszt
 // jest pokazany jako nieznany, nigdy jako zero).
+//
+// Kwoty są zawsze w euro, wpisywane w polach tekstowych (parseEuroAmount przyjmuje
+// "1 202 900", "1.202.900", "61 250,50"), bo pole liczbowe przeglądarki po cichu
+// zerowało wpis z literą albo kropką tysięcy i przycisk zostawał szary bez słowa
+// wyjaśnienia. Teraz źle wypełnione pole jest czerwone z komunikatem, a nad
+// przyciskiem stoi lista wszystkiego, czego brakuje (validateQuoteDraft).
 //
 // PDF oferty (spec 0063 AC-11) jest wybierany w tym samym kroku co cena, ale
 // wgrywany dopiero po tym, jak submitProjectQuote zwróci quoteId:
@@ -77,6 +117,7 @@ export function QuoteForm({
 }: QuoteFormProps) {
   const t = useTranslations("QuoteForm");
   const tPdf = useTranslations("ProjectQuotePdfUploadStep");
+  const locale = useLocale();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [variantLabel, setVariantLabel] = useState(initialValues?.variantLabel ?? "");
   const [priceTaxMode, setPriceTaxMode] = useState<QuotePriceTaxMode>(initialValues?.priceTaxMode ?? "net");
@@ -100,6 +141,7 @@ export function QuoteForm({
   const [deliveryWindowTo, setDeliveryWindowTo] = useState(initialValues?.deliveryWindowTo ?? "");
   const [notes, setNotes] = useState(initialValues?.notes ?? "");
   const [file, setFile] = useState<File | null>(null);
+  const [touched, setTouched] = useState<ReadonlySet<QuoteFormFieldKey>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const [pdfError, setPdfError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
@@ -107,9 +149,109 @@ export function QuoteForm({
   const [uploadedFilename, setUploadedFilename] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const totalPrice = Number(totalPriceEur) || 0;
-  const canSubmit =
-    totalPrice > 0 && scopeIncluded.trim().length > 0 && validUntil.length > 0 && (!requireVariant || variantLabel.trim().length > 0);
+  const errors = useMemo(
+    () =>
+      validateQuoteDraft({
+        requireVariant,
+        variantLabel,
+        totalPriceEur,
+        unitPriceEur,
+        vatRatePercent,
+        scopeIncluded,
+        logistics,
+        validUntil,
+        proposedLeadTimeWeeks,
+        deliveryWindowFrom,
+        deliveryWindowTo,
+      }),
+    [
+      requireVariant,
+      variantLabel,
+      totalPriceEur,
+      unitPriceEur,
+      vatRatePercent,
+      scopeIncluded,
+      logistics,
+      validUntil,
+      proposedLeadTimeWeeks,
+      deliveryWindowFrom,
+      deliveryWindowTo,
+    ],
+  );
+  const missingFields = QUOTE_FORM_FIELD_ORDER.filter((key) => errors[key]);
+  const canSubmit = missingFields.length === 0;
+  const amountFormatter = useMemo(() => new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }), [locale]);
+
+  function markTouched(key: QuoteFormFieldKey) {
+    setTouched((current) => (current.has(key) ? current : new Set(current).add(key)));
+  }
+
+  // Brak w polu obowiązkowym robi się czerwony dopiero po wyjściu z pola (żeby
+  // pusty formularz nie był cały czerwony od startu); zły format od razu.
+  function visibleError(key: QuoteFormFieldKey): QuoteFormErrorCode | undefined {
+    const code = errors[key];
+    if (!code) return undefined;
+    return code === "required" && !touched.has(key) ? undefined : code;
+  }
+
+  function fieldLabel(key: QuoteFormFieldKey): string {
+    if (key.startsWith("logistics.")) {
+      const [, item, part] = key.split(".") as [string, QuoteLogisticsItem, "amount" | "max"];
+      const mode = logistics[item].mode;
+      const partLabel = part === "max" ? t("logisticsAmountTo") : mode === "range" ? t("logisticsAmountFrom") : t("logisticsAmount");
+      return `${t(`logisticsItem.${item}`)}, ${partLabel}`;
+    }
+    const labels: Record<string, string> = {
+      variantLabel: t("variantLabel"),
+      totalPrice: t("totalPriceLabel"),
+      unitPrice: t("unitPriceLabel"),
+      vatRate: t("vatRateLabel"),
+      scopeIncluded: t("scopeIncludedLabel"),
+      validUntil: t("validUntilLabel"),
+      leadTime: t("leadTimeLabel"),
+      deliveryWindowTo: t("deliveryWindowToLabel"),
+    };
+    return labels[key]!;
+  }
+
+  function focusField(key: QuoteFormFieldKey) {
+    markTouched(key);
+    const element = document.getElementById(fieldElementId(key));
+    element?.focus();
+  }
+
+  // Wspólne atrybuty pola z walidacją: czerwona ramka, aria-invalid i powiązany komunikat.
+  function validationProps(key: QuoteFormFieldKey) {
+    const code = visibleError(key);
+    return {
+      invalid: Boolean(code),
+      "aria-describedby": code ? `${fieldElementId(key)}-error` : undefined,
+      onBlur: () => markTouched(key),
+    };
+  }
+
+  function fieldError(key: QuoteFormFieldKey): ReactNode {
+    const code = visibleError(key);
+    if (!code) return null;
+    return (
+      <p id={`${fieldElementId(key)}-error`} className="font-sans text-label text-status-blocked">
+        {t(`errors.${code}`)}
+      </p>
+    );
+  }
+
+  // Podgląd, jak odczytaliśmy kwotę z separatorami ("1.202.900" -> 1 202 900), żeby
+  // producent widział, że kropka tysięcy nie zamieniła się w ułamek.
+  function amountReadAs(raw: string): ReactNode {
+    if (!/[\s.,]/.test(raw.trim())) return null;
+    const parsed = parseEuroAmount(raw);
+    if (!parsed.ok || parsed.value === undefined) return null;
+    return (
+      <Text as="span" variant="label" tone="muted">
+        {t("amountReadAs", { amount: amountFormatter.format(parsed.value) })}
+      </Text>
+    );
+  }
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const files = event.target.files;
@@ -121,6 +263,7 @@ export function QuoteForm({
   }
 
   function handleSubmit() {
+    if (!canSubmit) return;
     setError(null);
     setPdfError(null);
     startTransition(async () => {
@@ -128,9 +271,9 @@ export function QuoteForm({
         ...(projectRequestId ? { projectRequestId } : { bulkProductInquiryId }),
         ...(requireVariant ? { variantLabel: variantLabel.trim() } : {}),
         priceTaxMode,
-        vatRatePercent: optionalNumber(vatRatePercent),
-        totalPriceEur: totalPrice,
-        unitPriceEur: optionalNumber(unitPriceEur),
+        vatRatePercent: plainNumberValue(vatRatePercent),
+        totalPriceEur: amountValue(totalPriceEur) ?? 0,
+        unitPriceEur: amountValue(unitPriceEur),
         scopeIncluded: scopeIncluded.trim(),
         scopeExcluded: optionalText(scopeExcluded),
         logistics: {
@@ -141,7 +284,7 @@ export function QuoteForm({
         paymentPlan: optionalText(paymentPlan),
         validUntil,
         warrantyNote: optionalText(warrantyNote),
-        proposedLeadTimeWeeks: optionalNumber(proposedLeadTimeWeeks),
+        proposedLeadTimeWeeks: plainNumberValue(proposedLeadTimeWeeks),
         deliveryWindowFrom: deliveryWindowFrom || undefined,
         deliveryWindowTo: deliveryWindowTo || undefined,
         notes: optionalText(notes),
@@ -201,7 +344,9 @@ export function QuoteForm({
               required
               value={variantLabel}
               onChange={(event) => setVariantLabel(event.target.value)}
+              {...validationProps("variantLabel")}
             />
+            {fieldError("variantLabel")}
             <Text as="span" variant="label" tone="muted">
               {t("variantHint")}
             </Text>
@@ -210,6 +355,7 @@ export function QuoteForm({
 
         <fieldset className="flex flex-col gap-brand-3">
           <legend className="mb-brand-2 font-display text-body-l font-semibold text-brand-foundation-navy">{t("priceSection")}</legend>
+          <Text tone="muted">{t("priceHint")}</Text>
           <div role="radiogroup" aria-label={t("priceTaxModeLabel")} className="flex flex-wrap items-center gap-x-brand-4 gap-y-brand-2">
             <Text as="span" variant="label" tone="muted">
               {t("priceTaxModeLabel")}
@@ -232,30 +378,37 @@ export function QuoteForm({
               <Label htmlFor="quote-total-price" required>
                 {t("totalPriceLabel")}
               </Label>
-              <Input
+              <EuroInput
                 id="quote-total-price"
-                type="number"
-                min={0}
                 required
+                placeholder={t("totalPricePlaceholder")}
                 value={totalPriceEur}
                 onChange={(event) => setTotalPriceEur(event.target.value)}
+                {...validationProps("totalPrice")}
               />
+              {fieldError("totalPrice") ?? amountReadAs(totalPriceEur)}
             </Stack>
             <Stack gap={1}>
               <Label htmlFor="quote-unit-price">{t("unitPriceLabel")}</Label>
-              <Input id="quote-unit-price" type="number" min={0} value={unitPriceEur} onChange={(event) => setUnitPriceEur(event.target.value)} />
+              <EuroInput
+                id="quote-unit-price"
+                value={unitPriceEur}
+                onChange={(event) => setUnitPriceEur(event.target.value)}
+                {...validationProps("unitPrice")}
+              />
+              {fieldError("unitPrice") ?? amountReadAs(unitPriceEur)}
             </Stack>
             <Stack gap={1}>
               <Label htmlFor="quote-vat-rate">{t("vatRateLabel")}</Label>
               <Input
                 id="quote-vat-rate"
-                type="number"
-                min={0}
-                max={100}
-                step="0.1"
+                inputMode="decimal"
+                autoComplete="off"
                 value={vatRatePercent}
                 onChange={(event) => setVatRatePercent(event.target.value)}
+                {...validationProps("vatRate")}
               />
+              {fieldError("vatRate")}
             </Stack>
           </div>
         </fieldset>
@@ -266,11 +419,19 @@ export function QuoteForm({
             <Label htmlFor="quote-scope-included" required>
               {t("scopeIncludedLabel")}
             </Label>
-            <Textarea id="quote-scope-included" required value={scopeIncluded} onChange={(event) => setScopeIncluded(event.target.value)} />
+            <Textarea
+              id="quote-scope-included"
+              required
+              maxLength={5000}
+              value={scopeIncluded}
+              onChange={(event) => setScopeIncluded(event.target.value)}
+              {...validationProps("scopeIncluded")}
+            />
+            {fieldError("scopeIncluded")}
           </Stack>
           <Stack gap={1} className="w-full">
             <Label htmlFor="quote-scope-excluded">{t("scopeExcludedLabel")}</Label>
-            <Textarea id="quote-scope-excluded" value={scopeExcluded} onChange={(event) => setScopeExcluded(event.target.value)} />
+            <Textarea id="quote-scope-excluded" maxLength={5000} value={scopeExcluded} onChange={(event) => setScopeExcluded(event.target.value)} />
           </Stack>
         </fieldset>
 
@@ -284,6 +445,10 @@ export function QuoteForm({
               draft={logistics[item]}
               disabled={isPending}
               onChange={(patch) => updateLogistics(item, patch)}
+              amountProps={validationProps(`logistics.${item}.amount`)}
+              maxProps={validationProps(`logistics.${item}.max`)}
+              amountError={fieldError(`logistics.${item}.amount`)}
+              maxError={fieldError(`logistics.${item}.max`)}
             />
           ))}
         </fieldset>
@@ -295,17 +460,27 @@ export function QuoteForm({
               <Label htmlFor="quote-valid-until" required>
                 {t("validUntilLabel")}
               </Label>
-              <Input id="quote-valid-until" type="date" required value={validUntil} onChange={(event) => setValidUntil(event.target.value)} />
+              <Input
+                id="quote-valid-until"
+                type="date"
+                required
+                value={validUntil}
+                onChange={(event) => setValidUntil(event.target.value)}
+                {...validationProps("validUntil")}
+              />
+              {fieldError("validUntil")}
             </Stack>
             <Stack gap={1}>
               <Label htmlFor="quote-lead-time">{t("leadTimeLabel")}</Label>
               <Input
                 id="quote-lead-time"
-                type="number"
-                min={1}
+                inputMode="numeric"
+                autoComplete="off"
                 value={proposedLeadTimeWeeks}
                 onChange={(event) => setProposedLeadTimeWeeks(event.target.value)}
+                {...validationProps("leadTime")}
               />
+              {fieldError("leadTime")}
             </Stack>
             <Stack gap={1}>
               <Label htmlFor="quote-delivery-from">{t("deliveryWindowFromLabel")}</Label>
@@ -313,16 +488,23 @@ export function QuoteForm({
             </Stack>
             <Stack gap={1}>
               <Label htmlFor="quote-delivery-to">{t("deliveryWindowToLabel")}</Label>
-              <Input id="quote-delivery-to" type="date" value={deliveryWindowTo} onChange={(event) => setDeliveryWindowTo(event.target.value)} />
+              <Input
+                id="quote-delivery-to"
+                type="date"
+                value={deliveryWindowTo}
+                onChange={(event) => setDeliveryWindowTo(event.target.value)}
+                {...validationProps("deliveryWindowTo")}
+              />
+              {fieldError("deliveryWindowTo")}
             </Stack>
           </div>
           <Stack gap={1} className="w-full">
             <Label htmlFor="quote-payment-plan">{t("paymentPlanLabel")}</Label>
-            <Textarea id="quote-payment-plan" value={paymentPlan} onChange={(event) => setPaymentPlan(event.target.value)} />
+            <Textarea id="quote-payment-plan" maxLength={5000} value={paymentPlan} onChange={(event) => setPaymentPlan(event.target.value)} />
           </Stack>
           <Stack gap={1} className="w-full">
             <Label htmlFor="quote-warranty">{t("warrantyLabel")}</Label>
-            <Input id="quote-warranty" value={warrantyNote} onChange={(event) => setWarrantyNote(event.target.value)} />
+            <Input id="quote-warranty" maxLength={500} value={warrantyNote} onChange={(event) => setWarrantyNote(event.target.value)} />
           </Stack>
           <Stack gap={1} className="w-full">
             <Label htmlFor="quote-notes">{t("notesLabel")}</Label>
@@ -351,6 +533,31 @@ export function QuoteForm({
             </Text>
           </div>
         </Stack>
+
+        {missingFields.length > 0 && (
+          <div
+            role="region"
+            aria-label={t("missingHeading")}
+            className="flex flex-col gap-brand-2 rounded-card border border-status-blocked/40 bg-status-blocked/5 p-brand-3"
+          >
+            <Text as="p" className="font-medium text-brand-foundation-navy">
+              {t("missingHeading")}
+            </Text>
+            <ul className="flex list-disc flex-col gap-brand-1 pl-brand-4">
+              {missingFields.map((key) => (
+                <li key={key} className="text-body text-status-blocked">
+                  <button
+                    type="button"
+                    onClick={() => focusField(key)}
+                    className="focus-ring rounded-data text-left underline-offset-2 hover:underline"
+                  >
+                    {`${fieldLabel(key)}: ${t(`errors.${errors[key]!}`)}`}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         {error && (
           <p className="font-sans text-body text-status-blocked" role="alert">
             {error}
@@ -364,16 +571,48 @@ export function QuoteForm({
   );
 }
 
+type EuroInputProps = Omit<ComponentProps<typeof Input>, "type" | "inputMode">;
+
+// Pole kwoty w euro: zwykłe pole tekstowe (nie type="number", które po cichu
+// zerowało "1.202.900" albo wpis z literą) z dopiskiem "EUR" po prawej stronie.
+function EuroInput({ className, ...props }: EuroInputProps) {
+  return (
+    <div className="relative">
+      <Input type="text" inputMode="decimal" autoComplete="off" className={`pr-12 ${className ?? ""}`} {...props} />
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 right-brand-2 flex items-center text-label font-medium text-brand-technical-graphite"
+      >
+        EUR
+      </span>
+    </div>
+  );
+}
+
+interface FieldValidationProps {
+  invalid: boolean;
+  "aria-describedby": string | undefined;
+  onBlur: () => void;
+}
+
 function LogisticsRow({
   item,
   draft,
   disabled,
   onChange,
+  amountProps,
+  maxProps,
+  amountError,
+  maxError,
 }: {
   item: QuoteLogisticsItem;
   draft: LogisticsDraft;
   disabled: boolean;
   onChange: (patch: Partial<LogisticsDraft>) => void;
+  amountProps: FieldValidationProps;
+  maxProps: FieldValidationProps;
+  amountError: ReactNode;
+  maxError: ReactNode;
 }) {
   const t = useTranslations("QuoteForm");
   const itemLabel = t(`logisticsItem.${item}`);
@@ -409,31 +648,36 @@ function LogisticsRow({
             <Label htmlFor={`quote-logistics-${item}-amount`}>
               {draft.mode === "range" ? t("logisticsAmountFrom") : t("logisticsAmount")}
             </Label>
-            <Input
+            <EuroInput
               id={`quote-logistics-${item}-amount`}
-              type="number"
-              min={0}
               value={draft.amountEur}
               onChange={(event) => onChange({ amountEur: event.target.value })}
+              {...amountProps}
             />
+            {amountError}
           </Stack>
           {draft.mode === "range" && (
             <Stack gap={1}>
               <Label htmlFor={`quote-logistics-${item}-max`}>{t("logisticsAmountTo")}</Label>
-              <Input
+              <EuroInput
                 id={`quote-logistics-${item}-max`}
-                type="number"
-                min={0}
                 value={draft.maxAmountEur}
                 onChange={(event) => onChange({ maxAmountEur: event.target.value })}
+                {...maxProps}
               />
+              {maxError}
             </Stack>
           )}
         </div>
       )}
       <Stack gap={1}>
         <Label htmlFor={`quote-logistics-${item}-note`}>{t("logisticsNote")}</Label>
-        <Input id={`quote-logistics-${item}-note`} value={draft.note} onChange={(event) => onChange({ note: event.target.value })} />
+        <Input
+          id={`quote-logistics-${item}-note`}
+          maxLength={500}
+          value={draft.note}
+          onChange={(event) => onChange({ note: event.target.value })}
+        />
       </Stack>
     </div>
   );
